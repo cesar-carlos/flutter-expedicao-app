@@ -26,8 +26,8 @@ Uma aplicação Flutter para gerenciamento de expedição com scanner QR/código
 1. **Clone o repositório**
 
 ```bash
-git clone <url-do-repositorio>
-cd exp
+git clone https://github.com/cesar-carlos/flutter-expedicao-app.git
+cd flutter-expedicao-app
 ```
 
 2. **Instale as dependências**
