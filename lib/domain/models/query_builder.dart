@@ -62,26 +62,6 @@ class QueryBuilder {
     return _pagination!.toQueryString();
   }
 
-  /// Builds the complete query string (parameters + pagination)
-  String build() {
-    final queryString = buildQuery();
-    final paginationString = buildPagination();
-
-    if (queryString.isEmpty && paginationString.isEmpty) {
-      return '';
-    }
-
-    if (queryString.isEmpty) {
-      return paginationString;
-    }
-
-    if (paginationString.isEmpty) {
-      return queryString;
-    }
-
-    return '$queryString&$paginationString';
-  }
-
   /// Gets all parameters as a list
   List<QueryParam> get params => List.unmodifiable(_params);
 

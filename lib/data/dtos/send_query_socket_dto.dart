@@ -3,15 +3,15 @@ enum OrderBy { ASC, DESC }
 class SendQuerySocketDto {
   final String session;
   final String responseIn;
-  final String where;
-  final int limit;
+  final String? where;
+  final String? pagination;
   final OrderBy orderBy;
 
   SendQuerySocketDto({
     required this.session,
     required this.responseIn,
-    required this.where,
-    this.limit = 0,
+    this.where,
+    this.pagination,
     this.orderBy = OrderBy.ASC,
   });
 
@@ -20,7 +20,7 @@ class SendQuerySocketDto {
       'Session': session,
       'ResponseIn': responseIn,
       'Where': where,
-      'Limit': limit,
+      'Pagination': pagination,
       'OrderBy': orderBy.toString().split('.').last,
     };
   }
@@ -32,7 +32,7 @@ class SendQuerySocketDto {
         session: $session, 
         responseIn: $responseIn, 
         where: $where,
-        limit: $limit,
+        pagination: $pagination,
         orderBy: $orderBy
     )''';
   }

@@ -10,9 +10,9 @@ class Pagination {
     return Pagination(limit: limit, offset: offset);
   }
 
-  /// Converts to query string format
+  /// Converts to JSON string format
   String toQueryString() {
-    return 'limit=$limit&offset=$offset';
+    return '{"limit":$limit,"offset":$offset}';
   }
 
   @override

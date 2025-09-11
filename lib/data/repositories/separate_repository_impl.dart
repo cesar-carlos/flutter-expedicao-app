@@ -29,6 +29,7 @@ class SeparateRepositoryImpl implements SeparateRepository {
       session: socket.id!,
       responseIn: responseId,
       where: queryBuilder.buildQuery(),
+      pagination: queryBuilder.buildPagination(),
     );
 
     try {
@@ -70,10 +71,14 @@ class SeparateRepositoryImpl implements SeparateRepository {
     final completer = Completer<List<SeparateModel>>();
     final responseId = uuid.v4();
 
+    final whereQuery = queryBuilder.buildQuery();
+    final paginationQuery = queryBuilder.buildPagination();
+
     final send = SendQuerySocketDto(
       session: socket.id!,
       responseIn: responseId,
-      where: queryBuilder.buildQuery(),
+      where: whereQuery.isEmpty ? null : whereQuery,
+      pagination: paginationQuery.isEmpty ? null : paginationQuery,
     );
 
     try {

@@ -142,56 +142,6 @@ class _ShipmentSeparateConsultationScreenState
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      // Filtros rápidos
-                      Row(
-                        children: [
-                          Expanded(
-                            child: FilterChip(
-                              label: const Text('Todas'),
-                              selected:
-                                  viewModel.selectedSituacaoFilter == null,
-                              onSelected: (selected) {
-                                if (selected) {
-                                  viewModel.setSituacaoFilter(null);
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: FilterChip(
-                              label: const Text('Aguardando'),
-                              selected:
-                                  viewModel.selectedSituacaoFilter ==
-                                  ExpeditionSituation.aguardando.code,
-                              onSelected: (selected) {
-                                if (selected) {
-                                  viewModel.setSituacaoFilter(
-                                    ExpeditionSituation.aguardando.code,
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: FilterChip(
-                              label: const Text('Finalizadas'),
-                              selected:
-                                  viewModel.selectedSituacaoFilter ==
-                                  ExpeditionSituation.finalizada.code,
-                              onSelected: (selected) {
-                                if (selected) {
-                                  viewModel.setSituacaoFilter(
-                                    ExpeditionSituation.finalizada.code,
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
@@ -532,13 +482,19 @@ class _ShipmentSeparateConsultationScreenState
 
   void _performConsultation(ShipmentSeparateConsultationViewModel viewModel) {
     // Mostrar diálogo para inserir parâmetros de consulta
-    showDialog(
-      context: context,
-      builder: (context) => _buildConsultationDialog(viewModel),
+    context.showCustomDialog(
+      title: 'Consultar Separações',
+      titleIcon: Icon(
+        Icons.search,
+        color: Theme.of(context).colorScheme.primary,
+      ),
+      width: 800,
+      height: 700,
+      content: _buildConsultationDialogContent(viewModel),
     );
   }
 
-  Widget _buildConsultationDialog(
+  Widget _buildConsultationDialogContent(
     ShipmentSeparateConsultationViewModel viewModel,
   ) {
     final TextEditingController paramsController = TextEditingController();
@@ -547,236 +503,201 @@ class _ShipmentSeparateConsultationScreenState
 
     return StatefulBuilder(
       builder: (context, setState) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: 8),
-              const Text('Consultar Separações'),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Escolha o tipo de consulta:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+
+            // Opções de filtro
+            Column(
               children: [
-                const Text(
-                  'Escolha o tipo de consulta:',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                RadioListTile<String>(
+                  title: const Text('Todas as separações'),
+                  subtitle: const Text(
+                    'Buscar todas as separações disponíveis',
+                  ),
+                  value: 'todos',
+                  groupValue: selectedFilter,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedFilter = value!;
+                    });
+                  },
                 ),
-                const SizedBox(height: 16),
-
-                // Opções de filtro
-                Column(
-                  children: [
-                    RadioListTile<String>(
-                      title: const Text('Todas as separações'),
-                      subtitle: const Text(
-                        'Buscar todas as separações disponíveis',
-                      ),
-                      value: 'todos',
-                      groupValue: selectedFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Por código'),
-                      subtitle: const Text('Buscar por código específico'),
-                      value: 'codigo',
-                      groupValue: selectedFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Por situação'),
-                      subtitle: const Text('Buscar por situação específica'),
-                      value: 'status',
-                      groupValue: selectedFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Consulta personalizada'),
-                      subtitle: const Text('Digite parâmetros personalizados'),
-                      value: 'personalizada',
-                      groupValue: selectedFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedFilter = value!;
-                        });
-                      },
-                    ),
-                  ],
+                RadioListTile<String>(
+                  title: const Text('Por código'),
+                  subtitle: const Text('Buscar por código específico'),
+                  value: 'codigo',
+                  groupValue: selectedFilter,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedFilter = value!;
+                    });
+                  },
                 ),
-
-                const SizedBox(height: 16),
-
-                // Campo de entrada baseado na seleção
-                if (selectedFilter == 'codigo') ...[
-                  TextField(
-                    controller: paramsController,
-                    decoration: const InputDecoration(
-                      labelText: 'Código da separação',
-                      hintText: 'Ex: 123',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.tag),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ] else if (selectedFilter == 'status') ...[
-                  DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(
-                      labelText: 'Situação',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.flag),
-                    ),
-                    items: ExpeditionSituation.values.map((situation) {
-                      return DropdownMenuItem(
-                        value: situation.code,
-                        child: Text(situation.description),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      paramsController.text = value ?? '';
-                    },
-                  ),
-                ] else if (selectedFilter == 'personalizada') ...[
-                  TextField(
-                    controller: paramsController,
-                    decoration: const InputDecoration(
-                      labelText: 'Parâmetros personalizados',
-                      hintText: 'Ex: codigo=123, situacao=AGUARDANDO',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.filter_list),
-                    ),
-                    maxLines: 3,
-                    minLines: 1,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Formato: campo=valor, campo2=valor2',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-
-                const SizedBox(height: 16),
-
-                // Configurações de paginação
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.outline.withOpacity(0.3),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.view_list,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Configurações de Paginação',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          const Text('Registros por página:'),
-                          const SizedBox(width: 16),
-                          DropdownButton<int>(
-                            value: pageSize,
-                            items: [10, 20, 50, 100].map((size) {
-                              return DropdownMenuItem(
-                                value: size,
-                                child: Text('$size'),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                pageSize = value ?? 20;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                RadioListTile<String>(
+                  title: const Text('Por situação'),
+                  subtitle: const Text('Buscar por situação específica'),
+                  value: 'status',
+                  groupValue: selectedFilter,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedFilter = value!;
+                    });
+                  },
                 ),
+              ],
+            ),
 
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
+            const SizedBox(height: 16),
+
+            // Campo de entrada baseado na seleção
+            if (selectedFilter == 'codigo') ...[
+              TextField(
+                controller: paramsController,
+                decoration: const InputDecoration(
+                  labelText: 'Código da separação',
+                  hintText: 'Ex: 123',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.tag),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ] else if (selectedFilter == 'status') ...[
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Situação',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.flag),
+                ),
+                items: ExpeditionSituation.values.map((situation) {
+                  return DropdownMenuItem(
+                    value: situation.code,
+                    child: Text(situation.description),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  paramsController.text = value ?? '';
+                },
+              ),
+            ],
+
+            const SizedBox(height: 16),
+
+            // Configurações de paginação
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
                       Icon(
-                        Icons.info_outline,
+                        Icons.view_list,
                         color: Theme.of(context).colorScheme.primary,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          selectedFilter == 'todos'
-                              ? 'Esta consulta retornará todas as separações disponíveis no sistema com paginação.'
-                              : 'Esta consulta filtrará as separações baseada nos critérios selecionados com paginação.',
-                          style: const TextStyle(fontSize: 12),
-                        ),
+                      const Text(
+                        'Configurações de Paginação',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Text('Registros por página:'),
+                      const SizedBox(width: 16),
+                      DropdownButton<int>(
+                        value: pageSize,
+                        items: [10, 20, 50, 100].map((size) {
+                          return DropdownMenuItem(
+                            value: size,
+                            child: Text('$size'),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            pageSize = value ?? 20;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      selectedFilter == 'todos'
+                          ? 'Esta consulta retornará todas as separações disponíveis no sistema com paginação.'
+                          : 'Esta consulta filtrará as separações baseada nos critérios selecionados com paginação.',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Botões de ação
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.search),
+                  label: const Text('Consultar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // Atualizar tamanho da página se necessário
+                    if (pageSize != viewModel.pageSize) {
+                      viewModel.setPageSize(pageSize);
+                    }
+                    _executeConsultationWithFilter(
+                      viewModel,
+                      selectedFilter,
+                      paramsController.text.trim(),
+                    );
+                  },
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.search),
-              label: const Text('Consultar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                // Atualizar tamanho da página se necessário
-                if (pageSize != viewModel.pageSize) {
-                  viewModel.setPageSize(pageSize);
-                }
-                _executeConsultationWithFilter(
-                  viewModel,
-                  selectedFilter,
-                  paramsController.text.trim(),
-                );
-              },
             ),
           ],
         );
@@ -815,12 +736,6 @@ class _ShipmentSeparateConsultationScreenState
         } else {
           queryBuilder = QueryBuilderExtension.withDefaultPagination();
         }
-        break;
-      case 'personalizada':
-        // Para consulta personalizada, criar QueryBuilder básico
-        // O usuário pode adicionar filtros manualmente depois
-        queryBuilder = QueryBuilderExtension.withDefaultPagination();
-        // TODO: Implementar parsing de parâmetros personalizados
         break;
     }
 
