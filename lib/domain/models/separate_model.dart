@@ -174,14 +174,6 @@ class SeparateModel {
     return buffer.toString();
   }
 
-  /// Extrai hora de um DateTime
-  static String _extractTime(DateTime? dateTime) {
-    if (dateTime == null) return '00:00:00';
-    return '${dateTime.hour.toString().padLeft(2, '0')}:'
-        '${dateTime.minute.toString().padLeft(2, '0')}:'
-        '${dateTime.second.toString().padLeft(2, '0')}';
-  }
-
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

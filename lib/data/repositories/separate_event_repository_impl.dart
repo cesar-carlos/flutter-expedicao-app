@@ -6,17 +6,17 @@ import 'package:exp/domain/models/basic_event_model.dart';
 import 'package:exp/core/network/socket_config.dart';
 
 /// Implementação do repositório de eventos para separação de expedição
-class SeparateEventRepository implements EventContract {
-  static SeparateEventRepository? _instance;
+class SeparateEventRepositoryImpl implements EventContract {
+  static SeparateEventRepositoryImpl? _instance;
   final List<RepositoryEventListenerModel> _listeners = [];
 
-  SeparateEventRepository._() {
+  SeparateEventRepositoryImpl._() {
     _setupEventListeners();
   }
 
   /// Singleton instance
-  static SeparateEventRepository get instance {
-    _instance ??= SeparateEventRepository._();
+  static SeparateEventRepositoryImpl get instance {
+    _instance ??= SeparateEventRepositoryImpl._();
     return _instance!;
   }
 
