@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:exp/domain/models/query_builder.dart';
 import 'package:exp/domain/repositories/separate_repository.dart';
 import 'package:exp/di/locator.dart';
 
@@ -14,14 +15,14 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
   SeparateConsultationState _state = SeparateConsultationState.initial;
   List<SeparateConsultationModel> _consultations = [];
   String _searchQuery = '';
-  String? _statusFilter;
+  String? _situacaoFilter;
   String? _errorMessage;
 
   // Getters
   SeparateConsultationState get state => _state;
   List<SeparateConsultationModel> get consultations => _consultations;
   String get searchQuery => _searchQuery;
-  String? get selectedStatusFilter => _statusFilter;
+  String? get selectedSituacaoFilter => _situacaoFilter;
   String? get errorMessage => _errorMessage;
   bool get isLoading => _state == SeparateConsultationState.loading;
   bool get hasError => _state == SeparateConsultationState.error;
@@ -31,11 +32,11 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
   List<SeparateConsultationModel> get filteredConsultations {
     var filtered = _consultations;
 
-    // Aplicar filtro de status
-    if (_statusFilter != null) {
+    // Aplicar filtro de situação
+    if (_situacaoFilter != null) {
       filtered = filtered.where((consultation) {
         return consultation.status?.toUpperCase() ==
-            _statusFilter!.toUpperCase();
+            _situacaoFilter!.toUpperCase();
       }).toList();
     }
 
@@ -99,10 +100,10 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
     }
   }
 
-  /// Define o filtro de status
-  void setStatusFilter(String? status) {
-    if (_statusFilter != status) {
-      _statusFilter = status;
+  /// Define o filtro de situação
+  void setSituacaoFilter(String? situacao) {
+    if (_situacaoFilter != situacao) {
+      _situacaoFilter = situacao;
       notifyListeners();
     }
   }
@@ -110,7 +111,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
   /// Limpa todos os filtros
   void clearFilters() {
     _searchQuery = '';
-    _statusFilter = null;
+    _situacaoFilter = null;
     notifyListeners();
   }
 
@@ -120,9 +121,9 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Limpa apenas o filtro de status
-  void clearStatusFilter() {
-    _statusFilter = null;
+  /// Limpa apenas o filtro de situação
+  void clearSituacaoFilter() {
+    _situacaoFilter = null;
     notifyListeners();
   }
 
@@ -206,7 +207,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
     _state = SeparateConsultationState.initial;
     _consultations = [];
     _searchQuery = '';
-    _statusFilter = null;
+    _situacaoFilter = null;
     _errorMessage = null;
     notifyListeners();
   }

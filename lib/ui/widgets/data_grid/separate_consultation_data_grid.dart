@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:exp/domain/models/shipping_situation_model.dart';
 import 'package:exp/core/utils/fields_helper.dart';
 
 /// DataGrid para exibir consultas de separação de expedição
@@ -9,6 +10,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
   final List<SeparateConsultationModel> consultations;
   final Function(SeparateConsultationModel)? onRowTap;
   final Function(SeparateConsultationModel)? onRowDoubleTap;
+
   final bool allowSorting;
   final bool allowFiltering;
   final bool allowSelection;
@@ -247,31 +249,9 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
   }
 
   Widget _buildStatusChip(String status) {
-    Color backgroundColor;
-    Color textColor = Colors.white;
-
-    switch (status.toUpperCase()) {
-      case 'ATIVO':
-      case 'PENDENTE':
-        backgroundColor = Colors.orange;
-        break;
-      case 'EM_ANDAMENTO':
-        backgroundColor = Colors.blue;
-        break;
-      case 'FINALIZADO':
-      case 'CONCLUIDO':
-        backgroundColor = Colors.green;
-        break;
-      case 'CANCELADO':
-        backgroundColor = Colors.red;
-        break;
-      case 'PAUSADO':
-        backgroundColor = Colors.yellow;
-        textColor = Colors.black;
-        break;
-      default:
-        backgroundColor = Colors.grey;
-    }
+    final situation = ExpeditionSituation.fromCode(status);
+    final backgroundColor = situation?.color ?? Colors.grey;
+    final textColor = _getTextColor(backgroundColor);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -280,7 +260,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        status,
+        ExpeditionSituation.getDescription(status),
         style: TextStyle(
           color: textColor,
           fontSize: 10,
@@ -288,5 +268,17 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
         ),
       ),
     );
+  }
+
+  /// Determina a cor do texto baseada na cor de fundo
+  Color _getTextColor(Color backgroundColor) {
+    // Cores que precisam de texto preto
+    if (backgroundColor == Colors.yellow ||
+        backgroundColor == Colors.lightGreen ||
+        backgroundColor == Colors.amber ||
+        backgroundColor == Colors.lightBlue) {
+      return Colors.black;
+    }
+    return Colors.white;
   }
 }

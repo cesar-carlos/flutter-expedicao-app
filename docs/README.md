@@ -34,3 +34,4 @@ lib/
 ## Consulte
 
 - [Arquitetura recomendada](./architecture/architecture.md) - Documento detalhado sobre a arquitetura do projeto
+- [Query Parameters](./query-params-documentation.md) - Sistema de parâmetros de consulta tipados e modulares

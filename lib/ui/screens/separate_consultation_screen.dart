@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:exp/domain/viewmodels/separate_consultation_viewmodel.dart';
 import 'package:exp/ui/widgets/common/index.dart';
 import 'package:exp/ui/widgets/app_drawer/app_drawer.dart';
 import 'package:exp/ui/widgets/data_grid/separate_consultation_data_grid.dart';
+import 'package:exp/domain/viewmodels/separate_consultation_viewmodel.dart';
+import 'package:exp/domain/models/shipping_situation_model.dart';
 
 /// Tela para exibir consultas de separação de expedição
 class SeparateConsultationScreen extends StatefulWidget {
@@ -146,10 +147,11 @@ class _ShipmentSeparateConsultationScreenState
                           Expanded(
                             child: FilterChip(
                               label: const Text('Todas'),
-                              selected: viewModel.selectedStatusFilter == null,
+                              selected:
+                                  viewModel.selectedSituacaoFilter == null,
                               onSelected: (selected) {
                                 if (selected) {
-                                  viewModel.setStatusFilter(null);
+                                  viewModel.setSituacaoFilter(null);
                                 }
                               },
                             ),
@@ -157,12 +159,15 @@ class _ShipmentSeparateConsultationScreenState
                           const SizedBox(width: 8),
                           Expanded(
                             child: FilterChip(
-                              label: const Text('Ativas'),
+                              label: const Text('Aguardando'),
                               selected:
-                                  viewModel.selectedStatusFilter == 'ATIVO',
+                                  viewModel.selectedSituacaoFilter ==
+                                  ExpeditionSituation.aguardando.code,
                               onSelected: (selected) {
                                 if (selected) {
-                                  viewModel.setStatusFilter('ATIVO');
+                                  viewModel.setSituacaoFilter(
+                                    ExpeditionSituation.aguardando.code,
+                                  );
                                 }
                               },
                             ),
@@ -172,11 +177,13 @@ class _ShipmentSeparateConsultationScreenState
                             child: FilterChip(
                               label: const Text('Finalizadas'),
                               selected:
-                                  viewModel.selectedStatusFilter ==
-                                  'FINALIZADO',
+                                  viewModel.selectedSituacaoFilter ==
+                                  ExpeditionSituation.finalizada.code,
                               onSelected: (selected) {
                                 if (selected) {
-                                  viewModel.setStatusFilter('FINALIZADO');
+                                  viewModel.setSituacaoFilter(
+                                    ExpeditionSituation.finalizada.code,
+                                  );
                                 }
                               },
                             ),
@@ -286,7 +293,7 @@ class _ShipmentSeparateConsultationScreenState
               ),
               const Spacer(),
               if (viewModel.searchQuery.isNotEmpty ||
-                  viewModel.selectedStatusFilter != null)
+                  viewModel.selectedSituacaoFilter != null)
                 TextButton.icon(
                   onPressed: () {
                     _searchController.clear();
@@ -490,8 +497,8 @@ class _ShipmentSeparateConsultationScreenState
                       },
                     ),
                     RadioListTile<String>(
-                      title: const Text('Por status'),
-                      subtitle: const Text('Buscar por status específico'),
+                      title: const Text('Por situação'),
+                      subtitle: const Text('Buscar por situação específica'),
                       value: 'status',
                       groupValue: selectedFilter,
                       onChanged: (value) {
@@ -531,28 +538,16 @@ class _ShipmentSeparateConsultationScreenState
                 ] else if (selectedFilter == 'status') ...[
                   DropdownButtonFormField<String>(
                     decoration: const InputDecoration(
-                      labelText: 'Status',
+                      labelText: 'Situação',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.flag),
                     ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'PENDENTE',
-                        child: Text('Pendente'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'EM_ANDAMENTO',
-                        child: Text('Em Andamento'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'FINALIZADA',
-                        child: Text('Finalizada'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'CANCELADA',
-                        child: Text('Cancelada'),
-                      ),
-                    ],
+                    items: ExpeditionSituation.values.map((situation) {
+                      return DropdownMenuItem(
+                        value: situation.code,
+                        child: Text(situation.description),
+                      );
+                    }).toList(),
                     onChanged: (value) {
                       paramsController.text = value ?? '';
                     },
@@ -562,7 +557,7 @@ class _ShipmentSeparateConsultationScreenState
                     controller: paramsController,
                     decoration: const InputDecoration(
                       labelText: 'Parâmetros personalizados',
-                      hintText: 'Ex: codigo=123, status=ATIVO',
+                      hintText: 'Ex: codigo=123, situacao=AGUARDANDO',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.filter_list),
                     ),
@@ -613,6 +608,8 @@ class _ShipmentSeparateConsultationScreenState
               child: const Text('Cancelar'),
             ),
             ElevatedButton.icon(
+              icon: const Icon(Icons.search),
+              label: const Text('Consultar'),
               onPressed: () {
                 Navigator.of(context).pop();
                 _executeConsultationWithFilter(
@@ -621,8 +618,6 @@ class _ShipmentSeparateConsultationScreenState
                   paramsController.text.trim(),
                 );
               },
-              icon: const Icon(Icons.search),
-              label: const Text('Consultar'),
             ),
           ],
         );
@@ -645,7 +640,7 @@ class _ShipmentSeparateConsultationScreenState
         params = inputValue.isNotEmpty ? 'codigo=$inputValue' : '';
         break;
       case 'status':
-        params = inputValue.isNotEmpty ? 'status=$inputValue' : '';
+        params = inputValue.isNotEmpty ? 'situacao=$inputValue' : '';
         break;
       case 'personalizada':
         params = inputValue;

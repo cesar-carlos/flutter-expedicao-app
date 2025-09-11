@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:exp/domain/models/query_builder.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/data/dtos/send_query_socket_dto.dart';
 import 'package:exp/data/dtos/send_mutation_socket_dto.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/domain/models/separate_model.dart';
 import 'package:exp/domain/repositories/separate_repository.dart';
+import 'package:exp/domain/models/separate_model.dart';
 import 'package:exp/core/network/socket_config.dart';
 
 class SeparateRepositoryImpl implements SeparateRepository {
@@ -17,9 +18,9 @@ class SeparateRepositoryImpl implements SeparateRepository {
   var socket = SocketConfig.instance;
 
   @override
-  Future<List<SeparateConsultationModel>> selectConsultation([
-    String params = '',
-  ]) async {
+  Future<List<SeparateConsultationModel>> selectConsultation(
+    QueryBuilder queryBuilder,
+  ) async {
     final event = '${socket.id} separar.consulta';
     final completer = Completer<List<SeparateConsultationModel>>();
     final responseId = uuid.v4();
@@ -27,7 +28,7 @@ class SeparateRepositoryImpl implements SeparateRepository {
     final send = SendQuerySocketDto(
       session: socket.id!,
       responseIn: responseId,
-      where: params,
+      where: queryBuilder.buildQuery(),
     );
 
     try {
@@ -64,7 +65,7 @@ class SeparateRepositoryImpl implements SeparateRepository {
   }
 
   @override
-  Future<List<SeparateModel>> select([String params = '']) async {
+  Future<List<SeparateModel>> select(QueryBuilder queryBuilder) async {
     final event = '${socket.id} separar.select';
     final completer = Completer<List<SeparateModel>>();
     final responseId = uuid.v4();
@@ -72,7 +73,7 @@ class SeparateRepositoryImpl implements SeparateRepository {
     final send = SendQuerySocketDto(
       session: socket.id!,
       responseIn: responseId,
-      where: params,
+      where: queryBuilder.buildQuery(),
     );
 
     try {

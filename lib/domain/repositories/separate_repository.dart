@@ -1,3 +1,4 @@
+import 'package:exp/domain/models/query_builder.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/separate_model.dart';
 
@@ -6,15 +7,15 @@ abstract class SeparateRepository {
   ///
   /// [params] - Filtros para a consulta (opcional)
   /// Retorna uma lista de consultas de separação
-  Future<List<SeparateConsultationModel>> selectConsultation([
-    String params = '',
-  ]);
+  Future<List<SeparateConsultationModel>> selectConsultation(
+    QueryBuilder queryBuilder,
+  );
 
   /// Seleciona separações com filtros opcionais
   ///
   /// [params] - Filtros para a consulta (opcional)
   /// Retorna uma lista de separações
-  Future<List<SeparateModel>> select([String params = '']);
+  Future<List<SeparateModel>> select(QueryBuilder queryBuilder);
 
   /// Insere uma nova separação
   ///
