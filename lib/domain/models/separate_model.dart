@@ -1,5 +1,4 @@
 import 'package:exp/core/utils/date_helper.dart';
-import 'package:exp/domain/models/separate_consultation_model.dart';
 
 /// Modelo para separação de expedição
 class SeparateModel {
@@ -88,25 +87,6 @@ class SeparateModel {
           nomeUsuarioCancelamento ?? this.nomeUsuarioCancelamento,
       observacaoCancelamento:
           observacaoCancelamento ?? this.observacaoCancelamento,
-    );
-  }
-
-  /// Cria um modelo a partir de uma consulta
-  factory SeparateModel.fromConsultation(SeparateConsultationModel model) {
-    return SeparateModel(
-      codEmpresa:
-          model.id ?? 0, // Adaptação necessária baseada no modelo de consulta
-      codSepararEstoque: model.id ?? 0,
-      codTipoOperacaoExpedicao: 1, // Valor padrão, ajustar conforme necessário
-      tipoEntidade: model.status ?? '',
-      codEntidade: model.id ?? 0,
-      nomeEntidade: model.codigo ?? '',
-      situacao: model.status ?? '',
-      data: model.dataInicialSeparacao ?? DateTime.now(),
-      hora: _extractTime(model.dataInicialSeparacao),
-      codPrioridade: 1, // Valor padrão
-      historico: model.observacoes,
-      observacao: model.observacoes,
     );
   }
 

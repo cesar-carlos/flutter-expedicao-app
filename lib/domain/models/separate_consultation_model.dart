@@ -1,52 +1,78 @@
+import 'package:exp/core/utils/date_helper.dart';
+
 /// Modelo para consulta de separação de expedição
 class SeparateConsultationModel {
-  final int? id;
-  final String? codigo;
-  final String? descricao;
-  final String? status;
-  final DateTime? dataInicialSeparacao;
-  final DateTime? dataFinalSeparacao;
-  final String? usuario;
-  final String? observacoes;
+  final int codEmpresa;
+  final int codSepararEstoque;
+  final int codTipoOperacaoExpedicao;
+  final String nomeTipoOperacaoExpedicao;
+  final String situacao;
+  final String tipoEntidade;
+  final DateTime dataEmissao;
+  final String horaEmissao;
+  final int codEntidade;
+  final String nomeEntidade;
+  final int codPrioridade;
+  final String nomePrioridade;
+  final String? historico;
+  final String? observacao;
 
   const SeparateConsultationModel({
-    this.id,
-    this.codigo,
-    this.descricao,
-    this.status,
-    this.dataInicialSeparacao,
-    this.dataFinalSeparacao,
-    this.usuario,
-    this.observacoes,
+    required this.codEmpresa,
+    required this.codSepararEstoque,
+    required this.codTipoOperacaoExpedicao,
+    required this.nomeTipoOperacaoExpedicao,
+    required this.situacao,
+    required this.tipoEntidade,
+    required this.dataEmissao,
+    required this.horaEmissao,
+    required this.codEntidade,
+    required this.nomeEntidade,
+    required this.codPrioridade,
+    required this.nomePrioridade,
+    this.historico,
+    this.observacao,
   });
 
   factory SeparateConsultationModel.fromJson(Map<String, dynamic> json) {
-    return SeparateConsultationModel(
-      id: json['Id'],
-      codigo: json['Codigo'],
-      descricao: json['Descricao'],
-      status: json['Status'],
-      dataInicialSeparacao: json['DataInicialSeparacao'] != null
-          ? DateTime.tryParse(json['DataInicialSeparacao'])
-          : null,
-      dataFinalSeparacao: json['DataFinalSeparacao'] != null
-          ? DateTime.tryParse(json['DataFinalSeparacao'])
-          : null,
-      usuario: json['Usuario'],
-      observacoes: json['Observacoes'],
-    );
+    try {
+      return SeparateConsultationModel(
+        codEmpresa: json['CodEmpresa'] ?? 0,
+        codSepararEstoque: json['CodSepararEstoque'] ?? 0,
+        codTipoOperacaoExpedicao: json['CodTipoOperacaoExpedicao'] ?? 0,
+        nomeTipoOperacaoExpedicao: json['NomeTipoOperacaoExpedicao'] ?? '',
+        situacao: json['Situacao'] ?? '',
+        tipoEntidade: json['TipoEntidade'] ?? '',
+        dataEmissao: DateHelper.tryStringToDate(json['DataEmissao']),
+        horaEmissao: json['HoraEmissao'] ?? '',
+        codEntidade: json['CodEntidade'] ?? 0,
+        nomeEntidade: json['NomeEntidade'] ?? '',
+        codPrioridade: json['CodPrioridade'] ?? 0,
+        nomePrioridade: json['NomePrioridade'] ?? '',
+        historico: json['Historico'],
+        observacao: json['Observacao'],
+      );
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'Id': id,
-      'Codigo': codigo,
-      'Descricao': descricao,
-      'Status': status,
-      'DataInicialSeparacao': dataInicialSeparacao?.toIso8601String(),
-      'DataFinalSeparacao': dataFinalSeparacao?.toIso8601String(),
-      'Usuario': usuario,
-      'Observacoes': observacoes,
+      'CodEmpresa': codEmpresa,
+      'CodSepararEstoque': codSepararEstoque,
+      'CodTipoOperacaoExpedicao': codTipoOperacaoExpedicao,
+      'NomeTipoOperacaoExpedicao': nomeTipoOperacaoExpedicao,
+      'Situacao': situacao,
+      'TipoEntidade': tipoEntidade,
+      'DataEmissao': dataEmissao.toIso8601String(),
+      'HoraEmissao': horaEmissao,
+      'CodEntidade': codEntidade,
+      'NomeEntidade': nomeEntidade,
+      'CodPrioridade': codPrioridade,
+      'NomePrioridade': nomePrioridade,
+      'Historico': historico,
+      'Observacao': observacao,
     };
   }
 
@@ -54,15 +80,15 @@ class SeparateConsultationModel {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is SeparateConsultationModel &&
-        other.id == id &&
-        other.codigo == codigo;
+        other.codSepararEstoque == codSepararEstoque &&
+        other.codEmpresa == codEmpresa;
   }
 
   @override
-  int get hashCode => id.hashCode ^ codigo.hashCode;
+  int get hashCode => codSepararEstoque.hashCode ^ codEmpresa.hashCode;
 
   @override
   String toString() {
-    return 'ShipmentSeparateConsultationModel(id: $id, codigo: $codigo, status: $status)';
+    return 'SeparateConsultationModel(codSepararEstoque: $codSepararEstoque, situacao: $situacao, nomeEntidade: $nomeEntidade)';
   }
 }

@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:exp/domain/models/query_params.dart';
+import 'package:exp/domain/models/query_param.dart';
+import 'package:exp/domain/models/pagination.dart';
+import 'package:exp/domain/models/query_builder.dart';
+import 'package:exp/domain/models/query_builder_extension.dart';
 
 void main() {
   group('QueryParam Tests', () {
@@ -332,6 +335,42 @@ void main() {
       queryBuilder = QueryBuilder();
     });
 
+    test('should create QueryBuilder with default pagination', () {
+      final query = QueryBuilderExtension.withDefaultPagination();
+
+      expect(query.pagination, isNotNull);
+      expect(query.pagination!.limit, 20);
+      expect(query.pagination!.offset, 0);
+      expect(query.params, isEmpty);
+    });
+
+    test('should create QueryBuilder with custom pagination', () {
+      final query = QueryBuilderExtension.withDefaultPagination(
+        limit: 50,
+        offset: 100,
+      );
+
+      expect(query.pagination, isNotNull);
+      expect(query.pagination!.limit, 50);
+      expect(query.pagination!.offset, 100);
+      expect(query.params, isEmpty);
+    });
+
+    test('should build query with default pagination', () {
+      final query = QueryBuilderExtension.withDefaultPagination();
+
+      expect(query.build(), 'limit=20&offset=0');
+    });
+
+    test('should build query with custom pagination', () {
+      final query = QueryBuilderExtension.withDefaultPagination(
+        limit: 10,
+        offset: 30,
+      );
+
+      expect(query.build(), 'limit=10&offset=30');
+    });
+
     test('should add date range filter', () {
       final startDate = DateTime(2024, 1, 1);
       final endDate = DateTime(2024, 1, 31);
@@ -382,6 +421,31 @@ void main() {
 
       expect(queryBuilder.params.length, 5);
       expect(queryBuilder.pagination, isNotNull);
+    });
+
+    test('should support chaining with withDefaultPagination', () {
+      final query = QueryBuilderExtension.withDefaultPagination()
+          .status('active')
+          .code('ABC123')
+          .search('name', 'John');
+
+      expect(query.params.length, 3);
+      expect(query.pagination, isNotNull);
+      expect(query.pagination!.limit, 20);
+      expect(query.pagination!.offset, 0);
+    });
+
+    test('should build complete query with withDefaultPagination', () {
+      final query = QueryBuilderExtension.withDefaultPagination()
+          .status('active')
+          .code('ABC123')
+          .search('name', 'John')
+          .build();
+
+      expect(query, contains("situacao='active'"));
+      expect(query, contains("codigo='ABC123'"));
+      expect(query, contains("nameLIKE'%John%'"));
+      expect(query, contains('limit=20&offset=0'));
     });
   });
 
@@ -434,6 +498,96 @@ void main() {
 
       expect(query, contains("name='O'Connor'"));
       expect(query, contains("description='Test \"quoted\" text'"));
+    });
+  });
+
+  group('Real-world Usage Scenarios', () {
+    test(
+      'should build separate consultation query with default pagination',
+      () {
+        final query = QueryBuilderExtension.withDefaultPagination()
+            .status('ATIVO')
+            .code('SEP001')
+            .search('descricao', 'urgente')
+            .build();
+
+        expect(query, contains("situacao='ATIVO'"));
+        expect(query, contains("codigo='SEP001'"));
+        expect(query, contains("descricaoLIKE'%urgente%'"));
+        expect(query, contains('limit=20&offset=0'));
+      },
+    );
+
+    test('should build separate consultation query with custom pagination', () {
+      final query = QueryBuilderExtension.withDefaultPagination(
+        limit: 50,
+        offset: 100,
+      ).status('PENDENTE').search('usuario', 'admin').build();
+
+      expect(query, contains("situacao='PENDENTE'"));
+      expect(query, contains("usuarioLIKE'%admin%'"));
+      expect(query, contains('limit=50&offset=100'));
+    });
+
+    test('should build date range query for separate consultations', () {
+      final startDate = DateTime(2024, 1, 1);
+      final endDate = DateTime(2024, 1, 31);
+
+      final query = QueryBuilderExtension.withDefaultPagination()
+          .status('FINALIZADA')
+          .dateRange('data_criacao', startDate, endDate)
+          .build();
+
+      expect(query, contains("situacao='FINALIZADA'"));
+      expect(query, contains('data_criacao>'));
+      expect(query, contains('data_criacao<'));
+      expect(query, contains('limit=20&offset=0'));
+    });
+
+    test('should build complex filter query for separate consultations', () {
+      final query = QueryBuilderExtension.withDefaultPagination()
+          .status('ATIVO')
+          .code('SEP')
+          .search('observacoes', 'prioridade')
+          .equals('usuario', 'admin')
+          .notEquals('deleted', true)
+          .build();
+
+      expect(query, contains("situacao='ATIVO'"));
+      expect(query, contains("codigo='SEP'"));
+      expect(query, contains("observacoesLIKE'%prioridade%'"));
+      expect(query, contains("usuario='admin'"));
+      expect(query, contains('deleted!=true'));
+      expect(query, contains('limit=20&offset=0'));
+    });
+
+    test('should build query with multiple status values', () {
+      final query = QueryBuilderExtension.withDefaultPagination()
+          .inList('situacao', ['ATIVO', 'PENDENTE', 'PROCESSANDO'])
+          .search('codigo', 'SEP')
+          .build();
+
+      expect(query, contains("situacaoIN''ATIVO','PENDENTE','PROCESSANDO''"));
+      expect(query, contains("codigoLIKE'%SEP%'"));
+      expect(query, contains('limit=20&offset=0'));
+    });
+
+    test('should build query for different page sizes', () {
+      final query1 = QueryBuilderExtension.withDefaultPagination(limit: 10);
+      final query2 = QueryBuilderExtension.withDefaultPagination(limit: 100);
+
+      expect(query1.build(), 'limit=10&offset=0');
+      expect(query2.build(), 'limit=100&offset=0');
+    });
+
+    test('should build query for different page offsets', () {
+      final query1 = QueryBuilderExtension.withDefaultPagination(offset: 0);
+      final query2 = QueryBuilderExtension.withDefaultPagination(offset: 20);
+      final query3 = QueryBuilderExtension.withDefaultPagination(offset: 40);
+
+      expect(query1.build(), 'limit=20&offset=0');
+      expect(query2.build(), 'limit=20&offset=20');
+      expect(query3.build(), 'limit=20&offset=40');
     });
   });
 }

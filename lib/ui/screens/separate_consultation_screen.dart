@@ -7,6 +7,8 @@ import 'package:exp/ui/widgets/app_drawer/app_drawer.dart';
 import 'package:exp/ui/widgets/data_grid/separate_consultation_data_grid.dart';
 import 'package:exp/domain/viewmodels/separate_consultation_viewmodel.dart';
 import 'package:exp/domain/models/shipping_situation_model.dart';
+import 'package:exp/domain/models/query_builder.dart';
+import 'package:exp/domain/models/query_builder_extension.dart';
 
 /// Tela para exibir consultas de separação de expedição
 class SeparateConsultationScreen extends StatefulWidget {
@@ -307,10 +309,18 @@ class _ShipmentSeparateConsultationScreenState
           const SizedBox(height: 16),
           // DataGrid
           Expanded(
-            child: SeparateConsultationDataGrid(
-              consultations: consultations,
-              onRowTap: _onConsultationTap,
-              onRowDoubleTap: _onConsultationDoubleTap,
+            child: Column(
+              children: [
+                Expanded(
+                  child: SeparateConsultationDataGrid(
+                    consultations: consultations,
+                    onRowTap: _onConsultationTap,
+                    onRowDoubleTap: _onConsultationDoubleTap,
+                  ),
+                ),
+                // Controles de paginação
+                _buildPaginationControls(viewModel),
+              ],
             ),
           ),
         ],
@@ -403,6 +413,92 @@ class _ShipmentSeparateConsultationScreenState
         '${date.year}';
   }
 
+  Widget _buildPaginationControls(
+    ShipmentSeparateConsultationViewModel viewModel,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Informações da paginação
+          Text(
+            'Página ${viewModel.currentPage + 1} - ${viewModel.consultations.length} registros',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const Spacer(),
+
+          // Botão página anterior
+          IconButton(
+            onPressed: viewModel.currentPage > 0 && !viewModel.isLoading
+                ? () => viewModel.loadPage(viewModel.currentPage - 1)
+                : null,
+            icon: const Icon(Icons.chevron_left),
+            tooltip: 'Página anterior',
+          ),
+
+          // Indicador de página atual
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              '${viewModel.currentPage + 1}',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+
+          // Botão próxima página
+          IconButton(
+            onPressed: viewModel.hasMoreData && !viewModel.isLoading
+                ? () => viewModel.loadNextPage()
+                : null,
+            icon: const Icon(Icons.chevron_right),
+            tooltip: 'Próxima página',
+          ),
+
+          const SizedBox(width: 16),
+
+          // Botão carregar mais
+          if (viewModel.hasMoreData)
+            ElevatedButton.icon(
+              onPressed: viewModel.isLoading
+                  ? null
+                  : () => viewModel.loadNextPage(),
+              icon: viewModel.isLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.add),
+              label: Text(
+                viewModel.isLoading ? 'Carregando...' : 'Carregar Mais',
+              ),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   void _showAddConsultationDialog(
     ShipmentSeparateConsultationViewModel viewModel,
   ) {
@@ -447,6 +543,7 @@ class _ShipmentSeparateConsultationScreenState
   ) {
     final TextEditingController paramsController = TextEditingController();
     String selectedFilter = 'todos';
+    int pageSize = viewModel.pageSize;
 
     return StatefulBuilder(
       builder: (context, setState) {
@@ -572,6 +669,64 @@ class _ShipmentSeparateConsultationScreenState
                 ],
 
                 const SizedBox(height: 16),
+
+                // Configurações de paginação
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outline.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.view_list,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Configurações de Paginação',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Text('Registros por página:'),
+                          const SizedBox(width: 16),
+                          DropdownButton<int>(
+                            value: pageSize,
+                            items: [10, 20, 50, 100].map((size) {
+                              return DropdownMenuItem(
+                                value: size,
+                                child: Text('$size'),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                pageSize = value ?? 20;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -591,8 +746,8 @@ class _ShipmentSeparateConsultationScreenState
                       Expanded(
                         child: Text(
                           selectedFilter == 'todos'
-                              ? 'Esta consulta retornará todas as separações disponíveis no sistema.'
-                              : 'Esta consulta filtrará as separações baseada nos critérios selecionados.',
+                              ? 'Esta consulta retornará todas as separações disponíveis no sistema com paginação.'
+                              : 'Esta consulta filtrará as separações baseada nos critérios selecionados com paginação.',
                           style: const TextStyle(fontSize: 12),
                         ),
                       ),
@@ -612,6 +767,10 @@ class _ShipmentSeparateConsultationScreenState
               label: const Text('Consultar'),
               onPressed: () {
                 Navigator.of(context).pop();
+                // Atualizar tamanho da página se necessário
+                if (pageSize != viewModel.pageSize) {
+                  viewModel.setPageSize(pageSize);
+                }
                 _executeConsultationWithFilter(
                   viewModel,
                   selectedFilter,
@@ -630,29 +789,47 @@ class _ShipmentSeparateConsultationScreenState
     String filterType,
     String inputValue,
   ) {
-    String params = '';
+    QueryBuilder? queryBuilder;
 
     switch (filterType) {
       case 'todos':
-        params = '';
+        // QueryBuilder com paginação padrão, sem filtros
+        queryBuilder = QueryBuilderExtension.withDefaultPagination();
         break;
       case 'codigo':
-        params = inputValue.isNotEmpty ? 'codigo=$inputValue' : '';
+        if (inputValue.isNotEmpty) {
+          queryBuilder = QueryBuilderExtension.withDefaultPagination().equals(
+            'codigo',
+            inputValue,
+          );
+        } else {
+          queryBuilder = QueryBuilderExtension.withDefaultPagination();
+        }
         break;
       case 'status':
-        params = inputValue.isNotEmpty ? 'situacao=$inputValue' : '';
+        if (inputValue.isNotEmpty) {
+          queryBuilder = QueryBuilderExtension.withDefaultPagination().equals(
+            'situacao',
+            inputValue,
+          );
+        } else {
+          queryBuilder = QueryBuilderExtension.withDefaultPagination();
+        }
         break;
       case 'personalizada':
-        params = inputValue;
+        // Para consulta personalizada, criar QueryBuilder básico
+        // O usuário pode adicionar filtros manualmente depois
+        queryBuilder = QueryBuilderExtension.withDefaultPagination();
+        // TODO: Implementar parsing de parâmetros personalizados
         break;
     }
 
-    _executeConsultation(viewModel, params);
+    _executeConsultation(viewModel, queryBuilder);
   }
 
   void _executeConsultation(
     ShipmentSeparateConsultationViewModel viewModel,
-    String params,
+    QueryBuilder? queryBuilder,
   ) {
     // Mostrar loading
     showDialog(
@@ -671,7 +848,7 @@ class _ShipmentSeparateConsultationScreenState
 
     // Executar consulta
     viewModel
-        .performConsultation(params)
+        .performConsultation(queryBuilder)
         .then((_) {
           // Verificar se o widget ainda está montado
           if (!mounted) return;

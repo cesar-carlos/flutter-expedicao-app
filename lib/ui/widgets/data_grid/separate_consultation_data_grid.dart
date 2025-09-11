@@ -55,11 +55,11 @@ class SeparateConsultationDataGrid extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
           child: const Text(
-            'ID',
+            'Cód. Separação',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        width: 80,
+        width: 120,
       ),
       GridColumn(
         columnName: 'codigo',
@@ -67,11 +67,11 @@ class SeparateConsultationDataGrid extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
           child: const Text(
-            'Código',
+            'Cód. Empresa',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        width: 120,
+        width: 100,
       ),
       GridColumn(
         columnName: 'descricao',
@@ -79,11 +79,11 @@ class SeparateConsultationDataGrid extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
           child: const Text(
-            'Descrição',
+            'Tipo Operação',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        width: 200,
+        width: 180,
       ),
       GridColumn(
         columnName: 'status',
@@ -91,7 +91,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
           child: const Text(
-            'Status',
+            'Situação',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
@@ -103,7 +103,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
           child: const Text(
-            'Data Inicial',
+            'Data Emissão',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
@@ -115,11 +115,11 @@ class SeparateConsultationDataGrid extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
           child: const Text(
-            'Data Final',
+            'Data/Hora',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        width: 120,
+        width: 150,
       ),
       GridColumn(
         columnName: 'usuario',
@@ -127,11 +127,11 @@ class SeparateConsultationDataGrid extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
           child: const Text(
-            'Usuário',
+            'Entidade',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        width: 150,
+        width: 200,
       ),
       GridColumn(
         columnName: 'observacoes',
@@ -163,42 +163,34 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
 
   @override
   List<DataGridRow> get rows {
+    if (_consultations.isEmpty) {
+      return [];
+    }
+
     return _consultations.map<DataGridRow>((consultation) {
+      final id = consultation.codSepararEstoque;
+      final codigo = consultation.codEmpresa.toString();
+      final descricao = consultation.nomeTipoOperacaoExpedicao;
+      final status = consultation.situacao;
+      final dataInicial = _formatDateSafe(consultation.dataEmissao);
+      final dataFinal =
+          '${_formatDateSafe(consultation.dataEmissao)} ${consultation.horaEmissao}';
+      final usuario = consultation.nomeEntidade;
+      final observacoes = consultation.observacao ?? '';
+
       return DataGridRow(
         cells: [
-          DataGridCell<int>(columnName: 'id', value: consultation.id),
-          DataGridCell<String>(
-            columnName: 'codigo',
-            value: consultation.codigo ?? '',
-          ),
-          DataGridCell<String>(
-            columnName: 'descricao',
-            value: consultation.descricao ?? '',
-          ),
+          DataGridCell<int>(columnName: 'id', value: id),
+          DataGridCell<String>(columnName: 'codigo', value: codigo),
+          DataGridCell<String>(columnName: 'descricao', value: descricao),
           DataGridCell<Widget>(
             columnName: 'status',
-            value: _buildStatusChip(consultation.status ?? ''),
+            value: _buildStatusChipSafe(status),
           ),
-          DataGridCell<String>(
-            columnName: 'dataInicial',
-            value: consultation.dataInicialSeparacao != null
-                ? _formatDate(consultation.dataInicialSeparacao!)
-                : '',
-          ),
-          DataGridCell<String>(
-            columnName: 'dataFinal',
-            value: consultation.dataFinalSeparacao != null
-                ? _formatDate(consultation.dataFinalSeparacao!)
-                : '',
-          ),
-          DataGridCell<String>(
-            columnName: 'usuario',
-            value: consultation.usuario ?? '',
-          ),
-          DataGridCell<String>(
-            columnName: 'observacoes',
-            value: consultation.observacoes ?? '',
-          ),
+          DataGridCell<String>(columnName: 'dataInicial', value: dataInicial),
+          DataGridCell<String>(columnName: 'dataFinal', value: dataFinal),
+          DataGridCell<String>(columnName: 'usuario', value: usuario),
+          DataGridCell<String>(columnName: 'observacoes', value: observacoes),
         ],
       );
     }).toList();
@@ -206,30 +198,120 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
 
   @override
   DataGridRowAdapter? buildRow(DataGridRow row) {
-    final rowIndex = rows.indexOf(row);
-    final consultation = _consultations[rowIndex];
+    try {
+      final rowIndex = _findRowIndex(row);
 
-    return DataGridRowAdapter(
-      cells: row.getCells().map<Widget>((dataGridCell) {
-        return GestureDetector(
-          onTap: onRowTap != null ? () => onRowTap!(consultation) : null,
-          onDoubleTap: onRowDoubleTap != null
-              ? () => onRowDoubleTap!(consultation)
-              : null,
-          child: Container(
-            padding: const EdgeInsets.all(8.0),
-            alignment: _getAlignment(dataGridCell.columnName),
-            child: dataGridCell.value is Widget
-                ? dataGridCell.value as Widget
-                : Text(
-                    dataGridCell.value?.toString() ?? '',
-                    style: const TextStyle(fontSize: 12),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+      if (rowIndex < 0 || rowIndex >= _consultations.length) {
+        return DataGridRowAdapter(
+          cells: List.generate(
+            8,
+            (index) => Container(
+              padding: const EdgeInsets.all(8.0),
+              child: const Text(
+                'ERRO: Índice inválido',
+                style: TextStyle(fontSize: 12, color: Colors.red),
+              ),
+            ),
           ),
         );
-      }).toList(),
-    );
+      }
+
+      final consultation = _consultations[rowIndex];
+      final cells = <Widget>[];
+      final rowCells = row.getCells();
+
+      for (int i = 0; i < rowCells.length; i++) {
+        final dataGridCell = rowCells[i];
+
+        try {
+          Widget cellWidget;
+
+          if (dataGridCell.value is Widget) {
+            cellWidget = dataGridCell.value as Widget;
+          } else {
+            final valueText = dataGridCell.value?.toString() ?? '';
+
+            cellWidget = Text(
+              valueText,
+              style: const TextStyle(fontSize: 12),
+              overflow: TextOverflow.ellipsis,
+            );
+          }
+
+          cells.add(
+            GestureDetector(
+              onTap: onRowTap != null ? () => onRowTap!(consultation) : null,
+              onDoubleTap: onRowDoubleTap != null
+                  ? () => onRowDoubleTap!(consultation)
+                  : null,
+              child: Container(
+                padding: const EdgeInsets.all(8.0),
+                alignment: _getAlignment(dataGridCell.columnName),
+                child: cellWidget,
+              ),
+            ),
+          );
+        } catch (e) {
+          cells.add(
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'ERRO: $e',
+                style: const TextStyle(fontSize: 10, color: Colors.red),
+              ),
+            ),
+          );
+        }
+      }
+
+      return DataGridRowAdapter(cells: cells);
+    } catch (e) {
+      return DataGridRowAdapter(
+        cells: List.generate(
+          8,
+          (index) => Container(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'ERRO GERAL: $e',
+              style: const TextStyle(fontSize: 10, color: Colors.red),
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  /// Encontra o índice da linha de forma mais confiável
+  int _findRowIndex(DataGridRow row) {
+    try {
+      // Primeiro, tenta usar o indexOf normal
+      final directIndex = rows.indexOf(row);
+      if (directIndex >= 0) {
+        return directIndex;
+      }
+
+      // Se não encontrou, tenta comparar as células para encontrar a linha correspondente
+      final rowCells = row.getCells();
+      if (rowCells.isEmpty) {
+        return -1;
+      }
+
+      // Procura pela primeira célula (ID) para encontrar a linha correspondente
+      final firstCell = rowCells.first;
+      if (firstCell.columnName == 'id' && firstCell.value is int) {
+        final idValue = firstCell.value as int;
+
+        for (int i = 0; i < _consultations.length; i++) {
+          if (_consultations[i].codSepararEstoque == idValue) {
+            return i;
+          }
+        }
+      }
+
+      return -1;
+    } catch (e) {
+      return -1;
+    }
   }
 
   Alignment _getAlignment(String columnName) {
@@ -244,30 +326,97 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
     }
   }
 
-  String _formatDate(DateTime date) {
-    return FieldsHelper.formatDataBrasileira(date);
+  String _formatDateSafe(DateTime? date) {
+    try {
+      if (date == null) {
+        return '--/--/----';
+      }
+
+      return FieldsHelper.formatDataBrasileira(date);
+    } catch (e) {
+      return 'Erro na data';
+    }
   }
 
   Widget _buildStatusChip(String status) {
-    final situation = ExpeditionSituation.fromCode(status);
-    final backgroundColor = situation?.color ?? Colors.grey;
-    final textColor = _getTextColor(backgroundColor);
+    try {
+      final situation = ExpeditionSituation.fromCode(status);
+      final backgroundColor = situation?.color ?? Colors.grey;
+      final textColor = _getTextColor(backgroundColor);
+      final description = ExpeditionSituation.getDescription(status);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        ExpeditionSituation.getDescription(status),
-        style: TextStyle(
-          color: textColor,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(12),
         ),
-      ),
-    );
+        child: Text(
+          description,
+          style: TextStyle(
+            color: textColor,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    } catch (e) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.grey,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          'Erro',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildStatusChipSafe(String? status) {
+    try {
+      if (status == null || status.isEmpty) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.grey,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Text(
+            'N/A',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      }
+
+      return _buildStatusChip(status);
+    } catch (e) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          'ERRO',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    }
   }
 
   /// Determina a cor do texto baseada na cor de fundo
@@ -279,6 +428,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
         backgroundColor == Colors.lightBlue) {
       return Colors.black;
     }
+
     return Colors.white;
   }
 }
