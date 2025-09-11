@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+
 import 'package:exp/core/network/socket_config.dart';
 import 'package:exp/domain/models/api_config.dart';
 

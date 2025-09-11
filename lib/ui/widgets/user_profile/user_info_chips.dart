@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:exp/domain/models/user/app_user.dart';
 
 class UserInfoChips extends StatelessWidget {

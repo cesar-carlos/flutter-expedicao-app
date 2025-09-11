@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+
 import 'package:exp/core/constants/app_strings.dart';
 
 /// Widget para seleção e exibição de foto de perfil

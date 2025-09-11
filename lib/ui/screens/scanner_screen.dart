@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
 import 'package:exp/domain/models/scanner_data.dart';
 import 'package:exp/domain/viewmodels/scanner_viewmodel.dart';
 import 'package:exp/ui/widgets/scanner/index.dart';
 import 'package:exp/ui/widgets/common/index.dart';
-import 'package:provider/provider.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});

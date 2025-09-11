@@ -2,8 +2,10 @@ import 'package:get_it/get_it.dart';
 
 import 'package:exp/domain/repositories/user_repository.dart';
 import 'package:exp/domain/repositories/user_system_repository.dart';
+import 'package:exp/domain/repositories/separate_repository.dart';
 import 'package:exp/data/repositories/user_repository_impl.dart';
 import 'package:exp/data/repositories/user_system_repository_impl.dart';
+import 'package:exp/data/repositories/separate_repository_impl.dart';
 import 'package:exp/domain/usecases/register_user_usecase.dart';
 import 'package:exp/domain/usecases/login_user_usecase.dart';
 import 'package:exp/domain/viewmodels/register_viewmodel.dart';
@@ -35,13 +37,13 @@ void setupLocator() {
   );
 
   // Registrar repositórios - usando a configuração global do Dio
-  locator.registerFactory<UserRepository>(() {
-    return UserRepositoryImpl();
-  });
-
-  locator.registerFactory<UserSystemRepository>(() {
-    return UserSystemRepositoryImpl();
-  });
+  locator.registerLazySingleton<UserRepository>(() => UserRepositoryImpl());
+  locator.registerLazySingleton<UserSystemRepository>(
+    () => UserSystemRepositoryImpl(),
+  );
+  locator.registerLazySingleton<SeparateRepository>(
+    () => SeparateRepositoryImpl(),
+  );
 
   // Registrar use cases
   locator.registerFactory(() => RegisterUserUseCase(locator<UserRepository>()));

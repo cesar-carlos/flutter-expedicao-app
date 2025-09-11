@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:flutter/material.dart';
+
 import 'package:exp/domain/models/user_preferences.dart';
 
 class UserPreferencesService {

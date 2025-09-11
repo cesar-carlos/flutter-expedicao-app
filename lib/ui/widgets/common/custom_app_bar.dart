@@ -76,7 +76,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         final currentUser = authViewModel.currentUser;
         final userName = currentUser?.nome ?? title;
         return Text(
-          StringUtils.capitalizeWords(userName),
+          'Bem-vindo ${StringUtils.capitalizeWords(userName)}',
           style: foregroundColor != null
               ? TextStyle(color: foregroundColor)
               : null,

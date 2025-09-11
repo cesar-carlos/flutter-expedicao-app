@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+
 import 'package:exp/domain/models/api_config.dart';
 
 class ConfigService {

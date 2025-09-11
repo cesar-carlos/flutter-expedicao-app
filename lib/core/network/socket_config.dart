@@ -1,16 +1,51 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+
 import 'package:exp/domain/models/api_config.dart';
 
-/// Configuração global do cliente Socket.IO
+/// Configuração global do cliente Socket.IO com reatividade
 class SocketConfig {
   static IO.Socket? _socketInstance;
   static ApiConfig? _currentApiConfig;
   static bool _isConnected = false;
 
+  // Stream controllers para reatividade
+  static final StreamController<bool> _connectionStateController =
+      StreamController<bool>.broadcast();
+  static final StreamController<String> _errorController =
+      StreamController<String>.broadcast();
+
+  // Callbacks personalizados
+  static VoidCallback? _onConnectCallback;
+  static VoidCallback? _onDisconnectCallback;
+  static Function(dynamic)? _onErrorCallback;
+
+  /// Stream que notifica mudanças no estado de conexão
+  static Stream<bool> get connectionStateStream =>
+      _connectionStateController.stream;
+
+  /// Stream que notifica erros de conexão
+  static Stream<String> get errorStream => _errorController.stream;
+
   /// Inicializa o Socket.IO com configurações globais
-  static void initialize(ApiConfig apiConfig) {
+  static void initialize(
+    ApiConfig apiConfig, {
+    bool autoConnect = false,
+    VoidCallback? onConnect,
+    VoidCallback? onDisconnect,
+    Function(dynamic)? onError,
+  }) {
     _currentApiConfig = apiConfig;
-    _createSocketInstance(apiConfig);
+    _onConnectCallback = onConnect;
+    _onDisconnectCallback = onDisconnect;
+    _onErrorCallback = onError;
+
+    _createSocketInstance(apiConfig, autoConnect: autoConnect);
+
+    if (autoConnect && !_isConnected) {
+      connect();
+    }
   }
 
   /// Obtém a instância global do Socket
@@ -35,7 +70,7 @@ class SocketConfig {
       throw StateError('SocketConfig não foi inicializado.');
     }
 
-    final protocol = _currentApiConfig!.useHttps ? 'wss' : 'ws';
+    final protocol = _currentApiConfig!.useHttps ? 'https' : 'http';
     return '$protocol://${_currentApiConfig!.apiUrl}:${_currentApiConfig!.apiPort}';
   }
 
@@ -46,6 +81,7 @@ class SocketConfig {
     }
 
     if (!_isConnected) {
+      debugPrint('🔌 Conectando ao Socket.IO: $socketUrl');
       _socketInstance!.connect();
     }
   }
@@ -53,20 +89,23 @@ class SocketConfig {
   /// Desconecta do servidor Socket.IO
   static void disconnect() {
     if (_socketInstance != null && _isConnected) {
+      debugPrint('🔌 Desconectando do Socket.IO');
       _socketInstance!.disconnect();
     }
   }
 
   /// Reconecta ao servidor Socket.IO
   static Future<void> reconnect() async {
+    debugPrint('🔄 Reconectando Socket.IO...');
     disconnect();
     await Future.delayed(const Duration(milliseconds: 500));
     await connect();
   }
 
   /// Atualiza a configuração e reconecta se necessário
-  static void updateConfig(ApiConfig newConfig) {
+  static void updateConfig(ApiConfig newConfig, {bool autoReconnect = true}) {
     final shouldReconnect =
+        autoReconnect &&
         _isConnected &&
         (_currentApiConfig?.apiUrl != newConfig.apiUrl ||
             _currentApiConfig?.apiPort != newConfig.apiPort ||
@@ -86,12 +125,15 @@ class SocketConfig {
   }
 
   /// Cria uma nova instância do Socket.IO
-  static void _createSocketInstance(ApiConfig apiConfig) {
+  static void _createSocketInstance(
+    ApiConfig apiConfig, {
+    bool autoConnect = false,
+  }) {
     final socketUrl = _buildSocketUrl(apiConfig);
 
     _socketInstance = IO.io(socketUrl, <String, dynamic>{
       'transports': ['websocket'],
-      'autoConnect': false,
+      'autoConnect': autoConnect,
       'timeout': 20000,
       'reconnection': true,
       'reconnectionAttempts': 5,
@@ -108,33 +150,60 @@ class SocketConfig {
   static void _setupSocketListeners() {
     if (_socketInstance == null) return;
 
-    _socketInstance!.onConnect((_) {
-      _isConnected = true;
-      print('Socket.IO conectado: $socketUrl');
-    });
+    _socketInstance!.onConnect(_handleConnect);
+    _socketInstance!.onDisconnect(_handleDisconnect);
+    _socketInstance!.onConnectError(_handleConnectError);
+    _socketInstance!.onError(_handleError);
+    _socketInstance!.onReconnect(_handleReconnect);
+    _socketInstance!.onReconnectError(_handleReconnectError);
+  }
 
-    _socketInstance!.onDisconnect((_) {
-      _isConnected = false;
-      print('Socket.IO desconectado');
-    });
+  /// Handler para evento de conexão
+  static void _handleConnect(_) {
+    _isConnected = true;
+    debugPrint('✅ Socket.IO conectado: $socketUrl');
+    _connectionStateController.add(true);
+    _onConnectCallback?.call();
+  }
 
-    _socketInstance!.onConnectError((data) {
-      _isConnected = false;
-      print('Erro de conexão Socket.IO: $data');
-    });
+  /// Handler para evento de desconexão
+  static void _handleDisconnect(_) {
+    _isConnected = false;
+    debugPrint('❌ Socket.IO desconectado');
+    _connectionStateController.add(false);
+    _onDisconnectCallback?.call();
+  }
 
-    _socketInstance!.onError((data) {
-      print('Erro Socket.IO: $data');
-    });
+  /// Handler para erro de conexão
+  static void _handleConnectError(data) {
+    _isConnected = false;
+    final errorMsg = 'Erro de conexão Socket.IO: $data';
+    debugPrint('🔴 $errorMsg');
+    _connectionStateController.add(false);
+    _errorController.add(errorMsg);
+    _onErrorCallback?.call(data);
+  }
 
-    _socketInstance!.onReconnect((_) {
-      _isConnected = true;
-      print('Socket.IO reconectado');
-    });
+  /// Handler para erros gerais
+  static void _handleError(data) {
+    final errorMsg = 'Erro Socket.IO: $data';
+    debugPrint('⚠️ $errorMsg');
+    _errorController.add(errorMsg);
+    _onErrorCallback?.call(data);
+  }
 
-    _socketInstance!.onReconnectError((data) {
-      print('Erro de reconexão Socket.IO: $data');
-    });
+  /// Handler para reconexão
+  static void _handleReconnect(_) {
+    _isConnected = true;
+    debugPrint('🔄 Socket.IO reconectado');
+    _connectionStateController.add(true);
+  }
+
+  /// Handler para erro de reconexão
+  static void _handleReconnectError(data) {
+    final errorMsg = 'Erro de reconexão Socket.IO: $data';
+    debugPrint('🔴 $errorMsg');
+    _errorController.add(errorMsg);
   }
 
   /// Constrói a URL do Socket baseada na configuração
@@ -152,5 +221,9 @@ class SocketConfig {
       _currentApiConfig = null;
       _isConnected = false;
     }
+
+    // Fechar streams
+    _connectionStateController.close();
+    _errorController.close();
   }
 }

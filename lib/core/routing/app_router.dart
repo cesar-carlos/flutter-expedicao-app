@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/ui/screens/splash_screen.dart';
 import 'package:exp/ui/screens/login_screen.dart';
@@ -10,8 +11,10 @@ import 'package:exp/ui/screens/config_screen.dart';
 import 'package:exp/ui/wrappers/user_selection_wrapper.dart';
 import 'package:exp/ui/screens/home_screen.dart';
 import 'package:exp/ui/screens/profile_screen.dart';
+import 'package:exp/ui/screens/separate_consultation_screen.dart';
 import 'package:exp/domain/viewmodels/user_selection_viewmodel.dart';
 import 'package:exp/domain/viewmodels/profile_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separate_consultation_viewmodel.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
 import 'package:exp/di/locator.dart';
 
@@ -25,6 +28,8 @@ class AppRouter {
   static const String scanner = '/scanner';
   static const String userSelection = '/user-selection';
   static const String profile = '/profile';
+  static const String shipmentSeparateConsultation =
+      '/shipment-separate-consultation';
 
   /// Configuração do GoRouter
   static GoRouter createRouter(AuthViewModel authViewModel) {
@@ -144,6 +149,16 @@ class AppRouter {
               Provider.of<AuthViewModel>(context, listen: false),
             ),
             child: const ProfileScreen(),
+          ),
+        ),
+
+        // Rota de Consultas de Separação
+        GoRoute(
+          path: shipmentSeparateConsultation,
+          name: 'shipment-separate-consultation',
+          builder: (context, state) => ChangeNotifierProvider(
+            create: (_) => ShipmentSeparateConsultationViewModel(),
+            child: const SeparateConsultationScreen(),
           ),
         ),
       ],

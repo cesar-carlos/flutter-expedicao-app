@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+
 import 'package:exp/domain/models/user/user_models.dart';
 import 'package:exp/core/network/dio_config.dart';
 import 'package:exp/data/dtos/create_user_dto.dart';

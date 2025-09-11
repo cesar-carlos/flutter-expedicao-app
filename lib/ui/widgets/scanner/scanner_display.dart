@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:exp/domain/models/scanner_data.dart';
 
 /// Widget para exibir os dados escaneados

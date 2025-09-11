@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+
 import 'package:exp/core/network/dio_config.dart';
 import 'package:exp/core/network/network_initializer.dart';
 import 'package:exp/domain/models/user/user_models.dart';

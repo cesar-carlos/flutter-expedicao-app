@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:exp/ui/widgets/auth/index.dart';
 
 class RegisterScreen extends StatelessWidget {

@@ -1,7 +1,8 @@
-import 'package:exp/core/utils/string_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+
+import 'package:exp/core/utils/string_utils.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/domain/viewmodels/theme_viewmodel.dart';
 import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
@@ -124,6 +125,15 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     context.go('${AppRouter.home}/scanner');
+                  },
+                ),
+
+                DrawerMenuTile(
+                  icon: Icons.search_outlined,
+                  title: 'Consultas de Separação',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(AppRouter.shipmentSeparateConsultation);
                   },
                 ),
 

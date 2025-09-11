@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+
 import 'package:exp/domain/models/api_config.dart';
 
 /// Configuração global do cliente HTTP Dio

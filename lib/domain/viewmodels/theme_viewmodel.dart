@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:exp/data/datasources/user_preferences_service.dart';
 
 class ThemeViewModel extends ChangeNotifier {

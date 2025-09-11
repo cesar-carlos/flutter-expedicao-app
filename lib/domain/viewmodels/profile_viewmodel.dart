@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+
 import 'package:exp/domain/models/user/app_user.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
