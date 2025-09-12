@@ -14,7 +14,6 @@ import 'package:exp/core/network/socket_config.dart';
 class SeparateRepositoryImpl implements SeparateRepository {
   final uuid = const Uuid();
 
-  // Usando o SocketConfig ao invés do Get.find para melhor testabilidade
   var socket = SocketConfig.instance;
 
   @override

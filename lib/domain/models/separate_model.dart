@@ -4,6 +4,8 @@ import 'package:exp/core/utils/date_helper.dart';
 class SeparateModel {
   final int codEmpresa;
   final int codSepararEstoque;
+  final String origem;
+  final int codOrigem;
   final int codTipoOperacaoExpedicao;
   final String tipoEntidade;
   final int codEntidade;
@@ -24,6 +26,8 @@ class SeparateModel {
   const SeparateModel({
     required this.codEmpresa,
     required this.codSepararEstoque,
+    required this.origem,
+    required this.codOrigem,
     required this.codTipoOperacaoExpedicao,
     required this.tipoEntidade,
     required this.codEntidade,
@@ -46,6 +50,8 @@ class SeparateModel {
   SeparateModel copyWith({
     int? codEmpresa,
     int? codSepararEstoque,
+    String? origem,
+    int? codOrigem,
     int? codTipoOperacaoExpedicao,
     String? tipoEntidade,
     int? codEntidade,
@@ -66,6 +72,8 @@ class SeparateModel {
     return SeparateModel(
       codEmpresa: codEmpresa ?? this.codEmpresa,
       codSepararEstoque: codSepararEstoque ?? this.codSepararEstoque,
+      origem: origem ?? this.origem,
+      codOrigem: codOrigem ?? this.codOrigem,
       codTipoOperacaoExpedicao:
           codTipoOperacaoExpedicao ?? this.codTipoOperacaoExpedicao,
       tipoEntidade: tipoEntidade ?? this.tipoEntidade,
@@ -96,6 +104,8 @@ class SeparateModel {
       return SeparateModel(
         codEmpresa: json['CodEmpresa'] as int,
         codSepararEstoque: json['CodSepararEstoque'] as int,
+        origem: json['Origem'] as String,
+        codOrigem: json['CodOrigem'] as int,
         codTipoOperacaoExpedicao: json['CodTipoOperacaoExpedicao'] as int,
         tipoEntidade: json['TipoEntidade'] as String,
         codEntidade: json['CodEntidade'] as int,
@@ -125,6 +135,8 @@ class SeparateModel {
     return {
       'CodEmpresa': codEmpresa,
       'CodSepararEstoque': codSepararEstoque,
+      'Origem': origem,
+      'CodOrigem': codOrigem,
       'CodTipoOperacaoExpedicao': codTipoOperacaoExpedicao,
       'TipoEntidade': tipoEntidade,
       'CodEntidade': codEntidade,
@@ -188,24 +200,24 @@ class SeparateModel {
   @override
   String toString() {
     return '''ShipmentSeparateModel(
-  codEmpresa: $codEmpresa, 
-  codSepararEstoque: $codSepararEstoque, 
-  codTipoOperacaoExpedicao: $codTipoOperacaoExpedicao, 
-  tipoEntidade: $tipoEntidade, 
-  codEntidade: $codEntidade, 
-  nomeEntidade: $nomeEntidade, 
-  situacao: $situacao, 
-  data: $data, 
-  hora: $hora, 
-  codPrioridade: $codPrioridade, 
-  historico: $historico, 
-  observacao: $observacao, 
-  codMotivoCancelamento: $codMotivoCancelamento, 
-  dataCancelamento: $dataCancelamento, 
-  horaCancelamento: $horaCancelamento, 
-  codUsuarioCancelamento: $codUsuarioCancelamento, 
-  nomeUsuarioCancelamento: $nomeUsuarioCancelamento, 
-  observacaoCancelamento: $observacaoCancelamento
+        codEmpresa: $codEmpresa, 
+        codSepararEstoque: $codSepararEstoque, 
+        codTipoOperacaoExpedicao: $codTipoOperacaoExpedicao, 
+        tipoEntidade: $tipoEntidade, 
+        codEntidade: $codEntidade, 
+        nomeEntidade: $nomeEntidade, 
+        situacao: $situacao, 
+        data: $data, 
+        hora: $hora, 
+        codPrioridade: $codPrioridade, 
+        historico: $historico, 
+        observacao: $observacao, 
+        codMotivoCancelamento: $codMotivoCancelamento, 
+        dataCancelamento: $dataCancelamento, 
+        horaCancelamento: $horaCancelamento, 
+        codUsuarioCancelamento: $codUsuarioCancelamento, 
+        nomeUsuarioCancelamento: $nomeUsuarioCancelamento, 
+        observacaoCancelamento: $observacaoCancelamento
 )''';
   }
 }
