@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:exp/domain/models/user_system_models.dart';
+import 'package:exp/domain/models/pagination.dart';
 import 'package:exp/domain/repositories/user_system_repository.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
 import 'package:exp/domain/models/user/user_models.dart';
@@ -85,10 +86,11 @@ class UserSelectionViewModel extends ChangeNotifier {
     _resetPagination();
 
     try {
+      final pagination = Pagination.create(limit: 50, offset: 0, page: 1);
       final response = await _userSystemRepository.searchUsersByName(
         nome,
         apenasAtivos: true,
-        limit: 50,
+        pagination: pagination,
       );
 
       if (response.success && response.users.isNotEmpty) {
@@ -125,10 +127,14 @@ class UserSelectionViewModel extends ChangeNotifier {
     _resetPagination();
 
     try {
-      final response = await _userSystemRepository.getUsers(
-        apenasAtivos: true,
+      final pagination = Pagination.create(
         limit: _pageLimit,
         offset: 0,
+        page: 1,
+      );
+      final response = await _userSystemRepository.getUsers(
+        apenasAtivos: true,
+        pagination: pagination,
       );
 
       if (response.success) {
@@ -168,10 +174,14 @@ class UserSelectionViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _userSystemRepository.getUsers(
-        apenasAtivos: true,
+      final pagination = Pagination.create(
         limit: _pageLimit,
         offset: _currentPage * _pageLimit,
+        page: _currentPage + 1,
+      );
+      final response = await _userSystemRepository.getUsers(
+        apenasAtivos: true,
+        pagination: pagination,
       );
 
       if (response.success) {

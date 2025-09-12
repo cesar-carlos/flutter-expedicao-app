@@ -1,22 +1,27 @@
 import 'package:exp/core/network/base_api_service.dart';
 import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/domain/models/user/user_models.dart';
+import 'package:exp/domain/models/pagination.dart';
 import 'package:exp/data/dtos/user_system_dto.dart';
 
 class UserSystemApiService extends BaseApiService {
   Future<UserSystemListResponse> getUsers({
     int? codEmpresa,
     bool? apenasAtivos,
-    int? limit,
-    int? offset,
+    Pagination? pagination,
   }) async {
     final queryParams = <String, dynamic>{};
     if (codEmpresa != null) queryParams['CodEmpresa'] = codEmpresa;
     if (apenasAtivos != null) {
       queryParams['Ativo'] = apenasAtivos ? 'S' : 'N';
     }
-    if (limit != null) queryParams['Limit'] = limit;
-    if (offset != null) queryParams['Offset'] = offset;
+
+    // Adiciona parâmetros de paginação se fornecidos
+    if (pagination != null) {
+      queryParams['Limit'] = pagination.limit;
+      queryParams['Offset'] = pagination.offset;
+      queryParams['Page'] = pagination.page;
+    }
 
     final response = await get('/usuarios', queryParameters: queryParams);
     return _processUserListResponse(response.data);
@@ -46,13 +51,24 @@ class UserSystemApiService extends BaseApiService {
     String nome, {
     int? codEmpresa,
     bool apenasAtivos = true,
-    int limit = 50,
+    Pagination? pagination,
   }) async {
     final queryParams = <String, dynamic>{
       'Nome': nome,
-      'Limit': limit,
       'ApenasAtivos': apenasAtivos ? 'S' : 'N',
     };
+
+    if (codEmpresa != null) queryParams['CodEmpresa'] = codEmpresa;
+
+    // Adiciona parâmetros de paginação se fornecidos
+    if (pagination != null) {
+      queryParams['Limit'] = pagination.limit;
+      queryParams['Offset'] = pagination.offset;
+      queryParams['Page'] = pagination.page;
+    } else {
+      // Usa paginação padrão se não fornecida
+      queryParams['Limit'] = 50;
+    }
 
     final response = await get('/usuarios', queryParameters: queryParams);
     return _processUserListResponse(response.data);

@@ -3,8 +3,8 @@ import 'pagination.dart';
 
 /// Query builder for constructing complex queries
 class QueryBuilder {
-  final List<QueryParam> _params = [];
   Pagination? _pagination;
+  final List<QueryParam> _params = [];
 
   /// Adds a parameter to the query
   QueryBuilder addParam<P>(String key, P value, {String operator = '='}) {
