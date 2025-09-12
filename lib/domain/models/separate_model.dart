@@ -1,6 +1,5 @@
 import 'package:exp/core/utils/date_helper.dart';
 
-/// Modelo para separação de expedição
 class SeparateModel {
   final int codEmpresa;
   final int codSepararEstoque;
@@ -46,7 +45,6 @@ class SeparateModel {
     this.observacaoCancelamento,
   });
 
-  /// Cria uma cópia do modelo com valores alterados
   SeparateModel copyWith({
     int? codEmpresa,
     int? codSepararEstoque,
@@ -98,7 +96,6 @@ class SeparateModel {
     );
   }
 
-  /// Cria um modelo a partir de JSON
   factory SeparateModel.fromJson(Map<String, dynamic> json) {
     try {
       return SeparateModel(
@@ -130,7 +127,6 @@ class SeparateModel {
     }
   }
 
-  /// Converte o modelo para JSON
   Map<String, dynamic> toJson() {
     return {
       'CodEmpresa': codEmpresa,
@@ -156,14 +152,11 @@ class SeparateModel {
     };
   }
 
-  /// Verifica se o item foi cancelado
   bool get isCancelled => codMotivoCancelamento != null;
 
-  /// Verifica se está em uma situação específica
   bool isSituacao(String situacaoToCheck) =>
       situacao.toLowerCase() == situacaoToCheck.toLowerCase();
 
-  /// Obtém informações de cancelamento (se houver)
   String? get cancelInfo {
     if (!isCancelled) return null;
 

@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/query_builder_extension.dart';
-import 'package:exp/domain/repositories/separate_repository.dart';
+import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/models/query_builder.dart';
 import 'package:exp/di/locator.dart';
 
@@ -11,7 +11,8 @@ enum SeparateConsultationState { initial, loading, loaded, error }
 
 /// ViewModel para gerenciar o estado da tela de consultas de separação
 class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
-  final SeparateRepository _repository = locator<SeparateRepository>();
+  final BasicConsultationRepository<SeparateConsultationModel> _repository =
+      locator<BasicConsultationRepository<SeparateConsultationModel>>();
 
   SeparateConsultationState _state = SeparateConsultationState.initial;
   List<SeparateConsultationModel> _consultations = [];

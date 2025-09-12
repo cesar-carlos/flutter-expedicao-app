@@ -2,7 +2,6 @@ import 'package:get_it/get_it.dart';
 
 import 'package:exp/domain/repositories/user_repository.dart';
 import 'package:exp/domain/repositories/user_system_repository.dart';
-import 'package:exp/domain/repositories/separate_repository.dart';
 import 'package:exp/data/repositories/user_repository_impl.dart';
 import 'package:exp/data/repositories/user_system_repository_impl.dart';
 import 'package:exp/data/repositories/separate_repository_impl.dart';
@@ -17,6 +16,11 @@ import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
 import 'package:exp/data/datasources/config_service.dart';
 import 'package:exp/data/datasources/user_preferences_service.dart';
 import 'package:exp/data/services/socket_service.dart';
+import 'package:exp/domain/models/separate_model.dart';
+import 'package:exp/domain/repositories/basic_repository.dart';
+import 'package:exp/data/repositories/separate_consultation_repository_impl.dart';
+import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 
 /// Instância global do Service Locator para Injeção de Dependências
 final GetIt locator = GetIt.instance;
@@ -41,9 +45,14 @@ void setupLocator() {
   locator.registerLazySingleton<UserSystemRepository>(
     () => UserSystemRepositoryImpl(),
   );
-  locator.registerLazySingleton<SeparateRepository>(
+
+  locator.registerLazySingleton<BasicRepository<SeparateModel>>(
     () => SeparateRepositoryImpl(),
   );
+
+  locator.registerLazySingleton<
+    BasicConsultationRepository<SeparateConsultationModel>
+  >(() => SeparateConsultationRepositoryImpl());
 
   // Registrar use cases
   locator.registerFactory(() => RegisterUserUseCase(locator<UserRepository>()));

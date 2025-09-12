@@ -6,7 +6,7 @@ import 'package:exp/ui/widgets/common/index.dart';
 import 'package:exp/ui/widgets/app_drawer/app_drawer.dart';
 import 'package:exp/ui/widgets/data_grid/separate_consultation_data_grid.dart';
 import 'package:exp/domain/viewmodels/separate_consultation_viewmodel.dart';
-import 'package:exp/domain/models/shipping_situation_model.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/query_builder.dart';
 import 'package:exp/domain/models/query_builder_extension.dart';
 
@@ -276,7 +276,7 @@ class _ShipmentSeparateConsultationScreenState
   void _onConsultationTap(dynamic consultation) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Consulta ${consultation.codigo} selecionada'),
+        content: Text('Consulta ${consultation.codSepararEstoque} selecionada'),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -290,29 +290,30 @@ class _ShipmentSeparateConsultationScreenState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Consulta ${consultation.codigo}'),
+        title: Text('Consulta ${consultation.codSepararEstoque}'),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildDetailItem('ID:', consultation.id.toString()),
-              _buildDetailItem('Código:', consultation.codigo ?? 'N/A'),
-              _buildDetailItem('Descrição:', consultation.descricao ?? 'N/A'),
-              _buildDetailItem('Status:', consultation.status ?? 'N/A'),
-              _buildDetailItem('Usuário:', consultation.usuario ?? 'N/A'),
-              if (consultation.dataInicialSeparacao != null)
-                _buildDetailItem(
-                  'Data Inicial:',
-                  _formatDate(consultation.dataInicialSeparacao),
-                ),
-              if (consultation.dataFinalSeparacao != null)
-                _buildDetailItem(
-                  'Data Final:',
-                  _formatDate(consultation.dataFinalSeparacao),
-                ),
-              if (consultation.observacoes != null)
-                _buildDetailItem('Observações:', consultation.observacoes),
+              _buildDetailItem(
+                'ID:',
+                consultation.codSepararEstoque.toString(),
+              ),
+              _buildDetailItem(
+                'Código:',
+                consultation.codSepararEstoque.toString(),
+              ),
+              _buildDetailItem('Descrição:', consultation.nomeEntidade),
+              _buildDetailItem('Status:', consultation.situacao),
+              _buildDetailItem('Usuário:', consultation.nomeEntidade),
+              _buildDetailItem(
+                'Data Emissão:',
+                _formatDate(consultation.dataEmissao),
+              ),
+              _buildDetailItem('Hora Emissão:', consultation.horaEmissao),
+              if (consultation.observacao != null)
+                _buildDetailItem('Observações:', consultation.observacao),
             ],
           ),
         ),

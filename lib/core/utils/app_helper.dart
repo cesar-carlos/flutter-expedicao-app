@@ -140,6 +140,17 @@ class AppHelper {
     return stringToDateTime(value) ?? DateTime.now();
   }
 
+  static DateTime tryStringToDate(String? value) {
+    try {
+      if (value == null) return DateTime(1900);
+      if (value == '') return DateTime(1900);
+
+      return DateTime.parse(value);
+    } catch (err) {
+      return DateTime(1900);
+    }
+  }
+
   static qtdDisplayToDouble(String value) {
     return double.parse(value.replaceAll('.', '').replaceAll(',', '.'));
   }

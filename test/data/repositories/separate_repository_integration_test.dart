@@ -4,6 +4,7 @@ import 'package:exp/data/repositories/separate_repository_impl.dart';
 import 'package:exp/domain/models/separate_model.dart';
 import 'package:exp/domain/models/api_config.dart';
 import 'package:exp/core/network/socket_config.dart';
+import '../../mocks/separate_model_mock.dart';
 
 void main() {
   group('SeparateRepositoryImpl Integration Tests', () {
@@ -46,23 +47,7 @@ void main() {
       test(
         'deve inserir uma nova separação e verificar se foi inserida',
         () async {
-          final newSeparate = SeparateModel(
-            codEmpresa: 1,
-            codSepararEstoque: 0,
-            codOrigem: 1,
-            origem: 'OB',
-            codTipoOperacaoExpedicao: 1,
-            tipoEntidade: 'C',
-            codEntidade: 999999,
-            nomeEntidade: 'TESTE ${DateTime.now().millisecondsSinceEpoch}',
-            situacao: 'PENDENTE',
-            data: DateTime.now(),
-            hora: '10:00:00',
-            codPrioridade: 1,
-            observacao: 'Teste de integração - INSERT',
-            historico: 'Criado via teste de integração',
-          );
-
+          final newSeparate = createDefaultTestSeparate();
           final insertResult = await repository.insert(newSeparate);
 
           expect(insertResult, isNotEmpty);
@@ -83,11 +68,7 @@ void main() {
       test(
         'deve atualizar a separação inserida anteriormente',
         () async {
-          final updatedSeparate = insertedSeparate.copyWith(
-            situacao: 'SEPARANDO',
-            observacao: 'Atualizado via teste de integração - UPDATE',
-            historico: 'Atualizado em ${DateTime.now().toIso8601String()}',
-          );
+          final updatedSeparate = createUpdatedTestSeparate(insertedSeparate);
 
           final updateResult = await repository.update(updatedSeparate);
 

@@ -60,8 +60,8 @@ extension ExpeditionSituationExtension on String {
   Color get situationColor => ExpeditionSituation.getColor(this);
 }
 
-class ShippingSituationModel {
-  ShippingSituationModel._();
+class ExpeditionSituationModel {
+  ExpeditionSituationModel._();
 
   static String getDescription(String code) =>
       ExpeditionSituation.getDescription(code);
@@ -85,11 +85,11 @@ class ExpedicaoSituacaoModel {
   ExpedicaoSituacaoModel._();
 
   static String getDescricao(String codigo) =>
-      ShippingSituationModel.getDescription(codigo);
+      ExpeditionSituationModel.getDescription(codigo);
   static bool isSituacaoValida(String codigo) =>
-      ShippingSituationModel.isValidSituation(codigo);
+      ExpeditionSituationModel.isValidSituation(codigo);
   static List<String> getTodasSituacoes() =>
-      ShippingSituationModel.getAllCodes();
+      ExpeditionSituationModel.getAllCodes();
   static List<String> getTodasDescricoes() =>
-      ShippingSituationModel.getAllDescriptions();
+      ExpeditionSituationModel.getAllDescriptions();
 }
