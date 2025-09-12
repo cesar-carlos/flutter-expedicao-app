@@ -3,8 +3,12 @@ import 'query_builder.dart';
 /// Extension for easy query building
 extension QueryBuilderExtension on QueryBuilder {
   /// Creates a new QueryBuilder with default pagination
-  static QueryBuilder withDefaultPagination({int limit = 20, int offset = 0}) {
-    return QueryBuilder().paginate(limit: limit, offset: offset);
+  static QueryBuilder withDefaultPagination({
+    int limit = 20,
+    int offset = 0,
+    int page = 1,
+  }) {
+    return QueryBuilder().paginate(limit: limit, offset: offset, page: page);
   }
 
   /// Adds a date range filter

@@ -99,14 +99,24 @@ class ConfigViewModel extends ChangeNotifier {
         lastUpdated: DateTime.now(),
       );
 
+      // Verifica se a configuração mudou
+      final configChanged =
+          _currentConfig.apiUrl != newConfig.apiUrl ||
+          _currentConfig.apiPort != newConfig.apiPort ||
+          _currentConfig.useHttps != newConfig.useHttps;
+
       // Salva no Hive
       await _configService.saveApiConfig(newConfig);
 
       // Atualiza o estado
       _currentConfig = newConfig;
 
-      // Reseta o status de conexão testada pois a configuração mudou
-      _connectionTested = false;
+      // Só reseta o status de conexão testada se a configuração mudou
+      if (configChanged) {
+        _connectionTested = false;
+        // Testa automaticamente a conexão após salvar uma nova configuração
+        await testConnection();
+      }
     } catch (e) {
       _errorMessage = e.toString();
     } finally {

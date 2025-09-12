@@ -149,11 +149,6 @@ class _ShipmentSeparateConsultationScreenState
                 Expanded(child: _buildDataGrid(viewModel)),
               ],
             ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () => _showAddConsultationDialog(viewModel),
-              tooltip: 'Nova Consulta',
-              child: const Icon(Icons.add),
-            ),
           ),
         );
       },
@@ -418,32 +413,6 @@ class _ShipmentSeparateConsultationScreenState
             icon: const Icon(Icons.chevron_right),
             tooltip: 'Próxima página',
           ),
-
-          const SizedBox(width: 16),
-
-          // Botão carregar mais
-          if (viewModel.hasMoreData)
-            ElevatedButton.icon(
-              onPressed: viewModel.isLoading
-                  ? null
-                  : () => viewModel.loadNextPage(),
-              icon: viewModel.isLoading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.add),
-              label: Text(
-                viewModel.isLoading ? 'Carregando...' : 'Carregar Mais',
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -712,29 +681,36 @@ class _ShipmentSeparateConsultationScreenState
   ) {
     QueryBuilder? queryBuilder;
 
+    // Usa o pageSize atual do ViewModel
+    final currentPageSize = viewModel.pageSize;
+
     switch (filterType) {
       case 'todos':
-        // QueryBuilder com paginação padrão, sem filtros
-        queryBuilder = QueryBuilderExtension.withDefaultPagination();
+        // QueryBuilder com paginação usando o pageSize atual
+        queryBuilder = QueryBuilderExtension.withDefaultPagination(
+          limit: currentPageSize,
+        );
         break;
       case 'codigo':
         if (inputValue.isNotEmpty) {
-          queryBuilder = QueryBuilderExtension.withDefaultPagination().equals(
-            'codigo',
-            inputValue,
-          );
+          queryBuilder = QueryBuilderExtension.withDefaultPagination(
+            limit: currentPageSize,
+          ).equals('codigo', inputValue);
         } else {
-          queryBuilder = QueryBuilderExtension.withDefaultPagination();
+          queryBuilder = QueryBuilderExtension.withDefaultPagination(
+            limit: currentPageSize,
+          );
         }
         break;
       case 'status':
         if (inputValue.isNotEmpty) {
-          queryBuilder = QueryBuilderExtension.withDefaultPagination().equals(
-            'situacao',
-            inputValue,
-          );
+          queryBuilder = QueryBuilderExtension.withDefaultPagination(
+            limit: currentPageSize,
+          ).equals('situacao', inputValue);
         } else {
-          queryBuilder = QueryBuilderExtension.withDefaultPagination();
+          queryBuilder = QueryBuilderExtension.withDefaultPagination(
+            limit: currentPageSize,
+          );
         }
         break;
     }

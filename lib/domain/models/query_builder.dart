@@ -44,8 +44,8 @@ class QueryBuilder {
   }
 
   /// Adds pagination to the query
-  QueryBuilder paginate({int limit = 10, int offset = 0}) {
-    _pagination = Pagination(limit: limit, offset: offset);
+  QueryBuilder paginate({int limit = 10, int offset = 0, int page = 1}) {
+    _pagination = Pagination(limit: limit, offset: offset, page: page);
     return this;
   }
 
