@@ -1,5 +1,5 @@
 import 'package:exp/domain/models/user_system_models.dart';
-import 'package:exp/domain/models/pagination.dart';
+import 'package:exp/domain/models/pagination/pagination.dart';
 
 abstract class UserSystemRepository {
   Future<Map<String, dynamic>> getUserSystemInfo(int codUsuario);

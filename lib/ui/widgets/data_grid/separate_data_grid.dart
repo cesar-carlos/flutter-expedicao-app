@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 import 'package:exp/domain/models/separate_model.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/core/utils/fields_helper.dart';
 
 /// DataGrid para exibir separações de expedição
@@ -223,26 +224,9 @@ class ShipmentSeparateDataSource extends DataGridSource {
     }
   }
 
-  Widget _buildSituacaoChip(String situacao) {
-    Color backgroundColor;
-    Color textColor = Colors.white;
-
-    switch (situacao.toUpperCase()) {
-      case 'PENDENTE':
-        backgroundColor = Colors.orange;
-        break;
-      case 'EM_ANDAMENTO':
-        backgroundColor = Colors.blue;
-        break;
-      case 'FINALIZADA':
-        backgroundColor = Colors.green;
-        break;
-      case 'CANCELADA':
-        backgroundColor = Colors.red;
-        break;
-      default:
-        backgroundColor = Colors.grey;
-    }
+  Widget _buildSituacaoChip(ExpeditionSituation situacao) {
+    final backgroundColor = situacao.color;
+    final textColor = _getTextColor(backgroundColor);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -251,7 +235,7 @@ class ShipmentSeparateDataSource extends DataGridSource {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        situacao,
+        situacao.description,
         style: TextStyle(
           color: textColor,
           fontSize: 10,
@@ -259,6 +243,19 @@ class ShipmentSeparateDataSource extends DataGridSource {
         ),
       ),
     );
+  }
+
+  /// Determina a cor do texto baseada na cor de fundo
+  Color _getTextColor(Color backgroundColor) {
+    // Cores que precisam de texto preto
+    if (backgroundColor == Colors.yellow ||
+        backgroundColor == Colors.lightGreen ||
+        backgroundColor == Colors.amber ||
+        backgroundColor == Colors.lightBlue) {
+      return Colors.black;
+    }
+
+    return Colors.white;
   }
 
   Widget _buildPrioridadeChip(int prioridade) {

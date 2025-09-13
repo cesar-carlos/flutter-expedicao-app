@@ -1,4 +1,5 @@
 import 'package:exp/domain/models/separation_item_model.dart';
+import 'package:exp/domain/models/expedition_item_situation_model.dart';
 
 SeparationItemModel createTestSeparationItem() {
   return SeparationItemModel(
@@ -6,7 +7,7 @@ SeparationItemModel createTestSeparationItem() {
     codSepararEstoque: 999999,
     item: '00003',
     sessionId: 'NCZhu4LDIC5RIsNYAAAp',
-    situacao: 'PE',
+    situacao: ExpeditionItemSituation.pendente,
     codCarrinhoPercurso: 1,
     itemCarrinhoPercurso: '00001',
     codSeparador: 1,
@@ -27,7 +28,7 @@ SeparationItemModel createUpdatedTestSeparationItem(
   SeparationItemModel originalItem,
 ) {
   return originalItem.copyWith(
-    situacao: 'SP',
+    situacao: ExpeditionItemSituation.separado,
     nomeSeparador: 'SEPARADOR ATUALIZADO',
     dataSeparacao: DateTime.now(),
     horaSeparacao: '11:30:00',

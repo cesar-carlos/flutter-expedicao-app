@@ -1,11 +1,12 @@
 import 'package:exp/core/utils/app_helper.dart';
+import 'package:exp/domain/models/expedition_item_situation_model.dart';
 
 class SeparationItemConsultationModel {
   final int codEmpresa;
   final int codSepararEstoque;
   final String item;
   final String sessionId;
-  final String situacao;
+  final ExpeditionItemSituation situacao;
   final int codCarrinho;
   final String nomeCarrinho;
   final String codigoBarrasCarrinho;
@@ -78,7 +79,7 @@ class SeparationItemConsultationModel {
     int? codSepararEstoque,
     String? item,
     String? sessionId,
-    String? situacao,
+    ExpeditionItemSituation? situacao,
     int? codCarrinho,
     String? nomeCarrinho,
     String? codigoBarrasCarrinho,
@@ -154,7 +155,11 @@ class SeparationItemConsultationModel {
         codSepararEstoque: json['CodSepararEstoque'],
         item: json['Item'],
         sessionId: json['SessionId'],
-        situacao: json['Situacao'] ?? '',
+        situacao:
+            ExpeditionItemSituation.fromCode(
+              json['Situacao'] as String? ?? '',
+            ) ??
+            ExpeditionItemSituation.pendente,
         codCarrinho: json['CodCarrinho'],
         nomeCarrinho: json['NomeCarrinho'],
         codigoBarrasCarrinho: json['CodigoBarrasCarrinho'],
@@ -196,7 +201,7 @@ class SeparationItemConsultationModel {
       'CodSepararEstoque': codSepararEstoque,
       'Item': item,
       'SessionId': sessionId,
-      'Situacao': situacao,
+      'Situacao': situacao.code,
       'CodCarrinho': codCarrinho,
       'NomeCarrinho': nomeCarrinho,
       'CodigoBarrasCarrinho': codigoBarrasCarrinho,

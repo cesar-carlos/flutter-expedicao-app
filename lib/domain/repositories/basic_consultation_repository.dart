@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/query_builder.dart';
+import 'package:exp/domain/models/pagination/query_builder.dart';
 
 abstract class BasicConsultationRepository<T> {
   /// Consulta T com filtros opcionais

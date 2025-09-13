@@ -1,7 +1,7 @@
 import 'package:exp/core/network/base_api_service.dart';
 import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/domain/models/user/user_models.dart';
-import 'package:exp/domain/models/pagination.dart';
+import 'package:exp/domain/models/pagination/pagination.dart';
 import 'package:exp/data/dtos/user_system_dto.dart';
 
 class UserSystemApiService extends BaseApiService {

@@ -171,4 +171,15 @@ class AppHelper {
     final numericRegex = RegExp(r'^[0-9]+$');
     return numericRegex.hasMatch(value);
   }
+
+  static DateTime? tryStringToDateOrNull(String? value) {
+    try {
+      if (value == null) return null;
+      if (value == '') return null;
+
+      return DateTime.parse(value);
+    } catch (err) {
+      return null;
+    }
+  }
 }

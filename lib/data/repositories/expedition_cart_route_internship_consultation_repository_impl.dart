@@ -5,22 +5,25 @@ import 'package:uuid/uuid.dart';
 import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/dtos/send_query_socket_dto.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/core/network/socket_config.dart';
 
-class SeparateItemConsultationRepositoryImpl
-    implements BasicConsultationRepository<SeparateItemConsultationModel> {
+class ExpeditionCartRouteInternshipConsultationRepositoryImpl
+    implements
+        BasicConsultationRepository<
+          ExpeditionCartRouteInternshipConsultationModel
+        > {
   final uuid = const Uuid();
   var socket = SocketConfig.instance;
-  final selectEvent = 'separar.item.consulta';
+  final selectEvent = 'carrinho.consulta';
 
   @override
-  Future<List<SeparateItemConsultationModel>> selectConsultation(
-    QueryBuilder queryBuilder,
-  ) async {
+  Future<List<ExpeditionCartRouteInternshipConsultationModel>>
+  selectConsultation(QueryBuilder queryBuilder) async {
     final event = '${socket.id} $selectEvent';
-    final completer = Completer<List<SeparateItemConsultationModel>>();
+    final completer =
+        Completer<List<ExpeditionCartRouteInternshipConsultationModel>>();
     final responseId = uuid.v4();
 
     final send = SendQuerySocketDto(
@@ -44,9 +47,13 @@ class SeparateItemConsultationRepositoryImpl
             return;
           }
 
-          final list = data.map<SeparateItemConsultationModel>((json) {
-            return SeparateItemConsultationModel.fromJson(json);
-          }).toList();
+          final list = data.map<ExpeditionCartRouteInternshipConsultationModel>(
+            (json) {
+              return ExpeditionCartRouteInternshipConsultationModel.fromJson(
+                json,
+              );
+            },
+          ).toList();
 
           completer.complete(list);
         } catch (e) {

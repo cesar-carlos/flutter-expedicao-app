@@ -1,11 +1,13 @@
+import 'package:flutter/material.dart';
 import 'package:exp/core/utils/app_helper.dart';
+import 'package:exp/domain/models/expedition_item_situation_model.dart';
 
 class SeparationItemModel {
   final int codEmpresa;
   final int codSepararEstoque;
   final String item;
   final String sessionId;
-  final String situacao;
+  final ExpeditionItemSituation situacao;
   final int codCarrinhoPercurso;
   final String itemCarrinhoPercurso;
   final int codSeparador;
@@ -38,7 +40,7 @@ class SeparationItemModel {
     int? codSepararEstoque,
     String? item,
     String? sessionId,
-    String? situacao,
+    ExpeditionItemSituation? situacao,
     int? codCarrinhoPercurso,
     String? itemCarrinhoPercurso,
     int? codSeparador,
@@ -93,7 +95,11 @@ class SeparationItemModel {
         codSepararEstoque: json['CodSepararEstoque'],
         item: json['Item'],
         sessionId: json['SessionId'],
-        situacao: json['Situacao'],
+        situacao:
+            ExpeditionItemSituation.fromCode(
+              json['Situacao'] as String? ?? '',
+            ) ??
+            ExpeditionItemSituation.pendente,
         codCarrinhoPercurso: json['CodCarrinhoPercurso'],
         itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
         codSeparador: json['CodSeparador'],
@@ -115,7 +121,7 @@ class SeparationItemModel {
       "CodSepararEstoque": codSepararEstoque,
       "Item": item,
       "SessionId": sessionId,
-      "Situacao": situacao,
+      "Situacao": situacao.code,
       "CodCarrinhoPercurso": codCarrinhoPercurso,
       "ItemCarrinhoPercurso": itemCarrinhoPercurso,
       "CodSeparador": codSeparador,
@@ -128,6 +134,15 @@ class SeparationItemModel {
     };
   }
 
+  /// Retorna o código da situação
+  String get situacaoCode => situacao.code;
+
+  /// Retorna a descrição da situação
+  String get situacaoDescription => situacao.description;
+
+  /// Retorna a cor da situação
+  Color get situacaoColor => situacao.color;
+
   @override
   String toString() {
     return '''
@@ -136,7 +151,7 @@ class SeparationItemModel {
         codSepararEstoque: $codSepararEstoque, 
         item: $item, 
         sessionId: $sessionId, 
-        situacao: $situacao, 
+        situacao: ${situacao.description}, 
         codCarrinhoPercurso: $codCarrinhoPercurso, 
         itemCarrinhoPercurso: $itemCarrinhoPercurso, 
         codSeparador: $codSeparador, 

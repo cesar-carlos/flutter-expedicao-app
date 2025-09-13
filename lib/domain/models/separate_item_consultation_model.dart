@@ -1,11 +1,12 @@
 import 'package:exp/core/utils/date_helper.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 
 class SeparateItemConsultationModel {
   final int codEmpresa;
   final int codSepararEstoque;
   final int codTipoOperacaoExpedicao;
   final String nomeTipoOperacaoExpedicao;
-  final String situacao;
+  final ExpeditionSituation situacao;
   final String tipoEntidade;
   final DateTime dataEmissao;
   final String horaEmissao;
@@ -40,7 +41,9 @@ class SeparateItemConsultationModel {
         codSepararEstoque: json['CodSepararEstoque'] ?? 0,
         codTipoOperacaoExpedicao: json['CodTipoOperacaoExpedicao'] ?? 0,
         nomeTipoOperacaoExpedicao: json['NomeTipoOperacaoExpedicao'] ?? '',
-        situacao: json['Situacao'] ?? '',
+        situacao:
+            ExpeditionSituation.fromCode(json['Situacao'] as String? ?? '') ??
+            ExpeditionSituation.aguardando,
         tipoEntidade: json['TipoEntidade'] ?? '',
         dataEmissao: DateHelper.tryStringToDate(json['DataEmissao']),
         horaEmissao: json['HoraEmissao'] ?? '',
@@ -62,7 +65,7 @@ class SeparateItemConsultationModel {
       'CodSepararEstoque': codSepararEstoque,
       'CodTipoOperacaoExpedicao': codTipoOperacaoExpedicao,
       'NomeTipoOperacaoExpedicao': nomeTipoOperacaoExpedicao,
-      'Situacao': situacao,
+      'Situacao': situacao.code,
       'TipoEntidade': tipoEntidade,
       'DataEmissao': dataEmissao.toIso8601String(),
       'HoraEmissao': horaEmissao,

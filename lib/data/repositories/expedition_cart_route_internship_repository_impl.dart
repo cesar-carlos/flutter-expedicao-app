@@ -6,22 +6,25 @@ import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/dtos/send_query_socket_dto.dart';
 import 'package:exp/data/dtos/send_mutation_socket_dto.dart';
-import 'package:exp/domain/models/separate_item_model.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
 import 'package:exp/core/network/socket_config.dart';
 
-class SeparateItemRepositoryImpl implements BasicRepository<SeparateItemModel> {
-  final selectEvent = 'separar.item.select';
-  final insertEvent = 'separar.item.insert';
-  final updateEvent = 'separar.item.update';
-  final deleteEvent = 'separar.item.delete';
+class ExpeditionCartRouteInternshipRepositoryImpl
+    implements BasicRepository<ExpeditionCartRouteInternshipModel> {
+  final selectEvent = 'carrinho.percurso.select';
+  final insertEvent = 'carrinho.percurso.insert';
+  final updateEvent = 'carrinho.percurso.update';
+  final deleteEvent = 'carrinho.percurso.delete';
   var socket = SocketConfig.instance;
   final uuid = const Uuid();
 
   @override
-  Future<List<SeparateItemModel>> select(QueryBuilder queryBuilder) async {
+  Future<List<ExpeditionCartRouteInternshipModel>> select(
+    QueryBuilder queryBuilder,
+  ) async {
     final event = '${socket.id} $selectEvent';
-    final completer = Completer<List<SeparateItemModel>>();
+    final completer = Completer<List<ExpeditionCartRouteInternshipModel>>();
     final responseId = uuid.v4();
 
     final whereQuery = queryBuilder.buildQuery();
@@ -48,8 +51,8 @@ class SeparateItemRepositoryImpl implements BasicRepository<SeparateItemModel> {
             return;
           }
 
-          final list = data.map<SeparateItemModel>((json) {
-            return SeparateItemModel.fromJson(json);
+          final list = data.map<ExpeditionCartRouteInternshipModel>((json) {
+            return ExpeditionCartRouteInternshipModel.fromJson(json);
           }).toList();
 
           completer.complete(list);
@@ -68,9 +71,11 @@ class SeparateItemRepositoryImpl implements BasicRepository<SeparateItemModel> {
   }
 
   @override
-  Future<List<SeparateItemModel>> insert(SeparateItemModel entity) async {
+  Future<List<ExpeditionCartRouteInternshipModel>> insert(
+    ExpeditionCartRouteInternshipModel entity,
+  ) async {
     final event = '${socket.id} $insertEvent';
-    final completer = Completer<List<SeparateItemModel>>();
+    final completer = Completer<List<ExpeditionCartRouteInternshipModel>>();
     final responseId = uuid.v4();
 
     final send = SendMutationSocketDto(
@@ -93,8 +98,8 @@ class SeparateItemRepositoryImpl implements BasicRepository<SeparateItemModel> {
             return;
           }
 
-          final list = mutation.map<SeparateItemModel>((json) {
-            return SeparateItemModel.fromJson(json);
+          final list = mutation.map<ExpeditionCartRouteInternshipModel>((json) {
+            return ExpeditionCartRouteInternshipModel.fromJson(json);
           }).toList();
 
           completer.complete(list);
@@ -113,9 +118,11 @@ class SeparateItemRepositoryImpl implements BasicRepository<SeparateItemModel> {
   }
 
   @override
-  Future<List<SeparateItemModel>> update(SeparateItemModel entity) async {
+  Future<List<ExpeditionCartRouteInternshipModel>> update(
+    ExpeditionCartRouteInternshipModel entity,
+  ) async {
     final event = '${socket.id} $updateEvent';
-    final completer = Completer<List<SeparateItemModel>>();
+    final completer = Completer<List<ExpeditionCartRouteInternshipModel>>();
     final responseId = uuid.v4();
 
     final send = SendMutationSocketDto(
@@ -138,8 +145,8 @@ class SeparateItemRepositoryImpl implements BasicRepository<SeparateItemModel> {
             return;
           }
 
-          final list = mutation.map<SeparateItemModel>((json) {
-            return SeparateItemModel.fromJson(json);
+          final list = mutation.map<ExpeditionCartRouteInternshipModel>((json) {
+            return ExpeditionCartRouteInternshipModel.fromJson(json);
           }).toList();
 
           completer.complete(list);
@@ -158,9 +165,11 @@ class SeparateItemRepositoryImpl implements BasicRepository<SeparateItemModel> {
   }
 
   @override
-  Future<List<SeparateItemModel>> delete(SeparateItemModel entity) async {
+  Future<List<ExpeditionCartRouteInternshipModel>> delete(
+    ExpeditionCartRouteInternshipModel entity,
+  ) async {
     final event = '${socket.id} $deleteEvent';
-    final completer = Completer<List<SeparateItemModel>>();
+    final completer = Completer<List<ExpeditionCartRouteInternshipModel>>();
     final responseId = uuid.v4();
 
     final send = SendMutationSocketDto(
@@ -183,8 +192,8 @@ class SeparateItemRepositoryImpl implements BasicRepository<SeparateItemModel> {
             return;
           }
 
-          final list = mutation.map<SeparateItemModel>((json) {
-            return SeparateItemModel.fromJson(json);
+          final list = mutation.map<ExpeditionCartRouteInternshipModel>((json) {
+            return ExpeditionCartRouteInternshipModel.fromJson(json);
           }).toList();
 
           completer.complete(list);

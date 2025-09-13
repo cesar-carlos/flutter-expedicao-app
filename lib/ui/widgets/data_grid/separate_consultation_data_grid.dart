@@ -338,12 +338,11 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
     }
   }
 
-  Widget _buildStatusChip(String status) {
+  Widget _buildStatusChipFromEnum(ExpeditionSituation status) {
     try {
-      final situation = ExpeditionSituation.fromCode(status);
-      final backgroundColor = situation?.color ?? Colors.grey;
+      final backgroundColor = status.color;
       final textColor = _getTextColor(backgroundColor);
-      final description = ExpeditionSituation.getDescription(status);
+      final description = status.description;
 
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -379,9 +378,9 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
     }
   }
 
-  Widget _buildStatusChipSafe(String? status) {
+  Widget _buildStatusChipSafe(ExpeditionSituation? status) {
     try {
-      if (status == null || status.isEmpty) {
+      if (status == null) {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
@@ -399,7 +398,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
         );
       }
 
-      return _buildStatusChip(status);
+      return _buildStatusChipFromEnum(status);
     } catch (e) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

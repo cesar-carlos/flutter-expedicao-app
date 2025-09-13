@@ -1,5 +1,5 @@
 import 'package:exp/domain/viewmodels/separate_consultation_viewmodel.dart';
-import 'package:exp/domain/models/query_builder_extension.dart';
+import 'package:exp/domain/models/pagination/query_builder_extension.dart';
 
 /// Exemplo de uso do ShipmentSeparateConsultationViewModel com paginação
 class SeparateConsultationPaginationExample {

@@ -1,4 +1,5 @@
 import 'package:exp/domain/models/separate_model.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 
 SeparateModel createTestSeparate() {
   return SeparateModel(
@@ -10,7 +11,7 @@ SeparateModel createTestSeparate() {
     tipoEntidade: 'C',
     codEntidade: 999999,
     nomeEntidade: 'TESTE ${DateTime.now().millisecondsSinceEpoch}',
-    situacao: 'PENDENTE',
+    situacao: ExpeditionSituation.aguardando,
     data: DateTime.now(),
     hora: '10:00:00',
     codPrioridade: 1,
@@ -31,7 +32,7 @@ SeparateModel createDefaultTestSeparate() {
 
 SeparateModel createUpdatedTestSeparate(SeparateModel originalSeparate) {
   return originalSeparate.copyWith(
-    situacao: 'SEPARANDO',
+    situacao: ExpeditionSituation.separando,
     observacao: 'Atualizado via teste de integração - UPDATE',
     historico: 'Atualizado em ${DateTime.now().toIso8601String()}',
   );

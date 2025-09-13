@@ -7,8 +7,8 @@ import 'package:exp/ui/widgets/app_drawer/app_drawer.dart';
 import 'package:exp/ui/widgets/data_grid/separate_consultation_data_grid.dart';
 import 'package:exp/domain/viewmodels/separate_consultation_viewmodel.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
-import 'package:exp/domain/models/query_builder.dart';
-import 'package:exp/domain/models/query_builder_extension.dart';
+import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/domain/models/pagination/query_builder_extension.dart';
 
 /// Tela para exibir consultas de separação de expedição
 class SeparateConsultationScreen extends StatefulWidget {
@@ -305,7 +305,7 @@ class _ShipmentSeparateConsultationScreenState
                 consultation.codSepararEstoque.toString(),
               ),
               _buildDetailItem('Descrição:', consultation.nomeEntidade),
-              _buildDetailItem('Status:', consultation.situacao),
+              _buildDetailItem('Status:', consultation.situacaoDescription),
               _buildDetailItem('Usuário:', consultation.nomeEntidade),
               _buildDetailItem(
                 'Data Emissão:',
@@ -413,33 +413,6 @@ class _ShipmentSeparateConsultationScreenState
                 : null,
             icon: const Icon(Icons.chevron_right),
             tooltip: 'Próxima página',
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAddConsultationDialog(
-    ShipmentSeparateConsultationViewModel viewModel,
-  ) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Nova Consulta'),
-        content: const Text(
-          'Funcionalidade de criar nova consulta será implementada aqui.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // TODO: Implementar criação de consulta
-            },
-            child: const Text('Criar'),
           ),
         ],
       ),

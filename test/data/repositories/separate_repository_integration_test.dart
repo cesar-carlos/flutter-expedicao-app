@@ -52,7 +52,7 @@ void main() {
 
           expect(insertResult, isNotEmpty);
           expect(insertResult.first.nomeEntidade, newSeparate.nomeEntidade);
-          expect(insertResult.first.situacao, 'PENDENTE');
+          expect(insertResult.first.situacaoCode, 'AGUARDANDO');
           expect(insertResult.first.observacao, 'Teste de integração - INSERT');
 
           insertedSeparate = insertResult.first;
@@ -77,7 +77,7 @@ void main() {
             updateResult.first.codSepararEstoque,
             insertedSeparate.codSepararEstoque,
           );
-          expect(updateResult.first.situacao, 'SEPARANDO');
+          expect(updateResult.first.situacaoCode, 'SEPARANDO');
           expect(
             updateResult.first.observacao,
             'Atualizado via teste de integração - UPDATE',
@@ -111,7 +111,7 @@ void main() {
             insertedSeparate.nomeEntidade,
           );
 
-          expect(deleteResult.first.situacao, isA<String>());
+          expect(deleteResult.first.situacaoCode, isA<String>());
 
           await Future.delayed(Duration(seconds: 3));
         },

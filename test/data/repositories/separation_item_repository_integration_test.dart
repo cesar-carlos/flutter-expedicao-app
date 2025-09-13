@@ -55,7 +55,7 @@ void main() {
           expect(insertResult, isNotEmpty);
           expect(insertResult.first.item, newItem.item);
           expect(insertResult.first.sessionId, newItem.sessionId);
-          expect(insertResult.first.situacao, 'PE');
+          expect(insertResult.first.situacaoCode, 'PE');
           expect(insertResult.first.codProduto, 1);
           expect(insertResult.first.quantidade, 1.0);
           expect(insertResult.first.nomeSeparador, 'TESTE SEPARADOR');
@@ -84,7 +84,7 @@ void main() {
             insertedSeparationItem.codSepararEstoque,
           );
           expect(updateResult.first.item, insertedSeparationItem.item);
-          expect(updateResult.first.situacao, 'SP');
+          expect(updateResult.first.situacaoCode, 'SP');
           expect(updateResult.first.nomeSeparador, 'SEPARADOR ATUALIZADO');
           expect(
             updateResult.first.codProduto,

@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:exp/domain/models/query_builder_extension.dart';
+import 'package:exp/domain/models/pagination/query_builder_extension.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/models/query_builder.dart';
+import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/di/locator.dart';
 
 /// Estados possíveis para a tela de consultas de separação
@@ -44,7 +44,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
     // Aplicar filtro de situação
     if (_situacaoFilter != null) {
       filtered = filtered.where((consultation) {
-        return consultation.situacao.toUpperCase() ==
+        return consultation.situacaoCode.toUpperCase() ==
             _situacaoFilter!.toUpperCase();
       }).toList();
     }

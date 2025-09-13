@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:exp/core/utils/date_helper.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 
 class SeparateModel {
   final int codEmpresa;
@@ -9,7 +11,7 @@ class SeparateModel {
   final String tipoEntidade;
   final int codEntidade;
   final String nomeEntidade;
-  final String situacao;
+  final ExpeditionSituation situacao;
   final DateTime data;
   final String hora;
   final int codPrioridade;
@@ -54,7 +56,7 @@ class SeparateModel {
     String? tipoEntidade,
     int? codEntidade,
     String? nomeEntidade,
-    String? situacao,
+    ExpeditionSituation? situacao,
     DateTime? data,
     String? hora,
     int? codPrioridade,
@@ -107,7 +109,9 @@ class SeparateModel {
         tipoEntidade: json['TipoEntidade'] as String,
         codEntidade: json['CodEntidade'] as int,
         nomeEntidade: json['NomeEntidade'] as String,
-        situacao: json['Situacao'] as String,
+        situacao:
+            ExpeditionSituation.fromCode(json['Situacao'] as String) ??
+            ExpeditionSituation.aguardando,
         data: DateHelper.tryStringToDate(json['Data']),
         hora: json['Hora'] as String? ?? '00:00:00',
         codPrioridade: json['CodPrioridade'] as int,
@@ -137,7 +141,7 @@ class SeparateModel {
       'TipoEntidade': tipoEntidade,
       'CodEntidade': codEntidade,
       'NomeEntidade': nomeEntidade,
-      'Situacao': situacao,
+      'Situacao': situacao.code,
       'Data': data.toIso8601String(),
       'Hora': hora,
       'CodPrioridade': codPrioridade,
@@ -154,8 +158,17 @@ class SeparateModel {
 
   bool get isCancelled => codMotivoCancelamento != null;
 
+  /// Retorna o código da situação
+  String get situacaoCode => situacao.code;
+
+  /// Retorna a descrição da situação
+  String get situacaoDescription => situacao.description;
+
+  /// Retorna a cor da situação
+  Color get situacaoColor => situacao.color;
+
   bool isSituacao(String situacaoToCheck) =>
-      situacao.toLowerCase() == situacaoToCheck.toLowerCase();
+      situacao.code.toLowerCase() == situacaoToCheck.toLowerCase();
 
   String? get cancelInfo {
     if (!isCancelled) return null;
@@ -199,7 +212,7 @@ class SeparateModel {
         tipoEntidade: $tipoEntidade, 
         codEntidade: $codEntidade, 
         nomeEntidade: $nomeEntidade, 
-        situacao: $situacao, 
+        situacao: ${situacao.description}, 
         data: $data, 
         hora: $hora, 
         codPrioridade: $codPrioridade, 
