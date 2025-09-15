@@ -16,6 +16,11 @@ import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
 import 'package:exp/data/datasources/config_service.dart';
 import 'package:exp/data/datasources/user_preferences_service.dart';
 import 'package:exp/data/services/socket_service.dart';
+import 'package:exp/domain/services/event_service.dart';
+import 'package:exp/data/services/event_service_impl.dart';
+import 'package:exp/domain/repositories/generic_event_repository.dart';
+import 'package:exp/data/repositories/event_repository/generic_event_repository_impl.dart';
+import 'package:exp/data/repositories/event_repository/separate_event_repository_impl.dart';
 import 'package:exp/domain/models/separate_model.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/repositories/separate_consultation_repository_impl.dart';
@@ -166,4 +171,17 @@ void setupLocator() {
     viewModel.initialize();
     return viewModel;
   });
+
+  // Registrar EventService
+  locator.registerLazySingleton<EventService>(() => EventServiceImpl());
+
+  // Registrar GenericEventRepository para SeparateModel
+  locator.registerLazySingleton<GenericEventRepositoryImpl<SeparateModel>>(
+    () => GenericEventRepositoryImpl(locator(), 'separar'),
+  );
+
+  // Registrar SeparateEventRepository
+  locator.registerLazySingleton<GenericEventRepository<SeparateModel>>(
+    () => SeparateEventRepositoryImpl(locator()),
+  );
 }

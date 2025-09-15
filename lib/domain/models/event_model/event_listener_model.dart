@@ -1,19 +1,19 @@
-import 'package:exp/domain/models/basic_event_model.dart';
+import 'package:exp/domain/models/event_model/basic_event_model.dart';
 
 /// Tipos de eventos disponíveis
-enum RepositoryEvent { insert, update, delete }
+enum Event { insert, update, delete }
 
 /// Callback para eventos de repositório
 typedef EventCallback = void Function(BasicEventModel event);
 
 /// Modelo para listener de eventos de repositório
-class RepositoryEventListenerModel {
+class EventListenerModel {
   final String id;
-  final RepositoryEvent event;
+  final Event event;
   final EventCallback callback;
   final bool allEvent;
 
-  const RepositoryEventListenerModel({
+  const EventListenerModel({
     required this.id,
     required this.event,
     required this.callback,
@@ -23,7 +23,7 @@ class RepositoryEventListenerModel {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is RepositoryEventListenerModel &&
+    return other is EventListenerModel &&
         other.id == id &&
         other.event == event;
   }

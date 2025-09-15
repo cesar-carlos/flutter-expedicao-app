@@ -1,18 +1,18 @@
-import 'package:exp/domain/models/repository_event_listener_model.dart';
+import 'package:exp/domain/models/event_model/event_listener_model.dart';
 
 /// Contrato para gerenciamento de eventos de repositório
 abstract class EventContract {
   /// Lista de listeners registrados
-  List<RepositoryEventListenerModel> get listeners;
+  List<EventListenerModel> get listeners;
 
   /// Adiciona um listener de evento
-  void addListener(RepositoryEventListenerModel listener);
+  void addListener(EventListenerModel listener);
 
   /// Remove um listener específico
-  void removeListener(RepositoryEventListenerModel listener);
+  void removeListener(EventListenerModel listener);
 
   /// Remove múltiplos listeners
-  void removeListeners(List<RepositoryEventListenerModel> listeners);
+  void removeListeners(List<EventListenerModel> listeners);
 
   /// Remove listener por ID
   void removeListenerById(String id);
@@ -24,5 +24,5 @@ abstract class EventContract {
   bool hasListener(String id);
 
   /// Obtém listener por ID
-  RepositoryEventListenerModel? getListenerById(String id);
+  EventListenerModel? getListenerById(String id);
 }

@@ -1,4 +1,5 @@
 import 'package:exp/domain/models/separate_item_model.dart';
+import 'package:exp/domain/models/expedition_origem_model.dart';
 
 SeparateItemModel createTestItem() {
   return SeparateItemModel(
@@ -6,7 +7,7 @@ SeparateItemModel createTestItem() {
     codSepararEstoque: 999999,
     item: '00001',
     codSetorEstoque: 1,
-    origem: 'OB',
+    origem: ExpeditionOrigem.orcamentoBalcao,
     codOrigem: 1,
     itemOrigem: '00003',
     codLocalArmazenagem: 1,

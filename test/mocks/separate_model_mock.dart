@@ -1,11 +1,12 @@
 import 'package:exp/domain/models/separate_model.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
+import 'package:exp/domain/models/expedition_origem_model.dart';
 
 SeparateModel createTestSeparate() {
   return SeparateModel(
     codEmpresa: 1,
     codSepararEstoque: 0,
-    origem: 'OB',
+    origem: ExpeditionOrigem.orcamentoBalcao,
     codOrigem: 1,
     codTipoOperacaoExpedicao: 1,
     tipoEntidade: 'C',
