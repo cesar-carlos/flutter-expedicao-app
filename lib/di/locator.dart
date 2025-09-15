@@ -18,8 +18,8 @@ import 'package:exp/data/datasources/user_preferences_service.dart';
 import 'package:exp/data/services/socket_service.dart';
 import 'package:exp/domain/services/event_service.dart';
 import 'package:exp/data/services/event_service_impl.dart';
-import 'package:exp/domain/repositories/generic_event_repository.dart';
-import 'package:exp/data/repositories/event_repository/generic_event_repository_impl.dart';
+import 'package:exp/domain/repositories/event_generic_repository.dart';
+import 'package:exp/data/repositories/event_repository/event_generic_repository_impl.dart';
 import 'package:exp/data/repositories/event_repository/separate_event_repository_impl.dart';
 import 'package:exp/domain/models/separate_model.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
@@ -176,12 +176,12 @@ void setupLocator() {
   locator.registerLazySingleton<EventService>(() => EventServiceImpl());
 
   // Registrar GenericEventRepository para SeparateModel
-  locator.registerLazySingleton<GenericEventRepositoryImpl<SeparateModel>>(
-    () => GenericEventRepositoryImpl(locator(), 'separar'),
+  locator.registerLazySingleton<EventGenericRepositoryImpl<SeparateModel>>(
+    () => EventGenericRepositoryImpl(locator(), 'separar'),
   );
 
   // Registrar SeparateEventRepository
-  locator.registerLazySingleton<GenericEventRepository<SeparateModel>>(
+  locator.registerLazySingleton<EventGenericRepository<SeparateModel>>(
     () => SeparateEventRepositoryImpl(locator()),
   );
 }

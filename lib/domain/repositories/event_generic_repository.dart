@@ -1,7 +1,7 @@
 import 'package:exp/domain/models/event_model/event_listener_model.dart';
 
 /// Repositório genérico para eventos de qualquer modelo
-abstract class GenericEventRepository<T> {
+abstract class EventGenericRepository<T> {
   /// Adiciona um listener de evento
   void addListener(EventListenerModel listener);
 

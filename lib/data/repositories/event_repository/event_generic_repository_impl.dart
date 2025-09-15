@@ -1,14 +1,14 @@
-import 'package:exp/domain/repositories/generic_event_repository.dart';
+import 'package:exp/domain/repositories/event_generic_repository.dart';
 import 'package:exp/domain/models/event_model/event_listener_model.dart';
 import 'package:exp/domain/services/event_service.dart';
 
 /// Implementação genérica do repositório de eventos
-class GenericEventRepositoryImpl<T> implements GenericEventRepository<T> {
+class EventGenericRepositoryImpl<T> implements EventGenericRepository<T> {
   final EventService _eventService;
   final String _eventPrefix; // ex: 'separar', 'expedition', etc.
   final List<EventListenerModel> _listeners = [];
 
-  GenericEventRepositoryImpl(this._eventService, this._eventPrefix);
+  EventGenericRepositoryImpl(this._eventService, this._eventPrefix);
 
   @override
   void addListener(EventListenerModel listener) {

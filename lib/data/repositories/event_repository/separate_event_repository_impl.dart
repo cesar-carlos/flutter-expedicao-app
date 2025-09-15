@@ -1,15 +1,15 @@
-import 'package:exp/domain/repositories/generic_event_repository.dart';
-import 'package:exp/data/repositories/event_repository/generic_event_repository_impl.dart';
+import 'package:exp/domain/repositories/event_generic_repository.dart';
+import 'package:exp/data/repositories/event_repository/event_generic_repository_impl.dart';
 import 'package:exp/domain/models/event_model/event_listener_model.dart';
 import 'package:exp/domain/models/separate_model.dart';
 
 /// Implementação do repositório de eventos para separação de expedição
 class SeparateEventRepositoryImpl
-    implements GenericEventRepository<SeparateModel> {
-  final GenericEventRepositoryImpl<SeparateModel> _genericRepository;
+    implements EventGenericRepository<SeparateModel> {
+  final EventGenericRepositoryImpl<SeparateModel> _genericRepository;
 
   SeparateEventRepositoryImpl(
-    GenericEventRepositoryImpl<SeparateModel> genericRepository,
+    EventGenericRepositoryImpl<SeparateModel> genericRepository,
   ) : _genericRepository = genericRepository;
 
   @override
