@@ -19,6 +19,9 @@ class NetworkError extends AppError {
 
 class DataError extends AppError {
   DataError({required super.message, super.code, super.stackTrace});
+
+  @override
+  String toString() => message;
 }
 
 extension AppErrorUI on BuildContext {

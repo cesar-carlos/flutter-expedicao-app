@@ -1,16 +1,18 @@
-import 'package:flutter/material.dart';
-
 import 'package:exp/core/utils/date_helper.dart';
+import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
+import 'package:exp/domain/models/entity_type_model.dart';
 
 /// Modelo para consulta de separação de expedição
 class SeparateConsultationModel {
   final int codEmpresa;
   final int codSepararEstoque;
+  final ExpeditionOrigem origem;
+  final int codOrigem;
   final int codTipoOperacaoExpedicao;
   final String nomeTipoOperacaoExpedicao;
   final ExpeditionSituation situacao;
-  final String tipoEntidade;
+  final EntityType tipoEntidade;
   final DateTime dataEmissao;
   final String horaEmissao;
   final int codEntidade;
@@ -23,6 +25,8 @@ class SeparateConsultationModel {
   const SeparateConsultationModel({
     required this.codEmpresa,
     required this.codSepararEstoque,
+    required this.origem,
+    required this.codOrigem,
     required this.codTipoOperacaoExpedicao,
     required this.nomeTipoOperacaoExpedicao,
     required this.situacao,
@@ -42,12 +46,16 @@ class SeparateConsultationModel {
       return SeparateConsultationModel(
         codEmpresa: json['CodEmpresa'] ?? 0,
         codSepararEstoque: json['CodSepararEstoque'] ?? 0,
+        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String),
+        codOrigem: json['CodOrigem'] ?? 0,
         codTipoOperacaoExpedicao: json['CodTipoOperacaoExpedicao'] ?? 0,
         nomeTipoOperacaoExpedicao: json['NomeTipoOperacaoExpedicao'] ?? '',
         situacao:
             ExpeditionSituation.fromCode(json['Situacao'] as String? ?? '') ??
             ExpeditionSituation.aguardando,
-        tipoEntidade: json['TipoEntidade'] ?? '',
+        tipoEntidade:
+            EntityType.fromCode(json['TipoEntidade'] as String? ?? '') ??
+            EntityType.cliente,
         dataEmissao: DateHelper.tryStringToDate(json['DataEmissao']),
         horaEmissao: json['HoraEmissao'] ?? '',
         codEntidade: json['CodEntidade'] ?? 0,
@@ -66,10 +74,12 @@ class SeparateConsultationModel {
     return {
       'CodEmpresa': codEmpresa,
       'CodSepararEstoque': codSepararEstoque,
+      'Origem': origem.code,
+      'CodOrigem': codOrigem,
       'CodTipoOperacaoExpedicao': codTipoOperacaoExpedicao,
       'NomeTipoOperacaoExpedicao': nomeTipoOperacaoExpedicao,
       'Situacao': situacao.code,
-      'TipoEntidade': tipoEntidade,
+      'TipoEntidade': tipoEntidade.code,
       'DataEmissao': dataEmissao.toIso8601String(),
       'HoraEmissao': horaEmissao,
       'CodEntidade': codEntidade,
@@ -92,17 +102,14 @@ class SeparateConsultationModel {
   @override
   int get hashCode => codSepararEstoque.hashCode ^ codEmpresa.hashCode;
 
-  /// Retorna o código da situação
-  String get situacaoCode => situacao.code;
+  /// Retorna o código do tipo de entidade
+  String get tipoEntidadeCode => tipoEntidade.code;
 
-  /// Retorna a descrição da situação
-  String get situacaoDescription => situacao.description;
-
-  /// Retorna a cor da situação
-  Color get situacaoColor => situacao.color;
+  /// Retorna a descrição do tipo de entidade
+  String get tipoEntidadeDescription => tipoEntidade.description;
 
   @override
   String toString() {
-    return 'SeparateConsultationModel(codSepararEstoque: $codSepararEstoque, situacao: ${situacao.description}, nomeEntidade: $nomeEntidade)';
+    return 'SeparateConsultationModel(codSepararEstoque: $codSepararEstoque, origem: ${origem.description}, situacao: ${situacao.description}, tipoEntidade: ${tipoEntidade.description}, nomeEntidade: $nomeEntidade)';
   }
 }

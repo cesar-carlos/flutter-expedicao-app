@@ -30,4 +30,29 @@ extension QueryBuilderExtension on QueryBuilder {
   QueryBuilder code(String code) {
     return equals('codigo', code);
   }
+
+  /// Orders by creation date (most recent first)
+  QueryBuilder orderByNewest() {
+    return orderByDesc('created_at');
+  }
+
+  /// Orders by creation date (oldest first)
+  QueryBuilder orderByOldest() {
+    return orderByAsc('created_at');
+  }
+
+  /// Orders by name alphabetically
+  QueryBuilder orderByName() {
+    return orderByAsc('nome');
+  }
+
+  /// Orders by status and then by date
+  QueryBuilder orderByStatusAndDate() {
+    return orderByAsc('situacao').orderByDesc('created_at');
+  }
+
+  /// Orders by priority (high to low) and then by date
+  QueryBuilder orderByPriority() {
+    return orderByDesc('prioridade').orderByDesc('created_at');
+  }
 }

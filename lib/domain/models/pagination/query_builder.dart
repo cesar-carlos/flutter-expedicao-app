@@ -1,10 +1,12 @@
 import 'query_param.dart';
 import 'pagination.dart';
+import 'query_order_by.dart';
 
 /// Query builder for constructing complex queries
 class QueryBuilder {
   Pagination? _pagination;
   final List<QueryParam> _params = [];
+  final List<OrderBy> _orderBy = [];
 
   /// Adds a parameter to the query
   QueryBuilder addParam<P>(String key, P value, {String operator = '='}) {
@@ -49,6 +51,33 @@ class QueryBuilder {
     return this;
   }
 
+  /// Adds ORDER BY clause
+  QueryBuilder orderBy(
+    String field, {
+    OrderDirection direction = OrderDirection.asc,
+  }) {
+    _orderBy.add(OrderBy(field: field, direction: direction));
+    return this;
+  }
+
+  /// Adds ascending ORDER BY
+  QueryBuilder orderByAsc(String field) {
+    _orderBy.add(OrderBy.asc(field));
+    return this;
+  }
+
+  /// Adds descending ORDER BY
+  QueryBuilder orderByDesc(String field) {
+    _orderBy.add(OrderBy.desc(field));
+    return this;
+  }
+
+  /// Adds multiple ORDER BY clauses
+  QueryBuilder orderByMultiple(List<OrderBy> orders) {
+    _orderBy.addAll(orders);
+    return this;
+  }
+
   /// Builds only the query parameters string (without pagination)
   String buildQuery() {
     return _params.map((param) => param.toQueryString()).join('&');
@@ -62,16 +91,61 @@ class QueryBuilder {
     return _pagination!.toQueryString();
   }
 
+  /// Builds ORDER BY string for SQL
+  String buildOrderBySql() {
+    if (_orderBy.isEmpty) return '';
+    return 'ORDER BY ${_orderBy.map((o) => o.toSqlString()).join(', ')}';
+  }
+
+  /// Builds ORDER BY string for query parameters
+  String buildOrderByQuery() {
+    if (_orderBy.isEmpty) return '';
+
+    final fields = _orderBy.map((o) => o.field).join(',');
+    final directions = _orderBy.map((o) => o.direction.value).join(',');
+
+    return 'order_by=$fields&order_direction=$directions';
+  }
+
+  /// Builds complete query with all components
+  String buildCompleteQuery() {
+    final parts = <String>[];
+
+    // Query parameters
+    final queryParams = buildQuery();
+    if (queryParams.isNotEmpty) {
+      parts.add(queryParams);
+    }
+
+    // Pagination
+    final pagination = buildPagination();
+    if (pagination.isNotEmpty) {
+      parts.add(pagination);
+    }
+
+    // Order by
+    final orderBy = buildOrderByQuery();
+    if (orderBy.isNotEmpty) {
+      parts.add(orderBy);
+    }
+
+    return parts.join('&');
+  }
+
   /// Gets all parameters as a list
   List<QueryParam> get params => List.unmodifiable(_params);
 
   /// Gets pagination if set
   Pagination? get pagination => _pagination;
 
+  /// Gets ORDER BY clauses
+  List<OrderBy> get orderByClauses => List.unmodifiable(_orderBy);
+
   /// Clears all parameters
   void clear() {
     _params.clear();
     _pagination = null;
+    _orderBy.clear();
   }
 
   /// Formats a value for query string
@@ -87,6 +161,6 @@ class QueryBuilder {
 
   @override
   String toString() {
-    return 'QueryBuilder(params: ${_params.length}, pagination: $_pagination)';
+    return 'QueryBuilder(params: ${_params.length}, pagination: $_pagination, orderBy: ${_orderBy.length})';
   }
 }

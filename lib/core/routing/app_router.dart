@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
 import 'package:exp/ui/screens/splash_screen.dart';
 import 'package:exp/ui/screens/login_screen.dart';
 import 'package:exp/ui/screens/register_screen.dart';
@@ -12,6 +13,12 @@ import 'package:exp/ui/wrappers/user_selection_wrapper.dart';
 import 'package:exp/ui/screens/home_screen.dart';
 import 'package:exp/ui/screens/profile_screen.dart';
 import 'package:exp/ui/screens/separate_consultation_screen.dart';
+import 'package:exp/ui/screens/separation_screen.dart';
+import 'package:exp/ui/screens/conference_screen.dart';
+import 'package:exp/ui/screens/counter_delivery_screen.dart';
+import 'package:exp/ui/screens/packaging_screen.dart';
+import 'package:exp/ui/screens/storage_screen.dart';
+import 'package:exp/ui/screens/collection_screen.dart';
 import 'package:exp/domain/viewmodels/user_selection_viewmodel.dart';
 import 'package:exp/domain/viewmodels/profile_viewmodel.dart';
 import 'package:exp/domain/viewmodels/separate_consultation_viewmodel.dart';
@@ -30,6 +37,12 @@ class AppRouter {
   static const String profile = '/profile';
   static const String shipmentSeparateConsultation =
       '/shipment-separate-consultation';
+  static const String separation = '/separation';
+  static const String conference = '/conference';
+  static const String counterDelivery = '/counter-delivery';
+  static const String packaging = '/packaging';
+  static const String storage = '/storage';
+  static const String collection = '/collection';
 
   /// Configuração do GoRouter
   static GoRouter createRouter(AuthViewModel authViewModel) {
@@ -160,6 +173,51 @@ class AppRouter {
             create: (_) => ShipmentSeparateConsultationViewModel(),
             child: const SeparateConsultationScreen(),
           ),
+        ),
+
+        // Rota de Separação
+        GoRoute(
+          path: separation,
+          name: 'separation',
+          builder: (context, state) => ChangeNotifierProvider(
+            create: (_) => locator<SeparationViewModel>(),
+            child: const SeparationScreen(),
+          ),
+        ),
+
+        // Rota de Conferência
+        GoRoute(
+          path: conference,
+          name: 'conference',
+          builder: (context, state) => const ConferenceScreen(),
+        ),
+
+        // Rota de Entrega Balcão
+        GoRoute(
+          path: counterDelivery,
+          name: 'counter-delivery',
+          builder: (context, state) => const CounterDeliveryScreen(),
+        ),
+
+        // Rota de Embalagem
+        GoRoute(
+          path: packaging,
+          name: 'packaging',
+          builder: (context, state) => const PackagingScreen(),
+        ),
+
+        // Rota de Armazenagem
+        GoRoute(
+          path: storage,
+          name: 'storage',
+          builder: (context, state) => const StorageScreen(),
+        ),
+
+        // Rota de Coleta
+        GoRoute(
+          path: collection,
+          name: 'collection',
+          builder: (context, state) => const CollectionScreen(),
         ),
       ],
 

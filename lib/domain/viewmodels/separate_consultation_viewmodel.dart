@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/domain/models/pagination/query_builder_extension.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
@@ -44,7 +45,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
     // Aplicar filtro de situação
     if (_situacaoFilter != null) {
       filtered = filtered.where((consultation) {
-        return consultation.situacaoCode.toUpperCase() ==
+        return consultation.situacao.code.toUpperCase() ==
             _situacaoFilter!.toUpperCase();
       }).toList();
     }
@@ -84,11 +85,11 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
       _currentPage = 0;
       _hasMoreData = true;
 
-      // Cria um QueryBuilder com paginação padrão
+      // Cria um QueryBuilder com paginação padrão e ordenação por codSepararEstoque DESC
       final queryBuilder = QueryBuilderExtension.withDefaultPagination(
         limit: _pageSize,
         offset: _currentPage * _pageSize,
-      );
+      ).orderByDesc('codSepararEstoque');
 
       final consultations = await _repository.selectConsultation(queryBuilder);
 
@@ -99,7 +100,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
       _setState(SeparateConsultationState.loaded);
     } catch (e) {
       if (_disposed) return;
-      _setError('Erro ao carregar consultas: ${e.toString()}');
+      _setError('Erro ao carregar consultas: ${_getErrorMessage(e)}');
     }
   }
 
@@ -115,24 +116,23 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
       _currentPage = 0;
       _hasMoreData = true;
 
-      // Se não foi fornecido um QueryBuilder, cria um com paginação padrão
+      // Se não foi fornecido um QueryBuilder, cria um com paginação padrão e ordenação
       final builder =
           queryBuilder ??
           QueryBuilderExtension.withDefaultPagination(
             limit: _pageSize,
             offset: _currentPage * _pageSize,
-          );
+          ).orderByDesc('codSepararEstoque');
 
       final consultations = await _repository.selectConsultation(builder);
 
       if (_disposed) return;
-
       _consultations = consultations;
       _hasMoreData = consultations.length == _pageSize;
       _setState(SeparateConsultationState.loaded);
     } catch (e) {
       if (_disposed) return;
-      _setError('Erro ao executar consulta: ${e.toString()}');
+      _setError('Erro ao executar consulta: ${_getErrorMessage(e)}');
     }
   }
 
@@ -183,24 +183,20 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
       final queryBuilder = QueryBuilderExtension.withDefaultPagination(
         limit: _pageSize,
         offset: _currentPage * _pageSize,
-      );
+      ).orderByDesc('codSepararEstoque');
 
       final consultations = await _repository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
 
-      if (consultations.isNotEmpty) {
-        _consultations.addAll(consultations);
-        _hasMoreData = consultations.length == _pageSize;
-      } else {
-        _hasMoreData = false;
-      }
+      _consultations = consultations;
+      _hasMoreData = consultations.length == _pageSize;
 
       _setState(SeparateConsultationState.loaded);
     } catch (e) {
       if (_disposed) return;
       _currentPage--; // Revert page increment on error
-      _setError('Erro ao carregar próxima página: ${e.toString()}');
+      _setError('Erro ao carregar próxima página: ${_getErrorMessage(e)}');
     }
   }
 
@@ -216,18 +212,17 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
       final queryBuilder = QueryBuilderExtension.withDefaultPagination(
         limit: _pageSize,
         offset: _currentPage * _pageSize,
-      );
+      ).orderByDesc('codSepararEstoque');
 
       final consultations = await _repository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
-
       _consultations = consultations;
       _hasMoreData = consultations.length == _pageSize;
       _setState(SeparateConsultationState.loaded);
     } catch (e) {
       if (_disposed) return;
-      _setError('Erro ao carregar página $page: ${e.toString()}');
+      _setError('Erro ao carregar página $page: ${_getErrorMessage(e)}');
     }
   }
 
@@ -348,6 +343,33 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
   void _safeNotifyListeners() {
     if (!_disposed) {
       notifyListeners();
+    }
+  }
+
+  /// Extrai uma mensagem de erro legível de qualquer exceção
+  String _getErrorMessage(dynamic error) {
+    if (error == null) return 'Erro desconhecido';
+
+    // Se for uma instância de AppError, usa a mensagem diretamente
+    if (error is AppError) {
+      return error.message;
+    }
+
+    // Se for uma String, retorna ela
+    if (error is String) {
+      return error;
+    }
+
+    // Para outros tipos, tenta toString() mas com fallback
+    try {
+      final message = error.toString();
+      // Se toString() retorna "Instance of...", usa uma mensagem genérica
+      if (message.startsWith('Instance of ')) {
+        return 'Erro interno do sistema';
+      }
+      return message;
+    } catch (e) {
+      return 'Erro interno do sistema';
     }
   }
 }

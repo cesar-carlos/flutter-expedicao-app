@@ -13,6 +13,8 @@ import 'package:exp/domain/viewmodels/config_viewmodel.dart';
 import 'package:exp/domain/viewmodels/user_selection_viewmodel.dart';
 import 'package:exp/domain/viewmodels/profile_viewmodel.dart';
 import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
+import 'package:exp/domain/viewmodels/home_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
 import 'package:exp/data/datasources/config_service.dart';
 import 'package:exp/data/datasources/user_preferences_service.dart';
 import 'package:exp/data/services/socket_service.dart';
@@ -171,6 +173,12 @@ void setupLocator() {
     viewModel.initialize();
     return viewModel;
   });
+
+  // Registrar HomeViewModel
+  locator.registerFactory(() => HomeViewModel());
+
+  // Registrar SeparationViewModel
+  locator.registerFactory(() => SeparationViewModel());
 
   // Registrar EventService
   locator.registerLazySingleton<EventService>(() => EventServiceImpl());

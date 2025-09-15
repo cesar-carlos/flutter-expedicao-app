@@ -28,6 +28,7 @@ class SeparateConsultationRepositoryImpl
       responseIn: responseId,
       where: queryBuilder.buildQuery(),
       pagination: queryBuilder.buildPagination(),
+      orderBy: queryBuilder.buildOrderByQuery(),
     );
 
     try {

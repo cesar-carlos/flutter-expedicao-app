@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:exp/core/constants/app_strings.dart';
+import 'package:exp/core/routing/app_router.dart';
 import 'package:exp/domain/viewmodels/config_viewmodel.dart';
 import 'package:exp/ui/widgets/config/index.dart';
-import 'package:exp/ui/widgets/app_drawer/index.dart';
-import 'package:exp/ui/widgets/common/index.dart';
 
 class ConfigScreen extends StatelessWidget {
-  final bool showDrawer;
-
-  const ConfigScreen({super.key, this.showDrawer = true});
+  const ConfigScreen({super.key});
 
   void _handleReset(BuildContext context) async {
     final confirmed = await showDialog<bool>(
@@ -52,9 +50,13 @@ class ConfigScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar.withActions(
-        title: AppStrings.configTitle,
+      appBar: AppBar(
+        title: const Text(AppStrings.configTitle),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go(AppRouter.home),
+        ),
         actions: [
           IconButton(
             onPressed: () => _handleReset(context),
@@ -63,7 +65,6 @@ class ConfigScreen extends StatelessWidget {
           ),
         ],
       ),
-      drawer: showDrawer ? const AppDrawer() : null,
       body: const SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(24.0),

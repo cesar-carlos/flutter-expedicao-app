@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:exp/core/utils/date_helper.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
+import 'package:exp/domain/models/entity_type_model.dart';
 
 class SeparateModel {
   final int codEmpresa;
@@ -9,7 +10,7 @@ class SeparateModel {
   final ExpeditionOrigem origem;
   final int codOrigem;
   final int codTipoOperacaoExpedicao;
-  final String tipoEntidade;
+  final EntityType tipoEntidade;
   final int codEntidade;
   final String nomeEntidade;
   final ExpeditionSituation situacao;
@@ -54,7 +55,7 @@ class SeparateModel {
     ExpeditionOrigem? origem,
     int? codOrigem,
     int? codTipoOperacaoExpedicao,
-    String? tipoEntidade,
+    EntityType? tipoEntidade,
     int? codEntidade,
     String? nomeEntidade,
     ExpeditionSituation? situacao,
@@ -107,7 +108,9 @@ class SeparateModel {
         origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String),
         codOrigem: json['CodOrigem'] as int,
         codTipoOperacaoExpedicao: json['CodTipoOperacaoExpedicao'] as int,
-        tipoEntidade: json['TipoEntidade'] as String,
+        tipoEntidade:
+            EntityType.fromCode(json['TipoEntidade'] as String? ?? '') ??
+            EntityType.cliente,
         codEntidade: json['CodEntidade'] as int,
         nomeEntidade: json['NomeEntidade'] as String,
         situacao:
@@ -139,7 +142,7 @@ class SeparateModel {
       'Origem': origem.code,
       'CodOrigem': codOrigem,
       'CodTipoOperacaoExpedicao': codTipoOperacaoExpedicao,
-      'TipoEntidade': tipoEntidade,
+      'TipoEntidade': tipoEntidade.code,
       'CodEntidade': codEntidade,
       'NomeEntidade': nomeEntidade,
       'Situacao': situacao.code,

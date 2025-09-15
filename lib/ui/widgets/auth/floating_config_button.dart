@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:exp/core/constants/app_strings.dart';
-import 'package:exp/ui/screens/config_screen.dart';
+import 'package:exp/core/routing/app_router.dart';
 
 class FloatingConfigButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String? tooltip;
   final EdgeInsets? margin;
-  final bool showDrawerInConfig;
 
   const FloatingConfigButton({
     super.key,
     this.onPressed,
     this.tooltip,
     this.margin = const EdgeInsets.all(16),
-    this.showDrawerInConfig = true,
   });
 
   @override
@@ -30,12 +29,7 @@ class FloatingConfigButton extends StatelessWidget {
           onPressed:
               onPressed ??
               () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        ConfigScreen(showDrawer: showDrawerInConfig),
-                  ),
-                );
+                context.go(AppRouter.config);
               },
           icon: const Icon(Icons.settings),
           tooltip: tooltip ?? AppStrings.settingsTooltip,

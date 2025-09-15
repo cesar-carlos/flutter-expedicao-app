@@ -71,8 +71,8 @@ class CustomFlatButton extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(borderRadius ?? 8),
                 ),
-                elevation: isLoading ? 0 : 2,
-                shadowColor: Colors.black26,
+                elevation: 0,
+                shadowColor: Colors.transparent,
               ),
             ),
     );

@@ -137,6 +137,62 @@ class AppDrawer extends StatelessWidget {
                   },
                 ),
 
+                const Divider(),
+
+                DrawerMenuTile(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'Separação',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(AppRouter.separation);
+                  },
+                ),
+
+                DrawerMenuTile(
+                  icon: Icons.checklist_outlined,
+                  title: 'Conferência',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(AppRouter.conference);
+                  },
+                ),
+
+                DrawerMenuTile(
+                  icon: Icons.storefront_outlined,
+                  title: 'Entrega Balcão',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(AppRouter.counterDelivery);
+                  },
+                ),
+
+                DrawerMenuTile(
+                  icon: Icons.inventory_outlined,
+                  title: 'Embalagem',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(AppRouter.packaging);
+                  },
+                ),
+
+                DrawerMenuTile(
+                  icon: Icons.warehouse_outlined,
+                  title: 'Armazenagem',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(AppRouter.storage);
+                  },
+                ),
+
+                DrawerMenuTile(
+                  icon: Icons.local_shipping_outlined,
+                  title: 'Coleta',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(AppRouter.collection);
+                  },
+                ),
+
                 DrawerMenuTile(
                   icon: Icons.settings_outlined,
                   title: 'Configurações',

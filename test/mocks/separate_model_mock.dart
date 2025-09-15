@@ -1,6 +1,7 @@
 import 'package:exp/domain/models/separate_model.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
+import 'package:exp/domain/models/entity_type_model.dart';
 
 SeparateModel createTestSeparate() {
   return SeparateModel(
@@ -9,7 +10,7 @@ SeparateModel createTestSeparate() {
     origem: ExpeditionOrigem.orcamentoBalcao,
     codOrigem: 1,
     codTipoOperacaoExpedicao: 1,
-    tipoEntidade: 'C',
+    tipoEntidade: EntityType.cliente,
     codEntidade: 999999,
     nomeEntidade: 'TESTE ${DateTime.now().millisecondsSinceEpoch}',
     situacao: ExpeditionSituation.aguardando,

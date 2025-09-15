@@ -555,9 +555,12 @@ class _ShipmentSeparateConsultationScreenState
                         size: 20,
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Configurações de Paginação',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Expanded(
+                        child: Text(
+                          'Configurações de Paginação',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
@@ -663,28 +666,31 @@ class _ShipmentSeparateConsultationScreenState
         // QueryBuilder com paginação usando o pageSize atual
         queryBuilder = QueryBuilderExtension.withDefaultPagination(
           limit: currentPageSize,
-        );
+        ).orderByDesc('codSepararEstoque');
         break;
       case 'codigo':
         if (inputValue.isNotEmpty) {
-          queryBuilder = QueryBuilderExtension.withDefaultPagination(
-            limit: currentPageSize,
-          ).equals('codigo', inputValue);
+          queryBuilder =
+              QueryBuilderExtension.withDefaultPagination(
+                    limit: currentPageSize,
+                  )
+                  .equals('CodSepararEstoque', inputValue)
+                  .orderByDesc('codSepararEstoque');
         } else {
           queryBuilder = QueryBuilderExtension.withDefaultPagination(
             limit: currentPageSize,
-          );
+          ).orderByDesc('codSepararEstoque');
         }
         break;
       case 'status':
         if (inputValue.isNotEmpty) {
           queryBuilder = QueryBuilderExtension.withDefaultPagination(
             limit: currentPageSize,
-          ).equals('situacao', inputValue);
+          ).equals('situacao', inputValue).orderByDesc('codSepararEstoque');
         } else {
           queryBuilder = QueryBuilderExtension.withDefaultPagination(
             limit: currentPageSize,
-          );
+          ).orderByDesc('codSepararEstoque');
         }
         break;
     }

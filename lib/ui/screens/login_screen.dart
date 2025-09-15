@@ -35,7 +35,7 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
 
-            const FloatingConfigButton(showDrawerInConfig: false),
+            const FloatingConfigButton(),
           ],
         ),
       ),
