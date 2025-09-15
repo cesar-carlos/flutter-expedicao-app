@@ -1,7 +1,7 @@
 import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
-import 'package:exp/domain/models/situation_model.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
+import 'package:exp/domain/models/situation_model.dart';
 
 class ExpeditionCartRouteInternshipConsultationModel {
   final int codEmpresa;
@@ -195,6 +195,19 @@ class ExpeditionCartRouteInternshipConsultationModel {
 
   /// Retorna a descrição da origem
   String get origemDescription => origem.description;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ExpeditionCartRouteInternshipConsultationModel &&
+        other.codEmpresa == codEmpresa &&
+        other.codCarrinhoPercurso == codCarrinhoPercurso &&
+        other.item == item;
+  }
+
+  @override
+  int get hashCode =>
+      codEmpresa.hashCode ^ codCarrinhoPercurso.hashCode ^ item.hashCode;
 
   @override
   String toString() {

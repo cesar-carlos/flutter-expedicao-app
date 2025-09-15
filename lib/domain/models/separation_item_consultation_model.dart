@@ -235,6 +235,19 @@ class SeparationItemConsultationModel {
   }
 
   @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is SeparationItemConsultationModel &&
+        other.codEmpresa == codEmpresa &&
+        other.codSepararEstoque == codSepararEstoque &&
+        other.item == item;
+  }
+
+  @override
+  int get hashCode =>
+      codEmpresa.hashCode ^ codSepararEstoque.hashCode ^ item.hashCode;
+
+  @override
   String toString() {
     return '''
       ExpedicaSeparacaoItemConsultaModel(

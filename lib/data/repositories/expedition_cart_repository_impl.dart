@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
 import 'package:exp/core/errors/app_error.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/dtos/send_query_socket_dto.dart';
 import 'package:exp/data/dtos/send_mutation_socket_dto.dart';
+import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/core/network/socket_config.dart';

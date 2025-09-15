@@ -4,23 +4,26 @@ import 'package:uuid/uuid.dart';
 
 import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
-import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_group_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/data/dtos/send_query_socket_dto.dart';
 import 'package:exp/core/network/socket_config.dart';
 
-class ExpeditionCartConsultationRepositoryImpl
-    implements BasicConsultationRepository<ExpeditionCartConsultationModel> {
+class ExpeditionCartRouteInternshipConsultationRepositoryImpl
+    implements
+        BasicConsultationRepository<
+          ExpeditionCartRouteInternshipGroupConsultationModel
+        > {
   final uuid = const Uuid();
   var socket = SocketConfig.instance;
-  final selectEvent = 'carrinho.consulta';
+  final selectEvent = 'carrinho.percurso.agrupamento.consulta';
 
   @override
-  Future<List<ExpeditionCartConsultationModel>> selectConsultation(
-    QueryBuilder queryBuilder,
-  ) async {
+  Future<List<ExpeditionCartRouteInternshipGroupConsultationModel>>
+  selectConsultation(QueryBuilder queryBuilder) async {
     final event = '${socket.id} $selectEvent';
-    final completer = Completer<List<ExpeditionCartConsultationModel>>();
+    final completer =
+        Completer<List<ExpeditionCartRouteInternshipGroupConsultationModel>>();
     final responseId = uuid.v4();
 
     final send = SendQuerySocketDto(
@@ -44,9 +47,13 @@ class ExpeditionCartConsultationRepositoryImpl
             return;
           }
 
-          final list = data.map<ExpeditionCartConsultationModel>((json) {
-            return ExpeditionCartConsultationModel.fromJson(json);
-          }).toList();
+          final list = data
+              .map<ExpeditionCartRouteInternshipGroupConsultationModel>((json) {
+                return ExpeditionCartRouteInternshipGroupConsultationModel.fromJson(
+                  json,
+                );
+              })
+              .toList();
 
           completer.complete(list);
         } catch (e) {

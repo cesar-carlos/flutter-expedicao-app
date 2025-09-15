@@ -1,11 +1,12 @@
 import 'package:exp/core/utils/app_helper.dart';
+import 'package:exp/domain/models/expedition_origem_model.dart';
 
 class SeparateItemModel {
   final int codEmpresa;
   final int codSepararEstoque;
   final String item;
   final int? codSetorEstoque;
-  final String origem;
+  final ExpeditionOrigem origem;
   final int codOrigem;
   final String? itemOrigem;
   final int codLocalArmazenagem;
@@ -38,7 +39,7 @@ class SeparateItemModel {
     int? codSepararEstoque,
     String? item,
     int? codSetorEstoque,
-    String? origem,
+    ExpeditionOrigem? origem,
     int? codOrigem,
     String? itemOrigem,
     int? codLocalArmazenagem,
@@ -74,7 +75,7 @@ class SeparateItemModel {
         codSepararEstoque: json['CodSepararEstoque'],
         item: json['Item'],
         codSetorEstoque: json['CodSetorEstoque'],
-        origem: json['Origem'],
+        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
         codOrigem: json['CodOrigem'],
         itemOrigem: json['ItemOrigem'],
         codLocalArmazenagem: json['CodLocalArmazenagem'],
@@ -98,7 +99,7 @@ class SeparateItemModel {
     data['CodSepararEstoque'] = codSepararEstoque;
     data['Item'] = item;
     data['CodSetorEstoque'] = codSetorEstoque;
-    data['Origem'] = origem;
+    data['Origem'] = origem.code;
     data['CodOrigem'] = codOrigem;
     data['ItemOrigem'] = itemOrigem;
     data['CodLocalArmazenagem'] = codLocalArmazenagem;
@@ -132,7 +133,7 @@ class SeparateItemModel {
         codSepararEstoque: $codSepararEstoque, 
         item: $item, 
         codSetorEstoque: $codSetorEstoque, 
-        origem: $origem, 
+        origem: ${origem.description} (${origem.code}), 
         codOrigem: $codOrigem, 
         itemOrigem: $itemOrigem, 
         codLocalArmazenagem: $codLocalArmazenagem, 

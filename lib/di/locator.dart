@@ -21,6 +21,20 @@ import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/repositories/separate_consultation_repository_impl.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
+import 'package:exp/data/repositories/expedition_cart_route_internship_gorup_consultation_repository_impl.dart'
+    as group_consultation;
+import 'package:exp/data/repositories/expedition_cart_route_internship_gorup__impl.dart';
+import 'package:exp/data/repositories/expedition_cart_route_internship_consultation_repository_impl.dart'
+    as consultation;
+import 'package:exp/domain/models/expedition_cart_route_internship_group_consultation_model.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_group_model.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:exp/data/repositories/separate_item_repository_impl.dart';
+import 'package:exp/data/repositories/separate_item_consultation_repository_impl.dart';
+import 'package:exp/data/repositories/stock_product_consultation_repository_impl.dart';
+import 'package:exp/domain/models/separate_item_model.dart';
+import 'package:exp/domain/models/separate_item_consultation_model.dart';
+import 'package:exp/domain/models/stock_product_consultation_model.dart';
 
 /// Instância global do Service Locator para Injeção de Dependências
 final GetIt locator = GetIt.instance;
@@ -53,6 +67,40 @@ void setupLocator() {
   locator.registerLazySingleton<
     BasicConsultationRepository<SeparateConsultationModel>
   >(() => SeparateConsultationRepositoryImpl());
+
+  // Registrar repositórios ExpeditionCartRouteInternship
+  locator.registerLazySingleton<
+    BasicConsultationRepository<
+      ExpeditionCartRouteInternshipGroupConsultationModel
+    >
+  >(
+    () =>
+        group_consultation.ExpeditionCartRouteInternshipConsultationRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<
+    BasicRepository<ExpeditionCartRouteInternshipGroupModel>
+  >(() => ExpeditionCartRouteInternshipGorupImpl());
+
+  locator.registerLazySingleton<
+    BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel>
+  >(
+    () =>
+        consultation.ExpeditionCartRouteInternshipConsultationRepositoryImpl(),
+  );
+
+  // Registrar repositórios adicionais
+  locator.registerLazySingleton<BasicRepository<SeparateItemModel>>(
+    () => SeparateItemRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<
+    BasicConsultationRepository<SeparateItemConsultationModel>
+  >(() => SeparateItemConsultationRepositoryImpl());
+
+  locator.registerLazySingleton<
+    BasicConsultationRepository<StockProductConsultationModel>
+  >(() => StockProductConsultationRepositoryImpl());
 
   // Registrar use cases
   locator.registerFactory(() => RegisterUserUseCase(locator<UserRepository>()));

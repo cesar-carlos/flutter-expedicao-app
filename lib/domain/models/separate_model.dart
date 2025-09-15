@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:exp/core/utils/date_helper.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
+import 'package:exp/domain/models/expedition_origem_model.dart';
 
 class SeparateModel {
   final int codEmpresa;
   final int codSepararEstoque;
-  final String origem;
+  final ExpeditionOrigem origem;
   final int codOrigem;
   final int codTipoOperacaoExpedicao;
   final String tipoEntidade;
@@ -50,7 +51,7 @@ class SeparateModel {
   SeparateModel copyWith({
     int? codEmpresa,
     int? codSepararEstoque,
-    String? origem,
+    ExpeditionOrigem? origem,
     int? codOrigem,
     int? codTipoOperacaoExpedicao,
     String? tipoEntidade,
@@ -103,7 +104,7 @@ class SeparateModel {
       return SeparateModel(
         codEmpresa: json['CodEmpresa'] as int,
         codSepararEstoque: json['CodSepararEstoque'] as int,
-        origem: json['Origem'] as String,
+        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String),
         codOrigem: json['CodOrigem'] as int,
         codTipoOperacaoExpedicao: json['CodTipoOperacaoExpedicao'] as int,
         tipoEntidade: json['TipoEntidade'] as String,
@@ -135,7 +136,7 @@ class SeparateModel {
     return {
       'CodEmpresa': codEmpresa,
       'CodSepararEstoque': codSepararEstoque,
-      'Origem': origem,
+      'Origem': origem.code,
       'CodOrigem': codOrigem,
       'CodTipoOperacaoExpedicao': codTipoOperacaoExpedicao,
       'TipoEntidade': tipoEntidade,
@@ -208,6 +209,8 @@ class SeparateModel {
     return '''ShipmentSeparateModel(
         codEmpresa: $codEmpresa, 
         codSepararEstoque: $codSepararEstoque, 
+        origem: ${origem.description} (${origem.code}),
+        codOrigem: $codOrigem,
         codTipoOperacaoExpedicao: $codTipoOperacaoExpedicao, 
         tipoEntidade: $tipoEntidade, 
         codEntidade: $codEntidade, 
