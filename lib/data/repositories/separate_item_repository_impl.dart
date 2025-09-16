@@ -24,7 +24,7 @@ class SeparateItemRepositoryImpl implements BasicRepository<SeparateItemModel> {
     final completer = Completer<List<SeparateItemModel>>();
     final responseId = uuid.v4();
 
-    final whereQuery = queryBuilder.buildQuery();
+    final whereQuery = queryBuilder.buildSqlWhere();
     final paginationQuery = queryBuilder.buildPagination();
 
     final send = SendQuerySocketDto(

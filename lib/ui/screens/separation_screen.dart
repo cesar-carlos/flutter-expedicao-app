@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:exp/core/routing/app_router.dart';
 import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
+import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:exp/ui/widgets/separation/separation_filter_modal.dart';
 import 'package:exp/ui/widgets/separation/separation_card.dart';
-import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 import 'package:exp/ui/widgets/app_drawer/app_drawer.dart';
 
 class SeparationScreen extends StatefulWidget {
@@ -16,6 +17,8 @@ class SeparationScreen extends StatefulWidget {
 }
 
 class _SeparationScreenState extends State<SeparationScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -23,6 +26,23 @@ class _SeparationScreenState extends State<SeparationScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SeparationViewModel>().loadSeparations();
     });
+
+    // Adiciona listener para scroll infinito
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      // Carrega mais dados quando está próximo do final
+      context.read<SeparationViewModel>().loadMoreSeparations();
+    }
   }
 
   @override
@@ -30,8 +50,8 @@ class _SeparationScreenState extends State<SeparationScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Separação',
+      appBar: AppBar(
+        title: const Text('Separação'),
         elevation: 0,
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
@@ -41,6 +61,20 @@ class _SeparationScreenState extends State<SeparationScreen> {
           tooltip: 'Voltar',
         ),
         actions: [
+          Consumer<SeparationViewModel>(
+            builder: (context, viewModel, child) {
+              return IconButton(
+                onPressed: () => _showFilterModal(context),
+                icon: Icon(
+                  Icons.filter_alt,
+                  color: viewModel.hasActiveFilters
+                      ? colorScheme.primary
+                      : colorScheme.onSurface,
+                ),
+                tooltip: 'Filtros',
+              );
+            },
+          ),
           IconButton(
             onPressed: () => _refreshData(context),
             icon: Icon(Icons.refresh, color: colorScheme.onSurface),
@@ -160,61 +194,46 @@ class _SeparationScreenState extends State<SeparationScreen> {
     BuildContext context,
     SeparationViewModel viewModel,
   ) {
-    return Column(
-      children: [
-        // Header com informações
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.inventory_2_outlined,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Últimas ${viewModel.separations.length} separações',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Ordenadas por código (DESC)',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
+    return RefreshIndicator(
+      onRefresh: () => viewModel.refresh(),
+      child: ListView.builder(
+        controller: _scrollController,
+        itemCount:
+            viewModel.separations.length + (viewModel.hasMoreData ? 1 : 0),
+        itemBuilder: (context, index) {
+          // Se é o último item e há mais dados, mostra loading indicator
+          if (index == viewModel.separations.length) {
+            return _buildLoadingMoreIndicator(viewModel);
+          }
 
-        // Lista de separações
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => viewModel.refresh(),
-            child: ListView.builder(
-              itemCount: viewModel.separations.length,
-              itemBuilder: (context, index) {
-                final separation = viewModel.separations[index];
-                return SeparationCard(
-                  separation: separation,
-                  onTap: () => _onSeparationTap(context, separation),
-                );
-              },
-            ),
+          final separation = viewModel.separations[index];
+          return SeparationCard(
+            separation: separation,
+            onSeparate: () => _onSeparationSeparate(context, separation),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildLoadingMoreIndicator(SeparationViewModel viewModel) {
+    if (!viewModel.isLoadingMore) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      alignment: Alignment.center,
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
-        ),
-      ],
+          SizedBox(width: 12),
+          Text('Carregando mais separações...'),
+        ],
+      ),
     );
   }
 
@@ -222,13 +241,26 @@ class _SeparationScreenState extends State<SeparationScreen> {
     context.read<SeparationViewModel>().refresh();
   }
 
-  void _onSeparationTap(BuildContext context, separation) {
-    // TODO: Implementar navegação para detalhes da separação
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Separação ${separation.codSepararEstoque} selecionada'),
-        duration: const Duration(seconds: 2),
-      ),
+  void _showFilterModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) {
+        // Passa o Provider do contexto pai para o modal
+        return ChangeNotifierProvider.value(
+          value: context.read<SeparationViewModel>(),
+          child: const SeparationFilterModal(),
+        );
+      },
     );
+  }
+
+  void _onSeparationSeparate(
+    BuildContext context,
+    SeparateConsultationModel separation,
+  ) {
+    // Navega para a tela de separação de itens
+    context.go(AppRouter.separateItems, extra: separation.toJson());
   }
 }

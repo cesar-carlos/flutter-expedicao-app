@@ -973,6 +973,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.3"
+  zard:
+    dependency: "direct main"
+    description:
+      name: zard
+      sha256: f10286af86ca809ff5328fb4f79d42f5ece318042bf81787bd21da4b0cda2afe
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.21"
 sdks:
   dart: ">=3.9.0 <4.0.0"
   flutter: ">=3.29.0"

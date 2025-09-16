@@ -26,7 +26,7 @@ class SeparateItemConsultationRepositoryImpl
     final send = SendQuerySocketDto(
       session: socket.id!,
       responseIn: responseId,
-      where: queryBuilder.buildQuery(),
+      where: queryBuilder.buildSqlWhere(),
       pagination: queryBuilder.buildPagination(),
     );
 

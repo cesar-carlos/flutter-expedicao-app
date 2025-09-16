@@ -28,7 +28,7 @@ class ExpeditionCartRouteInternshipGorupImpl
         Completer<List<ExpeditionCartRouteInternshipGroupModel>>();
     final responseId = uuid.v4();
 
-    final whereQuery = queryBuilder.buildQuery();
+    final whereQuery = queryBuilder.buildSqlWhere();
     final paginationQuery = queryBuilder.buildPagination();
 
     final send = SendQuerySocketDto(

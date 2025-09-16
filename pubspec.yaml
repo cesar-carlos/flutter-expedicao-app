@@ -47,6 +47,7 @@ dependencies:
   syncfusion_flutter_datagrid: ^26.2.14
   brasil_fields: ^1.18.0
   date_format: ^2.0.9
+  zard: ^0.0.21
 
 dev_dependencies:
   flutter_test:

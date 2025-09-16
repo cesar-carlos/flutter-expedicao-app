@@ -83,6 +83,12 @@ class QueryBuilder {
     return _params.map((param) => param.toQueryString()).join('&');
   }
 
+  /// Builds SQL WHERE clause
+  String buildSqlWhere() {
+    if (_params.isEmpty) return '';
+    return _params.map((param) => param.toSqlString()).join(' AND ');
+  }
+
   /// Builds only the pagination string
   String buildPagination() {
     if (_pagination == null) {

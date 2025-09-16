@@ -29,12 +29,30 @@ class QueryParam<P> {
     return '$key$operator${_formatValue(value)}';
   }
 
+  /// Converts parameter to SQL format
+  String toSqlString() {
+    return '$key $operator ${_formatSqlValue(value)}';
+  }
+
   /// Formats the value for query string
   String _formatValue(P value) {
     if (value is String) {
       return "'$value'";
     } else if (value is DateTime) {
       return "'${value.toIso8601String()}'";
+    } else {
+      return value.toString();
+    }
+  }
+
+  /// Formats the value for SQL
+  String _formatSqlValue(P value) {
+    if (value is String) {
+      return "'$value'";
+    } else if (value is DateTime) {
+      return "'${value.toIso8601String()}'";
+    } else if (value is bool) {
+      return value ? '1' : '0';
     } else {
       return value.toString();
     }

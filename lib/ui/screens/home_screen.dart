@@ -15,25 +15,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late HomeViewModel _homeViewModel;
-
-  @override
-  void initState() {
-    super.initState();
-    _homeViewModel = locator<HomeViewModel>();
-    _homeViewModel.initialize();
-  }
-
-  @override
-  void dispose() {
-    _homeViewModel.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _homeViewModel,
+    return ChangeNotifierProvider(
+      create: (_) {
+        final viewModel = locator<HomeViewModel>();
+        viewModel.initialize();
+        return viewModel;
+      },
       child: Scaffold(
         appBar: CustomAppBar.withUserInfo(
           title: 'Data7 Expedição',

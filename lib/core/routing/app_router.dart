@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
+import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:exp/ui/screens/separate_items_screen.dart';
 import 'package:exp/ui/screens/splash_screen.dart';
 import 'package:exp/ui/screens/login_screen.dart';
 import 'package:exp/ui/screens/register_screen.dart';
@@ -38,6 +41,7 @@ class AppRouter {
   static const String shipmentSeparateConsultation =
       '/shipment-separate-consultation';
   static const String separation = '/separation';
+  static const String separateItems = '/separate-items';
   static const String conference = '/conference';
   static const String counterDelivery = '/counter-delivery';
   static const String packaging = '/packaging';
@@ -183,6 +187,29 @@ class AppRouter {
             create: (_) => locator<SeparationViewModel>(),
             child: const SeparationScreen(),
           ),
+        ),
+
+        // Rota de Separação de Itens
+        GoRoute(
+          path: separateItems,
+          name: 'separate-items',
+          builder: (context, state) {
+            final separationData = state.extra as Map<String, dynamic>?;
+            if (separationData == null) {
+              return const Scaffold(
+                body: Center(child: Text('Dados da separação não encontrados')),
+              );
+            }
+
+            final separation = SeparateConsultationModel.fromJson(
+              separationData,
+            );
+
+            return ChangeNotifierProvider(
+              create: (_) => locator<SeparateItemsViewModel>(),
+              child: SeparateItemsScreen(separation: separation),
+            );
+          },
         ),
 
         // Rota de Conferência

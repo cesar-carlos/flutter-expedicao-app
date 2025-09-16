@@ -1,0 +1,140 @@
+import 'package:exp/domain/models/expedition_origem_model.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
+import 'package:exp/domain/models/entity_type_model.dart';
+import 'package:exp/domain/models/expedition_item_situation_model.dart';
+import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'common_schemas.dart';
+
+/// Schemas para validação de enums específicos do domínio
+class EnumSchemas {
+  EnumSchemas._();
+
+  // === SCHEMAS DE ORIGEM ===
+
+  /// Schema para ExpeditionOrigem
+  static final expeditionOrigemSchema = CommonSchemas.enumSchema(
+    ExpeditionOrigem.getAllCodes(),
+    'Origem da expedição',
+  );
+
+  /// Schema opcional para ExpeditionOrigem
+  static final optionalExpeditionOrigemSchema =
+      CommonSchemas.optionalEnumSchema(
+        ExpeditionOrigem.getAllCodes(),
+        'Origem da expedição',
+      );
+
+  // === SCHEMAS DE SITUAÇÃO ===
+
+  /// Schema para ExpeditionSituation
+  static final expeditionSituationSchema = CommonSchemas.enumSchema(
+    ExpeditionSituation.getAllCodes(),
+    'Situação da expedição',
+  );
+
+  /// Schema opcional para ExpeditionSituation
+  static final optionalExpeditionSituationSchema =
+      CommonSchemas.optionalEnumSchema(
+        ExpeditionSituation.getAllCodes(),
+        'Situação da expedição',
+      );
+
+  /// Schema para ExpeditionItemSituation
+  static final expeditionItemSituationSchema = CommonSchemas.enumSchema(
+    ExpeditionItemSituation.getAllCodes(),
+    'Situação do item de expedição',
+  );
+
+  /// Schema opcional para ExpeditionItemSituation
+  static final optionalExpeditionItemSituationSchema =
+      CommonSchemas.optionalEnumSchema(
+        ExpeditionItemSituation.getAllCodes(),
+        'Situação do item de expedição',
+      );
+
+  /// Schema para ExpeditionCartSituation
+  static final expeditionCartSituationSchema = CommonSchemas.enumSchema(
+    ExpeditionCartSituation.getAllCodes(),
+    'Situação do carrinho de expedição',
+  );
+
+  /// Schema opcional para ExpeditionCartSituation
+  static final optionalExpeditionCartSituationSchema =
+      CommonSchemas.optionalEnumSchema(
+        ExpeditionCartSituation.getAllCodes(),
+        'Situação do carrinho de expedição',
+      );
+
+  // === SCHEMAS DE TIPO DE ENTIDADE ===
+
+  /// Schema para EntityType
+  static final entityTypeSchema = CommonSchemas.enumSchema(
+    EntityType.getAllCodes(),
+    'Tipo de entidade',
+  );
+
+  /// Schema opcional para EntityType
+  static final optionalEntityTypeSchema = CommonSchemas.optionalEnumSchema(
+    EntityType.getAllCodes(),
+    'Tipo de entidade',
+  );
+
+  // === SCHEMAS DE STATUS ATIVO/INATIVO ===
+
+  /// Schema para status ativo (S/N)
+  static final activeStatusSchema = CommonSchemas.enumSchema([
+    'S',
+    'N',
+    's',
+    'n',
+  ], 'Status ativo');
+
+  /// Schema opcional para status ativo
+  static final optionalActiveStatusSchema = CommonSchemas.optionalEnumSchema([
+    'S',
+    'N',
+    's',
+    'n',
+  ], 'Status ativo');
+
+  // === MÉTODOS UTILITÁRIOS ===
+
+  /// Valida se um código de origem é válido
+  static bool isValidOrigem(String? code) {
+    if (code == null) return false;
+    return ExpeditionOrigem.isValidOrigem(code);
+  }
+
+  /// Valida se um código de situação é válido
+  static bool isValidSituation(String? code) {
+    if (code == null) return false;
+    return ExpeditionSituation.isValidSituation(code);
+  }
+
+  /// Valida se um código de tipo de entidade é válido
+  static bool isValidEntityType(String? code) {
+    if (code == null) return false;
+    return EntityType.isValidType(code);
+  }
+
+  /// Valida se um status ativo é válido
+  static bool isValidActiveStatus(String? status) {
+    if (status == null) return false;
+    return ['S', 'N', 's', 'n'].contains(status);
+  }
+
+  /// Normaliza status ativo para maiúscula
+  static String normalizeActiveStatus(String status) {
+    return status.toUpperCase();
+  }
+
+  /// Converte status ativo para booleano
+  static bool activeStatusToBool(String status) {
+    return normalizeActiveStatus(status) == 'S';
+  }
+
+  /// Converte booleano para status ativo
+  static String boolToActiveStatus(bool active) {
+    return active ? 'S' : 'N';
+  }
+}

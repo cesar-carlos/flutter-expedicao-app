@@ -3,26 +3,28 @@ import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
 import 'package:exp/core/errors/app_error.dart';
-import 'package:exp/data/dtos/send_mutation_socket_dto.dart';
-import 'package:exp/domain/models/separation_item_model.dart';
-import 'package:exp/domain/repositories/basic_repository.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/dtos/send_query_socket_dto.dart';
+import 'package:exp/data/dtos/send_mutation_socket_dto.dart';
+import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/domain/repositories/basic_repository.dart';
+import 'package:exp/domain/models/expedition_cancellation_model.dart';
 import 'package:exp/core/network/socket_config.dart';
 
-class SeparationItemRepositoryImpl
-    implements BasicRepository<SeparationItemModel> {
-  final selectEvent = 'separacao.item.select';
-  final insertEvent = 'separacao.item.insert';
-  final updateEvent = 'separacao.item.update';
-  final deleteEvent = 'separacao.item.delete';
+class ExpeditionCancellationRepositoryImpl
+    implements BasicRepository<ExpeditionCancellationModel> {
+  final selectEvent = 'cancelamento.select';
+  final insertEvent = 'cancelamento.insert';
+  final updateEvent = 'cancelamento.update';
+  final deleteEvent = 'cancelamento.delete';
   var socket = SocketConfig.instance;
   final uuid = const Uuid();
 
   @override
-  Future<List<SeparationItemModel>> select(QueryBuilder queryBuilder) async {
+  Future<List<ExpeditionCancellationModel>> select(
+    QueryBuilder queryBuilder,
+  ) async {
     final event = '${socket.id} $selectEvent';
-    final completer = Completer<List<SeparationItemModel>>();
+    final completer = Completer<List<ExpeditionCancellationModel>>();
     final responseId = uuid.v4();
 
     final whereQuery = queryBuilder.buildSqlWhere();
@@ -49,8 +51,8 @@ class SeparationItemRepositoryImpl
             return;
           }
 
-          final list = data.map<SeparationItemModel>((json) {
-            return SeparationItemModel.fromJson(json);
+          final list = data.map<ExpeditionCancellationModel>((json) {
+            return ExpeditionCancellationModel.fromJson(json);
           }).toList();
 
           completer.complete(list);
@@ -69,9 +71,11 @@ class SeparationItemRepositoryImpl
   }
 
   @override
-  Future<List<SeparationItemModel>> insert(SeparationItemModel entity) async {
+  Future<List<ExpeditionCancellationModel>> insert(
+    ExpeditionCancellationModel entity,
+  ) async {
     final event = '${socket.id} $insertEvent';
-    final completer = Completer<List<SeparationItemModel>>();
+    final completer = Completer<List<ExpeditionCancellationModel>>();
     final responseId = uuid.v4();
 
     final send = SendMutationSocketDto(
@@ -94,8 +98,8 @@ class SeparationItemRepositoryImpl
             return;
           }
 
-          final list = mutation.map<SeparationItemModel>((json) {
-            return SeparationItemModel.fromJson(json);
+          final list = mutation.map<ExpeditionCancellationModel>((json) {
+            return ExpeditionCancellationModel.fromJson(json);
           }).toList();
 
           completer.complete(list);
@@ -114,9 +118,11 @@ class SeparationItemRepositoryImpl
   }
 
   @override
-  Future<List<SeparationItemModel>> update(SeparationItemModel entity) async {
+  Future<List<ExpeditionCancellationModel>> update(
+    ExpeditionCancellationModel entity,
+  ) async {
     final event = '${socket.id} $updateEvent';
-    final completer = Completer<List<SeparationItemModel>>();
+    final completer = Completer<List<ExpeditionCancellationModel>>();
     final responseId = uuid.v4();
 
     final send = SendMutationSocketDto(
@@ -139,8 +145,8 @@ class SeparationItemRepositoryImpl
             return;
           }
 
-          final list = mutation.map<SeparationItemModel>((json) {
-            return SeparationItemModel.fromJson(json);
+          final list = mutation.map<ExpeditionCancellationModel>((json) {
+            return ExpeditionCancellationModel.fromJson(json);
           }).toList();
 
           completer.complete(list);
@@ -159,9 +165,11 @@ class SeparationItemRepositoryImpl
   }
 
   @override
-  Future<List<SeparationItemModel>> delete(SeparationItemModel entity) async {
+  Future<List<ExpeditionCancellationModel>> delete(
+    ExpeditionCancellationModel entity,
+  ) async {
     final event = '${socket.id} $deleteEvent';
-    final completer = Completer<List<SeparationItemModel>>();
+    final completer = Completer<List<ExpeditionCancellationModel>>();
     final responseId = uuid.v4();
 
     final send = SendMutationSocketDto(
@@ -184,8 +192,8 @@ class SeparationItemRepositoryImpl
             return;
           }
 
-          final list = mutation.map<SeparationItemModel>((json) {
-            return SeparationItemModel.fromJson(json);
+          final list = mutation.map<ExpeditionCancellationModel>((json) {
+            return ExpeditionCancellationModel.fromJson(json);
           }).toList();
 
           completer.complete(list);

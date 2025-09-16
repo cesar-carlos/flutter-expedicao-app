@@ -15,6 +15,7 @@ import 'package:exp/domain/viewmodels/profile_viewmodel.dart';
 import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
 import 'package:exp/domain/viewmodels/home_viewmodel.dart';
 import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
 import 'package:exp/data/datasources/config_service.dart';
 import 'package:exp/data/datasources/user_preferences_service.dart';
 import 'package:exp/data/services/socket_service.dart';
@@ -38,10 +39,14 @@ import 'package:exp/domain/models/expedition_cart_route_internship_group_model.d
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/data/repositories/separate_item_repository_impl.dart';
 import 'package:exp/data/repositories/separate_item_consultation_repository_impl.dart';
+import 'package:exp/data/repositories/separation_item_consultation_repository_impl.dart';
 import 'package:exp/data/repositories/stock_product_consultation_repository_impl.dart';
-import 'package:exp/domain/models/separate_item_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
+import 'package:exp/domain/models/separation_item_consultation_model.dart';
 import 'package:exp/domain/models/stock_product_consultation_model.dart';
+import 'package:exp/data/repositories/expedition_cancellation_repository_impl.dart';
+import 'package:exp/domain/models/expedition_cancellation_model.dart';
+import 'package:exp/domain/models/separate_item_model.dart';
 
 /// Instância global do Service Locator para Injeção de Dependências
 final GetIt locator = GetIt.instance;
@@ -74,6 +79,10 @@ void setupLocator() {
   locator.registerLazySingleton<
     BasicConsultationRepository<SeparateConsultationModel>
   >(() => SeparateConsultationRepositoryImpl());
+
+  locator.registerLazySingleton<
+    BasicConsultationRepository<SeparationItemConsultationModel>
+  >(() => SeparationItemConsultationRepositoryImpl());
 
   // Registrar repositórios ExpeditionCartRouteInternship
   locator.registerLazySingleton<
@@ -108,6 +117,11 @@ void setupLocator() {
   locator.registerLazySingleton<
     BasicConsultationRepository<StockProductConsultationModel>
   >(() => StockProductConsultationRepositoryImpl());
+
+  // Registrar ExpeditionCancellationRepository
+  locator.registerLazySingleton<BasicRepository<ExpeditionCancellationModel>>(
+    () => ExpeditionCancellationRepositoryImpl(),
+  );
 
   // Registrar use cases
   locator.registerFactory(() => RegisterUserUseCase(locator<UserRepository>()));
@@ -179,6 +193,9 @@ void setupLocator() {
 
   // Registrar SeparationViewModel
   locator.registerFactory(() => SeparationViewModel());
+
+  // Registrar SeparateItemsViewModel
+  locator.registerFactory(() => SeparateItemsViewModel());
 
   // Registrar EventService
   locator.registerLazySingleton<EventService>(() => EventServiceImpl());

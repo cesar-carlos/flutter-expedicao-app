@@ -5,8 +5,14 @@ import 'package:exp/domain/models/separate_consultation_model.dart';
 class SeparationCard extends StatelessWidget {
   final SeparateConsultationModel separation;
   final VoidCallback? onTap;
+  final VoidCallback? onSeparate;
 
-  const SeparationCard({super.key, required this.separation, this.onTap});
+  const SeparationCard({
+    super.key,
+    required this.separation,
+    this.onTap,
+    this.onSeparate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -146,6 +152,11 @@ class SeparationCard extends StatelessWidget {
                     maxLines: 2,
                   ),
                 ],
+
+                const SizedBox(height: 20),
+
+                // Botão Separar
+                _buildSeparateButton(context),
               ],
             ),
           ),
@@ -205,6 +216,51 @@ class SeparationCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Widget _buildSeparateButton(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () => _onSeparatePressed(context),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+        ),
+        icon: const Icon(Icons.inventory_2, size: 20),
+        label: Text(
+          'Separar',
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _onSeparatePressed(BuildContext context) {
+    if (onSeparate != null) {
+      onSeparate!();
+    } else {
+      // Fallback: mostrar mensagem de desenvolvimento
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Separação ${separation.codSepararEstoque} - Funcionalidade em desenvolvimento',
+          ),
+          duration: const Duration(seconds: 2),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+      );
+    }
   }
 
   String _formatDate(DateTime date) {
