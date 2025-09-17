@@ -16,7 +16,7 @@ class ExpeditionCartRouteInternshipConsultationRepositoryImpl
         > {
   final uuid = const Uuid();
   var socket = SocketConfig.instance;
-  final selectEvent = 'carrinho.consulta';
+  final selectEvent = 'carrinho.percurso.estagio.consulta';
 
   @override
   Future<List<ExpeditionCartRouteInternshipConsultationModel>>

@@ -19,6 +19,7 @@ import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
 import 'package:exp/data/datasources/config_service.dart';
 import 'package:exp/data/datasources/user_preferences_service.dart';
 import 'package:exp/data/services/socket_service.dart';
+import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/domain/services/event_service.dart';
 import 'package:exp/data/services/event_service_impl.dart';
 import 'package:exp/domain/repositories/event_generic_repository.dart';
@@ -60,6 +61,7 @@ void setupLocator() {
   locator.registerLazySingleton(() => ConfigService());
   locator.registerLazySingleton(() => UserPreferencesService());
   locator.registerLazySingleton(() => SocketService());
+  locator.registerLazySingleton(() => FiltersStorageService());
 
   // Registrar ConfigViewModel como singleton
   locator.registerLazySingleton(

@@ -48,6 +48,7 @@ dependencies:
   brasil_fields: ^1.18.0
   date_format: ^2.0.9
   zard: ^0.0.21
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:

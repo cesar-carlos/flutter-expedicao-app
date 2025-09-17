@@ -7,6 +7,12 @@ import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
+import 'package:exp/ui/widgets/separate_items/separate_item_card.dart';
+import 'package:exp/ui/widgets/separate_items/separate_items_bottom_navigation.dart';
+import 'package:exp/ui/widgets/separate_items/separation_info_dialog.dart';
+import 'package:exp/ui/widgets/separate_items/carts_list_view.dart';
+import 'package:exp/ui/widgets/separate_items/separate_items_error_state.dart';
+import 'package:exp/ui/widgets/separate_items/separation_info_view.dart';
 
 class SeparateItemsScreen extends StatefulWidget {
   final SeparateConsultationModel separation;
@@ -25,13 +31,13 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
 
-    // Carrega os itens quando a tela é inicializada
+    // Carrega os itens e carrinhos quando a tela é inicializada
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SeparateItemsViewModel>().loadSeparationItems(
-        widget.separation,
-      );
+      final viewModel = context.read<SeparateItemsViewModel>();
+      viewModel.loadSeparationItems(widget.separation);
+      viewModel.loadSeparationCarts(widget.separation);
     });
   }
 
@@ -122,7 +128,9 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
           return _buildBody(context, viewModel);
         },
       ),
-      bottomNavigationBar: _buildBottomNavigation(context),
+      bottomNavigationBar: SeparateItemsBottomNavigation(
+        tabController: _tabController,
+      ),
     );
   }
 
@@ -141,163 +149,19 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
     }
 
     if (viewModel.hasError) {
-      return _buildErrorState(context, viewModel);
+      return SeparateItemsErrorState(
+        viewModel: viewModel,
+        onRefresh: () => _refreshData(context),
+      );
     }
 
-    return Column(
+    return TabBarView(
+      controller: _tabController,
       children: [
-        // Header com informações da separação
-        _buildSeparationHeader(context, viewModel),
-
-        // Conteúdo das abas
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildWaitingItemsView(context, viewModel),
-              _buildCartsView(context, viewModel),
-            ],
-          ),
-        ),
+        _buildWaitingItemsView(context, viewModel),
+        CartsListView(viewModel: viewModel),
+        SeparationInfoView(separation: widget.separation, viewModel: viewModel),
       ],
-    );
-  }
-
-  Widget _buildSeparationHeader(
-    BuildContext context,
-    SeparateItemsViewModel viewModel,
-  ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: widget.separation.situacao.color.withOpacity(0.1),
-        border: Border(
-          bottom: BorderSide(
-            color: colorScheme.outline.withOpacity(0.2),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.separation.situacao.description.toUpperCase(),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: widget.separation.situacao.color,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.separation.nomeEntidade,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      widget.separation.nomeTipoOperacaoExpedicao,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.tag,
-                          size: 16,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '#${widget.separation.codSepararEstoque}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              if (viewModel.hasData) ...[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Total de Itens: ${viewModel.totalItems}',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Progresso: ${viewModel.percentualConcluido.toStringAsFixed(0)}%',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(
-    BuildContext context,
-    SeparateItemsViewModel viewModel,
-  ) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Erro ao carregar itens',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              viewModel.errorMessage ?? 'Erro desconhecido',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => viewModel.refresh(),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Tentar Novamente'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -341,526 +205,25 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
       itemCount: viewModel.items.length,
       itemBuilder: (context, index) {
         final item = viewModel.items[index];
-        return _buildItemCard(context, item, viewModel);
+        return SeparateItemCard(
+          item: item,
+          onSeparate: () => _onSeparateItem(context, item, viewModel),
+        );
       },
-    );
-  }
-
-  Widget _buildCartsView(
-    BuildContext context,
-    SeparateItemsViewModel viewModel,
-  ) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.shopping_cart_outlined,
-              size: 64,
-              color: Theme.of(context).colorScheme.outline,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Carrinhos',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Funcionalidade em desenvolvimento.',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildItemCard(
-    BuildContext context,
-    SeparateItemConsultationModel item,
-    SeparateItemsViewModel viewModel,
-  ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    final isCompleted =
-        item.quantidadeSeparacao >
-        0; // Se tem quantidade separada, está separado
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      color: colorScheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isCompleted
-              ? colorScheme.primary.withOpacity(0.3)
-              : colorScheme.outline.withOpacity(0.2),
-          width: isCompleted ? 2 : 1,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header do item com código e nome
-            Row(
-              children: [
-                // Código do produto
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${item.codProduto}',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Nome do produto
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.nomeProduto,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (item.nomeMarca != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          '${item.nomeMarca}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                // Status visual
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isCompleted
-                        ? colorScheme.primary.withOpacity(0.1)
-                        : colorScheme.error.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isCompleted
-                            ? Icons.check_circle
-                            : Icons.hourglass_empty,
-                        color: isCompleted
-                            ? colorScheme.primary
-                            : colorScheme.error,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        isCompleted ? 'OK' : 'Pendente',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: isCompleted
-                              ? colorScheme.primary
-                              : colorScheme.error,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Código de barras se disponível
-            if (item.codigoBarras != null) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.qr_code,
-                      size: 16,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Código: ${item.codigoBarras}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontFamily: 'monospace',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-
-            // Localização e grupo
-            Row(
-              children: [
-                if (item.nomeSetorEstoque != null) ...[
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: colorScheme.tertiaryContainer.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            size: 16,
-                            color: colorScheme.onTertiaryContainer,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Setor',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: colorScheme.onTertiaryContainer,
-                                  ),
-                                ),
-                                Text(
-                                  '${item.nomeSetorEstoque}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onTertiaryContainer,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                if (item.endereco != null ||
-                    item.enderecoDescricao != null) ...[
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: colorScheme.secondaryContainer.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.place,
-                            size: 16,
-                            color: colorScheme.onSecondaryContainer,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Endereço',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: colorScheme.onSecondaryContainer,
-                                  ),
-                                ),
-                                Text(
-                                  item.enderecoDescricao ?? item.endereco ?? '',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSecondaryContainer,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Informações de quantidade e grupo
-            Row(
-              children: [
-                Expanded(
-                  child: _buildInfoColumn(
-                    context,
-                    'UN',
-                    item.nomeUnidadeMedida,
-                  ),
-                ),
-                Expanded(
-                  child: _buildInfoColumn(
-                    context,
-                    'Qtd. Total',
-                    item.quantidade.toStringAsFixed(2),
-                  ),
-                ),
-                Expanded(
-                  child: _buildInfoColumn(
-                    context,
-                    'Qtd. Separada',
-                    item.quantidadeSeparacao.toStringAsFixed(2),
-                    color: isCompleted
-                        ? colorScheme.primary
-                        : colorScheme.error,
-                  ),
-                ),
-                Expanded(
-                  child: _buildInfoColumn(
-                    context,
-                    'Grupo',
-                    item.nomeGrupoProduto,
-                    maxLines: 1,
-                  ),
-                ),
-              ],
-            ),
-
-            // Informações adicionais
-            if (item.codigoBarras != null && item.codigoBarras!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Icons.qr_code,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Código: ${item.codigoBarras}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-
-            // Informações adicionais de localização
-            if ((item.endereco != null && item.endereco!.isNotEmpty) ||
-                (item.enderecoDescricao != null &&
-                    item.enderecoDescricao!.isNotEmpty)) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      'Local: ${item.enderecoDescricao ?? item.endereco}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-
-            // Botão de ação (se não estiver completo)
-            if (!isCompleted) ...[
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _onSeparateItem(context, item),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  icon: const Icon(Icons.add_shopping_cart, size: 18),
-                  label: Text(
-                    'Separar Item',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoColumn(
-    BuildContext context,
-    String label,
-    String value, {
-    Color? color,
-    int? maxLines,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: color ?? colorScheme.onSurface,
-          ),
-          textAlign: TextAlign.center,
-          maxLines: maxLines,
-          overflow: maxLines != null ? TextOverflow.ellipsis : null,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBottomNavigation(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: colorScheme.outline.withOpacity(0.2),
-            width: 1,
-          ),
-        ),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        indicatorColor: colorScheme.primary,
-        labelColor: colorScheme.primary,
-        unselectedLabelColor: colorScheme.onSurfaceVariant,
-        indicatorWeight: 3,
-        tabs: const [
-          Tab(icon: Icon(Icons.hourglass_empty), text: 'Aguardando'),
-          Tab(icon: Icon(Icons.shopping_cart), text: 'Carrinhos'),
-        ],
-      ),
     );
   }
 
   void _showSeparationInfo(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Separação ${widget.separation.codSepararEstoque}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildInfoRow('Entidade', widget.separation.nomeEntidade),
-            const SizedBox(height: 8),
-            _buildInfoRow(
-              'Operação',
-              widget.separation.nomeTipoOperacaoExpedicao,
-            ),
-            const SizedBox(height: 8),
-            _buildInfoRow('Situação', widget.separation.situacao.description),
-            const SizedBox(height: 8),
-            _buildInfoRow('Prioridade', widget.separation.nomePrioridade),
-            const SizedBox(height: 8),
-            _buildInfoRow('Data', _formatDate(widget.separation.dataEmissao)),
-            if (widget.separation.observacao != null &&
-                widget.separation.observacao!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              _buildInfoRow('Observação', widget.separation.observacao!),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fechar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            '$label:',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-        Expanded(child: Text(value)),
-      ],
+      builder: (context) => SeparationInfoDialog(separation: widget.separation),
     );
   }
 
   void _onSeparateItem(
     BuildContext context,
     SeparateItemConsultationModel item,
+    SeparateItemsViewModel viewModel,
   ) {
     // TODO: Implementar ação de separar item específico
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1061,11 +424,5 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/'
-        '${date.month.toString().padLeft(2, '0')}/'
-        '${date.year}';
   }
 }

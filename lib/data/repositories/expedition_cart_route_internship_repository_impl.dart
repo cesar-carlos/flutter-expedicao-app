@@ -12,10 +12,10 @@ import 'package:exp/core/network/socket_config.dart';
 
 class ExpeditionCartRouteInternshipRepositoryImpl
     implements BasicRepository<ExpeditionCartRouteInternshipModel> {
-  final selectEvent = 'carrinho.percurso.select';
-  final insertEvent = 'carrinho.percurso.insert';
-  final updateEvent = 'carrinho.percurso.update';
-  final deleteEvent = 'carrinho.percurso.delete';
+  final selectEvent = 'carrinho.percurso.estagio.select';
+  final insertEvent = 'carrinho.percurso.estagio.insert';
+  final updateEvent = 'carrinho.percurso.estagio.update';
+  final deleteEvent = 'carrinho.percurso.estagio.delete';
   var socket = SocketConfig.instance;
   final uuid = const Uuid();
 

@@ -68,7 +68,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
                 icon: Icon(
                   Icons.filter_alt,
                   color: viewModel.hasActiveFilters
-                      ? colorScheme.primary
+                      ? Colors.red
                       : colorScheme.onSurface,
                 ),
                 tooltip: 'Filtros',

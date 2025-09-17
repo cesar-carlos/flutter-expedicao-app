@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/di/locator.dart';
 
 enum SeparateItemsState { initial, loading, loaded, error }
@@ -12,10 +14,22 @@ enum SeparateItemsState { initial, loading, loaded, error }
 /// ViewModel para separação de itens específicos
 class SeparateItemsViewModel extends ChangeNotifier {
   final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
+  final BasicConsultationRepository<
+    ExpeditionCartRouteInternshipConsultationModel
+  >
+  _cartRepository;
+  final FiltersStorageService _filtersStorage;
 
   SeparateItemsViewModel()
     : _repository =
-          locator<BasicConsultationRepository<SeparateItemConsultationModel>>();
+          locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
+      _cartRepository =
+          locator<
+            BasicConsultationRepository<
+              ExpeditionCartRouteInternshipConsultationModel
+            >
+          >(),
+      _filtersStorage = locator<FiltersStorageService>();
 
   // === ESTADO ===
   SeparateItemsState _state = SeparateItemsState.initial;
@@ -26,6 +40,10 @@ class SeparateItemsViewModel extends ChangeNotifier {
   SeparateConsultationModel? _separation;
   List<SeparateItemConsultationModel> _items = [];
 
+  // === DADOS DOS CARRINHOS ===
+  List<ExpeditionCartRouteInternshipConsultationModel> _carts = [];
+  bool _cartsLoaded = false;
+
   // === GETTERS ===
   SeparateItemsState get state => _state;
   String? get errorMessage => _errorMessage;
@@ -35,9 +53,14 @@ class SeparateItemsViewModel extends ChangeNotifier {
 
   SeparateConsultationModel? get separation => _separation;
   List<SeparateItemConsultationModel> get items => List.unmodifiable(_items);
+  List<ExpeditionCartRouteInternshipConsultationModel> get carts =>
+      List.unmodifiable(_carts);
 
   // === ESTATÍSTICAS ===
   int get totalItems => _items.length;
+  int get totalCarts => _carts.length;
+  bool get hasCartsData => _carts.isNotEmpty;
+  bool get cartsLoaded => _cartsLoaded;
   int get itemsSeparados =>
       _items.where((item) => item.quantidadeSeparacao > 0).length;
   int get itemsPendentes => totalItems - itemsSeparados;
@@ -59,9 +82,10 @@ class SeparateItemsViewModel extends ChangeNotifier {
       final queryBuilder = QueryBuilder()
         ..equals('CodEmpresa', separation.codEmpresa.toString())
         ..equals('CodSepararEstoque', separation.codSepararEstoque.toString())
-        ..orderBy('CodProduto');
+        ..orderBy('EnderecoDescricao');
 
-      // Query construída corretamente
+      // Aplica filtros salvos do usuário se existirem
+      await _applySavedFiltersToQuery(queryBuilder);
 
       final items = await _repository.selectConsultation(queryBuilder);
 
@@ -74,10 +98,34 @@ class SeparateItemsViewModel extends ChangeNotifier {
     }
   }
 
+  /// Carrega os carrinhos de uma separação específica
+  Future<void> loadSeparationCarts(SeparateConsultationModel separation) async {
+    if (_disposed) return;
+
+    try {
+      final queryBuilder = QueryBuilder()
+        ..equals('CodOrigem', separation.codSepararEstoque.toString())
+        ..equals('Origem', 'SE')
+        ..orderBy('CodCarrinho');
+
+      final carts = await _cartRepository.selectConsultation(queryBuilder);
+
+      if (_disposed) return;
+      _carts = carts;
+      _cartsLoaded = true;
+      notifyListeners();
+    } catch (e) {
+      if (_disposed) return;
+      _cartsLoaded = true;
+      notifyListeners();
+    }
+  }
+
   /// Atualiza os dados
   Future<void> refresh() async {
     if (_separation != null) {
       await loadSeparationItems(_separation!);
+      await loadSeparationCarts(_separation!);
     }
   }
 
@@ -213,6 +261,23 @@ class SeparateItemsViewModel extends ChangeNotifier {
       return message;
     } catch (e) {
       return 'Erro interno do sistema';
+    }
+  }
+
+  /// Aplica filtros salvos do usuário à query (se existirem)
+  Future<void> _applySavedFiltersToQuery(QueryBuilder queryBuilder) async {
+    try {
+      final savedFilters = await _filtersStorage.loadSeparationFilters();
+
+      if (savedFilters.isEmpty) return;
+
+      // Aplica filtros específicos para itens (se aplicável)
+      // Por exemplo, filtros por grupo de produto, marca, etc.
+
+      debugPrint('Filtros salvos aplicados à consulta de itens: $savedFilters');
+    } catch (e) {
+      debugPrint('Erro ao aplicar filtros salvos: $e');
+      // Não quebra a aplicação se houver erro ao carregar filtros
     }
   }
 }

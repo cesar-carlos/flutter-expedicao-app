@@ -8,6 +8,7 @@ enum ExpeditionCartSituation {
   conferido('CONFERIDO', 'Conferido'),
   agrupado('AGRUPADO', 'Agrupado'),
   cancelado('CANCELADO', 'Cancelado'),
+  cancelada('CANCELADA', 'Cancelada'),
   vazio('', '');
 
   const ExpeditionCartSituation(this.code, this.description);

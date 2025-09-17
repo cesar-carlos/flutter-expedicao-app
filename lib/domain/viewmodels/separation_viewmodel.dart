@@ -2,18 +2,22 @@ import 'package:flutter/foundation.dart';
 
 import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:exp/domain/models/separation_filters_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/di/locator.dart';
 
 enum SeparationState { initial, loading, loaded, error }
 
 class SeparationViewModel extends ChangeNotifier {
   final BasicConsultationRepository<SeparateConsultationModel> _repository;
+  final FiltersStorageService _filtersStorage;
 
   SeparationViewModel()
     : _repository =
-          locator<BasicConsultationRepository<SeparateConsultationModel>>();
+          locator<BasicConsultationRepository<SeparateConsultationModel>>(),
+      _filtersStorage = locator<FiltersStorageService>();
 
   SeparationState _state = SeparationState.initial;
   List<SeparateConsultationModel> _separations = [];
@@ -72,6 +76,9 @@ class SeparationViewModel extends ChangeNotifier {
       _setState(SeparationState.loading);
       _clearError();
 
+      // Carrega filtros salvos antes de fazer a consulta
+      await _loadSavedFilters();
+
       _currentPage = 0;
       _hasMoreData = true;
 
@@ -99,6 +106,9 @@ class SeparationViewModel extends ChangeNotifier {
     _codOrigemFilter = null;
     _situacaoFilter = null;
     _dataEmissaoFilter = null;
+
+    // Limpa os filtros salvos também
+    await _clearSavedFilters();
     await loadSeparations();
   }
 
@@ -144,6 +154,8 @@ class SeparationViewModel extends ChangeNotifier {
   }
 
   Future<void> applyFilters() async {
+    // Salva os filtros atuais antes de aplicar
+    await _saveCurrentFilters();
     await loadSeparations();
   }
 
@@ -264,4 +276,60 @@ class SeparationViewModel extends ChangeNotifier {
       return 'Erro interno do sistema';
     }
   }
+
+  /// Carrega filtros salvos do armazenamento local
+  Future<void> _loadSavedFilters() async {
+    try {
+      final savedFilters = await _filtersStorage.loadSeparationFilters();
+
+      if (savedFilters.isNotEmpty) {
+        _codSepararEstoqueFilter = savedFilters.codSepararEstoque;
+        _origemFilter = savedFilters.origem;
+        _codOrigemFilter = savedFilters.codOrigem;
+        _situacaoFilter = savedFilters.situacao;
+        _dataEmissaoFilter = savedFilters.dataEmissao;
+
+        // Notifica os listeners que os filtros foram carregados
+        notifyListeners();
+      }
+    } catch (e) {
+      // Log do erro, mas não quebra a aplicação
+      debugPrint('Erro ao carregar filtros salvos: $e');
+    }
+  }
+
+  /// Salva os filtros atuais no armazenamento local
+  Future<void> _saveCurrentFilters() async {
+    try {
+      final currentFilters = SeparationFiltersModel(
+        codSepararEstoque: _codSepararEstoqueFilter,
+        origem: _origemFilter,
+        codOrigem: _codOrigemFilter,
+        situacao: _situacaoFilter,
+        dataEmissao: _dataEmissaoFilter,
+      );
+
+      await _filtersStorage.saveSeparationFilters(currentFilters);
+    } catch (e) {
+      debugPrint('Erro ao salvar filtros: $e');
+    }
+  }
+
+  /// Limpa filtros salvos do armazenamento local
+  Future<void> _clearSavedFilters() async {
+    try {
+      await _filtersStorage.clearSeparationFilters();
+    } catch (e) {
+      debugPrint('Erro ao limpar filtros salvos: $e');
+    }
+  }
+
+  /// Obtém os filtros atuais como modelo
+  SeparationFiltersModel get currentFilters => SeparationFiltersModel(
+    codSepararEstoque: _codSepararEstoqueFilter,
+    origem: _origemFilter,
+    codOrigem: _codOrigemFilter,
+    situacao: _situacaoFilter,
+    dataEmissao: _dataEmissaoFilter,
+  );
 }
