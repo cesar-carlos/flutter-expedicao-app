@@ -28,11 +28,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SfDataGrid(
-      source: ShipmentSeparateConsultationDataSource(
-        consultations,
-        onRowTap: onRowTap,
-        onRowDoubleTap: onRowDoubleTap,
-      ),
+      source: ShipmentSeparateConsultationDataSource(consultations, onRowTap: onRowTap, onRowDoubleTap: onRowDoubleTap),
       allowSorting: allowSorting,
       allowFiltering: allowFiltering,
       allowMultiColumnSorting: true,
@@ -54,10 +50,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
-          child: const Text(
-            'Cód. Separação',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          child: const Text('Cód. Separação', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
         width: 120,
       ),
@@ -66,10 +59,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
-          child: const Text(
-            'Cód. Empresa',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          child: const Text('Cód. Empresa', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
         width: 100,
       ),
@@ -78,10 +68,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
-          child: const Text(
-            'Tipo Operação',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          child: const Text('Tipo Operação', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
         width: 180,
       ),
@@ -90,10 +77,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
-          child: const Text(
-            'Situação',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          child: const Text('Situação', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
         width: 120,
       ),
@@ -102,10 +86,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
-          child: const Text(
-            'Data Emissão',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          child: const Text('Data Emissão', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
         width: 120,
       ),
@@ -114,10 +95,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
-          child: const Text(
-            'Data/Hora',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          child: const Text('Data/Hora', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
         width: 150,
       ),
@@ -126,10 +104,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
-          child: const Text(
-            'Entidade',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          child: const Text('Entidade', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
         width: 200,
       ),
@@ -138,10 +113,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
-          child: const Text(
-            'Observações',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          child: const Text('Observações', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
         width: 200,
       ),
@@ -155,11 +127,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
   final Function(SeparateConsultationModel)? onRowTap;
   final Function(SeparateConsultationModel)? onRowDoubleTap;
 
-  ShipmentSeparateConsultationDataSource(
-    this._consultations, {
-    this.onRowTap,
-    this.onRowDoubleTap,
-  });
+  ShipmentSeparateConsultationDataSource(this._consultations, {this.onRowTap, this.onRowDoubleTap});
 
   @override
   List<DataGridRow> get rows {
@@ -173,8 +141,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
       final descricao = consultation.nomeTipoOperacaoExpedicao;
       final status = consultation.situacao;
       final dataInicial = _formatDateSafe(consultation.dataEmissao);
-      final dataFinal =
-          '${_formatDateSafe(consultation.dataEmissao)} ${consultation.horaEmissao}';
+      final dataFinal = '${_formatDateSafe(consultation.dataEmissao)} ${consultation.horaEmissao}';
       final usuario = consultation.nomeEntidade;
       final observacoes = consultation.observacao ?? '';
 
@@ -183,10 +150,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
           DataGridCell<int>(columnName: 'id', value: id),
           DataGridCell<String>(columnName: 'codigo', value: codigo),
           DataGridCell<String>(columnName: 'descricao', value: descricao),
-          DataGridCell<Widget>(
-            columnName: 'status',
-            value: _buildStatusChipSafe(status),
-          ),
+          DataGridCell<Widget>(columnName: 'status', value: _buildStatusChipSafe(status)),
           DataGridCell<String>(columnName: 'dataInicial', value: dataInicial),
           DataGridCell<String>(columnName: 'dataFinal', value: dataFinal),
           DataGridCell<String>(columnName: 'usuario', value: usuario),
@@ -207,10 +171,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
             8,
             (index) => Container(
               padding: const EdgeInsets.all(8.0),
-              child: const Text(
-                'ERRO: Índice inválido',
-                style: TextStyle(fontSize: 12, color: Colors.red),
-              ),
+              child: const Text('ERRO: Índice inválido', style: TextStyle(fontSize: 12, color: Colors.red)),
             ),
           ),
         );
@@ -231,19 +192,13 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
           } else {
             final valueText = dataGridCell.value?.toString() ?? '';
 
-            cellWidget = Text(
-              valueText,
-              style: const TextStyle(fontSize: 12),
-              overflow: TextOverflow.ellipsis,
-            );
+            cellWidget = Text(valueText, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis);
           }
 
           cells.add(
             GestureDetector(
               onTap: onRowTap != null ? () => onRowTap!(consultation) : null,
-              onDoubleTap: onRowDoubleTap != null
-                  ? () => onRowDoubleTap!(consultation)
-                  : null,
+              onDoubleTap: onRowDoubleTap != null ? () => onRowDoubleTap!(consultation) : null,
               child: Container(
                 padding: const EdgeInsets.all(8.0),
                 alignment: _getAlignment(dataGridCell.columnName),
@@ -255,10 +210,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
           cells.add(
             Container(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'ERRO: $e',
-                style: const TextStyle(fontSize: 10, color: Colors.red),
-              ),
+              child: Text('ERRO: $e', style: const TextStyle(fontSize: 10, color: Colors.red)),
             ),
           );
         }
@@ -271,10 +223,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
           8,
           (index) => Container(
             padding: const EdgeInsets.all(8.0),
-            child: Text(
-              'ERRO GERAL: $e',
-              style: const TextStyle(fontSize: 10, color: Colors.red),
-            ),
+            child: Text('ERRO GERAL: $e', style: const TextStyle(fontSize: 10, color: Colors.red)),
           ),
         ),
       );
@@ -346,33 +295,19 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
 
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(12)),
         child: Text(
           description,
-          style: TextStyle(
-            color: textColor,
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.bold),
         ),
       );
     } catch (e) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.grey,
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(12)),
         child: const Text(
           'Erro',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
         ),
       );
     }
@@ -383,17 +318,10 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
       if (status == null) {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.grey,
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(12)),
           child: const Text(
             'N/A',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
           ),
         );
       }
@@ -402,17 +330,10 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
     } catch (e) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.red,
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(12)),
         child: const Text(
           'ERRO',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
         ),
       );
     }

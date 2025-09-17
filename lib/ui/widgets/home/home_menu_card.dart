@@ -44,18 +44,12 @@ class HomeMenuCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: theme.colorScheme.outline.withOpacity(0.2),
-              width: 1,
-            ),
+            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2), width: 1),
             gradient: cardColor != null
                 ? LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      cardColor!.withOpacity(0.1),
-                      cardColor!.withOpacity(0.05),
-                    ],
+                    colors: [cardColor!.withOpacity(0.1), cardColor!.withOpacity(0.05)],
                   )
                 : null,
           ),
@@ -66,24 +60,16 @@ class HomeMenuCard extends StatelessWidget {
                 width: 55,
                 height: 55,
                 decoration: BoxDecoration(
-                  color:
-                      iconColor?.withOpacity(0.1) ??
-                      theme.colorScheme.primary.withOpacity(0.1),
+                  color: iconColor?.withOpacity(0.1) ?? theme.colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(27.5),
                 ),
-                child: Icon(
-                  icon,
-                  size: 28,
-                  color: iconColor ?? theme.colorScheme.primary,
-                ),
+                child: Icon(icon, size: 28, color: iconColor ?? theme.colorScheme.primary),
               ),
               const SizedBox(height: 10),
               Flexible(
                 child: Text(
                   title,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

@@ -61,10 +61,7 @@ class HomeScreen extends StatelessWidget {
                 value: 'logout',
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.exit_to_app,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                    Icon(Icons.exit_to_app, color: Theme.of(context).colorScheme.onSurface),
                     const SizedBox(width: 8),
                     const Text('Sair'),
                   ],
@@ -85,10 +82,7 @@ class HomeScreen extends StatelessWidget {
         title: const Text('Confirmar Saída'),
         content: const Text('Deseja realmente sair do aplicativo?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();

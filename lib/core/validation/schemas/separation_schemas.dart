@@ -159,9 +159,7 @@ class SeparationSchemas {
   // === MÉTODOS DE VALIDAÇÃO ===
 
   /// Valida dados de consulta de separação
-  static Map<String, dynamic> validateSeparateConsultation(
-    Map<String, dynamic> data,
-  ) {
+  static Map<String, dynamic> validateSeparateConsultation(Map<String, dynamic> data) {
     try {
       return separateConsultationSchema.parse(data);
     } catch (e) {
@@ -188,9 +186,7 @@ class SeparationSchemas {
   }
 
   /// Valida filtros de separação
-  static Map<String, dynamic> validateSeparationFilters(
-    Map<String, dynamic> filters,
-  ) {
+  static Map<String, dynamic> validateSeparationFilters(Map<String, dynamic> filters) {
     try {
       return separationFiltersSchema.parse(filters);
     } catch (e) {
@@ -201,8 +197,9 @@ class SeparationSchemas {
   // === VALIDAÇÃO SEGURA ===
 
   /// Validação segura para consulta de separação
-  static ({bool success, Map<String, dynamic>? data, String? error})
-  safeValidateSeparateConsultation(Map<String, dynamic> data) {
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateSeparateConsultation(
+    Map<String, dynamic> data,
+  ) {
     try {
       final result = separateConsultationSchema.parse(data);
       return (success: true, data: result, error: null);
@@ -212,8 +209,9 @@ class SeparationSchemas {
   }
 
   /// Validação segura para filtros
-  static ({bool success, Map<String, dynamic>? data, String? error})
-  safeValidateSeparationFilters(Map<String, dynamic> filters) {
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateSeparationFilters(
+    Map<String, dynamic> filters,
+  ) {
     try {
       final result = separationFiltersSchema.parse(filters);
       return (success: true, data: result, error: null);
@@ -230,29 +228,18 @@ class SeparationSchemas {
   }
 
   /// Valida se a quantidade pendente está correta
-  static bool validatePendingQuantity(
-    double solicitada,
-    double separada,
-    double pendente,
-  ) {
+  static bool validatePendingQuantity(double solicitada, double separada, double pendente) {
     return (solicitada - separada) == pendente;
   }
 
   /// Valida se a situação do item é compatível com as quantidades
-  static bool validateItemSituationWithQuantities(
-    String situacao,
-    double solicitada,
-    double separada,
-  ) {
+  static bool validateItemSituationWithQuantities(String situacao, double solicitada, double separada) {
     if (separada == 0) {
       return ['P', 'A'].contains(situacao); // Pendente ou Aguardando
     } else if (separada == solicitada) {
       return ['S', 'F'].contains(situacao); // Separado ou Finalizado
     } else if (separada < solicitada) {
-      return [
-        'PS',
-        'P',
-      ].contains(situacao); // Parcialmente Separado ou Pendente
+      return ['PS', 'P'].contains(situacao); // Parcialmente Separado ou Pendente
     }
     return false;
   }

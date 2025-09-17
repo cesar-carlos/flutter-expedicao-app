@@ -150,9 +150,7 @@ class ExpeditionSchemas {
   }
 
   /// Valida dados da consulta do carrinho
-  static Map<String, dynamic> validateCartConsultation(
-    Map<String, dynamic> data,
-  ) {
+  static Map<String, dynamic> validateCartConsultation(Map<String, dynamic> data) {
     try {
       return cartConsultationSchema.parse(data);
     } catch (e) {
@@ -170,9 +168,7 @@ class ExpeditionSchemas {
   }
 
   /// Valida dados do estágio da rota
-  static Map<String, dynamic> validateCartRouteInternship(
-    Map<String, dynamic> data,
-  ) {
+  static Map<String, dynamic> validateCartRouteInternship(Map<String, dynamic> data) {
     try {
       return cartRouteInternshipSchema.parse(data);
     } catch (e) {
@@ -181,9 +177,7 @@ class ExpeditionSchemas {
   }
 
   /// Valida dados do grupo do estágio
-  static Map<String, dynamic> validateCartRouteInternshipGroup(
-    Map<String, dynamic> data,
-  ) {
+  static Map<String, dynamic> validateCartRouteInternshipGroup(Map<String, dynamic> data) {
     try {
       return cartRouteInternshipGroupSchema.parse(data);
     } catch (e) {
@@ -194,8 +188,9 @@ class ExpeditionSchemas {
   // === VALIDAÇÃO SEGURA ===
 
   /// Validação segura para cancelamento
-  static ({bool success, Map<String, dynamic>? data, String? error})
-  safeValidateCancellation(Map<String, dynamic> data) {
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateCancellation(
+    Map<String, dynamic> data,
+  ) {
     try {
       final result = cancellationSchema.parse(data);
       return (success: true, data: result, error: null);
@@ -205,8 +200,7 @@ class ExpeditionSchemas {
   }
 
   /// Validação segura para carrinho
-  static ({bool success, Map<String, dynamic>? data, String? error})
-  safeValidateCart(Map<String, dynamic> data) {
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateCart(Map<String, dynamic> data) {
     try {
       final result = cartSchema.parse(data);
       return (success: true, data: result, error: null);

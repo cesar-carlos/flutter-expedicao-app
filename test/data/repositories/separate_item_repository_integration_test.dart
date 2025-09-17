@@ -13,12 +13,7 @@ void main() {
     late SeparateItemModel insertedSeparateItem;
 
     setUpAll(() async {
-      testConfig = ApiConfig(
-        apiUrl: 'localhost',
-        apiPort: 3001,
-        useHttps: false,
-        lastUpdated: DateTime.now(),
-      );
+      testConfig = ApiConfig(apiUrl: 'localhost', apiPort: 3001, useHttps: false, lastUpdated: DateTime.now());
 
       SocketConfig.initialize(
         testConfig,
@@ -46,81 +41,57 @@ void main() {
     });
 
     group('INSERT Integration Tests', () {
-      test(
-        'deve inserir um novo item de separação e verificar se foi inserido',
-        () async {
-          final newItem = createDefaultTestItem();
-          final insertResult = await repository.insert(newItem);
+      test('deve inserir um novo item de separação e verificar se foi inserido', () async {
+        final newItem = createDefaultTestItem();
+        final insertResult = await repository.insert(newItem);
 
-          expect(insertResult, isNotEmpty);
-          expect(insertResult.first.item, newItem.item);
-          expect(insertResult.first.codProduto, 1);
-          expect(insertResult.first.quantidade, 1.0);
-          expect(insertResult.first.quantidadeInterna, 1.0);
-          expect(insertResult.first.quantidadeExterna, 0.0);
-          expect(insertResult.first.quantidadeSeparacao, 0.0);
+        expect(insertResult, isNotEmpty);
+        expect(insertResult.first.item, newItem.item);
+        expect(insertResult.first.codProduto, 1);
+        expect(insertResult.first.quantidade, 1.0);
+        expect(insertResult.first.quantidadeInterna, 1.0);
+        expect(insertResult.first.quantidadeExterna, 0.0);
+        expect(insertResult.first.quantidadeSeparacao, 0.0);
 
-          insertedSeparateItem = insertResult.first;
+        insertedSeparateItem = insertResult.first;
 
-          await Future.delayed(Duration(seconds: 3));
-        },
-        timeout: Timeout(Duration(minutes: 2)),
-      );
+        await Future.delayed(Duration(seconds: 3));
+      }, timeout: Timeout(Duration(minutes: 2)));
     });
 
     group('UPDATE Integration Tests', () {
-      test(
-        'deve atualizar o item de separação inserido anteriormente',
-        () async {
-          final updatedItem = createUpdatedTestItem(insertedSeparateItem);
+      test('deve atualizar o item de separação inserido anteriormente', () async {
+        final updatedItem = createUpdatedTestItem(insertedSeparateItem);
 
-          final updateResult = await repository.update(updatedItem);
+        final updateResult = await repository.update(updatedItem);
 
-          expect(updateResult, isNotEmpty);
-          expect(
-            updateResult.first.codSepararEstoque,
-            insertedSeparateItem.codSepararEstoque,
-          );
-          expect(updateResult.first.item, insertedSeparateItem.item);
-          expect(updateResult.first.quantidadeSeparacao, 0.5);
-          expect(updateResult.first.quantidadeInterna, 0.5);
-          expect(updateResult.first.quantidadeExterna, 0.5);
-          expect(
-            updateResult.first.codProduto,
-            insertedSeparateItem.codProduto,
-          );
+        expect(updateResult, isNotEmpty);
+        expect(updateResult.first.codSepararEstoque, insertedSeparateItem.codSepararEstoque);
+        expect(updateResult.first.item, insertedSeparateItem.item);
+        expect(updateResult.first.quantidadeSeparacao, 0.5);
+        expect(updateResult.first.quantidadeInterna, 0.5);
+        expect(updateResult.first.quantidadeExterna, 0.5);
+        expect(updateResult.first.codProduto, insertedSeparateItem.codProduto);
 
-          await Future.delayed(Duration(seconds: 3));
-        },
-        timeout: Timeout(Duration(minutes: 2)),
-      );
+        await Future.delayed(Duration(seconds: 3));
+      }, timeout: Timeout(Duration(minutes: 2)));
     });
 
     group('DELETE Integration Tests', () {
-      test(
-        'deve deletar o item de separação inserido anteriormente',
-        () async {
-          final itemToDelete = insertedSeparateItem;
+      test('deve deletar o item de separação inserido anteriormente', () async {
+        final itemToDelete = insertedSeparateItem;
 
-          final deleteResult = await repository.delete(itemToDelete);
+        final deleteResult = await repository.delete(itemToDelete);
 
-          expect(deleteResult, isNotEmpty);
-          expect(
-            deleteResult.first.codSepararEstoque,
-            insertedSeparateItem.codSepararEstoque,
-          );
-          expect(deleteResult.first.item, insertedSeparateItem.item);
-          expect(
-            deleteResult.first.codProduto,
-            insertedSeparateItem.codProduto,
-          );
+        expect(deleteResult, isNotEmpty);
+        expect(deleteResult.first.codSepararEstoque, insertedSeparateItem.codSepararEstoque);
+        expect(deleteResult.first.item, insertedSeparateItem.item);
+        expect(deleteResult.first.codProduto, insertedSeparateItem.codProduto);
 
-          expect(deleteResult.first.quantidade, isA<double>());
+        expect(deleteResult.first.quantidade, isA<double>());
 
-          await Future.delayed(Duration(seconds: 3));
-        },
-        timeout: Timeout(Duration(minutes: 2)),
-      );
+        await Future.delayed(Duration(seconds: 3));
+      }, timeout: Timeout(Duration(minutes: 2)));
     });
   });
 }

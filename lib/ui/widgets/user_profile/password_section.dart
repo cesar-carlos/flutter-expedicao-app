@@ -36,21 +36,13 @@ class _PasswordSectionState extends State<PasswordSection> {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            colorScheme.secondaryContainer.withOpacity(0.3),
-            colorScheme.tertiaryContainer.withOpacity(0.2),
-          ],
+          colors: [colorScheme.secondaryContainer.withOpacity(0.3), colorScheme.tertiaryContainer.withOpacity(0.2)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: colorScheme.secondary.withOpacity(0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.secondary.withOpacity(0.1),
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: colorScheme.secondary.withOpacity(0.1), offset: const Offset(0, 4))],
       ),
       child: Column(
         children: [
@@ -62,28 +54,21 @@ class _PasswordSectionState extends State<PasswordSection> {
             },
             borderRadius: BorderRadius.vertical(
               top: const Radius.circular(20),
-              bottom: _isPasswordSectionExpanded
-                  ? Radius.zero
-                  : const Radius.circular(20),
+              bottom: _isPasswordSectionExpanded ? Radius.zero : const Radius.circular(20),
             ),
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: _isPasswordSectionExpanded
                     ? LinearGradient(
-                        colors: [
-                          colorScheme.secondary.withOpacity(0.15),
-                          colorScheme.secondary.withOpacity(0.08),
-                        ],
+                        colors: [colorScheme.secondary.withOpacity(0.15), colorScheme.secondary.withOpacity(0.08)],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       )
                     : null,
                 borderRadius: BorderRadius.vertical(
                   top: const Radius.circular(20),
-                  bottom: _isPasswordSectionExpanded
-                      ? Radius.zero
-                      : const Radius.circular(20),
+                  bottom: _isPasswordSectionExpanded ? Radius.zero : const Radius.circular(20),
                 ),
               ),
               child: Row(
@@ -92,26 +77,14 @@ class _PasswordSectionState extends State<PasswordSection> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [
-                          colorScheme.secondary,
-                          colorScheme.secondary.withOpacity(0.8),
-                        ],
+                        colors: [colorScheme.secondary, colorScheme.secondary.withOpacity(0.8)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colorScheme.secondary.withOpacity(0.3),
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      boxShadow: [BoxShadow(color: colorScheme.secondary.withOpacity(0.3), offset: const Offset(0, 2))],
                     ),
-                    child: Icon(
-                      Icons.shield_outlined,
-                      color: Colors.white,
-                      size: 24,
-                    ),
+                    child: Icon(Icons.shield_outlined, color: Colors.white, size: 24),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -145,11 +118,7 @@ class _PasswordSectionState extends State<PasswordSection> {
                     child: AnimatedRotation(
                       turns: _isPasswordSectionExpanded ? 0.5 : 0,
                       duration: const Duration(milliseconds: 300),
-                      child: Icon(
-                        Icons.expand_more,
-                        color: colorScheme.secondary,
-                        size: 20,
-                      ),
+                      child: Icon(Icons.expand_more, color: colorScheme.secondary, size: 20),
                     ),
                   ),
                 ],
@@ -208,9 +177,7 @@ class _PasswordSectionState extends State<PasswordSection> {
       decoration: BoxDecoration(
         color: AppColors.withOpacity(AppColors.warning, 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: AppColors.withOpacity(AppColors.warning, 0.3),
-        ),
+        border: Border.all(color: AppColors.withOpacity(AppColors.warning, 0.3)),
       ),
       child: Row(
         children: [
@@ -219,9 +186,7 @@ class _PasswordSectionState extends State<PasswordSection> {
           Expanded(
             child: Text(
               'Use uma senha forte com pelo menos 4 caracteres',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.warning,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.warning),
             ),
           ),
         ],
@@ -239,9 +204,7 @@ class _PasswordSectionState extends State<PasswordSection> {
         hintText: AppStrings.currentPasswordHint,
         prefixIcon: const Icon(Icons.lock_outline),
         suffixIcon: IconButton(
-          icon: Icon(
-            _showCurrentPassword ? Icons.visibility : Icons.visibility_off,
-          ),
+          icon: Icon(_showCurrentPassword ? Icons.visibility : Icons.visibility_off),
           onPressed: () {
             setState(() {
               _showCurrentPassword = !_showCurrentPassword;
@@ -271,9 +234,7 @@ class _PasswordSectionState extends State<PasswordSection> {
         hintText: AppStrings.newPasswordHint,
         prefixIcon: const Icon(Icons.lock_reset),
         suffixIcon: IconButton(
-          icon: Icon(
-            _showNewPassword ? Icons.visibility : Icons.visibility_off,
-          ),
+          icon: Icon(_showNewPassword ? Icons.visibility : Icons.visibility_off),
           onPressed: () {
             setState(() {
               _showNewPassword = !_showNewPassword;
@@ -301,9 +262,7 @@ class _PasswordSectionState extends State<PasswordSection> {
         hintText: AppStrings.confirmNewPasswordHint,
         prefixIcon: const Icon(Icons.verified_user),
         suffixIcon: IconButton(
-          icon: Icon(
-            _showConfirmPassword ? Icons.visibility : Icons.visibility_off,
-          ),
+          icon: Icon(_showConfirmPassword ? Icons.visibility : Icons.visibility_off),
           onPressed: () {
             setState(() {
               _showConfirmPassword = !_showConfirmPassword;

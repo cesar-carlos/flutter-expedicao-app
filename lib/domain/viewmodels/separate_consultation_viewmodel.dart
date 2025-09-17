@@ -45,8 +45,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
     // Aplicar filtro de situação
     if (_situacaoFilter != null) {
       filtered = filtered.where((consultation) {
-        return consultation.situacao.code.toUpperCase() ==
-            _situacaoFilter!.toUpperCase();
+        return consultation.situacao.code.toUpperCase() == _situacaoFilter!.toUpperCase();
       }).toList();
     }
 
@@ -62,10 +61,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
   }
 
   /// Verifica se uma consulta corresponde à query de pesquisa
-  bool _matchesSearchQuery(
-    SeparateConsultationModel consultation,
-    String query,
-  ) {
+  bool _matchesSearchQuery(SeparateConsultationModel consultation, String query) {
     return consultation.codSepararEstoque.toString().contains(query) ||
         consultation.nomeTipoOperacaoExpedicao.toLowerCase().contains(query) ||
         consultation.nomeEntidade.toLowerCase().contains(query) ||
@@ -237,9 +233,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
   }
 
   /// Atualiza uma consulta específica
-  Future<void> updateConsultation(
-    SeparateConsultationModel consultation,
-  ) async {
+  Future<void> updateConsultation(SeparateConsultationModel consultation) async {
     if (_disposed) return;
 
     try {
@@ -258,9 +252,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
   }
 
   /// Remove uma consulta específica
-  Future<void> deleteConsultation(
-    SeparateConsultationModel consultation,
-  ) async {
+  Future<void> deleteConsultation(SeparateConsultationModel consultation) async {
     if (_disposed) return;
 
     try {
@@ -279,9 +271,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
   }
 
   /// Cria uma nova consulta
-  Future<void> createConsultation(
-    SeparateConsultationModel consultation,
-  ) async {
+  Future<void> createConsultation(SeparateConsultationModel consultation) async {
     if (_disposed) return;
 
     try {

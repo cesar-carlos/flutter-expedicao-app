@@ -33,14 +33,9 @@ class CustomFlatButton extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final effectiveTextColor =
-        textColor ?? (isOutlined ? colorScheme.primary : colorScheme.onPrimary);
-    final effectiveBackgroundColor =
-        backgroundColor ??
-        (isOutlined ? Colors.transparent : colorScheme.primary);
-    final effectiveBorderColor =
-        borderColor ??
-        (isOutlined ? colorScheme.primary : effectiveBackgroundColor);
+    final effectiveTextColor = textColor ?? (isOutlined ? colorScheme.primary : colorScheme.onPrimary);
+    final effectiveBackgroundColor = backgroundColor ?? (isOutlined ? Colors.transparent : colorScheme.primary);
+    final effectiveBorderColor = borderColor ?? (isOutlined ? colorScheme.primary : effectiveBackgroundColor);
 
     return SizedBox(
       width: double.infinity,
@@ -54,9 +49,7 @@ class CustomFlatButton extends StatelessWidget {
                 backgroundColor: effectiveBackgroundColor,
                 side: BorderSide(color: effectiveBorderColor),
                 padding: padding ?? const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(borderRadius ?? 8),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius ?? 8)),
                 elevation: 0,
               ),
             )
@@ -68,9 +61,7 @@ class CustomFlatButton extends StatelessWidget {
                 foregroundColor: effectiveTextColor,
                 backgroundColor: effectiveBackgroundColor,
                 padding: padding ?? const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(borderRadius ?? 8),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius ?? 8)),
                 elevation: 0,
                 shadowColor: Colors.transparent,
               ),
@@ -83,10 +74,7 @@ class CustomFlatButton extends StatelessWidget {
       return SizedBox(
         width: 16,
         height: 16,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(color),
-        ),
+        child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(color)),
       );
     }
 
@@ -99,11 +87,7 @@ class CustomFlatButton extends StatelessWidget {
 
   Widget _buildLabel(ThemeData theme, Color color) {
     final effectiveTextStyle =
-        textStyle ??
-        theme.textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: color,
-        );
+        textStyle ?? theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600, color: color);
 
     return Text(isLoading ? 'Carregando...' : text, style: effectiveTextStyle);
   }

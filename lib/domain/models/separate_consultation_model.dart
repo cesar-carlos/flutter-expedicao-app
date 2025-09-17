@@ -50,12 +50,8 @@ class SeparateConsultationModel {
         codOrigem: json['CodOrigem'] ?? 0,
         codTipoOperacaoExpedicao: json['CodTipoOperacaoExpedicao'] ?? 0,
         nomeTipoOperacaoExpedicao: json['NomeTipoOperacaoExpedicao'] ?? '',
-        situacao:
-            ExpeditionSituation.fromCode(json['Situacao'] as String? ?? '') ??
-            ExpeditionSituation.aguardando,
-        tipoEntidade:
-            EntityType.fromCode(json['TipoEntidade'] as String? ?? '') ??
-            EntityType.cliente,
+        situacao: ExpeditionSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionSituation.aguardando,
+        tipoEntidade: EntityType.fromCode(json['TipoEntidade'] as String? ?? '') ?? EntityType.cliente,
         dataEmissao: DateHelper.tryStringToDate(json['DataEmissao']),
         horaEmissao: json['HoraEmissao'] ?? '',
         codEntidade: json['CodEntidade'] ?? 0,

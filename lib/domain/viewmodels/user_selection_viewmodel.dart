@@ -55,13 +55,7 @@ class UserSelectionViewModel extends ChangeNotifier {
     if (_searchQuery.isEmpty) {
       return _users;
     }
-    return _users
-        .where(
-          (user) => user.nomeUsuario.toLowerCase().contains(
-            _searchQuery.toLowerCase(),
-          ),
-        )
-        .toList();
+    return _users.where((user) => user.nomeUsuario.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
   }
 
   // Getter para verificar se usuário está disponível para seleção
@@ -87,11 +81,7 @@ class UserSelectionViewModel extends ChangeNotifier {
 
     try {
       final pagination = Pagination.create(limit: 50, offset: 0, page: 1);
-      final response = await _userSystemRepository.searchUsersByName(
-        nome,
-        apenasAtivos: true,
-        pagination: pagination,
-      );
+      final response = await _userSystemRepository.searchUsersByName(nome, apenasAtivos: true, pagination: pagination);
 
       if (response.success && response.users.isNotEmpty) {
         _users = response.users;
@@ -101,21 +91,14 @@ class UserSelectionViewModel extends ChangeNotifier {
         _users = [];
         _setState(UserSelectionState.loaded);
         if (_context != null) {
-          _context!.showServerError(
-            response.message ?? 'Nenhum usuário encontrado',
-            onRetry: () => searchUsers(nome),
-          );
+          _context!.showServerError(response.message ?? 'Nenhum usuário encontrado', onRetry: () => searchUsers(nome));
         }
       }
     } catch (e) {
       _users = [];
       _setState(UserSelectionState.loaded);
       if (_context != null) {
-        _context!.showServerError(
-          'Erro ao buscar usuários',
-          details: e.toString(),
-          onRetry: () => searchUsers(nome),
-        );
+        _context!.showServerError('Erro ao buscar usuários', details: e.toString(), onRetry: () => searchUsers(nome));
       }
     }
   }
@@ -127,15 +110,8 @@ class UserSelectionViewModel extends ChangeNotifier {
     _resetPagination();
 
     try {
-      final pagination = Pagination.create(
-        limit: _pageLimit,
-        offset: 0,
-        page: 1,
-      );
-      final response = await _userSystemRepository.getUsers(
-        apenasAtivos: true,
-        pagination: pagination,
-      );
+      final pagination = Pagination.create(limit: _pageLimit, offset: 0, page: 1);
+      final response = await _userSystemRepository.getUsers(apenasAtivos: true, pagination: pagination);
 
       if (response.success) {
         _users = response.users;
@@ -146,21 +122,14 @@ class UserSelectionViewModel extends ChangeNotifier {
         _users = [];
         _setState(UserSelectionState.loaded);
         if (_context != null) {
-          _context!.showServerError(
-            response.message ?? 'Nenhum usuário encontrado',
-            onRetry: loadAllUsers,
-          );
+          _context!.showServerError(response.message ?? 'Nenhum usuário encontrado', onRetry: loadAllUsers);
         }
       }
     } catch (e) {
       _users = [];
       _setState(UserSelectionState.loaded);
       if (_context != null) {
-        _context!.showServerError(
-          'Erro ao carregar usuários',
-          details: e.toString(),
-          onRetry: loadAllUsers,
-        );
+        _context!.showServerError('Erro ao carregar usuários', details: e.toString(), onRetry: loadAllUsers);
       }
     }
   }
@@ -179,15 +148,10 @@ class UserSelectionViewModel extends ChangeNotifier {
         offset: _currentPage * _pageLimit,
         page: _currentPage + 1,
       );
-      final response = await _userSystemRepository.getUsers(
-        apenasAtivos: true,
-        pagination: pagination,
-      );
+      final response = await _userSystemRepository.getUsers(apenasAtivos: true, pagination: pagination);
 
       if (response.success) {
-        final Set<int> existingUserCodes = _users
-            .map((u) => u.codUsuario)
-            .toSet();
+        final Set<int> existingUserCodes = _users.map((u) => u.codUsuario).toSet();
         final List<UserSystemModel> newUsers = response.users
             .where((user) => !existingUserCodes.contains(user.codUsuario))
             .toList();
@@ -238,8 +202,7 @@ class UserSelectionViewModel extends ChangeNotifier {
       if (_context != null) {
         _context!.showValidationError(
           'Usuário não disponível',
-          details:
-              'Este usuário já está vinculado a outro dispositivo (ID: ${user.codLoginApp})',
+          details: 'Este usuário já está vinculado a outro dispositivo (ID: ${user.codLoginApp})',
         );
       }
       return;
@@ -292,11 +255,7 @@ class UserSelectionViewModel extends ChangeNotifier {
     } catch (e) {
       _setState(UserSelectionState.loaded);
       if (_context != null) {
-        _context!.showServerError(
-          'Erro ao vincular usuário',
-          details: e.toString(),
-          onRetry: confirmUserSelection,
-        );
+        _context!.showServerError('Erro ao vincular usuário', details: e.toString(), onRetry: confirmUserSelection);
       }
       return false;
     }

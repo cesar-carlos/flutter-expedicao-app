@@ -54,18 +54,12 @@ class ExpeditionCartRouteModel {
       return ExpeditionCartRouteModel(
         codEmpresa: json['CodEmpresa'],
         codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(
-          json['Origem'] as String? ?? '',
-        ),
+        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
         codOrigem: json['CodOrigem'],
-        situacao:
-            ExpeditionCartSituation.fromCode(json['Situacao']) ??
-            ExpeditionCartSituation.vazio,
+        situacao: ExpeditionCartSituation.fromCode(json['Situacao']) ?? ExpeditionCartSituation.vazio,
         dataInicio: AppHelper.tryStringToDate(json['DataInicio']),
         horaInicio: json['HoraInicio'] ?? '00:00:00',
-        dataFinalizacao: AppHelper.tryStringToDateOrNull(
-          json['DataFinalizacao'],
-        ),
+        dataFinalizacao: AppHelper.tryStringToDateOrNull(json['DataFinalizacao']),
         horaFinalizacao: json['HoraFinalizacao'],
       );
     } catch (_) {

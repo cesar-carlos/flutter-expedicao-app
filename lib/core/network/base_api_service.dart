@@ -15,19 +15,11 @@ abstract class BaseApiService {
 
   UserApiException handleDioError(DioException e) {
     final errorDto = ApiErrorDto.connectionError(_getErrorMessage(e));
-    return UserApiException(
-      errorDto.message,
-      statusCode: e.response?.statusCode,
-      originalException: e,
-    );
+    return UserApiException(errorDto.message, statusCode: e.response?.statusCode, originalException: e);
   }
 
   UserApiException handleGenericError(Object e) {
-    return UserApiException(
-      'Erro interno: $e',
-      statusCode: 500,
-      originalException: e,
-    );
+    return UserApiException('Erro interno: $e', statusCode: 500, originalException: e);
   }
 
   String _getErrorMessage(DioException e) {
@@ -51,17 +43,9 @@ abstract class BaseApiService {
     }
   }
 
-  Future<Response> get(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-  }) async {
+  Future<Response> get(String path, {Map<String, dynamic>? queryParameters, Options? options}) async {
     try {
-      return await dio.get(
-        path,
-        queryParameters: queryParameters,
-        options: options,
-      );
+      return await dio.get(path, queryParameters: queryParameters, options: options);
     } on DioException catch (e) {
       throw handleDioError(e);
     } catch (e) {
@@ -69,19 +53,9 @@ abstract class BaseApiService {
     }
   }
 
-  Future<Response> post(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-  }) async {
+  Future<Response> post(String path, {dynamic data, Map<String, dynamic>? queryParameters, Options? options}) async {
     try {
-      return await dio.post(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
+      return await dio.post(path, data: data, queryParameters: queryParameters, options: options);
     } on DioException catch (e) {
       throw handleDioError(e);
     } catch (e) {
@@ -89,19 +63,9 @@ abstract class BaseApiService {
     }
   }
 
-  Future<Response> put(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-  }) async {
+  Future<Response> put(String path, {dynamic data, Map<String, dynamic>? queryParameters, Options? options}) async {
     try {
-      return await dio.put(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
+      return await dio.put(path, data: data, queryParameters: queryParameters, options: options);
     } on DioException catch (e) {
       throw handleDioError(e);
     } catch (e) {
@@ -109,19 +73,9 @@ abstract class BaseApiService {
     }
   }
 
-  Future<Response> delete(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-  }) async {
+  Future<Response> delete(String path, {dynamic data, Map<String, dynamic>? queryParameters, Options? options}) async {
     try {
-      return await dio.delete(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
+      return await dio.delete(path, data: data, queryParameters: queryParameters, options: options);
     } on DioException catch (e) {
       throw handleDioError(e);
     } catch (e) {

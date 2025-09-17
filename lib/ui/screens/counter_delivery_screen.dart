@@ -11,10 +11,7 @@ class CounterDeliveryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Entrega Balcão'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(AppRouter.home),
-        ),
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go(AppRouter.home)),
       ),
       body: const Center(
         child: Column(
@@ -22,15 +19,9 @@ class CounterDeliveryScreen extends StatelessWidget {
           children: [
             Icon(Icons.storefront_outlined, size: 80, color: Colors.orange),
             SizedBox(height: 16),
-            Text(
-              'Entrega Balcão',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
+            Text('Entrega Balcão', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
-            Text(
-              'Funcionalidade em desenvolvimento',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
+            Text('Funcionalidade em desenvolvimento', style: TextStyle(fontSize: 16, color: Colors.grey)),
             SizedBox(height: 16),
             Text(
               'Aqui será implementada a funcionalidade de gerenciamento de entregas no balcão.',

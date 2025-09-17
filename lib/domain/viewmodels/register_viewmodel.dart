@@ -45,11 +45,7 @@ class RegisterViewModel extends ChangeNotifier {
     required String confirmPassword,
     File? profileImage,
   }) async {
-    if (!validateForm(
-      name: name,
-      password: password,
-      confirmPassword: confirmPassword,
-    )) {
+    if (!validateForm(name: name, password: password, confirmPassword: confirmPassword)) {
       return false;
     }
 
@@ -63,11 +59,7 @@ class RegisterViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final params = RegisterUserParams(
-        nome: name.trim(),
-        senha: password,
-        profileImage: profileImage,
-      );
+      final params = RegisterUserParams(nome: name.trim(), senha: password, profileImage: profileImage);
 
       await _registerUserUseCase!.call(params);
 
@@ -84,11 +76,7 @@ class RegisterViewModel extends ChangeNotifier {
     }
   }
 
-  bool validateForm({
-    required String name,
-    required String password,
-    required String confirmPassword,
-  }) {
+  bool validateForm({required String name, required String password, required String confirmPassword}) {
     clearError();
 
     if (name.trim().isEmpty) {

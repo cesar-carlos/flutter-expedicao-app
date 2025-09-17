@@ -43,11 +43,9 @@ class UserSystemDto {
       nomeContaFinanceira: json['NomeContaFinanceira'] as String?,
       nomeCaixaOperador: json['NomeCaixaOperador'] as String?,
       codLoginApp: json['CodLoginApp'] as int?,
-      permiteSepararForaSequencia:
-          json['PermiteSepararForaSequencia'] as String,
+      permiteSepararForaSequencia: json['PermiteSepararForaSequencia'] as String,
       visualizaTodasSeparacoes: json['VisualizaTodasSeparacoes'] as String,
-      permiteConferirForaSequencia:
-          json['PermiteConferirForaSequencia'] as String,
+      permiteConferirForaSequencia: json['PermiteConferirForaSequencia'] as String,
       visualizaTodasConferencias: json['VisualizaTodasConferencias'] as String,
       salvaCarrinhoOutroUsuario: json['SalvaCarrinhoOutroUsuario'] as String,
       editaCarrinhoOutroUsuario: json['EditaCarrinhoOutroUsuario'] as String,
@@ -70,10 +68,8 @@ class UserSystemDto {
     };
 
     if (codEmpresa != null) map['CodEmpresa'] = codEmpresa;
-    if (codContaFinanceira != null)
-      map['CodContaFinanceira'] = codContaFinanceira;
-    if (nomeContaFinanceira != null)
-      map['NomeContaFinanceira'] = nomeContaFinanceira;
+    if (codContaFinanceira != null) map['CodContaFinanceira'] = codContaFinanceira;
+    if (nomeContaFinanceira != null) map['NomeContaFinanceira'] = nomeContaFinanceira;
     if (nomeCaixaOperador != null) map['NomeCaixaOperador'] = nomeCaixaOperador;
 
     return map;

@@ -6,10 +6,7 @@ class DiscardChangesDialog extends StatelessWidget {
   const DiscardChangesDialog({super.key});
 
   static Future<bool?> show(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => const DiscardChangesDialog(),
-    );
+    return showDialog<bool>(context: context, builder: (context) => const DiscardChangesDialog());
   }
 
   @override
@@ -25,23 +22,15 @@ class DiscardChangesDialog extends StatelessWidget {
           const Text('Descartar Alterações?'),
         ],
       ),
-      content: const Text(
-        'Você possui alterações não salvas. Deseja descartar essas alterações e voltar?',
-      ),
+      content: const Text('Você possui alterações não salvas. Deseja descartar essas alterações e voltar?'),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: Text(
-            'Cancelar',
-            style: TextStyle(color: theme.colorScheme.primary),
-          ),
+          child: Text('Cancelar', style: TextStyle(color: theme.colorScheme.primary)),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.warning,
-            foregroundColor: AppColors.white,
-          ),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.warning, foregroundColor: AppColors.white),
           child: const Text('Descartar'),
         ),
       ],

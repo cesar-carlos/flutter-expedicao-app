@@ -25,9 +25,7 @@ enum ExpeditionSituation {
 
   static ExpeditionSituation? fromCode(String code) {
     try {
-      return ExpeditionSituation.values.firstWhere(
-        (situation) => situation.code == code.toUpperCase(),
-      );
+      return ExpeditionSituation.values.firstWhere((situation) => situation.code == code.toUpperCase());
     } catch (e) {
       return null;
     }
@@ -63,33 +61,25 @@ extension ExpeditionSituationExtension on String {
 class ExpeditionSituationModel {
   ExpeditionSituationModel._();
 
-  static String getDescription(String code) =>
-      ExpeditionSituation.getDescription(code);
+  static String getDescription(String code) => ExpeditionSituation.getDescription(code);
 
-  static bool isValidSituation(String code) =>
-      ExpeditionSituation.isValidSituation(code);
+  static bool isValidSituation(String code) => ExpeditionSituation.isValidSituation(code);
 
   static List<String> getAllCodes() => ExpeditionSituation.getAllCodes();
 
-  static List<String> getAllDescriptions() =>
-      ExpeditionSituation.getAllDescriptions();
+  static List<String> getAllDescriptions() => ExpeditionSituation.getAllDescriptions();
 
   static Color getColor(String code) => ExpeditionSituation.getColor(code);
 
-  static List<ExpeditionSituation> getAllSituations() =>
-      ExpeditionSituation.values;
+  static List<ExpeditionSituation> getAllSituations() => ExpeditionSituation.values;
 }
 
 @Deprecated('Use ShippingSituationModel instead of ExpedicaoSituacaoModel')
 class ExpedicaoSituacaoModel {
   ExpedicaoSituacaoModel._();
 
-  static String getDescricao(String codigo) =>
-      ExpeditionSituationModel.getDescription(codigo);
-  static bool isSituacaoValida(String codigo) =>
-      ExpeditionSituationModel.isValidSituation(codigo);
-  static List<String> getTodasSituacoes() =>
-      ExpeditionSituationModel.getAllCodes();
-  static List<String> getTodasDescricoes() =>
-      ExpeditionSituationModel.getAllDescriptions();
+  static String getDescricao(String codigo) => ExpeditionSituationModel.getDescription(codigo);
+  static bool isSituacaoValida(String codigo) => ExpeditionSituationModel.isValidSituation(codigo);
+  static List<String> getTodasSituacoes() => ExpeditionSituationModel.getAllCodes();
+  static List<String> getTodasDescricoes() => ExpeditionSituationModel.getAllDescriptions();
 }

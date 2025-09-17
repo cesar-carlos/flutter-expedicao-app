@@ -3,11 +3,7 @@ class Pagination {
   final int offset;
   final int page;
 
-  const Pagination({
-    required this.limit,
-    required this.offset,
-    required this.page,
-  });
+  const Pagination({required this.limit, required this.offset, required this.page});
 
   static Pagination create({int limit = 50, int offset = 0, int page = 1}) {
     return Pagination(limit: limit, offset: offset, page: page);
@@ -25,10 +21,7 @@ class Pagination {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is Pagination &&
-        other.limit == limit &&
-        other.offset == offset &&
-        other.page == page;
+    return other is Pagination && other.limit == limit && other.offset == offset && other.page == page;
   }
 
   @override

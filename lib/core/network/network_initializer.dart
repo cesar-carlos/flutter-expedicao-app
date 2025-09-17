@@ -10,9 +10,7 @@ class NetworkInitializer {
     if (!DioConfig.isInitialized) {
       final configService = locator<ConfigService>();
       if (!configService.isInitialized) {
-        throw StateError(
-          'ConfigService deve ser inicializado antes de usar serviços de rede',
-        );
+        throw StateError('ConfigService deve ser inicializado antes de usar serviços de rede');
       }
 
       final configViewModel = locator<ConfigViewModel>();
@@ -24,9 +22,7 @@ class NetworkInitializer {
     if (!SocketConfig.isInitialized) {
       final configService = locator<ConfigService>();
       if (!configService.isInitialized) {
-        throw StateError(
-          'ConfigService deve ser inicializado antes de usar serviços de rede',
-        );
+        throw StateError('ConfigService deve ser inicializado antes de usar serviços de rede');
       }
 
       final configViewModel = locator<ConfigViewModel>();

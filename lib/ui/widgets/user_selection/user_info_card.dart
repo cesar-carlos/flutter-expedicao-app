@@ -20,11 +20,7 @@ class UserInfoCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   'Vincular Usuário do Sistema',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.secondary,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.secondary),
                 ),
               ],
             ),

@@ -15,18 +15,10 @@ class ConfigScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Resetar Configuração'),
-        content: const Text(
-          'Isso irá restaurar as configurações padrão. Deseja continuar?',
-        ),
+        content: const Text('Isso irá restaurar as configurações padrão. Deseja continuar?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Resetar'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Resetar')),
         ],
       ),
     );
@@ -53,10 +45,7 @@ class ConfigScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(AppStrings.configTitle),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(AppRouter.home),
-        ),
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go(AppRouter.home)),
         actions: [
           IconButton(
             onPressed: () => _handleReset(context),
@@ -66,10 +55,7 @@ class ConfigScreen extends StatelessWidget {
         ],
       ),
       body: const SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(24.0),
-          child: ServerConfigForm(),
-        ),
+        child: SingleChildScrollView(padding: EdgeInsets.all(24.0), child: ServerConfigForm()),
       ),
     );
   }

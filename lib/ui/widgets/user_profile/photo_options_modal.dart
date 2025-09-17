@@ -13,9 +13,7 @@ class PhotoOptionsModal extends StatelessWidget {
   static void show(BuildContext context, ProfileViewModel viewModel) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => PhotoOptionsModal(viewModel: viewModel),
     );
   }
@@ -33,20 +31,12 @@ class PhotoOptionsModal extends StatelessWidget {
             Container(
               width: 40,
               height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.lightGrey,
-                borderRadius: BorderRadius.circular(2),
-              ),
+              decoration: BoxDecoration(color: AppColors.lightGrey, borderRadius: BorderRadius.circular(2)),
             ),
 
             const SizedBox(height: 20),
 
-            Text(
-              'Alterar Foto de Perfil',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text('Alterar Foto de Perfil', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
 
             const SizedBox(height: 20),
 
@@ -54,10 +44,7 @@ class PhotoOptionsModal extends StatelessWidget {
               leading: Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: theme.colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
                 child: Icon(Icons.camera_alt, color: theme.colorScheme.primary),
               ),
               title: const Text('Tirar Foto'),
@@ -72,14 +59,8 @@ class PhotoOptionsModal extends StatelessWidget {
               leading: Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.secondary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.photo_library,
-                  color: theme.colorScheme.secondary,
-                ),
+                decoration: BoxDecoration(color: theme.colorScheme.secondary.withOpacity(0.1), shape: BoxShape.circle),
+                child: Icon(Icons.photo_library, color: theme.colorScheme.secondary),
               ),
               title: const Text('Escolher da Galeria'),
               subtitle: const Text('Selecionar foto existente'),
@@ -89,20 +70,13 @@ class PhotoOptionsModal extends StatelessWidget {
               },
             ),
 
-            if (viewModel.currentUser?.hasPhoto == true ||
-                viewModel.selectedPhoto != null)
+            if (viewModel.currentUser?.hasPhoto == true || viewModel.selectedPhoto != null)
               ListTile(
                 leading: Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.withOpacity(AppColors.error, 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.delete_outline,
-                    color: AppColors.error,
-                  ),
+                  decoration: BoxDecoration(color: AppColors.withOpacity(AppColors.error, 0.1), shape: BoxShape.circle),
+                  child: const Icon(Icons.delete_outline, color: AppColors.error),
                 ),
                 title: const Text('Remover Foto'),
                 subtitle: const Text('Usar avatar padrão'),
@@ -120,12 +94,7 @@ class PhotoOptionsModal extends StatelessWidget {
   Future<void> _pickImage(BuildContext context, ImageSource source) async {
     try {
       final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-        source: source,
-        imageQuality: 80,
-        maxWidth: 800,
-        maxHeight: 800,
-      );
+      final XFile? image = await picker.pickImage(source: source, imageQuality: 80, maxWidth: 800, maxHeight: 800);
 
       if (image != null) {
         final File imageFile = File(image.path);

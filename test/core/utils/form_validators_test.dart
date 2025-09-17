@@ -65,10 +65,7 @@ void main() {
       });
 
       test('should return error when passwords do not match', () {
-        expect(
-          FormValidators.confirmPassword('password1', 'password2'),
-          isNotNull,
-        );
+        expect(FormValidators.confirmPassword('password1', 'password2'), isNotNull);
         expect(FormValidators.confirmPassword('', 'password'), isNotNull);
         expect(FormValidators.confirmPassword(null, 'password'), isNotNull);
       });
@@ -119,10 +116,7 @@ void main() {
           'password': '123', // Too short
         };
 
-        expect(
-          () => FormValidators.validateLogin(invalidLogin),
-          throwsA(isA<String>()),
-        );
+        expect(() => FormValidators.validateLogin(invalidLogin), throwsA(isA<String>()));
       });
 
       test('should safely parse login data', () {

@@ -48,8 +48,7 @@ class CustomDialog extends StatelessWidget {
       width: width, // Se null, será calculado como 80% da tela
       height: height,
       contentPadding: contentPadding ?? const EdgeInsets.all(24.0),
-      actionsPadding:
-          actionsPadding ?? const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      actionsPadding: actionsPadding ?? const EdgeInsets.fromLTRB(24, 0, 24, 24),
       scrollable: scrollable,
       mainAxisSize: mainAxisSize,
     );
@@ -76,8 +75,7 @@ class CustomDialog extends StatelessWidget {
       width: width,
       height: height,
       contentPadding: contentPadding ?? const EdgeInsets.all(24.0),
-      actionsPadding:
-          actionsPadding ?? const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      actionsPadding: actionsPadding ?? const EdgeInsets.fromLTRB(24, 0, 24, 24),
       scrollable: scrollable,
       mainAxisSize: mainAxisSize,
     );
@@ -104,8 +102,7 @@ class CustomDialog extends StatelessWidget {
       width: width,
       height: height,
       contentPadding: contentPadding ?? const EdgeInsets.all(24.0),
-      actionsPadding:
-          actionsPadding ?? const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      actionsPadding: actionsPadding ?? const EdgeInsets.fromLTRB(24, 0, 24, 24),
       scrollable: scrollable,
       mainAxisSize: mainAxisSize,
     );
@@ -118,12 +115,7 @@ class CustomDialog extends StatelessWidget {
         children: [
           if (titleIcon != null) ...[titleIcon!, const SizedBox(width: 8)],
           Expanded(
-            child: Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
+            child: Text(title, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -144,18 +136,13 @@ class CustomDialog extends StatelessWidget {
     // Se width ou height foram especificados, usar SizedBox
     if (width != null || height != null) {
       contentWidget = SizedBox(
-        width:
-            width ?? double.infinity, // Se width for null, usar largura máxima
+        width: width ?? double.infinity, // Se width for null, usar largura máxima
         height: height,
         child: contentWidget,
       );
     } else {
       // Largura responsiva (80% da tela) quando width não especificado
-      contentWidget = SizedBox(
-        width: MediaQuery.of(context).size.width * 0.9,
-        height: height,
-        child: contentWidget,
-      );
+      contentWidget = SizedBox(width: MediaQuery.of(context).size.width * 0.9, height: height, child: contentWidget);
     }
 
     return contentWidget;

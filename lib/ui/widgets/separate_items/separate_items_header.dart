@@ -7,11 +7,7 @@ class SeparateItemsHeader extends StatelessWidget {
   final SeparateConsultationModel separation;
   final SeparateItemsViewModel viewModel;
 
-  const SeparateItemsHeader({
-    super.key,
-    required this.separation,
-    required this.viewModel,
-  });
+  const SeparateItemsHeader({super.key, required this.separation, required this.viewModel});
 
   @override
   Widget build(BuildContext context) {
@@ -23,12 +19,7 @@ class SeparateItemsHeader extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: separation.situacao.color.withOpacity(0.1),
-        border: Border(
-          bottom: BorderSide(
-            color: colorScheme.outline.withOpacity(0.2),
-            width: 1,
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: colorScheme.outline.withOpacity(0.2), width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,24 +41,16 @@ class SeparateItemsHeader extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       separation.nomeEntidade,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
                     ),
                     Text(
                       separation.nomeTipoOperacaoExpedicao,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                      style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(
-                          Icons.tag,
-                          size: 16,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                        Icon(Icons.tag, size: 16, color: colorScheme.onSurfaceVariant),
                         const SizedBox(width: 4),
                         Text(
                           '#${separation.codSepararEstoque}',
@@ -87,9 +70,7 @@ class SeparateItemsHeader extends StatelessWidget {
                   children: [
                     Text(
                       'Total de Itens: ${viewModel.totalItems}',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 2),
                     Text(

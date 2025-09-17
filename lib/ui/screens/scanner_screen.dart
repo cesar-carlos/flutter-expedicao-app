@@ -26,11 +26,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar.withUserInfo(
-        title: 'Scanner TC60',
-        showSocketStatus: true,
-        replaceWithUserName: false,
-      ),
+      appBar: CustomAppBar.withUserInfo(title: 'Scanner TC60', showSocketStatus: true, replaceWithUserName: false),
       body: Consumer<ScannerViewModel>(
         builder: (context, scannerViewModel, child) {
           return KeyboardListener(
@@ -127,10 +123,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               },
               child: const Text('Limpar Tudo'),
             ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fechar'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar')),
         ],
       ),
     );

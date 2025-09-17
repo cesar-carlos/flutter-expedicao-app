@@ -39,17 +39,14 @@ void main() {
       expect(viewModel.pageSize, 20);
     });
 
-    test(
-      'should change state to loading when loadSeparations is called',
-      () async {
-        // Act
-        viewModel.loadSeparations();
+    test('should change state to loading when loadSeparations is called', () async {
+      // Act
+      viewModel.loadSeparations();
 
-        // Assert - O estado deve mudar para loading imediatamente
-        expect(viewModel.state, SeparationState.loading);
-        expect(viewModel.isLoading, isTrue);
-      },
-    );
+      // Assert - O estado deve mudar para loading imediatamente
+      expect(viewModel.state, SeparationState.loading);
+      expect(viewModel.isLoading, isTrue);
+    });
 
     test('should handle refresh method', () async {
       // Act

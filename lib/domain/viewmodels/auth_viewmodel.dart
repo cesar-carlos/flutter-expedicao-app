@@ -6,14 +6,7 @@ import 'package:exp/domain/models/user/user_models.dart';
 import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/di/locator.dart';
 
-enum AuthStatus {
-  initial,
-  loading,
-  authenticated,
-  unauthenticated,
-  error,
-  needsUserSelection,
-}
+enum AuthStatus { initial, loading, authenticated, unauthenticated, error, needsUserSelection }
 
 class AuthViewModel extends ChangeNotifier {
   AuthStatus _status = AuthStatus.initial;

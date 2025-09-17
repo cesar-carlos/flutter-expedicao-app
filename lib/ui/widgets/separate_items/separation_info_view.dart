@@ -6,11 +6,7 @@ class SeparationInfoView extends StatelessWidget {
   final SeparateConsultationModel separation;
   final SeparateItemsViewModel viewModel;
 
-  const SeparationInfoView({
-    super.key,
-    required this.separation,
-    required this.viewModel,
-  });
+  const SeparationInfoView({super.key, required this.separation, required this.viewModel});
 
   @override
   Widget build(BuildContext context) {
@@ -38,10 +34,7 @@ class SeparationInfoView extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Estatísticas da separação
-          if (viewModel.hasData) ...[
-            _buildStatsCard(context, theme, colorScheme),
-            const SizedBox(height: 16),
-          ],
+          if (viewModel.hasData) ...[_buildStatsCard(context, theme, colorScheme), const SizedBox(height: 16)],
 
           // Informações adicionais
           _buildAdditionalInfoCard(context, theme, colorScheme),
@@ -50,20 +43,13 @@ class SeparationInfoView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusCard(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildStatusCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
       color: separation.situacao.color.withOpacity(0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: separation.situacao.color.withOpacity(0.3),
-          width: 2,
-        ),
+        side: BorderSide(color: separation.situacao.color.withOpacity(0.3), width: 2),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -72,11 +58,7 @@ class SeparationInfoView extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.info_outline,
-                  color: separation.situacao.color,
-                  size: 24,
-                ),
+                Icon(Icons.info_outline, color: separation.situacao.color, size: 24),
                 const SizedBox(width: 8),
                 Text(
                   'Status da Separação',
@@ -88,12 +70,7 @@ class SeparationInfoView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(
-              context,
-              'Código',
-              '#${separation.codSepararEstoque}',
-              icon: Icons.tag,
-            ),
+            _buildInfoRow(context, 'Código', '#${separation.codSepararEstoque}', icon: Icons.tag),
             const SizedBox(height: 12),
             _buildInfoRow(
               context,
@@ -103,30 +80,16 @@ class SeparationInfoView extends StatelessWidget {
               valueColor: separation.situacao.color,
             ),
             const SizedBox(height: 12),
-            _buildInfoRow(
-              context,
-              'Prioridade',
-              separation.nomePrioridade,
-              icon: Icons.priority_high,
-            ),
+            _buildInfoRow(context, 'Prioridade', separation.nomePrioridade, icon: Icons.priority_high),
             const SizedBox(height: 12),
-            _buildInfoRow(
-              context,
-              'Data de Emissão',
-              _formatDate(separation.dataEmissao),
-              icon: Icons.calendar_today,
-            ),
+            _buildInfoRow(context, 'Data de Emissão', _formatDate(separation.dataEmissao), icon: Icons.calendar_today),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildEntityCard(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildEntityCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
       color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
@@ -142,45 +105,23 @@ class SeparationInfoView extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   'Informações da Entidade',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
-                  ),
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(
-              context,
-              'Entidade',
-              separation.nomeEntidade,
-              icon: Icons.account_circle,
-            ),
+            _buildInfoRow(context, 'Entidade', separation.nomeEntidade, icon: Icons.account_circle),
             const SizedBox(height: 12),
-            _buildInfoRow(
-              context,
-              'Código da Entidade',
-              '${separation.codEntidade}',
-              icon: Icons.badge,
-            ),
+            _buildInfoRow(context, 'Código da Entidade', '${separation.codEntidade}', icon: Icons.badge),
             const SizedBox(height: 12),
-            _buildInfoRow(
-              context,
-              'Tipo de Entidade',
-              separation.tipoEntidade.description,
-              icon: Icons.category,
-            ),
+            _buildInfoRow(context, 'Tipo de Entidade', separation.tipoEntidade.description, icon: Icons.category),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildOperationCard(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildOperationCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
       color: colorScheme.tertiaryContainer.withOpacity(0.3),
@@ -223,11 +164,7 @@ class SeparationInfoView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsCard(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildStatsCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
       color: colorScheme.secondaryContainer.withOpacity(0.3),
@@ -289,15 +226,9 @@ class SeparationInfoView extends StatelessWidget {
                   child: _buildStatColumn(
                     context,
                     'Status',
-                    viewModel.isSeparationComplete
-                        ? 'Completa'
-                        : 'Em Andamento',
-                    viewModel.isSeparationComplete
-                        ? Icons.done_all
-                        : Icons.hourglass_empty,
-                    viewModel.isSeparationComplete
-                        ? Colors.green
-                        : colorScheme.error,
+                    viewModel.isSeparationComplete ? 'Completa' : 'Em Andamento',
+                    viewModel.isSeparationComplete ? Icons.done_all : Icons.hourglass_empty,
+                    viewModel.isSeparationComplete ? Colors.green : colorScheme.error,
                   ),
                 ),
               ],
@@ -308,11 +239,7 @@ class SeparationInfoView extends StatelessWidget {
     );
   }
 
-  Widget _buildAdditionalInfoCard(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildAdditionalInfoCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
       color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
@@ -324,11 +251,7 @@ class SeparationInfoView extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.description,
-                  color: colorScheme.onSurfaceVariant,
-                  size: 24,
-                ),
+                Icon(Icons.description, color: colorScheme.onSurfaceVariant, size: 24),
                 const SizedBox(width: 8),
                 Text(
                   'Informações Adicionais',
@@ -340,45 +263,25 @@ class SeparationInfoView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            if (separation.observacao != null &&
-                separation.observacao!.isNotEmpty) ...[
-              _buildInfoRow(
-                context,
-                'Observação',
-                separation.observacao!,
-                icon: Icons.note,
-              ),
+            if (separation.observacao != null && separation.observacao!.isNotEmpty) ...[
+              _buildInfoRow(context, 'Observação', separation.observacao!, icon: Icons.note),
               const SizedBox(height: 12),
             ],
-            _buildInfoRow(
-              context,
-              'Código da Empresa',
-              '${separation.codEmpresa}',
-              icon: Icons.business_center,
-            ),
+            _buildInfoRow(context, 'Código da Empresa', '${separation.codEmpresa}', icon: Icons.business_center),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(
-    BuildContext context,
-    String label,
-    String value, {
-    IconData? icon,
-    Color? valueColor,
-  }) {
+  Widget _buildInfoRow(BuildContext context, String label, String value, {IconData? icon, Color? valueColor}) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (icon != null) ...[
-          Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
-          const SizedBox(width: 8),
-        ],
+        if (icon != null) ...[Icon(icon, size: 20, color: colorScheme.onSurfaceVariant), const SizedBox(width: 8)],
         SizedBox(
           width: 100,
           child: Text(
@@ -402,13 +305,7 @@ class SeparationInfoView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatColumn(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildStatColumn(BuildContext context, String label, String value, IconData icon, Color color) {
     final theme = Theme.of(context);
 
     return Column(
@@ -417,18 +314,12 @@ class SeparationInfoView extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           value,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
+          style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: color),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: color,
-            fontWeight: FontWeight.w500,
-          ),
+          style: theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w500),
           textAlign: TextAlign.center,
         ),
       ],

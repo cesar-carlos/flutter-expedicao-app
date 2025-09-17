@@ -38,8 +38,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
       // Carrega mais dados quando está próximo do final
       context.read<SeparationViewModel>().loadMoreSeparations();
     }
@@ -65,12 +64,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
             builder: (context, viewModel, child) {
               return IconButton(
                 onPressed: () => _showFilterModal(context),
-                icon: Icon(
-                  Icons.filter_alt,
-                  color: viewModel.hasActiveFilters
-                      ? Colors.red
-                      : colorScheme.onSurface,
-                ),
+                icon: Icon(Icons.filter_alt, color: viewModel.hasActiveFilters ? Colors.red : colorScheme.onSurface),
                 tooltip: 'Filtros',
               );
             },
@@ -96,11 +90,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Carregando separações...'),
-          ],
+          children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando separações...')],
         ),
       );
     }
@@ -123,17 +113,11 @@ class _SeparationScreenState extends State<SeparationScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Theme.of(context).colorScheme.error,
-            ),
+            Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 16),
             Text(
               'Erro ao carregar separações',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -160,17 +144,11 @@ class _SeparationScreenState extends State<SeparationScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.inventory_2_outlined,
-              size: 64,
-              color: Theme.of(context).colorScheme.outline,
-            ),
+            Icon(Icons.inventory_2_outlined, size: 64, color: Theme.of(context).colorScheme.outline),
             const SizedBox(height: 16),
             Text(
               'Nenhuma separação encontrada',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -190,16 +168,12 @@ class _SeparationScreenState extends State<SeparationScreen> {
     );
   }
 
-  Widget _buildSeparationsList(
-    BuildContext context,
-    SeparationViewModel viewModel,
-  ) {
+  Widget _buildSeparationsList(BuildContext context, SeparationViewModel viewModel) {
     return RefreshIndicator(
       onRefresh: () => viewModel.refresh(),
       child: ListView.builder(
         controller: _scrollController,
-        itemCount:
-            viewModel.separations.length + (viewModel.hasMoreData ? 1 : 0),
+        itemCount: viewModel.separations.length + (viewModel.hasMoreData ? 1 : 0),
         itemBuilder: (context, index) {
           // Se é o último item e há mais dados, mostra loading indicator
           if (index == viewModel.separations.length) {
@@ -207,10 +181,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
           }
 
           final separation = viewModel.separations[index];
-          return SeparationCard(
-            separation: separation,
-            onSeparate: () => _onSeparationSeparate(context, separation),
-          );
+          return SeparationCard(separation: separation, onSeparate: () => _onSeparationSeparate(context, separation));
         },
       ),
     );
@@ -225,11 +196,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
+          SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
           SizedBox(width: 12),
           Text('Carregando mais separações...'),
         ],
@@ -256,10 +223,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
     );
   }
 
-  void _onSeparationSeparate(
-    BuildContext context,
-    SeparateConsultationModel separation,
-  ) {
+  void _onSeparationSeparate(BuildContext context, SeparateConsultationModel separation) {
     // Navega para a tela de separação de itens
     context.go(AppRouter.separateItems, extra: separation.toJson());
   }

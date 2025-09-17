@@ -57,11 +57,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
         prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
         suffixIcon: widget.showVisibilityToggle
             ? IconButton(
-                icon: Icon(
-                  _obscureText
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
+                icon: Icon(_obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                 onPressed: () {
                   setState(() {
                     _obscureText = !_obscureText;
@@ -73,9 +69,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       ),
       validator: widget.validator,
       textInputAction: widget.textInputAction,
-      onFieldSubmitted: widget.onFieldSubmitted != null
-          ? (_) => widget.onFieldSubmitted!()
-          : null,
+      onFieldSubmitted: widget.onFieldSubmitted != null ? (_) => widget.onFieldSubmitted!() : null,
     );
   }
 }

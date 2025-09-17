@@ -36,9 +36,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: replaceWithUserName
-          ? _buildUserTitle(context)
-          : _buildNormalTitle(),
+      title: replaceWithUserName ? _buildUserTitle(context) : _buildNormalTitle(),
       leading: leading,
       centerTitle: centerTitle,
       backgroundColor: backgroundColor,
@@ -57,17 +55,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           const SizedBox(width: 8),
         ],
 
-        if ((actions?.isEmpty ?? true) && showSocketStatus)
-          const SizedBox(width: 8),
+        if ((actions?.isEmpty ?? true) && showSocketStatus) const SizedBox(width: 8),
       ],
     );
   }
 
   Widget _buildNormalTitle() {
-    return Text(
-      title,
-      style: foregroundColor != null ? TextStyle(color: foregroundColor) : null,
-    );
+    return Text(title, style: foregroundColor != null ? TextStyle(color: foregroundColor) : null);
   }
 
   Widget _buildUserTitle(BuildContext context) {
@@ -77,28 +71,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         final userName = currentUser?.nome ?? title;
         return Text(
           'Olá ${StringUtils.capitalizeWords(userName)}',
-          style: foregroundColor != null
-              ? TextStyle(color: foregroundColor)
-              : null,
+          style: foregroundColor != null ? TextStyle(color: foregroundColor) : null,
         );
       },
     );
   }
 
   @override
-  Size get preferredSize =>
-      Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 0.0));
+  Size get preferredSize => Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 0.0));
 
-  factory CustomAppBar.simple({
-    required String title,
-    bool showSocketStatus = true,
-    Widget? leading,
-  }) {
-    return CustomAppBar(
-      title: title,
-      showSocketStatus: showSocketStatus,
-      leading: leading,
-    );
+  factory CustomAppBar.simple({required String title, bool showSocketStatus = true, Widget? leading}) {
+    return CustomAppBar(title: title, showSocketStatus: showSocketStatus, leading: leading);
   }
 
   factory CustomAppBar.withActions({

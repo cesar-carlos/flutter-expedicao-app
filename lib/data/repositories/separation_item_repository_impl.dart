@@ -10,8 +10,7 @@ import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/dtos/send_query_socket_dto.dart';
 import 'package:exp/core/network/socket_config.dart';
 
-class SeparationItemRepositoryImpl
-    implements BasicRepository<SeparationItemModel> {
+class SeparationItemRepositoryImpl implements BasicRepository<SeparationItemModel> {
   final selectEvent = 'separacao.item.select';
   final insertEvent = 'separacao.item.insert';
   final updateEvent = 'separacao.item.update';
@@ -74,11 +73,7 @@ class SeparationItemRepositoryImpl
     final completer = Completer<List<SeparationItemModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));
@@ -119,11 +114,7 @@ class SeparationItemRepositoryImpl
     final completer = Completer<List<SeparationItemModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));
@@ -164,11 +155,7 @@ class SeparationItemRepositoryImpl
     final completer = Completer<List<SeparationItemModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));

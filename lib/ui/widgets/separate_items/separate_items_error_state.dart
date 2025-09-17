@@ -6,11 +6,7 @@ class SeparateItemsErrorState extends StatelessWidget {
   final SeparateItemsViewModel viewModel;
   final VoidCallback onRefresh;
 
-  const SeparateItemsErrorState({
-    super.key,
-    required this.viewModel,
-    required this.onRefresh,
-  });
+  const SeparateItemsErrorState({super.key, required this.viewModel, required this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
@@ -27,17 +23,12 @@ class SeparateItemsErrorState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Erro ao carregar itens',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colorScheme.error,
-                fontWeight: FontWeight.w600,
-              ),
+              style: theme.textTheme.titleMedium?.copyWith(color: colorScheme.error, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(
               viewModel.errorMessage ?? 'Ocorreu um erro inesperado',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+              style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

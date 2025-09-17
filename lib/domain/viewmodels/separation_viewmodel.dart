@@ -15,8 +15,7 @@ class SeparationViewModel extends ChangeNotifier {
   final FiltersStorageService _filtersStorage;
 
   SeparationViewModel()
-    : _repository =
-          locator<BasicConsultationRepository<SeparateConsultationModel>>(),
+    : _repository = locator<BasicConsultationRepository<SeparateConsultationModel>>(),
       _filtersStorage = locator<FiltersStorageService>();
 
   SeparationState _state = SeparationState.initial;
@@ -37,8 +36,7 @@ class SeparationViewModel extends ChangeNotifier {
 
   SeparationState get state => _state;
 
-  List<SeparateConsultationModel> get separations =>
-      List.unmodifiable(_separations);
+  List<SeparateConsultationModel> get separations => List.unmodifiable(_separations);
 
   String? get errorMessage => _errorMessage;
 
@@ -115,9 +113,7 @@ class SeparationViewModel extends ChangeNotifier {
   void setCodSepararEstoqueFilter(String? codigo) {
     final cleanCodigo = codigo?.trim();
     if (_codSepararEstoqueFilter != cleanCodigo) {
-      _codSepararEstoqueFilter = cleanCodigo?.isNotEmpty == true
-          ? cleanCodigo
-          : null;
+      _codSepararEstoqueFilter = cleanCodigo?.isNotEmpty == true ? cleanCodigo : null;
       _safeNotifyListeners();
     }
   }
@@ -132,9 +128,7 @@ class SeparationViewModel extends ChangeNotifier {
   void setCodOrigemFilter(String? codOrigem) {
     final cleanCodOrigem = codOrigem?.trim();
     if (_codOrigemFilter != cleanCodOrigem) {
-      _codOrigemFilter = cleanCodOrigem?.isNotEmpty == true
-          ? cleanCodOrigem
-          : null;
+      _codOrigemFilter = cleanCodOrigem?.isNotEmpty == true ? cleanCodOrigem : null;
       _safeNotifyListeners();
     }
   }
@@ -169,9 +163,7 @@ class SeparationViewModel extends ChangeNotifier {
       _currentPage++;
       final queryBuilder = _buildQueryWithFilters(_currentPage);
 
-      final moreSeparations = await _repository.selectConsultation(
-        queryBuilder,
-      );
+      final moreSeparations = await _repository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
 

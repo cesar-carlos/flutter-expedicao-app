@@ -12,17 +12,13 @@ class EnumSchemas {
   // === SCHEMAS DE ORIGEM ===
 
   /// Schema para ExpeditionOrigem
-  static final expeditionOrigemSchema = CommonSchemas.enumSchema(
+  static final expeditionOrigemSchema = CommonSchemas.enumSchema(ExpeditionOrigem.getAllCodes(), 'Origem da expedição');
+
+  /// Schema opcional para ExpeditionOrigem
+  static final optionalExpeditionOrigemSchema = CommonSchemas.optionalEnumSchema(
     ExpeditionOrigem.getAllCodes(),
     'Origem da expedição',
   );
-
-  /// Schema opcional para ExpeditionOrigem
-  static final optionalExpeditionOrigemSchema =
-      CommonSchemas.optionalEnumSchema(
-        ExpeditionOrigem.getAllCodes(),
-        'Origem da expedição',
-      );
 
   // === SCHEMAS DE SITUAÇÃO ===
 
@@ -33,11 +29,10 @@ class EnumSchemas {
   );
 
   /// Schema opcional para ExpeditionSituation
-  static final optionalExpeditionSituationSchema =
-      CommonSchemas.optionalEnumSchema(
-        ExpeditionSituation.getAllCodes(),
-        'Situação da expedição',
-      );
+  static final optionalExpeditionSituationSchema = CommonSchemas.optionalEnumSchema(
+    ExpeditionSituation.getAllCodes(),
+    'Situação da expedição',
+  );
 
   /// Schema para ExpeditionItemSituation
   static final expeditionItemSituationSchema = CommonSchemas.enumSchema(
@@ -46,11 +41,10 @@ class EnumSchemas {
   );
 
   /// Schema opcional para ExpeditionItemSituation
-  static final optionalExpeditionItemSituationSchema =
-      CommonSchemas.optionalEnumSchema(
-        ExpeditionItemSituation.getAllCodes(),
-        'Situação do item de expedição',
-      );
+  static final optionalExpeditionItemSituationSchema = CommonSchemas.optionalEnumSchema(
+    ExpeditionItemSituation.getAllCodes(),
+    'Situação do item de expedição',
+  );
 
   /// Schema para ExpeditionCartSituation
   static final expeditionCartSituationSchema = CommonSchemas.enumSchema(
@@ -59,19 +53,15 @@ class EnumSchemas {
   );
 
   /// Schema opcional para ExpeditionCartSituation
-  static final optionalExpeditionCartSituationSchema =
-      CommonSchemas.optionalEnumSchema(
-        ExpeditionCartSituation.getAllCodes(),
-        'Situação do carrinho de expedição',
-      );
+  static final optionalExpeditionCartSituationSchema = CommonSchemas.optionalEnumSchema(
+    ExpeditionCartSituation.getAllCodes(),
+    'Situação do carrinho de expedição',
+  );
 
   // === SCHEMAS DE TIPO DE ENTIDADE ===
 
   /// Schema para EntityType
-  static final entityTypeSchema = CommonSchemas.enumSchema(
-    EntityType.getAllCodes(),
-    'Tipo de entidade',
-  );
+  static final entityTypeSchema = CommonSchemas.enumSchema(EntityType.getAllCodes(), 'Tipo de entidade');
 
   /// Schema opcional para EntityType
   static final optionalEntityTypeSchema = CommonSchemas.optionalEnumSchema(
@@ -82,20 +72,10 @@ class EnumSchemas {
   // === SCHEMAS DE STATUS ATIVO/INATIVO ===
 
   /// Schema para status ativo (S/N)
-  static final activeStatusSchema = CommonSchemas.enumSchema([
-    'S',
-    'N',
-    's',
-    'n',
-  ], 'Status ativo');
+  static final activeStatusSchema = CommonSchemas.enumSchema(['S', 'N', 's', 'n'], 'Status ativo');
 
   /// Schema opcional para status ativo
-  static final optionalActiveStatusSchema = CommonSchemas.optionalEnumSchema([
-    'S',
-    'N',
-    's',
-    'n',
-  ], 'Status ativo');
+  static final optionalActiveStatusSchema = CommonSchemas.optionalEnumSchema(['S', 'N', 's', 'n'], 'Status ativo');
 
   // === MÉTODOS UTILITÁRIOS ===
 

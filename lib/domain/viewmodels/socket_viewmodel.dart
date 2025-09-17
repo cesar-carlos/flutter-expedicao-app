@@ -80,9 +80,7 @@ class SocketViewModel extends ChangeNotifier {
   /// Envia resultado de scanner
   void sendScannerResult(String scanData, String scanType) {
     if (!isConnected) {
-      debugPrint(
-        'WebSocket não conectado. Não é possível enviar resultado do scanner.',
-      );
+      debugPrint('WebSocket não conectado. Não é possível enviar resultado do scanner.');
       return;
     }
 
@@ -112,9 +110,7 @@ class SocketViewModel extends ChangeNotifier {
   /// Emite um evento personalizado
   void emitCustomEvent(String eventName, dynamic data) {
     if (!isConnected) {
-      debugPrint(
-        'WebSocket não conectado. Não é possível emitir evento: $eventName',
-      );
+      debugPrint('WebSocket não conectado. Não é possível emitir evento: $eventName');
       return;
     }
 

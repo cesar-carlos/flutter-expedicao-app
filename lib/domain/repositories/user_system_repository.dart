@@ -4,11 +4,7 @@ import 'package:exp/domain/models/pagination/pagination.dart';
 abstract class UserSystemRepository {
   Future<Map<String, dynamic>> getUserSystemInfo(int codUsuario);
 
-  Future<UserSystemListResponse> getUsers({
-    int? codEmpresa,
-    bool? apenasAtivos,
-    Pagination? pagination,
-  });
+  Future<UserSystemListResponse> getUsers({int? codEmpresa, bool? apenasAtivos, Pagination? pagination});
 
   Future<UserSystemModel?> getUserById(int codUsuario);
 

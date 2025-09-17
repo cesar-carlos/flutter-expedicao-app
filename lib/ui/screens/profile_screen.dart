@@ -89,8 +89,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 24),
 
-                    if (viewModel.currentUser != null)
-                      UserInfoChips(user: viewModel.currentUser!),
+                    if (viewModel.currentUser != null) UserInfoChips(user: viewModel.currentUser!),
 
                     const SizedBox(height: 32),
 
@@ -123,16 +122,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final hasPhotoRemoval = viewModel.photoWasRemoved;
 
     // Verificar mudanças de senha usando controllers (mais confiável)
-    final hasCurrentPassword = _currentPasswordController.text
-        .trim()
-        .isNotEmpty;
+    final hasCurrentPassword = _currentPasswordController.text.trim().isNotEmpty;
     final hasNewPassword = _newPasswordController.text.trim().isNotEmpty;
-    final hasConfirmPassword = _confirmPasswordController.text
-        .trim()
-        .isNotEmpty;
+    final hasConfirmPassword = _confirmPasswordController.text.trim().isNotEmpty;
 
-    final hasPasswordChange =
-        hasCurrentPassword || hasNewPassword || hasConfirmPassword;
+    final hasPasswordChange = hasCurrentPassword || hasNewPassword || hasConfirmPassword;
 
     return hasPhotoChange || hasPhotoRemoval || hasPasswordChange;
   }
@@ -151,8 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _isNavigatingAway = true;
 
           // Armazenar a mensagem antes de resetar o viewModel
-          final successMsg =
-              viewModel.successMessage ?? AppStrings.profileSaved;
+          final successMsg = viewModel.successMessage ?? AppStrings.profileSaved;
 
           // Resetar o estado do viewModel imediatamente
           viewModel.resetState();

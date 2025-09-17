@@ -5,9 +5,18 @@
   "version": "1.0.0",
   "configurations": [
     {
-      "name": "expedicao",
+      "name": "expedicao (debug mode) - TC60",
       "request": "launch",
-      "type": "dart"
+      "type": "dart",
+      "flutterMode": "debug",
+      "deviceId": "TC60002025052600044"
+    },
+    {
+      "name": "expedicao (debug mode) - Emulador",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "deviceId": "emulator-5554"
     },
     {
       "name": "expedicao (profile mode)",
@@ -20,6 +29,15 @@
       "request": "launch",
       "type": "dart",
       "flutterMode": "release"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "expedicao - TC60 + Emulador",
+      "configurations": [
+        "expedicao (debug mode) - TC60",
+        "expedicao (debug mode) - Emulador"
+      ]
     }
   ]
 }

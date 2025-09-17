@@ -9,16 +9,13 @@ import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/data/dtos/send_query_socket_dto.dart';
 import 'package:exp/core/network/socket_config.dart';
 
-class SeparateConsultationRepositoryImpl
-    implements BasicConsultationRepository<SeparateConsultationModel> {
+class SeparateConsultationRepositoryImpl implements BasicConsultationRepository<SeparateConsultationModel> {
   final uuid = const Uuid();
   var socket = SocketConfig.instance;
   final selectEvent = 'separar.consulta';
 
   @override
-  Future<List<SeparateConsultationModel>> selectConsultation(
-    QueryBuilder queryBuilder,
-  ) async {
+  Future<List<SeparateConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
     final event = '${socket.id} $selectEvent';
     final completer = Completer<List<SeparateConsultationModel>>();
     final responseId = uuid.v4();

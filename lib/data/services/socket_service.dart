@@ -6,22 +6,10 @@ import 'package:exp/core/network/socket_config.dart';
 import 'package:exp/domain/models/api_config.dart';
 
 /// Eventos do WebSocket que podem ser emitidos
-enum SocketEvent {
-  userLocationUpdate,
-  scannerResult,
-  notification,
-  statusUpdate,
-  chatMessage,
-}
+enum SocketEvent { userLocationUpdate, scannerResult, notification, statusUpdate, chatMessage }
 
 /// Estados de conexão do WebSocket
-enum SocketConnectionState {
-  disconnected,
-  connecting,
-  connected,
-  reconnecting,
-  error,
-}
+enum SocketConnectionState { disconnected, connecting, connected, reconnecting, error }
 
 /// Serviço para gerenciar comunicação em tempo real via WebSocket
 class SocketService extends ChangeNotifier {
@@ -92,18 +80,12 @@ class SocketService extends ChangeNotifier {
   /// Emite um evento para o servidor
   void emit(String eventName, dynamic data) {
     if (!isConnected) {
-      debugPrint(
-        'Socket não conectado. Não é possível emitir evento: $eventName',
-      );
+      debugPrint('Socket não conectado. Não é possível emitir evento: $eventName');
       return;
     }
 
     try {
-      final payload = {
-        'userId': _userId,
-        'timestamp': DateTime.now().toIso8601String(),
-        'data': data,
-      };
+      final payload = {'userId': _userId, 'timestamp': DateTime.now().toIso8601String(), 'data': data};
 
       SocketConfig.instance.emit(eventName, payload);
       debugPrint('Evento emitido: $eventName');

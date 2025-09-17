@@ -20,10 +20,8 @@ class UserPreferences extends HiveObject {
     lastUpdated = DateTime.now();
   }
 
-  static UserPreferences get defaultPreferences => UserPreferences(
-    themeModeIndex: ThemeMode.light.index,
-    lastUpdated: DateTime.now(),
-  );
+  static UserPreferences get defaultPreferences =>
+      UserPreferences(themeModeIndex: ThemeMode.light.index, lastUpdated: DateTime.now());
 
   UserPreferences copyWith({int? themeModeIndex, DateTime? lastUpdated}) {
     return UserPreferences(

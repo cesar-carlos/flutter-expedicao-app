@@ -8,10 +8,7 @@ class LoginDto {
     return {'Nome': nome.trim(), 'Senha': senha};
   }
 
-  factory LoginDto.fromDomainParams({
-    required String nome,
-    required String senha,
-  }) {
+  factory LoginDto.fromDomainParams({required String nome, required String senha}) {
     return LoginDto(nome: nome, senha: senha);
   }
 

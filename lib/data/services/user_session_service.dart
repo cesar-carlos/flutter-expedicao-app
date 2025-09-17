@@ -78,10 +78,7 @@ class UserSessionService {
   Future<void> clearUserSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await Future.wait([
-        prefs.remove(_appUserKey),
-        prefs.remove(_isLoggedInKey),
-      ]);
+      await Future.wait([prefs.remove(_appUserKey), prefs.remove(_isLoggedInKey)]);
     } catch (e) {
       print('Erro ao limpar sessão do usuário: $e');
       rethrow;

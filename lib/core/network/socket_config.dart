@@ -11,10 +11,8 @@ class SocketConfig {
   static bool _isConnected = false;
 
   // Stream controllers para reatividade
-  static final StreamController<bool> _connectionStateController =
-      StreamController<bool>.broadcast();
-  static final StreamController<String> _errorController =
-      StreamController<String>.broadcast();
+  static final StreamController<bool> _connectionStateController = StreamController<bool>.broadcast();
+  static final StreamController<String> _errorController = StreamController<String>.broadcast();
 
   // Callbacks personalizados
   static VoidCallback? _onConnectCallback;
@@ -22,8 +20,7 @@ class SocketConfig {
   static Function(dynamic)? _onErrorCallback;
 
   /// Stream que notifica mudanças no estado de conexão
-  static Stream<bool> get connectionStateStream =>
-      _connectionStateController.stream;
+  static Stream<bool> get connectionStateStream => _connectionStateController.stream;
 
   /// Stream que notifica erros de conexão
   static Stream<String> get errorStream => _errorController.stream;
@@ -51,9 +48,7 @@ class SocketConfig {
   /// Obtém a instância global do Socket
   static IO.Socket get instance {
     if (_socketInstance == null) {
-      throw StateError(
-        'SocketConfig não foi inicializado. Chame SocketConfig.initialize() primeiro.',
-      );
+      throw StateError('SocketConfig não foi inicializado. Chame SocketConfig.initialize() primeiro.');
     }
     return _socketInstance!;
   }
@@ -125,10 +120,7 @@ class SocketConfig {
   }
 
   /// Cria uma nova instância do Socket.IO
-  static void _createSocketInstance(
-    ApiConfig apiConfig, {
-    bool autoConnect = false,
-  }) {
+  static void _createSocketInstance(ApiConfig apiConfig, {bool autoConnect = false}) {
     final socketUrl = _buildSocketUrl(apiConfig);
 
     _socketInstance = IO.io(socketUrl, <String, dynamic>{

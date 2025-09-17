@@ -43,10 +43,7 @@ class _LoginFormState extends State<LoginForm> {
         return;
       }
 
-      context.read<AuthViewModel>().login(
-        _usernameController.text.trim(),
-        _passwordController.text,
-      );
+      context.read<AuthViewModel>().login(_usernameController.text.trim(), _passwordController.text);
     }
   }
 
@@ -58,10 +55,7 @@ class _LoginFormState extends State<LoginForm> {
         title: const Text('Configuração Necessária'),
         content: Text(message),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
           FilledButton(
             child: const Text('Configurar'),
             onPressed: () {
@@ -120,9 +114,7 @@ class _LoginFormState extends State<LoginForm> {
 
               CustomFlatButton(
                 text: AppStrings.registerText,
-                onPressed: authViewModel.isLoginLoading
-                    ? null
-                    : () => context.go('/register'),
+                onPressed: authViewModel.isLoginLoading ? null : () => context.go('/register'),
                 icon: Icons.person_add_outlined,
                 textColor: Theme.of(context).colorScheme.primary,
                 backgroundColor: Colors.transparent,

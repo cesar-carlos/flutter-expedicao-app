@@ -11,11 +11,7 @@ class ScannerDisplay extends StatelessWidget {
   final VoidCallback onClear;
 
   /// Construtor
-  const ScannerDisplay({
-    super.key,
-    required this.scanData,
-    required this.onClear,
-  });
+  const ScannerDisplay({super.key, required this.scanData, required this.onClear});
 
   @override
   Widget build(BuildContext context) {
@@ -25,16 +21,11 @@ class ScannerDisplay extends StatelessWidget {
         children: [
           const Text("Última leitura:", style: TextStyle(fontSize: 18)),
           const SizedBox(height: 10),
-          Text(
-            scanData.code,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
+          Text(scanData.code, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 30),
           ElevatedButton(
             onPressed: onClear,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            ),
+            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
             child: const Text("Limpar Leitura", style: TextStyle(fontSize: 16)),
           ),
         ],

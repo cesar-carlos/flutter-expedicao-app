@@ -50,8 +50,6 @@ class ScannerViewModel extends ChangeNotifier {
   List<ScannerData> searchInHistory(String query) {
     if (query.isEmpty) return scanHistory;
 
-    return _scanHistory
-        .where((scan) => scan.code.toLowerCase().contains(query.toLowerCase()))
-        .toList();
+    return _scanHistory.where((scan) => scan.code.toLowerCase().contains(query.toLowerCase())).toList();
   }
 }

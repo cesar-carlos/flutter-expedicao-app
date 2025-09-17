@@ -60,9 +60,7 @@ class ConfigService {
 
   void _ensureInitialized() {
     if (!_initialized) {
-      throw StateError(
-        'ConfigService não foi inicializado. Chame initialize() primeiro.',
-      );
+      throw StateError('ConfigService não foi inicializado. Chame initialize() primeiro.');
     }
   }
 }

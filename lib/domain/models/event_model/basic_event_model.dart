@@ -7,46 +7,25 @@ class BasicEventModel {
   final DateTime timestamp;
   final Event eventType;
 
-  const BasicEventModel({
-    this.session,
-    this.data,
-    required this.timestamp,
-    required this.eventType,
-  });
+  const BasicEventModel({this.session, this.data, required this.timestamp, required this.eventType});
 
   factory BasicEventModel.fromJson(Map<String, dynamic> json) {
     return BasicEventModel(
       session: json['session'] ?? json['Session'],
       data: json['data'] ?? json['Data'],
-      timestamp: json['timestamp'] != null
-          ? DateTime.tryParse(json['timestamp']) ?? DateTime.now()
-          : DateTime.now(),
+      timestamp: json['timestamp'] != null ? DateTime.tryParse(json['timestamp']) ?? DateTime.now() : DateTime.now(),
       eventType: _parseEventType(json['eventType'] ?? json['EventType']),
     );
   }
 
   /// Cria um evento vazio com tipo padrão
   factory BasicEventModel.empty({Event eventType = Event.insert}) {
-    return BasicEventModel(
-      session: null,
-      data: null,
-      timestamp: DateTime.now(),
-      eventType: eventType,
-    );
+    return BasicEventModel(session: null, data: null, timestamp: DateTime.now(), eventType: eventType);
   }
 
   /// Cria um evento específico
-  factory BasicEventModel.create({
-    String? session,
-    Map<String, dynamic>? data,
-    Event eventType = Event.insert,
-  }) {
-    return BasicEventModel(
-      session: session,
-      data: data,
-      timestamp: DateTime.now(),
-      eventType: eventType,
-    );
+  factory BasicEventModel.create({String? session, Map<String, dynamic>? data, Event eventType = Event.insert}) {
+    return BasicEventModel(session: session, data: data, timestamp: DateTime.now(), eventType: eventType);
   }
 
   /// Converte o tipo de evento de string para enum
@@ -73,12 +52,7 @@ class BasicEventModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'session': session,
-      'data': data,
-      'timestamp': timestamp.toIso8601String(),
-      'eventType': eventType.name,
-    };
+    return {'session': session, 'data': data, 'timestamp': timestamp.toIso8601String(), 'eventType': eventType.name};
   }
 
   @override

@@ -20,10 +20,7 @@ class UsersListWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (viewModel.state) {
       case UserSelectionState.initial:
-        return _buildEmptyState(
-          icon: Icons.person_search,
-          message: 'Digite o nome do usuário para buscar',
-        );
+        return _buildEmptyState(icon: Icons.person_search, message: 'Digite o nome do usuário para buscar');
 
       case UserSelectionState.loading:
         return _buildLoadingState('Buscando usuários...');
@@ -32,19 +29,14 @@ class UsersListWidget extends StatelessWidget {
         final filteredUsers = viewModel.filteredUsers;
 
         if (filteredUsers.isEmpty) {
-          return _buildEmptyState(
-            icon: Icons.person_off,
-            message: 'Nenhum usuário encontrado',
-          );
+          return _buildEmptyState(icon: Icons.person_off, message: 'Nenhum usuário encontrado');
         }
 
         return ListView.builder(
           controller: scrollController,
           physics: const BouncingScrollPhysics(),
           cacheExtent: 200,
-          itemCount:
-              filteredUsers.length +
-              (viewModel.hasMoreData && !viewModel.isSearchMode ? 1 : 0),
+          itemCount: filteredUsers.length + (viewModel.hasMoreData && !viewModel.isSearchMode ? 1 : 0),
           itemBuilder: (context, index) {
             if (index == filteredUsers.length) {
               return _buildLoadingMoreIndicator();
@@ -90,11 +82,7 @@ class UsersListWidget extends StatelessWidget {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(message),
-          ],
+          children: [const CircularProgressIndicator(), const SizedBox(height: 16), Text(message)],
         ),
       ),
     );
@@ -116,10 +104,7 @@ class UsersListWidget extends StatelessWidget {
               : Colors.grey,
           child: Text(
             user.nomeUsuario.substring(0, 2).toUpperCase(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
         title: Text(
@@ -134,24 +119,18 @@ class UsersListWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Código: ${user.codUsuario}'),
-            if (user.codContaFinanceira != null)
-              Text('Conta: ${user.nomeContaFinanceira}'),
+            if (user.codContaFinanceira != null) Text('Conta: ${user.nomeContaFinanceira}'),
             if (isBlocked)
               Text(
                 'Vinculado (ID: ${user.codLoginApp})',
-                style: TextStyle(
-                  color: Colors.red.shade600,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(color: Colors.red.shade600, fontSize: 12, fontWeight: FontWeight.w500),
               ),
           ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (isBlocked)
-              Icon(Icons.link, color: Colors.red.shade600, size: 20),
+            if (isBlocked) Icon(Icons.link, color: Colors.red.shade600, size: 20),
             if (!user.ativo) const Icon(Icons.warning, color: Colors.orange),
             if (isAvailable)
               Icon(
@@ -175,16 +154,9 @@ class UsersListWidget extends StatelessWidget {
           ? const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
+                SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
                 SizedBox(width: 12),
-                Text(
-                  'Carregando mais usuários...',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
+                Text('Carregando mais usuários...', style: TextStyle(fontSize: 14, color: Colors.grey)),
               ],
             )
           : viewModel.hasMoreData
@@ -193,10 +165,7 @@ class UsersListWidget extends StatelessWidget {
               children: [
                 Icon(Icons.keyboard_arrow_down, color: Colors.grey),
                 SizedBox(width: 8),
-                Text(
-                  'Role para carregar mais',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
+                Text('Role para carregar mais', style: TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             )
           : const Row(
@@ -204,10 +173,7 @@ class UsersListWidget extends StatelessWidget {
               children: [
                 Icon(Icons.check_circle, color: Colors.green, size: 16),
                 SizedBox(width: 8),
-                Text(
-                  'Todos os usuários foram carregados',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
+                Text('Todos os usuários foram carregados', style: TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
     );

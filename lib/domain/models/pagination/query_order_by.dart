@@ -37,9 +37,7 @@ class OrderBy {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is OrderBy &&
-        other.field == field &&
-        other.direction == direction;
+    return other is OrderBy && other.field == field && other.direction == direction;
   }
 
   @override

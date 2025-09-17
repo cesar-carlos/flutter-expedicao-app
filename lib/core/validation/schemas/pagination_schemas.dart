@@ -11,24 +11,12 @@ class PaginationSchemas {
   static final paginationSchema = z.map({
     'currentPage': CommonSchemas.pageSchema,
     'pageSize': CommonSchemas.pageSizeSchema,
-    'totalItems': z.int().min(
-      0,
-      message: 'Total de itens deve ser maior ou igual a zero',
-    ),
-    'totalPages': z.int().min(
-      0,
-      message: 'Total de páginas deve ser maior ou igual a zero',
-    ),
+    'totalItems': z.int().min(0, message: 'Total de itens deve ser maior ou igual a zero'),
+    'totalPages': z.int().min(0, message: 'Total de páginas deve ser maior ou igual a zero'),
     'hasNextPage': CommonSchemas.booleanSchema,
     'hasPreviousPage': CommonSchemas.booleanSchema,
-    'startIndex': z.int().min(
-      0,
-      message: 'Índice inicial deve ser maior ou igual a zero',
-    ),
-    'endIndex': z.int().min(
-      0,
-      message: 'Índice final deve ser maior ou igual a zero',
-    ),
+    'startIndex': z.int().min(0, message: 'Índice inicial deve ser maior ou igual a zero'),
+    'endIndex': z.int().min(0, message: 'Índice final deve ser maior ou igual a zero'),
   });
 
   // === QUERY PARAM ===
@@ -49,13 +37,8 @@ class PaginationSchemas {
       'IS NULL',
       'IS NOT NULL',
     ], 'Operador'),
-    'value': z
-        .string()
-        .optional(), // Valor como string, pode ser convertido depois
-    'logicalOperator': CommonSchemas.optionalEnumSchema([
-      'AND',
-      'OR',
-    ], 'Operador lógico'),
+    'value': z.string().optional(), // Valor como string, pode ser convertido depois
+    'logicalOperator': CommonSchemas.optionalEnumSchema(['AND', 'OR'], 'Operador lógico'),
   });
 
   // === QUERY ORDER BY ===
@@ -63,12 +46,7 @@ class PaginationSchemas {
   /// Schema para QueryOrderBy
   static final queryOrderBySchema = z.map({
     'field': CommonSchemas.nonEmptyStringSchema,
-    'direction': CommonSchemas.enumSchema([
-      'ASC',
-      'DESC',
-      'asc',
-      'desc',
-    ], 'Direção da ordenação'),
+    'direction': CommonSchemas.enumSchema(['ASC', 'DESC', 'asc', 'desc'], 'Direção da ordenação'),
   });
 
   // === QUERY BUILDER ===
@@ -91,12 +69,7 @@ class PaginationSchemas {
     'page': CommonSchemas.pageSchema.optional(),
     'pageSize': CommonSchemas.pageSizeSchema.optional(),
     'sortBy': CommonSchemas.optionalStringSchema,
-    'sortDirection': CommonSchemas.optionalEnumSchema([
-      'ASC',
-      'DESC',
-      'asc',
-      'desc',
-    ], 'Direção da ordenação'),
+    'sortDirection': CommonSchemas.optionalEnumSchema(['ASC', 'DESC', 'asc', 'desc'], 'Direção da ordenação'),
     'search': CommonSchemas.optionalStringSchema,
   });
 
@@ -147,9 +120,7 @@ class PaginationSchemas {
   }
 
   /// Valida filtros de paginação
-  static Map<String, dynamic> validatePaginationFilters(
-    Map<String, dynamic> data,
-  ) {
+  static Map<String, dynamic> validatePaginationFilters(Map<String, dynamic> data) {
     try {
       return paginationFiltersSchema.parse(data);
     } catch (e) {
@@ -160,8 +131,7 @@ class PaginationSchemas {
   // === VALIDAÇÃO SEGURA ===
 
   /// Validação segura para paginação
-  static ({bool success, Map<String, dynamic>? data, String? error})
-  safeValidatePagination(Map<String, dynamic> data) {
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidatePagination(Map<String, dynamic> data) {
     try {
       final result = paginationSchema.parse(data);
       return (success: true, data: result, error: null);
@@ -171,8 +141,9 @@ class PaginationSchemas {
   }
 
   /// Validação segura para construtor de consulta
-  static ({bool success, Map<String, dynamic>? data, String? error})
-  safeValidateQueryBuilder(Map<String, dynamic> data) {
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateQueryBuilder(
+    Map<String, dynamic> data,
+  ) {
     try {
       final result = queryBuilderSchema.parse(data);
       return (success: true, data: result, error: null);
@@ -184,44 +155,27 @@ class PaginationSchemas {
   // === VALIDAÇÕES DE REGRAS DE NEGÓCIO ===
 
   /// Valida consistência da paginação
-  static bool validatePaginationConsistency(
-    int currentPage,
-    int totalPages,
-    int totalItems,
-    int pageSize,
-  ) {
+  static bool validatePaginationConsistency(int currentPage, int totalPages, int totalItems, int pageSize) {
     // Página atual não pode ser maior que total de páginas
     if (currentPage > totalPages && totalPages > 0) return false;
 
     // Total de páginas deve ser consistente com total de itens e tamanho da página
-    final expectedTotalPages = totalItems == 0
-        ? 0
-        : ((totalItems - 1) / pageSize).floor() + 1;
+    final expectedTotalPages = totalItems == 0 ? 0 : ((totalItems - 1) / pageSize).floor() + 1;
     if (totalPages != expectedTotalPages) return false;
 
     return true;
   }
 
   /// Valida índices de paginação
-  static bool validatePaginationIndices(
-    int startIndex,
-    int endIndex,
-    int currentPage,
-    int pageSize,
-    int totalItems,
-  ) {
+  static bool validatePaginationIndices(int startIndex, int endIndex, int currentPage, int pageSize, int totalItems) {
     // Índice inicial deve ser menor que final
     if (startIndex > endIndex && totalItems > 0) return false;
 
     // Índices devem estar dentro do range válido
     final expectedStartIndex = (currentPage - 1) * pageSize;
-    final expectedEndIndex = (expectedStartIndex + pageSize - 1).clamp(
-      0,
-      totalItems - 1,
-    );
+    final expectedEndIndex = (expectedStartIndex + pageSize - 1).clamp(0, totalItems - 1);
 
-    return startIndex == expectedStartIndex &&
-        (totalItems == 0 || endIndex == expectedEndIndex);
+    return startIndex == expectedStartIndex && (totalItems == 0 || endIndex == expectedEndIndex);
   }
 
   /// Valida operador de consulta

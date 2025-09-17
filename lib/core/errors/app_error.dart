@@ -13,8 +13,7 @@ class NetworkError extends AppError {
   NetworkError({required super.message, super.code, super.stackTrace});
 
   @override
-  String get userMessage =>
-      'Falha na conexão. Verifique sua internet e tente novamente.';
+  String get userMessage => 'Falha na conexão. Verifique sua internet e tente novamente.';
 }
 
 class DataError extends AppError {
@@ -26,8 +25,6 @@ class DataError extends AppError {
 
 extension AppErrorUI on BuildContext {
   void showErrorSnackBar(AppError error) {
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(content: Text(error.userMessage), backgroundColor: Colors.red),
-    );
+    ScaffoldMessenger.of(this).showSnackBar(SnackBar(content: Text(error.userMessage), backgroundColor: Colors.red));
   }
 }

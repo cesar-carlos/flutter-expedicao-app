@@ -24,11 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return viewModel;
       },
       child: Scaffold(
-        appBar: CustomAppBar.withUserInfo(
-          title: 'Data7 Expedição',
-          replaceWithUserName: true,
-          showSocketStatus: true,
-        ),
+        appBar: CustomAppBar.withUserInfo(title: 'Data7 Expedição', replaceWithUserName: true, showSocketStatus: true),
         drawer: const AppDrawer(),
         body: Consumer<HomeViewModel>(
           builder: (context, homeViewModel, child) {
@@ -46,19 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         homeViewModel.welcomeMessage,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        homeViewModel.subtitleMessage,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
+                      Text(homeViewModel.subtitleMessage, style: const TextStyle(fontSize: 16, color: Colors.grey)),
                     ],
                   ),
                 ),

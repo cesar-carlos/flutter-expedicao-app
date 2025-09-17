@@ -13,6 +13,7 @@ import 'package:exp/ui/widgets/separate_items/separation_info_dialog.dart';
 import 'package:exp/ui/widgets/separate_items/carts_list_view.dart';
 import 'package:exp/ui/widgets/separate_items/separate_items_error_state.dart';
 import 'package:exp/ui/widgets/separate_items/separation_info_view.dart';
+import 'package:exp/ui/screens/add_cart_screen.dart';
 
 class SeparateItemsScreen extends StatefulWidget {
   final SeparateConsultationModel separation;
@@ -23,8 +24,7 @@ class SeparateItemsScreen extends StatefulWidget {
   State<SeparateItemsScreen> createState() => _SeparateItemsScreenState();
 }
 
-class _SeparateItemsScreenState extends State<SeparateItemsScreen>
-    with TickerProviderStateMixin {
+class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
 
@@ -32,6 +32,11 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+
+    // Listener para atualizar o FAB quando trocar de aba
+    _tabController.addListener(() {
+      setState(() {});
+    });
 
     // Carrega os itens e carrinhos quando a tela é inicializada
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -70,54 +75,26 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
             icon: const Icon(Icons.info_outline),
             tooltip: 'Informações',
           ),
-          IconButton(
-            onPressed: () => _refreshData(context),
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Atualizar',
-          ),
+          IconButton(onPressed: () => _refreshData(context), icon: const Icon(Icons.refresh), tooltip: 'Atualizar'),
           // Menu de opções
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, value),
             itemBuilder: (context) => [
               const PopupMenuItem(
                 value: 'add_cart',
-                child: Row(
-                  children: [
-                    Icon(Icons.add_shopping_cart),
-                    SizedBox(width: 8),
-                    Text('Adicionar Carrinho'),
-                  ],
-                ),
+                child: Row(children: [Icon(Icons.add_shopping_cart), SizedBox(width: 8), Text('Adicionar Carrinho')]),
               ),
               const PopupMenuItem(
                 value: 'add_observation',
-                child: Row(
-                  children: [
-                    Icon(Icons.note_add),
-                    SizedBox(width: 8),
-                    Text('Adicionar Observação'),
-                  ],
-                ),
+                child: Row(children: [Icon(Icons.note_add), SizedBox(width: 8), Text('Adicionar Observação')]),
               ),
               const PopupMenuItem(
                 value: 'recover_cart',
-                child: Row(
-                  children: [
-                    Icon(Icons.restore),
-                    SizedBox(width: 8),
-                    Text('Recuperar Carrinho'),
-                  ],
-                ),
+                child: Row(children: [Icon(Icons.restore), SizedBox(width: 8), Text('Recuperar Carrinho')]),
               ),
               const PopupMenuItem(
                 value: 'finalize',
-                child: Row(
-                  children: [
-                    Icon(Icons.check_circle),
-                    SizedBox(width: 8),
-                    Text('Finalizar Separação'),
-                  ],
-                ),
+                child: Row(children: [Icon(Icons.check_circle), SizedBox(width: 8), Text('Finalizar Separação')]),
               ),
             ],
           ),
@@ -128,9 +105,17 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
           return _buildBody(context, viewModel);
         },
       ),
-      bottomNavigationBar: SeparateItemsBottomNavigation(
-        tabController: _tabController,
-      ),
+      bottomNavigationBar: SeparateItemsBottomNavigation(tabController: _tabController),
+      floatingActionButton:
+          _tabController.index ==
+              1 // Apenas na aba de carrinhos
+          ? FloatingActionButton.extended(
+              onPressed: () => _onAddCart(context),
+              icon: const Icon(Icons.add_shopping_cart),
+              label: const Text('Incluir Carrinho'),
+              tooltip: 'Incluir novo carrinho na separação',
+            )
+          : null,
     );
   }
 
@@ -139,20 +124,13 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Carregando itens da separação...'),
-          ],
+          children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando itens da separação...')],
         ),
       );
     }
 
     if (viewModel.hasError) {
-      return SeparateItemsErrorState(
-        viewModel: viewModel,
-        onRefresh: () => _refreshData(context),
-      );
+      return SeparateItemsErrorState(viewModel: viewModel, onRefresh: () => _refreshData(context));
     }
 
     return TabBarView(
@@ -165,10 +143,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
     );
   }
 
-  Widget _buildWaitingItemsView(
-    BuildContext context,
-    SeparateItemsViewModel viewModel,
-  ) {
+  Widget _buildWaitingItemsView(BuildContext context, SeparateItemsViewModel viewModel) {
     if (!viewModel.hasData) {
       return Center(
         child: Padding(
@@ -176,17 +151,11 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.inventory_2_outlined,
-                size: 64,
-                color: Theme.of(context).colorScheme.outline,
-              ),
+              Icon(Icons.inventory_2_outlined, size: 64, color: Theme.of(context).colorScheme.outline),
               const SizedBox(height: 16),
               Text(
                 'Nenhum item encontrado',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
@@ -205,10 +174,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
       itemCount: viewModel.items.length,
       itemBuilder: (context, index) {
         final item = viewModel.items[index];
-        return SeparateItemCard(
-          item: item,
-          onSeparate: () => _onSeparateItem(context, item, viewModel),
-        );
+        return SeparateItemCard(item: item, onSeparate: () => _onSeparateItem(context, item, viewModel));
       },
     );
   }
@@ -220,11 +186,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
     );
   }
 
-  void _onSeparateItem(
-    BuildContext context,
-    SeparateItemConsultationModel item,
-    SeparateItemsViewModel viewModel,
-  ) {
+  void _onSeparateItem(BuildContext context, SeparateItemConsultationModel item, SeparateItemsViewModel viewModel) {
     // TODO: Implementar ação de separar item específico
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -243,14 +205,9 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Separar Todos os Itens'),
-        content: const Text(
-          'Deseja separar automaticamente todos os itens pendentes desta separação?',
-        ),
+        content: const Text('Deseja separar automaticamente todos os itens pendentes desta separação?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
@@ -320,19 +277,14 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
               // TODO: Implementar salvamento da observação
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: const Text(
-                    'Observação adicionada - Em desenvolvimento',
-                  ),
+                  content: const Text('Observação adicionada - Em desenvolvimento'),
                   backgroundColor: Theme.of(context).colorScheme.primary,
                 ),
               );
@@ -368,9 +320,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
             Text('Separação ${widget.separation.codSepararEstoque}'),
             const SizedBox(height: 8),
             Text('Total de itens: ${viewModel.totalItems}'),
-            Text(
-              'Progresso: ${viewModel.percentualConcluido.toStringAsFixed(0)}%',
-            ),
+            Text('Progresso: ${viewModel.percentualConcluido.toStringAsFixed(0)}%'),
             const SizedBox(height: 16),
             if (!viewModel.isSeparationComplete)
               Container(
@@ -381,17 +331,12 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.warning,
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                    ),
+                    Icon(Icons.warning, color: Theme.of(context).colorScheme.onErrorContainer),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Atenção: Nem todos os itens foram separados!',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
                       ),
                     ),
                   ],
@@ -400,10 +345,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
           ElevatedButton(
             onPressed: viewModel.isSeparationComplete
                 ? () {
@@ -411,9 +353,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
                     // TODO: Implementar finalização da separação
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text(
-                          'Separação finalizada - Em desenvolvimento',
-                        ),
+                        content: const Text('Separação finalizada - Em desenvolvimento'),
                         backgroundColor: Theme.of(context).colorScheme.primary,
                       ),
                     );
@@ -424,5 +364,28 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen>
         ],
       ),
     );
+  }
+
+  Future<void> _onAddCart(BuildContext context) async {
+    final viewModel = context.read<SeparateItemsViewModel>();
+
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => AddCartScreen(
+          codEmpresa: viewModel.separation?.codEmpresa ?? 1,
+          codSepararEstoque: viewModel.separation?.codSepararEstoque ?? 0,
+        ),
+      ),
+    );
+
+    // Se o carrinho foi adicionado com sucesso, atualizar a lista
+    if (result == true) {
+      await viewModel.refresh();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Carrinho adicionado com sucesso!'), backgroundColor: Colors.green),
+        );
+      }
+    }
   }
 }

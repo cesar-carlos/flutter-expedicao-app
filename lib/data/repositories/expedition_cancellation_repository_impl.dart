@@ -10,8 +10,7 @@ import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/domain/models/expedition_cancellation_model.dart';
 import 'package:exp/core/network/socket_config.dart';
 
-class ExpeditionCancellationRepositoryImpl
-    implements BasicRepository<ExpeditionCancellationModel> {
+class ExpeditionCancellationRepositoryImpl implements BasicRepository<ExpeditionCancellationModel> {
   final selectEvent = 'cancelamento.select';
   final insertEvent = 'cancelamento.insert';
   final updateEvent = 'cancelamento.update';
@@ -20,9 +19,7 @@ class ExpeditionCancellationRepositoryImpl
   final uuid = const Uuid();
 
   @override
-  Future<List<ExpeditionCancellationModel>> select(
-    QueryBuilder queryBuilder,
-  ) async {
+  Future<List<ExpeditionCancellationModel>> select(QueryBuilder queryBuilder) async {
     final event = '${socket.id} $selectEvent';
     final completer = Completer<List<ExpeditionCancellationModel>>();
     final responseId = uuid.v4();
@@ -71,18 +68,12 @@ class ExpeditionCancellationRepositoryImpl
   }
 
   @override
-  Future<List<ExpeditionCancellationModel>> insert(
-    ExpeditionCancellationModel entity,
-  ) async {
+  Future<List<ExpeditionCancellationModel>> insert(ExpeditionCancellationModel entity) async {
     final event = '${socket.id} $insertEvent';
     final completer = Completer<List<ExpeditionCancellationModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));
@@ -118,18 +109,12 @@ class ExpeditionCancellationRepositoryImpl
   }
 
   @override
-  Future<List<ExpeditionCancellationModel>> update(
-    ExpeditionCancellationModel entity,
-  ) async {
+  Future<List<ExpeditionCancellationModel>> update(ExpeditionCancellationModel entity) async {
     final event = '${socket.id} $updateEvent';
     final completer = Completer<List<ExpeditionCancellationModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));
@@ -165,18 +150,12 @@ class ExpeditionCancellationRepositoryImpl
   }
 
   @override
-  Future<List<ExpeditionCancellationModel>> delete(
-    ExpeditionCancellationModel entity,
-  ) async {
+  Future<List<ExpeditionCancellationModel>> delete(ExpeditionCancellationModel entity) async {
     final event = '${socket.id} $deleteEvent';
     final completer = Completer<List<ExpeditionCancellationModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));

@@ -73,11 +73,7 @@ class SeparateItemRepositoryImpl implements BasicRepository<SeparateItemModel> {
     final completer = Completer<List<SeparateItemModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));
@@ -118,11 +114,7 @@ class SeparateItemRepositoryImpl implements BasicRepository<SeparateItemModel> {
     final completer = Completer<List<SeparateItemModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));
@@ -163,11 +155,7 @@ class SeparateItemRepositoryImpl implements BasicRepository<SeparateItemModel> {
     final completer = Completer<List<SeparateItemModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));

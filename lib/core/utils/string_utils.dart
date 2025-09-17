@@ -63,8 +63,7 @@ class StringUtils {
   /// ```
   static String removeAccents(String text) {
     const withAccents = 'ÀÁÂÃÄÅàáâãäåÒÓÔÕÖØòóôõöøÈÉÊËèéêëÇçÌÍÎÏìíîïÙÚÛÜùúûüÿÑñ';
-    const withoutAccents =
-        'AAAAAAaaaaaaOOOOOOooooooEEEEeeeeeCcIIIIiiiiUUUUuuuuyNn';
+    const withoutAccents = 'AAAAAAaaaaaaOOOOOOooooooEEEEeeeeeCcIIIIiiiiUUUUuuuuyNn';
 
     String result = text;
     for (int i = 0; i < withAccents.length; i++) {

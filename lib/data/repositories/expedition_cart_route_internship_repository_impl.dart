@@ -10,8 +10,7 @@ import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
 import 'package:exp/data/dtos/send_query_socket_dto.dart';
 import 'package:exp/core/network/socket_config.dart';
 
-class ExpeditionCartRouteInternshipRepositoryImpl
-    implements BasicRepository<ExpeditionCartRouteInternshipModel> {
+class ExpeditionCartRouteInternshipRepositoryImpl implements BasicRepository<ExpeditionCartRouteInternshipModel> {
   final selectEvent = 'carrinho.percurso.estagio.select';
   final insertEvent = 'carrinho.percurso.estagio.insert';
   final updateEvent = 'carrinho.percurso.estagio.update';
@@ -20,9 +19,7 @@ class ExpeditionCartRouteInternshipRepositoryImpl
   final uuid = const Uuid();
 
   @override
-  Future<List<ExpeditionCartRouteInternshipModel>> select(
-    QueryBuilder queryBuilder,
-  ) async {
+  Future<List<ExpeditionCartRouteInternshipModel>> select(QueryBuilder queryBuilder) async {
     final event = '${socket.id} $selectEvent';
     final completer = Completer<List<ExpeditionCartRouteInternshipModel>>();
     final responseId = uuid.v4();
@@ -71,18 +68,12 @@ class ExpeditionCartRouteInternshipRepositoryImpl
   }
 
   @override
-  Future<List<ExpeditionCartRouteInternshipModel>> insert(
-    ExpeditionCartRouteInternshipModel entity,
-  ) async {
+  Future<List<ExpeditionCartRouteInternshipModel>> insert(ExpeditionCartRouteInternshipModel entity) async {
     final event = '${socket.id} $insertEvent';
     final completer = Completer<List<ExpeditionCartRouteInternshipModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));
@@ -118,18 +109,12 @@ class ExpeditionCartRouteInternshipRepositoryImpl
   }
 
   @override
-  Future<List<ExpeditionCartRouteInternshipModel>> update(
-    ExpeditionCartRouteInternshipModel entity,
-  ) async {
+  Future<List<ExpeditionCartRouteInternshipModel>> update(ExpeditionCartRouteInternshipModel entity) async {
     final event = '${socket.id} $updateEvent';
     final completer = Completer<List<ExpeditionCartRouteInternshipModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));
@@ -165,18 +150,12 @@ class ExpeditionCartRouteInternshipRepositoryImpl
   }
 
   @override
-  Future<List<ExpeditionCartRouteInternshipModel>> delete(
-    ExpeditionCartRouteInternshipModel entity,
-  ) async {
+  Future<List<ExpeditionCartRouteInternshipModel>> delete(ExpeditionCartRouteInternshipModel entity) async {
     final event = '${socket.id} $deleteEvent';
     final completer = Completer<List<ExpeditionCartRouteInternshipModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));

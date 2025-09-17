@@ -20,10 +20,7 @@ void main() {
       expect(EntityType.fromCode('C'), EntityType.cliente);
       expect(EntityType.fromCode('F'), EntityType.fornecedor);
       expect(EntityType.fromCode('c'), EntityType.cliente); // Case insensitive
-      expect(
-        EntityType.fromCode('f'),
-        EntityType.fornecedor,
-      ); // Case insensitive
+      expect(EntityType.fromCode('f'), EntityType.fornecedor); // Case insensitive
       expect(EntityType.fromCode('X'), null); // Invalid code
       expect(EntityType.fromCode(''), null); // Empty code
     });
@@ -56,10 +53,7 @@ void main() {
     test('should get color by code', () {
       expect(EntityType.getColor('C'), Colors.blue);
       expect(EntityType.getColor('F'), Colors.green);
-      expect(
-        EntityType.getColor('X'),
-        Colors.grey,
-      ); // Default color for invalid
+      expect(EntityType.getColor('X'), Colors.grey); // Default color for invalid
     });
   });
 

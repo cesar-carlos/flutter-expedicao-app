@@ -22,9 +22,7 @@ enum ExpeditionItemSituation {
 
   static ExpeditionItemSituation? fromCode(String code) {
     try {
-      return ExpeditionItemSituation.values.firstWhere(
-        (situation) => situation.code == code.toUpperCase(),
-      );
+      return ExpeditionItemSituation.values.firstWhere((situation) => situation.code == code.toUpperCase());
     } catch (e) {
       return null;
     }
@@ -52,43 +50,33 @@ enum ExpeditionItemSituation {
 }
 
 extension ExpeditionItemSituationExtension on String {
-  ExpeditionItemSituation? get asSituation =>
-      ExpeditionItemSituation.fromCode(this);
-  String get situationDescription =>
-      ExpeditionItemSituation.getDescription(this);
+  ExpeditionItemSituation? get asSituation => ExpeditionItemSituation.fromCode(this);
+  String get situationDescription => ExpeditionItemSituation.getDescription(this);
   Color get situationColor => ExpeditionItemSituation.getColor(this);
 }
 
 class ExpeditionItemSituationModel {
   ExpeditionItemSituationModel._();
 
-  static String getDescription(String code) =>
-      ExpeditionItemSituation.getDescription(code);
+  static String getDescription(String code) => ExpeditionItemSituation.getDescription(code);
 
-  static bool isValidSituation(String code) =>
-      ExpeditionItemSituation.isValidSituation(code);
+  static bool isValidSituation(String code) => ExpeditionItemSituation.isValidSituation(code);
 
   static List<String> getAllCodes() => ExpeditionItemSituation.getAllCodes();
 
-  static List<String> getAllDescriptions() =>
-      ExpeditionItemSituation.getAllDescriptions();
+  static List<String> getAllDescriptions() => ExpeditionItemSituation.getAllDescriptions();
 
   static Color getColor(String code) => ExpeditionItemSituation.getColor(code);
 
-  static List<ExpeditionItemSituation> getAllSituations() =>
-      ExpeditionItemSituation.values;
+  static List<ExpeditionItemSituation> getAllSituations() => ExpeditionItemSituation.values;
 }
 
 @Deprecated('Use ShippingSituationModel instead of ExpedicaoSituacaoModel')
 class ExpedicaoSituacaoModel {
   ExpedicaoSituacaoModel._();
 
-  static String getDescricao(String codigo) =>
-      ExpeditionItemSituationModel.getDescription(codigo);
-  static bool isSituacaoValida(String codigo) =>
-      ExpeditionItemSituationModel.isValidSituation(codigo);
-  static List<String> getTodasSituacoes() =>
-      ExpeditionItemSituationModel.getAllCodes();
-  static List<String> getTodasDescricoes() =>
-      ExpeditionItemSituationModel.getAllDescriptions();
+  static String getDescricao(String codigo) => ExpeditionItemSituationModel.getDescription(codigo);
+  static bool isSituacaoValida(String codigo) => ExpeditionItemSituationModel.isValidSituation(codigo);
+  static List<String> getTodasSituacoes() => ExpeditionItemSituationModel.getAllCodes();
+  static List<String> getTodasDescricoes() => ExpeditionItemSituationModel.getAllDescriptions();
 }

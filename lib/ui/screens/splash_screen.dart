@@ -11,8 +11,7 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -21,18 +20,17 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
+    _animationController = AnimationController(duration: const Duration(seconds: 2), vsync: this);
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.elasticOut));
 
     _animationController.forward();
 
@@ -67,20 +65,13 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Container(
                       width: 140,
                       height: 140,
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                      decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.circular(20)),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: AdaptiveLogo(
                           width: 120,
                           height: 120,
-                          fallback: const Icon(
-                            Icons.qr_code_scanner,
-                            size: 70,
-                            color: Colors.white,
-                          ),
+                          fallback: const Icon(Icons.qr_code_scanner, size: 70, color: Colors.white),
                         ),
                       ),
                     ),
@@ -95,12 +86,7 @@ class _SplashScreenState extends State<SplashScreen>
               opacity: _fadeAnimation,
               child: Text(
                 'Data7 Expedição',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 2,
-                ),
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 2),
               ),
             ),
 
@@ -110,11 +96,7 @@ class _SplashScreenState extends State<SplashScreen>
               opacity: _fadeAnimation,
               child: Text(
                 'Se7e Sistemas',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white.withValues(alpha: 0.8),
-                  letterSpacing: 1,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.white.withValues(alpha: 0.8), letterSpacing: 1),
               ),
             ),
 

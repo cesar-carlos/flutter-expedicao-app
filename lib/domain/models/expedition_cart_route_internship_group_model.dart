@@ -52,14 +52,11 @@ class ExpeditionCartRouteInternshipGroupModel {
       dataLancamento: dataLancamento ?? this.dataLancamento,
       horaLancamento: horaLancamento ?? this.horaLancamento,
       codUsuarioLancamento: codUsuarioLancamento ?? this.codUsuarioLancamento,
-      nomeUsuarioLancamento:
-          nomeUsuarioLancamento ?? this.nomeUsuarioLancamento,
+      nomeUsuarioLancamento: nomeUsuarioLancamento ?? this.nomeUsuarioLancamento,
     );
   }
 
-  factory ExpeditionCartRouteInternshipGroupModel.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory ExpeditionCartRouteInternshipGroupModel.fromJson(Map<String, dynamic> json) {
     try {
       return ExpeditionCartRouteInternshipGroupModel(
         codEmpresa: json['CodEmpresa'],
@@ -67,9 +64,7 @@ class ExpeditionCartRouteInternshipGroupModel {
         item: json['Item'],
         origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
         itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
-        situacao:
-            ExpeditionCartSituation.fromCode(json['Situacao']) ??
-            ExpeditionCartSituation.vazio,
+        situacao: ExpeditionCartSituation.fromCode(json['Situacao']) ?? ExpeditionCartSituation.vazio,
         codCarrinhoAgrupador: json['CodCarrinhoAgrupador'],
         dataLancamento: DateTime.parse(json['DataLancamento']),
         horaLancamento: json['HoraLancamento'],
@@ -107,8 +102,7 @@ class ExpeditionCartRouteInternshipGroupModel {
   }
 
   @override
-  int get hashCode =>
-      codEmpresa.hashCode ^ codCarrinhoPercurso.hashCode ^ item.hashCode;
+  int get hashCode => codEmpresa.hashCode ^ codCarrinhoPercurso.hashCode ^ item.hashCode;
 
   @override
   String toString() {

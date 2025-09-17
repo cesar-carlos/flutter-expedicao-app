@@ -8,13 +8,7 @@ class AppHeader extends StatelessWidget {
   final double logoSize;
   final double spacing;
 
-  const AppHeader({
-    super.key,
-    required this.title,
-    required this.subtitle,
-    this.logoSize = 230,
-    this.spacing = 24,
-  });
+  const AppHeader({super.key, required this.title, required this.subtitle, this.logoSize = 230, this.spacing = 24});
 
   @override
   Widget build(BuildContext context) {
@@ -46,9 +40,7 @@ class AppHeader extends StatelessWidget {
         Text(
           subtitle,
           textAlign: TextAlign.center,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-          ),
+          style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
         ),
       ],
     );

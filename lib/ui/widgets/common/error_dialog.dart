@@ -45,11 +45,7 @@ class ErrorDialog extends StatelessWidget {
   }
 
   /// Método estático para exibir erro de conexão
-  static Future<void> showConnectionError(
-    BuildContext context, {
-    VoidCallback? onRetry,
-    VoidCallback? onClose,
-  }) {
+  static Future<void> showConnectionError(BuildContext context, {VoidCallback? onRetry, VoidCallback? onClose}) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -78,33 +74,18 @@ class ErrorDialog extends StatelessWidget {
       context: context,
       barrierDismissible: true,
       builder: (BuildContext context) {
-        return ErrorDialog(
-          title: 'Erro',
-          message: message,
-          details: details,
-          onClose: onClose,
-          showRetryButton: false,
-        );
+        return ErrorDialog(title: 'Erro', message: message, details: details, onClose: onClose, showRetryButton: false);
       },
     );
   }
 
   /// Método estático para exibir erro de validação
-  static Future<void> showValidationError(
-    BuildContext context, {
-    required String message,
-    String? details,
-  }) {
+  static Future<void> showValidationError(BuildContext context, {required String message, String? details}) {
     return showDialog<void>(
       context: context,
       barrierDismissible: true,
       builder: (BuildContext context) {
-        return ErrorDialog(
-          title: 'Dados Inválidos',
-          message: message,
-          details: details,
-          showRetryButton: false,
-        );
+        return ErrorDialog(title: 'Dados Inválidos', message: message, details: details, showRetryButton: false);
       },
     );
   }
@@ -120,11 +101,7 @@ class ErrorDialog extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.red,
-              ),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.red),
             ),
           ),
         ],
@@ -134,10 +111,7 @@ class ErrorDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              message,
-              style: const TextStyle(fontSize: 16, color: Colors.black87),
-            ),
+            Text(message, style: const TextStyle(fontSize: 16, color: Colors.black87)),
             if (details != null && details!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
@@ -152,30 +126,18 @@ class ErrorDialog extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Colors.grey[600],
-                          size: 16,
-                        ),
+                        Icon(Icons.info_outline, color: Colors.grey[600], size: 16),
                         const SizedBox(width: 8),
                         Text(
                           'Detalhes técnicos:',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
-                          ),
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700]),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Text(
                       details!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                        fontFamily: 'monospace',
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600], fontFamily: 'monospace'),
                     ),
                   ],
                 ),
@@ -223,53 +185,22 @@ class AppErrorType {
 /// Extensão para facilitar o uso do ErrorDialog
 extension ErrorDialogExtension on BuildContext {
   /// Exibe erro do servidor
-  Future<void> showServerError(
-    String message, {
-    String? details,
-    VoidCallback? onRetry,
-    VoidCallback? onClose,
-  }) {
-    return ErrorDialog.showServerError(
-      this,
-      message: message,
-      details: details,
-      onRetry: onRetry,
-      onClose: onClose,
-    );
+  Future<void> showServerError(String message, {String? details, VoidCallback? onRetry, VoidCallback? onClose}) {
+    return ErrorDialog.showServerError(this, message: message, details: details, onRetry: onRetry, onClose: onClose);
   }
 
   /// Exibe erro de conexão
-  Future<void> showConnectionError({
-    VoidCallback? onRetry,
-    VoidCallback? onClose,
-  }) {
-    return ErrorDialog.showConnectionError(
-      this,
-      onRetry: onRetry,
-      onClose: onClose,
-    );
+  Future<void> showConnectionError({VoidCallback? onRetry, VoidCallback? onClose}) {
+    return ErrorDialog.showConnectionError(this, onRetry: onRetry, onClose: onClose);
   }
 
   /// Exibe erro genérico
-  Future<void> showGenericError(
-    String message, {
-    String? details,
-    VoidCallback? onClose,
-  }) {
-    return ErrorDialog.showGenericError(
-      this,
-      message: message,
-      details: details,
-      onClose: onClose,
-    );
+  Future<void> showGenericError(String message, {String? details, VoidCallback? onClose}) {
+    return ErrorDialog.showGenericError(this, message: message, details: details, onClose: onClose);
   }
 
   /// Exibe erro de validação
   Future<void> showValidationError(String message, {String? details}) {
-    return ErrorDialog.showValidationError(
-      this,
-      message: message,
-      details: details,
-    );
+    return ErrorDialog.showValidationError(this, message: message, details: details);
   }
 }

@@ -10,19 +10,14 @@ class CommonSchemas {
   static final idSchema = z.int().min(1, message: 'ID deve ser maior que zero');
 
   /// Schema para IDs opcionais
-  static final optionalIdSchema = z.int()
-      .min(1, message: 'ID deve ser maior que zero')
-      .optional();
+  static final optionalIdSchema = z.int().min(1, message: 'ID deve ser maior que zero').optional();
 
   /// Schema para códigos numéricos
   static final codeSchema = z
       .string()
       .min(1, message: 'Código é obrigatório')
       .transform((value) => value.trim())
-      .refine(
-        (value) => int.tryParse(value) != null,
-        message: 'Código deve ser numérico',
-      );
+      .refine((value) => int.tryParse(value) != null, message: 'Código deve ser numérico');
 
   /// Schema para códigos opcionais
   static final optionalCodeSchema = z
@@ -42,26 +37,17 @@ class CommonSchemas {
       .string()
       .min(1, message: 'Descrição é obrigatória')
       .transform((value) => value.trim())
-      .refine(
-        (value) => value.length <= 255,
-        message: 'Descrição deve ter no máximo 255 caracteres',
-      );
+      .refine((value) => value.length <= 255, message: 'Descrição deve ter no máximo 255 caracteres');
 
   /// Schema para descrições opcionais
   static final optionalDescriptionSchema = z
       .string()
       .optional()
       .transform((value) => value.trim())
-      .refine(
-        (value) => value.length <= 255,
-        message: 'Descrição deve ter no máximo 255 caracteres',
-      );
+      .refine((value) => value.length <= 255, message: 'Descrição deve ter no máximo 255 caracteres');
 
   /// Schema para quantidades
-  static final quantitySchema = z.double().min(
-    0,
-    message: 'Quantidade deve ser maior ou igual a zero',
-  );
+  static final quantitySchema = z.double().min(0, message: 'Quantidade deve ser maior ou igual a zero');
 
   /// Schema para quantidades opcionais
   static final optionalQuantitySchema = z.double()
@@ -69,24 +55,16 @@ class CommonSchemas {
       .optional();
 
   /// Schema para valores monetários
-  static final monetarySchema = z.double().min(
-    0,
-    message: 'Valor deve ser maior ou igual a zero',
-  );
+  static final monetarySchema = z.double().min(0, message: 'Valor deve ser maior ou igual a zero');
 
   /// Schema para valores monetários opcionais
-  static final optionalMonetarySchema = z.double()
-      .min(0, message: 'Valor deve ser maior ou igual a zero')
-      .optional();
+  static final optionalMonetarySchema = z.double().min(0, message: 'Valor deve ser maior ou igual a zero').optional();
 
   /// Schema para datas ISO 8601
   static final dateTimeSchema = z
       .string()
       .min(1, message: 'Data é obrigatória')
-      .refine(
-        (value) => DateTime.tryParse(value) != null,
-        message: 'Data deve estar em formato válido (ISO 8601)',
-      );
+      .refine((value) => DateTime.tryParse(value) != null, message: 'Data deve estar em formato válido (ISO 8601)');
 
   /// Schema para datas opcionais
   static final optionalDateTimeSchema = z.string().optional().refine((value) {
@@ -107,9 +85,7 @@ class CommonSchemas {
       .transform((value) => value.trim());
 
   /// Schema para strings opcionais
-  static final optionalStringSchema = z.string().optional().transform(
-    (value) => value.trim(),
-  );
+  static final optionalStringSchema = z.string().optional().transform((value) => value.trim());
 
   // === SCHEMAS DE VALIDAÇÃO DE FORMATO ===
 
@@ -128,10 +104,7 @@ class CommonSchemas {
       .string()
       .min(1, message: 'Telefone é obrigatório')
       .transform((value) => value.replaceAll(RegExp(r'[^\d]'), ''))
-      .refine(
-        (value) => value.length >= 10 && value.length <= 11,
-        message: 'Telefone deve ter 10 ou 11 dígitos',
-      );
+      .refine((value) => value.length >= 10 && value.length <= 11, message: 'Telefone deve ter 10 ou 11 dígitos');
 
   /// Schema para CEP
   static final cepSchema = z
@@ -152,17 +125,12 @@ class CommonSchemas {
   static final stringListSchema = z.list(nonEmptyStringSchema);
 
   /// Schema para lista opcional de strings
-  static final optionalStringListSchema = z
-      .list(nonEmptyStringSchema)
-      .optional();
+  static final optionalStringListSchema = z.list(nonEmptyStringSchema).optional();
 
   // === SCHEMAS DE PAGINAÇÃO ===
 
   /// Schema para página (page)
-  static final pageSchema = z.int().min(
-    1,
-    message: 'Página deve ser maior que zero',
-  );
+  static final pageSchema = z.int().min(1, message: 'Página deve ser maior que zero');
 
   /// Schema para tamanho da página (pageSize)
   static final pageSizeSchema = z.int()
@@ -186,10 +154,7 @@ class CommonSchemas {
   }
 
   /// Cria schema para enum opcional
-  static Schema<String?> optionalEnumSchema(
-    List<String> validValues,
-    String fieldName,
-  ) {
+  static Schema<String?> optionalEnumSchema(List<String> validValues, String fieldName) {
     return z.string().optional().refine(
       (value) => validValues.contains(value),
       message: '$fieldName deve ser um dos valores: ${validValues.join(', ')}',
@@ -202,10 +167,7 @@ class CommonSchemas {
         .string()
         .min(1, message: '$fieldName é obrigatório')
         .transform((value) => value.trim())
-        .refine(
-          (value) => value.length == length,
-          message: '$fieldName deve ter exatamente $length caracteres',
-        );
+        .refine((value) => value.length == length, message: '$fieldName deve ter exatamente $length caracteres');
   }
 
   /// Cria schema para string com tamanho máximo
@@ -214,10 +176,7 @@ class CommonSchemas {
         .string()
         .min(1, message: '$fieldName é obrigatório')
         .transform((value) => value.trim())
-        .refine(
-          (value) => value.length <= maxLength,
-          message: '$fieldName deve ter no máximo $maxLength caracteres',
-        );
+        .refine((value) => value.length <= maxLength, message: '$fieldName deve ter no máximo $maxLength caracteres');
   }
 
   /// Cria schema para range numérico

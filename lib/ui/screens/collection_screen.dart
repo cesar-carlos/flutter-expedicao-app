@@ -11,10 +11,7 @@ class CollectionScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Coleta'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(AppRouter.home),
-        ),
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go(AppRouter.home)),
       ),
       body: const Center(
         child: Column(
@@ -22,15 +19,9 @@ class CollectionScreen extends StatelessWidget {
           children: [
             Icon(Icons.local_shipping_outlined, size: 80, color: Colors.indigo),
             SizedBox(height: 16),
-            Text(
-              'Coleta',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
+            Text('Coleta', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
-            Text(
-              'Funcionalidade em desenvolvimento',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
+            Text('Funcionalidade em desenvolvimento', style: TextStyle(fontSize: 16, color: Colors.grey)),
             SizedBox(height: 16),
             Text(
               'Aqui será implementada a funcionalidade de processamento de coleta de produtos.',

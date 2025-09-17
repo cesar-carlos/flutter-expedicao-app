@@ -36,10 +36,7 @@ class CartItemCard extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                situationColor.withOpacity(0.05),
-                situationColor.withOpacity(0.02),
-              ],
+              colors: [situationColor.withOpacity(0.05), situationColor.withOpacity(0.02)],
             ),
           ),
           padding: const EdgeInsets.all(16),
@@ -47,24 +44,12 @@ class CartItemCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header principal
-              _buildMainHeader(
-                context,
-                theme,
-                colorScheme,
-                isActive,
-                isFinalized,
-                situationColor,
-              ),
+              _buildMainHeader(context, theme, colorScheme, isActive, isFinalized, situationColor),
 
               const SizedBox(height: 16),
 
               // Código de barras e situação
-              _buildCodeAndSituation(
-                context,
-                theme,
-                colorScheme,
-                situationColor,
-              ),
+              _buildCodeAndSituation(context, theme, colorScheme, situationColor),
 
               const SizedBox(height: 16),
 
@@ -101,10 +86,7 @@ class CartItemCard extends StatelessWidget {
         // Ícone do carrinho
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: situationColor.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: BoxDecoration(color: situationColor.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
           child: Icon(Icons.shopping_cart, color: situationColor, size: 24),
         ),
         const SizedBox(width: 12),
@@ -118,41 +100,26 @@ class CartItemCard extends StatelessWidget {
                 children: [
                   // Código do carrinho
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: situationColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       '#${cart.codCarrinho}',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: situationColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: theme.textTheme.labelMedium?.copyWith(color: situationColor, fontWeight: FontWeight.bold),
                     ),
                   ),
                   const Spacer(),
                   // Status visual
-                  _buildStatusChip(
-                    context,
-                    theme,
-                    isFinalized,
-                    isActive,
-                    situationColor,
-                  ),
+                  _buildStatusChip(context, theme, isFinalized, isActive, situationColor),
                 ],
               ),
               const SizedBox(height: 6),
               // Nome do carrinho
               Text(
                 cart.nomeCarrinho,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.onSurface,
-                ),
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, color: colorScheme.onSurface),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -175,13 +142,7 @@ class CartItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: situationColor,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: situationColor.withOpacity(0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: situationColor.withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 2))],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -198,22 +159,14 @@ class CartItemCard extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             cart.situacao.description,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
+            style: theme.textTheme.labelSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCodeAndSituation(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-    Color situationColor,
-  ) {
+  Widget _buildCodeAndSituation(BuildContext context, ThemeData theme, ColorScheme colorScheme, Color situationColor) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -231,11 +184,7 @@ class CartItemCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.qr_code_2,
-                        size: 18,
-                        color: colorScheme.primary,
-                      ),
+                      Icon(Icons.qr_code_2, size: 18, color: colorScheme.primary),
                       const SizedBox(width: 6),
                       Text(
                         'Código de Barras',
@@ -248,10 +197,7 @@ class CartItemCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -284,29 +230,20 @@ class CartItemCard extends StatelessWidget {
                     const SizedBox(width: 6),
                     Text(
                       'Origem',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: situationColor,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: theme.textTheme.labelSmall?.copyWith(color: situationColor, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: situationColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     '${cart.origem.description} #${cart.codOrigem}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: situationColor,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(color: situationColor, fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -319,12 +256,7 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTimelineInfo(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-    bool isFinalized,
-  ) {
+  Widget _buildTimelineInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme, bool isFinalized) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -338,10 +270,7 @@ class CartItemCard extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: colorScheme.secondary, shape: BoxShape.circle),
                 child: Icon(Icons.play_arrow, color: Colors.white, size: 16),
               ),
               const SizedBox(width: 12),
@@ -359,9 +288,7 @@ class CartItemCard extends StatelessWidget {
                     Text(
                       '${_formatDate(cart.dataInicio)} às ${cart.horaInicio}',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSecondaryContainer.withOpacity(
-                          0.8,
-                        ),
+                        color: colorScheme.onSecondaryContainer.withOpacity(0.8),
                       ),
                     ),
                   ],
@@ -377,10 +304,7 @@ class CartItemCard extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                  ),
+                  decoration: BoxDecoration(color: Colors.green, shape: BoxShape.circle),
                   child: Icon(Icons.check, color: Colors.white, size: 16),
                 ),
                 const SizedBox(width: 12),
@@ -397,9 +321,7 @@ class CartItemCard extends StatelessWidget {
                       ),
                       Text(
                         '${_formatDate(cart.dataFinalizacao!)} às ${cart.horaFinalizacao!}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.green.shade700,
-                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(color: Colors.green.shade700),
                       ),
                     ],
                   ),
@@ -412,29 +334,19 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSectorInfo(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildSectorInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.tertiaryContainer.withOpacity(0.4),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.tertiary.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: colorScheme.tertiary.withOpacity(0.3), width: 1),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colorScheme.tertiary,
-              borderRadius: BorderRadius.circular(8),
-            ),
+            decoration: BoxDecoration(color: colorScheme.tertiary, borderRadius: BorderRadius.circular(8)),
             child: Icon(Icons.warehouse, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
@@ -465,29 +377,19 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildGroupInfo(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildGroupInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHigh.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outline.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.3), width: 1),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colorScheme.outline,
-              borderRadius: BorderRadius.circular(8),
-            ),
+            decoration: BoxDecoration(color: colorScheme.outline, borderRadius: BorderRadius.circular(8)),
             child: Icon(Icons.group_work, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
@@ -515,10 +417,7 @@ class CartItemCard extends StatelessWidget {
                     if (cart.codCarrinhoAgrupador != null) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: colorScheme.outline.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(4),
@@ -548,10 +447,7 @@ class CartItemCard extends StatelessWidget {
         '${date.year}';
   }
 
-  Color _getSituationColor(
-    ExpeditionCartSituation situacao,
-    ColorScheme colorScheme,
-  ) {
+  Color _getSituationColor(ExpeditionCartSituation situacao, ColorScheme colorScheme) {
     switch (situacao.code) {
       case 'SEPARADO':
       case 'CONFERIDO':

@@ -6,13 +6,9 @@ class ScannerData {
 
   bool get isValid => code.isNotEmpty;
 
-  ScannerData({required this.code, DateTime? timestamp})
-    : timestamp = timestamp ?? DateTime.now();
+  ScannerData({required this.code, DateTime? timestamp}) : timestamp = timestamp ?? DateTime.now();
 
   ScannerData copyWith({String? code, DateTime? timestamp}) {
-    return ScannerData(
-      code: code ?? this.code,
-      timestamp: timestamp ?? this.timestamp,
-    );
+    return ScannerData(code: code ?? this.code, timestamp: timestamp ?? this.timestamp);
   }
 }

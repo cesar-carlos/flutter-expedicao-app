@@ -9,12 +9,7 @@ class FloatingConfigButton extends StatelessWidget {
   final String? tooltip;
   final EdgeInsets? margin;
 
-  const FloatingConfigButton({
-    super.key,
-    this.onPressed,
-    this.tooltip,
-    this.margin = const EdgeInsets.all(16),
-  });
+  const FloatingConfigButton({super.key, this.onPressed, this.tooltip, this.margin = const EdgeInsets.all(16)});
 
   @override
   Widget build(BuildContext context) {
@@ -36,13 +31,8 @@ class FloatingConfigButton extends StatelessWidget {
           style: IconButton.styleFrom(
             backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.95),
             foregroundColor: theme.colorScheme.onSurface,
-            side: BorderSide(
-              color: theme.colorScheme.outline.withValues(alpha: 0.2),
-              width: 1,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.2), width: 1),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
       ),

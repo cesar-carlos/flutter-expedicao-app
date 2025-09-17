@@ -24,11 +24,7 @@ class CreateUserDto {
     return request;
   }
 
-  factory CreateUserDto.fromDomainParams({
-    required String nome,
-    required String senha,
-    File? profileImage,
-  }) {
+  factory CreateUserDto.fromDomainParams({required String nome, required String senha, File? profileImage}) {
     return CreateUserDto(nome: nome, senha: senha, profileImage: profileImage);
   }
 

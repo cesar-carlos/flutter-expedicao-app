@@ -15,12 +15,10 @@ class SeparateConsultationScreen extends StatefulWidget {
   const SeparateConsultationScreen({super.key});
 
   @override
-  State<SeparateConsultationScreen> createState() =>
-      _ShipmentSeparateConsultationScreenState();
+  State<SeparateConsultationScreen> createState() => _ShipmentSeparateConsultationScreenState();
 }
 
-class _ShipmentSeparateConsultationScreenState
-    extends State<SeparateConsultationScreen> {
+class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultationScreen> {
   final TextEditingController _searchController = TextEditingController();
   final bool _isNavigatingAway = false;
 
@@ -94,11 +92,7 @@ class _ShipmentSeparateConsultationScreenState
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
+                      BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2)),
                     ],
                   ),
                   child: Column(
@@ -118,12 +112,9 @@ class _ShipmentSeparateConsultationScreenState
                                   icon: const Icon(Icons.clear),
                                 )
                               : null,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           filled: true,
-                          fillColor: colorScheme.surfaceContainerHighest
-                              .withOpacity(0.3),
+                          fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                         ),
                         onChanged: (value) => viewModel.setSearchQuery(value),
                       ),
@@ -165,16 +156,9 @@ class _ShipmentSeparateConsultationScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Theme.of(context).colorScheme.error,
-            ),
+            Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 16),
-            Text(
-              'Erro ao carregar consultas',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Erro ao carregar consultas', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(
               viewModel.errorMessage ?? 'Erro desconhecido',
@@ -199,16 +183,10 @@ class _ShipmentSeparateConsultationScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search_off,
-              size: 64,
-              color: Theme.of(context).colorScheme.outline,
-            ),
+            Icon(Icons.search_off, size: 64, color: Theme.of(context).colorScheme.outline),
             const SizedBox(height: 16),
             Text(
-              viewModel.searchQuery.isNotEmpty
-                  ? 'Nenhuma consulta encontrada'
-                  : 'Nenhuma consulta disponível',
+              viewModel.searchQuery.isNotEmpty ? 'Nenhuma consulta encontrada' : 'Nenhuma consulta disponível',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
@@ -234,13 +212,10 @@ class _ShipmentSeparateConsultationScreenState
             children: [
               Text(
                 'Consultas encontradas: ${consultations.length}',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const Spacer(),
-              if (viewModel.searchQuery.isNotEmpty ||
-                  viewModel.selectedSituacaoFilter != null)
+              if (viewModel.searchQuery.isNotEmpty || viewModel.selectedSituacaoFilter != null)
                 TextButton.icon(
                   onPressed: () {
                     _searchController.clear();
@@ -296,32 +271,19 @@ class _ShipmentSeparateConsultationScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildDetailItem(
-                'ID:',
-                consultation.codSepararEstoque.toString(),
-              ),
-              _buildDetailItem(
-                'Código:',
-                consultation.codSepararEstoque.toString(),
-              ),
+              _buildDetailItem('ID:', consultation.codSepararEstoque.toString()),
+              _buildDetailItem('Código:', consultation.codSepararEstoque.toString()),
               _buildDetailItem('Descrição:', consultation.nomeEntidade),
               _buildDetailItem('Status:', consultation.situacaoDescription),
               _buildDetailItem('Usuário:', consultation.nomeEntidade),
-              _buildDetailItem(
-                'Data Emissão:',
-                _formatDate(consultation.dataEmissao),
-              ),
+              _buildDetailItem('Data Emissão:', _formatDate(consultation.dataEmissao)),
               _buildDetailItem('Hora Emissão:', consultation.horaEmissao),
-              if (consultation.observacao != null)
-                _buildDetailItem('Observações:', consultation.observacao),
+              if (consultation.observacao != null) _buildDetailItem('Observações:', consultation.observacao),
             ],
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fechar'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar')),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
@@ -342,10 +304,7 @@ class _ShipmentSeparateConsultationScreenState
         children: [
           SizedBox(
             width: 100,
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+            child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
           Expanded(child: Text(value.isEmpty ? 'N/A' : value)),
         ],
@@ -359,18 +318,12 @@ class _ShipmentSeparateConsultationScreenState
         '${date.year}';
   }
 
-  Widget _buildPaginationControls(
-    ShipmentSeparateConsultationViewModel viewModel,
-  ) {
+  Widget _buildPaginationControls(ShipmentSeparateConsultationViewModel viewModel) {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-          ),
-        ),
+        border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.2))),
       ),
       child: Row(
         children: [
@@ -399,18 +352,13 @@ class _ShipmentSeparateConsultationScreenState
             ),
             child: Text(
               '${viewModel.currentPage + 1}',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold),
             ),
           ),
 
           // Botão próxima página
           IconButton(
-            onPressed: viewModel.hasMoreData && !viewModel.isLoading
-                ? () => viewModel.loadNextPage()
-                : null,
+            onPressed: viewModel.hasMoreData && !viewModel.isLoading ? () => viewModel.loadNextPage() : null,
             icon: const Icon(Icons.chevron_right),
             tooltip: 'Próxima página',
           ),
@@ -427,19 +375,14 @@ class _ShipmentSeparateConsultationScreenState
     // Mostrar diálogo para inserir parâmetros de consulta
     context.showCustomDialog(
       title: 'Consultar Separações',
-      titleIcon: Icon(
-        Icons.search,
-        color: Theme.of(context).colorScheme.primary,
-      ),
+      titleIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
       width: 800,
       height: 700,
       content: _buildConsultationDialogContent(viewModel),
     );
   }
 
-  Widget _buildConsultationDialogContent(
-    ShipmentSeparateConsultationViewModel viewModel,
-  ) {
+  Widget _buildConsultationDialogContent(ShipmentSeparateConsultationViewModel viewModel) {
     final TextEditingController paramsController = TextEditingController();
     String selectedFilter = 'todos';
     int pageSize = viewModel.pageSize;
@@ -450,10 +393,7 @@ class _ShipmentSeparateConsultationScreenState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Escolha o tipo de consulta:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            const Text('Escolha o tipo de consulta:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
             // Opções de filtro
@@ -461,9 +401,7 @@ class _ShipmentSeparateConsultationScreenState
               children: [
                 RadioListTile<String>(
                   title: const Text('Todas as separações'),
-                  subtitle: const Text(
-                    'Buscar todas as separações disponíveis',
-                  ),
+                  subtitle: const Text('Buscar todas as separações disponíveis'),
                   value: 'todos',
                   groupValue: selectedFilter,
                   onChanged: (value) {
@@ -519,10 +457,7 @@ class _ShipmentSeparateConsultationScreenState
                   prefixIcon: Icon(Icons.flag),
                 ),
                 items: ExpeditionSituation.values.map((situation) {
-                  return DropdownMenuItem(
-                    value: situation.code,
-                    child: Text(situation.description),
-                  );
+                  return DropdownMenuItem(value: situation.code, child: Text(situation.description));
                 }).toList(),
                 onChanged: (value) {
                   paramsController.text = value ?? '';
@@ -536,24 +471,16 @@ class _ShipmentSeparateConsultationScreenState
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                ),
+                border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.view_list,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 20,
-                      ),
+                      Icon(Icons.view_list, color: Theme.of(context).colorScheme.primary, size: 20),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -572,10 +499,7 @@ class _ShipmentSeparateConsultationScreenState
                       DropdownButton<int>(
                         value: pageSize,
                         items: [10, 20, 50, 100].map((size) {
-                          return DropdownMenuItem(
-                            value: size,
-                            child: Text('$size'),
-                          );
+                          return DropdownMenuItem(value: size, child: Text('$size'));
                         }).toList(),
                         onChanged: (value) {
                           setState(() {
@@ -593,18 +517,12 @@ class _ShipmentSeparateConsultationScreenState
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 20,
-                  ),
+                  Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -622,10 +540,7 @@ class _ShipmentSeparateConsultationScreenState
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancelar'),
-                ),
+                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
                 const SizedBox(width: 16),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.search),
@@ -636,11 +551,7 @@ class _ShipmentSeparateConsultationScreenState
                     if (pageSize != viewModel.pageSize) {
                       viewModel.setPageSize(pageSize);
                     }
-                    _executeConsultationWithFilter(
-                      viewModel,
-                      selectedFilter,
-                      paramsController.text.trim(),
-                    );
+                    _executeConsultationWithFilter(viewModel, selectedFilter, paramsController.text.trim());
                   },
                 ),
               ],
@@ -670,12 +581,9 @@ class _ShipmentSeparateConsultationScreenState
         break;
       case 'codigo':
         if (inputValue.isNotEmpty) {
-          queryBuilder =
-              QueryBuilderExtension.withDefaultPagination(
-                    limit: currentPageSize,
-                  )
-                  .equals('CodSepararEstoque', inputValue)
-                  .orderByDesc('codSepararEstoque');
+          queryBuilder = QueryBuilderExtension.withDefaultPagination(
+            limit: currentPageSize,
+          ).equals('CodSepararEstoque', inputValue).orderByDesc('codSepararEstoque');
         } else {
           queryBuilder = QueryBuilderExtension.withDefaultPagination(
             limit: currentPageSize,
@@ -698,22 +606,13 @@ class _ShipmentSeparateConsultationScreenState
     _executeConsultation(viewModel, queryBuilder);
   }
 
-  void _executeConsultation(
-    ShipmentSeparateConsultationViewModel viewModel,
-    QueryBuilder? queryBuilder,
-  ) {
+  void _executeConsultation(ShipmentSeparateConsultationViewModel viewModel, QueryBuilder? queryBuilder) {
     // Mostrar loading
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const AlertDialog(
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Text('Consultando...'),
-          ],
-        ),
+        content: Row(children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Consultando...')]),
       ),
     );
 
@@ -757,10 +656,7 @@ class _ShipmentSeparateConsultationScreenState
         });
   }
 
-  void _handleViewModelState(
-    BuildContext context,
-    ShipmentSeparateConsultationViewModel viewModel,
-  ) {
+  void _handleViewModelState(BuildContext context, ShipmentSeparateConsultationViewModel viewModel) {
     // Verificar se o widget ainda está montado e não está navegando
     if (!mounted || _isNavigatingAway) return;
 
@@ -786,9 +682,7 @@ class _ShipmentSeparateConsultationScreenState
     });
   }
 
-  Future<void> _handleBack(
-    ShipmentSeparateConsultationViewModel viewModel,
-  ) async {
+  Future<void> _handleBack(ShipmentSeparateConsultationViewModel viewModel) async {
     context.go('/home');
   }
 }

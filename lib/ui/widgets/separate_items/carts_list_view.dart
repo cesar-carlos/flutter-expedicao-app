@@ -28,19 +28,13 @@ class CartsListView extends StatelessWidget {
         itemCount: viewModel.carts.length,
         itemBuilder: (context, index) {
           final cart = viewModel.carts[index];
-          return CartItemCard(
-            cart: cart,
-            onTap: () => _onCartTap(context, cart),
-          );
+          return CartItemCard(cart: cart, onTap: () => _onCartTap(context, cart));
         },
       ),
     );
   }
 
-  void _onCartTap(
-    BuildContext context,
-    ExpeditionCartRouteInternshipConsultationModel cart,
-  ) {
+  void _onCartTap(BuildContext context, ExpeditionCartRouteInternshipConsultationModel cart) {
     // TODO: Implementar ação de toque no carrinho
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

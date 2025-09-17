@@ -5,13 +5,7 @@ class SeparationFiltersModel {
   final String? situacao;
   final DateTime? dataEmissao;
 
-  const SeparationFiltersModel({
-    this.codSepararEstoque,
-    this.origem,
-    this.codOrigem,
-    this.situacao,
-    this.dataEmissao,
-  });
+  const SeparationFiltersModel({this.codSepararEstoque, this.origem, this.codOrigem, this.situacao, this.dataEmissao});
 
   factory SeparationFiltersModel.fromJson(Map<String, dynamic> json) {
     return SeparationFiltersModel(
@@ -19,9 +13,7 @@ class SeparationFiltersModel {
       origem: json['origem'],
       codOrigem: json['codOrigem'],
       situacao: json['situacao'],
-      dataEmissao: json['dataEmissao'] != null
-          ? DateTime.parse(json['dataEmissao'])
-          : null,
+      dataEmissao: json['dataEmissao'] != null ? DateTime.parse(json['dataEmissao']) : null,
     );
   }
 
@@ -36,11 +28,7 @@ class SeparationFiltersModel {
   }
 
   bool get isEmpty =>
-      codSepararEstoque == null &&
-      origem == null &&
-      codOrigem == null &&
-      situacao == null &&
-      dataEmissao == null;
+      codSepararEstoque == null && origem == null && codOrigem == null && situacao == null && dataEmissao == null;
 
   bool get isNotEmpty => !isEmpty;
 
@@ -88,12 +76,6 @@ class SeparationFiltersModel {
 
   @override
   int get hashCode {
-    return Object.hash(
-      codSepararEstoque,
-      origem,
-      codOrigem,
-      situacao,
-      dataEmissao,
-    );
+    return Object.hash(codSepararEstoque, origem, codOrigem, situacao, dataEmissao);
   }
 }

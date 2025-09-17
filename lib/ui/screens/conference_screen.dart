@@ -11,10 +11,7 @@ class ConferenceScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Conferência'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(AppRouter.home),
-        ),
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go(AppRouter.home)),
       ),
       body: const Center(
         child: Column(
@@ -22,15 +19,9 @@ class ConferenceScreen extends StatelessWidget {
           children: [
             Icon(Icons.checklist_outlined, size: 80, color: Colors.green),
             SizedBox(height: 16),
-            Text(
-              'Conferência',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
+            Text('Conferência', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
-            Text(
-              'Funcionalidade em desenvolvimento',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
+            Text('Funcionalidade em desenvolvimento', style: TextStyle(fontSize: 16, color: Colors.grey)),
             SizedBox(height: 16),
             Text(
               'Aqui será implementada a funcionalidade de conferência de produtos e validação de separação.',

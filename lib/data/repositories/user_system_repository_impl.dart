@@ -18,16 +18,8 @@ class UserSystemRepositoryImpl implements UserSystemRepository {
   }
 
   @override
-  Future<UserSystemListResponse> getUsers({
-    int? codEmpresa,
-    bool? apenasAtivos,
-    Pagination? pagination,
-  }) async {
-    return await _apiService.getUsers(
-      codEmpresa: codEmpresa,
-      apenasAtivos: apenasAtivos,
-      pagination: pagination,
-    );
+  Future<UserSystemListResponse> getUsers({int? codEmpresa, bool? apenasAtivos, Pagination? pagination}) async {
+    return await _apiService.getUsers(codEmpresa: codEmpresa, apenasAtivos: apenasAtivos, pagination: pagination);
   }
 
   @override

@@ -12,9 +12,7 @@ enum EntityType {
 
   static EntityType? fromCode(String code) {
     try {
-      return EntityType.values.firstWhere(
-        (type) => type.code == code.toUpperCase(),
-      );
+      return EntityType.values.firstWhere((type) => type.code == code.toUpperCase());
     } catch (e) {
       return null;
     }

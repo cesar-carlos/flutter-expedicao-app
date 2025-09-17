@@ -33,10 +33,7 @@ void main() {
       });
 
       test('should chain multiple parameter additions', () {
-        queryBuilder
-            .addParam('name', 'John')
-            .addParam('age', 25)
-            .addParam('city', 'New York');
+        queryBuilder.addParam('name', 'John').addParam('age', 25).addParam('city', 'New York');
 
         expect(queryBuilder.params.length, 3);
         expect(queryBuilder.params[0].key, 'name');
@@ -102,10 +99,7 @@ void main() {
 
         expect(queryBuilder.params.length, 1);
         expect(queryBuilder.params.first.key, 'status');
-        expect(
-          queryBuilder.params.first.value,
-          "'active','pending','completed'",
-        );
+        expect(queryBuilder.params.first.value, "'active','pending','completed'");
         expect(queryBuilder.params.first.operator, 'IN');
       });
 
@@ -159,10 +153,7 @@ void main() {
 
         expect(queryBuilder.orderByClauses.length, 1);
         expect(queryBuilder.orderByClauses.first.field, 'created_at');
-        expect(
-          queryBuilder.orderByClauses.first.direction,
-          OrderDirection.desc,
-        );
+        expect(queryBuilder.orderByClauses.first.direction, OrderDirection.desc);
       });
 
       test('should add ascending order by', () {
@@ -178,18 +169,11 @@ void main() {
 
         expect(queryBuilder.orderByClauses.length, 1);
         expect(queryBuilder.orderByClauses.first.field, 'created_at');
-        expect(
-          queryBuilder.orderByClauses.first.direction,
-          OrderDirection.desc,
-        );
+        expect(queryBuilder.orderByClauses.first.direction, OrderDirection.desc);
       });
 
       test('should add multiple order by clauses', () {
-        final orders = [
-          OrderBy.asc('name'),
-          OrderBy.desc('created_at'),
-          OrderBy.asc('id'),
-        ];
+        final orders = [OrderBy.asc('name'), OrderBy.desc('created_at'), OrderBy.asc('id')];
 
         queryBuilder.orderByMultiple(orders);
 
@@ -203,10 +187,7 @@ void main() {
       });
 
       test('should chain multiple order by operations', () {
-        queryBuilder
-            .orderByAsc('name')
-            .orderByDesc('created_at')
-            .orderBy('status');
+        queryBuilder.orderByAsc('name').orderByDesc('created_at').orderBy('status');
 
         expect(queryBuilder.orderByClauses.length, 3);
         expect(queryBuilder.orderByClauses[0].field, 'name');
@@ -223,10 +204,7 @@ void main() {
 
     group('Query Building', () {
       test('should build query parameters string', () {
-        queryBuilder
-            .equals('status', 'active')
-            .greaterThan('age', 18)
-            .like('name', 'John%');
+        queryBuilder.equals('status', 'active').greaterThan('age', 18).like('name', 'John%');
 
         final queryString = queryBuilder.buildQuery();
         expect(queryString, contains("status='active'"));
@@ -267,10 +245,7 @@ void main() {
         queryBuilder.orderByAsc('name').orderByDesc('created_at');
 
         final orderByQuery = queryBuilder.buildOrderByQuery();
-        expect(
-          orderByQuery,
-          'order_by=name,created_at&order_direction=ASC,DESC',
-        );
+        expect(orderByQuery, 'order_by=name,created_at&order_direction=ASC,DESC');
       });
 
       test('should build empty ORDER BY query string when no order by', () {
@@ -326,10 +301,7 @@ void main() {
 
         final params = queryBuilder.params;
         expect(params, isA<List<QueryParam>>());
-        expect(
-          () => params.add(QueryParam.create('new', 'value')),
-          throwsUnsupportedError,
-        );
+        expect(() => params.add(QueryParam.create('new', 'value')), throwsUnsupportedError);
       });
 
       test('should return pagination when set', () {
@@ -352,10 +324,7 @@ void main() {
 
         final orderByClauses = queryBuilder.orderByClauses;
         expect(orderByClauses, isA<List<OrderBy>>());
-        expect(
-          () => orderByClauses.add(OrderBy.asc('new')),
-          throwsUnsupportedError,
-        );
+        expect(() => orderByClauses.add(OrderBy.asc('new')), throwsUnsupportedError);
       });
     });
 
@@ -422,10 +391,7 @@ void main() {
 
     group('ToString', () {
       test('should return descriptive string representation', () {
-        queryBuilder
-            .equals('status', 'active')
-            .paginate(limit: 10, offset: 0, page: 1)
-            .orderByAsc('name');
+        queryBuilder.equals('status', 'active').paginate(limit: 10, offset: 0, page: 1).orderByAsc('name');
 
         final stringRepresentation = queryBuilder.toString();
 
@@ -465,10 +431,7 @@ void main() {
         queryBuilder.equals('special_field', "test'with\"quotes&symbols");
 
         final queryString = queryBuilder.buildQuery();
-        expect(
-          queryString,
-          contains("special_field='test'with\"quotes&symbols'"),
-        );
+        expect(queryString, contains("special_field='test'with\"quotes&symbols'"));
       });
 
       test('should handle very long string values', () {
@@ -526,24 +489,15 @@ void main() {
         expect(complexQuery, contains('age>18'));
         expect(complexQuery, contains('age<65'));
         expect(complexQuery, contains("nameLIKE'John%'"));
-        expect(
-          complexQuery,
-          contains("categoryIN''electronics','books','clothing''"),
-        );
+        expect(complexQuery, contains("categoryIN''electronics','books','clothing''"));
         expect(complexQuery, contains('LIMIT=20&OFFSET=40&PAGE=3'));
-        expect(
-          complexQuery,
-          contains('order_by=name,created_at&order_direction=ASC,DESC'),
-        );
+        expect(complexQuery, contains('order_by=name,created_at&order_direction=ASC,DESC'));
       });
 
       test('should handle multiple parameters with same key', () {
         queryBuilder
             .equals('status', 'active')
-            .equals(
-              'status',
-              'pending',
-            ); // This will add another parameter with same key
+            .equals('status', 'pending'); // This will add another parameter with same key
 
         expect(queryBuilder.params.length, 2);
         expect(queryBuilder.params[0].key, 'status');
@@ -553,11 +507,7 @@ void main() {
       });
 
       test('should handle multiple order by with same field', () {
-        queryBuilder
-            .orderByAsc('name')
-            .orderByDesc(
-              'name',
-            ); // This will add another order by with same field
+        queryBuilder.orderByAsc('name').orderByDesc('name'); // This will add another order by with same field
 
         expect(queryBuilder.orderByClauses.length, 2);
         expect(queryBuilder.orderByClauses[0].field, 'name');
@@ -566,61 +516,38 @@ void main() {
         expect(queryBuilder.orderByClauses[1].direction, OrderDirection.desc);
       });
 
-      test(
-        'should handle real-world scenario with codSepararEstoque field',
-        () {
-          // Simula o uso real do QueryBuilder no SeparateConsultationViewModel
-          queryBuilder
-              .paginate(limit: 20, offset: 0, page: 1)
-              .orderByDesc('codSepararEstoque');
+      test('should handle real-world scenario with codSepararEstoque field', () {
+        // Simula o uso real do QueryBuilder no SeparateConsultationViewModel
+        queryBuilder.paginate(limit: 20, offset: 0, page: 1).orderByDesc('codSepararEstoque');
 
-          expect(queryBuilder.orderByClauses.length, 1);
-          expect(queryBuilder.orderByClauses.first.field, 'codSepararEstoque');
-          expect(
-            queryBuilder.orderByClauses.first.direction,
-            OrderDirection.desc,
-          );
+        expect(queryBuilder.orderByClauses.length, 1);
+        expect(queryBuilder.orderByClauses.first.field, 'codSepararEstoque');
+        expect(queryBuilder.orderByClauses.first.direction, OrderDirection.desc);
 
-          // Verifica se a query completa está correta
-          final completeQuery = queryBuilder.buildCompleteQuery();
-          expect(completeQuery, contains('LIMIT=20&OFFSET=0&PAGE=1'));
-          expect(
-            completeQuery,
-            contains('order_by=codSepararEstoque&order_direction=DESC'),
-          );
+        // Verifica se a query completa está correta
+        final completeQuery = queryBuilder.buildCompleteQuery();
+        expect(completeQuery, contains('LIMIT=20&OFFSET=0&PAGE=1'));
+        expect(completeQuery, contains('order_by=codSepararEstoque&order_direction=DESC'));
 
-          // Verifica se o SQL ORDER BY está correto
-          final orderBySql = queryBuilder.buildOrderBySql();
-          expect(orderBySql, 'ORDER BY codSepararEstoque DESC');
-        },
-      );
+        // Verifica se o SQL ORDER BY está correto
+        final orderBySql = queryBuilder.buildOrderBySql();
+        expect(orderBySql, 'ORDER BY codSepararEstoque DESC');
+      });
 
-      test(
-        'should verify that QueryBuilderExtension.withDefaultPagination + orderByDesc works',
-        () {
-          // Testa se o problema original foi resolvido
-          final builder = QueryBuilderExtension.withDefaultPagination(
-            limit: 20,
-            offset: 0,
-          ).orderByDesc('codSepararEstoque');
+      test('should verify that QueryBuilderExtension.withDefaultPagination + orderByDesc works', () {
+        // Testa se o problema original foi resolvido
+        final builder = QueryBuilderExtension.withDefaultPagination(
+          limit: 20,
+          offset: 0,
+        ).orderByDesc('codSepararEstoque');
 
-          expect(builder.orderByClauses.length, 1);
-          expect(builder.orderByClauses.first.field, 'codSepararEstoque');
-          expect(builder.orderByClauses.first.direction, OrderDirection.desc);
-          expect(
-            builder.buildOrderByQuery(),
-            'order_by=codSepararEstoque&order_direction=DESC',
-          );
-          expect(
-            builder.buildCompleteQuery(),
-            contains('LIMIT=20&OFFSET=0&PAGE=1'),
-          );
-          expect(
-            builder.buildCompleteQuery(),
-            contains('order_by=codSepararEstoque&order_direction=DESC'),
-          );
-        },
-      );
+        expect(builder.orderByClauses.length, 1);
+        expect(builder.orderByClauses.first.field, 'codSepararEstoque');
+        expect(builder.orderByClauses.first.direction, OrderDirection.desc);
+        expect(builder.buildOrderByQuery(), 'order_by=codSepararEstoque&order_direction=DESC');
+        expect(builder.buildCompleteQuery(), contains('LIMIT=20&OFFSET=0&PAGE=1'));
+        expect(builder.buildCompleteQuery(), contains('order_by=codSepararEstoque&order_direction=DESC'));
+      });
 
       test('should verify pagination behavior - replace vs append', () {
         // Simula o comportamento de paginação
@@ -635,14 +562,8 @@ void main() {
         ).orderByDesc('codSepararEstoque');
 
         // Verifica se ambas as páginas têm orderByDesc
-        expect(
-          page1.buildOrderByQuery(),
-          'order_by=codSepararEstoque&order_direction=DESC',
-        );
-        expect(
-          page2.buildOrderByQuery(),
-          'order_by=codSepararEstoque&order_direction=DESC',
-        );
+        expect(page1.buildOrderByQuery(), 'order_by=codSepararEstoque&order_direction=DESC');
+        expect(page2.buildOrderByQuery(), 'order_by=codSepararEstoque&order_direction=DESC');
 
         // Verifica se os offsets estão corretos
         expect(page1.buildCompleteQuery(), contains('OFFSET=0'));
@@ -671,14 +592,8 @@ void main() {
           ..orderByDesc('codSepararEstoque');
 
         // Verifica se o campo correto está sendo usado (com aspas simples)
-        expect(
-          queryBuilder.buildCompleteQuery(),
-          contains('CodSepararEstoque=\'123\''),
-        );
-        expect(
-          queryBuilder.buildOrderByQuery(),
-          'order_by=codSepararEstoque&order_direction=DESC',
-        );
+        expect(queryBuilder.buildCompleteQuery(), contains('CodSepararEstoque=\'123\''));
+        expect(queryBuilder.buildOrderByQuery(), 'order_by=codSepararEstoque&order_direction=DESC');
       });
     });
   });

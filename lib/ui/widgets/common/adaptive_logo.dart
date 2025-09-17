@@ -22,9 +22,7 @@ class AdaptiveLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
-    final logoPath = isDarkTheme
-        ? AppAssets.logSe7eWhite
-        : AppAssets.logSe7eBlack;
+    final logoPath = isDarkTheme ? AppAssets.logSe7eWhite : AppAssets.logSe7eBlack;
 
     return Image.asset(
       logoPath,
@@ -33,11 +31,7 @@ class AdaptiveLogo extends StatelessWidget {
       fit: fit,
       errorBuilder: (context, error, stackTrace) {
         return fallback ??
-            Icon(
-              Icons.qr_code_scanner,
-              size: width ?? height ?? 60,
-              color: Theme.of(context).colorScheme.primary,
-            );
+            Icon(Icons.qr_code_scanner, size: width ?? height ?? 60, color: Theme.of(context).colorScheme.primary);
       },
     );
   }
@@ -74,18 +68,10 @@ class AdaptiveLogoContainer extends StatelessWidget {
             : theme.colorScheme.surface.withValues(alpha: 1.0),
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: showShadow
-            ? [
-                BoxShadow(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.0),
-                  offset: const Offset(0, 8),
-                ),
-              ]
+            ? [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.0), offset: const Offset(0, 8))]
             : null,
 
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.0),
-          width: 0.0,
-        ),
+        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.0), width: 0.0),
       ),
       child: AdaptiveLogo(
         width: width != null ? width! * 0.3 : null,

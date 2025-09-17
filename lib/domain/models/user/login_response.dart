@@ -8,10 +8,7 @@ class LoginResponse {
   LoginResponse({required this.message, required this.user});
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
-    return LoginResponse(
-      message: json['message'],
-      user: AppUser.fromJson(json['user']),
-    );
+    return LoginResponse(message: json['message'], user: AppUser.fromJson(json['user']));
   }
 
   @override

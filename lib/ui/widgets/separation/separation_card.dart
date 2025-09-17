@@ -7,12 +7,7 @@ class SeparationCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onSeparate;
 
-  const SeparationCard({
-    super.key,
-    required this.separation,
-    this.onTap,
-    this.onSeparate,
-  });
+  const SeparationCard({super.key, required this.separation, this.onTap, this.onSeparate});
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +19,7 @@ class SeparationCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.outline.withOpacity(0.1),
-          width: 1,
-        ),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.1), width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -67,20 +59,14 @@ class SeparationCard extends StatelessWidget {
                     ),
                     // Status badge
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         color: separation.situacao.color,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         separation.situacao.description,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: theme.textTheme.labelMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -141,8 +127,7 @@ class SeparationCard extends StatelessWidget {
                 ),
 
                 // Observações (se houver)
-                if (separation.observacao != null &&
-                    separation.observacao!.isNotEmpty) ...[
+                if (separation.observacao != null && separation.observacao!.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   _buildInfoRow(
                     context,
@@ -195,9 +180,7 @@ class SeparationCard extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                 maxLines: maxLines,
                 overflow: maxLines != null ? TextOverflow.ellipsis : null,
               ),
@@ -230,18 +213,11 @@ class SeparationCard extends StatelessWidget {
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 0,
         ),
         icon: const Icon(Icons.inventory_2, size: 20),
-        label: Text(
-          'Separar',
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        label: Text('Separar', style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -253,9 +229,7 @@ class SeparationCard extends StatelessWidget {
       // Fallback: mostrar mensagem de desenvolvimento
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Separação ${separation.codSepararEstoque} - Funcionalidade em desenvolvimento',
-          ),
+          content: Text('Separação ${separation.codSepararEstoque} - Funcionalidade em desenvolvimento'),
           duration: const Duration(seconds: 2),
           backgroundColor: Theme.of(context).colorScheme.primary,
         ),

@@ -28,8 +28,7 @@ class AppStrings {
   static const String logout = 'Sair';
   static const String registerText = 'Cadastrar';
   static const String registerTitle = 'Criar Nova Conta';
-  static const String registerSubtitle =
-      'Preencha os dados para criar sua conta';
+  static const String registerSubtitle = 'Preencha os dados para criar sua conta';
   static const String name = 'Nome';
   static const String nameHint = 'Digite seu nome completo';
   static const String confirmPassword = 'Confirmar Senha';
@@ -44,12 +43,10 @@ class AppStrings {
   // === VALIDAÇÕES LOGIN ===
   static const String usernameRequired = 'Por favor, digite seu usuário';
   static const String passwordRequired = 'Por favor, digite sua senha';
-  static const String passwordMinLength =
-      'A senha deve ter pelo menos 4 caracteres';
+  static const String passwordMinLength = 'A senha deve ter pelo menos 4 caracteres';
   static const String nameRequired = 'Por favor, digite seu nome';
   static const String nameMaxLength = 'Nome deve ter no máximo 30 caracteres';
-  static const String passwordMaxLength =
-      'Senha deve ter no máximo 60 caracteres';
+  static const String passwordMaxLength = 'Senha deve ter no máximo 60 caracteres';
   static const String confirmPasswordRequired = 'Por favor, confirme sua senha';
   static const String passwordsDoNotMatch = 'As senhas não coincidem';
   static const String registerSuccess = 'Conta criada com sucesso!';
@@ -88,23 +85,19 @@ class AppStrings {
   static const String genericError = 'Ocorreu um erro inesperado';
   static const String networkError = 'Erro de conexão de rede';
   static const String timeoutError = 'Tempo limite de conexão excedido';
-  static const String serverNotConfigured =
-      'Servidor não configurado! Configure o servidor antes de fazer login.';
-  static const String serverNotTested =
-      'Servidor não testado! Teste a conexão com o servidor antes de fazer login.';
+  static const String serverNotConfigured = 'Servidor não configurado! Configure o servidor antes de fazer login.';
+  static const String serverNotTested = 'Servidor não testado! Teste a conexão com o servidor antes de fazer login.';
 
   // === MENSAGENS DE ERRO ESPECÍFICAS ===
   static const String loadConfigError = 'Erro ao carregar configuração';
   static const String resetConfigError = 'Erro ao resetar configuração';
   static const String apiUrlEmptyError = 'URL da API não pode estar vazia';
-  static const String portRangeError =
-      'Porta deve ser um número entre 1 e 65535';
+  static const String portRangeError = 'Porta deve ser um número entre 1 e 65535';
   static const String invalidServerResponse = 'Resposta inválida do servidor';
   static const String connectionFailedStatus = 'Falha na conexão: Status';
   static const String connectionTimeout = 'Timeout de conexão';
   static const String receiveTimeout = 'Timeout de resposta';
-  static const String connectionCheckError =
-      'Erro de conexão - Verifique URL e porta';
+  static const String connectionCheckError = 'Erro de conexão - Verifique URL e porta';
   static const String badServerResponse = 'Resposta inválida do servidor';
   static const String unexpectedError = 'Erro inesperado';
   static const String connectionFailurePrefix = 'Erro na conexão';
@@ -154,20 +147,16 @@ class AppStrings {
   static const String saveProfile = 'Salvar Alterações';
   static const String profileSaved = 'Perfil atualizado com sucesso!';
   static const String profileError = 'Erro ao atualizar perfil';
-  static const String currentPasswordRequired =
-      'Senha atual é obrigatória para alterar a senha';
+  static const String currentPasswordRequired = 'Senha atual é obrigatória para alterar a senha';
   static const String currentPasswordIncorrect = 'Senha atual incorreta';
   static const String newPasswordRequired = 'Nova senha é obrigatória';
-  static const String passwordMinLengthProfile =
-      'A nova senha deve ter pelo menos 4 caracteres';
-  static const String confirmNewPasswordRequired =
-      'Confirmação da nova senha é obrigatória';
+  static const String passwordMinLengthProfile = 'A nova senha deve ter pelo menos 4 caracteres';
+  static const String confirmNewPasswordRequired = 'Confirmação da nova senha é obrigatória';
   static const String passwordsDoNotMatchProfile = 'As senhas não coincidem';
   static const String photoProcessingError = 'Erro ao processar a imagem';
   static const String passwordChangedSuccess = 'Senha alterada com sucesso!';
   static const String passwordChangeError = 'Erro ao alterar senha';
-  static const String profileAndPasswordSaved =
-      'Perfil e senha atualizados com sucesso!';
+  static const String profileAndPasswordSaved = 'Perfil e senha atualizados com sucesso!';
 
   // === TOOLTIPS ===
   static const String settingsTooltip = 'Abrir configurações';

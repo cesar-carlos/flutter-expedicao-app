@@ -25,8 +25,7 @@ import 'package:exp/domain/models/user/app_user_consultation.dart';
 /// Extension para ExpeditionCancellationModel
 extension ExpeditionCancellationValidation on ExpeditionCancellationModel {
   /// Valida o modelo
-  String? validate() =>
-      ModelValidators.validateExpeditionCancellation(toJson());
+  String? validate() => ModelValidators.validateExpeditionCancellation(toJson());
 
   /// Verifica se o modelo é válido
   bool get isValid => validate() == null;
@@ -49,10 +48,8 @@ extension ExpeditionCartValidation on ExpeditionCartModel {
 }
 
 /// Extension para ExpeditionCartConsultationModel
-extension ExpeditionCartConsultationValidation
-    on ExpeditionCartConsultationModel {
-  String? validate() =>
-      ModelValidators.validateExpeditionCartConsultation(toJson());
+extension ExpeditionCartConsultationValidation on ExpeditionCartConsultationModel {
+  String? validate() => ModelValidators.validateExpeditionCartConsultation(toJson());
   bool get isValid => validate() == null;
   List<String> get validationErrors {
     final error = validate();
@@ -71,10 +68,8 @@ extension ExpeditionCartRouteValidation on ExpeditionCartRouteModel {
 }
 
 /// Extension para ExpeditionCartRouteInternshipModel
-extension ExpeditionCartRouteInternshipValidation
-    on ExpeditionCartRouteInternshipModel {
-  String? validate() =>
-      ModelValidators.validateExpeditionCartRouteInternship(toJson());
+extension ExpeditionCartRouteInternshipValidation on ExpeditionCartRouteInternshipModel {
+  String? validate() => ModelValidators.validateExpeditionCartRouteInternship(toJson());
   bool get isValid => validate() == null;
   List<String> get validationErrors {
     final error = validate();
@@ -83,10 +78,8 @@ extension ExpeditionCartRouteInternshipValidation
 }
 
 /// Extension para ExpeditionCartRouteInternshipGroupModel
-extension ExpeditionCartRouteInternshipGroupValidation
-    on ExpeditionCartRouteInternshipGroupModel {
-  String? validate() =>
-      ModelValidators.validateExpeditionCartRouteInternshipGroup(toJson());
+extension ExpeditionCartRouteInternshipGroupValidation on ExpeditionCartRouteInternshipGroupModel {
+  String? validate() => ModelValidators.validateExpeditionCartRouteInternshipGroup(toJson());
   bool get isValid => validate() == null;
   List<String> get validationErrors {
     final error = validate();
@@ -106,8 +99,7 @@ extension SeparateConsultationValidation on SeparateConsultationModel {
   }
 
   /// Validação com regras de negócio
-  String? validateWithBusinessRules() =>
-      ModelValidators.validateSeparationWithBusinessRules(toJson());
+  String? validateWithBusinessRules() => ModelValidators.validateSeparationWithBusinessRules(toJson());
 
   /// Verifica se é válido com regras de negócio
   bool get isValidWithBusinessRules => validateWithBusinessRules() == null;
@@ -135,8 +127,7 @@ extension SeparateItemValidation on SeparateItemModel {
 
 /// Extension para SeparateItemConsultationModel
 extension SeparateItemConsultationValidation on SeparateItemConsultationModel {
-  String? validate() =>
-      ModelValidators.validateSeparateItemConsultation(toJson());
+  String? validate() => ModelValidators.validateSeparateItemConsultation(toJson());
   bool get isValid => validate() == null;
   List<String> get validationErrors {
     final error = validate();
@@ -155,10 +146,8 @@ extension SeparationItemValidation on SeparationItemModel {
 }
 
 /// Extension para SeparationItemConsultationModel
-extension SeparationItemConsultationValidation
-    on SeparationItemConsultationModel {
-  String? validate() =>
-      ModelValidators.validateSeparationItemConsultation(toJson());
+extension SeparationItemConsultationValidation on SeparationItemConsultationModel {
+  String? validate() => ModelValidators.validateSeparationItemConsultation(toJson());
   bool get isValid => validate() == null;
   List<String> get validationErrors {
     final error = validate();
@@ -178,8 +167,7 @@ extension AppUserValidation on AppUser {
   }
 
   /// Validação com regras de negócio
-  String? validateWithBusinessRules() =>
-      ModelValidators.validateUserWithBusinessRules(toJson());
+  String? validateWithBusinessRules() => ModelValidators.validateUserWithBusinessRules(toJson());
 
   /// Verifica se é válido com regras de negócio
   bool get isValidWithBusinessRules => validateWithBusinessRules() == null;

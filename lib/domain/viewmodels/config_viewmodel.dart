@@ -71,11 +71,7 @@ class ConfigViewModel extends ChangeNotifier {
   }
 
   /// Salva uma nova configuração
-  Future<void> saveConfig({
-    required String apiUrl,
-    required String apiPort,
-    required bool useHttps,
-  }) async {
+  Future<void> saveConfig({required String apiUrl, required String apiPort, required bool useHttps}) async {
     _setSaving(true);
 
     try {
@@ -140,11 +136,7 @@ class ConfigViewModel extends ChangeNotifier {
   }
 
   /// Testa a conexão com a API
-  Future<bool> testConnection({
-    String? apiUrl,
-    String? apiPort,
-    bool? useHttps,
-  }) async {
+  Future<bool> testConnection({String? apiUrl, String? apiPort, bool? useHttps}) async {
     _setTesting(true);
 
     try {
@@ -152,9 +144,7 @@ class ConfigViewModel extends ChangeNotifier {
 
       // Usa parâmetros fornecidos ou configuração atual
       final testUrl = apiUrl ?? _currentConfig.apiUrl;
-      final testPort = apiPort != null
-          ? int.tryParse(apiPort) ?? _currentConfig.apiPort
-          : _currentConfig.apiPort;
+      final testPort = apiPort != null ? int.tryParse(apiPort) ?? _currentConfig.apiPort : _currentConfig.apiPort;
       final testHttps = useHttps ?? _currentConfig.useHttps;
 
       if (testUrl.trim().isEmpty) {
@@ -168,9 +158,7 @@ class ConfigViewModel extends ChangeNotifier {
       }
 
       // Monta URL de teste
-      final protocol = testHttps
-          ? AppStrings.httpsProtocol
-          : AppStrings.httpProtocol;
+      final protocol = testHttps ? AppStrings.httpsProtocol : AppStrings.httpProtocol;
       final fullUrl = '$protocol://$testUrl:$testPort${AppStrings.apiEndpoint}';
 
       // Cria instância do Dio
@@ -187,8 +175,7 @@ class ConfigViewModel extends ChangeNotifier {
       if (response.statusCode == 200) {
         final data = response.data;
 
-        if (data is Map<String, dynamic> &&
-            data['message'] == AppStrings.expectedApiMessage) {
+        if (data is Map<String, dynamic> && data['message'] == AppStrings.expectedApiMessage) {
           // Marca a conexão como testada com sucesso
           _connectionTested = true;
           return true;
@@ -199,8 +186,7 @@ class ConfigViewModel extends ChangeNotifier {
         }
       } else {
         _connectionTested = false;
-        _errorMessage =
-            '${AppStrings.connectionFailedStatus} ${response.statusCode}';
+        _errorMessage = '${AppStrings.connectionFailedStatus} ${response.statusCode}';
         return false;
       }
     } on DioException catch (e) {
@@ -217,8 +203,7 @@ class ConfigViewModel extends ChangeNotifier {
           _errorMessage = AppStrings.connectionCheckError;
           break;
         case DioExceptionType.badResponse:
-          _errorMessage =
-              '${AppStrings.badServerResponse} (${e.response?.statusCode})';
+          _errorMessage = '${AppStrings.badServerResponse} (${e.response?.statusCode})';
           break;
         default:
           _errorMessage = '${AppStrings.connectionFailurePrefix}: ${e.message}';

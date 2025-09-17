@@ -18,9 +18,7 @@ enum ExpeditionCartSituation {
 
   static ExpeditionCartSituation? fromCode(String code) {
     try {
-      return ExpeditionCartSituation.values.firstWhere(
-        (situation) => situation.code == code.toUpperCase(),
-      );
+      return ExpeditionCartSituation.values.firstWhere((situation) => situation.code == code.toUpperCase());
     } catch (e) {
       return null;
     }
@@ -44,34 +42,26 @@ enum ExpeditionCartSituation {
 
   static Map<String, String> getSituacaoMap() {
     return Map.fromEntries(
-      ExpeditionCartSituation.values.map(
-        (situation) => MapEntry(situation.code, situation.description),
-      ),
+      ExpeditionCartSituation.values.map((situation) => MapEntry(situation.code, situation.description)),
     );
   }
 }
 
 extension ExpeditionCartSituationExtension on String {
-  ExpeditionCartSituation? get asCartSituation =>
-      ExpeditionCartSituation.fromCode(this);
-  String get cartSituationDescription =>
-      ExpeditionCartSituation.getDescription(this);
+  ExpeditionCartSituation? get asCartSituation => ExpeditionCartSituation.fromCode(this);
+  String get cartSituationDescription => ExpeditionCartSituation.getDescription(this);
 }
 
 class ExpeditionCartSituationModel {
   ExpeditionCartSituationModel._();
 
-  static String getDescription(String code) =>
-      ExpeditionCartSituation.getDescription(code);
+  static String getDescription(String code) => ExpeditionCartSituation.getDescription(code);
 
-  static bool isValidSituation(String code) =>
-      ExpeditionCartSituation.isValidSituation(code);
+  static bool isValidSituation(String code) => ExpeditionCartSituation.isValidSituation(code);
 
   static List<String> getAllCodes() => ExpeditionCartSituation.getAllCodes();
 
-  static List<String> getAllDescriptions() =>
-      ExpeditionCartSituation.getAllDescriptions();
+  static List<String> getAllDescriptions() => ExpeditionCartSituation.getAllDescriptions();
 
-  static Map<String, String> get situacao =>
-      ExpeditionCartSituation.getSituacaoMap();
+  static Map<String, String> get situacao => ExpeditionCartSituation.getSituacaoMap();
 }

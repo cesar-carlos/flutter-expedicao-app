@@ -35,12 +35,7 @@ class _ProfilePhotoSelectorState extends State<ProfilePhotoSelector> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? image = await _picker.pickImage(
-        source: source,
-        imageQuality: 80,
-        maxWidth: 800,
-        maxHeight: 800,
-      );
+      final XFile? image = await _picker.pickImage(source: source, imageQuality: 80, maxWidth: 800, maxHeight: 800);
 
       if (image != null) {
         final File imageFile = File(image.path);
@@ -123,25 +118,13 @@ class _ProfilePhotoSelectorState extends State<ProfilePhotoSelector> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: colorScheme.surfaceContainerHighest,
-              border: Border.all(
-                color: colorScheme.outline.withValues(alpha: 0.3),
-                width: 2,
-              ),
+              border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3), width: 2),
             ),
             child: _selectedImage != null
                 ? ClipOval(
-                    child: Image.file(
-                      _selectedImage!,
-                      width: widget.size,
-                      height: widget.size,
-                      fit: BoxFit.cover,
-                    ),
+                    child: Image.file(_selectedImage!, width: widget.size, height: widget.size, fit: BoxFit.cover),
                   )
-                : Icon(
-                    Icons.person,
-                    size: widget.size * 0.5,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                : Icon(Icons.person, size: widget.size * 0.5, color: colorScheme.onSurfaceVariant),
           ),
         ),
 
@@ -150,26 +133,14 @@ class _ProfilePhotoSelectorState extends State<ProfilePhotoSelector> {
         // Botão de ação
         TextButton.icon(
           onPressed: _showImageOptions,
-          icon: Icon(
-            _selectedImage != null ? Icons.edit : Icons.add_a_photo,
-            size: 18,
-          ),
-          label: Text(
-            _selectedImage != null
-                ? AppStrings.changePhoto
-                : AppStrings.addPhoto,
-          ),
+          icon: Icon(_selectedImage != null ? Icons.edit : Icons.add_a_photo, size: 18),
+          label: Text(_selectedImage != null ? AppStrings.changePhoto : AppStrings.addPhoto),
         ),
 
         // Texto opcional/obrigatório
         if (widget.isRequired) ...[
           const SizedBox(height: 4),
-          Text(
-            '* Obrigatório',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.error,
-            ),
-          ),
+          Text('* Obrigatório', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.error)),
         ],
       ],
     );

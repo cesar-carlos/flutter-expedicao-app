@@ -17,15 +17,13 @@ class ProfileViewModel extends ChangeNotifier {
   final AuthViewModel _authViewModel;
   final UserSessionService _userSessionService;
 
-  ProfileViewModel(this._userRepository, this._authViewModel)
-    : _userSessionService = locator<UserSessionService>();
+  ProfileViewModel(this._userRepository, this._authViewModel) : _userSessionService = locator<UserSessionService>();
 
   ProfileState _state = ProfileState.idle;
   String? _errorMessage;
   String? _successMessage;
   File? _selectedPhoto;
-  bool _photoWasRemoved =
-      false; // Rastreia se a foto foi removida explicitamente
+  bool _photoWasRemoved = false; // Rastreia se a foto foi removida explicitamente
   String? _currentPassword;
   String? _newPassword;
   String? _confirmPassword;
@@ -59,8 +57,7 @@ class ProfileViewModel extends ChangeNotifier {
     // Limpar erro relacionado à senha quando usuário começar a digitar novamente
     if (_state == ProfileState.error &&
         (_errorMessage?.contains('Senha atual incorreta') == true ||
-            _errorMessage?.contains('Por favor, informe a senha atual') ==
-                true)) {
+            _errorMessage?.contains('Por favor, informe a senha atual') == true)) {
       clearError();
     }
     _safeNotifyListeners();
@@ -70,10 +67,7 @@ class ProfileViewModel extends ChangeNotifier {
     _newPassword = password;
     // Limpar erros relacionados à nova senha
     if (_state == ProfileState.error &&
-        (_errorMessage?.contains(
-                  'A nova senha deve ter pelo menos 4 caracteres',
-                ) ==
-                true ||
+        (_errorMessage?.contains('A nova senha deve ter pelo menos 4 caracteres') == true ||
             _errorMessage?.contains('Nova senha é obrigatória') == true)) {
       clearError();
     }
@@ -84,12 +78,8 @@ class ProfileViewModel extends ChangeNotifier {
     _confirmPassword = password;
     // Limpar erros relacionados à confirmação de senha
     if (_state == ProfileState.error &&
-        (_errorMessage?.contains('A confirmação da senha não confere') ==
-                true ||
-            _errorMessage?.contains(
-                  'Confirmação da nova senha é obrigatória',
-                ) ==
-                true)) {
+        (_errorMessage?.contains('A confirmação da senha não confere') == true ||
+            _errorMessage?.contains('Confirmação da nova senha é obrigatória') == true)) {
       clearError();
     }
     _safeNotifyListeners();
@@ -154,17 +144,12 @@ class ProfileViewModel extends ChangeNotifier {
 
   /// Valida a senha atual com o servidor
   Future<bool> _validateCurrentPasswordWithServer() async {
-    if (currentUser == null ||
-        _currentPassword == null ||
-        _currentPassword!.isEmpty) {
+    if (currentUser == null || _currentPassword == null || _currentPassword!.isEmpty) {
       return false;
     }
 
     try {
-      return await _userRepository.validateCurrentPassword(
-        nome: currentUser!.nome,
-        currentPassword: _currentPassword!,
-      );
+      return await _userRepository.validateCurrentPassword(nome: currentUser!.nome, currentPassword: _currentPassword!);
     } catch (e) {
       debugPrint('Erro ao validar senha atual: $e');
       return false;

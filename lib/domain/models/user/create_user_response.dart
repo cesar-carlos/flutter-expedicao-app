@@ -4,11 +4,7 @@ class CreateUserResponse {
   final String ativo;
   final String nome;
 
-  CreateUserResponse({
-    required this.codLoginApp,
-    required this.ativo,
-    required this.nome,
-  });
+  CreateUserResponse({required this.codLoginApp, required this.ativo, required this.nome});
 
   factory CreateUserResponse.fromJson(Map<String, dynamic> json) {
     // Validações dos campos obrigatórios
@@ -23,9 +19,7 @@ class CreateUserResponse {
     }
 
     return CreateUserResponse(
-      codLoginApp: json['CodLoginApp'] is int
-          ? json['CodLoginApp']
-          : int.parse(json['CodLoginApp'].toString()),
+      codLoginApp: json['CodLoginApp'] is int ? json['CodLoginApp'] : int.parse(json['CodLoginApp'].toString()),
       ativo: json['Ativo'].toString(),
       nome: json['Nome'].toString(),
     );

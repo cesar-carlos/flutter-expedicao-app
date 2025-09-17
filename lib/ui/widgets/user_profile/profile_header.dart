@@ -22,24 +22,13 @@ class ProfileHeader extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            colorScheme.primary.withOpacity(0.1),
-            colorScheme.secondary.withOpacity(0.05),
-          ],
+          colors: [colorScheme.primary.withOpacity(0.1), colorScheme.secondary.withOpacity(0.05)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colorScheme.primary.withOpacity(0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.primary.withOpacity(0.1),
-            offset: const Offset(0, 8),
-          ),
-        ],
+        border: Border.all(color: colorScheme.primary.withOpacity(0.2), width: 1),
+        boxShadow: [BoxShadow(color: colorScheme.primary.withOpacity(0.1), offset: const Offset(0, 8))],
       ),
       child: Column(
         children: [
@@ -48,17 +37,11 @@ class ProfileHeader extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  colorScheme.primary.withOpacity(0.15),
-                  colorScheme.primary.withOpacity(0.08),
-                ],
+                colors: [colorScheme.primary.withOpacity(0.15), colorScheme.primary.withOpacity(0.08)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
-              ),
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
             ),
             child: Column(
               children: [
@@ -88,22 +71,10 @@ class ProfileHeader extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: user.isActive ? Colors.green : Colors.grey,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: colorScheme.surface,
-                            width: 3,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          border: Border.all(color: colorScheme.surface, width: 3),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), offset: const Offset(0, 2))],
                         ),
-                        child: Icon(
-                          user.isActive ? Icons.check : Icons.close,
-                          size: 12,
-                          color: Colors.white,
-                        ),
+                        child: Icon(user.isActive ? Icons.check : Icons.close, size: 12, color: Colors.white),
                       ),
                     ),
                   ],
@@ -142,22 +113,10 @@ class ProfileHeader extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildIdChip(
-                      context,
-                      'ID',
-                      '${user.codLoginApp}',
-                      Icons.badge,
-                      colorScheme,
-                    ),
+                    _buildIdChip(context, 'ID', '${user.codLoginApp}', Icons.badge, colorScheme),
                     if (user.codUsuario != null) ...[
                       const SizedBox(width: 12),
-                      _buildIdChip(
-                        context,
-                        'CÓDIGO',
-                        '${user.codUsuario}',
-                        Icons.person,
-                        colorScheme,
-                      ),
+                      _buildIdChip(context, 'CÓDIGO', '${user.codUsuario}', Icons.person, colorScheme),
                     ],
                   ],
                 ),
@@ -169,28 +128,14 @@ class ProfileHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildIdChip(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildIdChip(BuildContext context, String label, String value, IconData icon, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: colorScheme.surface.withOpacity(0.9),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.primary.withOpacity(0.3),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.primary.withOpacity(0.1),
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: colorScheme.primary.withOpacity(0.3), width: 1),
+        boxShadow: [BoxShadow(color: colorScheme.primary.withOpacity(0.1), offset: const Offset(0, 2))],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -199,12 +144,7 @@ class ProfileHeader extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             '$label: $value',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: colorScheme.primary,
-              letterSpacing: 0.5,
-            ),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colorScheme.primary, letterSpacing: 0.5),
           ),
         ],
       ),

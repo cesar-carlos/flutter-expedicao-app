@@ -10,8 +10,7 @@ import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/core/network/socket_config.dart';
 
-class ExpeditionCartRepositoryImpl
-    implements BasicRepository<ExpeditionCartModel> {
+class ExpeditionCartRepositoryImpl implements BasicRepository<ExpeditionCartModel> {
   final selectEvent = 'carrinho.select';
   final insertEvent = 'carrinho.insert';
   final updateEvent = 'carrinho.update';
@@ -74,11 +73,7 @@ class ExpeditionCartRepositoryImpl
     final completer = Completer<List<ExpeditionCartModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));
@@ -119,11 +114,7 @@ class ExpeditionCartRepositoryImpl
     final completer = Completer<List<ExpeditionCartModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));
@@ -164,11 +155,7 @@ class ExpeditionCartRepositoryImpl
     final completer = Completer<List<ExpeditionCartModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
       socket.emit(event, jsonEncode(send.toJson()));

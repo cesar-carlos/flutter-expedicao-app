@@ -88,11 +88,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
           SnackBar(
             content: Row(
               children: [
-                Icon(
-                  success ? Icons.check_circle : Icons.error,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                Icon(success ? Icons.check_circle : Icons.error, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -113,15 +109,9 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
   }
 
   String _buildPreviewUrl() {
-    final protocol = _useHttps
-        ? AppStrings.httpsProtocol
-        : AppStrings.httpProtocol;
-    final url = _urlController.text.trim().isNotEmpty
-        ? _urlController.text.trim()
-        : AppStrings.defaultUrl;
-    final port = _portController.text.trim().isNotEmpty
-        ? _portController.text.trim()
-        : AppStrings.defaultPort;
+    final protocol = _useHttps ? AppStrings.httpsProtocol : AppStrings.httpProtocol;
+    final url = _urlController.text.trim().isNotEmpty ? _urlController.text.trim() : AppStrings.defaultUrl;
+    final port = _portController.text.trim().isNotEmpty ? _portController.text.trim() : AppStrings.defaultPort;
 
     return '$protocol://$url:$port${AppStrings.apiEndpoint}';
   }
@@ -175,42 +165,28 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.settings_ethernet,
-                  color: theme.colorScheme.primary,
-                  size: 20,
-                ),
+                Icon(Icons.settings_ethernet, color: theme.colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   AppStrings.serverConfigTitle,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
               AppStrings.configSubtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
             ),
             if (configViewModel.currentConfig.lastUpdated != null) ...[
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(
-                    Icons.schedule,
-                    size: 16,
-                    color: theme.colorScheme.outline,
-                  ),
+                  Icon(Icons.schedule, size: 16, color: theme.colorScheme.outline),
                   const SizedBox(width: 4),
                   Text(
                     '${AppStrings.lastUpdate}: ${_formatDate(configViewModel.currentConfig.lastUpdated!)}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.outline,
-                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline),
                   ),
                 ],
               ),
@@ -260,14 +236,9 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
           child: SwitchListTile(
             title: const Text(AppStrings.useHttps),
             subtitle: const Text(AppStrings.httpsSubtitle),
-            secondary: Icon(
-              _useHttps ? Icons.lock : Icons.lock_open,
-              color: _useHttps ? Colors.green : Colors.grey,
-            ),
+            secondary: Icon(_useHttps ? Icons.lock : Icons.lock_open, color: _useHttps ? Colors.green : Colors.grey),
             value: _useHttps,
-            onChanged: configViewModel.isLoading
-                ? null
-                : (value) => setState(() => _useHttps = value),
+            onChanged: configViewModel.isLoading ? null : (value) => setState(() => _useHttps = value),
           ),
         ),
       ],
@@ -302,9 +273,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withValues(alpha: 0.3),
-                ),
+                border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
               ),
               child: Text(
                 _buildPreviewUrl(),
@@ -330,17 +299,9 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
           child: OutlinedButton.icon(
             onPressed: configViewModel.isTesting ? null : _handleTest,
             icon: configViewModel.isTesting
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.wifi_find),
-            label: Text(
-              configViewModel.isTesting
-                  ? AppStrings.testing
-                  : AppStrings.testConnection,
-            ),
+            label: Text(configViewModel.isTesting ? AppStrings.testing : AppStrings.testConnection),
           ),
         ),
         const SizedBox(height: 12),

@@ -28,10 +28,7 @@ class AppDrawer extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  theme.colorScheme.primary,
-                  theme.colorScheme.primary.withOpacity(0.8),
-                ],
+                colors: [theme.colorScheme.primary, theme.colorScheme.primary.withOpacity(0.8)],
               ),
             ),
             child: DrawerHeader(
@@ -42,10 +39,7 @@ class AppDrawer extends StatelessWidget {
                     right: 0,
                     child: IconButton(
                       onPressed: () => themeViewModel.toggleTheme(),
-                      icon: Icon(
-                        themeViewModel.themeIcon,
-                        color: theme.colorScheme.onPrimary,
-                      ),
+                      icon: Icon(themeViewModel.themeIcon, color: theme.colorScheme.onPrimary),
                       tooltip: themeViewModel.themeTooltip,
                     ),
                   ),
@@ -59,15 +53,10 @@ class AppDrawer extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: theme.colorScheme.onPrimary.withOpacity(0.2),
-                          border: Border.all(
-                            color: theme.colorScheme.onPrimary,
-                            width: 2,
-                          ),
+                          border: Border.all(color: theme.colorScheme.onPrimary, width: 2),
                         ),
                         child: AvatarUtils.buildAvatar(
-                          name: authViewModel.username.isNotEmpty
-                              ? authViewModel.username
-                              : 'Usuário',
+                          name: authViewModel.username.isNotEmpty ? authViewModel.username : 'Usuário',
                           photoBase64: authViewModel.currentUser?.fotoUsuario,
                           backgroundColor: Colors.transparent,
                           textColor: theme.colorScheme.onPrimary,
@@ -80,15 +69,9 @@ class AppDrawer extends StatelessWidget {
 
                       Text(
                         authViewModel.username.isNotEmpty
-                            ? StringUtils.capitalizeWords(
-                                authViewModel.username,
-                              )
+                            ? StringUtils.capitalizeWords(authViewModel.username)
                             : 'Usuário',
-                        style: TextStyle(
-                          color: theme.colorScheme.onPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 16, fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -208,12 +191,8 @@ class AppDrawer extends StatelessWidget {
                     return DrawerMenuTile(
                       iconColor: Color(socketViewModel.connectionStateColor),
                       textColor: Color(socketViewModel.connectionStateColor),
-                      icon: socketViewModel.isConnected
-                          ? Icons.wifi
-                          : Icons.wifi_off,
-                      title: socketViewModel.isConnected
-                          ? 'Conectado'
-                          : 'Desconectado',
+                      icon: socketViewModel.isConnected ? Icons.wifi : Icons.wifi_off,
+                      title: socketViewModel.isConnected ? 'Conectado' : 'Desconectado',
                       onTap: () {
                         if (socketViewModel.isConnected) {
                           socketViewModel.disconnect();
@@ -247,20 +226,14 @@ class AppDrawer extends StatelessWidget {
         title: const Text('Confirmar Saída'),
         content: const Text('Deseja realmente sair do aplicativo?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
               context.read<AuthViewModel>().logout();
             },
-            child: Text(
-              'Sair',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
+            child: Text('Sair', style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
       ),

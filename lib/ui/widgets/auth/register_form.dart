@@ -121,10 +121,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 hintText: AppStrings.confirmPasswordHint,
                 prefixIcon: Icons.lock_outline,
                 showVisibilityToggle: true,
-                validator: (value) => FormValidators.confirmPassword(
-                  value,
-                  _passwordController.text,
-                ),
+                validator: (value) => FormValidators.confirmPassword(value, _passwordController.text),
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: _handleRegister,
               ),
@@ -149,9 +146,7 @@ class _RegisterFormState extends State<RegisterForm> {
               // Link para voltar ao login
               CustomFlatButton(
                 text: AppStrings.backToLogin,
-                onPressed: registerViewModel.isLoading
-                    ? null
-                    : () => context.go('/login'),
+                onPressed: registerViewModel.isLoading ? null : () => context.go('/login'),
                 icon: Icons.arrow_back_outlined,
                 textColor: Theme.of(context).colorScheme.secondary,
                 backgroundColor: Colors.transparent,

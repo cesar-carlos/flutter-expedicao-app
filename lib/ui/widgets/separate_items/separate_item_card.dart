@@ -44,10 +44,7 @@ class SeparateItemCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    Colors.green.withOpacity(0.08),
-                    Colors.green.withOpacity(0.03),
-                  ],
+                  colors: [Colors.green.withOpacity(0.08), Colors.green.withOpacity(0.03)],
                 ),
               )
             : null,
@@ -86,19 +83,13 @@ class SeparateItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildHeader(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           item.nomeProduto,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
@@ -116,12 +107,7 @@ class SeparateItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCodeAndStatus(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-    bool isCompleted,
-  ) {
+  Widget _buildCodeAndStatus(BuildContext context, ThemeData theme, ColorScheme colorScheme, bool isCompleted) {
     return Row(
       children: [
         if (item.codigoBarras != null) ...[
@@ -134,11 +120,7 @@ class SeparateItemCard extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.qr_code,
-                  size: 16,
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                Icon(Icons.qr_code, size: 16, color: colorScheme.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Text(
                   'Código: ${item.codigoBarras}',
@@ -156,9 +138,7 @@ class SeparateItemCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: isCompleted
-                ? Colors.green.withOpacity(0.15)
-                : colorScheme.error.withOpacity(0.1),
+            color: isCompleted ? Colors.green.withOpacity(0.15) : colorScheme.error.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -184,11 +164,7 @@ class SeparateItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildLocationRow(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildLocationRow(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Row(
       children: [
         if (item.nomeSetorEstoque != null) ...[
@@ -201,11 +177,7 @@ class SeparateItemCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.location_on,
-                    size: 16,
-                    color: colorScheme.onTertiaryContainer,
-                  ),
+                  Icon(Icons.location_on, size: 16, color: colorScheme.onTertiaryContainer),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Column(
@@ -213,9 +185,7 @@ class SeparateItemCard extends StatelessWidget {
                       children: [
                         Text(
                           'Setor',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onTertiaryContainer,
-                          ),
+                          style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.onTertiaryContainer),
                         ),
                         Text(
                           '${item.nomeSetorEstoque}',
@@ -245,11 +215,7 @@ class SeparateItemCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.place,
-                    size: 16,
-                    color: colorScheme.onSecondaryContainer,
-                  ),
+                  Icon(Icons.place, size: 16, color: colorScheme.onSecondaryContainer),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Column(
@@ -257,9 +223,7 @@ class SeparateItemCard extends StatelessWidget {
                       children: [
                         Text(
                           'Endereço',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSecondaryContainer,
-                          ),
+                          style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.onSecondaryContainer),
                         ),
                         Text(
                           item.enderecoDescricao ?? item.endereco ?? '',
@@ -282,26 +246,13 @@ class SeparateItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildQuantityRow(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-    bool isCompleted,
-  ) {
+  Widget _buildQuantityRow(BuildContext context, ThemeData theme, ColorScheme colorScheme, bool isCompleted) {
     final quantidadeRestante = item.quantidade - item.quantidadeSeparacao;
 
     return Row(
       children: [
-        Expanded(
-          child: _buildInfoColumn(context, 'UN', item.nomeUnidadeMedida),
-        ),
-        Expanded(
-          child: _buildInfoColumn(
-            context,
-            'Qtd. Total',
-            item.quantidade.toStringAsFixed(2),
-          ),
-        ),
+        Expanded(child: _buildInfoColumn(context, 'UN', item.nomeUnidadeMedida)),
+        Expanded(child: _buildInfoColumn(context, 'Qtd. Total', item.quantidade.toStringAsFixed(2))),
         Expanded(
           child: _buildInfoColumn(
             context,
@@ -315,22 +266,14 @@ class SeparateItemCard extends StatelessWidget {
             context,
             'Qtd. Restante',
             quantidadeRestante.toStringAsFixed(2),
-            color: quantidadeRestante > 0
-                ? colorScheme.tertiary
-                : colorScheme.outline,
+            color: quantidadeRestante > 0 ? colorScheme.tertiary : colorScheme.outline,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildInfoColumn(
-    BuildContext context,
-    String label,
-    String value, {
-    Color? color,
-    int? maxLines,
-  }) {
+  Widget _buildInfoColumn(BuildContext context, String label, String value, {Color? color, int? maxLines}) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -339,10 +282,7 @@ class SeparateItemCard extends StatelessWidget {
       children: [
         Text(
           label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
-          ),
+          style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 4),
@@ -360,11 +300,7 @@ class SeparateItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildActionButton(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
@@ -376,10 +312,7 @@ class SeparateItemCard extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         icon: const Icon(Icons.shopping_cart, size: 20),
-        label: const Text(
-          'Separar Item',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        label: const Text('Separar Item', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
     );
   }

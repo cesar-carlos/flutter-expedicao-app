@@ -33,10 +33,7 @@ class SendQuerySocketDto {
 
   /// Converts this DTO to JSON format for socket communication
   Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{
-      'Session': session,
-      'ResponseIn': responseIn,
-    };
+    final json = <String, dynamic>{'Session': session, 'ResponseIn': responseIn};
 
     // Only include optional fields if they have values
     if (where != null && where!.isNotEmpty) {

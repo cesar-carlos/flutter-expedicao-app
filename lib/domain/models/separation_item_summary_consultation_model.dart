@@ -77,32 +77,22 @@ class SeparationItemSummaryConsultationModel {
       codProduto: codProduto ?? this.codProduto,
       nomeProduto: nomeProduto ?? this.nomeProduto,
       codUnidadeMedida: codUnidadeMedida ?? this.codUnidadeMedida,
-      descricaoUnidadeMedida:
-          descricaoUnidadeMedida ?? this.descricaoUnidadeMedida,
+      descricaoUnidadeMedida: descricaoUnidadeMedida ?? this.descricaoUnidadeMedida,
       codigoBarras: codigoBarras ?? this.codigoBarras,
       codProdutoEndereco: codProdutoEndereco ?? this.codProdutoEndereco,
-      descricaoProdutoEndereco:
-          descricaoProdutoEndereco ?? this.descricaoProdutoEndereco,
+      descricaoProdutoEndereco: descricaoProdutoEndereco ?? this.descricaoProdutoEndereco,
       quantidade: quantidade ?? this.quantidade,
     );
   }
 
-  factory SeparationItemSummaryConsultationModel.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory SeparationItemSummaryConsultationModel.fromJson(Map<String, dynamic> json) {
     try {
       return SeparationItemSummaryConsultationModel(
         codEmpresa: json['CodEmpresa'],
         codSepararEstoque: json['CodSepararEstoque'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(
-          json['Origem'] as String? ?? '',
-        ),
+        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
         codOrigem: json['CodOrigem'],
-        situacao:
-            ExpeditionCartSituation.fromCode(
-              json['Situacao'] as String? ?? '',
-            ) ??
-            ExpeditionCartSituation.vazio,
+        situacao: ExpeditionCartSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionCartSituation.vazio,
         codCarrinhoPercurso: json['CodCarrinhoPercurso'],
         itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
         codCarrinho: json['CodCarrinho'],
@@ -146,10 +136,7 @@ class SeparationItemSummaryConsultationModel {
 
   @override
   int get hashCode =>
-      codEmpresa.hashCode ^
-      codSepararEstoque.hashCode ^
-      codCarrinhoPercurso.hashCode ^
-      itemCarrinhoPercurso.hashCode;
+      codEmpresa.hashCode ^ codSepararEstoque.hashCode ^ codCarrinhoPercurso.hashCode ^ itemCarrinhoPercurso.hashCode;
 
   Map<String, dynamic> toJson() {
     return {

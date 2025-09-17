@@ -24,24 +24,15 @@ class EditableAvatar extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [
-                  colorScheme.primary.withOpacity(0.2),
-                  colorScheme.secondary.withOpacity(0.1),
-                ],
+                colors: [colorScheme.primary.withOpacity(0.2), colorScheme.secondary.withOpacity(0.1)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              border: Border.all(
-                color: colorScheme.primary.withOpacity(0.3),
-                width: 3,
-              ),
+              border: Border.all(color: colorScheme.primary.withOpacity(0.3), width: 3),
             ),
             child: Container(
               margin: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorScheme.surface,
-              ),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: colorScheme.surface),
               child: _buildDynamicAvatar(colorScheme),
             ),
           ),
@@ -55,10 +46,7 @@ class EditableAvatar extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    colorScheme.primary,
-                    colorScheme.primary.withOpacity(0.8),
-                  ],
+                  colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -82,10 +70,7 @@ class EditableAvatar extends StatelessWidget {
         child: Container(
           width: 120,
           height: 120,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: colorScheme.surface,
-          ),
+          decoration: BoxDecoration(shape: BoxShape.circle, color: colorScheme.surface),
           child: Image.file(
             selectedPhoto,
             width: 120,
@@ -112,25 +97,15 @@ class EditableAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
-          colors: [
-            colorScheme.primary.withOpacity(0.8),
-            colorScheme.secondary.withOpacity(0.6),
-          ],
+          colors: [colorScheme.primary.withOpacity(0.8), colorScheme.secondary.withOpacity(0.6)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       child: Center(
         child: Text(
-          user?.nome?.isNotEmpty == true
-              ? user.nome.substring(0, 1).toUpperCase()
-              : 'U',
-          style: TextStyle(
-            fontSize: 48,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-            letterSpacing: 1,
-          ),
+          user?.nome?.isNotEmpty == true ? user.nome.substring(0, 1).toUpperCase() : 'U',
+          style: TextStyle(fontSize: 48, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 1),
         ),
       ),
     );

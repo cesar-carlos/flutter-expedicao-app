@@ -4,11 +4,7 @@ class QueryParam<P> {
   final P value;
   final String operator;
 
-  const QueryParam({
-    required this.key,
-    required this.value,
-    this.operator = '=',
-  });
+  const QueryParam({required this.key, required this.value, this.operator = '='});
 
   /// Creates a parameter with default equals operator
   static QueryParam<P> create<P>(String key, P value) {
@@ -16,11 +12,7 @@ class QueryParam<P> {
   }
 
   /// Creates a parameter with custom operator
-  static QueryParam<P> createWithOperator<P>(
-    String key,
-    P value,
-    String operator,
-  ) {
+  static QueryParam<P> createWithOperator<P>(String key, P value, String operator) {
     return QueryParam<P>(key: key, value: value, operator: operator);
   }
 
@@ -66,10 +58,7 @@ class QueryParam<P> {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is QueryParam<P> &&
-        other.key == key &&
-        other.value == value &&
-        other.operator == operator;
+    return other is QueryParam<P> && other.key == key && other.value == value && other.operator == operator;
   }
 
   @override

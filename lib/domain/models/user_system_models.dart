@@ -39,38 +39,18 @@ class UserSystemModel {
       codUsuario: (map['CodUsuario'] ?? map['codUsuario']) as int,
       nomeUsuario: (map['NomeUsuario'] ?? map['nomeUsuario']) as String,
       ativo: (map['Ativo'] ?? map['ativo']) as bool,
-      codContaFinanceira:
-          (map['CodContaFinanceira'] ?? map['codContaFinanceira']) as String?,
-      nomeContaFinanceira:
-          (map['NomeContaFinanceira'] ?? map['nomeContaFinanceira']) as String?,
-      nomeCaixaOperador:
-          (map['NomeCaixaOperador'] ?? map['nomeCaixaOperador']) as String?,
+      codContaFinanceira: (map['CodContaFinanceira'] ?? map['codContaFinanceira']) as String?,
+      nomeContaFinanceira: (map['NomeContaFinanceira'] ?? map['nomeContaFinanceira']) as String?,
+      nomeCaixaOperador: (map['NomeCaixaOperador'] ?? map['nomeCaixaOperador']) as String?,
       codLoginApp: (map['CodLoginApp'] ?? map['codLoginApp']) as int?,
-      permiteSepararForaSequencia:
-          (map['PermiteSepararForaSequencia'] ??
-                  map['permiteSepararForaSequencia'])
-              as bool,
-      visualizaTodasSeparacoes:
-          (map['VisualizaTodasSeparacoes'] ?? map['visualizaTodasSeparacoes'])
-              as bool,
+      permiteSepararForaSequencia: (map['PermiteSepararForaSequencia'] ?? map['permiteSepararForaSequencia']) as bool,
+      visualizaTodasSeparacoes: (map['VisualizaTodasSeparacoes'] ?? map['visualizaTodasSeparacoes']) as bool,
       permiteConferirForaSequencia:
-          (map['PermiteConferirForaSequencia'] ??
-                  map['permiteConferirForaSequencia'])
-              as bool,
-      visualizaTodasConferencias:
-          (map['VisualizaTodasConferencias'] ??
-                  map['visualizaTodasConferencias'])
-              as bool,
-      salvaCarrinhoOutroUsuario:
-          (map['SalvaCarrinhoOutroUsuario'] ?? map['salvaCarrinhoOutroUsuario'])
-              as bool,
-      editaCarrinhoOutroUsuario:
-          (map['EditaCarrinhoOutroUsuario'] ?? map['editaCarrinhoOutroUsuario'])
-              as bool,
-      excluiCarrinhoOutroUsuario:
-          (map['ExcluiCarrinhoOutroUsuario'] ??
-                  map['excluiCarrinhoOutroUsuario'])
-              as bool,
+          (map['PermiteConferirForaSequencia'] ?? map['permiteConferirForaSequencia']) as bool,
+      visualizaTodasConferencias: (map['VisualizaTodasConferencias'] ?? map['visualizaTodasConferencias']) as bool,
+      salvaCarrinhoOutroUsuario: (map['SalvaCarrinhoOutroUsuario'] ?? map['salvaCarrinhoOutroUsuario']) as bool,
+      editaCarrinhoOutroUsuario: (map['EditaCarrinhoOutroUsuario'] ?? map['editaCarrinhoOutroUsuario']) as bool,
+      excluiCarrinhoOutroUsuario: (map['ExcluiCarrinhoOutroUsuario'] ?? map['excluiCarrinhoOutroUsuario']) as bool,
     );
   }
 
@@ -95,9 +75,7 @@ class UserSystemModel {
   }
 
   bool get hasBasicPermissions {
-    return ativo &&
-        (codContaFinanceira?.isNotEmpty ?? false) &&
-        (nomeContaFinanceira?.isNotEmpty ?? false);
+    return ativo && (codContaFinanceira?.isNotEmpty ?? false) && (nomeContaFinanceira?.isNotEmpty ?? false);
   }
 
   bool get canWorkWithSeparations {
@@ -109,9 +87,7 @@ class UserSystemModel {
   }
 
   bool get canManageOtherCarts {
-    return salvaCarrinhoOutroUsuario ||
-        editaCarrinhoOutroUsuario ||
-        excluiCarrinhoOutroUsuario;
+    return salvaCarrinhoOutroUsuario || editaCarrinhoOutroUsuario || excluiCarrinhoOutroUsuario;
   }
 
   @override
@@ -155,9 +131,7 @@ class UserSystemListResponse {
 
   factory UserSystemListResponse.fromApiResponse(Map<String, dynamic> map) {
     final usersData = map['data'] as List<dynamic>? ?? [];
-    final users = usersData
-        .map((item) => UserSystemModel.fromMap(item as Map<String, dynamic>))
-        .toList();
+    final users = usersData.map((item) => UserSystemModel.fromMap(item as Map<String, dynamic>)).toList();
 
     return UserSystemListResponse(
       users: users,
@@ -174,9 +148,7 @@ class UserSystemListResponse {
     return UserSystemListResponse(
       users:
           (map['users'] as List<dynamic>?)
-              ?.map(
-                (item) => UserSystemModel.fromMap(item as Map<String, dynamic>),
-              )
+              ?.map((item) => UserSystemModel.fromMap(item as Map<String, dynamic>))
               .toList() ??
           [],
       total: map['total'] as int? ?? 0,

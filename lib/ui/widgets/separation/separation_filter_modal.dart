@@ -24,12 +24,8 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
     super.initState();
     final viewModel = context.read<SeparationViewModel>();
 
-    _codSepararEstoqueController = TextEditingController(
-      text: viewModel.codSepararEstoqueFilter ?? '',
-    );
-    _codOrigemController = TextEditingController(
-      text: viewModel.codOrigemFilter ?? '',
-    );
+    _codSepararEstoqueController = TextEditingController(text: viewModel.codSepararEstoqueFilter ?? '');
+    _codOrigemController = TextEditingController(text: viewModel.codOrigemFilter ?? '');
     _selectedOrigem = viewModel.origemFilter;
     _selectedSituacao = viewModel.situacaoFilter;
     _selectedDate = viewModel.dataEmissaoFilter;
@@ -65,19 +61,14 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
               Expanded(
                 child: Text(
                   'Filtros de Separação',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
               Consumer<SeparationViewModel>(
                 builder: (context, viewModel, child) {
                   if (viewModel.hasActiveFilters) {
                     return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
@@ -95,10 +86,7 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
                 },
               ),
               const SizedBox(width: 8),
-              IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close),
-              ),
+              IconButton(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.close)),
             ],
           ),
 
@@ -127,15 +115,9 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
               prefixIcon: Icon(Icons.source),
             ),
             items: [
-              const DropdownMenuItem<String>(
-                value: null,
-                child: Text('Todas as origens'),
-              ),
+              const DropdownMenuItem<String>(value: null, child: Text('Todas as origens')),
               ...ExpeditionOrigem.values.map(
-                (origem) => DropdownMenuItem<String>(
-                  value: origem.code,
-                  child: Text(origem.description),
-                ),
+                (origem) => DropdownMenuItem<String>(value: origem.code, child: Text(origem.description)),
               ),
             ],
             onChanged: (value) {
@@ -170,15 +152,9 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
               prefixIcon: Icon(Icons.info),
             ),
             items: [
-              const DropdownMenuItem<String>(
-                value: null,
-                child: Text('Todas as situações'),
-              ),
+              const DropdownMenuItem<String>(value: null, child: Text('Todas as situações')),
               ...ExpeditionSituation.values.map(
-                (situacao) => DropdownMenuItem<String>(
-                  value: situacao.code,
-                  child: Text(situacao.description),
-                ),
+                (situacao) => DropdownMenuItem<String>(value: situacao.code, child: Text(situacao.description)),
               ),
             ],
             onChanged: (value) {
@@ -201,9 +177,7 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
                 suffixIcon: Icon(Icons.arrow_drop_down),
               ),
               child: Text(
-                _selectedDate != null
-                    ? _formatDate(_selectedDate!)
-                    : 'Selecionar data',
+                _selectedDate != null ? _formatDate(_selectedDate!) : 'Selecionar data',
                 style: theme.textTheme.bodyLarge,
               ),
             ),
@@ -227,11 +201,7 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
                     child: ElevatedButton(
                       onPressed: viewModel.isLoading ? null : _applyFilters,
                       child: viewModel.isLoading
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                           : const Text('Aplicar Filtros'),
                     ),
                   ),

@@ -52,10 +52,7 @@ class QueryBuilder {
   }
 
   /// Adds ORDER BY clause
-  QueryBuilder orderBy(
-    String field, {
-    OrderDirection direction = OrderDirection.asc,
-  }) {
+  QueryBuilder orderBy(String field, {OrderDirection direction = OrderDirection.asc}) {
     _orderBy.add(OrderBy(field: field, direction: direction));
     return this;
   }

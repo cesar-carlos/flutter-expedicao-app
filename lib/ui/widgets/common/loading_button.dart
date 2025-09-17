@@ -34,9 +34,7 @@ class LoadingButton extends StatelessWidget {
         padding: padding,
         backgroundColor: backgroundColor,
         foregroundColor: foregroundColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: borderRadius ?? BorderRadius.zero,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: borderRadius ?? BorderRadius.zero),
       ),
       child: isLoading
           ? SizedBox(
@@ -47,10 +45,7 @@ class LoadingButton extends StatelessWidget {
                 valueColor: AlwaysStoppedAnimation<Color>(loadingColor!),
               ),
             )
-          : Text(
-              text,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
+          : Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
     );
   }
 }

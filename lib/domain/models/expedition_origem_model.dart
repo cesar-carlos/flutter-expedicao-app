@@ -18,9 +18,7 @@ enum ExpeditionOrigem {
   /// Converte uma string para o enum correspondente
   static ExpeditionOrigem? fromCode(String code) {
     try {
-      return ExpeditionOrigem.values.firstWhere(
-        (origem) => origem.code.toUpperCase() == code.toUpperCase(),
-      );
+      return ExpeditionOrigem.values.firstWhere((origem) => origem.code.toUpperCase() == code.toUpperCase());
     } catch (e) {
       return null;
     }
@@ -47,20 +45,13 @@ enum ExpeditionOrigem {
   }
 
   /// Retorna o enum para um código específico com fallback
-  static ExpeditionOrigem fromCodeWithFallback(
-    String code, {
-    ExpeditionOrigem fallback = ExpeditionOrigem.vazio,
-  }) {
+  static ExpeditionOrigem fromCodeWithFallback(String code, {ExpeditionOrigem fallback = ExpeditionOrigem.vazio}) {
     return fromCode(code) ?? fallback;
   }
 
   /// Mapa de códigos para descrições
   static Map<String, String> get origemMap {
-    return Map.fromEntries(
-      ExpeditionOrigem.values.map(
-        (origem) => MapEntry(origem.code, origem.description),
-      ),
-    );
+    return Map.fromEntries(ExpeditionOrigem.values.map((origem) => MapEntry(origem.code, origem.description)));
   }
 }
 
@@ -70,8 +61,7 @@ extension ExpeditionOrigemExtension on String {
   ExpeditionOrigem? get asExpeditionOrigem => ExpeditionOrigem.fromCode(this);
 
   /// Retorna a descrição da origem
-  String get expeditionOrigemDescription =>
-      ExpeditionOrigem.getDescription(this);
+  String get expeditionOrigemDescription => ExpeditionOrigem.getDescription(this);
 
   /// Verifica se é uma origem válida
   bool get isValidExpeditionOrigem => ExpeditionOrigem.isValidOrigem(this);
@@ -82,28 +72,22 @@ class ExpeditionOrigemModel {
   ExpeditionOrigemModel._();
 
   /// Retorna a descrição para um código
-  static String getDescription(String code) =>
-      ExpeditionOrigem.getDescription(code);
+  static String getDescription(String code) => ExpeditionOrigem.getDescription(code);
 
   /// Verifica se um código é válido
-  static bool isValidOrigem(String code) =>
-      ExpeditionOrigem.isValidOrigem(code);
+  static bool isValidOrigem(String code) => ExpeditionOrigem.isValidOrigem(code);
 
   /// Retorna todos os códigos
   static List<String> getAllCodes() => ExpeditionOrigem.getAllCodes();
 
   /// Retorna todas as descrições
-  static List<String> getAllDescriptions() =>
-      ExpeditionOrigem.getAllDescriptions();
+  static List<String> getAllDescriptions() => ExpeditionOrigem.getAllDescriptions();
 
   /// Retorna todas as origens
   static List<ExpeditionOrigem> getAllOrigens() => ExpeditionOrigem.values;
 
   /// Converte código para enum com fallback
-  static ExpeditionOrigem fromCodeWithFallback(
-    String code, {
-    ExpeditionOrigem fallback = ExpeditionOrigem.vazio,
-  }) {
+  static ExpeditionOrigem fromCodeWithFallback(String code, {ExpeditionOrigem fallback = ExpeditionOrigem.vazio}) {
     return ExpeditionOrigem.fromCodeWithFallback(code, fallback: fallback);
   }
 

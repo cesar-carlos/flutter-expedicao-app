@@ -40,10 +40,7 @@ class FormValidators {
       .transform((value) => value.trim());
 
   /// Schema para URL da API
-  static final _apiUrlSchema = z
-      .string()
-      .min(1, message: AppStrings.urlRequired)
-      .transform((value) => value.trim());
+  static final _apiUrlSchema = z.string().min(1, message: AppStrings.urlRequired).transform((value) => value.trim());
 
   /// Schema para porta da API
   static final _apiPortSchema = z
@@ -151,18 +148,12 @@ class FormValidators {
       z
           .map({
             'password': z.string(),
-            'confirmPassword': z.string().min(
-              1,
-              message: AppStrings.confirmPasswordRequired,
-            ),
+            'confirmPassword': z.string().min(1, message: AppStrings.confirmPasswordRequired),
           })
           .refine((data) {
             return data['confirmPassword'] == data['password'];
           }, message: AppStrings.passwordsDoNotMatch)
-          .parse({
-            'password': originalPassword,
-            'confirmPassword': value ?? '',
-          });
+          .parse({'password': originalPassword, 'confirmPassword': value ?? ''});
       return null;
     } catch (e) {
       return e.toString();
@@ -231,11 +222,7 @@ class FormValidators {
       z
           .string()
           .min(1, message: 'Por favor, digite ${fieldName ?? 'este campo'}')
-          .min(
-            minLength,
-            message:
-                '${fieldName ?? 'Este campo'} deve ter pelo menos $minLength caracteres',
-          )
+          .min(minLength, message: '${fieldName ?? 'Este campo'} deve ter pelo menos $minLength caracteres')
           .parse(value);
       return null;
     } catch (e) {
@@ -252,8 +239,7 @@ class FormValidators {
           .optional()
           .refine(
             (value) => value.length <= maxLength,
-            message:
-                '${fieldName ?? 'Este campo'} deve ter no máximo $maxLength caracteres',
+            message: '${fieldName ?? 'Este campo'} deve ter no máximo $maxLength caracteres',
           )
           .parse(value);
       return null;
@@ -326,10 +312,7 @@ class FormValidators {
   });
 
   /// Schema para dados de login
-  static final loginSchema = z.map({
-    'username': _usernameSchema,
-    'password': _passwordSchema,
-  });
+  static final loginSchema = z.map({'username': _usernameSchema, 'password': _passwordSchema});
 
   /// Schema para dados de registro
   static final registerSchema = z.map({
@@ -340,19 +323,13 @@ class FormValidators {
   });
 
   /// Schema para configuração da API
-  static final apiConfigSchema = z.map({
-    'url': _apiUrlSchema,
-    'port': _apiPortSchema,
-    'useHttps': z.bool().optional(),
-  });
+  static final apiConfigSchema = z.map({'url': _apiUrlSchema, 'port': _apiPortSchema, 'useHttps': z.bool().optional()});
 
   // === MÉTODOS DE VALIDAÇÃO AVANÇADA ===
 
   /// Valida filtros de separação completos
   /// Retorna os dados validados ou lança exceção
-  static Map<String, dynamic> validateSeparationFilters(
-    Map<String, dynamic> filters,
-  ) {
+  static Map<String, dynamic> validateSeparationFilters(Map<String, dynamic> filters) {
     try {
       return separationFiltersSchema.parse(filters);
     } catch (e) {
@@ -393,8 +370,9 @@ class FormValidators {
   // === MÉTODOS DE VALIDAÇÃO SEGURA (sem exceções) ===
 
   /// Validação segura que retorna resultado ao invés de exception
-  static ({bool success, Map<String, dynamic>? data, String? error})
-  safeParseSeparationFilters(Map<String, dynamic> filters) {
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeParseSeparationFilters(
+    Map<String, dynamic> filters,
+  ) {
     try {
       final result = separationFiltersSchema.parse(filters);
       return (success: true, data: result, error: null);
@@ -404,8 +382,7 @@ class FormValidators {
   }
 
   /// Validação segura para login
-  static ({bool success, Map<String, dynamic>? data, String? error})
-  safeParseLogin(Map<String, dynamic> data) {
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeParseLogin(Map<String, dynamic> data) {
     try {
       final result = loginSchema.parse(data);
       return (success: true, data: result, error: null);
@@ -415,8 +392,7 @@ class FormValidators {
   }
 
   /// Validação segura para registro
-  static ({bool success, Map<String, dynamic>? data, String? error})
-  safeParseRegister(Map<String, dynamic> data) {
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeParseRegister(Map<String, dynamic> data) {
     try {
       final result = registerSchema.parse(data);
       return (success: true, data: result, error: null);
@@ -426,8 +402,7 @@ class FormValidators {
   }
 
   /// Validação segura para configuração da API
-  static ({bool success, Map<String, dynamic>? data, String? error})
-  safeParseApiConfig(Map<String, dynamic> config) {
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeParseApiConfig(Map<String, dynamic> config) {
     try {
       final result = apiConfigSchema.parse(config);
       return (success: true, data: result, error: null);

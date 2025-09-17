@@ -27,19 +27,13 @@ class SearchStatusInfo extends StatelessWidget {
     } else if (viewModel.state == UserSelectionState.loading) {
       return _buildStatusContainer(
         color: AppColors.primaryWithOpacity(0.1),
-        icon: const SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
+        icon: const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
         text: 'Buscando usuários no servidor...',
         textColor: AppColors.primary,
       );
     } else if (viewModel.state == UserSelectionState.loaded) {
       final allUsers = viewModel.filteredUsers;
-      final availableUsers = allUsers
-          .where((user) => viewModel.isUserAvailable(user))
-          .length;
+      final availableUsers = allUsers.where((user) => viewModel.isUserAvailable(user)).length;
       final blockedUsers = allUsers.length - availableUsers;
 
       return Column(
@@ -73,10 +67,7 @@ class SearchStatusInfo extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(7),
-      ),
+      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(7)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -84,11 +75,7 @@ class SearchStatusInfo extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             text,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+            style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ],
       ),

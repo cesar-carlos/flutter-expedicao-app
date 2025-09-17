@@ -13,9 +13,7 @@ class ApiConfigAdapter extends TypeAdapter<ApiConfig> {
   @override
   ApiConfig read(BinaryReader reader) {
     final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
+    final fields = <int, dynamic>{for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read()};
     return ApiConfig(
       apiUrl: fields[0] as String,
       apiPort: fields[1] as int,
@@ -43,8 +41,5 @@ class ApiConfigAdapter extends TypeAdapter<ApiConfig> {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ApiConfigAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      identical(this, other) || other is ApiConfigAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }

@@ -84,9 +84,7 @@ class SeparateItemModel {
         quantidade: AppHelper.stringToDouble(json['Quantidade']),
         quantidadeInterna: AppHelper.stringToDouble(json['QuantidadeInterna']),
         quantidadeExterna: AppHelper.stringToDouble(json['QuantidadeExterna']),
-        quantidadeSeparacao: AppHelper.stringToDouble(
-          json['QuantidadeSeparacao'],
-        ),
+        quantidadeSeparacao: AppHelper.stringToDouble(json['QuantidadeSeparacao']),
       );
     } catch (_) {
       rethrow;
@@ -122,8 +120,7 @@ class SeparateItemModel {
   }
 
   @override
-  int get hashCode =>
-      codEmpresa.hashCode ^ codSepararEstoque.hashCode ^ item.hashCode;
+  int get hashCode => codEmpresa.hashCode ^ codSepararEstoque.hashCode ^ item.hashCode;
 
   @override
   String toString() {

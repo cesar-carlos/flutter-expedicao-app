@@ -11,10 +11,7 @@ class AppHelper {
     if (value is String) {
       try {
         // Remove formatação se houver (vírgulas, pontos, espaços)
-        final cleanValue = value
-            .replaceAll(',', '.')
-            .replaceAll(' ', '')
-            .replaceAll(RegExp(r'[^\d.-]'), '');
+        final cleanValue = value.replaceAll(',', '.').replaceAll(' ', '').replaceAll(RegExp(r'[^\d.-]'), '');
 
         return double.parse(cleanValue);
       } catch (e) {
@@ -101,9 +98,7 @@ class AppHelper {
       (Match match) => '${match[1]}.',
     );
 
-    return decimalPart.isNotEmpty
-        ? '$formattedInteger,$decimalPart'
-        : formattedInteger;
+    return decimalPart.isNotEmpty ? '$formattedInteger,$decimalPart' : formattedInteger;
   }
 
   /// Converte string para DateTime de forma segura

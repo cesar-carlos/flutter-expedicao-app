@@ -23,10 +23,7 @@ class EventServiceImpl implements EventService {
 
     // Configura o listener no socket se for o primeiro para este evento
     if (_eventListeners[eventName]!.length == 1) {
-      SocketConfig.instance.on(
-        eventName,
-        (data) => _handleEvent(eventName, data),
-      );
+      SocketConfig.instance.on(eventName, (data) => _handleEvent(eventName, data));
     }
   }
 
@@ -34,9 +31,7 @@ class EventServiceImpl implements EventService {
   void unsubscribe(String listenerId) {
     final eventName = _listenerToEvent.remove(listenerId);
     if (eventName != null) {
-      _eventListeners[eventName]?.removeWhere(
-        (listener) => listener.id == listenerId,
-      );
+      _eventListeners[eventName]?.removeWhere((listener) => listener.id == listenerId);
 
       // Remove o listener do socket se não há mais listeners para este evento
       if (_eventListeners[eventName]!.isEmpty) {
@@ -92,9 +87,7 @@ class EventServiceImpl implements EventService {
     // Executa callbacks dos listeners
     for (final listener in listeners) {
       // Se não é para escutar todos os eventos e o evento veio da mesma sessão, pula
-      if (!listener.allEvent &&
-          basicEvent.session == currentSocketId &&
-          basicEvent.session != null) {
+      if (!listener.allEvent && basicEvent.session == currentSocketId && basicEvent.session != null) {
         continue;
       }
 

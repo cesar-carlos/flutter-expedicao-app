@@ -51,9 +51,7 @@ class ModelValidators {
   }
 
   /// Valida ExpeditionCartRouteInternshipModel
-  static String? validateExpeditionCartRouteInternship(
-    Map<String, dynamic> data,
-  ) {
+  static String? validateExpeditionCartRouteInternship(Map<String, dynamic> data) {
     try {
       ExpeditionSchemas.validateCartRouteInternship(data);
       return null;
@@ -63,9 +61,7 @@ class ModelValidators {
   }
 
   /// Valida ExpeditionCartRouteInternshipGroupModel
-  static String? validateExpeditionCartRouteInternshipGroup(
-    Map<String, dynamic> data,
-  ) {
+  static String? validateExpeditionCartRouteInternshipGroup(Map<String, dynamic> data) {
     try {
       ExpeditionSchemas.validateCartRouteInternshipGroup(data);
       return null;
@@ -251,33 +247,25 @@ class ModelValidators {
   /// Valida código de situação
   static String? validateSituationCode(String? code) {
     if (code == null || code.trim().isEmpty) return null; // Opcional
-    return EnumSchemas.isValidSituation(code)
-        ? null
-        : 'Código de situação inválido';
+    return EnumSchemas.isValidSituation(code) ? null : 'Código de situação inválido';
   }
 
   /// Valida código de tipo de entidade
   static String? validateEntityTypeCode(String? code) {
     if (code == null || code.trim().isEmpty) return null; // Opcional
-    return EnumSchemas.isValidEntityType(code)
-        ? null
-        : 'Código de tipo de entidade inválido';
+    return EnumSchemas.isValidEntityType(code) ? null : 'Código de tipo de entidade inválido';
   }
 
   /// Valida status ativo
   static String? validateActiveStatus(String? status) {
     if (status == null || status.trim().isEmpty) return null; // Opcional
-    return EnumSchemas.isValidActiveStatus(status)
-        ? null
-        : 'Status ativo inválido (deve ser S ou N)';
+    return EnumSchemas.isValidActiveStatus(status) ? null : 'Status ativo inválido (deve ser S ou N)';
   }
 
   // === VALIDATORS COMPOSTOS ===
 
   /// Valida dados completos de separação com regras de negócio
-  static String? validateSeparationWithBusinessRules(
-    Map<String, dynamic> data,
-  ) {
+  static String? validateSeparationWithBusinessRules(Map<String, dynamic> data) {
     // Primeira validação: estrutura dos dados
     final structureError = validateSeparateConsultation(data);
     if (structureError != null) return structureError;
@@ -367,8 +355,7 @@ class ModelValidators {
   /// Valida qualquer model usando seu tipo
   static String? validateModel(dynamic model, String modelType) {
     final data = objectToMap(model);
-    if (data == null)
-      return 'Não foi possível converter o modelo para validação';
+    if (data == null) return 'Não foi possível converter o modelo para validação';
 
     switch (modelType.toLowerCase()) {
       // Expedition models

@@ -9,16 +9,11 @@ class RegisterUserParams {
   final String senha;
   final File? profileImage;
 
-  RegisterUserParams({
-    required this.nome,
-    required this.senha,
-    this.profileImage,
-  });
+  RegisterUserParams({required this.nome, required this.senha, this.profileImage});
 }
 
 /// Caso de uso para registrar um novo usuário
-class RegisterUserUseCase
-    implements UseCase<CreateUserResponse, RegisterUserParams> {
+class RegisterUserUseCase implements UseCase<CreateUserResponse, RegisterUserParams> {
   final UserRepository _userRepository;
 
   RegisterUserUseCase(this._userRepository);

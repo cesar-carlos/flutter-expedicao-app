@@ -116,8 +116,7 @@ class FieldsHelper {
     if (cleanCnpj.length != 14) return false;
 
     // Verifica se todos os dígitos são iguais
-    if (cleanCnpj.split('').every((digit) => digit == cleanCnpj[0]))
-      return false;
+    if (cleanCnpj.split('').every((digit) => digit == cleanCnpj[0])) return false;
 
     // Validação do CNPJ
     int sum = 0;

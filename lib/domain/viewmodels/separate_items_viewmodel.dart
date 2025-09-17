@@ -14,21 +14,12 @@ enum SeparateItemsState { initial, loading, loaded, error }
 /// ViewModel para separação de itens específicos
 class SeparateItemsViewModel extends ChangeNotifier {
   final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
-  final BasicConsultationRepository<
-    ExpeditionCartRouteInternshipConsultationModel
-  >
-  _cartRepository;
+  final BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel> _cartRepository;
   final FiltersStorageService _filtersStorage;
 
   SeparateItemsViewModel()
-    : _repository =
-          locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
-      _cartRepository =
-          locator<
-            BasicConsultationRepository<
-              ExpeditionCartRouteInternshipConsultationModel
-            >
-          >(),
+    : _repository = locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
+      _cartRepository = locator<BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel>>(),
       _filtersStorage = locator<FiltersStorageService>();
 
   // === ESTADO ===
@@ -53,19 +44,16 @@ class SeparateItemsViewModel extends ChangeNotifier {
 
   SeparateConsultationModel? get separation => _separation;
   List<SeparateItemConsultationModel> get items => List.unmodifiable(_items);
-  List<ExpeditionCartRouteInternshipConsultationModel> get carts =>
-      List.unmodifiable(_carts);
+  List<ExpeditionCartRouteInternshipConsultationModel> get carts => List.unmodifiable(_carts);
 
   // === ESTATÍSTICAS ===
   int get totalItems => _items.length;
   int get totalCarts => _carts.length;
   bool get hasCartsData => _carts.isNotEmpty;
   bool get cartsLoaded => _cartsLoaded;
-  int get itemsSeparados =>
-      _items.where((item) => item.quantidadeSeparacao > 0).length;
+  int get itemsSeparados => _items.where((item) => item.quantidadeSeparacao > 0).length;
   int get itemsPendentes => totalItems - itemsSeparados;
-  double get percentualConcluido =>
-      totalItems > 0 ? (itemsSeparados / totalItems) * 100 : 0;
+  double get percentualConcluido => totalItems > 0 ? (itemsSeparados / totalItems) * 100 : 0;
 
   // === MÉTODOS PÚBLICOS ===
 
@@ -142,10 +130,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
   }
 
   /// Separa um item com validações de negócio
-  Future<void> separateItem(
-    SeparateItemConsultationModel item,
-    double quantidade,
-  ) async {
+  Future<void> separateItem(SeparateItemConsultationModel item, double quantidade) async {
     if (_disposed) return;
 
     try {
@@ -183,9 +168,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
     final trimmedValue = searchValue.trim();
 
     return _items.any(
-      (item) =>
-          item.codProduto.toString() == trimmedValue ||
-          (item.codigoBarras?.trim() == trimmedValue),
+      (item) => item.codProduto.toString() == trimmedValue || (item.codigoBarras?.trim() == trimmedValue),
     );
   }
 

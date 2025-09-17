@@ -10,20 +10,17 @@ import 'package:exp/data/dtos/send_query_socket_dto.dart';
 import 'package:exp/core/network/socket_config.dart';
 
 class ExpeditionCartRouteInternshipConsultationRepositoryImpl
-    implements
-        BasicConsultationRepository<
-          ExpeditionCartRouteInternshipGroupConsultationModel
-        > {
+    implements BasicConsultationRepository<ExpeditionCartRouteInternshipGroupConsultationModel> {
   final uuid = const Uuid();
   var socket = SocketConfig.instance;
   final selectEvent = 'carrinho.percurso.agrupamento.consulta';
 
   @override
-  Future<List<ExpeditionCartRouteInternshipGroupConsultationModel>>
-  selectConsultation(QueryBuilder queryBuilder) async {
+  Future<List<ExpeditionCartRouteInternshipGroupConsultationModel>> selectConsultation(
+    QueryBuilder queryBuilder,
+  ) async {
     final event = '${socket.id} $selectEvent';
-    final completer =
-        Completer<List<ExpeditionCartRouteInternshipGroupConsultationModel>>();
+    final completer = Completer<List<ExpeditionCartRouteInternshipGroupConsultationModel>>();
     final responseId = uuid.v4();
 
     final send = SendQuerySocketDto(
@@ -47,13 +44,9 @@ class ExpeditionCartRouteInternshipConsultationRepositoryImpl
             return;
           }
 
-          final list = data
-              .map<ExpeditionCartRouteInternshipGroupConsultationModel>((json) {
-                return ExpeditionCartRouteInternshipGroupConsultationModel.fromJson(
-                  json,
-                );
-              })
-              .toList();
+          final list = data.map<ExpeditionCartRouteInternshipGroupConsultationModel>((json) {
+            return ExpeditionCartRouteInternshipGroupConsultationModel.fromJson(json);
+          }).toList();
 
           completer.complete(list);
         } catch (e) {

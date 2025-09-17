@@ -72,39 +72,27 @@ class ExpeditionCartRouteInternshipModel {
       nomeUsuarioInicio: nomeUsuarioInicio ?? this.nomeUsuarioInicio,
       dataFinalizacao: dataFinalizacao ?? this.dataFinalizacao,
       horaFinalizacao: horaFinalizacao ?? this.horaFinalizacao,
-      codUsuarioFinalizacao:
-          codUsuarioFinalizacao ?? this.codUsuarioFinalizacao,
-      nomeUsuarioFinalizacao:
-          nomeUsuarioFinalizacao ?? this.nomeUsuarioFinalizacao,
+      codUsuarioFinalizacao: codUsuarioFinalizacao ?? this.codUsuarioFinalizacao,
+      nomeUsuarioFinalizacao: nomeUsuarioFinalizacao ?? this.nomeUsuarioFinalizacao,
     );
   }
 
-  factory ExpeditionCartRouteInternshipModel.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory ExpeditionCartRouteInternshipModel.fromJson(Map<String, dynamic> json) {
     try {
       return ExpeditionCartRouteInternshipModel(
         codEmpresa: json['CodEmpresa'],
         codCarrinhoPercurso: json['CodCarrinhoPercurso'],
         item: json['Item'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(
-          json['Origem'] as String? ?? '',
-        ),
+        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
         codOrigem: json['CodOrigem'],
         codPercursoEstagio: json['CodPercursoEstagio'],
         codCarrinho: json['CodCarrinho'],
-        situacao:
-            ExpeditionCartSituation.fromCode(
-              json['Situacao'] as String? ?? '',
-            ) ??
-            ExpeditionCartSituation.vazio,
+        situacao: ExpeditionCartSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionCartSituation.vazio,
         dataInicio: DateTime.parse(json['DataInicio']),
         horaInicio: json['HoraInicio'],
         codUsuarioInicio: json['CodUsuarioInicio'],
         nomeUsuarioInicio: json['NomeUsuarioInicio'],
-        dataFinalizacao: AppHelper.tryStringToDateOrNull(
-          json['DataFinalizacao'],
-        ),
+        dataFinalizacao: AppHelper.tryStringToDateOrNull(json['DataFinalizacao']),
         horaFinalizacao: json['HoraFinalizacao'],
         codUsuarioFinalizacao: json['CodUsuarioFinalizacao'],
         nomeUsuarioFinalizacao: json['NomeUsuarioFinalizacao'],
@@ -145,8 +133,7 @@ class ExpeditionCartRouteInternshipModel {
   }
 
   @override
-  int get hashCode =>
-      codEmpresa.hashCode ^ codCarrinhoPercurso.hashCode ^ item.hashCode;
+  int get hashCode => codEmpresa.hashCode ^ codCarrinhoPercurso.hashCode ^ item.hashCode;
 
   /// Retorna o código da situação
   String get situacaoCode => situacao.code;

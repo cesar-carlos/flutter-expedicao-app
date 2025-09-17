@@ -39,13 +39,7 @@ void main() async {
   final themeViewModel = ThemeViewModel(userPreferencesService);
   await themeViewModel.initialize();
 
-  runApp(
-    MyApp(
-      configViewModel: configViewModel,
-      themeViewModel: themeViewModel,
-      socketViewModel: socketViewModel,
-    ),
-  );
+  runApp(MyApp(configViewModel: configViewModel, themeViewModel: themeViewModel, socketViewModel: socketViewModel));
 }
 
 class MyApp extends StatelessWidget {
@@ -53,12 +47,7 @@ class MyApp extends StatelessWidget {
   final ThemeViewModel themeViewModel;
   final SocketViewModel socketViewModel;
 
-  const MyApp({
-    super.key,
-    required this.configViewModel,
-    required this.themeViewModel,
-    required this.socketViewModel,
-  });
+  const MyApp({super.key, required this.configViewModel, required this.themeViewModel, required this.socketViewModel});
 
   @override
   Widget build(BuildContext context) {

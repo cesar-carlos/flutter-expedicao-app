@@ -39,12 +39,7 @@ class ProfileActionButtons extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         gradient: hasChanges
-            ? LinearGradient(
-                colors: [
-                  colorScheme.primary,
-                  colorScheme.primary.withOpacity(0.8),
-                ],
-              )
+            ? LinearGradient(colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)])
             : null,
         borderRadius: BorderRadius.circular(16),
       ),
@@ -54,9 +49,7 @@ class ProfileActionButtons extends StatelessWidget {
           backgroundColor: hasChanges ? AppColors.transparent : null,
           foregroundColor: hasChanges ? AppColors.white : null,
           shadowColor: AppColors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
         child: isLoading
@@ -68,9 +61,7 @@ class ProfileActionButtons extends StatelessWidget {
                     width: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation(
-                        hasChanges ? AppColors.white : colorScheme.primary,
-                      ),
+                      valueColor: AlwaysStoppedAnimation(hasChanges ? AppColors.white : colorScheme.primary),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -91,10 +82,7 @@ class ProfileActionButtons extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     hasChanges ? AppStrings.saveProfile : 'Nenhuma alteração',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -110,9 +98,7 @@ class ProfileActionButtons extends StatelessWidget {
         onPressed: isLoading ? null : onBack,
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: colorScheme.outline),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
         child: Row(
@@ -122,11 +108,7 @@ class ProfileActionButtons extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'Voltar',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
             ),
           ],
         ),
@@ -141,12 +123,7 @@ class ProfileSaveButton extends StatelessWidget {
   final VoidCallback onSave;
   final bool hasChanges;
 
-  const ProfileSaveButton({
-    super.key,
-    required this.viewModel,
-    required this.onSave,
-    required this.hasChanges,
-  });
+  const ProfileSaveButton({super.key, required this.viewModel, required this.onSave, required this.hasChanges});
 
   @override
   Widget build(BuildContext context) {
@@ -158,12 +135,7 @@ class ProfileSaveButton extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         gradient: hasChanges
-            ? LinearGradient(
-                colors: [
-                  colorScheme.primary,
-                  colorScheme.primary.withOpacity(0.8),
-                ],
-              )
+            ? LinearGradient(colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)])
             : null,
         borderRadius: BorderRadius.circular(16),
       ),
@@ -173,9 +145,7 @@ class ProfileSaveButton extends StatelessWidget {
           backgroundColor: hasChanges ? AppColors.transparent : null,
           foregroundColor: hasChanges ? AppColors.white : null,
           shadowColor: AppColors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
         child: isLoading
@@ -187,9 +157,7 @@ class ProfileSaveButton extends StatelessWidget {
                     width: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation(
-                        hasChanges ? AppColors.white : colorScheme.primary,
-                      ),
+                      valueColor: AlwaysStoppedAnimation(hasChanges ? AppColors.white : colorScheme.primary),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -210,10 +178,7 @@ class ProfileSaveButton extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     hasChanges ? AppStrings.saveProfile : 'Nenhuma alteração',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),

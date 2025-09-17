@@ -46,18 +46,12 @@ class AppColors {
   static const Color fontDark = Color(0xFF052F36);
 
   // Transparências e variações
-  static Color primaryWithOpacity(double opacity) =>
-      primary.withValues(alpha: opacity);
-  static Color secondaryWithOpacity(double opacity) =>
-      secondary.withValues(alpha: opacity);
-  static Color successWithOpacity(double opacity) =>
-      success.withValues(alpha: opacity);
-  static Color lightWithOpacity(double opacity) =>
-      light.withValues(alpha: opacity);
-  static Color accentWithOpacity(double opacity) =>
-      accent.withValues(alpha: opacity);
+  static Color primaryWithOpacity(double opacity) => primary.withValues(alpha: opacity);
+  static Color secondaryWithOpacity(double opacity) => secondary.withValues(alpha: opacity);
+  static Color successWithOpacity(double opacity) => success.withValues(alpha: opacity);
+  static Color lightWithOpacity(double opacity) => light.withValues(alpha: opacity);
+  static Color accentWithOpacity(double opacity) => accent.withValues(alpha: opacity);
 
   // Métodos utilitários para cores com opacidade
-  static Color withOpacity(Color color, double opacity) =>
-      color.withValues(alpha: opacity);
+  static Color withOpacity(Color color, double opacity) => color.withValues(alpha: opacity);
 }

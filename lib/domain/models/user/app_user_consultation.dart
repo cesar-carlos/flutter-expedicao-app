@@ -55,8 +55,7 @@ class AppUserConsultation {
       salvaCarrinhoOutroUsuario: json['SalvaCarrinhoOutroUsuario'],
       editaCarrinhoOutroUsuario: json['EditaCarrinhoOutroUsuario'],
       excluiCarrinhoOutroUsuario: json['ExcluiCarrinhoOutroUsuario'],
-      permiteDevolverItemEntregaBalcao:
-          json['PermiteDevolverItemEntregaBalcao'],
+      permiteDevolverItemEntregaBalcao: json['PermiteDevolverItemEntregaBalcao'],
       permiteDevolverItemEmbalagem: json['PermiteDevolverItemEmbalagem'],
     );
   }
@@ -68,43 +67,34 @@ class AppUserConsultation {
   bool get hasSystemUser => codUsuario != null;
 
   /// Verifica se pode separar fora de sequência
-  bool get canSeparateOutOfSequence =>
-      permiteSepararForaSequencia?.toUpperCase() == 'S';
+  bool get canSeparateOutOfSequence => permiteSepararForaSequencia?.toUpperCase() == 'S';
 
   /// Verifica se pode conferir fora de sequência
-  bool get canCheckOutOfSequence =>
-      permiteConferirForaSequencia?.toUpperCase() == 'S';
+  bool get canCheckOutOfSequence => permiteConferirForaSequencia?.toUpperCase() == 'S';
 
   /// Verifica se visualiza todas as separações
-  bool get canViewAllSeparations =>
-      visualizaTodasSeparacoes?.toUpperCase() == 'S';
+  bool get canViewAllSeparations => visualizaTodasSeparacoes?.toUpperCase() == 'S';
 
   /// Verifica se visualiza todas as conferências
-  bool get canViewAllConferences =>
-      visualizaTodasConferencias?.toUpperCase() == 'S';
+  bool get canViewAllConferences => visualizaTodasConferencias?.toUpperCase() == 'S';
 
   /// Verifica se visualiza todas as armazenagens
   bool get canViewAllStorage => visualizaTodasArmazenagem?.toUpperCase() == 'S';
 
   /// Verifica se pode salvar carrinho de outro usuário
-  bool get canSaveOtherUserCart =>
-      salvaCarrinhoOutroUsuario?.toUpperCase() == 'S';
+  bool get canSaveOtherUserCart => salvaCarrinhoOutroUsuario?.toUpperCase() == 'S';
 
   /// Verifica se pode editar carrinho de outro usuário
-  bool get canEditOtherUserCart =>
-      editaCarrinhoOutroUsuario?.toUpperCase() == 'S';
+  bool get canEditOtherUserCart => editaCarrinhoOutroUsuario?.toUpperCase() == 'S';
 
   /// Verifica se pode excluir carrinho de outro usuário
-  bool get canDeleteOtherUserCart =>
-      excluiCarrinhoOutroUsuario?.toUpperCase() == 'S';
+  bool get canDeleteOtherUserCart => excluiCarrinhoOutroUsuario?.toUpperCase() == 'S';
 
   /// Verifica se pode devolver item entrega balcão
-  bool get canReturnCounterDeliveryItem =>
-      permiteDevolverItemEntregaBalcao?.toUpperCase() == 'S';
+  bool get canReturnCounterDeliveryItem => permiteDevolverItemEntregaBalcao?.toUpperCase() == 'S';
 
   /// Verifica se pode devolver item embalagem
-  bool get canReturnPackagingItem =>
-      permiteDevolverItemEmbalagem?.toUpperCase() == 'S';
+  bool get canReturnPackagingItem => permiteDevolverItemEmbalagem?.toUpperCase() == 'S';
 
   Map<String, dynamic> toJson() {
     return {

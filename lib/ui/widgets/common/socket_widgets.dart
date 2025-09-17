@@ -10,31 +10,20 @@ class SocketStatusIndicator extends StatelessWidget {
   final double size;
   final EdgeInsetsGeometry? padding;
 
-  const SocketStatusIndicator({
-    super.key,
-    this.showLabel = true,
-    this.size = 12.0,
-    this.padding,
-  });
+  const SocketStatusIndicator({super.key, this.showLabel = true, this.size = 12.0, this.padding});
 
   @override
   Widget build(BuildContext context) {
     return Consumer<SocketViewModel>(
       builder: (context, socketViewModel, child) {
         final isConnecting =
-            socketViewModel.connectionState ==
-                SocketConnectionState.connecting ||
-            socketViewModel.connectionState ==
-                SocketConnectionState.reconnecting;
+            socketViewModel.connectionState == SocketConnectionState.connecting ||
+            socketViewModel.connectionState == SocketConnectionState.reconnecting;
 
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          padding:
-              padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
+          padding: padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(color: Colors.black.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -61,9 +50,7 @@ class SocketStatusIndicator extends StatelessWidget {
                           height: size * (1.0 + (value * 0.5)),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Color(
-                              socketViewModel.connectionStateColor,
-                            ).withOpacity(0.3 * (1.0 - value)),
+                            color: Color(socketViewModel.connectionStateColor).withOpacity(0.3 * (1.0 - value)),
                           ),
                         );
                       },
@@ -115,12 +102,9 @@ class SocketConnectionButton extends StatelessWidget {
       builder: (context, socketViewModel, child) {
         final isConnected = socketViewModel.isConnected;
         final isConnecting =
-            socketViewModel.connectionState ==
-                SocketConnectionState.connecting ||
-            socketViewModel.connectionState ==
-                SocketConnectionState.reconnecting;
-        final hasError =
-            socketViewModel.connectionState == SocketConnectionState.error;
+            socketViewModel.connectionState == SocketConnectionState.connecting ||
+            socketViewModel.connectionState == SocketConnectionState.reconnecting;
+        final hasError = socketViewModel.connectionState == SocketConnectionState.error;
 
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -139,9 +123,7 @@ class SocketConnectionButton extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Erro na conexão: $e'),
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.error,
+                            backgroundColor: Theme.of(context).colorScheme.error,
                           ),
                         );
                       }
@@ -155,20 +137,12 @@ class SocketConnectionButton extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               child: Text(
                 _getButtonLabel(socketViewModel.connectionState, label),
-                key: ValueKey(
-                  _getButtonLabel(socketViewModel.connectionState, label),
-                ),
+                key: ValueKey(_getButtonLabel(socketViewModel.connectionState, label)),
               ),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: _getButtonColor(
-                context,
-                socketViewModel.connectionState,
-              ),
-              foregroundColor: _getButtonTextColor(
-                context,
-                socketViewModel.connectionState,
-              ),
+              backgroundColor: _getButtonColor(context, socketViewModel.connectionState),
+              foregroundColor: _getButtonTextColor(context, socketViewModel.connectionState),
             ),
           ),
         );
@@ -178,11 +152,7 @@ class SocketConnectionButton extends StatelessWidget {
 
   Widget _buildIcon(bool isConnected, bool isConnecting, bool hasError) {
     if (isConnecting) {
-      return const SizedBox(
-        width: 16,
-        height: 16,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
+      return const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2));
     }
 
     if (hasError) {
@@ -253,16 +223,11 @@ class SocketStatusCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(
-                      Icons.wifi,
-                      color: Color(socketViewModel.connectionStateColor),
-                    ),
+                    Icon(Icons.wifi, color: Color(socketViewModel.connectionStateColor)),
                     const SizedBox(width: 8),
                     Text(
                       'Status WebSocket',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -285,15 +250,10 @@ class SocketStatusCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: SocketConnectionButton(
-                        label: socketViewModel.isConnected
-                            ? 'Desconectar'
-                            : 'Conectar',
-                      ),
+                      child: SocketConnectionButton(label: socketViewModel.isConnected ? 'Desconectar' : 'Conectar'),
                     ),
                     const SizedBox(width: 8),
-                    if (socketViewModel.connectionState ==
-                        SocketConnectionState.error)
+                    if (socketViewModel.connectionState == SocketConnectionState.error)
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => socketViewModel.reconnect(),
@@ -311,27 +271,14 @@ class SocketStatusCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusRow(
-    BuildContext context,
-    String label,
-    String value,
-    Color valueColor,
-  ) {
+  Widget _buildStatusRow(BuildContext context, String label, String value, Color valueColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
         Text(
           value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: valueColor,
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: valueColor, fontWeight: FontWeight.bold),
         ),
       ],
     );

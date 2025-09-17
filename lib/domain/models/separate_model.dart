@@ -76,8 +76,7 @@ class SeparateModel {
       codSepararEstoque: codSepararEstoque ?? this.codSepararEstoque,
       origem: origem ?? this.origem,
       codOrigem: codOrigem ?? this.codOrigem,
-      codTipoOperacaoExpedicao:
-          codTipoOperacaoExpedicao ?? this.codTipoOperacaoExpedicao,
+      codTipoOperacaoExpedicao: codTipoOperacaoExpedicao ?? this.codTipoOperacaoExpedicao,
       tipoEntidade: tipoEntidade ?? this.tipoEntidade,
       codEntidade: codEntidade ?? this.codEntidade,
       nomeEntidade: nomeEntidade ?? this.nomeEntidade,
@@ -87,16 +86,12 @@ class SeparateModel {
       codPrioridade: codPrioridade ?? this.codPrioridade,
       historico: historico ?? this.historico,
       observacao: observacao ?? this.observacao,
-      codMotivoCancelamento:
-          codMotivoCancelamento ?? this.codMotivoCancelamento,
+      codMotivoCancelamento: codMotivoCancelamento ?? this.codMotivoCancelamento,
       dataCancelamento: dataCancelamento ?? this.dataCancelamento,
       horaCancelamento: horaCancelamento ?? this.horaCancelamento,
-      codUsuarioCancelamento:
-          codUsuarioCancelamento ?? this.codUsuarioCancelamento,
-      nomeUsuarioCancelamento:
-          nomeUsuarioCancelamento ?? this.nomeUsuarioCancelamento,
-      observacaoCancelamento:
-          observacaoCancelamento ?? this.observacaoCancelamento,
+      codUsuarioCancelamento: codUsuarioCancelamento ?? this.codUsuarioCancelamento,
+      nomeUsuarioCancelamento: nomeUsuarioCancelamento ?? this.nomeUsuarioCancelamento,
+      observacaoCancelamento: observacaoCancelamento ?? this.observacaoCancelamento,
     );
   }
 
@@ -108,23 +103,17 @@ class SeparateModel {
         origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String),
         codOrigem: json['CodOrigem'] as int,
         codTipoOperacaoExpedicao: json['CodTipoOperacaoExpedicao'] as int,
-        tipoEntidade:
-            EntityType.fromCode(json['TipoEntidade'] as String? ?? '') ??
-            EntityType.cliente,
+        tipoEntidade: EntityType.fromCode(json['TipoEntidade'] as String? ?? '') ?? EntityType.cliente,
         codEntidade: json['CodEntidade'] as int,
         nomeEntidade: json['NomeEntidade'] as String,
-        situacao:
-            ExpeditionSituation.fromCode(json['Situacao'] as String) ??
-            ExpeditionSituation.aguardando,
+        situacao: ExpeditionSituation.fromCode(json['Situacao'] as String) ?? ExpeditionSituation.aguardando,
         data: DateHelper.tryStringToDate(json['Data']),
         hora: json['Hora'] as String? ?? '00:00:00',
         codPrioridade: json['CodPrioridade'] as int,
         historico: json['Historico'] as String?,
         observacao: json['Observacao'] as String?,
         codMotivoCancelamento: json['CodMotivoCancelamento'] as int?,
-        dataCancelamento: DateHelper.tryStringToDateOrNull(
-          json['DataCancelamento'],
-        ),
+        dataCancelamento: DateHelper.tryStringToDateOrNull(json['DataCancelamento']),
         horaCancelamento: json['HoraCancelamento'] as String?,
         codUsuarioCancelamento: json['CodUsuarioCancelamento'] as int?,
         nomeUsuarioCancelamento: json['NomeUsuarioCancelamento'] as String?,
@@ -171,8 +160,7 @@ class SeparateModel {
   /// Retorna a cor da situação
   Color get situacaoColor => situacao.color;
 
-  bool isSituacao(String situacaoToCheck) =>
-      situacao.code.toLowerCase() == situacaoToCheck.toLowerCase();
+  bool isSituacao(String situacaoToCheck) => situacao.code.toLowerCase() == situacaoToCheck.toLowerCase();
 
   String? get cancelInfo {
     if (!isCancelled) return null;
@@ -199,9 +187,7 @@ class SeparateModel {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is SeparateModel &&
-        other.codEmpresa == codEmpresa &&
-        other.codSepararEstoque == codSepararEstoque;
+    return other is SeparateModel && other.codEmpresa == codEmpresa && other.codSepararEstoque == codSepararEstoque;
   }
 
   @override

@@ -18,28 +18,17 @@ class LoginUserUseCase implements UseCase<LoginResponse, LoginUserParams> {
     final nome = params.nome.trim();
 
     if (nome.isEmpty) {
-      throw UserApiException(
-        'Nome de usuário é obrigatório',
-        statusCode: 400,
-        isValidationError: true,
-      );
+      throw UserApiException('Nome de usuário é obrigatório', statusCode: 400, isValidationError: true);
     }
 
     if (params.senha.length < 4) {
-      throw UserApiException(
-        'Senha deve ter pelo menos 4 caracteres',
-        statusCode: 400,
-        isValidationError: true,
-      );
+      throw UserApiException('Senha deve ter pelo menos 4 caracteres', statusCode: 400, isValidationError: true);
     }
 
     final loginResponse = await _userRepository.login(nome, params.senha);
 
     if (!loginResponse.user.isActive) {
-      throw UserApiException(
-        'Usuário não está ativo no sistema',
-        statusCode: 401,
-      );
+      throw UserApiException('Usuário não está ativo no sistema', statusCode: 401);
     }
 
     return loginResponse;

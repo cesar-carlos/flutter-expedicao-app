@@ -12,18 +12,11 @@ class CreateUserResponseDto {
       throw FormatException('User é obrigatório na resposta da API');
     }
 
-    return CreateUserResponseDto(
-      message: json['message'].toString(),
-      user: UserCreatedDto.fromJson(json['user']),
-    );
+    return CreateUserResponseDto(message: json['message'].toString(), user: UserCreatedDto.fromJson(json['user']));
   }
 
   Map<String, dynamic> toDomain() {
-    return {
-      'CodLoginApp': user.codLoginApp,
-      'Ativo': user.ativo,
-      'Nome': user.nome,
-    };
+    return {'CodLoginApp': user.codLoginApp, 'Ativo': user.ativo, 'Nome': user.nome};
   }
 
   Map<String, dynamic> toJson() {
@@ -42,12 +35,7 @@ class UserCreatedDto {
   final String nome;
   final String? fotoUsuario;
 
-  UserCreatedDto({
-    required this.codLoginApp,
-    required this.ativo,
-    required this.nome,
-    this.fotoUsuario,
-  });
+  UserCreatedDto({required this.codLoginApp, required this.ativo, required this.nome, this.fotoUsuario});
 
   factory UserCreatedDto.fromJson(Map<String, dynamic> json) {
     if (json['CodLoginApp'] == null) {
@@ -61,9 +49,7 @@ class UserCreatedDto {
     }
 
     return UserCreatedDto(
-      codLoginApp: json['CodLoginApp'] is int
-          ? json['CodLoginApp']
-          : int.parse(json['CodLoginApp'].toString()),
+      codLoginApp: json['CodLoginApp'] is int ? json['CodLoginApp'] : int.parse(json['CodLoginApp'].toString()),
       ativo: json['Ativo'].toString(),
       nome: json['Nome'].toString(),
       fotoUsuario: json['FotoUsuario']?.toString(),
@@ -75,12 +61,7 @@ class UserCreatedDto {
   bool get hasPhoto => fotoUsuario != null && fotoUsuario!.isNotEmpty;
 
   Map<String, dynamic> toJson() {
-    return {
-      'CodLoginApp': codLoginApp,
-      'Ativo': ativo,
-      'Nome': nome,
-      'FotoUsuario': fotoUsuario,
-    };
+    return {'CodLoginApp': codLoginApp, 'Ativo': ativo, 'Nome': nome, 'FotoUsuario': fotoUsuario};
   }
 
   @override

@@ -14,10 +14,7 @@ class LoginResponseDto {
       throw FormatException('User é obrigatório na resposta da API');
     }
 
-    return LoginResponseDto(
-      message: json['message'].toString(),
-      user: UserDataDto.fromJson(json['user']),
-    );
+    return LoginResponseDto(message: json['message'].toString(), user: UserDataDto.fromJson(json['user']));
   }
 
   LoginResponse toDomain() {
@@ -50,13 +47,7 @@ class UserDataDto {
   final int? codUsuario;
   final String? fotoUsuario;
 
-  UserDataDto({
-    required this.codLoginApp,
-    required this.ativo,
-    required this.nome,
-    this.codUsuario,
-    this.fotoUsuario,
-  });
+  UserDataDto({required this.codLoginApp, required this.ativo, required this.nome, this.codUsuario, this.fotoUsuario});
 
   factory UserDataDto.fromJson(Map<String, dynamic> json) {
     if (json['CodLoginApp'] == null) {
@@ -70,15 +61,11 @@ class UserDataDto {
     }
 
     return UserDataDto(
-      codLoginApp: json['CodLoginApp'] is int
-          ? json['CodLoginApp']
-          : int.parse(json['CodLoginApp'].toString()),
+      codLoginApp: json['CodLoginApp'] is int ? json['CodLoginApp'] : int.parse(json['CodLoginApp'].toString()),
       ativo: json['Ativo'].toString(),
       nome: json['Nome'].toString(),
       codUsuario: json['CodUsuario'] != null
-          ? (json['CodUsuario'] is int
-                ? json['CodUsuario']
-                : int.parse(json['CodUsuario'].toString()))
+          ? (json['CodUsuario'] is int ? json['CodUsuario'] : int.parse(json['CodUsuario'].toString()))
           : null,
       fotoUsuario: json['FotoUsuario']?.toString(),
     );

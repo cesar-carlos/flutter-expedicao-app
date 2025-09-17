@@ -16,16 +16,8 @@ class UserApiService {
   ///
   /// Retorna [CreateUserResponse] em caso de sucesso
   /// Throws [UserApiException] em caso de erro
-  Future<CreateUserResponse> createUser({
-    required String nome,
-    required String senha,
-    File? profileImage,
-  }) async {
-    return await _userRepository.createUser(
-      nome: nome,
-      senha: senha,
-      profileImage: profileImage,
-    );
+  Future<CreateUserResponse> createUser({required String nome, required String senha, File? profileImage}) async {
+    return await _userRepository.createUser(nome: nome, senha: senha, profileImage: profileImage);
   }
 
   /// Busca dados do AppUser por código delegando para o Repository

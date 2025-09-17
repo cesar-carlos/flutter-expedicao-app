@@ -24,11 +24,7 @@ class UserProfileAvatar extends StatelessWidget {
             child: CircleAvatar(
               radius: radius,
               backgroundColor: Colors.grey.shade300,
-              child: Icon(
-                Icons.person,
-                color: Colors.grey.shade600,
-                size: radius,
-              ),
+              child: Icon(Icons.person, color: Colors.grey.shade600, size: radius),
             ),
           );
         }
@@ -54,12 +50,7 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
   final bool showUserInfo;
 
-  const UserAppBar({
-    super.key,
-    required this.title,
-    this.actions,
-    this.showUserInfo = true,
-  });
+  const UserAppBar({super.key, required this.title, this.actions, this.showUserInfo = true});
 
   @override
   Widget build(BuildContext context) {
@@ -67,13 +58,7 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(title),
       actions: [
         // Indicador de WebSocket
-        Center(
-          child: SocketStatusIndicator(
-            showLabel: false,
-            size: 8,
-            padding: EdgeInsets.only(right: 8),
-          ),
-        ),
+        Center(child: SocketStatusIndicator(showLabel: false, size: 8, padding: EdgeInsets.only(right: 8))),
         if (showUserInfo) ...[
           Consumer<AuthViewModel>(
             builder: (context, authViewModel, child) {
@@ -89,28 +74,16 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(
-                            currentUser.nome,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                          Text(currentUser.nome, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                           Text(
                             'ID: ${currentUser.codLoginApp}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade300,
-                            ),
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade300),
                           ),
                         ],
                       ),
                       const SizedBox(width: 8),
                     ],
-                    UserProfileAvatar(
-                      radius: 18,
-                      onTap: () => _showUserMenu(context),
-                    ),
+                    UserProfileAvatar(radius: 18, onTap: () => _showUserMenu(context)),
                   ],
                 ),
               );
@@ -143,48 +116,27 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          currentUser.nome,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        Text(currentUser.nome, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         Text(
                           'ID: ${currentUser.codLoginApp}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
+                          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                         ),
                         if (currentUser.codUsuario != null)
                           Text(
                             'Código: ${currentUser.codUsuario}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                            ),
+                            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                           ),
                         Row(
                           children: [
                             Icon(
-                              currentUser.isActive
-                                  ? Icons.check_circle
-                                  : Icons.cancel,
-                              color: currentUser.isActive
-                                  ? Colors.green
-                                  : Colors.red,
+                              currentUser.isActive ? Icons.check_circle : Icons.cancel,
+                              color: currentUser.isActive ? Colors.green : Colors.red,
                               size: 16,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               currentUser.isActive ? 'Ativo' : 'Inativo',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: currentUser.isActive
-                                    ? Colors.green
-                                    : Colors.red,
-                              ),
+                              style: TextStyle(fontSize: 12, color: currentUser.isActive ? Colors.green : Colors.red),
                             ),
                           ],
                         ),

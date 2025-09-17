@@ -13,8 +13,7 @@ export '../domain/models/expedition_cart_route_internship_consultation_model.dar
 // Models - Expedition Enums
 export '../domain/models/expedition_origem_model.dart';
 export '../domain/models/expedition_item_situation_model.dart';
-export '../domain/models/expedition_situation_model.dart'
-    hide ExpedicaoSituacaoModel;
+export '../domain/models/expedition_situation_model.dart' hide ExpedicaoSituacaoModel;
 export '../domain/models/expedition_cart_situation_model.dart';
 
 // Models - Other

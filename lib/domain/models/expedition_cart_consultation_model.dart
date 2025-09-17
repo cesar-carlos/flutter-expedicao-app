@@ -49,18 +49,12 @@ class ExpeditionCartConsultationModel {
         codCarrinho: json['CodCarrinho'],
         descricaoCarrinho: json['Descricao'],
         ativo: Situation.fromCodeWithFallback(json['Ativo'] as String? ?? ''),
-        situacao:
-            ExpeditionCartSituation.fromCode(
-              json['Situacao'] as String? ?? '',
-            ) ??
-            ExpeditionCartSituation.vazio,
+        situacao: ExpeditionCartSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionCartSituation.vazio,
         codigoBarras: json['CodigoBarras'],
         codCarrinhoPercurso: json['CodCarrinhoPercurso'],
         codPercursoEstagio: json['CodPercursoEstagio'],
         descricaoPercursoEstagio: json['DescricaoPercursoEstagio'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(
-          json['Origem'] as String? ?? '',
-        ),
+        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
         codOrigem: json['CodOrigem'],
         dataInicio: AppHelper.tryStringToDateOrNull(json['DataInicio']),
         horaInicio: json['HoraInicio'],

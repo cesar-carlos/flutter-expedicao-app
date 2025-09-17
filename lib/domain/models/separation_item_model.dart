@@ -96,10 +96,7 @@ class SeparationItemModel {
         item: json['Item'],
         sessionId: json['SessionId'],
         situacao:
-            ExpeditionItemSituation.fromCode(
-              json['Situacao'] as String? ?? '',
-            ) ??
-            ExpeditionItemSituation.pendente,
+            ExpeditionItemSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionItemSituation.pendente,
         codCarrinhoPercurso: json['CodCarrinhoPercurso'],
         itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
         codSeparador: json['CodSeparador'],
@@ -153,8 +150,7 @@ class SeparationItemModel {
   }
 
   @override
-  int get hashCode =>
-      codEmpresa.hashCode ^ codSepararEstoque.hashCode ^ item.hashCode;
+  int get hashCode => codEmpresa.hashCode ^ codSepararEstoque.hashCode ^ item.hashCode;
 
   @override
   String toString() {

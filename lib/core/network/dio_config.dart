@@ -16,9 +16,7 @@ class DioConfig {
   /// Obtém a instância global do Dio
   static Dio get instance {
     if (_dioInstance == null) {
-      throw StateError(
-        'DioConfig não foi inicializado. Chame DioConfig.initialize() primeiro.',
-      );
+      throw StateError('DioConfig não foi inicializado. Chame DioConfig.initialize() primeiro.');
     }
     return _dioInstance!;
   }
@@ -50,10 +48,7 @@ class DioConfig {
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 30),
         sendTimeout: const Duration(seconds: 30),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
         validateStatus: (status) {
           return status != null && status >= 200 && status < 300;
         },
@@ -81,15 +76,11 @@ class DioConfig {
         handler.next(options);
       },
       onResponse: (response, handler) {
-        print(
-          '🟢 [RESPONSE] ${response.statusCode} ${response.requestOptions.path}',
-        );
+        print('🟢 [RESPONSE] ${response.statusCode} ${response.requestOptions.path}');
         handler.next(response);
       },
       onError: (error, handler) {
-        print(
-          '🔴 [ERROR] ${error.response?.statusCode} ${error.requestOptions.path}',
-        );
+        print('🔴 [ERROR] ${error.response?.statusCode} ${error.requestOptions.path}');
         print('🔴 [ERROR] ${error.message}');
         handler.next(error);
       },
@@ -139,11 +130,7 @@ class DioConfig {
         connectTimeout: connectTimeout ?? const Duration(seconds: 10),
         receiveTimeout: receiveTimeout ?? const Duration(seconds: 30),
         sendTimeout: sendTimeout ?? const Duration(seconds: 30),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          ...?customHeaders,
-        },
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json', ...?customHeaders},
       ),
     );
 

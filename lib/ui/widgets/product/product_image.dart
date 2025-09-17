@@ -36,12 +36,7 @@ class ProductImage extends StatelessWidget {
 
   Widget _buildImage() {
     if (imageUrl == null || imageUrl!.isEmpty) {
-      return Image.asset(
-        AppAssets.produtoSemFoto,
-        width: width,
-        height: height,
-        fit: fit,
-      );
+      return Image.asset(AppAssets.produtoSemFoto, width: width, height: height, fit: fit);
     }
 
     if (imageUrl!.startsWith('http')) {
@@ -56,19 +51,13 @@ class ProductImage extends StatelessWidget {
           return Center(
             child: CircularProgressIndicator(
               value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
+                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
                   : null,
             ),
           );
         },
         errorBuilder: (context, error, stackTrace) {
-          return Image.asset(
-            AppAssets.produtoSemFoto,
-            width: width,
-            height: height,
-            fit: fit,
-          );
+          return Image.asset(AppAssets.produtoSemFoto, width: width, height: height, fit: fit);
         },
       );
     }
@@ -79,12 +68,7 @@ class ProductImage extends StatelessWidget {
       height: height,
       fit: fit,
       errorBuilder: (context, error, stackTrace) {
-        return Image.asset(
-          AppAssets.produtoSemFoto,
-          width: width,
-          height: height,
-          fit: fit,
-        );
+        return Image.asset(AppAssets.produtoSemFoto, width: width, height: height, fit: fit);
       },
     );
   }

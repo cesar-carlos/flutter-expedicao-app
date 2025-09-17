@@ -180,9 +180,7 @@ class SeparateItemConsultationModel {
         quantidade: AppHelper.stringToDouble(json['Quantidade']),
         quantidadeInterna: AppHelper.stringToDouble(json['QuantidadeInterna']),
         quantidadeExterna: AppHelper.stringToDouble(json['QuantidadeExterna']),
-        quantidadeSeparacao: AppHelper.stringToDouble(
-          json['QuantidadeSeparacao'],
-        ),
+        quantidadeSeparacao: AppHelper.stringToDouble(json['QuantidadeSeparacao']),
       );
     } catch (_) {
       rethrow;

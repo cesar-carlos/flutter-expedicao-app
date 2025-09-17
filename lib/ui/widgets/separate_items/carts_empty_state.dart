@@ -14,11 +14,7 @@ class CartsEmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.shopping_cart_outlined,
-              size: 64,
-              color: colorScheme.outline,
-            ),
+            Icon(Icons.shopping_cart_outlined, size: 64, color: colorScheme.outline),
             const SizedBox(height: 16),
             Text(
               'Nenhum carrinho',
@@ -30,9 +26,7 @@ class CartsEmptyState extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Os carrinhos aparecerão aqui quando você separar itens',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+              style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
           ],

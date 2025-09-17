@@ -10,20 +10,15 @@ import 'package:exp/data/dtos/send_query_socket_dto.dart';
 import 'package:exp/core/network/socket_config.dart';
 
 class ExpeditionCartRouteInternshipConsultationRepositoryImpl
-    implements
-        BasicConsultationRepository<
-          ExpeditionCartRouteInternshipConsultationModel
-        > {
+    implements BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel> {
   final uuid = const Uuid();
   var socket = SocketConfig.instance;
   final selectEvent = 'carrinho.percurso.estagio.consulta';
 
   @override
-  Future<List<ExpeditionCartRouteInternshipConsultationModel>>
-  selectConsultation(QueryBuilder queryBuilder) async {
+  Future<List<ExpeditionCartRouteInternshipConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
     final event = '${socket.id} $selectEvent';
-    final completer =
-        Completer<List<ExpeditionCartRouteInternshipConsultationModel>>();
+    final completer = Completer<List<ExpeditionCartRouteInternshipConsultationModel>>();
     final responseId = uuid.v4();
 
     final send = SendQuerySocketDto(
@@ -47,13 +42,9 @@ class ExpeditionCartRouteInternshipConsultationRepositoryImpl
             return;
           }
 
-          final list = data.map<ExpeditionCartRouteInternshipConsultationModel>(
-            (json) {
-              return ExpeditionCartRouteInternshipConsultationModel.fromJson(
-                json,
-              );
-            },
-          ).toList();
+          final list = data.map<ExpeditionCartRouteInternshipConsultationModel>((json) {
+            return ExpeditionCartRouteInternshipConsultationModel.fromJson(json);
+          }).toList();
 
           completer.complete(list);
         } catch (e) {

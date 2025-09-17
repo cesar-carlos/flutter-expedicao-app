@@ -24,19 +24,13 @@ class SeparationInfoDialog extends StatelessWidget {
           _buildInfoRow('Prioridade', separation.nomePrioridade),
           const SizedBox(height: 8),
           _buildInfoRow('Data', _formatDate(separation.dataEmissao)),
-          if (separation.observacao != null &&
-              separation.observacao!.isNotEmpty) ...[
+          if (separation.observacao != null && separation.observacao!.isNotEmpty) ...[
             const SizedBox(height: 8),
             _buildInfoRow('Observação', separation.observacao!),
           ],
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Fechar'),
-        ),
-      ],
+      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar'))],
     );
   }
 
@@ -46,10 +40,7 @@ class SeparationInfoDialog extends StatelessWidget {
       children: [
         SizedBox(
           width: 80,
-          child: Text(
-            '$label:',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
+          child: Text('$label:', style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
         Expanded(child: Text(value)),
       ],

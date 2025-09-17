@@ -39,10 +39,7 @@ class UserSchemas {
 
   /// Schema para LoginRequest
   static final loginRequestSchema = z.map({
-    'username': z
-        .string()
-        .min(1, message: 'Usuário é obrigatório')
-        .transform((value) => value.trim()),
+    'username': z.string().min(1, message: 'Usuário é obrigatório').transform((value) => value.trim()),
     'password': z
         .string()
         .min(1, message: 'Senha é obrigatória')
@@ -70,18 +67,12 @@ class UserSchemas {
         .string()
         .min(1, message: 'Nome é obrigatório')
         .transform((value) => value.trim())
-        .refine(
-          (value) => value.length <= 100,
-          message: 'Nome deve ter no máximo 100 caracteres',
-        ),
+        .refine((value) => value.length <= 100, message: 'Nome deve ter no máximo 100 caracteres'),
     'username': z
         .string()
         .min(1, message: 'Usuário é obrigatório')
         .transform((value) => value.trim())
-        .refine(
-          (value) => value.length <= 50,
-          message: 'Usuário deve ter no máximo 50 caracteres',
-        ),
+        .refine((value) => value.length <= 50, message: 'Usuário deve ter no máximo 50 caracteres'),
     'password': z
         .string()
         .min(4, message: 'Senha deve ter pelo menos 4 caracteres')
@@ -158,10 +149,7 @@ class UserSchemas {
         (value) => RegExp(r'(?=.*[A-Z])').hasMatch(value),
         message: 'Senha deve conter pelo menos uma letra maiúscula',
       )
-      .refine(
-        (value) => RegExp(r'(?=.*\d)').hasMatch(value),
-        message: 'Senha deve conter pelo menos um número',
-      )
+      .refine((value) => RegExp(r'(?=.*\d)').hasMatch(value), message: 'Senha deve conter pelo menos um número')
       .refine(
         (value) => RegExp(r'(?=.*[^\da-zA-Z])').hasMatch(value),
         message: 'Senha deve conter pelo menos um caractere especial',
@@ -172,10 +160,7 @@ class UserSchemas {
     return z
         .map({
           'password': z.string(),
-          'confirmPassword': z.string().min(
-            1,
-            message: 'Confirmação de senha é obrigatória',
-          ),
+          'confirmPassword': z.string().min(1, message: 'Confirmação de senha é obrigatória'),
         })
         .refine((data) {
           return data['confirmPassword'] == originalPassword;
@@ -212,9 +197,7 @@ class UserSchemas {
   }
 
   /// Valida preferências do usuário
-  static Map<String, dynamic> validateUserPreferences(
-    Map<String, dynamic> data,
-  ) {
+  static Map<String, dynamic> validateUserPreferences(Map<String, dynamic> data) {
     try {
       return userPreferencesSchema.parse(data);
     } catch (e) {
@@ -225,8 +208,7 @@ class UserSchemas {
   // === VALIDAÇÃO SEGURA ===
 
   /// Validação segura para login
-  static ({bool success, Map<String, dynamic>? data, String? error})
-  safeValidateLogin(Map<String, dynamic> data) {
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateLogin(Map<String, dynamic> data) {
     try {
       final result = loginRequestSchema.parse(data);
       return (success: true, data: result, error: null);
@@ -236,8 +218,7 @@ class UserSchemas {
   }
 
   /// Validação segura para criação de usuário
-  static ({bool success, Map<String, dynamic>? data, String? error})
-  safeValidateCreateUser(Map<String, dynamic> data) {
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateCreateUser(Map<String, dynamic> data) {
     try {
       final result = createUserRequestSchema.parse(data);
       return (success: true, data: result, error: null);
@@ -268,9 +249,7 @@ class UserSchemas {
   }
 
   /// Valida força da senha
-  static ({bool isStrong, List<String> issues}) validatePasswordStrength(
-    String password,
-  ) {
+  static ({bool isStrong, List<String> issues}) validatePasswordStrength(String password) {
     final issues = <String>[];
 
     if (password.length < 8) {

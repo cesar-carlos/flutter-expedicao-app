@@ -105,10 +105,7 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
                         // Mostrar cartão e botão quando usuário estiver selecionado
                         UserSelectionCard(viewModel: viewModel),
                         const SizedBox(height: 16),
-                        UserConfirmButton(
-                          viewModel: viewModel,
-                          onConfirm: () => _confirmSelection(viewModel),
-                        ),
+                        UserConfirmButton(viewModel: viewModel, onConfirm: () => _confirmSelection(viewModel)),
                         const SizedBox(height: 16),
                         // Botão para voltar à lista
                         SizedBox(
@@ -118,16 +115,11 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.primary,
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             child: const Text(
                               'Escolher Outro Usuário',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -173,20 +165,14 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.red,
-            content: Text(viewModel.errorMessage ?? 'Erro ao vincular usuário'),
-          ),
+          SnackBar(backgroundColor: Colors.red, content: Text(viewModel.errorMessage ?? 'Erro ao vincular usuário')),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro inesperado: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro inesperado: $e'), backgroundColor: Colors.red));
       }
     }
   }

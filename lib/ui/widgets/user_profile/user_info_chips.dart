@@ -26,11 +26,7 @@ class UserInfoChips extends StatelessWidget {
     );
   }
 
-  Widget _buildCompanySection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    ThemeData theme,
-  ) {
+  Widget _buildCompanySection(BuildContext context, ColorScheme colorScheme, ThemeData theme) {
     final systemData = user.userSystemModel;
 
     return Container(
@@ -47,19 +43,13 @@ class UserInfoChips extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(8)),
                 child: Icon(Icons.business, color: Colors.white, size: 20),
               ),
               const SizedBox(width: 12),
               Text(
                 'Informações Corporativas',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.onSurface,
-                ),
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, color: colorScheme.onSurface),
               ),
             ],
           ),
@@ -81,9 +71,7 @@ class UserInfoChips extends StatelessWidget {
                   ),
                 ),
               ],
-              if (systemData?.codEmpresa != null &&
-                  systemData?.nomeContaFinanceira != null)
-                const SizedBox(width: 12),
+              if (systemData?.codEmpresa != null && systemData?.nomeContaFinanceira != null) const SizedBox(width: 12),
               if (systemData?.nomeContaFinanceira != null) ...[
                 Expanded(
                   flex: 2,
@@ -117,11 +105,7 @@ class UserInfoChips extends StatelessWidget {
     );
   }
 
-  Widget _buildPermissionsSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    ThemeData theme,
-  ) {
+  Widget _buildPermissionsSection(BuildContext context, ColorScheme colorScheme, ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -137,19 +121,13 @@ class UserInfoChips extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                decoration: BoxDecoration(color: colorScheme.secondary, borderRadius: BorderRadius.circular(8)),
                 child: Icon(Icons.security, color: Colors.white, size: 20),
               ),
               const SizedBox(width: 12),
               Text(
                 'Permissões e Acessos',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.onSurface,
-                ),
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, color: colorScheme.onSurface),
               ),
             ],
           ),
@@ -209,8 +187,7 @@ class UserInfoChips extends StatelessWidget {
                       'Fora Sequência',
                       'Trabalhar fora da sequência',
                       Icons.shuffle,
-                      user.userSystemModel?.permiteSepararForaSequencia ??
-                          false,
+                      user.userSystemModel?.permiteSepararForaSequencia ?? false,
                       colorScheme,
                       theme,
                     ),
@@ -240,12 +217,7 @@ class UserInfoChips extends StatelessWidget {
         color: colorScheme.surface.withOpacity(0.8),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.primary.withOpacity(0.05),
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: colorScheme.primary.withOpacity(0.05), offset: const Offset(0, 2))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,10 +238,7 @@ class UserInfoChips extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w700,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface, fontWeight: FontWeight.w700),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -298,14 +267,7 @@ class UserInfoChips extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.3)),
-        boxShadow: hasPermission
-            ? [
-                BoxShadow(
-                  color: Colors.green.withOpacity(0.1),
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
+        boxShadow: hasPermission ? [BoxShadow(color: Colors.green.withOpacity(0.1), offset: const Offset(0, 2))] : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,36 +276,23 @@ class UserInfoChips extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
                 child: Icon(icon, size: 18, color: color),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   title,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: theme.textTheme.titleSmall?.copyWith(color: color, fontWeight: FontWeight.w700),
                 ),
               ),
-              Icon(
-                hasPermission ? Icons.check_circle : Icons.cancel,
-                size: 20,
-                color: color,
-              ),
+              Icon(hasPermission ? Icons.check_circle : Icons.cancel, size: 20, color: color),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             description,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: color.withOpacity(0.8),
-              fontWeight: FontWeight.w500,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: color.withOpacity(0.8), fontWeight: FontWeight.w500),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),

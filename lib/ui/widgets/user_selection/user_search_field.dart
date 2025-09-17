@@ -47,9 +47,7 @@ class UserSearchField extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: viewModel.state == UserSelectionState.loading
-                ? null
-                : onPerformSearch,
+            onPressed: viewModel.state == UserSelectionState.loading ? null : onPerformSearch,
             icon: viewModel.state == UserSelectionState.loading
                 ? const SizedBox(
                     width: 16,
@@ -71,9 +69,7 @@ class UserSearchField extends StatelessWidget {
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ),
