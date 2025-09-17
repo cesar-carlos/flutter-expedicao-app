@@ -6,6 +6,8 @@ import 'package:exp/domain/models/user/app_user.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/core/utils/avatar_utils.dart';
+import 'package:exp/data/services/user_session_service.dart';
+import 'package:exp/di/locator.dart';
 
 enum ProfileState { idle, loading, success, error }
 
@@ -13,8 +15,10 @@ enum ProfileState { idle, loading, success, error }
 class ProfileViewModel extends ChangeNotifier {
   final UserRepository _userRepository;
   final AuthViewModel _authViewModel;
+  final UserSessionService _userSessionService;
 
-  ProfileViewModel(this._userRepository, this._authViewModel);
+  ProfileViewModel(this._userRepository, this._authViewModel)
+    : _userSessionService = locator<UserSessionService>();
 
   ProfileState _state = ProfileState.idle;
   String? _errorMessage;
@@ -213,32 +217,28 @@ class ProfileViewModel extends ChangeNotifier {
         }
       }
 
-      // Criar o usuário atualizado
-      final updatedUser = AppUser(
-        codLoginApp: currentUser!.codLoginApp,
-        nome: currentUser!.nome,
-        ativo: currentUser!.ativo,
-        codUsuario: currentUser!.codUsuario,
+      // Criar o usuário atualizado mantendo os dados do sistema
+      final updatedUser = currentUser!.copyWith(
         fotoUsuario: photoBase64,
-        senha: hasPasswordChange
-            ? _newPassword
-            : null, // Inclui nova senha se necessário
+        senha: hasPasswordChange ? _newPassword : null,
       );
 
       // Chamar o repositório para atualizar
       final result = await _userRepository.putAppUser(updatedUser);
 
-      // Atualizar o usuário no AuthViewModel (sem incluir a senha)
-      _authViewModel.updateUserAfterSelection(
-        AppUser(
-          codLoginApp: result.codLoginApp,
-          nome: result.nome,
-          ativo: result.ativo,
-          codUsuario: result.codUsuario,
-          fotoUsuario: photoBase64,
-          // Não incluir senha no usuário do AuthViewModel por segurança
-        ),
+      // Criar usuário final sem senha para segurança
+      final finalUser = currentUser!.copyWith(
+        codLoginApp: result.codLoginApp,
+        nome: result.nome,
+        ativo: result.ativo,
+        codUsuario: result.codUsuario,
+        fotoUsuario: photoBase64,
+        senha: null, // Remove senha por segurança
       );
+
+      // Atualizar no AuthViewModel e persistir na sessão
+      _authViewModel.updateUserAfterSelection(finalUser);
+      await _userSessionService.saveUserSession(finalUser);
 
       // Definir mensagem de sucesso baseada nas alterações feitas
       if (hasPasswordChange) {

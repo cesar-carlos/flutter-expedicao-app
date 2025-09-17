@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 
 import 'package:exp/domain/usecases/login_user_usecase.dart';
 import 'package:exp/domain/models/user/user_models.dart';
+import 'package:exp/data/services/user_session_service.dart';
+import 'package:exp/di/locator.dart';
 
 enum AuthStatus {
   initial,
@@ -20,6 +22,7 @@ class AuthViewModel extends ChangeNotifier {
   bool _isLoginLoading = false;
   AppUser? _currentUser;
   LoginUserUseCase? _loginUserUseCase;
+  final UserSessionService _userSessionService = locator<UserSessionService>();
 
   AuthStatus get status => _status;
   String get errorMessage => _errorMessage;
@@ -38,9 +41,24 @@ class AuthViewModel extends ChangeNotifier {
     _status = AuthStatus.loading;
     notifyListeners();
 
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Verificar se há uma sessão salva
+      final savedUser = await _userSessionService.loadUserSession();
 
-    _status = AuthStatus.unauthenticated;
+      if (savedUser != null) {
+        _currentUser = savedUser;
+        _username = savedUser.nome;
+        _status = AuthStatus.authenticated;
+        debugPrint('Usuário carregado da sessão: ${savedUser.nome}');
+      } else {
+        _status = AuthStatus.unauthenticated;
+        debugPrint('Nenhuma sessão salva encontrada');
+      }
+    } catch (e) {
+      debugPrint('Erro ao verificar sessão salva: $e');
+      _status = AuthStatus.unauthenticated;
+    }
+
     notifyListeners();
   }
 
@@ -71,6 +89,9 @@ class AuthViewModel extends ChangeNotifier {
       _username = loginResponse.user.nome;
       _currentUser = loginResponse.user;
 
+      // Salvar sessão do usuário
+      await _userSessionService.saveUserSession(loginResponse.user);
+
       if (loginResponse.user.codUsuario == null) {
         _status = AuthStatus.needsUserSelection;
       } else {
@@ -98,6 +119,14 @@ class AuthViewModel extends ChangeNotifier {
     _status = AuthStatus.loading;
     notifyListeners();
 
+    try {
+      // Limpar sessão persistida
+      await _userSessionService.clearUserSession();
+      debugPrint('Sessão limpa com sucesso');
+    } catch (e) {
+      debugPrint('Erro ao limpar sessão: $e');
+    }
+
     await Future.delayed(const Duration(milliseconds: 500));
 
     _username = '';
@@ -123,6 +152,12 @@ class AuthViewModel extends ChangeNotifier {
   void updateUserAfterSelection(AppUser updatedUser) {
     _currentUser = updatedUser;
     _status = AuthStatus.authenticated;
+
+    // Salvar sessão atualizada
+    _userSessionService.saveUserSession(updatedUser).catchError((e) {
+      debugPrint('Erro ao salvar sessão atualizada: $e');
+    });
+
     notifyListeners();
   }
 

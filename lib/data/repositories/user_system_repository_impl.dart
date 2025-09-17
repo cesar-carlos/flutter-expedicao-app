@@ -31,7 +31,7 @@ class UserSystemRepositoryImpl implements UserSystemRepository {
   }
 
   @override
-  Future<UserSystemData?> getUserById(int codUsuario) async {
+  Future<UserSystemModel?> getUserById(int codUsuario) async {
     return await _apiService.getUserById(codUsuario);
   }
 

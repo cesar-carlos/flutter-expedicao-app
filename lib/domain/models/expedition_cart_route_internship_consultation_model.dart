@@ -11,7 +11,7 @@ class ExpeditionCartRouteInternshipConsultationModel {
   final ExpeditionOrigem origem;
   final int codOrigem;
   final ExpeditionCartSituation situacao;
-  final String carrinhoAgrupador;
+  final Situation carrinhoAgrupador;
   final int? codCarrinhoAgrupador;
   final int codCarrinho;
   final String nomeCarrinho;
@@ -62,7 +62,7 @@ class ExpeditionCartRouteInternshipConsultationModel {
     ExpeditionOrigem? origem,
     int? codOrigem,
     ExpeditionCartSituation? situacao,
-    String? carrinhoAgrupador,
+    Situation? carrinhoAgrupador,
     int? codCarrinhoAgrupador,
     int? codCarrinho,
     String? nomeCarrinho,
@@ -126,7 +126,9 @@ class ExpeditionCartRouteInternshipConsultationModel {
               json['Situacao'] as String? ?? '',
             ) ??
             ExpeditionCartSituation.vazio,
-        carrinhoAgrupador: json['CarrinhoAgrupador'],
+        carrinhoAgrupador: Situation.fromCodeWithFallback(
+          json['CarrinhoAgrupador'] as String? ?? '',
+        ),
         codCarrinhoAgrupador: json['CodCarrinhoAgrupador'],
         codCarrinho: json['CodCarrinho'],
         nomeCarrinho: json['NomeCarrinho'],
@@ -159,7 +161,7 @@ class ExpeditionCartRouteInternshipConsultationModel {
       'Origem': origem.code,
       'CodOrigem': codOrigem,
       'Situacao': situacao.code,
-      'CarrinhoAgrupador': carrinhoAgrupador,
+      'CarrinhoAgrupador': carrinhoAgrupador.code,
       'CodCarrinhoAgrupador': codCarrinhoAgrupador,
       'CodCarrinho': codCarrinho,
       'NomeCarrinho': nomeCarrinho,
@@ -196,6 +198,12 @@ class ExpeditionCartRouteInternshipConsultationModel {
   /// Retorna a descrição da origem
   String get origemDescription => origem.description;
 
+  /// Retorna o código do carrinho agrupador
+  String get carrinhoAgrupadorCode => carrinhoAgrupador.code;
+
+  /// Retorna a descrição do carrinho agrupador
+  String get carrinhoAgrupadorDescription => carrinhoAgrupador.description;
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -220,7 +228,7 @@ class ExpeditionCartRouteInternshipConsultationModel {
         origem: ${origem.description}, 
         codOrigem: $codOrigem, 
         situacao: ${situacao.description}, 
-        carrinhoAgrupador: $carrinhoAgrupador,
+        carrinhoAgrupador: ${carrinhoAgrupador.description},
         codCarrinhoAgrupador: $codCarrinhoAgrupador,
         codCarrinho: $codCarrinho, 
         nomeCarrinho: $nomeCarrinho, 

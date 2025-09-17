@@ -270,11 +270,6 @@ class SeparateItemsViewModel extends ChangeNotifier {
       final savedFilters = await _filtersStorage.loadSeparationFilters();
 
       if (savedFilters.isEmpty) return;
-
-      // Aplica filtros específicos para itens (se aplicável)
-      // Por exemplo, filtros por grupo de produto, marca, etc.
-
-      debugPrint('Filtros salvos aplicados à consulta de itens: $savedFilters');
     } catch (e) {
       debugPrint('Erro ao aplicar filtros salvos: $e');
       // Não quebra a aplicação se houver erro ao carregar filtros

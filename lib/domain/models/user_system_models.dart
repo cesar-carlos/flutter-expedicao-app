@@ -1,4 +1,4 @@
-class UserSystemData {
+class UserSystemModel {
   final int? codEmpresa;
   final int codUsuario;
   final String nomeUsuario;
@@ -15,7 +15,7 @@ class UserSystemData {
   final bool editaCarrinhoOutroUsuario;
   final bool excluiCarrinhoOutroUsuario;
 
-  const UserSystemData({
+  const UserSystemModel({
     this.codEmpresa,
     required this.codUsuario,
     required this.nomeUsuario,
@@ -33,8 +33,8 @@ class UserSystemData {
     required this.excluiCarrinhoOutroUsuario,
   });
 
-  factory UserSystemData.fromMap(Map<String, dynamic> map) {
-    return UserSystemData(
+  factory UserSystemModel.fromMap(Map<String, dynamic> map) {
+    return UserSystemModel(
       codEmpresa: (map['CodEmpresa'] ?? map['codEmpresa']) as int?,
       codUsuario: (map['CodUsuario'] ?? map['codUsuario']) as int,
       nomeUsuario: (map['NomeUsuario'] ?? map['nomeUsuario']) as String,
@@ -122,7 +122,7 @@ class UserSystemData {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is UserSystemData &&
+    return other is UserSystemModel &&
         other.codEmpresa == codEmpresa &&
         other.codUsuario == codUsuario &&
         other.nomeUsuario == nomeUsuario;
@@ -135,7 +135,7 @@ class UserSystemData {
 }
 
 class UserSystemListResponse {
-  final List<UserSystemData> users;
+  final List<UserSystemModel> users;
   final int total;
   final int? page;
   final int? limit;
@@ -156,7 +156,7 @@ class UserSystemListResponse {
   factory UserSystemListResponse.fromApiResponse(Map<String, dynamic> map) {
     final usersData = map['data'] as List<dynamic>? ?? [];
     final users = usersData
-        .map((item) => UserSystemData.fromMap(item as Map<String, dynamic>))
+        .map((item) => UserSystemModel.fromMap(item as Map<String, dynamic>))
         .toList();
 
     return UserSystemListResponse(
@@ -175,7 +175,7 @@ class UserSystemListResponse {
       users:
           (map['users'] as List<dynamic>?)
               ?.map(
-                (item) => UserSystemData.fromMap(item as Map<String, dynamic>),
+                (item) => UserSystemModel.fromMap(item as Map<String, dynamic>),
               )
               .toList() ??
           [],
@@ -186,7 +186,7 @@ class UserSystemListResponse {
   }
 
   factory UserSystemListResponse.success({
-    required List<UserSystemData> users,
+    required List<UserSystemModel> users,
     int? page,
     int? limit,
     int? totalPages,
@@ -215,11 +215,11 @@ class UserSystemListResponse {
     );
   }
 
-  List<UserSystemData> get activeUsers {
+  List<UserSystemModel> get activeUsers {
     return users.where((user) => user.ativo).toList();
   }
 
-  List<UserSystemData> getUsersByCompany(int codEmpresa) {
+  List<UserSystemModel> getUsersByCompany(int codEmpresa) {
     return users.where((user) => user.codEmpresa == codEmpresa).toList();
   }
 

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:exp/domain/viewmodels/profile_viewmodel.dart';
 import 'package:exp/ui/widgets/common/index.dart';
 import 'package:exp/ui/widgets/user_profile/index.dart';
+import 'package:exp/ui/widgets/user_profile/user_info_chips.dart';
 import 'package:exp/core/constants/app_strings.dart';
 import 'package:exp/core/theme/app_colors.dart';
 
@@ -85,6 +86,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     ProfileHeader(viewModel: viewModel),
+
+                    const SizedBox(height: 24),
+
+                    if (viewModel.currentUser != null)
+                      UserInfoChips(user: viewModel.currentUser!),
 
                     const SizedBox(height: 32),
 

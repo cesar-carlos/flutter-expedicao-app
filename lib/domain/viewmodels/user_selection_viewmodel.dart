@@ -22,8 +22,8 @@ class UserSelectionViewModel extends ChangeNotifier {
   }
 
   UserSelectionState _state = UserSelectionState.initial;
-  List<UserSystemData> _users = [];
-  UserSystemData? _selectedUser;
+  List<UserSystemModel> _users = [];
+  UserSystemModel? _selectedUser;
   AppUser? _currentAppUser;
   String? _errorMessage;
   String _searchQuery = '';
@@ -39,8 +39,8 @@ class UserSelectionViewModel extends ChangeNotifier {
   static const Duration _searchDebounceTime = Duration(milliseconds: 500);
 
   UserSelectionState get state => _state;
-  List<UserSystemData> get users => _users;
-  UserSystemData? get selectedUser => _selectedUser;
+  List<UserSystemModel> get users => _users;
+  UserSystemModel? get selectedUser => _selectedUser;
   AppUser? get currentAppUser => _currentAppUser;
   String? get errorMessage => _errorMessage;
   String get searchQuery => _searchQuery;
@@ -50,7 +50,7 @@ class UserSelectionViewModel extends ChangeNotifier {
   bool get isWaitingForSearch => _isWaitingForSearch;
   int get currentPage => _currentPage;
 
-  List<UserSystemData> get filteredUsers {
+  List<UserSystemModel> get filteredUsers {
     // Agora mostra todos os usuários (disponíveis e vinculados)
     if (_searchQuery.isEmpty) {
       return _users;
@@ -65,7 +65,7 @@ class UserSelectionViewModel extends ChangeNotifier {
   }
 
   // Getter para verificar se usuário está disponível para seleção
-  bool isUserAvailable(UserSystemData user) {
+  bool isUserAvailable(UserSystemModel user) {
     return user.codLoginApp == null;
   }
 
@@ -188,7 +188,7 @@ class UserSelectionViewModel extends ChangeNotifier {
         final Set<int> existingUserCodes = _users
             .map((u) => u.codUsuario)
             .toSet();
-        final List<UserSystemData> newUsers = response.users
+        final List<UserSystemModel> newUsers = response.users
             .where((user) => !existingUserCodes.contains(user.codUsuario))
             .toList();
 
@@ -232,7 +232,7 @@ class UserSelectionViewModel extends ChangeNotifier {
     }
   }
 
-  void selectUser(UserSystemData user) {
+  void selectUser(UserSystemModel user) {
     if (!isUserAvailable(user)) {
       // Usuário já vinculado - mostra aviso
       if (_context != null) {
@@ -274,6 +274,7 @@ class UserSelectionViewModel extends ChangeNotifier {
         ativo: _currentAppUser!.ativo,
         codUsuario: _selectedUser!.codUsuario,
         fotoUsuario: _currentAppUser!.fotoUsuario,
+        userSystemModel: _selectedUser!,
       );
 
       final result = await _userRepository.putAppUser(updatedAppUser);
@@ -284,6 +285,7 @@ class UserSelectionViewModel extends ChangeNotifier {
         ativo: result.ativo,
         codUsuario: result.codUsuario,
         fotoUsuario: _currentAppUser!.fotoUsuario,
+        userSystemModel: _selectedUser!,
       );
 
       return true;

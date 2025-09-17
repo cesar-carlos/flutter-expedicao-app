@@ -31,10 +31,27 @@ class _PasswordSectionState extends State<PasswordSection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.secondaryContainer.withOpacity(0.3),
+            colorScheme.tertiaryContainer.withOpacity(0.2),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.secondary.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.secondary.withOpacity(0.1),
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         children: [
           InkWell(
@@ -44,37 +61,56 @@ class _PasswordSectionState extends State<PasswordSection> {
               });
             },
             borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(16),
+              top: const Radius.circular(20),
               bottom: _isPasswordSectionExpanded
                   ? Radius.zero
-                  : const Radius.circular(16),
+                  : const Radius.circular(20),
             ),
             child: Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: _isPasswordSectionExpanded
-                    ? theme.colorScheme.primary.withOpacity(0.05)
+                gradient: _isPasswordSectionExpanded
+                    ? LinearGradient(
+                        colors: [
+                          colorScheme.secondary.withOpacity(0.15),
+                          colorScheme.secondary.withOpacity(0.08),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      )
                     : null,
                 borderRadius: BorderRadius.vertical(
-                  top: const Radius.circular(16),
+                  top: const Radius.circular(20),
                   bottom: _isPasswordSectionExpanded
                       ? Radius.zero
-                      : const Radius.circular(16),
+                      : const Radius.circular(20),
                 ),
               ),
               child: Row(
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.1),
-                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          colorScheme.secondary,
+                          colorScheme.secondary.withOpacity(0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorScheme.secondary.withOpacity(0.3),
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Icon(
-                      Icons.security,
-                      color: theme.colorScheme.primary,
-                      size: 20,
+                      Icons.shield_outlined,
+                      color: Colors.white,
+                      size: 24,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -83,26 +119,37 @@ class _PasswordSectionState extends State<PasswordSection> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppStrings.changePasswordSection,
+                          'Segurança da Conta',
                           style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800,
+                            color: colorScheme.onSurface,
                           ),
                         ),
+                        const SizedBox(height: 4),
                         Text(
-                          'Altere sua senha de acesso',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                          'Altere sua senha de acesso ao sistema',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  AnimatedRotation(
-                    turns: _isPasswordSectionExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 300),
-                    child: Icon(
-                      Icons.keyboard_arrow_down,
-                      color: theme.colorScheme.primary,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: AnimatedRotation(
+                      turns: _isPasswordSectionExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 300),
+                      child: Icon(
+                        Icons.expand_more,
+                        color: colorScheme.secondary,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ],
@@ -115,25 +162,36 @@ class _PasswordSectionState extends State<PasswordSection> {
             curve: Curves.easeInOut,
             child: _isPasswordSectionExpanded
                 ? Container(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                     child: Column(
                       children: [
-                        const Divider(),
+                        Container(
+                          height: 1,
+                          margin: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                colorScheme.secondary.withOpacity(0.2),
+                                colorScheme.secondary.withOpacity(0.1),
+                                colorScheme.secondary.withOpacity(0.2),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        _buildSecurityWarning(theme, colorScheme),
+
                         const SizedBox(height: 20),
 
-                        _buildSecurityWarning(theme),
+                        _buildCurrentPasswordField(colorScheme),
 
                         const SizedBox(height: 16),
 
-                        _buildCurrentPasswordField(),
+                        _buildNewPasswordField(colorScheme),
 
                         const SizedBox(height: 16),
 
-                        _buildNewPasswordField(),
-
-                        const SizedBox(height: 16),
-
-                        _buildConfirmPasswordField(),
+                        _buildConfirmPasswordField(colorScheme),
                       ],
                     ),
                   )
@@ -144,7 +202,7 @@ class _PasswordSectionState extends State<PasswordSection> {
     );
   }
 
-  Widget _buildSecurityWarning(ThemeData theme) {
+  Widget _buildSecurityWarning(ThemeData theme, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -171,7 +229,7 @@ class _PasswordSectionState extends State<PasswordSection> {
     );
   }
 
-  Widget _buildCurrentPasswordField() {
+  Widget _buildCurrentPasswordField(ColorScheme colorScheme) {
     return TextFormField(
       controller: widget.currentPasswordController,
       obscureText: !_showCurrentPassword,
@@ -203,7 +261,7 @@ class _PasswordSectionState extends State<PasswordSection> {
     );
   }
 
-  Widget _buildNewPasswordField() {
+  Widget _buildNewPasswordField(ColorScheme colorScheme) {
     return TextFormField(
       controller: widget.newPasswordController,
       obscureText: !_showNewPassword,
@@ -233,7 +291,7 @@ class _PasswordSectionState extends State<PasswordSection> {
     );
   }
 
-  Widget _buildConfirmPasswordField() {
+  Widget _buildConfirmPasswordField(ColorScheme colorScheme) {
     return TextFormField(
       controller: widget.confirmPasswordController,
       obscureText: !_showConfirmPassword,

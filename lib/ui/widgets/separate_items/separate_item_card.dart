@@ -13,50 +13,74 @@ class SeparateItemCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final isCompleted = item.quantidadeSeparacao > 0;
+    final isCompleted = item.quantidadeSeparacao >= item.quantidade;
+    final isPartiallyCompleted = item.quantidadeSeparacao > 0 && !isCompleted;
+    final completionColor = isCompleted
+        ? Colors.green
+        : isPartiallyCompleted
+        ? colorScheme.primary
+        : colorScheme.outline;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: isCompleted ? 3 : 0,
+      shadowColor: isCompleted ? Colors.green.withOpacity(0.3) : null,
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isCompleted
-              ? colorScheme.primary.withOpacity(0.3)
-              : colorScheme.outline.withOpacity(0.2),
-          width: isCompleted ? 2 : 1,
+          color: completionColor.withOpacity(isCompleted ? 0.6 : 0.3),
+          width: isCompleted
+              ? 3
+              : isPartiallyCompleted
+              ? 2
+              : 1,
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header do item com código e nome
-            _buildHeader(context, theme, colorScheme),
+      child: Container(
+        decoration: isCompleted
+            ? BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.green.withOpacity(0.08),
+                    Colors.green.withOpacity(0.03),
+                  ],
+                ),
+              )
+            : null,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header do item com código e nome
+              _buildHeader(context, theme, colorScheme),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // Código de barras e status
-            _buildCodeAndStatus(context, theme, colorScheme, isCompleted),
+              // Código de barras e status
+              _buildCodeAndStatus(context, theme, colorScheme, isCompleted),
 
-            const SizedBox(height: 8),
+              const SizedBox(height: 8),
 
-            // Localização e grupo
-            _buildLocationRow(context, theme, colorScheme),
+              // Localização e grupo
+              _buildLocationRow(context, theme, colorScheme),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // Informações de quantidade e grupo
-            _buildQuantityRow(context, theme, colorScheme, isCompleted),
+              // Informações de quantidade e grupo
+              _buildQuantityRow(context, theme, colorScheme, isCompleted),
 
-            // Botão de ação (se não estiver completo)
-            if (!isCompleted && onSeparate != null) ...[
-              const SizedBox(height: 16),
-              _buildActionButton(context, theme, colorScheme),
+              // Botão de ação (se não estiver completo)
+              if (!isCompleted && onSeparate != null) ...[
+                const SizedBox(height: 16),
+                _buildActionButton(context, theme, colorScheme),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -133,7 +157,7 @@ class SeparateItemCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: isCompleted
-                ? colorScheme.primary.withOpacity(0.1)
+                ? Colors.green.withOpacity(0.15)
                 : colorScheme.error.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
@@ -142,14 +166,14 @@ class SeparateItemCard extends StatelessWidget {
             children: [
               Icon(
                 isCompleted ? Icons.check_circle : Icons.hourglass_empty,
-                color: isCompleted ? colorScheme.primary : colorScheme.error,
+                color: isCompleted ? Colors.green : colorScheme.error,
                 size: 16,
               ),
               const SizedBox(width: 4),
               Text(
-                isCompleted ? 'OK' : 'Pendente',
+                isCompleted ? 'Separado' : 'Pendente',
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: isCompleted ? colorScheme.primary : colorScheme.error,
+                  color: isCompleted ? Colors.green : colorScheme.error,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -283,7 +307,7 @@ class SeparateItemCard extends StatelessWidget {
             context,
             'Qtd. Separada',
             item.quantidadeSeparacao.toStringAsFixed(2),
-            color: isCompleted ? colorScheme.primary : colorScheme.error,
+            color: isCompleted ? Colors.green : colorScheme.error,
           ),
         ),
         Expanded(

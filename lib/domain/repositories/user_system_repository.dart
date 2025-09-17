@@ -10,7 +10,7 @@ abstract class UserSystemRepository {
     Pagination? pagination,
   });
 
-  Future<UserSystemData?> getUserById(int codUsuario);
+  Future<UserSystemModel?> getUserById(int codUsuario);
 
   Future<UserSystemListResponse> searchUsersByName(
     String nome, {

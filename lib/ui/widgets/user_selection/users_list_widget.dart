@@ -100,7 +100,7 @@ class UsersListWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildUserListTile(UserSystemData user) {
+  Widget _buildUserListTile(UserSystemModel user) {
     final isSelected = viewModel.selectedUser == user;
     final isAvailable = viewModel.isUserAvailable(user);
     final isBlocked = !isAvailable;

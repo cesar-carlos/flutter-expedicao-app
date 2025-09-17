@@ -16,7 +16,6 @@ class UserSystemApiService extends BaseApiService {
       queryParams['Ativo'] = apenasAtivos ? 'S' : 'N';
     }
 
-    // Adiciona parâmetros de paginação se fornecidos
     if (pagination != null) {
       queryParams['Limit'] = pagination.limit;
       queryParams['Offset'] = pagination.offset;
@@ -27,7 +26,7 @@ class UserSystemApiService extends BaseApiService {
     return _processUserListResponse(response.data);
   }
 
-  Future<UserSystemData?> getUserById(int codUsuario) async {
+  Future<UserSystemModel?> getUserById(int codUsuario) async {
     try {
       final response = await get(
         '/usuarios',
@@ -36,7 +35,7 @@ class UserSystemApiService extends BaseApiService {
 
       if (response.data != null) {
         final userSystemDto = UserSystemDto.fromApiResponse(response.data);
-        return UserSystemData.fromMap(userSystemDto.toDomain());
+        return UserSystemModel.fromMap(userSystemDto.toDomain());
       }
       return null;
     } on UserApiException catch (e) {
@@ -60,13 +59,11 @@ class UserSystemApiService extends BaseApiService {
 
     if (codEmpresa != null) queryParams['CodEmpresa'] = codEmpresa;
 
-    // Adiciona parâmetros de paginação se fornecidos
     if (pagination != null) {
       queryParams['Limit'] = pagination.limit;
       queryParams['Offset'] = pagination.offset;
       queryParams['Page'] = pagination.page;
     } else {
-      // Usa paginação padrão se não fornecida
       queryParams['Limit'] = 50;
     }
 
@@ -84,7 +81,7 @@ class UserSystemApiService extends BaseApiService {
                 (item) =>
                     UserSystemDto.fromApiResponse(item as Map<String, dynamic>),
               )
-              .map((dto) => UserSystemData.fromMap(dto.toDomain()))
+              .map((dto) => UserSystemModel.fromMap(dto.toDomain()))
               .toList();
 
           return UserSystemListResponse(
@@ -98,7 +95,7 @@ class UserSystemApiService extends BaseApiService {
           );
         } else {
           final userDto = UserSystemDto.fromApiResponse(responseData);
-          final user = UserSystemData.fromMap(userDto.toDomain());
+          final user = UserSystemModel.fromMap(userDto.toDomain());
 
           return UserSystemListResponse.success(
             users: [user],
@@ -111,7 +108,7 @@ class UserSystemApiService extends BaseApiService {
               (item) =>
                   UserSystemDto.fromApiResponse(item as Map<String, dynamic>),
             )
-            .map((dto) => UserSystemData.fromMap(dto.toDomain()))
+            .map((dto) => UserSystemModel.fromMap(dto.toDomain()))
             .toList();
 
         return UserSystemListResponse.success(
@@ -126,8 +123,6 @@ class UserSystemApiService extends BaseApiService {
     }
   }
 
-  /// Método exposto apenas para testes
-  /// Permite testar o processamento de resposta sem fazer chamadas HTTP
   UserSystemListResponse processUserListResponseForTesting(
     dynamic responseData,
   ) {

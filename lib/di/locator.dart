@@ -20,6 +20,7 @@ import 'package:exp/data/datasources/config_service.dart';
 import 'package:exp/data/datasources/user_preferences_service.dart';
 import 'package:exp/data/services/socket_service.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
+import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/domain/services/event_service.dart';
 import 'package:exp/data/services/event_service_impl.dart';
 import 'package:exp/domain/repositories/event_generic_repository.dart';
@@ -41,9 +42,11 @@ import 'package:exp/domain/models/expedition_cart_route_internship_consultation_
 import 'package:exp/data/repositories/separate_item_repository_impl.dart';
 import 'package:exp/data/repositories/separate_item_consultation_repository_impl.dart';
 import 'package:exp/data/repositories/separation_item_consultation_repository_impl.dart';
+import 'package:exp/data/repositories/separation_item_summary_consultation_repository_impl.dart';
 import 'package:exp/data/repositories/stock_product_consultation_repository_impl.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/models/separation_item_consultation_model.dart';
+import 'package:exp/domain/models/separation_item_summary_consultation_model.dart';
 import 'package:exp/domain/models/stock_product_consultation_model.dart';
 import 'package:exp/data/repositories/expedition_cancellation_repository_impl.dart';
 import 'package:exp/domain/models/expedition_cancellation_model.dart';
@@ -61,7 +64,6 @@ void setupLocator() {
   locator.registerLazySingleton(() => ConfigService());
   locator.registerLazySingleton(() => UserPreferencesService());
   locator.registerLazySingleton(() => SocketService());
-  locator.registerLazySingleton(() => FiltersStorageService());
 
   // Registrar ConfigViewModel como singleton
   locator.registerLazySingleton(
@@ -85,6 +87,10 @@ void setupLocator() {
   locator.registerLazySingleton<
     BasicConsultationRepository<SeparationItemConsultationModel>
   >(() => SeparationItemConsultationRepositoryImpl());
+
+  locator.registerLazySingleton<
+    BasicConsultationRepository<SeparationItemSummaryConsultationModel>
+  >(() => SeparationItemSummaryConsultationRepositoryImpl());
 
   // Registrar repositórios ExpeditionCartRouteInternship
   locator.registerLazySingleton<
@@ -198,6 +204,12 @@ void setupLocator() {
 
   // Registrar SeparateItemsViewModel
   locator.registerFactory(() => SeparateItemsViewModel());
+
+  // Registrar serviços
+  locator.registerLazySingleton<FiltersStorageService>(
+    () => FiltersStorageService(),
+  );
+  locator.registerLazySingleton<UserSessionService>(() => UserSessionService());
 
   // Registrar EventService
   locator.registerLazySingleton<EventService>(() => EventServiceImpl());
