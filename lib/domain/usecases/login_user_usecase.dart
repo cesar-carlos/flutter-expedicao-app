@@ -1,6 +1,6 @@
 import 'package:exp/domain/models/user/user_models.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
-import 'package:exp/domain/usecases/base_usecase.dart';
+import 'package:exp/domain/usecases/legacy_usecase.dart';
 
 class LoginUserParams {
   final String nome;
@@ -9,7 +9,7 @@ class LoginUserParams {
   LoginUserParams({required this.nome, required this.senha});
 }
 
-class LoginUserUseCase implements UseCase<LoginResponse, LoginUserParams> {
+class LoginUserUseCase implements LegacyUseCase<LoginResponse, LoginUserParams> {
   final UserRepository _userRepository;
   LoginUserUseCase(this._userRepository);
 

@@ -49,6 +49,7 @@ dependencies:
   date_format: ^2.0.9
   zard: ^0.0.21
   shared_preferences: ^2.5.3
+  result_dart: ^2.1.1
 
 dev_dependencies:
   flutter_test:

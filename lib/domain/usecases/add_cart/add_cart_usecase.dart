@@ -1,92 +1,110 @@
 import 'package:exp/domain/usecases/base_usecase.dart';
 import 'package:exp/domain/models/expedition_cart_model.dart';
+import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/usecases/add_cart/add_cart_params.dart';
-import 'package:exp/domain/usecases/add_cart/add_cart_result.dart';
+import 'package:exp/domain/usecases/add_cart/add_cart_success.dart';
+import 'package:exp/domain/usecases/add_cart/add_cart_failure.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/repositories/user_system_repository.dart';
+import 'package:exp/domain/models/expedition_cart_route_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/domain/models/user/app_user.dart';
 import 'package:exp/core/utils/app_helper.dart';
+import 'package:exp/core/results/index.dart';
+import 'package:result_dart/result_dart.dart';
 
 /// UseCase para adicionar um carrinho à separação
-class AddCartUseCase extends UseCase<AddCartResult, AddCartParams> {
+class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
+  late int codCarrinhoPercurso;
   final BasicRepository<ExpeditionCartModel> _cartRepository;
-  final BasicRepository<ExpeditionCartRouteInternshipModel> _cartRouteRepository;
+  final BasicRepository<ExpeditionCartRouteModel> _cartRouteRepository;
+  final BasicRepository<ExpeditionCartRouteInternshipModel> _cartRouteInternshipRepository;
   final BasicConsultationRepository<ExpeditionCartConsultationModel> _cartConsultationRepository;
   final UserSystemRepository _userSystemRepository;
   final UserSessionService _userSessionService;
 
   AddCartUseCase({
     required BasicRepository<ExpeditionCartModel> cartRepository,
-    required BasicRepository<ExpeditionCartRouteInternshipModel> cartRouteRepository,
+    required BasicRepository<ExpeditionCartRouteModel> cartRouteRepository,
+    required BasicRepository<ExpeditionCartRouteInternshipModel> cartRouteInternshipRepository,
     required BasicConsultationRepository<ExpeditionCartConsultationModel> cartConsultationRepository,
-    required UserSessionService userSessionService,
     required UserSystemRepository userSystemRepository,
+    required UserSessionService userSessionService,
   }) : _cartRepository = cartRepository,
        _cartRouteRepository = cartRouteRepository,
+       _cartRouteInternshipRepository = cartRouteInternshipRepository,
        _cartConsultationRepository = cartConsultationRepository,
        _userSystemRepository = userSystemRepository,
        _userSessionService = userSessionService;
 
   @override
-  Future<AddCartResult> call(AddCartParams params) async {
+  Future<Result<AddCartSuccess>> call(AddCartParams params) async {
     try {
       // 1. Validar parâmetros
-      final validationResult = _validateParams(params);
-      if (validationResult != null) {
-        return validationResult;
+      if (!params.isValid) {
+        final errors = params.validationErrors.join(', ');
+        return failure(AddCartFailure.invalidParameters(errors));
       }
 
       // 2. Verificar usuário autenticado e carregar UserSystemModel se necessário
       final user = await _loadAndEnsureUserSystemModel();
       if (user?.userSystemModel == null) {
-        return AddCartFailure.userNotAuthenticated();
+        return failure(AddCartFailure.userNotAuthenticated());
       }
 
       // 3. Buscar carrinho pelo código
-      final carts = await _cartConsultationRepository.selectConsultation(
-        QueryBuilder().equals('codCarrinho', params.codCarrinho),
-      );
-
-      if (carts.isEmpty) {
-        return AddCartFailure.cartNotFound(params.codCarrinho.toString());
+      final cartsResult = await _findCartByCode(params.codCarrinho);
+      final cart = cartsResult.fold((success) => success, (failure) => null);
+      if (cart == null) {
+        return cartsResult.fold(
+          (success) => failure(AddCartFailure.generic('Erro inesperado')),
+          (failure) => Failure(failure),
+        );
       }
 
       // 4. Validar situação do carrinho
-      final situationValidation = _validateCartSituation(carts.first);
-      if (situationValidation != null) {
-        return situationValidation;
+      final situationResult = _validateCartSituation(cart);
+      final isValidSituation = situationResult.fold((success) => true, (failure) => false);
+      if (!isValidSituation) {
+        return situationResult.fold(
+          (success) => failure(AddCartFailure.generic('Erro inesperado')),
+          (failure) => Failure(failure),
+        );
       }
 
-      final cart = carts.first;
+      // 5. Buscar percurso baseado na origem
+      final routeResult = await _findRoute(params);
+      final routeCode = routeResult.fold((success) => success, (failure) => null);
+      if (routeCode == null) {
+        return routeResult.fold(
+          (success) => failure(AddCartFailure.generic('Erro inesperado')),
+          (failure) => Failure(failure),
+        );
+      }
+      codCarrinhoPercurso = routeCode;
 
-      // 5. Executar operações de banco de dados
+      // 6. Executar operações de banco de dados
       await _updateCartSituation(cart);
-      await _createCartRoute(params, cart, user!.userSystemModel!);
+      final cartRouteInternshipModel = await _createCartRoute(params, cart, user!.userSystemModel!);
+      await _cartRouteInternshipRepository.insert(cartRouteInternshipModel);
 
-      // 6. Retornar sucesso
-      return AddCartSuccess(
-        addedCart: cart,
-        message: 'Carrinho ${cart.codCarrinho} adicionado com sucesso à separação',
+      // 7. Retornar sucesso
+      return success(
+        AddCartSuccess(
+          addedCart: cart,
+          message: 'Carrinho ${cart.codCarrinho} adicionado com sucesso à separação',
+          codCarrinhoPercurso: codCarrinhoPercurso,
+        ),
       );
     } catch (e) {
-      return AddCartFailure.repositoryError(e);
+      return failure(AddCartFailure.repositoryError(e));
     }
-  }
-
-  /// Valida os parâmetros de entrada
-  AddCartFailure? _validateParams(AddCartParams params) {
-    if (!params.isValid) {
-      final errors = params.validationErrors.join(', ');
-      return AddCartFailure.invalidParameters(errors);
-    }
-    return null;
   }
 
   /// Carrega o usuário atual e garante que tenha UserSystemModel
@@ -130,12 +148,68 @@ class AddCartUseCase extends UseCase<AddCartResult, AddCartParams> {
     }
   }
 
-  /// Valida se o carrinho pode ser adicionado
-  AddCartFailure? _validateCartSituation(ExpeditionCartConsultationModel cart) {
-    if (cart.situacao != ExpeditionCartSituation.liberado) {
-      return AddCartFailure.invalidSituation(cart.situacaoDescription);
+  /// Busca carrinho pelo código
+  Future<Result<ExpeditionCartConsultationModel>> _findCartByCode(int codCarrinho) async {
+    try {
+      final carts = await _cartConsultationRepository.selectConsultation(
+        QueryBuilder().equals('codCarrinho', codCarrinho),
+      );
+
+      if (carts.isEmpty) {
+        return failure(AddCartFailure.cartNotFound(codCarrinho.toString()));
+      }
+
+      return success(carts.first);
+    } catch (e) {
+      return failure(AddCartFailure.repositoryError(e));
     }
-    return null;
+  }
+
+  /// Valida se o carrinho pode ser adicionado
+  Result<bool> _validateCartSituation(ExpeditionCartConsultationModel cart) {
+    if (cart.situacao != ExpeditionCartSituation.liberado) {
+      return failure(AddCartFailure.invalidSituation(cart.situacaoDescription));
+    }
+    return success(true);
+  }
+
+  /// Busca o percurso baseado na origem
+  Future<Result<int>> _findRoute(AddCartParams params) async {
+    try {
+      if (params.origem.code == ExpeditionOrigem.separacaoEstoque.code) {
+        final cartRouteModels = await _cartRouteRepository.select(
+          QueryBuilder()
+              .equals('CodEmpresa', params.codEmpresa)
+              .equals('CodOrigem', params.codOrigem)
+              .equals('Origem', params.origem.code),
+        );
+
+        if (cartRouteModels.isEmpty) {
+          return failure(AddCartFailure.routeNotFound('separacaoEstoque'));
+        }
+
+        return success(cartRouteModels.first.codCarrinhoPercurso);
+      }
+
+      if (params.origem.code == ExpeditionOrigem.compraMercadoria.code) {
+        final cartRouteInternshipModels = await _cartRouteInternshipRepository.select(
+          QueryBuilder()
+              .equals('CodEmpresa', params.codEmpresa)
+              .equals('CodOrigem', params.codOrigem)
+              .equals('Origem', params.origem.code),
+        );
+
+        if (cartRouteInternshipModels.isEmpty) {
+          return failure(AddCartFailure.routeNotFound('compraMercadoria'));
+        }
+
+        return success(cartRouteInternshipModels.first.codCarrinhoPercurso);
+      }
+
+      return failure(AddCartFailure.routeNotFound(params.origem.code));
+    } catch (e) {
+      return failure(AddCartFailure.repositoryError(e));
+    }
   }
 
   /// Atualiza a situação do carrinho para SEPARADO
@@ -153,20 +227,20 @@ class AddCartUseCase extends UseCase<AddCartResult, AddCartParams> {
   }
 
   /// Cria o vínculo do carrinho com a separação
-  Future<void> _createCartRoute(
+  Future<ExpeditionCartRouteInternshipModel> _createCartRoute(
     AddCartParams params,
     ExpeditionCartConsultationModel cart,
     UserSystemModel userSystem,
   ) async {
     final now = DateTime.now();
 
-    final routeModel = ExpeditionCartRouteInternshipModel(
+    return ExpeditionCartRouteInternshipModel(
       codEmpresa: params.codEmpresa,
-      codCarrinhoPercurso: 0, // Será gerado pelo backend
+      codCarrinhoPercurso: codCarrinhoPercurso, // Será gerado pelo backend
       item: '00000',
       origem: params.origem,
       codOrigem: params.codOrigem,
-      codPercursoEstagio: 1, // Estágio inicial
+      codPercursoEstagio: 1,
       codCarrinho: cart.codCarrinho,
       situacao: ExpeditionCartSituation.separando,
       dataInicio: now,
@@ -174,7 +248,5 @@ class AddCartUseCase extends UseCase<AddCartResult, AddCartParams> {
       codUsuarioInicio: userSystem.codUsuario,
       nomeUsuarioInicio: userSystem.nomeUsuario,
     );
-
-    await _cartRouteRepository.insert(routeModel);
   }
 }

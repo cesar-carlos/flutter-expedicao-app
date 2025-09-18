@@ -132,32 +132,6 @@ class CartDetailsWidget extends StatelessWidget {
                   _buildInfoRow(context, 'Setor Estoque', cart.nomeSetorEstoque!, Icons.warehouse),
               ]),
             ],
-
-            // Alerta se não pode ser adicionado
-            if (!isReleased) ...[
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colorScheme.error.withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning_amber, color: colorScheme.error, size: 24),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Este carrinho não pode ser adicionado. Apenas carrinhos com situação LIBERADO podem ser incluídos na separação.',
-                        style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ],
         ),
       ),

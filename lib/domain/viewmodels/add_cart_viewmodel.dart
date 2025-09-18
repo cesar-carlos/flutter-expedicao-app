@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:exp/di/locator.dart';
 import 'package:exp/domain/usecases/add_cart/index.dart';
+import 'package:exp/core/results/index.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
@@ -49,14 +50,7 @@ class AddCartViewModel extends ChangeNotifier {
 
       if (carts.isNotEmpty) {
         _scannedCart = carts.first;
-
-        // Verificar se o carrinho pode ser adicionado
-        if (!canAddCart) {
-          _setError(
-            'Carrinho deve estar na situação LIBERADO para ser adicionado. '
-            'Situação atual: ${_scannedCart!.situacaoDescription}',
-          );
-        }
+        // Não define erro aqui - deixa o CartActionsWidget mostrar o status
       } else {
         _setError('Carrinho não encontrado com o código de barras informado.');
       }
@@ -87,14 +81,11 @@ class AddCartViewModel extends ChangeNotifier {
 
       final result = await _addCartUseCase.call(params);
 
-      if (result is AddCartSuccess) {
-        return true;
-      } else if (result is AddCartFailure) {
-        _setError(result.message);
+      return result.fold((success) => true, (failure) {
+        final message = failure is AppFailure ? failure.userMessage : failure.toString();
+        _setError(message);
         return false;
-      }
-
-      return false;
+      });
     } catch (e) {
       _setError('Erro inesperado: ${e.toString()}');
       return false;

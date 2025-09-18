@@ -93,7 +93,8 @@ class _AddCartScreenState extends State<AddCartScreen> {
                       ),
                     ],
 
-                    if (viewModel.hasError)
+                    // Só mostra erro se não há dados do carrinho (erro de busca)
+                    if (viewModel.hasError && !viewModel.hasCartData)
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(

@@ -1,4 +1,3 @@
-/// Modelo para resposta de criação de usuário (sucesso)
 class CreateUserResponse {
   final int codLoginApp;
   final String ativo;
@@ -7,7 +6,6 @@ class CreateUserResponse {
   CreateUserResponse({required this.codLoginApp, required this.ativo, required this.nome});
 
   factory CreateUserResponse.fromJson(Map<String, dynamic> json) {
-    // Validações dos campos obrigatórios
     if (json['CodLoginApp'] == null) {
       throw FormatException('CodLoginApp é obrigatório na resposta da API');
     }
@@ -25,10 +23,8 @@ class CreateUserResponse {
     );
   }
 
-  /// Verifica se o usuário está ativo (Ativo == "S")
   bool get isActive => ativo.toUpperCase() == 'S';
 
-  /// Converte para JSON (útil para logs)
   Map<String, dynamic> toJson() {
     return {'CodLoginApp': codLoginApp, 'Ativo': ativo, 'Nome': nome};
   }

@@ -48,15 +48,17 @@ import 'package:exp/data/repositories/separation_item_consultation_repository_im
 import 'package:exp/data/repositories/separation_item_summary_consultation_repository_impl.dart';
 import 'package:exp/data/repositories/stock_product_consultation_repository_impl.dart';
 import 'package:exp/data/repositories/expedition_cart_repository_impl.dart';
+import 'package:exp/data/repositories/expedition_cart_route_repository_impl.dart';
 import 'package:exp/data/repositories/expedition_cart_route_internship_repository_impl.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/models/separation_item_consultation_model.dart';
 import 'package:exp/domain/models/separation_item_summary_consultation_model.dart';
 import 'package:exp/domain/models/stock_product_consultation_model.dart';
-import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
 import 'package:exp/data/repositories/expedition_cancellation_repository_impl.dart';
 import 'package:exp/domain/models/expedition_cancellation_model.dart';
+import 'package:exp/domain/models/expedition_cart_route_model.dart';
+import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/domain/models/separate_item_model.dart';
 
 final GetIt locator = GetIt.instance;
@@ -115,6 +117,8 @@ void setupLocator() {
   );
 
   locator.registerLazySingleton<BasicRepository<ExpeditionCartModel>>(() => ExpeditionCartRepositoryImpl());
+
+  locator.registerLazySingleton<BasicRepository<ExpeditionCartRouteModel>>(() => ExpeditionCartRouteRepositoryImpl());
 
   locator.registerLazySingleton<BasicRepository<ExpeditionCartRouteInternshipModel>>(
     () => ExpeditionCartRouteInternshipRepositoryImpl(),
@@ -180,7 +184,8 @@ void setupLocator() {
   locator.registerLazySingleton<AddCartUseCase>(
     () => AddCartUseCase(
       cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
-      cartRouteRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
+      cartRouteRepository: locator<BasicRepository<ExpeditionCartRouteModel>>(),
+      cartRouteInternshipRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
       cartConsultationRepository: locator<BasicConsultationRepository<ExpeditionCartConsultationModel>>(),
       userSystemRepository: locator<UserSystemRepository>(),
       userSessionService: locator<UserSessionService>(),

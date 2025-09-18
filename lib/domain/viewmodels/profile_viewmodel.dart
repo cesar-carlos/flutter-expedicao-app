@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'package:exp/domain/models/user/app_user.dart';
-import 'package:exp/domain/models/situation_model.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
 import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
@@ -216,7 +215,7 @@ class ProfileViewModel extends ChangeNotifier {
       final finalUser = currentUser!.copyWith(
         codLoginApp: result.codLoginApp,
         nome: result.nome,
-        ativo: Situation.fromCodeWithFallback(result.ativo),
+        ativo: result.ativo,
         codUsuario: result.codUsuario,
         fotoUsuario: photoBase64,
         senha: null, // Remove senha por segurança

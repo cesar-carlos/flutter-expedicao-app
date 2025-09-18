@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/models/situation_model.dart';
 import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/domain/models/pagination/pagination.dart';
 import 'package:exp/domain/repositories/user_system_repository.dart';
@@ -246,7 +245,7 @@ class UserSelectionViewModel extends ChangeNotifier {
       _currentAppUser = AppUser(
         codLoginApp: result.codLoginApp,
         nome: result.nome,
-        ativo: Situation.fromCodeWithFallback(result.ativo),
+        ativo: result.ativo,
         codUsuario: result.codUsuario,
         fotoUsuario: _currentAppUser!.fotoUsuario,
         userSystemModel: _selectedUser!,

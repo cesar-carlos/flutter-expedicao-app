@@ -19,7 +19,7 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
   @override
   void initState() {
     super.initState();
-    // Focar no botão adicionar quando o widget for criado
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.viewModel.canAddCart) {
         _addButtonFocusNode.requestFocus();
@@ -51,7 +51,6 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Informações de confirmação
             if (canAdd) ...[
               Container(
                 width: double.infinity,
@@ -114,7 +113,7 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Situação atual: ${widget.viewModel.scannedCart?.situacaoDescription ?? "Desconhecida"}.\nApenas carrinhos LIBERADOS podem ser adicionados.',
+                            'Situação atual: ${widget.viewModel.scannedCart?.situacaoDescription ?? "Desconhecida"}',
                             style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
                           ),
                         ],
@@ -126,10 +125,8 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
               const SizedBox(height: 20),
             ],
 
-            // Botões de ação
             Row(
               children: [
-                // Botão Cancelar
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: widget.viewModel.isAdding ? null : widget.onCancel,
@@ -145,7 +142,6 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
 
                 const SizedBox(width: 16),
 
-                // Botão Adicionar
                 Expanded(
                   child: ElevatedButton.icon(
                     focusNode: _addButtonFocusNode,
@@ -169,16 +165,21 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
               ],
             ),
 
-            // Dica sobre situação necessária
             if (!canAdd) ...[
               const SizedBox(height: 12),
-              Text(
-                'Dica: O carrinho deve estar na situação LIBERADO para ser adicionado à separação.',
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.6),
-                  fontStyle: FontStyle.italic,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.errorContainer.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: colorScheme.error.withOpacity(0.2)),
                 ),
-                textAlign: TextAlign.center,
+                child: Text(
+                  'Carrinho deve estar na situação LIBERADO para ser adicionado à separação.',
+                  style: textTheme.bodySmall?.copyWith(color: colorScheme.error, fontWeight: FontWeight.w500),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ],
           ],
