@@ -18,15 +18,14 @@ class AddCartScreen extends StatefulWidget {
 }
 
 class _AddCartScreenState extends State<AddCartScreen> {
+  final _scrollController = ScrollController();
   late AddCartViewModel _viewModel;
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _viewModel = AddCartViewModel(codEmpresa: widget.codEmpresa, codSepararEstoque: widget.codSepararEstoque);
 
-    // Listener para detectar quando um carrinho é encontrado
     _viewModel.addListener(_onViewModelChanged);
   }
 
@@ -39,9 +38,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
   }
 
   void _onViewModelChanged() {
-    // Se um carrinho foi encontrado, fazer scroll para os botões
     if (_viewModel.hasCartData && !_viewModel.isScanning) {
-      // Aguardar um pouco para garantir que o widget foi renderizado
       Future.delayed(const Duration(milliseconds: 100), () {
         _scrollToActions();
       });
@@ -80,18 +77,15 @@ class _AddCartScreenState extends State<AddCartScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Scanner de código de barras
                     BarcodeScanner(onBarcodeScanned: viewModel.scanBarcode, isLoading: viewModel.isScanning),
 
                     const SizedBox(height: 24),
 
-                    // Detalhes do carrinho (se encontrado)
                     if (viewModel.hasCartData) ...[
                       CartDetailsWidget(cart: viewModel.scannedCart!),
 
                       const SizedBox(height: 24),
 
-                      // Botões de ação
                       CartActionsWidget(
                         viewModel: viewModel,
                         onCancel: () => Navigator.of(context).pop(),
@@ -99,7 +93,6 @@ class _AddCartScreenState extends State<AddCartScreen> {
                       ),
                     ],
 
-                    // Estado de erro
                     if (viewModel.hasError)
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -136,7 +129,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Carrinho adicionado com sucesso!'), backgroundColor: Colors.green));
-      Navigator.of(context).pop(true); // Retorna true indicando sucesso
+      Navigator.of(context).pop(true);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

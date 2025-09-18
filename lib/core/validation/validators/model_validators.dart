@@ -1,8 +1,8 @@
-import '../schemas/expedition_schemas.dart';
-import '../schemas/separation_schemas.dart';
-import '../schemas/user_schemas.dart';
-import '../schemas/pagination_schemas.dart';
-import '../schemas/enum_schemas.dart';
+import 'package:exp/core/validation/schemas/expedition_schemas.dart';
+import 'package:exp/core/validation/schemas/separation_schemas.dart';
+import 'package:exp/core/validation/schemas/user_schemas.dart';
+import 'package:exp/core/validation/schemas/pagination_schemas.dart';
+import 'package:exp/core/validation/schemas/enum_schemas.dart';
 
 /// Validadores específicos para models do domínio
 class ModelValidators {

@@ -1,8 +1,9 @@
 import 'package:exp/domain/models/user_system_models.dart';
+import 'package:exp/domain/models/situation_model.dart';
 
 class AppUser {
   final int codLoginApp;
-  final String ativo;
+  final Situation ativo;
   final String nome;
   final int? codUsuario;
   final String? fotoUsuario;
@@ -22,20 +23,23 @@ class AppUser {
   factory AppUser.fromJson(Map<String, dynamic> json) {
     return AppUser(
       codLoginApp: json['CodLoginApp'],
-      ativo: json['Ativo'],
+      ativo: Situation.fromCodeWithFallback(json['Ativo'] as String? ?? 'N'),
       nome: json['Nome'],
       codUsuario: json['CodUsuario'],
       fotoUsuario: json['FotoUsuario'],
       senha: json['Senha'],
+      userSystemModel: json['UserSystem'] != null
+          ? UserSystemModel.fromMap(json['UserSystem'] as Map<String, dynamic>)
+          : null,
     );
   }
 
-  bool get isActive => ativo.toUpperCase() == 'S';
+  bool get isActive => ativo == Situation.ativo;
   bool get hasPhoto => fotoUsuario != null && fotoUsuario!.isNotEmpty;
 
   AppUser copyWith({
     int? codLoginApp,
-    String? ativo,
+    Situation? ativo,
     String? nome,
     int? codUsuario,
     String? fotoUsuario,
@@ -56,12 +60,12 @@ class AppUser {
   Map<String, dynamic> toJson() {
     return {
       'CodLoginApp': codLoginApp,
-      'Ativo': ativo,
+      'Ativo': ativo.code,
       'Nome': nome,
       if (codUsuario != null) 'CodUsuario': codUsuario,
       'FotoUsuario': fotoUsuario,
       if (senha != null) 'Senha': senha,
-      'UserSystemData': userSystemModel?.toMap(),
+      'UserSystem': userSystemModel?.toMap(),
     };
   }
 

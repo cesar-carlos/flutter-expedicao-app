@@ -229,7 +229,7 @@ class UserRepositoryImpl implements UserRepository {
         queryParameters: {'CodLoginApp': user.codLoginApp},
         data: {
           'CodLoginApp': user.codLoginApp,
-          'Ativo': user.ativo,
+          'Ativo': user.ativo.code,
           'Nome': user.nome,
           'CodUsuario': user.codUsuario,
           'Senha': newPassword, // Nova senha no body

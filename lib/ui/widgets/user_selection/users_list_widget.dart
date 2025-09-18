@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:exp/domain/viewmodels/user_selection_viewmodel.dart';
 import 'package:exp/domain/models/user_system_models.dart';
+import 'package:exp/domain/models/situation_model.dart';
 import 'package:exp/core/theme/app_colors.dart';
 
 class UsersListWidget extends StatelessWidget {
@@ -99,7 +100,7 @@ class UsersListWidget extends StatelessWidget {
         leading: CircleAvatar(
           backgroundColor: isBlocked
               ? Colors.grey.shade400
-              : user.ativo
+              : user.ativo == Situation.ativo
               ? AppColors.success
               : Colors.grey,
           child: Text(
@@ -131,7 +132,7 @@ class UsersListWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (isBlocked) Icon(Icons.link, color: Colors.red.shade600, size: 20),
-            if (!user.ativo) const Icon(Icons.warning, color: Colors.orange),
+            if (user.ativo != Situation.ativo) const Icon(Icons.warning, color: Colors.orange),
             if (isAvailable)
               Icon(
                 isSelected ? Icons.check_circle : Icons.radio_button_unchecked,

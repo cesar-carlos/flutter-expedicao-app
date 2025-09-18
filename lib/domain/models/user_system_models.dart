@@ -1,19 +1,21 @@
+import 'package:exp/domain/models/situation_model.dart';
+
 class UserSystemModel {
   final int? codEmpresa;
   final int codUsuario;
   final String nomeUsuario;
-  final bool ativo;
+  final Situation ativo;
   final String? codContaFinanceira;
   final String? nomeContaFinanceira;
   final String? nomeCaixaOperador;
   final int? codLoginApp;
-  final bool permiteSepararForaSequencia;
-  final bool visualizaTodasSeparacoes;
-  final bool permiteConferirForaSequencia;
-  final bool visualizaTodasConferencias;
-  final bool salvaCarrinhoOutroUsuario;
-  final bool editaCarrinhoOutroUsuario;
-  final bool excluiCarrinhoOutroUsuario;
+  final Situation permiteSepararForaSequencia;
+  final Situation visualizaTodasSeparacoes;
+  final Situation permiteConferirForaSequencia;
+  final Situation visualizaTodasConferencias;
+  final Situation salvaCarrinhoOutroUsuario;
+  final Situation editaCarrinhoOutroUsuario;
+  final Situation excluiCarrinhoOutroUsuario;
 
   const UserSystemModel({
     this.codEmpresa,
@@ -35,22 +37,23 @@ class UserSystemModel {
 
   factory UserSystemModel.fromMap(Map<String, dynamic> map) {
     return UserSystemModel(
-      codEmpresa: (map['CodEmpresa'] ?? map['codEmpresa']) as int?,
-      codUsuario: (map['CodUsuario'] ?? map['codUsuario']) as int,
-      nomeUsuario: (map['NomeUsuario'] ?? map['nomeUsuario']) as String,
-      ativo: (map['Ativo'] ?? map['ativo']) as bool,
-      codContaFinanceira: (map['CodContaFinanceira'] ?? map['codContaFinanceira']) as String?,
-      nomeContaFinanceira: (map['NomeContaFinanceira'] ?? map['nomeContaFinanceira']) as String?,
-      nomeCaixaOperador: (map['NomeCaixaOperador'] ?? map['nomeCaixaOperador']) as String?,
-      codLoginApp: (map['CodLoginApp'] ?? map['codLoginApp']) as int?,
-      permiteSepararForaSequencia: (map['PermiteSepararForaSequencia'] ?? map['permiteSepararForaSequencia']) as bool,
-      visualizaTodasSeparacoes: (map['VisualizaTodasSeparacoes'] ?? map['visualizaTodasSeparacoes']) as bool,
-      permiteConferirForaSequencia:
-          (map['PermiteConferirForaSequencia'] ?? map['permiteConferirForaSequencia']) as bool,
-      visualizaTodasConferencias: (map['VisualizaTodasConferencias'] ?? map['visualizaTodasConferencias']) as bool,
-      salvaCarrinhoOutroUsuario: (map['SalvaCarrinhoOutroUsuario'] ?? map['salvaCarrinhoOutroUsuario']) as bool,
-      editaCarrinhoOutroUsuario: (map['EditaCarrinhoOutroUsuario'] ?? map['editaCarrinhoOutroUsuario']) as bool,
-      excluiCarrinhoOutroUsuario: (map['ExcluiCarrinhoOutroUsuario'] ?? map['excluiCarrinhoOutroUsuario']) as bool,
+      codEmpresa: map['CodEmpresa'] as int?,
+      codUsuario: map['CodUsuario'] as int? ?? 0,
+      nomeUsuario: map['NomeUsuario'] as String? ?? '',
+      ativo: Situation.fromCodeWithFallback(map['Ativo'] as String? ?? 'N'),
+      codContaFinanceira: map['CodContaFinanceira'] as String?,
+      nomeContaFinanceira: map['NomeContaFinanceira'] as String?,
+      nomeCaixaOperador: map['NomeCaixaOperador'] as String?,
+      codLoginApp: map['CodLoginApp'] as int?,
+      permiteSepararForaSequencia: Situation.fromCodeWithFallback(map['PermiteSepararForaSequencia'] as String? ?? 'N'),
+      visualizaTodasSeparacoes: Situation.fromCodeWithFallback(map['VisualizaTodasSeparacoes'] as String? ?? 'N'),
+      permiteConferirForaSequencia: Situation.fromCodeWithFallback(
+        map['PermiteConferirForaSequencia'] as String? ?? 'N',
+      ),
+      visualizaTodasConferencias: Situation.fromCodeWithFallback(map['VisualizaTodasConferencias'] as String? ?? 'N'),
+      salvaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(map['SalvaCarrinhoOutroUsuario'] as String? ?? 'N'),
+      editaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(map['EditaCarrinhoOutroUsuario'] as String? ?? 'N'),
+      excluiCarrinhoOutroUsuario: Situation.fromCodeWithFallback(map['ExcluiCarrinhoOutroUsuario'] as String? ?? 'N'),
     );
   }
 
@@ -59,35 +62,39 @@ class UserSystemModel {
       'CodEmpresa': codEmpresa,
       'CodUsuario': codUsuario,
       'NomeUsuario': nomeUsuario,
-      'Ativo': ativo,
+      'Ativo': ativo.code,
       'CodContaFinanceira': codContaFinanceira,
       'NomeContaFinanceira': nomeContaFinanceira,
       'NomeCaixaOperador': nomeCaixaOperador,
       'CodLoginApp': codLoginApp,
-      'PermiteSepararForaSequencia': permiteSepararForaSequencia,
-      'VisualizaTodasSeparacoes': visualizaTodasSeparacoes,
-      'PermiteConferirForaSequencia': permiteConferirForaSequencia,
-      'VisualizaTodasConferencias': visualizaTodasConferencias,
-      'SalvaCarrinhoOutroUsuario': salvaCarrinhoOutroUsuario,
-      'EditaCarrinhoOutroUsuario': editaCarrinhoOutroUsuario,
-      'ExcluiCarrinhoOutroUsuario': excluiCarrinhoOutroUsuario,
+      'PermiteSepararForaSequencia': permiteSepararForaSequencia.code,
+      'VisualizaTodasSeparacoes': visualizaTodasSeparacoes.code,
+      'PermiteConferirForaSequencia': permiteConferirForaSequencia.code,
+      'VisualizaTodasConferencias': visualizaTodasConferencias.code,
+      'SalvaCarrinhoOutroUsuario': salvaCarrinhoOutroUsuario.code,
+      'EditaCarrinhoOutroUsuario': editaCarrinhoOutroUsuario.code,
+      'ExcluiCarrinhoOutroUsuario': excluiCarrinhoOutroUsuario.code,
     };
   }
 
   bool get hasBasicPermissions {
-    return ativo && (codContaFinanceira?.isNotEmpty ?? false) && (nomeContaFinanceira?.isNotEmpty ?? false);
+    return ativo == Situation.ativo &&
+        (codContaFinanceira?.isNotEmpty ?? false) &&
+        (nomeContaFinanceira?.isNotEmpty ?? false);
   }
 
   bool get canWorkWithSeparations {
-    return permiteSepararForaSequencia || visualizaTodasSeparacoes;
+    return permiteSepararForaSequencia == Situation.ativo || visualizaTodasSeparacoes == Situation.ativo;
   }
 
   bool get canWorkWithConferences {
-    return permiteConferirForaSequencia || visualizaTodasConferencias;
+    return permiteConferirForaSequencia == Situation.ativo || visualizaTodasConferencias == Situation.ativo;
   }
 
   bool get canManageOtherCarts {
-    return salvaCarrinhoOutroUsuario || editaCarrinhoOutroUsuario || excluiCarrinhoOutroUsuario;
+    return salvaCarrinhoOutroUsuario == Situation.ativo ||
+        editaCarrinhoOutroUsuario == Situation.ativo ||
+        excluiCarrinhoOutroUsuario == Situation.ativo;
   }
 
   @override
@@ -107,96 +114,5 @@ class UserSystemModel {
   @override
   int get hashCode {
     return codEmpresa.hashCode ^ codUsuario.hashCode ^ nomeUsuario.hashCode;
-  }
-}
-
-class UserSystemListResponse {
-  final List<UserSystemModel> users;
-  final int total;
-  final int? page;
-  final int? limit;
-  final int? totalPages;
-  final bool success;
-  final String? message;
-
-  const UserSystemListResponse({
-    required this.users,
-    required this.total,
-    this.page,
-    this.limit,
-    this.totalPages,
-    required this.success,
-    this.message,
-  });
-
-  factory UserSystemListResponse.fromApiResponse(Map<String, dynamic> map) {
-    final usersData = map['data'] as List<dynamic>? ?? [];
-    final users = usersData.map((item) => UserSystemModel.fromMap(item as Map<String, dynamic>)).toList();
-
-    return UserSystemListResponse(
-      users: users,
-      total: map['total'] as int? ?? users.length,
-      page: map['page'] as int?,
-      limit: map['limit'] as int?,
-      totalPages: map['totalPages'] as int?,
-      success: true,
-      message: map['message'] as String?,
-    );
-  }
-
-  factory UserSystemListResponse.fromMap(Map<String, dynamic> map) {
-    return UserSystemListResponse(
-      users:
-          (map['users'] as List<dynamic>?)
-              ?.map((item) => UserSystemModel.fromMap(item as Map<String, dynamic>))
-              .toList() ??
-          [],
-      total: map['total'] as int? ?? 0,
-      success: map['success'] as bool? ?? true,
-      message: map['message'] as String?,
-    );
-  }
-
-  factory UserSystemListResponse.success({
-    required List<UserSystemModel> users,
-    int? page,
-    int? limit,
-    int? totalPages,
-    String? message,
-  }) {
-    return UserSystemListResponse(
-      users: users,
-      total: users.length,
-      page: page,
-      limit: limit,
-      totalPages: totalPages,
-      success: true,
-      message: message,
-    );
-  }
-
-  factory UserSystemListResponse.error(String message) {
-    return UserSystemListResponse(
-      users: [],
-      total: 0,
-      page: null,
-      limit: null,
-      totalPages: null,
-      success: false,
-      message: message,
-    );
-  }
-
-  List<UserSystemModel> get activeUsers {
-    return users.where((user) => user.ativo).toList();
-  }
-
-  List<UserSystemModel> getUsersByCompany(int codEmpresa) {
-    return users.where((user) => user.codEmpresa == codEmpresa).toList();
-  }
-
-  @override
-  String toString() {
-    return 'UserSystemListResponse(total: $total, users: ${users.length}, success: $success)';
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/domain/models/user/app_user.dart';
+import 'package:exp/domain/models/situation_model.dart';
 
 class UserInfoChips extends StatelessWidget {
   final AppUser user;
@@ -187,7 +188,7 @@ class UserInfoChips extends StatelessWidget {
                       'Fora Sequência',
                       'Trabalhar fora da sequência',
                       Icons.shuffle,
-                      user.userSystemModel?.permiteSepararForaSequencia ?? false,
+                      user.userSystemModel?.permiteSepararForaSequencia == Situation.ativo,
                       colorScheme,
                       theme,
                     ),

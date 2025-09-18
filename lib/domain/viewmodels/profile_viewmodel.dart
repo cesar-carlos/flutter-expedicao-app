@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'package:exp/domain/models/user/app_user.dart';
+import 'package:exp/domain/models/situation_model.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
+import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/core/utils/avatar_utils.dart';
-import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/di/locator.dart';
 
 enum ProfileState { idle, loading, success, error }
@@ -215,14 +216,14 @@ class ProfileViewModel extends ChangeNotifier {
       final finalUser = currentUser!.copyWith(
         codLoginApp: result.codLoginApp,
         nome: result.nome,
-        ativo: result.ativo,
+        ativo: Situation.fromCodeWithFallback(result.ativo),
         codUsuario: result.codUsuario,
         fotoUsuario: photoBase64,
         senha: null, // Remove senha por segurança
       );
 
       // Atualizar no AuthViewModel e persistir na sessão
-      _authViewModel.updateUserAfterSelection(finalUser);
+      await _authViewModel.updateUserAfterSelection(finalUser);
       await _userSessionService.saveUserSession(finalUser);
 
       // Definir mensagem de sucesso baseada nas alterações feitas

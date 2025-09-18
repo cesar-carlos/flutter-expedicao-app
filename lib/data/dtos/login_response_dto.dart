@@ -1,4 +1,5 @@
 import 'package:exp/domain/models/user/user_models.dart';
+import 'package:exp/domain/models/situation_model.dart';
 
 class LoginResponseDto {
   final String message;
@@ -22,7 +23,7 @@ class LoginResponseDto {
       message: message,
       user: AppUser(
         codLoginApp: user.codLoginApp,
-        ativo: user.ativo,
+        ativo: Situation.fromCodeWithFallback(user.ativo),
         nome: user.nome,
         codUsuario: user.codUsuario,
         fotoUsuario: user.fotoUsuario,

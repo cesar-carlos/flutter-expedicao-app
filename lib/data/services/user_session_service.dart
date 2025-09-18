@@ -29,11 +29,16 @@ class UserSessionService {
       final userJson = prefs.getString(_appUserKey);
 
       if (userJson != null) {
-        final userMap = jsonDecode(userJson) as Map<String, dynamic>;
+        final userMap = jsonDecode(userJson);
         return AppUser.fromJson(userMap);
       }
     } catch (e) {
       print('Erro ao carregar sessão do usuário: $e');
+      // Se há erro de deserialização (dados antigos), limpar sessão
+      if (e.toString().contains('bool') && e.toString().contains('String')) {
+        print('Detectado formato antigo de dados, limpando sessão...');
+        await clearUserSession();
+      }
     }
     return null;
   }

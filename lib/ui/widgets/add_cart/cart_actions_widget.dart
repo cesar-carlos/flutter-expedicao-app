@@ -14,7 +14,7 @@ class CartActionsWidget extends StatefulWidget {
 }
 
 class _CartActionsWidgetState extends State<CartActionsWidget> {
-  final FocusNode _addButtonFocusNode = FocusNode();
+  final _addButtonFocusNode = FocusNode();
 
   @override
   void initState() {

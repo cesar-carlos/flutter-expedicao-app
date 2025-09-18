@@ -1,11 +1,11 @@
 import 'package:exp/core/network/base_api_service.dart';
+import 'package:exp/domain/models/pagination/pagination.dart';
+import 'package:exp/data/dtos/user_system_list_response_dto.dart';
 import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/domain/models/user/user_models.dart';
-import 'package:exp/domain/models/pagination/pagination.dart';
-import 'package:exp/data/dtos/user_system_dto.dart';
 
 class UserSystemApiService extends BaseApiService {
-  Future<UserSystemListResponse> getUsers({int? codEmpresa, bool? apenasAtivos, Pagination? pagination}) async {
+  Future<UserSystemListResponseDto> getUsers({int? codEmpresa, bool? apenasAtivos, Pagination? pagination}) async {
     final queryParams = <String, dynamic>{};
     if (codEmpresa != null) queryParams['CodEmpresa'] = codEmpresa;
     if (apenasAtivos != null) {
@@ -26,9 +26,8 @@ class UserSystemApiService extends BaseApiService {
     try {
       final response = await get('/usuarios', queryParameters: {'CodUsuario': codUsuario});
 
-      if (response.data != null) {
-        final userSystemDto = UserSystemDto.fromApiResponse(response.data);
-        return UserSystemModel.fromMap(userSystemDto.toDomain());
+      if (response.data != null && response.data is Map<String, dynamic>) {
+        return UserSystemModel.fromMap(response.data);
       }
       return null;
     } on UserApiException catch (e) {
@@ -36,10 +35,12 @@ class UserSystemApiService extends BaseApiService {
         return null;
       }
       rethrow;
+    } catch (e) {
+      throw UserApiException('Erro ao processar dados do usuário: $e');
     }
   }
 
-  Future<UserSystemListResponse> searchUsersByName(
+  Future<UserSystemListResponseDto> searchUsersByName(
     String nome, {
     int? codEmpresa,
     bool apenasAtivos = true,
@@ -61,17 +62,14 @@ class UserSystemApiService extends BaseApiService {
     return _processUserListResponse(response.data);
   }
 
-  UserSystemListResponse _processUserListResponse(dynamic responseData) {
+  UserSystemListResponseDto _processUserListResponse(dynamic responseData) {
     try {
       if (responseData is Map<String, dynamic>) {
         if (responseData.containsKey('data') && responseData['data'] is List) {
           final usersData = responseData['data'] as List;
-          final users = usersData
-              .map((item) => UserSystemDto.fromApiResponse(item as Map<String, dynamic>))
-              .map((dto) => UserSystemModel.fromMap(dto.toDomain()))
-              .toList();
+          final users = usersData.map((item) => UserSystemModel.fromMap(item as Map<String, dynamic>)).toList();
 
-          return UserSystemListResponse(
+          return UserSystemListResponseDto(
             users: users,
             total: responseData['total'] as int? ?? users.length,
             page: responseData['page'] as int?,
@@ -81,18 +79,14 @@ class UserSystemApiService extends BaseApiService {
             message: responseData['message'] as String?,
           );
         } else {
-          final userDto = UserSystemDto.fromApiResponse(responseData);
-          final user = UserSystemModel.fromMap(userDto.toDomain());
+          final user = UserSystemModel.fromMap(responseData);
 
-          return UserSystemListResponse.success(users: [user], message: 'Usuário encontrado');
+          return UserSystemListResponseDto.success(users: [user], message: 'Usuário encontrado');
         }
       } else if (responseData is List) {
-        final users = responseData
-            .map((item) => UserSystemDto.fromApiResponse(item as Map<String, dynamic>))
-            .map((dto) => UserSystemModel.fromMap(dto.toDomain()))
-            .toList();
+        final users = responseData.map((item) => UserSystemModel.fromMap(item as Map<String, dynamic>)).toList();
 
-        return UserSystemListResponse.success(users: users, message: 'Lista de usuários obtida com sucesso');
+        return UserSystemListResponseDto.success(users: users, message: 'Lista de usuários obtida com sucesso');
       } else {
         throw UserApiException('Formato de resposta inválida');
       }
@@ -101,7 +95,7 @@ class UserSystemApiService extends BaseApiService {
     }
   }
 
-  UserSystemListResponse processUserListResponseForTesting(dynamic responseData) {
+  UserSystemListResponseDto processUserListResponseForTesting(dynamic responseData) {
     return _processUserListResponse(responseData);
   }
 }

@@ -153,13 +153,25 @@ class AppHelper {
   static isBarCode(String value) {
     if (value.trim().length > 6) return true;
     if (!AppHelper.isNumeric(value.trim())) return true;
-
     return false;
   }
 
   static String formatarData(DateTime? value) {
     if (value == null) return '';
     return formatDate(value, [dd, '/', mm, '/', yyyy]);
+  }
+
+  /// Formata a hora no formato HH:mm:ss
+  static String formatTime(DateTime dateTime) {
+    return '${dateTime.hour.toString().padLeft(2, '0')}:'
+        '${dateTime.minute.toString().padLeft(2, '0')}:'
+        '${dateTime.second.toString().padLeft(2, '0')}';
+  }
+
+  /// Formata a hora no formato HH:mm (sem segundos)
+  static String formatTimeShort(DateTime dateTime) {
+    return '${dateTime.hour.toString().padLeft(2, '0')}:'
+        '${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
   static bool isNumeric(String value) {

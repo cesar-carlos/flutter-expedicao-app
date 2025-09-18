@@ -12,13 +12,13 @@ class BarcodeScanner extends StatefulWidget {
 }
 
 class _BarcodeScannerState extends State<BarcodeScanner> {
-  final TextEditingController _barcodeController = TextEditingController();
+  final _barcodeController = TextEditingController(text: '00015520240603');
   final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    // Focar automaticamente no campo para facilitar o escaneamento
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
@@ -49,7 +49,6 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
       ),
       child: Column(
         children: [
-          // Ícone e título
           Icon(Icons.qr_code_scanner, size: 64, color: colorScheme.primary),
 
           const SizedBox(height: 16),
@@ -70,7 +69,6 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
 
           const SizedBox(height: 24),
 
-          // Campo de entrada do código de barras
           TextFormField(
             controller: _barcodeController,
             focusNode: _focusNode,
@@ -106,7 +104,6 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
 
           const SizedBox(height: 16),
 
-          // Botão manual para escanear
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -133,7 +130,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
   void _onScanPressed() {
     if (_barcodeController.text.isNotEmpty && !widget.isLoading) {
       widget.onBarcodeScanned(_barcodeController.text.trim());
-      // Manter o foco para facilitar novos escaneamentos
+
       _focusNode.requestFocus();
     }
   }

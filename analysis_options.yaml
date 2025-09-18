@@ -24,6 +24,10 @@ linter:
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 
+    # Import rules - enforce absolute imports
+    prefer_relative_imports: false # Disable relative imports
+    always_use_package_imports: true # Always use package: imports instead of relative paths
+
 # Dart formatter options
 analyzer:
   exclude:

@@ -161,7 +161,7 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
 
         if (mounted) {
           final authViewModel = context.read<AuthViewModel>();
-          authViewModel.updateUserAfterSelection(viewModel.currentAppUser!);
+          await authViewModel.updateUserAfterSelection(viewModel.currentAppUser!);
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

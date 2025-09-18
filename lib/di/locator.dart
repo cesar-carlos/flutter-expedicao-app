@@ -22,7 +22,8 @@ import 'package:exp/data/services/socket_service.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/domain/usecases/add_cart/add_cart_usecase.dart';
-import 'package:exp/domain/repositories/expedition_cart_consultation_repository.dart';
+import 'package:exp/data/repositories/expedition_cart_consultation_repository_impl.dart';
+import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
 import 'package:exp/domain/services/event_service.dart';
 import 'package:exp/data/services/event_service_impl.dart';
 import 'package:exp/domain/repositories/event_generic_repository.dart';
@@ -46,7 +47,6 @@ import 'package:exp/data/repositories/separate_item_consultation_repository_impl
 import 'package:exp/data/repositories/separation_item_consultation_repository_impl.dart';
 import 'package:exp/data/repositories/separation_item_summary_consultation_repository_impl.dart';
 import 'package:exp/data/repositories/stock_product_consultation_repository_impl.dart';
-import 'package:exp/data/repositories/expedition_cart_consultation_repository_impl.dart';
 import 'package:exp/data/repositories/expedition_cart_repository_impl.dart';
 import 'package:exp/data/repositories/expedition_cart_route_internship_repository_impl.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
@@ -59,23 +59,15 @@ import 'package:exp/data/repositories/expedition_cancellation_repository_impl.da
 import 'package:exp/domain/models/expedition_cancellation_model.dart';
 import 'package:exp/domain/models/separate_item_model.dart';
 
-/// Instância global do Service Locator para Injeção de Dependências
 final GetIt locator = GetIt.instance;
 
-/// Configuração das dependências da aplicação
-///
-/// Esta função deve ser chamada antes de executar o app,
-/// tipicamente em main() antes de runApp()
 void setupLocator() {
-  // Registrar serviços de baixo nível
   locator.registerLazySingleton(() => ConfigService());
   locator.registerLazySingleton(() => UserPreferencesService());
   locator.registerLazySingleton(() => SocketService());
 
-  // Registrar ConfigViewModel como singleton
   locator.registerLazySingleton(() => ConfigViewModel(locator<ConfigService>()));
 
-  // Registrar repositórios - usando a configuração global do Dio
   locator.registerLazySingleton<UserRepository>(() => UserRepositoryImpl());
   locator.registerLazySingleton<UserSystemRepository>(() => UserSystemRepositoryImpl());
 
@@ -93,7 +85,6 @@ void setupLocator() {
     () => SeparationItemSummaryConsultationRepositoryImpl(),
   );
 
-  // Registrar repositórios ExpeditionCartRouteInternship
   locator.registerLazySingleton<BasicConsultationRepository<ExpeditionCartRouteInternshipGroupConsultationModel>>(
     () => group_consultation.ExpeditionCartRouteInternshipConsultationRepositoryImpl(),
   );
@@ -106,7 +97,6 @@ void setupLocator() {
     () => consultation.ExpeditionCartRouteInternshipConsultationRepositoryImpl(),
   );
 
-  // Registrar repositórios adicionais
   locator.registerLazySingleton<BasicRepository<SeparateItemModel>>(() => SeparateItemRepositoryImpl());
 
   locator.registerLazySingleton<BasicConsultationRepository<SeparateItemConsultationModel>>(
@@ -117,8 +107,12 @@ void setupLocator() {
     () => StockProductConsultationRepositoryImpl(),
   );
 
-  // Registrar repositórios de carrinhos
-  locator.registerLazySingleton<ExpeditionCartConsultationRepository>(() => ExpeditionCartConsultationRepositoryImpl());
+  locator.registerLazySingleton<BasicConsultationRepository<ExpeditionCartConsultationModel>>(
+    () => ExpeditionCartConsultationRepositoryImpl(),
+  );
+  locator.registerLazySingleton<ExpeditionCartConsultationRepositoryImpl>(
+    () => ExpeditionCartConsultationRepositoryImpl(),
+  );
 
   locator.registerLazySingleton<BasicRepository<ExpeditionCartModel>>(() => ExpeditionCartRepositoryImpl());
 
@@ -126,18 +120,14 @@ void setupLocator() {
     () => ExpeditionCartRouteInternshipRepositoryImpl(),
   );
 
-  // Registrar ExpeditionCancellationRepository
   locator.registerLazySingleton<BasicRepository<ExpeditionCancellationModel>>(
     () => ExpeditionCancellationRepositoryImpl(),
   );
 
-  // Registrar use cases
   locator.registerFactory(() => RegisterUserUseCase(locator<UserRepository>()));
   locator.registerFactory(() => LoginUserUseCase(locator<UserRepository>()));
 
-  // Registrar view models - só inicializa quando realmente usado
   locator.registerFactory(() {
-    // Verifica se o ConfigService foi inicializado
     final configService = locator<ConfigService>();
     if (!configService.isInitialized) {
       throw StateError('ConfigService deve ser inicializado antes de criar RegisterViewModel');
@@ -148,7 +138,6 @@ void setupLocator() {
     return viewModel;
   });
 
-  // Registrar AuthViewModel
   locator.registerFactory(() {
     final configService = locator<ConfigService>();
     if (!configService.isInitialized) {
@@ -160,61 +149,49 @@ void setupLocator() {
     return viewModel;
   });
 
-  // Registrar UserSelectionViewModel
   locator.registerFactory(() {
     return UserSelectionViewModel(locator<UserSystemRepository>(), locator<UserRepository>());
   });
 
-  // Registrar ProfileViewModel
   locator.registerFactory(() {
     final configService = locator<ConfigService>();
     if (!configService.isInitialized) {
       throw StateError('ConfigService deve ser inicializado antes de criar ProfileViewModel');
     }
 
-    // Precisamos obter o AuthViewModel do contexto em runtime
-    // Por isso não passamos ele aqui, será injetado via Consumer
     return ProfileViewModel(locator<UserRepository>(), locator<AuthViewModel>());
   });
 
-  // Registrar SocketViewModel
   locator.registerLazySingleton(() {
     final viewModel = SocketViewModel();
     viewModel.initialize();
     return viewModel;
   });
 
-  // Registrar HomeViewModel
   locator.registerFactory(() => HomeViewModel());
 
-  // Registrar SeparationViewModel
   locator.registerFactory(() => SeparationViewModel());
 
-  // Registrar SeparateItemsViewModel
   locator.registerFactory(() => SeparateItemsViewModel());
 
-  // Registrar serviços
   locator.registerLazySingleton<FiltersStorageService>(() => FiltersStorageService());
   locator.registerLazySingleton<UserSessionService>(() => UserSessionService());
 
-  // Registrar UseCases
   locator.registerLazySingleton<AddCartUseCase>(
     () => AddCartUseCase(
-      cartConsultationRepository: locator<ExpeditionCartConsultationRepository>(),
       cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
       cartRouteRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
+      cartConsultationRepository: locator<BasicConsultationRepository<ExpeditionCartConsultationModel>>(),
+      userSystemRepository: locator<UserSystemRepository>(),
       userSessionService: locator<UserSessionService>(),
     ),
   );
 
-  // Registrar EventService
   locator.registerLazySingleton<EventService>(() => EventServiceImpl());
 
-  // Registrar GenericEventRepository para SeparateModel
   locator.registerLazySingleton<EventGenericRepositoryImpl<SeparateModel>>(
     () => EventGenericRepositoryImpl(locator(), 'separar'),
   );
 
-  // Registrar SeparateEventRepository
   locator.registerLazySingleton<EventGenericRepository<SeparateModel>>(() => SeparateEventRepositoryImpl(locator()));
 }

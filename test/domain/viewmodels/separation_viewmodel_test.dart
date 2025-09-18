@@ -1,9 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
-import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/domain/models/expedition_situation_model.dart';
-import 'package:exp/domain/models/entity_type_model.dart';
-import 'package:exp/domain/models/expedition_origem_model.dart';
 
 void main() {
   group('SeparationViewModel', () {

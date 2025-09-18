@@ -5,6 +5,12 @@
   "version": "1.0.0",
   "configurations": [
     {
+      "name": "expedicao (debug mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug"
+    },
+    {
       "name": "expedicao (debug mode) - TC60",
       "request": "launch",
       "type": "dart",

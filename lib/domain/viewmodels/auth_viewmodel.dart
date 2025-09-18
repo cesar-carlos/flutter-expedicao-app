@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
-import 'package:exp/domain/usecases/login_user_usecase.dart';
 import 'package:exp/domain/models/user/user_models.dart';
+import 'package:exp/domain/usecases/login_user_usecase.dart';
+import 'package:exp/domain/repositories/user_system_repository.dart';
 import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/di/locator.dart';
 
@@ -15,7 +16,8 @@ class AuthViewModel extends ChangeNotifier {
   bool _isLoginLoading = false;
   AppUser? _currentUser;
   LoginUserUseCase? _loginUserUseCase;
-  final UserSessionService _userSessionService = locator<UserSessionService>();
+  final _userSessionService = locator<UserSessionService>();
+  final _userSystemRepository = locator<UserSystemRepository>();
 
   AuthStatus get status => _status;
   String get errorMessage => _errorMessage;
@@ -43,6 +45,9 @@ class AuthViewModel extends ChangeNotifier {
         _username = savedUser.nome;
         _status = AuthStatus.authenticated;
         debugPrint('Usuário carregado da sessão: ${savedUser.nome}');
+
+        // Carregar UserSystemModel se necessário
+        await _ensureUserSystemModel();
       } else {
         _status = AuthStatus.unauthenticated;
         debugPrint('Nenhuma sessão salva encontrada');
@@ -89,6 +94,9 @@ class AuthViewModel extends ChangeNotifier {
         _status = AuthStatus.needsUserSelection;
       } else {
         _status = AuthStatus.authenticated;
+
+        // Carregar UserSystemModel se necessário
+        await _ensureUserSystemModel();
       }
 
       _errorMessage = '';
@@ -142,14 +150,17 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  void updateUserAfterSelection(AppUser updatedUser) {
+  Future<void> updateUserAfterSelection(AppUser updatedUser) async {
     _currentUser = updatedUser;
     _status = AuthStatus.authenticated;
 
     // Salvar sessão atualizada
-    _userSessionService.saveUserSession(updatedUser).catchError((e) {
+    await _userSessionService.saveUserSession(updatedUser).catchError((e) {
       debugPrint('Erro ao salvar sessão atualizada: $e');
     });
+
+    // Carregar UserSystemModel se necessário
+    await _ensureUserSystemModel();
 
     notifyListeners();
   }
@@ -158,5 +169,39 @@ class AuthViewModel extends ChangeNotifier {
     _status = AuthStatus.unauthenticated;
     _currentUser = null;
     notifyListeners();
+  }
+
+  /// Carrega ou atualiza o userSystemModel do usuário atual
+  Future<void> _ensureUserSystemModel() async {
+    if (_currentUser?.userSystemModel != null) {
+      // UserSystemModel já existe, não precisa carregar
+      return;
+    }
+
+    if (_currentUser?.codUsuario == null) {
+      // Não tem codUsuario, não pode carregar UserSystemModel
+      return;
+    }
+
+    try {
+      debugPrint('Carregando UserSystemModel para usuário: ${_currentUser!.codUsuario}');
+
+      final userSystemModel = await _userSystemRepository.getUserById(_currentUser!.codUsuario!);
+
+      if (userSystemModel != null) {
+        // Atualizar o usuário com o UserSystemModel
+        _currentUser = _currentUser!.copyWith(userSystemModel: userSystemModel);
+
+        // Salvar a sessão atualizada
+        await _userSessionService.saveUserSession(_currentUser!);
+
+        debugPrint('UserSystemModel carregado com sucesso para: ${userSystemModel.nomeUsuario}');
+      } else {
+        debugPrint('UserSystemModel não encontrado para usuário: ${_currentUser!.codUsuario}');
+      }
+    } catch (e) {
+      debugPrint('Erro ao carregar UserSystemModel: $e');
+      // Não falha o login, apenas registra o erro
+    }
   }
 }

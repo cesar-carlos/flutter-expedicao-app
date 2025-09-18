@@ -1,6 +1,7 @@
-import 'package:exp/domain/repositories/user_system_repository.dart';
 import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/domain/models/pagination/pagination.dart';
+import 'package:exp/domain/repositories/user_system_repository.dart';
+import 'package:exp/data/dtos/user_system_list_response_dto.dart';
 import 'package:exp/data/services/user_system_api_service.dart';
 
 class UserSystemRepositoryImpl implements UserSystemRepository {
@@ -18,17 +19,22 @@ class UserSystemRepositoryImpl implements UserSystemRepository {
   }
 
   @override
-  Future<UserSystemListResponse> getUsers({int? codEmpresa, bool? apenasAtivos, Pagination? pagination}) async {
+  Future<UserSystemListResponseDto> getUsers({int? codEmpresa, bool? apenasAtivos, Pagination? pagination}) async {
     return await _apiService.getUsers(codEmpresa: codEmpresa, apenasAtivos: apenasAtivos, pagination: pagination);
   }
 
   @override
   Future<UserSystemModel?> getUserById(int codUsuario) async {
-    return await _apiService.getUserById(codUsuario);
+    try {
+      final user = await _apiService.getUserById(codUsuario);
+      return user;
+    } catch (e) {
+      throw Exception('Erro ao buscar usuário: $e');
+    }
   }
 
   @override
-  Future<UserSystemListResponse> searchUsersByName(
+  Future<UserSystemListResponseDto> searchUsersByName(
     String nome, {
     int? codEmpresa,
     bool apenasAtivos = true,

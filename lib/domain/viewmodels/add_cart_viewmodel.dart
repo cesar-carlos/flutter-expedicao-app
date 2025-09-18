@@ -1,20 +1,20 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:exp/di/locator.dart';
-import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
-import 'package:exp/domain/repositories/expedition_cart_consultation_repository.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
-import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/usecases/add_cart/index.dart';
+import 'package:exp/domain/repositories/basic_consultation_repository.dart';
+import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
+import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/domain/models/expedition_origem_model.dart';
 
 class AddCartViewModel extends ChangeNotifier {
   final int codEmpresa;
   final int codSepararEstoque;
 
   // Repositórios e UseCases
-  final ExpeditionCartConsultationRepository _cartConsultationRepository;
   final AddCartUseCase _addCartUseCase;
-
+  final BasicConsultationRepository<ExpeditionCartConsultationModel> _cartConsultationRepository;
   // Estado
   bool _isScanning = false;
   bool _isAdding = false;
@@ -22,8 +22,8 @@ class AddCartViewModel extends ChangeNotifier {
   String? _errorMessage;
 
   AddCartViewModel({required this.codEmpresa, required this.codSepararEstoque})
-    : _cartConsultationRepository = locator<ExpeditionCartConsultationRepository>(),
-      _addCartUseCase = locator<AddCartUseCase>();
+    : _addCartUseCase = locator<AddCartUseCase>(),
+      _cartConsultationRepository = locator<BasicConsultationRepository<ExpeditionCartConsultationModel>>();
 
   // Getters
   bool get isScanning => _isScanning;
@@ -43,17 +43,18 @@ class AddCartViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      // Buscar carrinho pelo código de barras
-      final cart = await _cartConsultationRepository.getCartByBarcode(codEmpresa: codEmpresa, codigoBarras: barcode);
+      final carts = await _cartConsultationRepository.selectConsultation(
+        QueryBuilder().equals('codigoBarras', barcode),
+      );
 
-      if (cart != null) {
-        _scannedCart = cart;
+      if (carts.isNotEmpty) {
+        _scannedCart = carts.first;
 
         // Verificar se o carrinho pode ser adicionado
         if (!canAddCart) {
           _setError(
             'Carrinho deve estar na situação LIBERADO para ser adicionado. '
-            'Situação atual: ${cart.situacaoDescription}',
+            'Situação atual: ${_scannedCart!.situacaoDescription}',
           );
         }
       } else {
