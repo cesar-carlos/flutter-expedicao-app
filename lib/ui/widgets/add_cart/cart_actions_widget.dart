@@ -6,8 +6,15 @@ class CartActionsWidget extends StatefulWidget {
   final AddCartViewModel viewModel;
   final VoidCallback onCancel;
   final VoidCallback onAdd;
+  final VoidCallback? onNewQuery;
 
-  const CartActionsWidget({super.key, required this.viewModel, required this.onCancel, required this.onAdd});
+  const CartActionsWidget({
+    super.key,
+    required this.viewModel,
+    required this.onCancel,
+    required this.onAdd,
+    this.onNewQuery,
+  });
 
   @override
   State<CartActionsWidget> createState() => _CartActionsWidgetState();
@@ -125,45 +132,87 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
               const SizedBox(height: 20),
             ],
 
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: widget.viewModel.isAdding ? null : widget.onCancel,
-                    icon: const Icon(Icons.close),
-                    label: const Text('Cancelar'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      side: BorderSide(color: colorScheme.outline),
+            if (canAdd) ...[
+              // Botões para carrinho válido
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: widget.viewModel.isAdding ? null : widget.onCancel,
+                      icon: const Icon(Icons.close),
+                      label: const Text('Cancelar'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        side: BorderSide(color: colorScheme.outline),
+                      ),
                     ),
                   ),
-                ),
 
-                const SizedBox(width: 16),
+                  const SizedBox(width: 16),
 
-                Expanded(
-                  child: ElevatedButton.icon(
-                    focusNode: _addButtonFocusNode,
-                    onPressed: (canAdd && !widget.viewModel.isAdding) ? widget.onAdd : null,
-                    icon: widget.viewModel.isAdding
-                        ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
-                          )
-                        : const Icon(Icons.add_shopping_cart),
-                    label: Text(widget.viewModel.isAdding ? 'Adicionando...' : 'Adicionar'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      backgroundColor: canAdd ? null : colorScheme.outline.withOpacity(0.3),
-                      foregroundColor: canAdd ? null : colorScheme.onSurface.withOpacity(0.6),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      focusNode: _addButtonFocusNode,
+                      onPressed: !widget.viewModel.isAdding ? widget.onAdd : null,
+                      icon: widget.viewModel.isAdding
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
+                            )
+                          : const Icon(Icons.add_shopping_cart),
+                      label: Text(widget.viewModel.isAdding ? 'Adicionando...' : 'Adicionar'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ] else ...[
+              // Botões para carrinho inválido
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: widget.viewModel.isAdding ? null : widget.onCancel,
+                      icon: const Icon(Icons.close),
+                      label: const Text('Cancelar'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        side: BorderSide(color: colorScheme.outline),
+                      ),
+                    ),
+                  ),
+
+                  if (widget.onNewQuery != null) ...[
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: widget.viewModel.isScanning ? null : widget.onNewQuery,
+                        icon: widget.viewModel.isScanning
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
+                              )
+                            : const Icon(Icons.search),
+                        label: Text(widget.viewModel.isScanning ? 'Buscando...' : 'Nova Consulta'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
 
             if (!canAdd) ...[
               const SizedBox(height: 12),

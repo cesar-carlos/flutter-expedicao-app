@@ -90,6 +90,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
                         viewModel: viewModel,
                         onCancel: () => Navigator.of(context).pop(),
                         onAdd: () => _onAddCart(viewModel),
+                        onNewQuery: () => _onNewQuery(viewModel),
                       ),
                     ],
 
@@ -121,6 +122,11 @@ class _AddCartScreenState extends State<AddCartScreen> {
         },
       ),
     );
+  }
+
+  void _onNewQuery(AddCartViewModel viewModel) {
+    viewModel.clearScannedData();
+    // O foco será aplicado automaticamente pelo BarcodeScanner quando os dados forem limpos
   }
 
   Future<void> _onAddCart(AddCartViewModel viewModel) async {
