@@ -1,15 +1,9 @@
 import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
 
-/// Representa o sucesso na operação de adicionar carrinho
 class AddCartSuccess {
-  /// Carrinho que foi adicionado
   final ExpeditionCartConsultationModel addedCart;
-
-  /// Mensagem de sucesso
-  final String message;
-
-  /// Código do percurso do carrinho gerado
   final int? codCarrinhoPercurso;
+  final String message;
 
   const AddCartSuccess({required this.addedCart, required this.message, this.codCarrinhoPercurso});
 

@@ -35,12 +35,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkTheme = theme.brightness == Brightness.dark;
+
+    // Se não foi especificada cor de fundo, usa preto no tema escuro ou cor primária no tema claro
+    final effectiveBackgroundColor = backgroundColor ?? (isDarkTheme ? Colors.black : theme.colorScheme.primary);
+    final effectiveForegroundColor = foregroundColor ?? (isDarkTheme ? Colors.white : theme.colorScheme.onPrimary);
+
     return AppBar(
       title: replaceWithUserName ? _buildUserTitle(context) : _buildNormalTitle(),
       leading: leading,
       centerTitle: centerTitle,
-      backgroundColor: backgroundColor,
-      foregroundColor: foregroundColor,
+      backgroundColor: effectiveBackgroundColor,
+      foregroundColor: effectiveForegroundColor,
       elevation: elevation,
       bottom: bottom,
       actions: [
@@ -54,6 +61,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           const SizedBox(width: 8),
         ],
+
+        // Inclui os actions passados como parâmetro
+        if (actions != null) ...actions!,
 
         if ((actions?.isEmpty ?? true) && showSocketStatus) const SizedBox(width: 8),
       ],

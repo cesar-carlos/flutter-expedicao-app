@@ -24,22 +24,38 @@ class CartsListView extends StatelessWidget {
         await viewModel.refresh();
       },
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
         itemCount: viewModel.carts.length,
         itemBuilder: (context, index) {
           final cart = viewModel.carts[index];
-          return CartItemCard(cart: cart, onTap: () => _onCartTap(context, cart));
+          return CartItemCard(
+            cart: cart,
+            onTap: () => _onCartTap(context, cart),
+            onCancel: () => _onCartCancel(context, cart),
+            viewModel: viewModel,
+          );
         },
       ),
     );
   }
 
   void _onCartTap(BuildContext context, ExpeditionCartRouteInternshipConsultationModel cart) {
-    // TODO: Implementar ação de toque no carrinho
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Carrinho ${cart.nomeCarrinho} selecionado'),
         backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
+    );
+  }
+
+  void _onCartCancel(BuildContext context, ExpeditionCartRouteInternshipConsultationModel cart) {
+    viewModel.refresh();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Lista de carrinhos atualizada'),
+        backgroundColor: Colors.blue,
+        duration: const Duration(seconds: 2),
       ),
     );
   }

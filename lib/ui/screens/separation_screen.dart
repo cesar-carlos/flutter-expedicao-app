@@ -8,6 +8,7 @@ import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/ui/widgets/separation/separation_filter_modal.dart';
 import 'package:exp/ui/widgets/separation/separation_card.dart';
 import 'package:exp/ui/widgets/app_drawer/app_drawer.dart';
+import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 
 class SeparationScreen extends StatefulWidget {
   const SeparationScreen({super.key});
@@ -46,17 +47,12 @@ class _SeparationScreenState extends State<SeparationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Separação'),
-        elevation: 0,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
+      appBar: CustomAppBar(
+        title: 'Separação',
         leading: IconButton(
           onPressed: () => context.go(AppRouter.home),
-          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+          icon: const Icon(Icons.arrow_back),
           tooltip: 'Voltar',
         ),
         actions: [
@@ -64,15 +60,24 @@ class _SeparationScreenState extends State<SeparationScreen> {
             builder: (context, viewModel, child) {
               return IconButton(
                 onPressed: () => _showFilterModal(context),
-                icon: Icon(Icons.filter_alt, color: viewModel.hasActiveFilters ? Colors.red : colorScheme.onSurface),
+                icon: Stack(
+                  children: [
+                    const Icon(Icons.filter_alt),
+                    if (viewModel.hasActiveFilters)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                        ),
+                      ),
+                  ],
+                ),
                 tooltip: 'Filtros',
               );
             },
-          ),
-          IconButton(
-            onPressed: () => _refreshData(context),
-            icon: Icon(Icons.refresh, color: colorScheme.onSurface),
-            tooltip: 'Atualizar',
           ),
         ],
       ),
@@ -158,7 +163,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => _refreshData(context),
+              onPressed: () => context.read<SeparationViewModel>().refresh(),
               icon: const Icon(Icons.refresh),
               label: const Text('Atualizar'),
             ),
@@ -202,10 +207,6 @@ class _SeparationScreenState extends State<SeparationScreen> {
         ],
       ),
     );
-  }
-
-  void _refreshData(BuildContext context) {
-    context.read<SeparationViewModel>().refresh();
   }
 
   void _showFilterModal(BuildContext context) {

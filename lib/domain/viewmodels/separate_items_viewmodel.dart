@@ -4,9 +4,13 @@ import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:exp/domain/models/separate_items_filters_model.dart';
+import 'package:exp/domain/models/carts_filters_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
+import 'package:exp/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
+import 'package:exp/domain/usecases/cancel_cart/cancel_cart_params.dart';
 import 'package:exp/di/locator.dart';
 
 enum SeparateItemsState { initial, loading, loaded, error }
@@ -35,6 +39,14 @@ class SeparateItemsViewModel extends ChangeNotifier {
   List<ExpeditionCartRouteInternshipConsultationModel> _carts = [];
   bool _cartsLoaded = false;
 
+  // === CANCELAMENTO ===
+  bool _isCancelling = false;
+  int? _cancellingCartId;
+
+  // === FILTROS ===
+  SeparateItemsFiltersModel _itemsFilters = const SeparateItemsFiltersModel();
+  CartsFiltersModel _cartsFilters = const CartsFiltersModel();
+
   // === GETTERS ===
   SeparateItemsState get state => _state;
   String? get errorMessage => _errorMessage;
@@ -51,9 +63,19 @@ class SeparateItemsViewModel extends ChangeNotifier {
   int get totalCarts => _carts.length;
   bool get hasCartsData => _carts.isNotEmpty;
   bool get cartsLoaded => _cartsLoaded;
+
+  // === CANCELAMENTO GETTERS ===
+  bool get isCancelling => _isCancelling;
+  bool isCartBeingCancelled(int cartId) => _isCancelling && _cancellingCartId == cartId;
   int get itemsSeparados => _items.where((item) => item.quantidadeSeparacao > 0).length;
   int get itemsPendentes => totalItems - itemsSeparados;
   double get percentualConcluido => totalItems > 0 ? (itemsSeparados / totalItems) * 100 : 0;
+
+  // === FILTROS ===
+  SeparateItemsFiltersModel get itemsFilters => _itemsFilters;
+  CartsFiltersModel get cartsFilters => _cartsFilters;
+  bool get hasActiveItemsFilters => _itemsFilters.isNotEmpty;
+  bool get hasActiveCartsFilters => _cartsFilters.isNotEmpty;
 
   // === MÉTODOS PÚBLICOS ===
 
@@ -94,12 +116,16 @@ class SeparateItemsViewModel extends ChangeNotifier {
       final queryBuilder = QueryBuilder()
         ..equals('CodOrigem', separation.codSepararEstoque.toString())
         ..equals('Origem', 'SE')
-        ..orderBy('CodCarrinho');
+        ..orderByDesc('Item');
+
+      // Aplica filtros salvos de carrinhos se existirem
+      await _applySavedCartsFiltersToQuery(queryBuilder);
 
       final carts = await _cartRepository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
-      _carts = carts;
+      // Ordena os carrinhos por item em ordem decrescente (mais recentes primeiro)
+      _carts = carts..sort((a, b) => b.item.compareTo(a.item));
       _cartsLoaded = true;
       notifyListeners();
     } catch (e) {
@@ -193,6 +219,64 @@ class SeparateItemsViewModel extends ChangeNotifier {
     }
   }
 
+  // === MÉTODOS DE FILTROS ===
+
+  /// Aplica filtros aos itens
+  Future<void> applyItemsFilters(SeparateItemsFiltersModel filters) async {
+    if (_disposed) return;
+
+    try {
+      _itemsFilters = filters;
+      await _saveItemsFilters();
+      await _loadFilteredItems();
+      _safeNotifyListeners();
+    } catch (e) {
+      _setError('Erro ao aplicar filtros de produtos: ${_getErrorMessage(e)}');
+    }
+  }
+
+  /// Aplica filtros aos carrinhos
+  Future<void> applyCartsFilters(CartsFiltersModel filters) async {
+    if (_disposed) return;
+
+    try {
+      _cartsFilters = filters;
+      await _saveCartsFilters();
+      await _loadFilteredCarts();
+      _safeNotifyListeners();
+    } catch (e) {
+      _setError('Erro ao aplicar filtros de carrinhos: ${_getErrorMessage(e)}');
+    }
+  }
+
+  /// Limpa filtros de itens
+  Future<void> clearItemsFilters() async {
+    if (_disposed) return;
+
+    try {
+      _itemsFilters = const SeparateItemsFiltersModel();
+      await _clearItemsFilters();
+      await _loadFilteredItems();
+      _safeNotifyListeners();
+    } catch (e) {
+      _setError('Erro ao limpar filtros de produtos: ${_getErrorMessage(e)}');
+    }
+  }
+
+  /// Limpa filtros de carrinhos
+  Future<void> clearCartsFilters() async {
+    if (_disposed) return;
+
+    try {
+      _cartsFilters = const CartsFiltersModel();
+      await _clearCartsFilters();
+      await _loadFilteredCarts();
+      _safeNotifyListeners();
+    } catch (e) {
+      _setError('Erro ao limpar filtros de carrinhos: ${_getErrorMessage(e)}');
+    }
+  }
+
   // === MÉTODOS PRIVADOS ===
 
   void _setState(SeparateItemsState newState) {
@@ -250,12 +334,212 @@ class SeparateItemsViewModel extends ChangeNotifier {
   /// Aplica filtros salvos do usuário à query (se existirem)
   Future<void> _applySavedFiltersToQuery(QueryBuilder queryBuilder) async {
     try {
-      final savedFilters = await _filtersStorage.loadSeparationFilters();
-
-      if (savedFilters.isEmpty) return;
+      // Carrega filtros salvos de itens
+      final savedItemsFilters = await _filtersStorage.loadSeparateItemsFilters();
+      if (savedItemsFilters.isNotEmpty) {
+        _itemsFilters = savedItemsFilters;
+        _applyItemsFiltersToQuery(queryBuilder);
+      }
     } catch (e) {
-      debugPrint('Erro ao aplicar filtros salvos: $e');
+      debugPrint('Erro ao aplicar filtros salvos de itens: $e');
       // Não quebra a aplicação se houver erro ao carregar filtros
+    }
+  }
+
+  /// Aplica filtros salvos de carrinhos à query (se existirem)
+  Future<void> _applySavedCartsFiltersToQuery(QueryBuilder queryBuilder) async {
+    try {
+      // Carrega filtros salvos de carrinhos
+      final savedCartsFilters = await _filtersStorage.loadCartsFilters();
+      if (savedCartsFilters.isNotEmpty) {
+        _cartsFilters = savedCartsFilters;
+        _applyCartsFiltersToQuery(queryBuilder);
+      }
+    } catch (e) {
+      debugPrint('Erro ao aplicar filtros salvos de carrinhos: $e');
+      // Não quebra a aplicação se houver erro ao carregar filtros
+    }
+  }
+
+  /// Carrega itens com filtros aplicados
+  Future<void> _loadFilteredItems() async {
+    if (_separation == null) return;
+
+    try {
+      final queryBuilder = QueryBuilder()
+        ..equals('CodEmpresa', _separation!.codEmpresa.toString())
+        ..equals('CodSepararEstoque', _separation!.codSepararEstoque.toString())
+        ..orderBy('EnderecoDescricao');
+
+      // Aplica filtros de itens
+      _applyItemsFiltersToQuery(queryBuilder);
+
+      final items = await _repository.selectConsultation(queryBuilder);
+
+      if (_disposed) return;
+      _items = items;
+    } catch (e) {
+      debugPrint('Erro ao carregar itens filtrados: $e');
+    }
+  }
+
+  /// Carrega carrinhos com filtros aplicados
+  Future<void> _loadFilteredCarts() async {
+    if (_separation == null) return;
+
+    try {
+      final queryBuilder = QueryBuilder()
+        ..equals('CodOrigem', _separation!.codSepararEstoque.toString())
+        ..equals('Origem', 'SE')
+        ..orderByDesc('Item');
+
+      // Aplica filtros de carrinhos
+      _applyCartsFiltersToQuery(queryBuilder);
+
+      final carts = await _cartRepository.selectConsultation(queryBuilder);
+
+      if (_disposed) return;
+      // Ordena os carrinhos por item em ordem decrescente (mais recentes primeiro)
+      _carts = carts..sort((a, b) => b.item.compareTo(a.item));
+    } catch (e) {
+      debugPrint('Erro ao carregar carrinhos filtrados: $e');
+    }
+  }
+
+  /// Aplica filtros de itens à query
+  void _applyItemsFiltersToQuery(QueryBuilder queryBuilder) {
+    if (_itemsFilters.codProduto != null) {
+      queryBuilder.like('CodProduto', _itemsFilters.codProduto!);
+    }
+    if (_itemsFilters.codigoBarras != null) {
+      queryBuilder.like('CodigoBarras', _itemsFilters.codigoBarras!);
+    }
+    if (_itemsFilters.nomeProduto != null) {
+      queryBuilder.like('NomeProduto', _itemsFilters.nomeProduto!);
+    }
+    if (_itemsFilters.enderecoDescricao != null) {
+      queryBuilder.like('EnderecoDescricao', _itemsFilters.enderecoDescricao!);
+    }
+    if (_itemsFilters.quantidadeMinima != null) {
+      queryBuilder.greaterThan('Quantidade', _itemsFilters.quantidadeMinima!);
+    }
+    if (_itemsFilters.quantidadeMaxima != null) {
+      queryBuilder.lessThan('Quantidade', _itemsFilters.quantidadeMaxima!);
+    }
+    if (_itemsFilters.quantidadeSeparacaoMinima != null) {
+      queryBuilder.greaterThan('QuantidadeSeparacao', _itemsFilters.quantidadeSeparacaoMinima!);
+    }
+    if (_itemsFilters.quantidadeSeparacaoMaxima != null) {
+      queryBuilder.lessThan('QuantidadeSeparacao', _itemsFilters.quantidadeSeparacaoMaxima!);
+    }
+  }
+
+  /// Aplica filtros de carrinhos à query
+  void _applyCartsFiltersToQuery(QueryBuilder queryBuilder) {
+    if (_cartsFilters.codCarrinho != null) {
+      queryBuilder.like('CodCarrinho', _cartsFilters.codCarrinho!);
+    }
+    if (_cartsFilters.nomeCarrinho != null) {
+      queryBuilder.like('NomeCarrinho', _cartsFilters.nomeCarrinho!);
+    }
+    if (_cartsFilters.codigoBarrasCarrinho != null) {
+      queryBuilder.like('CodigoBarrasCarrinho', _cartsFilters.codigoBarrasCarrinho!);
+    }
+    if (_cartsFilters.situacao != null) {
+      queryBuilder.equals('Situacao', _cartsFilters.situacao!);
+    }
+    if (_cartsFilters.nomeUsuarioInicio != null) {
+      queryBuilder.like('NomeUsuarioInicio', _cartsFilters.nomeUsuarioInicio!);
+    }
+    if (_cartsFilters.dataInicioInicial != null) {
+      queryBuilder.greaterThan('DataInicio', _cartsFilters.dataInicioInicial!.toIso8601String());
+    }
+    if (_cartsFilters.dataInicioFinal != null) {
+      queryBuilder.lessThan('DataInicio', _cartsFilters.dataInicioFinal!.toIso8601String());
+    }
+    if (_cartsFilters.carrinhoAgrupador != null) {
+      queryBuilder.equals('CarrinhoAgrupador', _cartsFilters.carrinhoAgrupador!);
+    }
+  }
+
+  /// Salva filtros de itens
+  Future<void> _saveItemsFilters() async {
+    try {
+      await _filtersStorage.saveSeparateItemsFilters(_itemsFilters);
+    } catch (e) {
+      debugPrint('Erro ao salvar filtros de itens: $e');
+    }
+  }
+
+  /// Salva filtros de carrinhos
+  Future<void> _saveCartsFilters() async {
+    try {
+      await _filtersStorage.saveCartsFilters(_cartsFilters);
+    } catch (e) {
+      debugPrint('Erro ao salvar filtros de carrinhos: $e');
+    }
+  }
+
+  /// Limpa filtros de itens salvos
+  Future<void> _clearItemsFilters() async {
+    try {
+      await _filtersStorage.clearSeparateItemsFilters();
+    } catch (e) {
+      debugPrint('Erro ao limpar filtros de itens: $e');
+    }
+  }
+
+  /// Limpa filtros de carrinhos salvos
+  Future<void> _clearCartsFilters() async {
+    try {
+      await _filtersStorage.clearCartsFilters();
+    } catch (e) {
+      debugPrint('Erro ao limpar filtros de carrinhos: $e');
+    }
+  }
+
+  /// Cancela um carrinho
+  Future<bool> cancelCart(int cartId) async {
+    if (_disposed || _isCancelling) return false;
+
+    try {
+      _isCancelling = true;
+      _cancellingCartId = cartId;
+      _safeNotifyListeners();
+
+      // Buscar o carrinho
+      final cart = _carts.firstWhere((c) => c.codCarrinho == cartId);
+
+      // Obter use case
+      final cancelCartUseCase = locator<CancelCartUseCase>();
+
+      // Criar parâmetros
+      final params = CancelCartParams(
+        codEmpresa: cart.codEmpresa,
+        origem: cart.origem,
+        codOrigem: cart.codOrigem,
+        codCarrinho: cart.codCarrinho,
+      );
+
+      // Executar cancelamento
+      final result = await cancelCartUseCase.call(params);
+
+      if (result.isSuccess) {
+        // Recarregar dados após sucesso
+        if (_separation != null) {
+          await loadSeparationCarts(_separation!);
+        }
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Erro ao cancelar carrinho: $e');
+      return false;
+    } finally {
+      _isCancelling = false;
+      _cancellingCartId = null;
+      _safeNotifyListeners();
     }
   }
 }

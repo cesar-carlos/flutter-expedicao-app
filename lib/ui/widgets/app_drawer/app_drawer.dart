@@ -8,7 +8,7 @@ import 'package:exp/domain/viewmodels/theme_viewmodel.dart';
 import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
 import 'package:exp/core/routing/app_router.dart';
 import 'package:exp/core/utils/avatar_utils.dart';
-import 'drawer_menu_tile.dart';
+import 'package:exp/ui/widgets/app_drawer/drawer_menu_tile.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -113,7 +113,7 @@ class AppDrawer extends StatelessWidget {
 
                 DrawerMenuTile(
                   icon: Icons.search_outlined,
-                  title: 'Consultas de Separação',
+                  title: 'Consulta Separações',
                   onTap: () {
                     Navigator.pop(context);
                     context.go(AppRouter.shipmentSeparateConsultation);

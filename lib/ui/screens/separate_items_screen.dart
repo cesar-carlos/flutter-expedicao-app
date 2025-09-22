@@ -9,10 +9,11 @@ import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 import 'package:exp/ui/widgets/separate_items/separate_item_card.dart';
 import 'package:exp/ui/widgets/separate_items/separate_items_bottom_navigation.dart';
-import 'package:exp/ui/widgets/separate_items/separation_info_dialog.dart';
 import 'package:exp/ui/widgets/separate_items/carts_list_view.dart';
 import 'package:exp/ui/widgets/separate_items/separate_items_error_state.dart';
 import 'package:exp/ui/widgets/separate_items/separation_info_view.dart';
+import 'package:exp/ui/widgets/separate_items/separate_items_filter_modal.dart';
+import 'package:exp/ui/widgets/separate_items/carts_filter_modal.dart';
 import 'package:exp/ui/screens/add_cart_screen.dart';
 
 class SeparateItemsScreen extends StatefulWidget {
@@ -64,39 +65,30 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
           tooltip: 'Voltar',
         ),
         actions: [
-          // Separar todos os itens (equivalente ao F7 do desktop)
-          IconButton(
-            onPressed: () => _separateAllItems(context),
-            icon: const Icon(Icons.select_all),
-            tooltip: 'Separar Todos',
-          ),
-          IconButton(
-            onPressed: () => _showSeparationInfo(context),
-            icon: const Icon(Icons.info_outline),
-            tooltip: 'Informações',
-          ),
-          IconButton(onPressed: () => _refreshData(context), icon: const Icon(Icons.refresh), tooltip: 'Atualizar'),
-          // Menu de opções
-          PopupMenuButton<String>(
-            onSelected: (value) => _handleMenuAction(context, value),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'add_cart',
-                child: Row(children: [Icon(Icons.add_shopping_cart), SizedBox(width: 8), Text('Adicionar Carrinho')]),
-              ),
-              const PopupMenuItem(
-                value: 'add_observation',
-                child: Row(children: [Icon(Icons.note_add), SizedBox(width: 8), Text('Adicionar Observação')]),
-              ),
-              const PopupMenuItem(
-                value: 'recover_cart',
-                child: Row(children: [Icon(Icons.restore), SizedBox(width: 8), Text('Recuperar Carrinho')]),
-              ),
-              const PopupMenuItem(
-                value: 'finalize',
-                child: Row(children: [Icon(Icons.check_circle), SizedBox(width: 8), Text('Finalizar Separação')]),
-              ),
-            ],
+          // Botão de filtro baseado na aba ativa
+          Consumer<SeparateItemsViewModel>(
+            builder: (context, viewModel, child) {
+              return IconButton(
+                onPressed: () => _showFilterModal(context),
+                icon: Stack(
+                  children: [
+                    const Icon(Icons.filter_alt),
+                    if ((_tabController.index == 0 && viewModel.hasActiveItemsFilters) ||
+                        (_tabController.index == 1 && viewModel.hasActiveCartsFilters))
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                        ),
+                      ),
+                  ],
+                ),
+                tooltip: _tabController.index == 0 ? 'Filtros de Produtos' : 'Filtros de Carrinhos',
+              );
+            },
           ),
         ],
       ),
@@ -130,7 +122,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
     }
 
     if (viewModel.hasError) {
-      return SeparateItemsErrorState(viewModel: viewModel, onRefresh: () => _refreshData(context));
+      return SeparateItemsErrorState(viewModel: viewModel, onRefresh: () => viewModel.refresh());
     }
 
     return TabBarView(
@@ -170,7 +162,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Aumenta padding inferior para 100px
       itemCount: viewModel.items.length,
       itemBuilder: (context, index) {
         final item = viewModel.items[index];
@@ -179,10 +171,22 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
     );
   }
 
-  void _showSeparationInfo(BuildContext context) {
-    showDialog(
+  void _showFilterModal(BuildContext context) {
+    final viewModel = context.read<SeparateItemsViewModel>();
+
+    showModalBottomSheet(
       context: context,
-      builder: (context) => SeparationInfoDialog(separation: widget.separation),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        if (_tabController.index == 0) {
+          // Aba de produtos
+          return SeparateItemsFilterModal(viewModel: viewModel);
+        } else {
+          // Aba de carrinhos
+          return CartsFilterModal(viewModel: viewModel);
+        }
+      },
     );
   }
 
@@ -192,176 +196,6 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
       SnackBar(
         content: Text('Separar item ${item.codProduto} - Em desenvolvimento'),
         backgroundColor: Theme.of(context).colorScheme.primary,
-      ),
-    );
-  }
-
-  void _refreshData(BuildContext context) {
-    context.read<SeparateItemsViewModel>().refresh();
-  }
-
-  void _separateAllItems(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Separar Todos os Itens'),
-        content: const Text('Deseja separar automaticamente todos os itens pendentes desta separação?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.read<SeparateItemsViewModel>().separateAllItems();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Separando todos os itens...'),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                ),
-              );
-            },
-            child: const Text('Separar Todos'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _handleMenuAction(BuildContext context, String action) {
-    switch (action) {
-      case 'add_cart':
-        _showAddCartDialog(context);
-        break;
-      case 'add_observation':
-        _showAddObservationDialog(context);
-        break;
-      case 'recover_cart':
-        _showRecoverCartDialog(context);
-        break;
-      case 'finalize':
-        _showFinalizeSeparationDialog(context);
-        break;
-    }
-  }
-
-  void _showAddCartDialog(BuildContext context) {
-    // TODO: Implementar dialog de adicionar carrinho
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Adicionar Carrinho - Em desenvolvimento'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-      ),
-    );
-  }
-
-  void _showAddObservationDialog(BuildContext context) {
-    final observationController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Adicionar Observação'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Separação ${widget.separation.codSepararEstoque}'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: observationController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Observação',
-                border: OutlineInputBorder(),
-                hintText: 'Digite uma observação sobre esta separação...',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // TODO: Implementar salvamento da observação
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Observação adicionada - Em desenvolvimento'),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                ),
-              );
-            },
-            child: const Text('Salvar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showRecoverCartDialog(BuildContext context) {
-    // TODO: Implementar dialog de recuperar carrinho
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Recuperar Carrinho - Em desenvolvimento'),
-        backgroundColor: Theme.of(context).colorScheme.tertiary,
-      ),
-    );
-  }
-
-  void _showFinalizeSeparationDialog(BuildContext context) {
-    final viewModel = context.read<SeparateItemsViewModel>();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Finalizar Separação'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Separação ${widget.separation.codSepararEstoque}'),
-            const SizedBox(height: 8),
-            Text('Total de itens: ${viewModel.totalItems}'),
-            Text('Progresso: ${viewModel.percentualConcluido.toStringAsFixed(0)}%'),
-            const SizedBox(height: 16),
-            if (!viewModel.isSeparationComplete)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning, color: Theme.of(context).colorScheme.onErrorContainer),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Atenção: Nem todos os itens foram separados!',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: viewModel.isSeparationComplete
-                ? () {
-                    Navigator.of(context).pop();
-                    // TODO: Implementar finalização da separação
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Separação finalizada - Em desenvolvimento'),
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                      ),
-                    );
-                  }
-                : null,
-            child: const Text('Finalizar'),
-          ),
-        ],
       ),
     );
   }

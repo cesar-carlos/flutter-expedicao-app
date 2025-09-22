@@ -1,3 +1,5 @@
+import 'package:result_dart/result_dart.dart';
+
 import 'package:exp/domain/usecases/base_usecase.dart';
 import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
@@ -10,6 +12,7 @@ import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/repositories/user_system_repository.dart';
 import 'package:exp/domain/models/expedition_cart_route_model.dart';
+import 'package:exp/domain/models/expedition_internship_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/services/user_session_service.dart';
@@ -17,7 +20,6 @@ import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/domain/models/user/app_user.dart';
 import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/core/results/index.dart';
-import 'package:result_dart/result_dart.dart';
 
 /// UseCase para adicionar um carrinho à separação
 class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
@@ -26,6 +28,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
   final BasicRepository<ExpeditionCartRouteModel> _cartRouteRepository;
   final BasicRepository<ExpeditionCartRouteInternshipModel> _cartRouteInternshipRepository;
   final BasicConsultationRepository<ExpeditionCartConsultationModel> _cartConsultationRepository;
+  final BasicRepository<ExpeditionInternshipModel> _expeditionInternshipRepository;
   final UserSystemRepository _userSystemRepository;
   final UserSessionService _userSessionService;
 
@@ -34,12 +37,14 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     required BasicRepository<ExpeditionCartRouteModel> cartRouteRepository,
     required BasicRepository<ExpeditionCartRouteInternshipModel> cartRouteInternshipRepository,
     required BasicConsultationRepository<ExpeditionCartConsultationModel> cartConsultationRepository,
+    required BasicRepository<ExpeditionInternshipModel> expeditionInternshipRepository,
     required UserSystemRepository userSystemRepository,
     required UserSessionService userSessionService,
   }) : _cartRepository = cartRepository,
        _cartRouteRepository = cartRouteRepository,
        _cartRouteInternshipRepository = cartRouteInternshipRepository,
        _cartConsultationRepository = cartConsultationRepository,
+       _expeditionInternshipRepository = expeditionInternshipRepository,
        _userSystemRepository = userSystemRepository,
        _userSessionService = userSessionService;
 
@@ -83,15 +88,24 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
       final routeCode = routeResult.fold((success) => success, (failure) => null);
       if (routeCode == null) {
         return routeResult.fold(
-          (success) => failure(AddCartFailure.generic('Erro inesperado')),
+          (success) => failure(AddCartFailure.generic('Percurso não encontrado')),
           (failure) => Failure(failure),
         );
       }
+
       codCarrinhoPercurso = routeCode;
+      final internshipResult = await _findInternship(params.origem);
+      final internshipCode = internshipResult.fold((success) => success, (failure) => null);
+      if (internshipCode == null) {
+        return internshipResult.fold(
+          (success) => failure(AddCartFailure.generic('Estágio não encontrado')),
+          (failure) => Failure(failure),
+        );
+      }
 
       // 6. Executar operações de banco de dados
       await _updateCartSituation(cart);
-      final cartRouteInternshipModel = await _createCartRoute(params, cart, user!.userSystemModel!);
+      final cartRouteInternshipModel = await _createCartRoute(params, cart, user!.userSystemModel!, internshipCode);
       await _cartRouteInternshipRepository.insert(cartRouteInternshipModel);
 
       // 7. Retornar sucesso
@@ -226,11 +240,29 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     await _cartRepository.update(cartModel);
   }
 
+  /// Busca o percurso baseado na origem
+  Future<Result<int>> _findInternship(ExpeditionOrigem origem) async {
+    try {
+      final internshipModels = await _expeditionInternshipRepository.select(
+        QueryBuilder().equals('Origem', origem.code),
+      );
+
+      if (internshipModels.isEmpty) {
+        return failure(AddCartFailure.generic('Estágio não encontrado'));
+      }
+
+      return success(internshipModels.first.codPercursoEstagio);
+    } catch (e) {
+      return failure(AddCartFailure.repositoryError(e));
+    }
+  }
+
   /// Cria o vínculo do carrinho com a separação
   Future<ExpeditionCartRouteInternshipModel> _createCartRoute(
     AddCartParams params,
     ExpeditionCartConsultationModel cart,
     UserSystemModel userSystem,
+    int internshipCode,
   ) async {
     final now = DateTime.now();
 
@@ -240,7 +272,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
       item: '00000',
       origem: params.origem,
       codOrigem: params.codOrigem,
-      codPercursoEstagio: 1,
+      codPercursoEstagio: internshipCode,
       codCarrinho: cart.codCarrinho,
       situacao: ExpeditionCartSituation.separando,
       dataInicio: now,

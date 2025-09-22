@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
 
 class CartItemCard extends StatelessWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
   final VoidCallback? onTap;
+  final VoidCallback? onCancel;
+  final SeparateItemsViewModel? viewModel;
 
-  const CartItemCard({super.key, required this.cart, this.onTap});
+  const CartItemCard({super.key, required this.cart, this.onTap, this.onCancel, this.viewModel});
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +70,10 @@ class CartItemCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 _buildGroupInfo(context, theme, colorScheme),
               ],
+
+              // Seção de ações
+              const SizedBox(height: 16),
+              _buildActionsSection(context, theme, colorScheme, situationColor),
             ],
           ),
         ),
@@ -447,6 +455,297 @@ class CartItemCard extends StatelessWidget {
         '${date.year}';
   }
 
+  Widget _buildActionsSection(BuildContext context, ThemeData theme, ColorScheme colorScheme, Color situationColor) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: situationColor.withOpacity(0.2), width: 1),
+      ),
+      child: Row(
+        children: [
+          // Botão de Separar
+          if (cart.situacao == ExpeditionCartSituation.emSeparacao) ...[
+            Expanded(
+              child: _buildActionButton(
+                context: context,
+                theme: theme,
+                colorScheme: colorScheme,
+                icon: Icons.play_arrow,
+                label: 'Separar',
+                color: colorScheme.primary,
+                onTap: () => _onSeparateCart(context),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+
+          // Botão de Finalizar
+          if (cart.situacao == ExpeditionCartSituation.separando) ...[
+            Expanded(
+              child: _buildActionButton(
+                context: context,
+                theme: theme,
+                colorScheme: colorScheme,
+                icon: Icons.check_circle,
+                label: 'Finalizar',
+                color: Colors.green,
+                onTap: () => _onFinalizeCart(context),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+
+          // Botão de Cancelar
+          if (cart.situacao == ExpeditionCartSituation.separando) ...[
+            Expanded(
+              child: viewModel != null
+                  ? _buildCancelButton(context, theme, colorScheme, viewModel!)
+                  : Consumer<SeparateItemsViewModel>(
+                      builder: (context, vm, child) {
+                        return _buildCancelButton(context, theme, colorScheme, vm);
+                      },
+                    ),
+            ),
+          ],
+
+          // Botão de Visualizar (para carrinhos finalizados ou cancelados)
+          if (_shouldShowViewButton()) ...[
+            Expanded(
+              child: _buildActionButton(
+                context: context,
+                theme: theme,
+                colorScheme: colorScheme,
+                icon: Icons.visibility,
+                label: 'Visualizar',
+                color: colorScheme.tertiary,
+                onTap: () => _onViewCart(context),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCancelButton(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    SeparateItemsViewModel viewModel,
+  ) {
+    final isCancelling = viewModel.isCartBeingCancelled(cart.codCarrinho);
+
+    return _buildActionButton(
+      context: context,
+      theme: theme,
+      colorScheme: colorScheme,
+      icon: isCancelling ? null : Icons.cancel_outlined,
+      label: isCancelling ? 'Cancelando...' : 'Cancelar',
+      color: colorScheme.error,
+      onTap: isCancelling ? null : () => _showCancelDialog(context),
+      isLoading: isCancelling,
+    );
+  }
+
+  Widget _buildActionButton({
+    required BuildContext context,
+    required ThemeData theme,
+    required ColorScheme colorScheme,
+    IconData? icon,
+    required String label,
+    required Color color,
+    VoidCallback? onTap,
+    bool isLoading = false,
+  }) {
+    return InkWell(
+      onTap: isLoading ? null : onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(isLoading ? 0.05 : 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withOpacity(isLoading ? 0.1 : 0.3), width: 1),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (isLoading) ...[
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(color)),
+              ),
+            ] else if (icon != null) ...[
+              Icon(icon, color: color, size: 18),
+            ],
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: color.withOpacity(isLoading ? 0.7 : 1.0),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onSeparateCart(BuildContext context) {
+    // TODO: Implementar ação de separar carrinho
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Separar carrinho #${cart.codCarrinho} - Em desenvolvimento'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
+    );
+  }
+
+  void _onFinalizeCart(BuildContext context) {
+    // TODO: Implementar ação de finalizar carrinho
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Finalizar carrinho #${cart.codCarrinho} - Em desenvolvimento'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _onViewCart(BuildContext context) {
+    // TODO: Implementar ação de visualizar carrinho
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Visualizar carrinho #${cart.codCarrinho} - Em desenvolvimento'),
+        backgroundColor: Theme.of(context).colorScheme.tertiary,
+      ),
+    );
+  }
+
+  bool _shouldShowViewButton() {
+    // Mostra botão de visualizar para carrinhos finalizados ou cancelados
+    return cart.situacao == ExpeditionCartSituation.separado ||
+        cart.situacao == ExpeditionCartSituation.conferido ||
+        cart.situacao == ExpeditionCartSituation.liberado ||
+        cart.situacao == ExpeditionCartSituation.agrupado ||
+        cart.situacao == ExpeditionCartSituation.cancelado ||
+        cart.situacao == ExpeditionCartSituation.cancelada;
+  }
+
+  void _showCancelDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Theme.of(context).colorScheme.error),
+            const SizedBox(width: 8),
+            const Text('Cancelar Carrinho'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Deseja realmente cancelar o carrinho?'),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Theme.of(context).colorScheme.error.withOpacity(0.3), width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Carrinho #${cart.codCarrinho}',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(cart.nomeCarrinho, style: Theme.of(context).textTheme.bodyMedium),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Status: ${cart.situacao.description}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Esta ação não pode ser desfeita. O carrinho será marcado como CANCELADO.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Não, manter')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _cancelCart(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Sim, cancelar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _cancelCart(BuildContext context) async {
+    try {
+      // Obter o ViewModel - usar o passado como parâmetro ou tentar do contexto
+      final vm = viewModel ?? context.read<SeparateItemsViewModel>();
+
+      // Executar cancelamento através do ViewModel
+      final success = await vm.cancelCart(cart.codCarrinho);
+
+      if (success) {
+        // Sucesso
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Carrinho #${cart.codCarrinho} cancelado com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Chamar callback de cancelamento
+          onCancel?.call();
+        }
+      } else {
+        // Falha
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Erro ao cancelar carrinho'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Mostrar erro
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro inesperado: $e'), backgroundColor: Theme.of(context).colorScheme.error),
+        );
+      }
+    }
+  }
+
   Color _getSituationColor(ExpeditionCartSituation situacao, ColorScheme colorScheme) {
     switch (situacao.code) {
       case 'SEPARADO':
@@ -462,7 +761,8 @@ class CartItemCard extends StatelessWidget {
       case 'AGRUPADO':
         return colorScheme.tertiary;
       case 'CANCELADO':
-        return colorScheme.error;
+      case 'CANCELADA':
+        return Colors.red; // Vermelho para carrinhos cancelados
       default:
         return colorScheme.onSurfaceVariant;
     }

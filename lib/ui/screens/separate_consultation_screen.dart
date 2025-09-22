@@ -61,7 +61,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
           },
           child: Scaffold(
             appBar: CustomAppBar(
-              title: 'Consultas de Separação',
+              title: 'Consulta Separações',
               elevation: 0,
               backgroundColor: colorScheme.surface,
               foregroundColor: colorScheme.onSurface,

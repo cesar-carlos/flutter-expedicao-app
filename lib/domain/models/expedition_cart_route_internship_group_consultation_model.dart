@@ -1,6 +1,6 @@
-import 'expedition_origem_model.dart';
-import 'expedition_item_situation_model.dart';
-import 'expedition_situation_model.dart';
+import 'package:exp/domain/models/expedition_origem_model.dart';
+import 'package:exp/domain/models/expedition_item_situation_model.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 
 class ExpeditionCartRouteInternshipGroupConsultationModel {
   final int codEmpresa;

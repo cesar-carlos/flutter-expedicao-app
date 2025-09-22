@@ -6,6 +6,7 @@ import 'package:exp/domain/models/pagination/pagination.dart';
 import 'package:exp/domain/repositories/user_system_repository.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
 import 'package:exp/domain/models/user/user_models.dart';
+import 'package:exp/domain/models/situation_model.dart';
 import 'package:exp/ui/widgets/common/index.dart';
 
 enum UserSelectionState { initial, loading, loaded, selecting, selected }
@@ -81,7 +82,11 @@ class UserSelectionViewModel extends ChangeNotifier {
 
     try {
       final pagination = Pagination.create(limit: 50, offset: 0, page: 1);
-      final response = await _userSystemRepository.searchUsersByName(nome, apenasAtivos: true, pagination: pagination);
+      final response = await _userSystemRepository.searchUsersByName(
+        nome,
+        apenasAtivos: Situation.ativo,
+        pagination: pagination,
+      );
 
       if (response.success && response.users.isNotEmpty) {
         _users = response.users;
@@ -111,7 +116,7 @@ class UserSelectionViewModel extends ChangeNotifier {
 
     try {
       final pagination = Pagination.create(limit: _pageLimit, offset: 0, page: 1);
-      final response = await _userSystemRepository.getUsers(apenasAtivos: true, pagination: pagination);
+      final response = await _userSystemRepository.getUsers(apenasAtivos: Situation.ativo, pagination: pagination);
 
       if (response.success) {
         _users = response.users;
@@ -148,7 +153,7 @@ class UserSelectionViewModel extends ChangeNotifier {
         offset: _currentPage * _pageLimit,
         page: _currentPage + 1,
       );
-      final response = await _userSystemRepository.getUsers(apenasAtivos: true, pagination: pagination);
+      final response = await _userSystemRepository.getUsers(apenasAtivos: Situation.ativo, pagination: pagination);
 
       if (response.success) {
         final Set<int> existingUserCodes = _users.map((u) => u.codUsuario).toSet();

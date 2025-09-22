@@ -28,6 +28,12 @@ import 'package:exp/domain/services/event_service.dart';
 import 'package:exp/data/services/event_service_impl.dart';
 import 'package:exp/domain/repositories/event_generic_repository.dart';
 import 'package:exp/data/repositories/event_repository/event_generic_repository_impl.dart';
+import 'package:exp/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
+import 'package:exp/data/repositories/expedition_cancellation_repository_impl.dart';
+import 'package:exp/domain/repositories/expedition_cart_route_internship_repository.dart';
+import 'package:exp/data/repositories/expedition_cart_route_internship_repository_impl.dart';
+import 'package:exp/domain/models/expedition_cancellation_model.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
 import 'package:exp/data/repositories/event_repository/separate_event_repository_impl.dart';
 import 'package:exp/domain/models/separate_model.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
@@ -49,14 +55,12 @@ import 'package:exp/data/repositories/separation_item_summary_consultation_repos
 import 'package:exp/data/repositories/stock_product_consultation_repository_impl.dart';
 import 'package:exp/data/repositories/expedition_cart_repository_impl.dart';
 import 'package:exp/data/repositories/expedition_cart_route_repository_impl.dart';
-import 'package:exp/data/repositories/expedition_cart_route_internship_repository_impl.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/models/separation_item_consultation_model.dart';
 import 'package:exp/domain/models/separation_item_summary_consultation_model.dart';
 import 'package:exp/domain/models/stock_product_consultation_model.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
-import 'package:exp/data/repositories/expedition_cancellation_repository_impl.dart';
-import 'package:exp/domain/models/expedition_cancellation_model.dart';
+import 'package:exp/data/repositories/expedition_internship_repository_impl.dart';
+import 'package:exp/domain/models/expedition_internship_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_model.dart';
 import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/domain/models/separate_item_model.dart';
@@ -105,6 +109,10 @@ void setupLocator() {
     () => SeparateItemConsultationRepositoryImpl(),
   );
 
+  locator.registerLazySingleton<ExpeditionCartRouteInternshipRepository>(
+    () => ExpeditionCartRouteInternshipRepositoryImpl(),
+  );
+
   locator.registerLazySingleton<BasicConsultationRepository<StockProductConsultationModel>>(
     () => StockProductConsultationRepositoryImpl(),
   );
@@ -124,9 +132,7 @@ void setupLocator() {
     () => ExpeditionCartRouteInternshipRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<BasicRepository<ExpeditionCancellationModel>>(
-    () => ExpeditionCancellationRepositoryImpl(),
-  );
+  locator.registerLazySingleton<BasicRepository<ExpeditionInternshipModel>>(() => ExpeditionInternshipRepositoryImpl());
 
   locator.registerFactory(() => RegisterUserUseCase(locator<UserRepository>()));
   locator.registerFactory(() => LoginUserUseCase(locator<UserRepository>()));
@@ -187,7 +193,22 @@ void setupLocator() {
       cartRouteRepository: locator<BasicRepository<ExpeditionCartRouteModel>>(),
       cartRouteInternshipRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
       cartConsultationRepository: locator<BasicConsultationRepository<ExpeditionCartConsultationModel>>(),
+      expeditionInternshipRepository: locator<BasicRepository<ExpeditionInternshipModel>>(),
       userSystemRepository: locator<UserSystemRepository>(),
+      userSessionService: locator<UserSessionService>(),
+    ),
+  );
+
+  // Registrar repositórios para cancelamento de carrinho
+  locator.registerLazySingleton<BasicRepository<ExpeditionCancellationModel>>(
+    () => ExpeditionCancellationRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<CancelCartUseCase>(
+    () => CancelCartUseCase(
+      cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
+      cancellationRepository: locator<BasicRepository<ExpeditionCancellationModel>>(),
+      cartRouteRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
       userSessionService: locator<UserSessionService>(),
     ),
   );
