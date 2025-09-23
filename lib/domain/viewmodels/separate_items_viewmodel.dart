@@ -420,18 +420,6 @@ class SeparateItemsViewModel extends ChangeNotifier {
     if (_itemsFilters.enderecoDescricao != null) {
       queryBuilder.like('EnderecoDescricao', _itemsFilters.enderecoDescricao!);
     }
-    if (_itemsFilters.quantidadeMinima != null) {
-      queryBuilder.greaterThan('Quantidade', _itemsFilters.quantidadeMinima!);
-    }
-    if (_itemsFilters.quantidadeMaxima != null) {
-      queryBuilder.lessThan('Quantidade', _itemsFilters.quantidadeMaxima!);
-    }
-    if (_itemsFilters.quantidadeSeparacaoMinima != null) {
-      queryBuilder.greaterThan('QuantidadeSeparacao', _itemsFilters.quantidadeSeparacaoMinima!);
-    }
-    if (_itemsFilters.quantidadeSeparacaoMaxima != null) {
-      queryBuilder.lessThan('QuantidadeSeparacao', _itemsFilters.quantidadeSeparacaoMaxima!);
-    }
   }
 
   /// Aplica filtros de carrinhos à query

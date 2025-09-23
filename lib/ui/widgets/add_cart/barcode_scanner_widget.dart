@@ -37,37 +37,37 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [colorScheme.primaryContainer.withOpacity(0.3), colorScheme.secondaryContainer.withOpacity(0.1)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colorScheme.primary.withOpacity(0.3), width: 1),
       ),
       child: Column(
         children: [
-          Icon(Icons.qr_code_scanner, size: 64, color: colorScheme.primary),
+          Icon(Icons.qr_code_scanner, size: 48, color: colorScheme.primary),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           Text(
             'Escaneie o Código de Barras',
-            style: textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface, fontWeight: FontWeight.w600),
+            style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface, fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
           Text(
             'Posicione o leitor sobre o código de barras do carrinho',
-            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.7)),
+            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7)),
             textAlign: TextAlign.center,
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           TextFormField(
             controller: _barcodeController,
@@ -102,7 +102,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
             onFieldSubmitted: (value) => _onScanPressed(),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           SizedBox(
             width: double.infinity,
@@ -110,15 +110,15 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
               onPressed: widget.isLoading ? null : _onScanPressed,
               icon: widget.isLoading
                   ? SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: 18,
+                      height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
                     )
-                  : const Icon(Icons.search),
+                  : const Icon(Icons.search, size: 18),
               label: Text(widget.isLoading ? 'Buscando...' : 'Buscar Carrinho'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
           ),

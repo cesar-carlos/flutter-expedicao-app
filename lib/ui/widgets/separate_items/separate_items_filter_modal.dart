@@ -17,10 +17,6 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
   late TextEditingController _codigoBarrasController;
   late TextEditingController _nomeProdutoController;
   late TextEditingController _enderecoDescricaoController;
-  late TextEditingController _quantidadeMinimaController;
-  late TextEditingController _quantidadeMaximaController;
-  late TextEditingController _quantidadeSeparacaoMinimaController;
-  late TextEditingController _quantidadeSeparacaoMaximaController;
 
   @override
   void initState() {
@@ -30,18 +26,6 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
     _codigoBarrasController = TextEditingController(text: widget.viewModel.itemsFilters.codigoBarras ?? '');
     _nomeProdutoController = TextEditingController(text: widget.viewModel.itemsFilters.nomeProduto ?? '');
     _enderecoDescricaoController = TextEditingController(text: widget.viewModel.itemsFilters.enderecoDescricao ?? '');
-    _quantidadeMinimaController = TextEditingController(
-      text: widget.viewModel.itemsFilters.quantidadeMinima?.toString() ?? '',
-    );
-    _quantidadeMaximaController = TextEditingController(
-      text: widget.viewModel.itemsFilters.quantidadeMaxima?.toString() ?? '',
-    );
-    _quantidadeSeparacaoMinimaController = TextEditingController(
-      text: widget.viewModel.itemsFilters.quantidadeSeparacaoMinima?.toString() ?? '',
-    );
-    _quantidadeSeparacaoMaximaController = TextEditingController(
-      text: widget.viewModel.itemsFilters.quantidadeSeparacaoMaxima?.toString() ?? '',
-    );
   }
 
   @override
@@ -50,10 +34,6 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
     _codigoBarrasController.dispose();
     _nomeProdutoController.dispose();
     _enderecoDescricaoController.dispose();
-    _quantidadeMinimaController.dispose();
-    _quantidadeMaximaController.dispose();
-    _quantidadeSeparacaoMinimaController.dispose();
-    _quantidadeSeparacaoMaximaController.dispose();
     super.dispose();
   }
 
@@ -159,72 +139,6 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
                     prefixIcon: Icon(Icons.location_on),
                   ),
                 ),
-
-                const SizedBox(height: 16),
-
-                // Quantidade Mínima e Máxima
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _quantidadeMinimaController,
-                        decoration: const InputDecoration(
-                          labelText: 'Qtd. Mínima',
-                          hintText: '0',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.trending_up),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextField(
-                        controller: _quantidadeMaximaController,
-                        decoration: const InputDecoration(
-                          labelText: 'Qtd. Máxima',
-                          hintText: '100',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.trending_down),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // Quantidade Separação Mínima e Máxima
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _quantidadeSeparacaoMinimaController,
-                        decoration: const InputDecoration(
-                          labelText: 'Qtd. Sep. Mínima',
-                          hintText: '0',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.check_circle_outline),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextField(
-                        controller: _quantidadeSeparacaoMaximaController,
-                        decoration: const InputDecoration(
-                          labelText: 'Qtd. Sep. Máxima',
-                          hintText: '100',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.check_circle),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
@@ -265,10 +179,6 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
       _codigoBarrasController.clear();
       _nomeProdutoController.clear();
       _enderecoDescricaoController.clear();
-      _quantidadeMinimaController.clear();
-      _quantidadeMaximaController.clear();
-      _quantidadeSeparacaoMinimaController.clear();
-      _quantidadeSeparacaoMaximaController.clear();
     });
 
     widget.viewModel.clearItemsFilters();
@@ -282,18 +192,6 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
       nomeProduto: _nomeProdutoController.text.trim().isNotEmpty ? _nomeProdutoController.text.trim() : null,
       enderecoDescricao: _enderecoDescricaoController.text.trim().isNotEmpty
           ? _enderecoDescricaoController.text.trim()
-          : null,
-      quantidadeMinima: _quantidadeMinimaController.text.trim().isNotEmpty
-          ? double.tryParse(_quantidadeMinimaController.text.trim())
-          : null,
-      quantidadeMaxima: _quantidadeMaximaController.text.trim().isNotEmpty
-          ? double.tryParse(_quantidadeMaximaController.text.trim())
-          : null,
-      quantidadeSeparacaoMinima: _quantidadeSeparacaoMinimaController.text.trim().isNotEmpty
-          ? double.tryParse(_quantidadeSeparacaoMinimaController.text.trim())
-          : null,
-      quantidadeSeparacaoMaxima: _quantidadeSeparacaoMaximaController.text.trim().isNotEmpty
-          ? double.tryParse(_quantidadeSeparacaoMaximaController.text.trim())
           : null,
     );
 

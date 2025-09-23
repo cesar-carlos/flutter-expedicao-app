@@ -49,8 +49,8 @@ export '../data/datasources/user_preferences_service.dart';
 export '../data/services/socket_service.dart';
 
 // Use Cases
-export '../domain/usecases/register_user_usecase.dart';
-export '../domain/usecases/login_user_usecase.dart';
+export '../domain/usecases/user/register_user_usecase.dart';
+export '../domain/usecases/user/login_user_usecase.dart';
 
 // ViewModels
 export '../domain/viewmodels/register_viewmodel.dart';

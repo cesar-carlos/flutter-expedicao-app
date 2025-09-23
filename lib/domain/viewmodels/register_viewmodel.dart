@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:exp/core/constants/app_strings.dart';
-import 'package:exp/domain/usecases/register_user_usecase.dart';
+import 'package:exp/domain/usecases/user/register_user_usecase.dart';
 import 'package:exp/domain/models/user/user_models.dart';
 
 class RegisterViewModel extends ChangeNotifier {
