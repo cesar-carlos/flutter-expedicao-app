@@ -1,6 +1,7 @@
 import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/domain/models/separation_item_status.dart';
 
 class SeparateItemConsultationModel {
   final int codEmpresa;
@@ -241,6 +242,22 @@ class SeparateItemConsultationModel {
 
   /// Verifica se o produto está ativo
   bool get isAtivo => ativo == Situation.ativo;
+
+  /// Retorna a situação de separação do item
+  SeparationItemStatus get situacaoSeparacao =>
+      SeparationItemStatus.fromQuantities(quantidadeTotal: quantidade, quantidadeSeparacao: quantidadeSeparacao);
+
+  /// Retorna a quantidade restante para separar
+  double get quantidadeRestante => quantidade - quantidadeSeparacao;
+
+  /// Verifica se o item está completamente separado
+  bool get isCompletamenteSeparado => quantidadeSeparacao >= quantidade;
+
+  /// Verifica se o item está pendente (não foi separado)
+  bool get isPendente => quantidadeSeparacao <= 0;
+
+  /// Verifica se o item está parcialmente separado
+  bool get isParcialmenteSeparado => quantidadeSeparacao > 0 && quantidadeSeparacao < quantidade;
 
   @override
   String toString() {

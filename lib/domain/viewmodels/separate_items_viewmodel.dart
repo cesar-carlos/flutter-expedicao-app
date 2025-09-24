@@ -1,16 +1,20 @@
+import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_success.dart';
+import 'package:exp/domain/models/separation_item_status.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/models/separate_items_filters_model.dart';
-import 'package:exp/domain/models/carts_filters_model.dart';
+import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
-import 'package:exp/data/services/filters_storage_service.dart';
+import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';
+import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_params.dart';
+import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/data/services/filters_storage_service.dart';
+import 'package:exp/domain/models/carts_filters_model.dart';
 import 'package:exp/di/locator.dart';
 
 enum SeparateItemsState { initial, loading, loaded, error }
@@ -77,6 +81,9 @@ class SeparateItemsViewModel extends ChangeNotifier {
   bool get hasActiveItemsFilters => _itemsFilters.isNotEmpty;
   bool get hasActiveCartsFilters => _cartsFilters.isNotEmpty;
 
+  /// Retorna as opções de situação disponíveis para filtro
+  List<SeparationItemStatus> get situacaoFilterOptions => SeparationItemStatus.availableForFilter;
+
   // === MÉTODOS PÚBLICOS ===
 
   /// Carrega os itens de uma separação específica
@@ -100,7 +107,9 @@ class SeparateItemsViewModel extends ChangeNotifier {
       final items = await _repository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
-      _items = items;
+
+      // Aplica filtro de situação localmente
+      _items = _applySituacaoFilter(items);
       _setState(SeparateItemsState.loaded);
     } catch (e) {
       if (_disposed) return;
@@ -377,7 +386,9 @@ class SeparateItemsViewModel extends ChangeNotifier {
       final items = await _repository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
-      _items = items;
+
+      // Aplica filtro de situação localmente
+      _items = _applySituacaoFilter(items);
     } catch (e) {
       debugPrint('Erro ao carregar itens filtrados: $e');
     }
@@ -420,6 +431,19 @@ class SeparateItemsViewModel extends ChangeNotifier {
     if (_itemsFilters.enderecoDescricao != null) {
       queryBuilder.like('EnderecoDescricao', _itemsFilters.enderecoDescricao!);
     }
+    // Filtro de situação será aplicado após buscar os dados (filtro local)
+  }
+
+  /// Aplica filtro de situação localmente aos itens
+  List<SeparateItemConsultationModel> _applySituacaoFilter(List<SeparateItemConsultationModel> items) {
+    if (_itemsFilters.situacao == null) {
+      return items;
+    }
+
+    return items.where((item) {
+      final itemSituacao = item.situacaoSeparacao;
+      return itemSituacao == _itemsFilters.situacao;
+    }).toList();
   }
 
   /// Aplica filtros de carrinhos à query
@@ -487,42 +511,72 @@ class SeparateItemsViewModel extends ChangeNotifier {
   }
 
   /// Cancela um carrinho
-  Future<bool> cancelCart(int cartId) async {
+  Future<bool> cancelCart(int codCarrinho) async {
     if (_disposed || _isCancelling) return false;
 
     try {
       _isCancelling = true;
-      _cancellingCartId = cartId;
+      _cancellingCartId = codCarrinho;
       _safeNotifyListeners();
 
       // Buscar o carrinho
-      final cart = _carts.firstWhere((c) => c.codCarrinho == cartId);
+      final cartConsultation = _carts.firstWhere((c) => c.codCarrinho == codCarrinho);
 
       // Obter use case
       final cancelCartUseCase = locator<CancelCartUseCase>();
+      final cancelItemSeparationUseCase = locator<CancelItemSeparationUseCase>();
 
       // Criar parâmetros
-      final params = CancelCartParams(
-        codEmpresa: cart.codEmpresa,
-        origem: cart.origem,
-        codOrigem: cart.codOrigem,
-        codCarrinho: cart.codCarrinho,
+      final paramsCartUseCase = CancelCartParams(
+        codEmpresa: cartConsultation.codEmpresa,
+        codCarrinhoPercurso: cartConsultation.codCarrinhoPercurso,
+        item: cartConsultation.item,
       );
 
-      // Executar cancelamento
-      final result = await cancelCartUseCase.call(params);
+      final paramsItemSeparationUseCase = CancelItemSeparationParams(
+        codEmpresa: cartConsultation.codEmpresa,
+        codSepararEstoque: cartConsultation.codOrigem,
+        codCarrinhoPercurso: cartConsultation.codCarrinhoPercurso,
+        itemCarrinhoPercurso: cartConsultation.item,
+      );
 
-      if (result.isSuccess) {
-        // Recarregar dados após sucesso
-        if (_separation != null) {
-          await loadSeparationCarts(_separation!);
+      // Executar cancelamentos em sequência
+      // 1. Verificar se há itens para cancelar primeiro
+      final hasItemsToCancel = await cancelItemSeparationUseCase.canCancelItems(paramsItemSeparationUseCase);
+
+      CancelItemSeparationSuccess? itemSeparationSuccess;
+
+      if (hasItemsToCancel) {
+        // Há itens para cancelar - executa o cancelamento
+        final resultItemSeparation = await cancelItemSeparationUseCase.call(paramsItemSeparationUseCase);
+
+        itemSeparationSuccess = resultItemSeparation.fold((success) => success, (failure) {
+          return null;
+        });
+
+        // Se falhou ao cancelar itens existentes, retorna false
+        if (itemSeparationSuccess == null) {
+          return false;
         }
-        return true;
-      } else {
-        return false;
       }
+
+      // 2. Depois cancela o carrinho percurso
+      final resultCancelCart = await cancelCartUseCase.call(paramsCartUseCase);
+
+      return resultCancelCart.fold(
+        (success) async {
+          // Recarregar dados após sucesso
+          if (_separation != null) {
+            await loadSeparationCarts(_separation!);
+          }
+          return true;
+        },
+        (failure) {
+          // TODO: Considerar rollback dos itens de separação se necessário
+          return false;
+        },
+      );
     } catch (e) {
-      debugPrint('Erro ao cancelar carrinho: $e');
       return false;
     } finally {
       _isCancelling = false;

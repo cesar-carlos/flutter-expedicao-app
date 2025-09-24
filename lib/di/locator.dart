@@ -64,6 +64,9 @@ import 'package:exp/domain/models/expedition_internship_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_model.dart';
 import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/domain/models/separate_item_model.dart';
+import 'package:exp/domain/models/separation_item_model.dart';
+import 'package:exp/data/repositories/separation_item_repository_impl.dart';
+import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
 
 final GetIt locator = GetIt.instance;
 
@@ -104,6 +107,8 @@ void setupLocator() {
   );
 
   locator.registerLazySingleton<BasicRepository<SeparateItemModel>>(() => SeparateItemRepositoryImpl());
+
+  locator.registerLazySingleton<BasicRepository<SeparationItemModel>>(() => SeparationItemRepositoryImpl());
 
   locator.registerLazySingleton<BasicConsultationRepository<SeparateItemConsultationModel>>(
     () => SeparateItemConsultationRepositoryImpl(),
@@ -208,7 +213,15 @@ void setupLocator() {
     () => CancelCartUseCase(
       cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
       cancellationRepository: locator<BasicRepository<ExpeditionCancellationModel>>(),
-      cartRouteRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
+      cartInternshipRouteRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
+      userSessionService: locator<UserSessionService>(),
+    ),
+  );
+
+  locator.registerLazySingleton<CancelItemSeparationUseCase>(
+    () => CancelItemSeparationUseCase(
+      separateItemRepository: locator<BasicRepository<SeparateItemModel>>(),
+      separationItemRepository: locator<BasicRepository<SeparationItemModel>>(),
       userSessionService: locator<UserSessionService>(),
     ),
   );

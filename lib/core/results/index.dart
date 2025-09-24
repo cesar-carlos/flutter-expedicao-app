@@ -8,4 +8,4 @@ library;
 
 export 'app_failure.dart';
 export 'app_result.dart';
-export 'package:result_dart/result_dart.dart' show Success, Failure;
+export 'package:result_dart/result_dart.dart' show Result, Success, Failure;

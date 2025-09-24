@@ -1,10 +1,19 @@
+import 'package:exp/domain/models/separation_item_status.dart';
+
 class SeparateItemsFiltersModel {
   final String? codProduto;
   final String? codigoBarras;
   final String? nomeProduto;
   final String? enderecoDescricao;
+  final SeparationItemStatus? situacao;
 
-  const SeparateItemsFiltersModel({this.codProduto, this.codigoBarras, this.nomeProduto, this.enderecoDescricao});
+  const SeparateItemsFiltersModel({
+    this.codProduto,
+    this.codigoBarras,
+    this.nomeProduto,
+    this.enderecoDescricao,
+    this.situacao,
+  });
 
   factory SeparateItemsFiltersModel.fromJson(Map<String, dynamic> json) {
     return SeparateItemsFiltersModel(
@@ -12,6 +21,12 @@ class SeparateItemsFiltersModel {
       codigoBarras: json['codigoBarras'],
       nomeProduto: json['nomeProduto'],
       enderecoDescricao: json['enderecoDescricao'],
+      situacao: json['situacao'] != null
+          ? SeparationItemStatus.values.firstWhere(
+              (e) => e.code == json['situacao'],
+              orElse: () => SeparationItemStatus.pendente,
+            )
+          : null,
     );
   }
 
@@ -21,10 +36,16 @@ class SeparateItemsFiltersModel {
       'codigoBarras': codigoBarras,
       'nomeProduto': nomeProduto,
       'enderecoDescricao': enderecoDescricao,
+      'situacao': situacao?.code,
     };
   }
 
-  bool get isEmpty => codProduto == null && codigoBarras == null && nomeProduto == null && enderecoDescricao == null;
+  bool get isEmpty =>
+      codProduto == null &&
+      codigoBarras == null &&
+      nomeProduto == null &&
+      enderecoDescricao == null &&
+      situacao == null;
 
   bool get isNotEmpty => !isEmpty;
 
@@ -33,12 +54,14 @@ class SeparateItemsFiltersModel {
     String? codigoBarras,
     String? nomeProduto,
     String? enderecoDescricao,
+    SeparationItemStatus? situacao,
   }) {
     return SeparateItemsFiltersModel(
       codProduto: codProduto ?? this.codProduto,
       codigoBarras: codigoBarras ?? this.codigoBarras,
       nomeProduto: nomeProduto ?? this.nomeProduto,
       enderecoDescricao: enderecoDescricao ?? this.enderecoDescricao,
+      situacao: situacao ?? this.situacao,
     );
   }
 
@@ -52,7 +75,8 @@ class SeparateItemsFiltersModel {
         'codProduto: $codProduto, '
         'codigoBarras: $codigoBarras, '
         'nomeProduto: $nomeProduto, '
-        'enderecoDescricao: $enderecoDescricao'
+        'enderecoDescricao: $enderecoDescricao, '
+        'situacao: ${situacao?.description}'
         ')';
   }
 
@@ -63,11 +87,12 @@ class SeparateItemsFiltersModel {
         other.codProduto == codProduto &&
         other.codigoBarras == codigoBarras &&
         other.nomeProduto == nomeProduto &&
-        other.enderecoDescricao == enderecoDescricao;
+        other.enderecoDescricao == enderecoDescricao &&
+        other.situacao == situacao;
   }
 
   @override
   int get hashCode {
-    return Object.hash(codProduto, codigoBarras, nomeProduto, enderecoDescricao);
+    return Object.hash(codProduto, codigoBarras, nomeProduto, enderecoDescricao, situacao);
   }
 }

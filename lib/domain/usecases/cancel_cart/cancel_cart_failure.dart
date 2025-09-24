@@ -1,4 +1,4 @@
-import 'package:exp/domain/usecases/cancel_cart/cancel_cart_result.dart';
+import 'package:exp/core/results/index.dart';
 
 /// Tipos de falha ao cancelar um carrinho
 enum CancelCartFailureType {
@@ -12,19 +12,15 @@ enum CancelCartFailureType {
   unknownError('Erro desconhecido');
 
   const CancelCartFailureType(this.description);
-
   final String description;
 }
 
-/// Resultado de falha ao cancelar um carrinho
-class CancelCartFailure extends CancelCartResult {
+/// Falha específica ao cancelar um carrinho
+class CancelCartFailure extends AppFailure {
   final CancelCartFailureType type;
-  @override
-  final String message;
   final String? details;
-  final Exception? originalException;
 
-  const CancelCartFailure({required this.type, required this.message, this.details, this.originalException});
+  const CancelCartFailure({required this.type, required super.message, this.details, super.code, super.exception});
 
   /// Cria uma falha de parâmetros inválidos
   factory CancelCartFailure.invalidParams(String details) {
@@ -32,12 +28,17 @@ class CancelCartFailure extends CancelCartResult {
       type: CancelCartFailureType.invalidParams,
       message: 'Parâmetros inválidos para cancelamento',
       details: details,
+      code: 'CANCEL_CART_INVALID_PARAMS',
     );
   }
 
   /// Cria uma falha de carrinho não encontrado
   factory CancelCartFailure.cartNotFound() {
-    return CancelCartFailure(type: CancelCartFailureType.cartNotFound, message: 'Carrinho não encontrado');
+    return CancelCartFailure(
+      type: CancelCartFailureType.cartNotFound,
+      message: 'Carrinho não encontrado',
+      code: 'CANCEL_CART_NOT_FOUND',
+    );
   }
 
   /// Cria uma falha de status inválido
@@ -46,12 +47,17 @@ class CancelCartFailure extends CancelCartResult {
       type: CancelCartFailureType.cartNotInSeparatingStatus,
       message: 'Carrinho não está em status de separação',
       details: 'Status atual: $currentStatus',
+      code: 'CANCEL_CART_INVALID_STATUS',
     );
   }
 
   /// Cria uma falha de usuário não encontrado
   factory CancelCartFailure.userNotFound() {
-    return CancelCartFailure(type: CancelCartFailureType.userNotFound, message: 'Usuário não encontrado');
+    return CancelCartFailure(
+      type: CancelCartFailureType.userNotFound,
+      message: 'Usuário não encontrado',
+      code: 'CANCEL_CART_USER_NOT_FOUND',
+    );
   }
 
   /// Cria uma falha de cancelamento
@@ -60,7 +66,8 @@ class CancelCartFailure extends CancelCartResult {
       type: CancelCartFailureType.cancellationFailed,
       message: 'Falha ao criar cancelamento',
       details: details,
-      originalException: originalException,
+      code: 'CANCEL_CART_CANCELLATION_FAILED',
+      exception: originalException,
     );
   }
 
@@ -70,7 +77,8 @@ class CancelCartFailure extends CancelCartResult {
       type: CancelCartFailureType.updateFailed,
       message: 'Falha ao atualizar carrinho',
       details: details,
-      originalException: originalException,
+      code: 'CANCEL_CART_UPDATE_FAILED',
+      exception: originalException,
     );
   }
 
@@ -80,7 +88,8 @@ class CancelCartFailure extends CancelCartResult {
       type: CancelCartFailureType.networkError,
       message: 'Erro de rede',
       details: details,
-      originalException: originalException,
+      code: 'CANCEL_CART_NETWORK_ERROR',
+      exception: originalException,
     );
   }
 
@@ -90,7 +99,8 @@ class CancelCartFailure extends CancelCartResult {
       type: CancelCartFailureType.unknownError,
       message: 'Erro desconhecido',
       details: details,
-      originalException: originalException,
+      code: 'CANCEL_CART_UNKNOWN_ERROR',
+      exception: originalException,
     );
   }
 
@@ -108,13 +118,26 @@ class CancelCartFailure extends CancelCartResult {
   ].contains(type);
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is CancelCartFailure && other.type == type && other.message == message && other.details == details;
+  String get userMessage {
+    switch (type) {
+      case CancelCartFailureType.invalidParams:
+        return 'Dados inválidos para cancelamento';
+      case CancelCartFailureType.cartNotFound:
+        return 'Carrinho não encontrado';
+      case CancelCartFailureType.cartNotInSeparatingStatus:
+        return 'Carrinho não pode ser cancelado no status atual';
+      case CancelCartFailureType.userNotFound:
+        return 'Usuário não autenticado';
+      case CancelCartFailureType.cancellationFailed:
+        return 'Falha ao cancelar carrinho';
+      case CancelCartFailureType.updateFailed:
+        return 'Falha ao atualizar carrinho';
+      case CancelCartFailureType.networkError:
+        return 'Erro de conexão. Verifique sua internet';
+      case CancelCartFailureType.unknownError:
+        return 'Erro inesperado. Tente novamente';
+    }
   }
-
-  @override
-  int get hashCode => type.hashCode ^ message.hashCode ^ details.hashCode;
 
   @override
   String toString() {

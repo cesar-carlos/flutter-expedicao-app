@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
 import 'package:exp/domain/models/separate_items_filters_model.dart';
+import 'package:exp/domain/models/separation_item_status.dart';
 
 /// Modal para filtros da aba de produtos
 class SeparateItemsFilterModal extends StatefulWidget {
@@ -17,6 +18,7 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
   late TextEditingController _codigoBarrasController;
   late TextEditingController _nomeProdutoController;
   late TextEditingController _enderecoDescricaoController;
+  SeparationItemStatus? _selectedSituacao;
 
   @override
   void initState() {
@@ -26,6 +28,7 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
     _codigoBarrasController = TextEditingController(text: widget.viewModel.itemsFilters.codigoBarras ?? '');
     _nomeProdutoController = TextEditingController(text: widget.viewModel.itemsFilters.nomeProduto ?? '');
     _enderecoDescricaoController = TextEditingController(text: widget.viewModel.itemsFilters.enderecoDescricao ?? '');
+    _selectedSituacao = widget.viewModel.itemsFilters.situacao;
   }
 
   @override
@@ -139,6 +142,34 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
                     prefixIcon: Icon(Icons.location_on),
                   ),
                 ),
+
+                const SizedBox(height: 16),
+
+                // Situação
+                DropdownButtonFormField<SeparationItemStatus?>(
+                  decoration: const InputDecoration(labelText: 'Situação', border: OutlineInputBorder()),
+                  initialValue: _selectedSituacao,
+                  items: [
+                    const DropdownMenuItem<SeparationItemStatus?>(value: null, child: Text('Todos')),
+                    ...widget.viewModel.situacaoFilterOptions.map((situacao) {
+                      return DropdownMenuItem<SeparationItemStatus?>(
+                        value: situacao,
+                        child: Row(
+                          children: [
+                            Icon(Icons.circle, color: situacao.color, size: 12),
+                            const SizedBox(width: 8),
+                            Text(situacao.description),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                  onChanged: (situacao) {
+                    setState(() {
+                      _selectedSituacao = situacao;
+                    });
+                  },
+                ),
               ],
             ),
           ),
@@ -179,6 +210,7 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
       _codigoBarrasController.clear();
       _nomeProdutoController.clear();
       _enderecoDescricaoController.clear();
+      _selectedSituacao = null;
     });
 
     widget.viewModel.clearItemsFilters();
@@ -193,6 +225,7 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
       enderecoDescricao: _enderecoDescricaoController.text.trim().isNotEmpty
           ? _enderecoDescricaoController.text.trim()
           : null,
+      situacao: _selectedSituacao,
     );
 
     Navigator.of(context).pop();

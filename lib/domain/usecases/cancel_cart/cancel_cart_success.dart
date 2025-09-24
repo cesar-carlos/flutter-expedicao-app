@@ -1,9 +1,8 @@
 import 'package:exp/domain/models/expedition_cancellation_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
-import 'package:exp/domain/usecases/cancel_cart/cancel_cart_result.dart';
 
 /// Resultado de sucesso ao cancelar um carrinho
-class CancelCartSuccess extends CancelCartResult {
+class CancelCartSuccess {
   final ExpeditionCancellationModel cancellation;
   final ExpeditionCartRouteInternshipModel updatedCartRoute;
 
@@ -12,13 +11,12 @@ class CancelCartSuccess extends CancelCartResult {
   /// Cria um resultado de sucesso
   factory CancelCartSuccess.create({
     required ExpeditionCancellationModel cancellation,
-    required ExpeditionCartRouteInternshipModel updatedCartRoute,
+    required ExpeditionCartRouteInternshipModel updatedCartInternshipRoute,
   }) {
-    return CancelCartSuccess(cancellation: cancellation, updatedCartRoute: updatedCartRoute);
+    return CancelCartSuccess(cancellation: cancellation, updatedCartRoute: updatedCartInternshipRoute);
   }
 
   /// Retorna uma mensagem de sucesso
-  @override
   String get message => 'Carrinho cancelado com sucesso';
 
   /// Retorna o código do cancelamento
