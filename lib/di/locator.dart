@@ -65,7 +65,9 @@ import 'package:exp/domain/models/expedition_cart_route_model.dart';
 import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/domain/models/separate_item_model.dart';
 import 'package:exp/domain/models/separation_item_model.dart';
+import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/data/repositories/separation_item_repository_impl.dart';
+import 'package:exp/data/repositories/expedition_sector_stock_repository_impl.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
 
 final GetIt locator = GetIt.instance;
@@ -138,6 +140,10 @@ void setupLocator() {
   );
 
   locator.registerLazySingleton<BasicRepository<ExpeditionInternshipModel>>(() => ExpeditionInternshipRepositoryImpl());
+
+  locator.registerLazySingleton<BasicRepository<ExpeditionSectorStockModel>>(
+    () => ExpeditionSectorStockRepositoryImpl(),
+  );
 
   locator.registerFactory(() => RegisterUserUseCase(locator<UserRepository>()));
   locator.registerFactory(() => LoginUserUseCase(locator<UserRepository>()));

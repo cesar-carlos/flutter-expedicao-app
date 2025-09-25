@@ -1,4 +1,5 @@
 import 'package:exp/domain/models/separation_item_status.dart';
+import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 
 class SeparateItemsFiltersModel {
   final String? codProduto;
@@ -6,6 +7,7 @@ class SeparateItemsFiltersModel {
   final String? nomeProduto;
   final String? enderecoDescricao;
   final SeparationItemStatus? situacao;
+  final ExpeditionSectorStockModel? setorEstoque;
 
   const SeparateItemsFiltersModel({
     this.codProduto,
@@ -13,6 +15,7 @@ class SeparateItemsFiltersModel {
     this.nomeProduto,
     this.enderecoDescricao,
     this.situacao,
+    this.setorEstoque,
   });
 
   factory SeparateItemsFiltersModel.fromJson(Map<String, dynamic> json) {
@@ -27,6 +30,7 @@ class SeparateItemsFiltersModel {
               orElse: () => SeparationItemStatus.pendente,
             )
           : null,
+      setorEstoque: json['setorEstoque'] != null ? ExpeditionSectorStockModel.fromJson(json['setorEstoque']) : null,
     );
   }
 
@@ -37,6 +41,7 @@ class SeparateItemsFiltersModel {
       'nomeProduto': nomeProduto,
       'enderecoDescricao': enderecoDescricao,
       'situacao': situacao?.code,
+      'setorEstoque': setorEstoque?.toJson(),
     };
   }
 
@@ -45,7 +50,8 @@ class SeparateItemsFiltersModel {
       codigoBarras == null &&
       nomeProduto == null &&
       enderecoDescricao == null &&
-      situacao == null;
+      situacao == null &&
+      setorEstoque == null;
 
   bool get isNotEmpty => !isEmpty;
 
@@ -55,6 +61,7 @@ class SeparateItemsFiltersModel {
     String? nomeProduto,
     String? enderecoDescricao,
     SeparationItemStatus? situacao,
+    ExpeditionSectorStockModel? setorEstoque,
   }) {
     return SeparateItemsFiltersModel(
       codProduto: codProduto ?? this.codProduto,
@@ -62,6 +69,7 @@ class SeparateItemsFiltersModel {
       nomeProduto: nomeProduto ?? this.nomeProduto,
       enderecoDescricao: enderecoDescricao ?? this.enderecoDescricao,
       situacao: situacao ?? this.situacao,
+      setorEstoque: setorEstoque ?? this.setorEstoque,
     );
   }
 
@@ -76,7 +84,8 @@ class SeparateItemsFiltersModel {
         'codigoBarras: $codigoBarras, '
         'nomeProduto: $nomeProduto, '
         'enderecoDescricao: $enderecoDescricao, '
-        'situacao: ${situacao?.description}'
+        'situacao: ${situacao?.description}, '
+        'setorEstoque: ${setorEstoque?.descricao}'
         ')';
   }
 
@@ -88,11 +97,12 @@ class SeparateItemsFiltersModel {
         other.codigoBarras == codigoBarras &&
         other.nomeProduto == nomeProduto &&
         other.enderecoDescricao == enderecoDescricao &&
-        other.situacao == situacao;
+        other.situacao == situacao &&
+        other.setorEstoque == setorEstoque;
   }
 
   @override
   int get hashCode {
-    return Object.hash(codProduto, codigoBarras, nomeProduto, enderecoDescricao, situacao);
+    return Object.hash(codProduto, codigoBarras, nomeProduto, enderecoDescricao, situacao, setorEstoque);
   }
 }

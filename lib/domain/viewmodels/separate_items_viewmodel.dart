@@ -1,19 +1,23 @@
-import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_success.dart';
-import 'package:exp/domain/models/separation_item_status.dart';
+import 'package:exp/domain/models/situation_model.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:exp/core/errors/app_error.dart';
+import 'package:exp/domain/models/separation_item_status.dart';
+import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/separate_items_filters_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
+import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_success.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_params.dart';
+import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
+import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/domain/models/carts_filters_model.dart';
 import 'package:exp/di/locator.dart';
 
@@ -23,11 +27,13 @@ enum SeparateItemsState { initial, loading, loaded, error }
 class SeparateItemsViewModel extends ChangeNotifier {
   final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
   final BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel> _cartRepository;
+  final BasicRepository<ExpeditionSectorStockModel> _sectorStockRepository;
   final FiltersStorageService _filtersStorage;
 
   SeparateItemsViewModel()
     : _repository = locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
       _cartRepository = locator<BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel>>(),
+      _sectorStockRepository = locator<BasicRepository<ExpeditionSectorStockModel>>(),
       _filtersStorage = locator<FiltersStorageService>();
 
   // === ESTADO ===
@@ -42,6 +48,10 @@ class SeparateItemsViewModel extends ChangeNotifier {
   // === DADOS DOS CARRINHOS ===
   List<ExpeditionCartRouteInternshipConsultationModel> _carts = [];
   bool _cartsLoaded = false;
+
+  // === DADOS DOS SETORES DE ESTOQUE ===
+  List<ExpeditionSectorStockModel> _availableSectors = [];
+  bool _sectorsLoaded = false;
 
   // === CANCELAMENTO ===
   bool _isCancelling = false;
@@ -84,6 +94,10 @@ class SeparateItemsViewModel extends ChangeNotifier {
   /// Retorna as opções de situação disponíveis para filtro
   List<SeparationItemStatus> get situacaoFilterOptions => SeparationItemStatus.availableForFilter;
 
+  /// Retorna os setores de estoque disponíveis para filtro
+  List<ExpeditionSectorStockModel> get availableSectors => List.unmodifiable(_availableSectors);
+  bool get sectorsLoaded => _sectorsLoaded;
+
   // === MÉTODOS PÚBLICOS ===
 
   /// Carrega os itens de uma separação específica
@@ -124,7 +138,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
     try {
       final queryBuilder = QueryBuilder()
         ..equals('CodOrigem', separation.codSepararEstoque.toString())
-        ..equals('Origem', 'SE')
+        ..equals('Origem', ExpeditionOrigem.separacaoEstoque.code)
         ..orderByDesc('Item');
 
       // Aplica filtros salvos de carrinhos se existirem
@@ -149,6 +163,33 @@ class SeparateItemsViewModel extends ChangeNotifier {
     if (_separation != null) {
       await loadSeparationItems(_separation!);
       await loadSeparationCarts(_separation!);
+    }
+    // Carrega setores apenas uma vez
+    if (!_sectorsLoaded) {
+      await loadAvailableSectors();
+    }
+  }
+
+  /// Carrega os setores de estoque disponíveis
+  Future<void> loadAvailableSectors() async {
+    if (_disposed || _sectorsLoaded) return;
+
+    try {
+      final queryBuilder = QueryBuilder()
+        ..equals('Ativo', Situation.ativo.code)
+        ..orderBy('Descricao');
+
+      final sectors = await _sectorStockRepository.select(queryBuilder);
+
+      if (_disposed) return;
+      _availableSectors = sectors;
+      _sectorsLoaded = true;
+      notifyListeners();
+    } catch (e) {
+      if (_disposed) return;
+      debugPrint('Erro ao carregar setores de estoque: $e');
+      _sectorsLoaded = true;
+      notifyListeners();
     }
   }
 
@@ -401,7 +442,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
     try {
       final queryBuilder = QueryBuilder()
         ..equals('CodOrigem', _separation!.codSepararEstoque.toString())
-        ..equals('Origem', 'SE')
+        ..equals('Origem', ExpeditionOrigem.separacaoEstoque.code)
         ..orderByDesc('Item');
 
       // Aplica filtros de carrinhos
@@ -430,6 +471,9 @@ class SeparateItemsViewModel extends ChangeNotifier {
     }
     if (_itemsFilters.enderecoDescricao != null) {
       queryBuilder.like('EnderecoDescricao', _itemsFilters.enderecoDescricao!);
+    }
+    if (_itemsFilters.setorEstoque != null) {
+      queryBuilder.equals('CodSetorEstoque', _itemsFilters.setorEstoque!.codSetorEstoque.toString());
     }
     // Filtro de situação será aplicado após buscar os dados (filtro local)
   }

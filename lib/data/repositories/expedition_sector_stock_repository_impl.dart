@@ -2,26 +2,26 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
-import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/data/dtos/send_mutation_socket_dto.dart';
-import 'package:exp/domain/repositories/basic_repository.dart';
-import 'package:exp/domain/models/expedition_cancellation_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/domain/repositories/basic_repository.dart';
+import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/data/dtos/send_query_socket_dto.dart';
 import 'package:exp/core/network/socket_config.dart';
+import 'package:exp/core/errors/app_error.dart';
 
-class ExpeditionCancellationRepositoryImpl implements BasicRepository<ExpeditionCancellationModel> {
-  final selectEvent = 'expedicao.cancelamento.select';
-  final insertEvent = 'expedicao.cancelamento.insert';
-  final updateEvent = 'expedicao.cancelamento.update';
-  final deleteEvent = 'expedicao.cancelamento.delete';
+class ExpeditionSectorStockRepositoryImpl implements BasicRepository<ExpeditionSectorStockModel> {
+  final selectEvent = 'setor.estoque.select';
+  final insertEvent = 'setor.estoque.insert';
+  final updateEvent = 'setor.estoque.update';
+  final deleteEvent = 'setor.estoque.delete';
   var socket = SocketConfig.instance;
   final uuid = const Uuid();
 
   @override
-  Future<List<ExpeditionCancellationModel>> select(QueryBuilder queryBuilder) async {
+  Future<List<ExpeditionSectorStockModel>> select(QueryBuilder queryBuilder) async {
     final event = '${socket.id} $selectEvent';
-    final completer = Completer<List<ExpeditionCancellationModel>>();
+    final completer = Completer<List<ExpeditionSectorStockModel>>();
     final responseId = uuid.v4();
 
     final whereQuery = queryBuilder.buildSqlWhere();
@@ -48,8 +48,8 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
             return;
           }
 
-          final list = data.map<ExpeditionCancellationModel>((json) {
-            return ExpeditionCancellationModel.fromJson(json);
+          final list = data.map<ExpeditionSectorStockModel>((json) {
+            return ExpeditionSectorStockModel.fromJson(json);
           }).toList();
 
           completer.complete(list);
@@ -68,9 +68,9 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
   }
 
   @override
-  Future<List<ExpeditionCancellationModel>> insert(ExpeditionCancellationModel entity) async {
+  Future<List<ExpeditionSectorStockModel>> insert(ExpeditionSectorStockModel entity) async {
     final event = '${socket.id} $insertEvent';
-    final completer = Completer<List<ExpeditionCancellationModel>>();
+    final completer = Completer<List<ExpeditionSectorStockModel>>();
     final responseId = uuid.v4();
 
     final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
@@ -89,8 +89,8 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
             return;
           }
 
-          final list = mutation.map<ExpeditionCancellationModel>((json) {
-            return ExpeditionCancellationModel.fromJson(json);
+          final list = mutation.map<ExpeditionSectorStockModel>((json) {
+            return ExpeditionSectorStockModel.fromJson(json);
           }).toList();
 
           completer.complete(list);
@@ -109,9 +109,9 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
   }
 
   @override
-  Future<List<ExpeditionCancellationModel>> update(ExpeditionCancellationModel entity) async {
+  Future<List<ExpeditionSectorStockModel>> update(ExpeditionSectorStockModel entity) async {
     final event = '${socket.id} $updateEvent';
-    final completer = Completer<List<ExpeditionCancellationModel>>();
+    final completer = Completer<List<ExpeditionSectorStockModel>>();
     final responseId = uuid.v4();
 
     final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
@@ -130,8 +130,8 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
             return;
           }
 
-          final list = mutation.map<ExpeditionCancellationModel>((json) {
-            return ExpeditionCancellationModel.fromJson(json);
+          final list = mutation.map<ExpeditionSectorStockModel>((json) {
+            return ExpeditionSectorStockModel.fromJson(json);
           }).toList();
 
           completer.complete(list);
@@ -150,9 +150,9 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
   }
 
   @override
-  Future<List<ExpeditionCancellationModel>> delete(ExpeditionCancellationModel entity) async {
+  Future<List<ExpeditionSectorStockModel>> delete(ExpeditionSectorStockModel entity) async {
     final event = '${socket.id} $deleteEvent';
-    final completer = Completer<List<ExpeditionCancellationModel>>();
+    final completer = Completer<List<ExpeditionSectorStockModel>>();
     final responseId = uuid.v4();
 
     final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
@@ -171,8 +171,8 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
             return;
           }
 
-          final list = mutation.map<ExpeditionCancellationModel>((json) {
-            return ExpeditionCancellationModel.fromJson(json);
+          final list = mutation.map<ExpeditionSectorStockModel>((json) {
+            return ExpeditionSectorStockModel.fromJson(json);
           }).toList();
 
           completer.complete(list);

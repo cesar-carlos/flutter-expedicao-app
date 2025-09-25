@@ -1,16 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exp/data/repositories/separate_repository_impl.dart';
-import 'package:exp/domain/models/separate_model.dart';
 import 'package:exp/domain/models/api_config.dart';
+import 'package:exp/domain/models/expedition_sector_stock_model.dart';
+import 'package:exp/data/repositories/expedition_sector_stock_repository_impl.dart';
+import '../../mocks/expedition_sector_stock_model_mock.dart';
 import 'package:exp/core/network/socket_config.dart';
-import '../../mocks/separate_model_mock.dart';
 
 void main() {
-  group('SeparateRepositoryImpl Tests', () {
-    late SeparateRepositoryImpl repository;
+  group('ExpeditionSectorStockRepositoryImpl Integration Tests', () {
+    late ExpeditionSectorStockRepositoryImpl repository;
     late ApiConfig testConfig;
-    late SeparateModel insertedSeparate;
+    late ExpeditionSectorStockModel insertedSectorStock;
 
     setUpAll(() async {
       testConfig = ApiConfig(apiUrl: 'localhost', apiPort: 3001, useHttps: false, lastUpdated: DateTime.now());
@@ -28,7 +28,7 @@ void main() {
     });
 
     setUp(() {
-      repository = SeparateRepositoryImpl();
+      repository = ExpeditionSectorStockRepositoryImpl();
     });
 
     tearDownAll(() async {
@@ -39,48 +39,46 @@ void main() {
     });
 
     group('INSERT Test', () {
-      test('deve inserir uma nova separar e verificar se foi inserida', () async {
-        final newSeparate = createDefaultTestSeparate();
+      test('deve inserir uma nova setor estoque e verificar se foi inserida', () async {
+        final newSeparate = createDefaultTestSectorStock();
         final insertResult = await repository.insert(newSeparate);
 
         expect(insertResult, isNotEmpty);
-        expect(insertResult.first.nomeEntidade, newSeparate.nomeEntidade);
-        expect(insertResult.first.situacaoCode, 'AGUARDANDO');
-        expect(insertResult.first.observacao, 'Teste de integração - INSERT');
+        expect(insertResult.first.descricao, newSeparate.descricao);
+        expect(insertResult.first.ativoCode, 'S');
+        expect(insertResult.first.ativoDescription, 'Sim');
 
-        insertedSeparate = insertResult.first;
+        insertedSectorStock = insertResult.first;
 
         await Future.delayed(Duration(seconds: 3));
       }, timeout: Timeout(Duration(minutes: 2)));
     });
 
     group('UPDATE Test', () {
-      test('deve atualizar separar inserida anteriormente', () async {
-        final updatedSeparate = createUpdatedTestSeparate(insertedSeparate);
+      test('deve atualizar a setor estoque inserida anteriormente', () async {
+        final updatedSeparate = createUpdatedTestSectorStock(insertedSectorStock);
 
         final updateResult = await repository.update(updatedSeparate);
 
         expect(updateResult, isNotEmpty);
-        expect(updateResult.first.codSepararEstoque, insertedSeparate.codSepararEstoque);
-        expect(updateResult.first.situacaoCode, 'SEPARANDO');
-        expect(updateResult.first.observacao, 'Atualizado via teste de integração - UPDATE');
-        expect(updateResult.first.nomeEntidade, insertedSeparate.nomeEntidade);
+        expect(updateResult.first.codSetorEstoque, insertedSectorStock.codSetorEstoque);
+        expect(updateResult.first.ativoCode, 'N');
 
         await Future.delayed(Duration(seconds: 3));
       }, timeout: Timeout(Duration(minutes: 2)));
     });
 
     group('DELETE Test', () {
-      test('deve deletar separar inserida anteriormente', () async {
-        final separateToDelete = insertedSeparate;
+      test('deve deletar a setor estoque inserida anteriormente', () async {
+        final separateToDelete = insertedSectorStock;
 
         final deleteResult = await repository.delete(separateToDelete);
 
         expect(deleteResult, isNotEmpty);
-        expect(deleteResult.first.codSepararEstoque, insertedSeparate.codSepararEstoque);
-        expect(deleteResult.first.nomeEntidade, insertedSeparate.nomeEntidade);
+        expect(deleteResult.first.codSetorEstoque, insertedSectorStock.codSetorEstoque);
+        expect(deleteResult.first.descricao, insertedSectorStock.descricao);
 
-        expect(deleteResult.first.situacaoCode, isA<String>());
+        expect(deleteResult.first.ativoCode, isA<String>());
 
         await Future.delayed(Duration(seconds: 3));
       }, timeout: Timeout(Duration(minutes: 2)));

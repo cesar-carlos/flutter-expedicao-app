@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
 import 'package:exp/domain/models/separate_items_filters_model.dart';
+import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/domain/models/separation_item_status.dart';
 
 /// Modal para filtros da aba de produtos
@@ -19,6 +21,7 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
   late TextEditingController _nomeProdutoController;
   late TextEditingController _enderecoDescricaoController;
   SeparationItemStatus? _selectedSituacao;
+  ExpeditionSectorStockModel? _selectedSetorEstoque;
 
   @override
   void initState() {
@@ -29,6 +32,37 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
     _nomeProdutoController = TextEditingController(text: widget.viewModel.itemsFilters.nomeProduto ?? '');
     _enderecoDescricaoController = TextEditingController(text: widget.viewModel.itemsFilters.enderecoDescricao ?? '');
     _selectedSituacao = widget.viewModel.itemsFilters.situacao;
+    _selectedSetorEstoque = widget.viewModel.itemsFilters.setorEstoque;
+
+    // Carrega setores de estoque se ainda não foram carregados
+    if (!widget.viewModel.sectorsLoaded) {
+      widget.viewModel.loadAvailableSectors().then((_) {
+        // Após carregar os setores, atualiza o estado para garantir que o dropdown seja reconstruído
+        if (mounted) {
+          setState(() {
+            // Sincroniza o setor selecionado com a lista carregada
+            _syncSelectedSector();
+          });
+        }
+      });
+    } else {
+      // Se os setores já foram carregados, sincroniza imediatamente
+      _syncSelectedSector();
+    }
+  }
+
+  /// Sincroniza o setor selecionado com a lista de setores disponíveis
+  void _syncSelectedSector() {
+    if (_selectedSetorEstoque != null && widget.viewModel.availableSectors.isNotEmpty) {
+      final matchingSector = widget.viewModel.availableSectors.cast<ExpeditionSectorStockModel?>().firstWhere(
+        (sector) => sector != null && sector == _selectedSetorEstoque,
+        orElse: () => null,
+      );
+
+      if (matchingSector != null) {
+        _selectedSetorEstoque = matchingSector;
+      }
+    }
   }
 
   @override
@@ -170,6 +204,29 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
                     });
                   },
                 ),
+
+                const SizedBox(height: 16),
+
+                // Setor de Estoque
+                DropdownButtonFormField<ExpeditionSectorStockModel?>(
+                  decoration: const InputDecoration(
+                    labelText: 'Setor de Estoque',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.business),
+                  ),
+                  initialValue: _getValidSelectedSector(),
+                  items: [
+                    const DropdownMenuItem<ExpeditionSectorStockModel?>(value: null, child: Text('Todos os setores')),
+                    ...widget.viewModel.availableSectors.map((setor) {
+                      return DropdownMenuItem<ExpeditionSectorStockModel?>(value: setor, child: Text(setor.descricao));
+                    }),
+                  ],
+                  onChanged: (setor) {
+                    setState(() {
+                      _selectedSetorEstoque = setor;
+                    });
+                  },
+                ),
               ],
             ),
           ),
@@ -204,6 +261,36 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
     );
   }
 
+  /// Retorna o setor selecionado se ele ainda existe na lista, senão retorna null
+  ExpeditionSectorStockModel? _getValidSelectedSector() {
+    if (_selectedSetorEstoque == null) return null;
+
+    // Se os setores ainda não foram carregados, retorna null e força o carregamento
+    if (widget.viewModel.availableSectors.isEmpty) {
+      return null;
+    }
+
+    // Procura o setor na lista de setores disponíveis usando o operador == do modelo
+    final matchingSector = widget.viewModel.availableSectors.cast<ExpeditionSectorStockModel?>().firstWhere(
+      (sector) => sector != null && sector == _selectedSetorEstoque,
+      orElse: () => null,
+    );
+
+    if (matchingSector != null) {
+      // Atualiza a referência para usar o objeto da lista
+      _selectedSetorEstoque = matchingSector;
+      return matchingSector;
+    } else {
+      // Se o setor não existe mais, limpa a seleção
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _selectedSetorEstoque = null;
+        });
+      });
+      return null;
+    }
+  }
+
   void _clearFilters() {
     setState(() {
       _codProdutoController.clear();
@@ -211,6 +298,7 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
       _nomeProdutoController.clear();
       _enderecoDescricaoController.clear();
       _selectedSituacao = null;
+      _selectedSetorEstoque = null;
     });
 
     widget.viewModel.clearItemsFilters();
@@ -226,6 +314,7 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
           ? _enderecoDescricaoController.text.trim()
           : null,
       situacao: _selectedSituacao,
+      setorEstoque: _selectedSetorEstoque,
     );
 
     Navigator.of(context).pop();
