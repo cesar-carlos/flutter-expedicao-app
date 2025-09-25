@@ -3,11 +3,11 @@ import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/domain/models/separate_item_model.dart';
 import 'package:exp/domain/models/separation_item_model.dart';
 import 'package:exp/domain/models/expedition_item_situation_model.dart';
-import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_success.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_failure.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/services/user_session_service.dart';
 
 /// Use case para cancelar itens de separação
