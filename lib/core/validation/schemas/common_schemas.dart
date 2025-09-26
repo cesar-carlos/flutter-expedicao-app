@@ -7,10 +7,10 @@ class CommonSchemas {
   // === SCHEMAS BÁSICOS ===
 
   /// Schema para IDs numéricos
-  static final idSchema = z.int().min(1, message: 'ID deve ser maior que zero');
+  static final integerSchema = z.int().min(1, message: 'integerSchema deve ser maior que zero');
 
-  /// Schema para IDs opcionais
-  static final optionalIdSchema = z.int().min(1, message: 'ID deve ser maior que zero').optional();
+  /// Schema para IDs opcionais (aceita null e ausência)
+  static final optionalIntegerSchema = z.int().nullable();
 
   /// Schema para códigos numéricos
   static final codeSchema = z
@@ -116,10 +116,10 @@ class CommonSchemas {
   // === SCHEMAS DE LISTA/ARRAY ===
 
   /// Schema para lista de IDs
-  static final idListSchema = z.list(idSchema);
+  static final idListSchema = z.list(integerSchema);
 
   /// Schema para lista opcional de IDs
-  static final optionalIdListSchema = z.list(idSchema).optional();
+  static final optionalIdListSchema = z.list(integerSchema).optional();
 
   /// Schema para lista de strings
   static final stringListSchema = z.list(nonEmptyStringSchema);
@@ -185,4 +185,25 @@ class CommonSchemas {
         .min(min, message: '$fieldName deve ser no mínimo $min')
         .max(max, message: '$fieldName deve ser no máximo $max');
   }
+
+  // === SCHEMAS ESPECÍFICOS DO PROJETO ===
+
+  /// Schema para ItemId (5 caracteres numéricos, incluindo '00000' para API)
+  static final itemIdSchema = z
+      .string()
+      .length(5, message: 'ItemId deve ter exatamente 5 caracteres')
+      .regex(RegExp(r'^\d{5}$'), message: 'ItemId deve conter apenas números')
+      .transform((value) => value.padLeft(5, '0'));
+
+  /// Schema para ItemId opcional
+  static final optionalItemIdSchema = itemIdSchema.optional();
+
+  /// Schema para SessionId do Socket.IO
+  static final sessionIdSchema = z
+      .string()
+      .min(1, message: 'SessionId não pode estar vazio')
+      .regex(RegExp(r'^[a-zA-Z0-9_-]+$'), message: 'SessionId deve conter apenas caracteres alfanuméricos, _ e -');
+
+  /// Schema para SessionId opcional
+  static final optionalSessionIdSchema = sessionIdSchema.optional();
 }

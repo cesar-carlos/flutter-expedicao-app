@@ -1,11 +1,11 @@
 /// Parâmetros para cancelar itens de separação
-class CancelItemSeparationParams {
+class CancelCardItemSeparationParams {
   final int codEmpresa;
   final int codSepararEstoque;
   final int codCarrinhoPercurso;
   final String itemCarrinhoPercurso;
 
-  const CancelItemSeparationParams({
+  const CancelCardItemSeparationParams({
     required this.codEmpresa,
     required this.codSepararEstoque,
     required this.codCarrinhoPercurso,
@@ -14,10 +14,7 @@ class CancelItemSeparationParams {
 
   /// Valida se os parâmetros são válidos
   bool get isValid {
-    return codEmpresa > 0 && 
-           codSepararEstoque > 0 && 
-           codCarrinhoPercurso > 0 && 
-           itemCarrinhoPercurso.isNotEmpty;
+    return codEmpresa > 0 && codSepararEstoque > 0 && codCarrinhoPercurso > 0 && itemCarrinhoPercurso.isNotEmpty;
   }
 
   /// Retorna uma lista de erros de validação
@@ -45,7 +42,7 @@ class CancelItemSeparationParams {
 
   /// Retorna uma descrição dos parâmetros para logging
   String get description {
-    return 'CancelItemSeparationParams('
+    return 'CancelCardItemSeparationParams('
         'codEmpresa: $codEmpresa, '
         'codSepararEstoque: $codSepararEstoque, '
         'codCarrinhoPercurso: $codCarrinhoPercurso, '
@@ -56,7 +53,7 @@ class CancelItemSeparationParams {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is CancelItemSeparationParams &&
+    return other is CancelCardItemSeparationParams &&
         other.codEmpresa == codEmpresa &&
         other.codSepararEstoque == codSepararEstoque &&
         other.codCarrinhoPercurso == codCarrinhoPercurso &&
@@ -64,12 +61,7 @@ class CancelItemSeparationParams {
   }
 
   @override
-  int get hashCode => Object.hash(
-        codEmpresa,
-        codSepararEstoque,
-        codCarrinhoPercurso,
-        itemCarrinhoPercurso,
-      );
+  int get hashCode => Object.hash(codEmpresa, codSepararEstoque, codCarrinhoPercurso, itemCarrinhoPercurso);
 
   @override
   String toString() => description;

@@ -19,6 +19,14 @@
 ///   print('Erro: ${result.error}');
 /// }
 ///
+/// // Usando schemas específicos do projeto
+/// final itemId = CommonSchemas.itemIdSchema.parse('00001');
+/// final sessionId = CommonSchemas.sessionIdSchema.parse('abc123_socket-id');
+///
+/// // Usando schemas individuais de models
+/// final cartData = ExpeditionCartSchema.validate(cartJson);
+/// final cancellationResult = ExpeditionCancellationSchema.safeValidate(data);
+///
 /// // Usando validadores
 /// final error = ModelValidators.validateExpeditionCart(cartData);
 /// if (error != null) {
@@ -31,13 +39,12 @@ library;
 // === SCHEMAS ===
 export 'schemas/common_schemas.dart';
 export 'schemas/enum_schemas.dart';
-export 'schemas/expedition_schemas.dart';
 export 'schemas/separation_schemas.dart';
 export 'schemas/user_schemas.dart';
 export 'schemas/pagination_schemas.dart';
 
-// === VALIDATORS ===
-export 'validators/model_validators.dart';
+// === MODEL SCHEMAS (Individual) ===
+export 'schemas/model/index.dart';
 
 // === EXTENSIONS ===
 export 'validation_extensions.dart';

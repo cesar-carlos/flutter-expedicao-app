@@ -59,6 +59,14 @@ class SocketConfig {
   /// Verifica se o Socket está conectado
   static bool get isConnected => _isConnected;
 
+  /// Obtém o ID/sessionId do socket atual
+  static String? get sessionId {
+    if (_socketInstance == null || !_isConnected) {
+      return null;
+    }
+    return _socketInstance!.id;
+  }
+
   /// Obtém a URL do WebSocket baseada na configuração atual
   static String get socketUrl {
     if (_currentApiConfig == null) {

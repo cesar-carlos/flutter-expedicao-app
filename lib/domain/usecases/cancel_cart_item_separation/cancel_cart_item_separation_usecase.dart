@@ -3,9 +3,9 @@ import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/domain/models/separate_item_model.dart';
 import 'package:exp/domain/models/separation_item_model.dart';
 import 'package:exp/domain/models/expedition_item_situation_model.dart';
-import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';
-import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_success.dart';
-import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_failure.dart';
+import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_params.dart';
+import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_success.dart';
+import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_failure.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/services/user_session_service.dart';
@@ -18,12 +18,12 @@ import 'package:exp/data/services/user_session_service.dart';
 /// - Calcular quantidades canceladas por produto
 /// - Atualizar quantidades em separate_item (subtraindo)
 /// - Atualizar situação em separation_item para CA (cancelado)
-class CancelItemSeparationUseCase {
+class CancelCardItemSeparationUseCase {
   final BasicRepository<SeparateItemModel> _separateItemRepository;
   final BasicRepository<SeparationItemModel> _separationItemRepository;
   final UserSessionService _userSessionService;
 
-  CancelItemSeparationUseCase({
+  CancelCardItemSeparationUseCase({
     required BasicRepository<SeparateItemModel> separateItemRepository,
     required BasicRepository<SeparationItemModel> separationItemRepository,
     required UserSessionService userSessionService,
@@ -35,25 +35,25 @@ class CancelItemSeparationUseCase {
   ///
   /// [params] - Parâmetros para cancelamento
   ///
-  /// Retorna [Result<CancelItemSeparationSuccess>] com sucesso ou falha
-  Future<Result<CancelItemSeparationSuccess>> call(CancelItemSeparationParams params) async {
+  /// Retorna [Result<CancelCardItemSeparationSuccess>] com sucesso ou falha
+  Future<Result<CancelCardItemSeparationSuccess>> call(CancelCardItemSeparationParams params) async {
     try {
       // 1. Validar parâmetros
       if (!params.isValid) {
         final errors = params.validationErrors;
-        return failure(CancelItemSeparationFailure.invalidParams('Parâmetros inválidos: ${errors.join(', ')}'));
+        return failure(CancelCardItemSeparationFailure.invalidParams('Parâmetros inválidos: ${errors.join(', ')}'));
       }
 
       // 2. Verificar usuário autenticado
       final appUser = await _userSessionService.loadUserSession();
       if (appUser?.userSystemModel == null) {
-        return failure(CancelItemSeparationFailure.userNotFound());
+        return failure(CancelCardItemSeparationFailure.userNotFound());
       }
 
       // 3. Buscar itens de separação a serem cancelados
       final separationItems = await _findSeparationItems(params);
       if (separationItems.isEmpty) {
-        return failure(CancelItemSeparationFailure.itemsNotFound());
+        return failure(CancelCardItemSeparationFailure.itemsNotFound());
       }
 
       // 4. Calcular quantidades canceladas por produto
@@ -63,32 +63,34 @@ class CancelItemSeparationUseCase {
       final updatedSeparateItems = await _updateSeparateItemQuantities(params, cancelledQuantitiesByProduct);
       if (updatedSeparateItems.isEmpty) {
         return failure(
-          CancelItemSeparationFailure.updateSeparateItemFailed('Falha ao atualizar quantidades de separação'),
+          CancelCardItemSeparationFailure.updateSeparateItemFailed('Falha ao atualizar quantidades de separação'),
         );
       }
 
       // 6. Atualizar separation_items para situação CA (cancelado)
       final cancelledSeparationItems = await _updateSeparationItemsToCancel(separationItems);
       if (cancelledSeparationItems.isEmpty) {
-        return failure(CancelItemSeparationFailure.updateSeparationItemFailed('Falha ao cancelar itens de separação'));
+        return failure(
+          CancelCardItemSeparationFailure.updateSeparationItemFailed('Falha ao cancelar itens de separação'),
+        );
       }
 
       return success(
-        CancelItemSeparationSuccess.create(
+        CancelCardItemSeparationSuccess.create(
           updatedSeparateItems: updatedSeparateItems,
           cancelledSeparationItems: cancelledSeparationItems,
           cancelledQuantitiesByProduct: cancelledQuantitiesByProduct,
         ),
       );
     } on DataError catch (e) {
-      return failure(CancelItemSeparationFailure.networkError(e.message, Exception(e.message)));
+      return failure(CancelCardItemSeparationFailure.networkError(e.message, Exception(e.message)));
     } on Exception catch (e) {
-      return failure(CancelItemSeparationFailure.unknown(e.toString(), e));
+      return failure(CancelCardItemSeparationFailure.unknown(e.toString(), e));
     }
   }
 
   /// Busca os itens de separação que devem ser cancelados
-  Future<List<SeparationItemModel>> _findSeparationItems(CancelItemSeparationParams params) async {
+  Future<List<SeparationItemModel>> _findSeparationItems(CancelCardItemSeparationParams params) async {
     try {
       final separationItems = await _separationItemRepository.select(
         QueryBuilder()
@@ -121,7 +123,7 @@ class CancelItemSeparationUseCase {
 
   /// Atualiza as quantidades dos separate_items (subtrai as quantidades canceladas)
   Future<List<SeparateItemModel>> _updateSeparateItemQuantities(
-    CancelItemSeparationParams params,
+    CancelCardItemSeparationParams params,
     Map<int, double> cancelledQuantitiesByProduct,
   ) async {
     try {
@@ -184,7 +186,7 @@ class CancelItemSeparationUseCase {
   }
 
   /// Verifica se existem itens para cancelar (método público)
-  Future<bool> canCancelItems(CancelItemSeparationParams params) async {
+  Future<bool> canCancelItems(CancelCardItemSeparationParams params) async {
     try {
       if (!params.isValid) return false;
       final separationItems = await _findSeparationItems(params);
@@ -195,7 +197,7 @@ class CancelItemSeparationUseCase {
   }
 
   /// Retorna informações sobre os itens que seriam cancelados (método público para preview)
-  Future<Map<int, double>> getItemsToBeCancelled(CancelItemSeparationParams params) async {
+  Future<Map<int, double>> getItemsToBeCancelled(CancelCardItemSeparationParams params) async {
     try {
       if (!params.isValid) return {};
       final separationItems = await _findSeparationItems(params);

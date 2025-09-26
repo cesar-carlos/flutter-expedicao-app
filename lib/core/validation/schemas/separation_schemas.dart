@@ -1,6 +1,6 @@
 import 'package:zard/zard.dart';
-import 'common_schemas.dart';
-import 'enum_schemas.dart';
+import 'package:exp/core/validation/schemas/common_schemas.dart';
+import 'package:exp/core/validation/schemas/enum_schemas.dart';
 
 /// Schemas para validação de models de separação
 class SeparationSchemas {
@@ -10,19 +10,19 @@ class SeparationSchemas {
 
   /// Schema para SeparateConsultationModel
   static final separateConsultationSchema = z.map({
-    'codEmpresa': CommonSchemas.idSchema,
-    'codSepararEstoque': CommonSchemas.idSchema,
+    'codEmpresa': CommonSchemas.integerSchema,
+    'codSepararEstoque': CommonSchemas.integerSchema,
     'origem': EnumSchemas.expeditionOrigemSchema,
-    'codOrigem': CommonSchemas.idSchema,
-    'codTipoOperacaoExpedicao': CommonSchemas.idSchema,
+    'codOrigem': CommonSchemas.integerSchema,
+    'codTipoOperacaoExpedicao': CommonSchemas.integerSchema,
     'nomeTipoOperacaoExpedicao': CommonSchemas.nonEmptyStringSchema,
     'situacao': EnumSchemas.expeditionSituationSchema,
     'tipoEntidade': EnumSchemas.entityTypeSchema,
     'dataEmissao': CommonSchemas.dateTimeSchema,
     'horaEmissao': CommonSchemas.nonEmptyStringSchema,
-    'codEntidade': CommonSchemas.idSchema,
+    'codEntidade': CommonSchemas.integerSchema,
     'nomeEntidade': CommonSchemas.nonEmptyStringSchema,
-    'codPrioridade': CommonSchemas.idSchema,
+    'codPrioridade': CommonSchemas.integerSchema,
     'nomePrioridade': CommonSchemas.nonEmptyStringSchema,
     'historico': CommonSchemas.optionalStringSchema,
     'observacao': CommonSchemas.optionalStringSchema,
@@ -32,21 +32,21 @@ class SeparationSchemas {
 
   /// Schema para SeparateModel
   static final separateSchema = z.map({
-    'codEmpresa': CommonSchemas.idSchema,
-    'codSepararEstoque': CommonSchemas.idSchema,
+    'codEmpresa': CommonSchemas.integerSchema,
+    'codSepararEstoque': CommonSchemas.integerSchema,
     'origem': EnumSchemas.expeditionOrigemSchema,
-    'codOrigem': CommonSchemas.idSchema,
-    'codTipoOperacaoExpedicao': CommonSchemas.idSchema,
+    'codOrigem': CommonSchemas.integerSchema,
+    'codTipoOperacaoExpedicao': CommonSchemas.integerSchema,
     'nomeTipoOperacaoExpedicao': CommonSchemas.nonEmptyStringSchema,
     'situacao': EnumSchemas.expeditionSituationSchema,
     'tipoEntidade': EnumSchemas.entityTypeSchema,
     'dataEmissao': CommonSchemas.dateTimeSchema,
     'horaEmissao': CommonSchemas.nonEmptyStringSchema,
-    'codEntidade': CommonSchemas.idSchema,
+    'codEntidade': CommonSchemas.integerSchema,
     'nomeEntidade': CommonSchemas.nonEmptyStringSchema,
-    'codUsuarioEmissao': CommonSchemas.idSchema,
+    'codUsuarioEmissao': CommonSchemas.integerSchema,
     'nomeUsuarioEmissao': CommonSchemas.nonEmptyStringSchema,
-    'codPrioridade': CommonSchemas.idSchema,
+    'codPrioridade': CommonSchemas.integerSchema,
     'nomePrioridade': CommonSchemas.nonEmptyStringSchema,
     'observacao': CommonSchemas.optionalStringSchema,
   });
@@ -55,10 +55,10 @@ class SeparationSchemas {
 
   /// Schema para SeparateItemConsultationModel
   static final separateItemConsultationSchema = z.map({
-    'codEmpresa': CommonSchemas.idSchema,
-    'codSepararEstoqueItem': CommonSchemas.idSchema,
-    'codSepararEstoque': CommonSchemas.idSchema,
-    'codProduto': CommonSchemas.idSchema,
+    'codEmpresa': CommonSchemas.integerSchema,
+    'codSepararEstoqueItem': CommonSchemas.integerSchema,
+    'codSepararEstoque': CommonSchemas.integerSchema,
+    'codProduto': CommonSchemas.integerSchema,
     'nomeProduto': CommonSchemas.nonEmptyStringSchema,
     'codigoBarras': CommonSchemas.optionalStringSchema,
     'unidadeMedida': CommonSchemas.nonEmptyStringSchema,
@@ -67,7 +67,7 @@ class SeparationSchemas {
     'quantidadePendente': CommonSchemas.quantitySchema,
     'situacao': EnumSchemas.expeditionItemSituationSchema,
     'tipoEntidade': EnumSchemas.entityTypeSchema,
-    'codLocal': CommonSchemas.optionalIdSchema,
+    'codLocal': CommonSchemas.optionalIntegerSchema,
     'nomeLocal': CommonSchemas.optionalStringSchema,
     'observacao': CommonSchemas.optionalStringSchema,
   });
@@ -76,19 +76,19 @@ class SeparationSchemas {
 
   /// Schema para SeparateItemModel
   static final separateItemSchema = z.map({
-    'codEmpresa': CommonSchemas.idSchema,
-    'codSepararEstoqueItem': CommonSchemas.idSchema,
-    'codSepararEstoque': CommonSchemas.idSchema,
-    'codProduto': CommonSchemas.idSchema,
+    'codEmpresa': CommonSchemas.integerSchema,
+    'codSepararEstoqueItem': CommonSchemas.integerSchema,
+    'codSepararEstoque': CommonSchemas.integerSchema,
+    'codProduto': CommonSchemas.integerSchema,
     'nomeProduto': CommonSchemas.nonEmptyStringSchema,
     'codigoBarras': CommonSchemas.optionalStringSchema,
     'unidadeMedida': CommonSchemas.nonEmptyStringSchema,
     'quantidadeSolicitada': CommonSchemas.quantitySchema,
     'quantidadeSeparada': CommonSchemas.quantitySchema,
     'situacao': EnumSchemas.expeditionItemSituationSchema,
-    'codLocal': CommonSchemas.optionalIdSchema,
+    'codLocal': CommonSchemas.optionalIntegerSchema,
     'nomeLocal': CommonSchemas.optionalStringSchema,
-    'codUsuarioSeparacao': CommonSchemas.optionalIdSchema,
+    'codUsuarioSeparacao': CommonSchemas.optionalIntegerSchema,
     'nomeUsuarioSeparacao': CommonSchemas.optionalStringSchema,
     'dataSeparacao': CommonSchemas.optionalDateTimeSchema,
     'horaSeparacao': CommonSchemas.optionalStringSchema,
@@ -99,10 +99,10 @@ class SeparationSchemas {
 
   /// Schema para SeparationItemConsultationModel
   static final separationItemConsultationSchema = z.map({
-    'codEmpresa': CommonSchemas.idSchema,
-    'codSeparacaoItem': CommonSchemas.idSchema,
-    'codSeparacao': CommonSchemas.idSchema,
-    'codProduto': CommonSchemas.idSchema,
+    'codEmpresa': CommonSchemas.integerSchema,
+    'codSeparacaoItem': CommonSchemas.integerSchema,
+    'codSeparacao': CommonSchemas.integerSchema,
+    'codProduto': CommonSchemas.integerSchema,
     'nomeProduto': CommonSchemas.nonEmptyStringSchema,
     'codigoBarras': CommonSchemas.optionalStringSchema,
     'unidadeMedida': CommonSchemas.nonEmptyStringSchema,
@@ -110,9 +110,9 @@ class SeparationSchemas {
     'quantidadeSeparada': CommonSchemas.quantitySchema,
     'quantidadePendente': CommonSchemas.quantitySchema,
     'situacao': EnumSchemas.expeditionItemSituationSchema,
-    'codLocal': CommonSchemas.optionalIdSchema,
+    'codLocal': CommonSchemas.optionalIntegerSchema,
     'nomeLocal': CommonSchemas.optionalStringSchema,
-    'codUsuarioSeparacao': CommonSchemas.optionalIdSchema,
+    'codUsuarioSeparacao': CommonSchemas.optionalIntegerSchema,
     'nomeUsuarioSeparacao': CommonSchemas.optionalStringSchema,
     'dataSeparacao': CommonSchemas.optionalDateTimeSchema,
     'horaSeparacao': CommonSchemas.optionalStringSchema,
@@ -123,19 +123,19 @@ class SeparationSchemas {
 
   /// Schema para SeparationItemModel
   static final separationItemSchema = z.map({
-    'codEmpresa': CommonSchemas.idSchema,
-    'codSeparacaoItem': CommonSchemas.idSchema,
-    'codSeparacao': CommonSchemas.idSchema,
-    'codProduto': CommonSchemas.idSchema,
+    'codEmpresa': CommonSchemas.integerSchema,
+    'codSeparacaoItem': CommonSchemas.integerSchema,
+    'codSeparacao': CommonSchemas.integerSchema,
+    'codProduto': CommonSchemas.integerSchema,
     'nomeProduto': CommonSchemas.nonEmptyStringSchema,
     'codigoBarras': CommonSchemas.optionalStringSchema,
     'unidadeMedida': CommonSchemas.nonEmptyStringSchema,
     'quantidadeSolicitada': CommonSchemas.quantitySchema,
     'quantidadeSeparada': CommonSchemas.quantitySchema,
     'situacao': EnumSchemas.expeditionItemSituationSchema,
-    'codLocal': CommonSchemas.optionalIdSchema,
+    'codLocal': CommonSchemas.optionalIntegerSchema,
     'nomeLocal': CommonSchemas.optionalStringSchema,
-    'codUsuarioSeparacao': CommonSchemas.optionalIdSchema,
+    'codUsuarioSeparacao': CommonSchemas.optionalIntegerSchema,
     'nomeUsuarioSeparacao': CommonSchemas.optionalStringSchema,
     'dataSeparacao': CommonSchemas.optionalDateTimeSchema,
     'horaSeparacao': CommonSchemas.optionalStringSchema,
@@ -152,7 +152,7 @@ class SeparationSchemas {
     'situacao': EnumSchemas.optionalExpeditionSituationSchema,
     'dataEmissao': CommonSchemas.optionalDateTimeSchema,
     'tipoEntidade': EnumSchemas.optionalEntityTypeSchema,
-    'codEntidade': CommonSchemas.optionalIdSchema,
+    'codEntidade': CommonSchemas.optionalIntegerSchema,
     'nomeEntidade': CommonSchemas.optionalStringSchema,
   });
 
@@ -242,5 +242,66 @@ class SeparationSchemas {
       return ['PS', 'P'].contains(situacao); // Parcialmente Separado ou Pendente
     }
     return false;
+  }
+
+  // === SCHEMAS PARA USECASES ===
+
+  /// Schema para AddItemSeparationParams
+  static final addItemSeparationParamsSchema = z
+      .map({
+        'codEmpresa': CommonSchemas.integerSchema,
+        'codSepararEstoque': CommonSchemas.integerSchema,
+        'sessionId': CommonSchemas.sessionIdSchema,
+        'codCarrinhoPercurso': CommonSchemas.integerSchema,
+        'itemCarrinhoPercurso': CommonSchemas.itemIdSchema,
+        'codSeparador': CommonSchemas.integerSchema,
+        'nomeSeparador': CommonSchemas.nonEmptyStringSchema,
+        'codProduto': CommonSchemas.integerSchema,
+        'codUnidadeMedida': CommonSchemas.nonEmptyStringSchema,
+        'quantidade': z.double()
+            .min(0.0001, message: 'Quantidade deve ser maior que zero')
+            .max(9999.9999, message: 'Quantidade não pode exceder 9999.9999'),
+      })
+      .refine((value) {
+        // Validação de precisão decimal (máximo 4 casas)
+        final quantidade = value['quantidade'] as double;
+        final quantidadeStr = quantidade.toStringAsFixed(4);
+        final quantidadeParsed = double.parse(quantidadeStr);
+        return (quantidade - quantidadeParsed).abs() <= 0.0001;
+      }, message: 'Quantidade deve ter no máximo 4 casas decimais');
+
+  /// Schema para CancelCartItemSeparationParams
+  static final cancelCartItemSeparationParamsSchema = z.map({
+    'codEmpresa': CommonSchemas.integerSchema,
+    'codSepararEstoque': CommonSchemas.integerSchema,
+    'sessionId': CommonSchemas.sessionIdSchema,
+    'itemCarrinhoPercurso': CommonSchemas.itemIdSchema,
+    'motivo': CommonSchemas.optionalStringSchema,
+  });
+
+  // === VALIDAÇÃO SEGURA PARA USECASES ===
+
+  /// Validação segura para AddItemSeparationParams
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateAddItemSeparationParams(
+    Map<String, dynamic> data,
+  ) {
+    try {
+      final result = addItemSeparationParamsSchema.parse(data);
+      return (success: true, data: result, error: null);
+    } catch (e) {
+      return (success: false, data: null, error: e.toString());
+    }
+  }
+
+  /// Validação segura para CancelCartItemSeparationParams
+  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateCancelCartItemSeparationParams(
+    Map<String, dynamic> data,
+  ) {
+    try {
+      final result = cancelCartItemSeparationParamsSchema.parse(data);
+      return (success: true, data: result, error: null);
+    } catch (e) {
+      return (success: false, data: null, error: e.toString());
+    }
   }
 }

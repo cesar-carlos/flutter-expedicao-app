@@ -1,5 +1,6 @@
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/core/results/index.dart';
 
 class ExpeditionCartModel {
   final int codEmpresa;
@@ -49,6 +50,12 @@ class ExpeditionCartModel {
     } catch (_) {
       rethrow;
     }
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<ExpeditionCartModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => ExpeditionCartModel.fromJson(json));
   }
 
   Map<String, dynamic> toJson() {

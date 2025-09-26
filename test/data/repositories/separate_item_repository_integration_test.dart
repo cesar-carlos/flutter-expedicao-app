@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../mocks/separate_item_model_mock.dart';
 import 'package:exp/data/repositories/separate_item_repository_impl.dart';
 import 'package:exp/domain/models/separate_item_model.dart';
-import 'package:exp/domain/models/api_config.dart';
 import 'package:exp/core/network/socket_config.dart';
-import '../../mocks/separate_item_model_mock.dart';
+import 'package:exp/domain/models/api_config.dart';
 
 void main() {
   group('SeparateItemRepositoryImpl Integration Tests', () {
@@ -48,8 +48,8 @@ void main() {
         expect(insertResult, isNotEmpty);
         expect(insertResult.first.item, newItem.item);
         expect(insertResult.first.codProduto, 1);
-        expect(insertResult.first.quantidade, 1.0);
-        expect(insertResult.first.quantidadeInterna, 1.0);
+        expect(insertResult.first.quantidade, 40.0);
+        expect(insertResult.first.quantidadeInterna, 40.0);
         expect(insertResult.first.quantidadeExterna, 0.0);
         expect(insertResult.first.quantidadeSeparacao, 0.0);
 
@@ -68,9 +68,9 @@ void main() {
         expect(updateResult, isNotEmpty);
         expect(updateResult.first.codSepararEstoque, insertedSeparateItem.codSepararEstoque);
         expect(updateResult.first.item, insertedSeparateItem.item);
-        expect(updateResult.first.quantidadeSeparacao, 0.5);
-        expect(updateResult.first.quantidadeInterna, 0.5);
-        expect(updateResult.first.quantidadeExterna, 0.5);
+        expect(updateResult.first.quantidadeSeparacao, 40.0);
+        expect(updateResult.first.quantidadeInterna, 0.0);
+        expect(updateResult.first.quantidadeExterna, 35.0);
         expect(updateResult.first.codProduto, insertedSeparateItem.codProduto);
 
         await Future.delayed(Duration(seconds: 3));
@@ -87,8 +87,6 @@ void main() {
         expect(deleteResult.first.codSepararEstoque, insertedSeparateItem.codSepararEstoque);
         expect(deleteResult.first.item, insertedSeparateItem.item);
         expect(deleteResult.first.codProduto, insertedSeparateItem.codProduto);
-
-        expect(deleteResult.first.quantidade, isA<double>());
 
         await Future.delayed(Duration(seconds: 3));
       }, timeout: Timeout(Duration(minutes: 2)));

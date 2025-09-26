@@ -1,6 +1,6 @@
 import 'package:zard/zard.dart';
-import 'common_schemas.dart';
-import 'enum_schemas.dart';
+import 'package:exp/core/validation/schemas/common_schemas.dart';
+import 'package:exp/core/validation/schemas/enum_schemas.dart';
 
 /// Schemas para validação de models de usuário
 class UserSchemas {
@@ -10,10 +10,10 @@ class UserSchemas {
 
   /// Schema para AppUser
   static final appUserSchema = z.map({
-    'codLoginApp': CommonSchemas.idSchema,
+    'codLoginApp': CommonSchemas.integerSchema,
     'ativo': EnumSchemas.activeStatusSchema,
     'nome': CommonSchemas.nonEmptyStringSchema,
-    'codUsuario': CommonSchemas.optionalIdSchema,
+    'codUsuario': CommonSchemas.optionalIntegerSchema,
     'fotoUsuario': CommonSchemas.optionalStringSchema,
     'senha': CommonSchemas.optionalStringSchema,
   });
@@ -22,10 +22,10 @@ class UserSchemas {
 
   /// Schema para AppUserConsultation
   static final appUserConsultationSchema = z.map({
-    'codLoginApp': CommonSchemas.idSchema,
+    'codLoginApp': CommonSchemas.integerSchema,
     'ativo': EnumSchemas.activeStatusSchema,
     'nome': CommonSchemas.nonEmptyStringSchema,
-    'codUsuario': CommonSchemas.optionalIdSchema,
+    'codUsuario': CommonSchemas.optionalIntegerSchema,
     'nomeUsuario': CommonSchemas.optionalStringSchema,
     'fotoUsuario': CommonSchemas.optionalStringSchema,
     'email': CommonSchemas.optionalStringSchema,
@@ -56,7 +56,7 @@ class UserSchemas {
     'user': appUserSchema.optional(),
     'token': CommonSchemas.optionalStringSchema,
     'refreshToken': CommonSchemas.optionalStringSchema,
-    'expiresIn': CommonSchemas.optionalIdSchema,
+    'expiresIn': CommonSchemas.optionalIntegerSchema,
   });
 
   // === CREATE USER REQUEST ===
@@ -97,7 +97,7 @@ class UserSchemas {
     'success': CommonSchemas.booleanSchema,
     'message': CommonSchemas.optionalStringSchema,
     'user': appUserSchema.optional(),
-    'codLoginApp': CommonSchemas.optionalIdSchema,
+    'codLoginApp': CommonSchemas.optionalIntegerSchema,
   });
 
   // === USER API EXCEPTION ===
@@ -105,7 +105,7 @@ class UserSchemas {
   /// Schema para UserApiException
   static final userApiExceptionSchema = z.map({
     'message': CommonSchemas.nonEmptyStringSchema,
-    'statusCode': CommonSchemas.optionalIdSchema,
+    'statusCode': CommonSchemas.optionalIntegerSchema,
     'errorCode': CommonSchemas.optionalStringSchema,
     'details': CommonSchemas.optionalStringSchema,
   });
@@ -116,7 +116,7 @@ class UserSchemas {
   static final apiErrorResponseSchema = z.map({
     'error': CommonSchemas.nonEmptyStringSchema,
     'message': CommonSchemas.optionalStringSchema,
-    'statusCode': CommonSchemas.idSchema,
+    'statusCode': CommonSchemas.integerSchema,
     'timestamp': CommonSchemas.optionalDateTimeSchema,
     'path': CommonSchemas.optionalStringSchema,
   });

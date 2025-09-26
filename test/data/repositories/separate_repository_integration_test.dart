@@ -1,9 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exp/data/repositories/separate_repository_impl.dart';
 import 'package:exp/domain/models/separate_model.dart';
-import 'package:exp/domain/models/api_config.dart';
+import 'package:exp/data/repositories/separate_repository_impl.dart';
 import 'package:exp/core/network/socket_config.dart';
+import 'package:exp/domain/models/api_config.dart';
+
 import '../../mocks/separate_model_mock.dart';
 
 void main() {

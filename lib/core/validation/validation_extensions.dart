@@ -1,5 +1,4 @@
-import 'validators/model_validators.dart';
-
+import 'package:exp/core/validation/validators/model_validators.dart';
 import 'package:exp/domain/models/expedition_cancellation_model.dart';
 import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
@@ -20,41 +19,37 @@ import 'package:exp/domain/models/user/app_user_consultation.dart';
 /// Extensions para adicionar validação aos models existentes
 /// Permite usar model.validate() e model.isValid diretamente
 
+// === UTILITIES FOR EXTENSIONS ===
+
+/// Classe utilitária para reduzir duplicação de código nas extensions
+class _ValidationHelper {
+  /// Helper para criar lista de erros
+  static List<String> createErrorList(String? error) {
+    return error != null ? [error] : [];
+  }
+}
+
 // === EXPEDITION MODEL EXTENSIONS ===
 
 /// Extension para ExpeditionCancellationModel
 extension ExpeditionCancellationValidation on ExpeditionCancellationModel {
-  /// Valida o modelo
   String? validate() => ModelValidators.validateExpeditionCancellation(toJson());
-
-  /// Verifica se o modelo é válido
   bool get isValid => validate() == null;
-
-  /// Obtém lista de erros de validação
-  List<String> get validationErrors {
-    final error = validate();
-    return error != null ? [error] : [];
-  }
+  List<String> get validationErrors => _ValidationHelper.createErrorList(validate());
 }
 
 /// Extension para ExpeditionCartModel
 extension ExpeditionCartValidation on ExpeditionCartModel {
   String? validate() => ModelValidators.validateExpeditionCart(toJson());
   bool get isValid => validate() == null;
-  List<String> get validationErrors {
-    final error = validate();
-    return error != null ? [error] : [];
-  }
+  List<String> get validationErrors => _ValidationHelper.createErrorList(validate());
 }
 
 /// Extension para ExpeditionCartConsultationModel
 extension ExpeditionCartConsultationValidation on ExpeditionCartConsultationModel {
   String? validate() => ModelValidators.validateExpeditionCartConsultation(toJson());
   bool get isValid => validate() == null;
-  List<String> get validationErrors {
-    final error = validate();
-    return error != null ? [error] : [];
-  }
+  List<String> get validationErrors => _ValidationHelper.createErrorList(validate());
 }
 
 /// Extension para ExpeditionCartRouteModel
@@ -99,7 +94,7 @@ extension SeparateConsultationValidation on SeparateConsultationModel {
   }
 
   /// Validação com regras de negócio
-  String? validateWithBusinessRules() => ModelValidators.validateSeparationWithBusinessRules(toJson());
+  String? validateWithBusinessRules() => ModelValidators.validateSeparateConsultation(toJson());
 
   /// Verifica se é válido com regras de negócio
   bool get isValidWithBusinessRules => validateWithBusinessRules() == null;

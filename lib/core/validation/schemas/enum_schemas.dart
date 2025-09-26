@@ -1,9 +1,9 @@
-import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/entity_type_model.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/expedition_item_situation_model.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
-import 'common_schemas.dart';
+import 'package:exp/core/validation/schemas/common_schemas.dart';
+import 'package:exp/domain/models/expedition_origem_model.dart';
 
 /// Schemas para validação de enums específicos do domínio
 class EnumSchemas {

@@ -13,8 +13,8 @@ SeparateItemModel createTestItem() {
     codLocalArmazenagem: 1,
     codProduto: 1,
     codUnidadeMedida: 'UN',
-    quantidade: 1.0,
-    quantidadeInterna: 1.0,
+    quantidade: 40.0,
+    quantidadeInterna: 40.0,
     quantidadeExterna: 0.0,
     quantidadeSeparacao: 0.0,
   );
@@ -25,5 +25,5 @@ SeparateItemModel createDefaultTestItem() {
 }
 
 SeparateItemModel createUpdatedTestItem(SeparateItemModel originalItem) {
-  return originalItem.copyWith(quantidadeSeparacao: 0.5, quantidadeInterna: 0.5, quantidadeExterna: 0.5);
+  return originalItem.copyWith(quantidadeSeparacao: 40.0, quantidadeInterna: 0.0, quantidadeExterna: 35.0);
 }

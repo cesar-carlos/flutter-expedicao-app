@@ -1,0 +1,53 @@
+import 'package:flutter/widgets.dart';
+import 'package:exp/data/repositories/separation_item_repository_impl.dart';
+import 'package:exp/data/repositories/separate_item_repository_impl.dart';
+import 'package:exp/domain/models/pagination/query_builder.dart';
+
+/// Helper para limpeza de dados de teste
+class TestDataCleanupHelper {
+  /// Limpa os dados de teste da base de dados
+  static Future<void> cleanupTestData() async {
+    try {
+      debugPrint('🧹 Iniciando limpeza dos dados de teste...');
+
+      // Inicializar repositórios para limpeza
+      final separateItemRepo = SeparateItemRepositoryImpl();
+      final separationItemRepo = SeparationItemRepositoryImpl();
+
+      // 1. Limpar ItemSeparacaoEstoque (separation_item) - registros de teste
+      debugPrint('🗑️ Limpando registros de ItemSeparacaoEstoque...');
+      final separationItems = await separationItemRepo.select(
+        QueryBuilder().equals('CodEmpresa', 1).equals('CodSepararEstoque', 999999).equals('CodProduto', 1),
+      );
+
+      for (final item in separationItems) {
+        try {
+          await separationItemRepo.delete(item);
+          debugPrint('   ✅ Removido: ItemSeparacaoEstoque - Item ${item.item}');
+        } catch (e) {
+          debugPrint('   ⚠️ Erro ao remover ItemSeparacaoEstoque: $e');
+        }
+      }
+
+      // 2. Limpar ItemSepararEstoque (separate_item) - registros de teste
+      debugPrint('🗑️ Limpando registros de ItemSepararEstoque...');
+      final separateItems = await separateItemRepo.select(
+        QueryBuilder().equals('CodEmpresa', 1).equals('CodSepararEstoque', 999999).equals('CodProduto', 1),
+      );
+
+      for (final item in separateItems) {
+        try {
+          await separateItemRepo.delete(item);
+          debugPrint('   ✅ Removido: ItemSepararEstoque - Item ${item.item}');
+        } catch (e) {
+          debugPrint('   ⚠️ Erro ao remover ItemSepararEstoque: $e');
+        }
+      }
+
+      debugPrint('✅ Limpeza dos dados de teste concluída!');
+    } catch (e) {
+      debugPrint('❌ Erro durante limpeza dos dados de teste: $e');
+      // Não falhar o teste por causa da limpeza
+    }
+  }
+}

@@ -5,8 +5,8 @@ SeparationItemModel createTestSeparationItem() {
   return SeparationItemModel(
     codEmpresa: 1,
     codSepararEstoque: 999999,
-    item: '00003',
-    sessionId: 'NCZhu4LDIC5RIsNYAAAp',
+    item: '00001',
+    sessionId: 'PjY13kD8ZRRZJ7APAAAD',
     situacao: ExpeditionItemSituation.pendente,
     codCarrinhoPercurso: 1,
     itemCarrinhoPercurso: '00001',

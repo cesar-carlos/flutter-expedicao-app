@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:exp/core/network/socket_config.dart';
+import 'package:exp/domain/models/expedition_item_situation_model.dart';
 import 'package:exp/data/repositories/separation_item_repository_impl.dart';
 import 'package:exp/domain/models/separation_item_model.dart';
 import 'package:exp/domain/models/api_config.dart';
-import 'package:exp/core/network/socket_config.dart';
+
 import '../../mocks/separation_item_model_mock.dart';
 
 void main() {
@@ -48,7 +50,7 @@ void main() {
         expect(insertResult, isNotEmpty);
         expect(insertResult.first.item, newItem.item);
         expect(insertResult.first.sessionId, newItem.sessionId);
-        expect(insertResult.first.situacaoCode, 'PE');
+        expect(insertResult.first.situacaoCode, ExpeditionItemSituation.pendente.code);
         expect(insertResult.first.codProduto, 1);
         expect(insertResult.first.quantidade, 1.0);
         expect(insertResult.first.nomeSeparador, 'TESTE SEPARADOR');
@@ -62,13 +64,12 @@ void main() {
     group('UPDATE Integration Tests', () {
       test('deve atualizar o item de separação inserido anteriormente', () async {
         final updatedItem = createUpdatedTestSeparationItem(insertedSeparationItem);
-
         final updateResult = await repository.update(updatedItem);
 
         expect(updateResult, isNotEmpty);
         expect(updateResult.first.codSepararEstoque, insertedSeparationItem.codSepararEstoque);
         expect(updateResult.first.item, insertedSeparationItem.item);
-        expect(updateResult.first.situacaoCode, 'SP');
+        expect(updateResult.first.situacaoCode, ExpeditionItemSituation.separado.code);
         expect(updateResult.first.nomeSeparador, 'SEPARADOR ATUALIZADO');
         expect(updateResult.first.codProduto, insertedSeparationItem.codProduto);
 
@@ -79,15 +80,13 @@ void main() {
     group('DELETE Integration Tests', () {
       test('deve deletar o item de separação inserido anteriormente', () async {
         final itemToDelete = insertedSeparationItem;
-
         final deleteResult = await repository.delete(itemToDelete);
 
         expect(deleteResult, isNotEmpty);
         expect(deleteResult.first.codSepararEstoque, insertedSeparationItem.codSepararEstoque);
         expect(deleteResult.first.item, insertedSeparationItem.item);
         expect(deleteResult.first.codProduto, insertedSeparationItem.codProduto);
-
-        expect(deleteResult.first.quantidade, isA<double>());
+        expect(deleteResult.first.quantidade, 1.0);
 
         await Future.delayed(Duration(seconds: 3));
       }, timeout: Timeout(Duration(minutes: 2)));

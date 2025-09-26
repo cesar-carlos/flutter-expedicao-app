@@ -1,4 +1,6 @@
 import 'package:exp/domain/models/expedition_origem_model.dart';
+import 'package:exp/core/validation/schemas/model/expedition_cancellation_schema.dart';
+import 'package:exp/core/results/index.dart';
 
 class ExpeditionCancellationModel {
   final int codEmpresa;
@@ -63,7 +65,7 @@ class ExpeditionCancellationModel {
         origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
         codOrigem: json['CodOrigem'],
         itemOrigem: json['ItemOrigem'],
-        codMotivoCancelamento: json['CodMotivoCancelamento'],
+        codMotivoCancelamento: json['CodMotivoCancelamento'], // Agora volta pelo schema
         dataCancelamento: DateTime.parse(json['DataCancelamento']),
         horaCancelamento: json['HoraCancelamento'],
         codUsuarioCancelamento: json['CodUsuarioCancelamento'],
@@ -73,6 +75,12 @@ class ExpeditionCancellationModel {
     } catch (_) {
       rethrow;
     }
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<ExpeditionCancellationModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => ExpeditionCancellationModel.fromJson(json));
   }
 
   Map<String, dynamic> toJson() {

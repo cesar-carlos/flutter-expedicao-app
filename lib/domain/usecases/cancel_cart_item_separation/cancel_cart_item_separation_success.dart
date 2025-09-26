@@ -2,24 +2,24 @@ import 'package:exp/domain/models/separate_item_model.dart';
 import 'package:exp/domain/models/separation_item_model.dart';
 
 /// Resultado de sucesso ao cancelar itens de separação
-class CancelItemSeparationSuccess {
+class CancelCardItemSeparationSuccess {
   final List<SeparateItemModel> updatedSeparateItems;
   final List<SeparationItemModel> cancelledSeparationItems;
   final Map<int, double> cancelledQuantitiesByProduct;
 
-  const CancelItemSeparationSuccess({
+  const CancelCardItemSeparationSuccess({
     required this.updatedSeparateItems,
     required this.cancelledSeparationItems,
     required this.cancelledQuantitiesByProduct,
   });
 
   /// Cria um resultado de sucesso
-  factory CancelItemSeparationSuccess.create({
+  factory CancelCardItemSeparationSuccess.create({
     required List<SeparateItemModel> updatedSeparateItems,
     required List<SeparationItemModel> cancelledSeparationItems,
     required Map<int, double> cancelledQuantitiesByProduct,
   }) {
-    return CancelItemSeparationSuccess(
+    return CancelCardItemSeparationSuccess(
       updatedSeparateItems: updatedSeparateItems,
       cancelledSeparationItems: cancelledSeparationItems,
       cancelledQuantitiesByProduct: cancelledQuantitiesByProduct,
@@ -56,7 +56,7 @@ class CancelItemSeparationSuccess {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is CancelItemSeparationSuccess &&
+    return other is CancelCardItemSeparationSuccess &&
         other.updatedSeparateItems.length == updatedSeparateItems.length &&
         other.cancelledSeparationItems.length == cancelledSeparationItems.length &&
         other.cancelledQuantitiesByProduct.length == cancelledQuantitiesByProduct.length;
@@ -68,7 +68,7 @@ class CancelItemSeparationSuccess {
 
   @override
   String toString() {
-    return 'CancelItemSeparationSuccess('
+    return 'CancelCardItemSeparationSuccess('
         'cancelledItems: $cancelledItemsCount, '
         'affectedProducts: $affectedProductsCount, '
         'totalCancelledQuantity: $totalCancelledQuantity'

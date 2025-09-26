@@ -1,211 +1,92 @@
-import 'package:zard/zard.dart';
-import 'common_schemas.dart';
-import 'enum_schemas.dart';
+import 'package:exp/core/validation/schemas/model/index.dart';
+import 'package:exp/core/results/index.dart';
 
 /// Schemas para validação de models de expedição
+///
+/// Esta classe mantém compatibilidade com o código existente,
+/// mas agora delega para os schemas individuais na pasta model/
 class ExpeditionSchemas {
   ExpeditionSchemas._();
 
   // === EXPEDITION CANCELLATION ===
 
   /// Schema para ExpeditionCancellationModel
-  static final cancellationSchema = z.map({
-    'codEmpresa': CommonSchemas.idSchema,
-    'codCancelamento': CommonSchemas.idSchema,
-    'origem': EnumSchemas.expeditionOrigemSchema,
-    'codOrigem': CommonSchemas.idSchema,
-    'itemOrigem': CommonSchemas.nonEmptyStringSchema,
-    'codMotivoCancelamento': CommonSchemas.optionalIdSchema,
-    'dataCancelamento': CommonSchemas.dateTimeSchema,
-    'horaCancelamento': CommonSchemas.nonEmptyStringSchema,
-    'codUsuarioCancelamento': CommonSchemas.idSchema,
-    'nomeUsuarioCancelamento': CommonSchemas.nonEmptyStringSchema,
-    'observacaoCancelamento': CommonSchemas.optionalStringSchema,
-  });
+  static final cancellationSchema = ExpeditionCancellationSchema.schema;
 
   // === EXPEDITION CART ===
 
   /// Schema para ExpeditionCartModel
-  static final cartSchema = z.map({
-    'codEmpresa': CommonSchemas.idSchema,
-    'codExpedicaoCarrinho': CommonSchemas.idSchema,
-    'codRota': CommonSchemas.idSchema,
-    'nomeRota': CommonSchemas.nonEmptyStringSchema,
-    'situacao': EnumSchemas.expeditionCartSituationSchema,
-    'dataEmissao': CommonSchemas.dateTimeSchema,
-    'horaEmissao': CommonSchemas.nonEmptyStringSchema,
-    'codMotorista': CommonSchemas.optionalIdSchema,
-    'nomeMotorista': CommonSchemas.optionalStringSchema,
-    'codVeiculo': CommonSchemas.optionalIdSchema,
-    'placaVeiculo': CommonSchemas.optionalStringSchema,
-    'observacao': CommonSchemas.optionalStringSchema,
-  });
+  static final cartSchema = ExpeditionCartSchema.schema;
 
   // === EXPEDITION CART CONSULTATION ===
 
   /// Schema para ExpeditionCartConsultationModel
-  static final cartConsultationSchema = z.map({
-    'codEmpresa': CommonSchemas.idSchema,
-    'codExpedicaoCarrinho': CommonSchemas.idSchema,
-    'codRota': CommonSchemas.idSchema,
-    'nomeRota': CommonSchemas.nonEmptyStringSchema,
-    'situacao': EnumSchemas.expeditionCartSituationSchema,
-    'dataEmissao': CommonSchemas.dateTimeSchema,
-    'horaEmissao': CommonSchemas.nonEmptyStringSchema,
-    'codMotorista': CommonSchemas.optionalIdSchema,
-    'nomeMotorista': CommonSchemas.optionalStringSchema,
-    'codVeiculo': CommonSchemas.optionalIdSchema,
-    'placaVeiculo': CommonSchemas.optionalStringSchema,
-    'quantidadeExpedicoes': CommonSchemas.quantitySchema,
-    'quantidadeItens': CommonSchemas.quantitySchema,
-    'pesoTotal': CommonSchemas.optionalQuantitySchema,
-    'volumeTotal': CommonSchemas.optionalQuantitySchema,
-    'valorTotal': CommonSchemas.optionalMonetarySchema,
-    'observacao': CommonSchemas.optionalStringSchema,
-  });
+  static final cartConsultationSchema = ExpeditionCartConsultationSchema.schema;
 
   // === EXPEDITION CART ROUTE ===
 
   /// Schema para ExpeditionCartRouteModel
-  static final cartRouteSchema = z.map({
-    'codEmpresa': CommonSchemas.idSchema,
-    'codExpedicaoCarrinhoRota': CommonSchemas.idSchema,
-    'codExpedicaoCarrinho': CommonSchemas.idSchema,
-    'codRota': CommonSchemas.idSchema,
-    'nomeRota': CommonSchemas.nonEmptyStringSchema,
-    'sequencia': CommonSchemas.idSchema,
-    'codEntidade': CommonSchemas.idSchema,
-    'nomeEntidade': CommonSchemas.nonEmptyStringSchema,
-    'endereco': CommonSchemas.optionalStringSchema,
-    'bairro': CommonSchemas.optionalStringSchema,
-    'cidade': CommonSchemas.optionalStringSchema,
-    'uf': CommonSchemas.optionalStringSchema,
-    'cep': CommonSchemas.optionalStringSchema,
-    'telefone': CommonSchemas.optionalStringSchema,
-    'observacao': CommonSchemas.optionalStringSchema,
-  });
+  static final cartRouteSchema = ExpeditionCartRouteSchema.schema;
 
   // === EXPEDITION CART ROUTE INTERNSHIP ===
 
   /// Schema para ExpeditionCartRouteInternshipModel
-  static final cartRouteInternshipSchema = z.map({
-    'codEmpresa': CommonSchemas.idSchema,
-    'codExpedicaoCarrinhoRotaEstagio': CommonSchemas.idSchema,
-    'codExpedicaoCarrinhoRota': CommonSchemas.idSchema,
-    'codEstagio': CommonSchemas.idSchema,
-    'nomeEstagio': CommonSchemas.nonEmptyStringSchema,
-    'sequencia': CommonSchemas.idSchema,
-    'situacao': EnumSchemas.expeditionSituationSchema,
-    'dataInicio': CommonSchemas.optionalDateTimeSchema,
-    'horaInicio': CommonSchemas.optionalStringSchema,
-    'dataFim': CommonSchemas.optionalDateTimeSchema,
-    'horaFim': CommonSchemas.optionalStringSchema,
-    'codUsuarioInicio': CommonSchemas.optionalIdSchema,
-    'nomeUsuarioInicio': CommonSchemas.optionalStringSchema,
-    'codUsuarioFim': CommonSchemas.optionalIdSchema,
-    'nomeUsuarioFim': CommonSchemas.optionalStringSchema,
-    'observacao': CommonSchemas.optionalStringSchema,
-  });
+  static final cartRouteInternshipSchema = ExpeditionCartRouteInternshipSchema.schema;
 
   // === EXPEDITION CART ROUTE INTERNSHIP GROUP ===
 
   /// Schema para ExpeditionCartRouteInternshipGroupModel
-  static final cartRouteInternshipGroupSchema = z.map({
-    'codEmpresa': CommonSchemas.idSchema,
-    'codExpedicaoCarrinhoRotaEstagioGrupo': CommonSchemas.idSchema,
-    'codExpedicaoCarrinhoRotaEstagio': CommonSchemas.idSchema,
-    'codGrupo': CommonSchemas.idSchema,
-    'nomeGrupo': CommonSchemas.nonEmptyStringSchema,
-    'sequencia': CommonSchemas.idSchema,
-    'situacao': EnumSchemas.expeditionSituationSchema,
-    'dataInicio': CommonSchemas.optionalDateTimeSchema,
-    'horaInicio': CommonSchemas.optionalStringSchema,
-    'dataFim': CommonSchemas.optionalDateTimeSchema,
-    'horaFim': CommonSchemas.optionalStringSchema,
-    'codUsuarioInicio': CommonSchemas.optionalIdSchema,
-    'nomeUsuarioInicio': CommonSchemas.optionalStringSchema,
-    'codUsuarioFim': CommonSchemas.optionalIdSchema,
-    'nomeUsuarioFim': CommonSchemas.optionalStringSchema,
-    'observacao': CommonSchemas.optionalStringSchema,
-  });
+  static final cartRouteInternshipGroupSchema = ExpeditionCartRouteInternshipGroupSchema.schema;
 
   // === MÉTODOS DE VALIDAÇÃO ===
+  // Delegam para os schemas individuais para manter compatibilidade
 
   /// Valida dados de cancelamento de expedição
-  static Map<String, dynamic> validateCancellation(Map<String, dynamic> data) {
-    try {
-      return cancellationSchema.parse(data);
-    } catch (e) {
-      throw 'Erro na validação do cancelamento: $e';
-    }
-  }
+  static Map<String, dynamic> validateCancellation(Map<String, dynamic> data) =>
+      ExpeditionCancellationSchema.validate(data);
 
   /// Valida dados do carrinho de expedição
-  static Map<String, dynamic> validateCart(Map<String, dynamic> data) {
-    try {
-      return cartSchema.parse(data);
-    } catch (e) {
-      throw 'Erro na validação do carrinho: $e';
-    }
-  }
+  static Map<String, dynamic> validateCart(Map<String, dynamic> data) => ExpeditionCartSchema.validate(data);
 
   /// Valida dados da consulta do carrinho
-  static Map<String, dynamic> validateCartConsultation(Map<String, dynamic> data) {
-    try {
-      return cartConsultationSchema.parse(data);
-    } catch (e) {
-      throw 'Erro na validação da consulta do carrinho: $e';
-    }
-  }
+  static Map<String, dynamic> validateCartConsultation(Map<String, dynamic> data) =>
+      ExpeditionCartConsultationSchema.validate(data);
 
   /// Valida dados da rota do carrinho
-  static Map<String, dynamic> validateCartRoute(Map<String, dynamic> data) {
-    try {
-      return cartRouteSchema.parse(data);
-    } catch (e) {
-      throw 'Erro na validação da rota do carrinho: $e';
-    }
-  }
+  static Map<String, dynamic> validateCartRoute(Map<String, dynamic> data) => ExpeditionCartRouteSchema.validate(data);
 
   /// Valida dados do estágio da rota
-  static Map<String, dynamic> validateCartRouteInternship(Map<String, dynamic> data) {
-    try {
-      return cartRouteInternshipSchema.parse(data);
-    } catch (e) {
-      throw 'Erro na validação do estágio da rota: $e';
-    }
-  }
+  static Map<String, dynamic> validateCartRouteInternship(Map<String, dynamic> data) =>
+      ExpeditionCartRouteInternshipSchema.validate(data);
 
   /// Valida dados do grupo do estágio
-  static Map<String, dynamic> validateCartRouteInternshipGroup(Map<String, dynamic> data) {
-    try {
-      return cartRouteInternshipGroupSchema.parse(data);
-    } catch (e) {
-      throw 'Erro na validação do grupo do estágio: $e';
-    }
-  }
+  static Map<String, dynamic> validateCartRouteInternshipGroup(Map<String, dynamic> data) =>
+      ExpeditionCartRouteInternshipGroupSchema.validate(data);
 
   // === VALIDAÇÃO SEGURA ===
+  // Delegam para os schemas individuais para manter compatibilidade
 
   /// Validação segura para cancelamento
-  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateCancellation(
-    Map<String, dynamic> data,
-  ) {
-    try {
-      final result = cancellationSchema.parse(data);
-      return (success: true, data: result, error: null);
-    } catch (e) {
-      return (success: false, data: null, error: e.toString());
-    }
-  }
+  static Result<Map<String, dynamic>> safeValidateCancellation(Map<String, dynamic> data) =>
+      ExpeditionCancellationSchema.safeValidate(data);
 
   /// Validação segura para carrinho
-  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateCart(Map<String, dynamic> data) {
-    try {
-      final result = cartSchema.parse(data);
-      return (success: true, data: result, error: null);
-    } catch (e) {
-      return (success: false, data: null, error: e.toString());
-    }
-  }
+  static Result<Map<String, dynamic>> safeValidateCart(Map<String, dynamic> data) =>
+      ExpeditionCartSchema.safeValidate(data);
+
+  /// Validação segura para consulta do carrinho
+  static Result<Map<String, dynamic>> safeValidateCartConsultation(Map<String, dynamic> data) =>
+      ExpeditionCartConsultationSchema.safeValidate(data);
+
+  /// Validação segura para rota do carrinho
+  static Result<Map<String, dynamic>> safeValidateCartRoute(Map<String, dynamic> data) =>
+      ExpeditionCartRouteSchema.safeValidate(data);
+
+  /// Validação segura para estágio da rota
+  static Result<Map<String, dynamic>> safeValidateCartRouteInternship(Map<String, dynamic> data) =>
+      ExpeditionCartRouteInternshipSchema.safeValidate(data);
+
+  /// Validação segura para grupo do estágio
+  static Result<Map<String, dynamic>> safeValidateCartRouteInternshipGroup(Map<String, dynamic> data) =>
+      ExpeditionCartRouteInternshipGroupSchema.safeValidate(data);
 }

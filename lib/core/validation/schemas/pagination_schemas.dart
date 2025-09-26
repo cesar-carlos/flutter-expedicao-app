@@ -1,5 +1,6 @@
 import 'package:zard/zard.dart';
-import 'common_schemas.dart';
+
+import 'package:exp/core/validation/schemas/common_schemas.dart';
 
 /// Schemas para validação de models de paginação
 class PaginationSchemas {
@@ -55,7 +56,7 @@ class PaginationSchemas {
   static final queryBuilderSchema = z.map({
     'parameters': z.list(queryParamSchema).optional(),
     'orderBy': z.list(queryOrderBySchema).optional(),
-    'page': CommonSchemas.optionalIdSchema,
+    'page': CommonSchemas.optionalIntegerSchema,
     'pageSize': z.int().min(1).max(1000).optional(),
     'distinct': CommonSchemas.optionalBooleanSchema,
     'groupBy': z.list(CommonSchemas.nonEmptyStringSchema).optional(),

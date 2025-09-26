@@ -8,139 +8,93 @@ import 'package:exp/core/validation/schemas/enum_schemas.dart';
 class ModelValidators {
   ModelValidators._();
 
+  // === UTILITÁRIOS INTERNOS ===
+
+  /// Template method para validação genérica com try-catch
+  static String? _safeValidate(void Function() validator) {
+    try {
+      validator();
+      return null;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  /// Template method para validação usando parse
+  static String? _safeValidateWithParse<T>(Map<String, dynamic> data, T Function(Map<String, dynamic>) parser) {
+    return _safeValidate(() => parser(data));
+  }
+
+  /// Template method para validação usando método validate
+  static String? _safeValidateWithMethod(Map<String, dynamic> data, void Function(Map<String, dynamic>) validator) {
+    return _safeValidate(() => validator(data));
+  }
+
   // === EXPEDITION VALIDATORS ===
 
   /// Valida ExpeditionCancellationModel
-  static String? validateExpeditionCancellation(Map<String, dynamic> data) {
-    try {
-      ExpeditionSchemas.validateCancellation(data);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateExpeditionCancellation(Map<String, dynamic> data) =>
+      _safeValidateWithMethod(data, ExpeditionSchemas.validateCancellation);
 
   /// Valida ExpeditionCartModel
-  static String? validateExpeditionCart(Map<String, dynamic> data) {
-    try {
-      ExpeditionSchemas.validateCart(data);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateExpeditionCart(Map<String, dynamic> data) =>
+      _safeValidateWithMethod(data, ExpeditionSchemas.validateCart);
 
   /// Valida ExpeditionCartConsultationModel
-  static String? validateExpeditionCartConsultation(Map<String, dynamic> data) {
-    try {
-      ExpeditionSchemas.validateCartConsultation(data);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateExpeditionCartConsultation(Map<String, dynamic> data) =>
+      _safeValidateWithMethod(data, ExpeditionSchemas.validateCartConsultation);
 
   /// Valida ExpeditionCartRouteModel
-  static String? validateExpeditionCartRoute(Map<String, dynamic> data) {
-    try {
-      ExpeditionSchemas.validateCartRoute(data);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateExpeditionCartRoute(Map<String, dynamic> data) =>
+      _safeValidateWithMethod(data, ExpeditionSchemas.validateCartRoute);
 
   /// Valida ExpeditionCartRouteInternshipModel
-  static String? validateExpeditionCartRouteInternship(Map<String, dynamic> data) {
-    try {
-      ExpeditionSchemas.validateCartRouteInternship(data);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateExpeditionCartRouteInternship(Map<String, dynamic> data) =>
+      _safeValidateWithMethod(data, ExpeditionSchemas.validateCartRouteInternship);
 
   /// Valida ExpeditionCartRouteInternshipGroupModel
-  static String? validateExpeditionCartRouteInternshipGroup(Map<String, dynamic> data) {
-    try {
-      ExpeditionSchemas.validateCartRouteInternshipGroup(data);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateExpeditionCartRouteInternshipGroup(Map<String, dynamic> data) =>
+      _safeValidateWithMethod(data, ExpeditionSchemas.validateCartRouteInternshipGroup);
 
   // === SEPARATION VALIDATORS ===
 
   /// Valida SeparateConsultationModel
-  static String? validateSeparateConsultation(Map<String, dynamic> data) {
-    try {
-      SeparationSchemas.validateSeparateConsultation(data);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateSeparateConsultation(Map<String, dynamic> data) =>
+      _safeValidateWithMethod(data, SeparationSchemas.validateSeparateConsultation);
 
   /// Valida SeparateModel
-  static String? validateSeparate(Map<String, dynamic> data) {
-    try {
-      SeparationSchemas.validateSeparate(data);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateSeparate(Map<String, dynamic> data) =>
+      _safeValidateWithMethod(data, SeparationSchemas.validateSeparate);
 
   /// Valida SeparateItemModel
-  static String? validateSeparateItem(Map<String, dynamic> data) {
-    try {
-      SeparationSchemas.validateSeparateItem(data);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateSeparateItem(Map<String, dynamic> data) =>
+      _safeValidateWithMethod(data, SeparationSchemas.validateSeparateItem);
 
   /// Valida SeparateItemConsultationModel
-  static String? validateSeparateItemConsultation(Map<String, dynamic> data) {
-    try {
-      SeparationSchemas.separateItemConsultationSchema.parse(data);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateSeparateItemConsultation(Map<String, dynamic> data) =>
+      _safeValidateWithParse(data, SeparationSchemas.separateItemConsultationSchema.parse);
 
   /// Valida SeparationItemModel
-  static String? validateSeparationItem(Map<String, dynamic> data) {
-    try {
-      SeparationSchemas.separationItemSchema.parse(data);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateSeparationItem(Map<String, dynamic> data) =>
+      _safeValidateWithParse(data, SeparationSchemas.separationItemSchema.parse);
 
   /// Valida SeparationItemConsultationModel
-  static String? validateSeparationItemConsultation(Map<String, dynamic> data) {
-    try {
-      SeparationSchemas.separationItemConsultationSchema.parse(data);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateSeparationItemConsultation(Map<String, dynamic> data) =>
+      _safeValidateWithParse(data, SeparationSchemas.separationItemConsultationSchema.parse);
 
   /// Valida filtros de separação
-  static String? validateSeparationFilters(Map<String, dynamic> filters) {
-    try {
-      SeparationSchemas.validateSeparationFilters(filters);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
+  static String? validateSeparationFilters(Map<String, dynamic> filters) =>
+      _safeValidateWithMethod(filters, SeparationSchemas.validateSeparationFilters);
+
+  // === USECASE VALIDATORS ===
+
+  /// Valida AddItemSeparationParams
+  static String? validateAddItemSeparationParams(Map<String, dynamic> data) =>
+      _safeValidateWithParse(data, SeparationSchemas.addItemSeparationParamsSchema.parse);
+
+  /// Valida CancelCartItemSeparationParams
+  static String? validateCancelCartItemSeparationParams(Map<String, dynamic> data) =>
+      _safeValidateWithParse(data, SeparationSchemas.cancelCartItemSeparationParamsSchema.parse);
 
   // === USER VALIDATORS ===
 

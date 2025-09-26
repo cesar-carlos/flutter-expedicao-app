@@ -8,9 +8,9 @@ import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/separate_items_filters_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_success.dart';
-import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';
-import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
+import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_success.dart';
+import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_params.dart';
+import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_usecase.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_params.dart';
@@ -568,7 +568,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
 
       // Obter use case
       final cancelCartUseCase = locator<CancelCartUseCase>();
-      final cancelItemSeparationUseCase = locator<CancelItemSeparationUseCase>();
+      final cancelItemSeparationUseCase = locator<CancelCardItemSeparationUseCase>();
 
       // Criar parâmetros
       final paramsCartUseCase = CancelCartParams(
@@ -577,7 +577,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
         item: cartConsultation.item,
       );
 
-      final paramsItemSeparationUseCase = CancelItemSeparationParams(
+      final paramsItemSeparationUseCase = CancelCardItemSeparationParams(
         codEmpresa: cartConsultation.codEmpresa,
         codSepararEstoque: cartConsultation.codOrigem,
         codCarrinhoPercurso: cartConsultation.codCarrinhoPercurso,
@@ -588,7 +588,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
       // 1. Verificar se há itens para cancelar primeiro
       final hasItemsToCancel = await cancelItemSeparationUseCase.canCancelItems(paramsItemSeparationUseCase);
 
-      CancelItemSeparationSuccess? itemSeparationSuccess;
+      CancelCardItemSeparationSuccess? itemSeparationSuccess;
 
       if (hasItemsToCancel) {
         // Há itens para cancelar - executa o cancelamento

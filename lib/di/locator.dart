@@ -68,7 +68,8 @@ import 'package:exp/domain/models/separation_item_model.dart';
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/data/repositories/separation_item_repository_impl.dart';
 import 'package:exp/data/repositories/expedition_sector_stock_repository_impl.dart';
-import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
+import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_usecase.dart';
+import 'package:exp/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 
 final GetIt locator = GetIt.instance;
 
@@ -224,8 +225,16 @@ void setupLocator() {
     ),
   );
 
-  locator.registerLazySingleton<CancelItemSeparationUseCase>(
-    () => CancelItemSeparationUseCase(
+  locator.registerLazySingleton<CancelCardItemSeparationUseCase>(
+    () => CancelCardItemSeparationUseCase(
+      separateItemRepository: locator<BasicRepository<SeparateItemModel>>(),
+      separationItemRepository: locator<BasicRepository<SeparationItemModel>>(),
+      userSessionService: locator<UserSessionService>(),
+    ),
+  );
+
+  locator.registerLazySingleton<AddItemSeparationUseCase>(
+    () => AddItemSeparationUseCase(
       separateItemRepository: locator<BasicRepository<SeparateItemModel>>(),
       separationItemRepository: locator<BasicRepository<SeparationItemModel>>(),
       userSessionService: locator<UserSessionService>(),
