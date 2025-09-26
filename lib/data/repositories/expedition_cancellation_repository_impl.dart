@@ -48,9 +48,14 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
             return;
           }
 
-          final list = data.map<ExpeditionCancellationModel>((json) {
-            return ExpeditionCancellationModel.fromJson(json);
-          }).toList();
+          final list = <ExpeditionCancellationModel>[];
+          for (final json in data) {
+            final result = ExpeditionCancellationModel.fromJsonSafe(json);
+            result.fold(
+              (model) => list.add(model),
+              (failure) => throw DataError(message: 'Erro ao converter ExpeditionCancellationModel: $failure'),
+            );
+          }
 
           completer.complete(list);
         } catch (e) {
@@ -89,9 +94,14 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
             return;
           }
 
-          final list = mutation.map<ExpeditionCancellationModel>((json) {
-            return ExpeditionCancellationModel.fromJson(json);
-          }).toList();
+          final list = <ExpeditionCancellationModel>[];
+          for (final json in mutation) {
+            final result = ExpeditionCancellationModel.fromJsonSafe(json);
+            result.fold(
+              (model) => list.add(model),
+              (failure) => throw DataError(message: 'Erro ao converter ExpeditionCancellationModel: $failure'),
+            );
+          }
 
           completer.complete(list);
         } catch (e) {
@@ -130,9 +140,14 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
             return;
           }
 
-          final list = mutation.map<ExpeditionCancellationModel>((json) {
-            return ExpeditionCancellationModel.fromJson(json);
-          }).toList();
+          final list = <ExpeditionCancellationModel>[];
+          for (final json in mutation) {
+            final result = ExpeditionCancellationModel.fromJsonSafe(json);
+            result.fold(
+              (model) => list.add(model),
+              (failure) => throw DataError(message: 'Erro ao converter ExpeditionCancellationModel: $failure'),
+            );
+          }
 
           completer.complete(list);
         } catch (e) {
@@ -171,9 +186,14 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
             return;
           }
 
-          final list = mutation.map<ExpeditionCancellationModel>((json) {
-            return ExpeditionCancellationModel.fromJson(json);
-          }).toList();
+          final list = <ExpeditionCancellationModel>[];
+          for (final json in mutation) {
+            final result = ExpeditionCancellationModel.fromJsonSafe(json);
+            result.fold(
+              (model) => list.add(model),
+              (failure) => throw DataError(message: 'Erro ao converter ExpeditionCancellationModel: $failure'),
+            );
+          }
 
           completer.complete(list);
         } catch (e) {

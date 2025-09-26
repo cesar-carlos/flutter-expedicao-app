@@ -9,22 +9,22 @@ class ExpeditionCartRouteInternshipGroupSchema {
 
   /// Schema para ExpeditionCartRouteInternshipGroupModel
   static final schema = z.map({
-    'codEmpresa': CommonSchemas.integerSchema,
-    'codExpedicaoCarrinhoRotaEstagioGrupo': CommonSchemas.integerSchema,
-    'codExpedicaoCarrinhoRotaEstagio': CommonSchemas.integerSchema,
-    'codGrupo': CommonSchemas.integerSchema,
-    'nomeGrupo': CommonSchemas.nonEmptyStringSchema,
-    'sequencia': CommonSchemas.integerSchema,
-    'situacao': EnumSchemas.expeditionSituationSchema,
-    'dataInicio': CommonSchemas.optionalDateTimeSchema,
-    'horaInicio': CommonSchemas.optionalStringSchema,
-    'dataFim': CommonSchemas.optionalDateTimeSchema,
-    'horaFim': CommonSchemas.optionalStringSchema,
-    'codUsuarioInicio': CommonSchemas.optionalIntegerSchema,
-    'nomeUsuarioInicio': CommonSchemas.optionalStringSchema,
-    'codUsuarioFim': CommonSchemas.optionalIntegerSchema,
-    'nomeUsuarioFim': CommonSchemas.optionalStringSchema,
-    'observacao': CommonSchemas.optionalStringSchema,
+    'CodEmpresa': CommonSchemas.integerSchema,
+    'CodExpedicaoCarrinhoRotaEstagioGrupo': CommonSchemas.integerSchema,
+    'CodExpedicaoCarrinhoRotaEstagio': CommonSchemas.integerSchema,
+    'CodGrupo': CommonSchemas.integerSchema,
+    'NomeGrupo': CommonSchemas.nonEmptyStringSchema,
+    'Sequencia': CommonSchemas.integerSchema,
+    'Situacao': EnumSchemas.expeditionSituationSchema,
+    'DataInicio': CommonSchemas.optionalDateTimeSchema,
+    'HoraInicio': CommonSchemas.optionalStringSchema,
+    'DataFim': CommonSchemas.optionalDateTimeSchema,
+    'HoraFim': CommonSchemas.optionalStringSchema,
+    'CodUsuarioInicio': CommonSchemas.optionalIntegerSchema,
+    'NomeUsuarioInicio': CommonSchemas.optionalStringSchema,
+    'CodUsuarioFim': CommonSchemas.optionalIntegerSchema,
+    'NomeUsuarioFim': CommonSchemas.optionalStringSchema,
+    'Observacao': CommonSchemas.optionalStringSchema,
   });
 
   /// Valida dados do grupo do estágio

@@ -43,7 +43,7 @@ class UserSystemApiService extends BaseApiService {
       final response = await get(_baseEndpoint, queryParameters: {'CodUsuario': codUsuario});
 
       if (response.data != null && response.data is Map<String, dynamic>) {
-        return UserSystemModel.fromMap(response.data);
+        return UserSystemModel.fromJson(response.data);
       }
       return null;
     } on UserApiException catch (e) {
@@ -140,7 +140,7 @@ class UserSystemApiService extends BaseApiService {
     if (responseData.containsKey('data') && responseData['data'] is List) {
       // Resposta com lista de usuários
       final usersData = responseData['data'] as List;
-      final users = usersData.map((item) => UserSystemModel.fromMap(item as Map<String, dynamic>)).toList();
+      final users = usersData.map((item) => UserSystemModel.fromJson(item as Map<String, dynamic>)).toList();
 
       return UserSystemListResponseDto(
         users: users,
@@ -153,14 +153,14 @@ class UserSystemApiService extends BaseApiService {
       );
     } else {
       // Resposta com usuário único
-      final user = UserSystemModel.fromMap(responseData);
+      final user = UserSystemModel.fromJson(responseData);
       return UserSystemListResponseDto.success(users: [user], message: 'Usuário encontrado');
     }
   }
 
   /// Processa resposta em formato List
   UserSystemListResponseDto _processListResponse(List responseData) {
-    final users = responseData.map((item) => UserSystemModel.fromMap(item as Map<String, dynamic>)).toList();
+    final users = responseData.map((item) => UserSystemModel.fromJson(item as Map<String, dynamic>)).toList();
 
     return UserSystemListResponseDto.success(users: users, message: 'Lista de usuários obtida com sucesso');
   }

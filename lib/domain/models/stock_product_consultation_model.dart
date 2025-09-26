@@ -1,4 +1,5 @@
 import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/core/results/index.dart';
 
 class StockProductConsultationModel {
   final int codProduto;
@@ -97,6 +98,12 @@ class StockProductConsultationModel {
       'Endereco': endereco,
       'EnderecoDescricao': enderecoDescricao,
     };
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<StockProductConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => StockProductConsultationModel.fromJson(json));
   }
 
   @override

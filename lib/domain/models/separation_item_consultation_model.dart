@@ -1,5 +1,6 @@
 import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/domain/models/expedition_item_situation_model.dart';
+import 'package:exp/core/results/index.dart';
 
 class SeparationItemConsultationModel {
   final int codEmpresa;
@@ -190,6 +191,12 @@ class SeparationItemConsultationModel {
     } catch (_) {
       rethrow;
     }
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<SeparationItemConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => SeparationItemConsultationModel.fromJson(json));
   }
 
   Map<String, dynamic> toJson() {

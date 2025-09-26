@@ -22,7 +22,7 @@ class UserSystemListResponseDto {
 
   factory UserSystemListResponseDto.fromApiResponse(Map<String, dynamic> map) {
     final usersData = map['data'] as List<dynamic>? ?? [];
-    final users = usersData.map((item) => UserSystemModel.fromMap(item as Map<String, dynamic>)).toList();
+    final users = usersData.map((item) => UserSystemModel.fromJson(item as Map<String, dynamic>)).toList();
 
     return UserSystemListResponseDto(
       users: users,
@@ -39,7 +39,7 @@ class UserSystemListResponseDto {
     return UserSystemListResponseDto(
       users:
           (map['users'] as List<dynamic>?)
-              ?.map((item) => UserSystemModel.fromMap(item as Map<String, dynamic>))
+              ?.map((item) => UserSystemModel.fromJson(item as Map<String, dynamic>))
               .toList() ??
           [],
       total: map['total'] as int? ?? 0,

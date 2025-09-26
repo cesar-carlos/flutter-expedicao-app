@@ -20,8 +20,6 @@ class EnumSchemas {
     'Origem da expedição',
   );
 
-  // === SCHEMAS DE SITUAÇÃO ===
-
   /// Schema para ExpeditionSituation
   static final expeditionSituationSchema = CommonSchemas.enumSchema(
     ExpeditionSituation.getAllCodes(),
@@ -58,8 +56,6 @@ class EnumSchemas {
     'Situação do carrinho de expedição',
   );
 
-  // === SCHEMAS DE TIPO DE ENTIDADE ===
-
   /// Schema para EntityType
   static final entityTypeSchema = CommonSchemas.enumSchema(EntityType.getAllCodes(), 'Tipo de entidade');
 
@@ -68,8 +64,6 @@ class EnumSchemas {
     EntityType.getAllCodes(),
     'Tipo de entidade',
   );
-
-  // === SCHEMAS DE STATUS ATIVO/INATIVO ===
 
   /// Schema para status ativo (S/N)
   static final activeStatusSchema = CommonSchemas.enumSchema(['S', 'N', 's', 'n'], 'Status ativo');

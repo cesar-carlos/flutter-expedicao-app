@@ -1,5 +1,6 @@
 import 'package:exp/domain/models/separation_item_status.dart';
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
+import 'package:exp/core/results/index.dart';
 
 class SeparateItemsFiltersModel {
   final String? codProduto;
@@ -32,6 +33,12 @@ class SeparateItemsFiltersModel {
           : null,
       setorEstoque: json['setorEstoque'] != null ? ExpeditionSectorStockModel.fromJson(json['setorEstoque']) : null,
     );
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<SeparateItemsFiltersModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => SeparateItemsFiltersModel.fromJson(json));
   }
 
   Map<String, dynamic> toJson() {

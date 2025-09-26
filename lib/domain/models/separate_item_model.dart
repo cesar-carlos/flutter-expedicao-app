@@ -1,5 +1,6 @@
 import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
+import 'package:exp/core/results/index.dart';
 
 class SeparateItemModel {
   final int codEmpresa;
@@ -89,6 +90,12 @@ class SeparateItemModel {
     } catch (_) {
       rethrow;
     }
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<SeparateItemModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => SeparateItemModel.fromJson(json));
   }
 
   Map<String, dynamic> toJson() {

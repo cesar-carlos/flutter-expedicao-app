@@ -2,6 +2,7 @@ import 'package:exp/core/utils/date_helper.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/entity_type_model.dart';
+import 'package:exp/core/results/index.dart';
 
 /// Modelo para consulta de separação de expedição
 class SeparateConsultationModel {
@@ -85,6 +86,12 @@ class SeparateConsultationModel {
       'Historico': historico,
       'Observacao': observacao,
     };
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<SeparateConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => SeparateConsultationModel.fromJson(json));
   }
 
   @override

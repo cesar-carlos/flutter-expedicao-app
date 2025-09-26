@@ -1,5 +1,6 @@
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/core/results/index.dart';
 
 class ExpeditionCartRouteInternshipGroupModel {
   final int codEmpresa;
@@ -74,6 +75,12 @@ class ExpeditionCartRouteInternshipGroupModel {
     } catch (_) {
       rethrow;
     }
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<ExpeditionCartRouteInternshipGroupModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => ExpeditionCartRouteInternshipGroupModel.fromJson(json));
   }
 
   Map<String, dynamic> toJson() {

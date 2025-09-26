@@ -10,22 +10,22 @@ class PaginationSchemas {
 
   /// Schema para Pagination
   static final paginationSchema = z.map({
-    'currentPage': CommonSchemas.pageSchema,
-    'pageSize': CommonSchemas.pageSizeSchema,
-    'totalItems': z.int().min(0, message: 'Total de itens deve ser maior ou igual a zero'),
-    'totalPages': z.int().min(0, message: 'Total de páginas deve ser maior ou igual a zero'),
-    'hasNextPage': CommonSchemas.booleanSchema,
-    'hasPreviousPage': CommonSchemas.booleanSchema,
-    'startIndex': z.int().min(0, message: 'Índice inicial deve ser maior ou igual a zero'),
-    'endIndex': z.int().min(0, message: 'Índice final deve ser maior ou igual a zero'),
+    'CurrentPage': CommonSchemas.pageSchema,
+    'PageSize': CommonSchemas.pageSizeSchema,
+    'TotalItems': z.int().min(0, message: 'Total de itens deve ser maior ou igual a zero'),
+    'TotalPages': z.int().min(0, message: 'Total de páginas deve ser maior ou igual a zero'),
+    'HasNextPage': CommonSchemas.booleanSchema,
+    'HasPreviousPage': CommonSchemas.booleanSchema,
+    'StartIndex': z.int().min(0, message: 'Índice inicial deve ser maior ou igual a zero'),
+    'EndIndex': z.int().min(0, message: 'Índice final deve ser maior ou igual a zero'),
   });
 
   // === QUERY PARAM ===
 
   /// Schema para QueryParam
   static final queryParamSchema = z.map({
-    'field': CommonSchemas.nonEmptyStringSchema,
-    'operator': CommonSchemas.enumSchema([
+    'Field': CommonSchemas.nonEmptyStringSchema,
+    'Operator': CommonSchemas.enumSchema([
       '=',
       '!=',
       '>',
@@ -38,48 +38,48 @@ class PaginationSchemas {
       'IS NULL',
       'IS NOT NULL',
     ], 'Operador'),
-    'value': z.string().optional(), // Valor como string, pode ser convertido depois
-    'logicalOperator': CommonSchemas.optionalEnumSchema(['AND', 'OR'], 'Operador lógico'),
+    'Value': z.string().optional(), // Valor como string, pode ser convertido depois
+    'LogicalOperator': CommonSchemas.optionalEnumSchema(['AND', 'OR'], 'Operador lógico'),
   });
 
   // === QUERY ORDER BY ===
 
   /// Schema para QueryOrderBy
   static final queryOrderBySchema = z.map({
-    'field': CommonSchemas.nonEmptyStringSchema,
-    'direction': CommonSchemas.enumSchema(['ASC', 'DESC', 'asc', 'desc'], 'Direção da ordenação'),
+    'Field': CommonSchemas.nonEmptyStringSchema,
+    'Direction': CommonSchemas.enumSchema(['ASC', 'DESC', 'asc', 'desc'], 'Direção da ordenação'),
   });
 
   // === QUERY BUILDER ===
 
   /// Schema para QueryBuilder
   static final queryBuilderSchema = z.map({
-    'parameters': z.list(queryParamSchema).optional(),
-    'orderBy': z.list(queryOrderBySchema).optional(),
-    'page': CommonSchemas.optionalIntegerSchema,
-    'pageSize': z.int().min(1).max(1000).optional(),
-    'distinct': CommonSchemas.optionalBooleanSchema,
-    'groupBy': z.list(CommonSchemas.nonEmptyStringSchema).optional(),
-    'having': z.list(queryParamSchema).optional(),
+    'Parameters': z.list(queryParamSchema).optional(),
+    'OrderBy': z.list(queryOrderBySchema).optional(),
+    'Page': CommonSchemas.optionalIntegerSchema,
+    'PageSize': z.int().min(1).max(1000).optional(),
+    'Distinct': CommonSchemas.optionalBooleanSchema,
+    'GroupBy': z.list(CommonSchemas.nonEmptyStringSchema).optional(),
+    'Having': z.list(queryParamSchema).optional(),
   });
 
   // === SCHEMAS DE FILTRO ===
 
   /// Schema para filtros de paginação
   static final paginationFiltersSchema = z.map({
-    'page': CommonSchemas.pageSchema.optional(),
-    'pageSize': CommonSchemas.pageSizeSchema.optional(),
-    'sortBy': CommonSchemas.optionalStringSchema,
-    'sortDirection': CommonSchemas.optionalEnumSchema(['ASC', 'DESC', 'asc', 'desc'], 'Direção da ordenação'),
-    'search': CommonSchemas.optionalStringSchema,
+    'Page': CommonSchemas.pageSchema.optional(),
+    'PageSize': CommonSchemas.pageSizeSchema.optional(),
+    'SortBy': CommonSchemas.optionalStringSchema,
+    'SortDirection': CommonSchemas.optionalEnumSchema(['ASC', 'DESC', 'asc', 'desc'], 'Direção da ordenação'),
+    'Search': CommonSchemas.optionalStringSchema,
   });
 
   /// Schema para parâmetros de consulta
   static final queryParametersSchema = z.map({
-    'filters': z.map({}).optional(), // Mapa dinâmico de filtros
-    'pagination': paginationFiltersSchema.optional(),
-    'include': z.list(CommonSchemas.nonEmptyStringSchema).optional(),
-    'exclude': z.list(CommonSchemas.nonEmptyStringSchema).optional(),
+    'Filters': z.map({}).optional(), // Mapa dinâmico de filtros
+    'Pagination': paginationFiltersSchema.optional(),
+    'Include': z.list(CommonSchemas.nonEmptyStringSchema).optional(),
+    'Exclude': z.list(CommonSchemas.nonEmptyStringSchema).optional(),
   });
 
   // === MÉTODOS DE VALIDAÇÃO ===

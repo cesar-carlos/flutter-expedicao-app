@@ -4,6 +4,7 @@ import 'package:exp/core/utils/date_helper.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/entity_type_model.dart';
+import 'package:exp/core/results/index.dart';
 
 class SeparateModel {
   final int codEmpresa;
@@ -123,6 +124,12 @@ class SeparateModel {
     } catch (e) {
       rethrow;
     }
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<SeparateModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => SeparateModel.fromJson(json));
   }
 
   Map<String, dynamic> toJson() {

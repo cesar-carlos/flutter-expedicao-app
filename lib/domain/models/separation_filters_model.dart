@@ -1,3 +1,5 @@
+import 'package:exp/core/results/index.dart';
+
 class SeparationFiltersModel {
   final String? codSepararEstoque;
   final String? origem;
@@ -15,6 +17,12 @@ class SeparationFiltersModel {
       situacao: json['situacao'],
       dataEmissao: json['dataEmissao'] != null ? DateTime.parse(json['dataEmissao']) : null,
     );
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<SeparationFiltersModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => SeparationFiltersModel.fromJson(json));
   }
 
   Map<String, dynamic> toJson() {

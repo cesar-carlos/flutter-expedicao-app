@@ -29,7 +29,7 @@ class AppUser {
       fotoUsuario: json['FotoUsuario'],
       senha: json['Senha'],
       userSystemModel: json['UserSystem'] != null
-          ? UserSystemModel.fromMap(json['UserSystem'] as Map<String, dynamic>)
+          ? UserSystemModel.fromJson(json['UserSystem'] as Map<String, dynamic>)
           : null,
     );
   }

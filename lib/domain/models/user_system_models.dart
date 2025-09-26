@@ -1,4 +1,5 @@
 import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/core/results/index.dart';
 
 class UserSystemModel {
   final int? codEmpresa;
@@ -35,7 +36,7 @@ class UserSystemModel {
     required this.excluiCarrinhoOutroUsuario,
   });
 
-  factory UserSystemModel.fromMap(Map<String, dynamic> map) {
+  factory UserSystemModel.fromJson(Map<String, dynamic> map) {
     return UserSystemModel(
       codEmpresa: map['CodEmpresa'] as int?,
       codUsuario: map['CodUsuario'] as int? ?? 0,
@@ -55,6 +56,12 @@ class UserSystemModel {
       editaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(map['EditaCarrinhoOutroUsuario'] as String? ?? 'N'),
       excluiCarrinhoOutroUsuario: Situation.fromCodeWithFallback(map['ExcluiCarrinhoOutroUsuario'] as String? ?? 'N'),
     );
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<UserSystemModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => UserSystemModel.fromJson(json));
   }
 
   Map<String, dynamic> toMap() {

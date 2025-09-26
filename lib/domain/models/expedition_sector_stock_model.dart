@@ -1,4 +1,5 @@
 import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/core/results/index.dart';
 
 class ExpeditionSectorStockModel {
   final int codSetorEstoque;
@@ -29,6 +30,12 @@ class ExpeditionSectorStockModel {
 
   Map<String, dynamic> toJson() {
     return {'CodSetorEstoque': codSetorEstoque, 'Descricao': descricao, 'Ativo': ativo.code};
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<ExpeditionSectorStockModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => ExpeditionSectorStockModel.fromJson(json));
   }
 
   @override

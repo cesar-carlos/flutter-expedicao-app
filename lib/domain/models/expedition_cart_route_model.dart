@@ -1,6 +1,7 @@
 import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
+import 'package:exp/core/results/index.dart';
 
 class ExpeditionCartRouteModel {
   final int codEmpresa;
@@ -79,6 +80,12 @@ class ExpeditionCartRouteModel {
       'DataFinalizacao': dataFinalizacao?.toIso8601String(),
       'HoraFinalizacao': horaFinalizacao,
     };
+  }
+
+  /// Factory method para criação segura com validação de schema
+  /// Retorna um Result que pode ser sucesso ou falha
+  static Result<ExpeditionCartRouteModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => ExpeditionCartRouteModel.fromJson(json));
   }
 
   @override

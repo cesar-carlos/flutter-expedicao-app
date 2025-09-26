@@ -1,224 +1,64 @@
-import 'package:zard/zard.dart';
-import 'package:exp/core/validation/schemas/common_schemas.dart';
-import 'package:exp/core/validation/schemas/enum_schemas.dart';
+import 'package:exp/core/validation/schemas/model/index.dart';
+import 'package:exp/core/results/index.dart';
 
 /// Schemas para validação de models de separação
+///
+/// Esta classe mantém compatibilidade com o código existente,
+/// mas agora delega para os schemas individuais na pasta model/
 class SeparationSchemas {
   SeparationSchemas._();
 
-  // === SEPARATE CONSULTATION ===
+  // === SCHEMAS DELEGADOS ===
+  // Delegam para os schemas individuais para manter compatibilidade
 
   /// Schema para SeparateConsultationModel
-  static final separateConsultationSchema = z.map({
-    'codEmpresa': CommonSchemas.integerSchema,
-    'codSepararEstoque': CommonSchemas.integerSchema,
-    'origem': EnumSchemas.expeditionOrigemSchema,
-    'codOrigem': CommonSchemas.integerSchema,
-    'codTipoOperacaoExpedicao': CommonSchemas.integerSchema,
-    'nomeTipoOperacaoExpedicao': CommonSchemas.nonEmptyStringSchema,
-    'situacao': EnumSchemas.expeditionSituationSchema,
-    'tipoEntidade': EnumSchemas.entityTypeSchema,
-    'dataEmissao': CommonSchemas.dateTimeSchema,
-    'horaEmissao': CommonSchemas.nonEmptyStringSchema,
-    'codEntidade': CommonSchemas.integerSchema,
-    'nomeEntidade': CommonSchemas.nonEmptyStringSchema,
-    'codPrioridade': CommonSchemas.integerSchema,
-    'nomePrioridade': CommonSchemas.nonEmptyStringSchema,
-    'historico': CommonSchemas.optionalStringSchema,
-    'observacao': CommonSchemas.optionalStringSchema,
-  });
-
-  // === SEPARATE MODEL ===
+  static final separateConsultationSchema = SeparateConsultationSchema.schema;
 
   /// Schema para SeparateModel
-  static final separateSchema = z.map({
-    'codEmpresa': CommonSchemas.integerSchema,
-    'codSepararEstoque': CommonSchemas.integerSchema,
-    'origem': EnumSchemas.expeditionOrigemSchema,
-    'codOrigem': CommonSchemas.integerSchema,
-    'codTipoOperacaoExpedicao': CommonSchemas.integerSchema,
-    'nomeTipoOperacaoExpedicao': CommonSchemas.nonEmptyStringSchema,
-    'situacao': EnumSchemas.expeditionSituationSchema,
-    'tipoEntidade': EnumSchemas.entityTypeSchema,
-    'dataEmissao': CommonSchemas.dateTimeSchema,
-    'horaEmissao': CommonSchemas.nonEmptyStringSchema,
-    'codEntidade': CommonSchemas.integerSchema,
-    'nomeEntidade': CommonSchemas.nonEmptyStringSchema,
-    'codUsuarioEmissao': CommonSchemas.integerSchema,
-    'nomeUsuarioEmissao': CommonSchemas.nonEmptyStringSchema,
-    'codPrioridade': CommonSchemas.integerSchema,
-    'nomePrioridade': CommonSchemas.nonEmptyStringSchema,
-    'observacao': CommonSchemas.optionalStringSchema,
-  });
-
-  // === SEPARATE ITEM CONSULTATION ===
+  static final separateSchema = SeparateSchema.schema;
 
   /// Schema para SeparateItemConsultationModel
-  static final separateItemConsultationSchema = z.map({
-    'codEmpresa': CommonSchemas.integerSchema,
-    'codSepararEstoqueItem': CommonSchemas.integerSchema,
-    'codSepararEstoque': CommonSchemas.integerSchema,
-    'codProduto': CommonSchemas.integerSchema,
-    'nomeProduto': CommonSchemas.nonEmptyStringSchema,
-    'codigoBarras': CommonSchemas.optionalStringSchema,
-    'unidadeMedida': CommonSchemas.nonEmptyStringSchema,
-    'quantidadeSolicitada': CommonSchemas.quantitySchema,
-    'quantidadeSeparada': CommonSchemas.quantitySchema,
-    'quantidadePendente': CommonSchemas.quantitySchema,
-    'situacao': EnumSchemas.expeditionItemSituationSchema,
-    'tipoEntidade': EnumSchemas.entityTypeSchema,
-    'codLocal': CommonSchemas.optionalIntegerSchema,
-    'nomeLocal': CommonSchemas.optionalStringSchema,
-    'observacao': CommonSchemas.optionalStringSchema,
-  });
-
-  // === SEPARATE ITEM MODEL ===
+  static final separateItemConsultationSchema = SeparateItemConsultationSchema.schema;
 
   /// Schema para SeparateItemModel
-  static final separateItemSchema = z.map({
-    'codEmpresa': CommonSchemas.integerSchema,
-    'codSepararEstoqueItem': CommonSchemas.integerSchema,
-    'codSepararEstoque': CommonSchemas.integerSchema,
-    'codProduto': CommonSchemas.integerSchema,
-    'nomeProduto': CommonSchemas.nonEmptyStringSchema,
-    'codigoBarras': CommonSchemas.optionalStringSchema,
-    'unidadeMedida': CommonSchemas.nonEmptyStringSchema,
-    'quantidadeSolicitada': CommonSchemas.quantitySchema,
-    'quantidadeSeparada': CommonSchemas.quantitySchema,
-    'situacao': EnumSchemas.expeditionItemSituationSchema,
-    'codLocal': CommonSchemas.optionalIntegerSchema,
-    'nomeLocal': CommonSchemas.optionalStringSchema,
-    'codUsuarioSeparacao': CommonSchemas.optionalIntegerSchema,
-    'nomeUsuarioSeparacao': CommonSchemas.optionalStringSchema,
-    'dataSeparacao': CommonSchemas.optionalDateTimeSchema,
-    'horaSeparacao': CommonSchemas.optionalStringSchema,
-    'observacao': CommonSchemas.optionalStringSchema,
-  });
-
-  // === SEPARATION ITEM CONSULTATION ===
+  static final separateItemSchema = SeparateItemSchema.schema;
 
   /// Schema para SeparationItemConsultationModel
-  static final separationItemConsultationSchema = z.map({
-    'codEmpresa': CommonSchemas.integerSchema,
-    'codSeparacaoItem': CommonSchemas.integerSchema,
-    'codSeparacao': CommonSchemas.integerSchema,
-    'codProduto': CommonSchemas.integerSchema,
-    'nomeProduto': CommonSchemas.nonEmptyStringSchema,
-    'codigoBarras': CommonSchemas.optionalStringSchema,
-    'unidadeMedida': CommonSchemas.nonEmptyStringSchema,
-    'quantidadeSolicitada': CommonSchemas.quantitySchema,
-    'quantidadeSeparada': CommonSchemas.quantitySchema,
-    'quantidadePendente': CommonSchemas.quantitySchema,
-    'situacao': EnumSchemas.expeditionItemSituationSchema,
-    'codLocal': CommonSchemas.optionalIntegerSchema,
-    'nomeLocal': CommonSchemas.optionalStringSchema,
-    'codUsuarioSeparacao': CommonSchemas.optionalIntegerSchema,
-    'nomeUsuarioSeparacao': CommonSchemas.optionalStringSchema,
-    'dataSeparacao': CommonSchemas.optionalDateTimeSchema,
-    'horaSeparacao': CommonSchemas.optionalStringSchema,
-    'observacao': CommonSchemas.optionalStringSchema,
-  });
-
-  // === SEPARATION ITEM MODEL ===
+  static final separationItemConsultationSchema = SeparationItemConsultationSchema.schema;
 
   /// Schema para SeparationItemModel
-  static final separationItemSchema = z.map({
-    'codEmpresa': CommonSchemas.integerSchema,
-    'codSeparacaoItem': CommonSchemas.integerSchema,
-    'codSeparacao': CommonSchemas.integerSchema,
-    'codProduto': CommonSchemas.integerSchema,
-    'nomeProduto': CommonSchemas.nonEmptyStringSchema,
-    'codigoBarras': CommonSchemas.optionalStringSchema,
-    'unidadeMedida': CommonSchemas.nonEmptyStringSchema,
-    'quantidadeSolicitada': CommonSchemas.quantitySchema,
-    'quantidadeSeparada': CommonSchemas.quantitySchema,
-    'situacao': EnumSchemas.expeditionItemSituationSchema,
-    'codLocal': CommonSchemas.optionalIntegerSchema,
-    'nomeLocal': CommonSchemas.optionalStringSchema,
-    'codUsuarioSeparacao': CommonSchemas.optionalIntegerSchema,
-    'nomeUsuarioSeparacao': CommonSchemas.optionalStringSchema,
-    'dataSeparacao': CommonSchemas.optionalDateTimeSchema,
-    'horaSeparacao': CommonSchemas.optionalStringSchema,
-    'observacao': CommonSchemas.optionalStringSchema,
-  });
-
-  // === SCHEMAS DE FILTRO ===
+  static final separationItemSchema = SeparationItemSchema.schema;
 
   /// Schema para filtros de separação
-  static final separationFiltersSchema = z.map({
-    'codSepararEstoque': CommonSchemas.optionalCodeSchema,
-    'origem': EnumSchemas.optionalExpeditionOrigemSchema,
-    'codOrigem': CommonSchemas.optionalCodeSchema,
-    'situacao': EnumSchemas.optionalExpeditionSituationSchema,
-    'dataEmissao': CommonSchemas.optionalDateTimeSchema,
-    'tipoEntidade': EnumSchemas.optionalEntityTypeSchema,
-    'codEntidade': CommonSchemas.optionalIntegerSchema,
-    'nomeEntidade': CommonSchemas.optionalStringSchema,
-  });
+  static final separationFiltersSchema = SeparationFiltersSchema.schema;
 
   // === MÉTODOS DE VALIDAÇÃO ===
+  // Delegam para os schemas individuais para manter compatibilidade
 
   /// Valida dados de consulta de separação
-  static Map<String, dynamic> validateSeparateConsultation(Map<String, dynamic> data) {
-    try {
-      return separateConsultationSchema.parse(data);
-    } catch (e) {
-      throw 'Erro na validação da consulta de separação: $e';
-    }
-  }
+  static Map<String, dynamic> validateSeparateConsultation(Map<String, dynamic> data) =>
+      SeparateConsultationSchema.validate(data);
 
   /// Valida dados de separação
-  static Map<String, dynamic> validateSeparate(Map<String, dynamic> data) {
-    try {
-      return separateSchema.parse(data);
-    } catch (e) {
-      throw 'Erro na validação da separação: $e';
-    }
-  }
+  static Map<String, dynamic> validateSeparate(Map<String, dynamic> data) => SeparateSchema.validate(data);
 
   /// Valida dados do item de separação
-  static Map<String, dynamic> validateSeparateItem(Map<String, dynamic> data) {
-    try {
-      return separateItemSchema.parse(data);
-    } catch (e) {
-      throw 'Erro na validação do item de separação: $e';
-    }
-  }
+  static Map<String, dynamic> validateSeparateItem(Map<String, dynamic> data) => SeparateItemSchema.validate(data);
 
   /// Valida filtros de separação
-  static Map<String, dynamic> validateSeparationFilters(Map<String, dynamic> filters) {
-    try {
-      return separationFiltersSchema.parse(filters);
-    } catch (e) {
-      throw 'Erro na validação dos filtros de separação: $e';
-    }
-  }
+  static Map<String, dynamic> validateSeparationFilters(Map<String, dynamic> filters) =>
+      SeparationFiltersSchema.validate(filters);
 
   // === VALIDAÇÃO SEGURA ===
+  // Delegam para os schemas individuais para manter compatibilidade
 
   /// Validação segura para consulta de separação
-  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateSeparateConsultation(
-    Map<String, dynamic> data,
-  ) {
-    try {
-      final result = separateConsultationSchema.parse(data);
-      return (success: true, data: result, error: null);
-    } catch (e) {
-      return (success: false, data: null, error: e.toString());
-    }
-  }
+  static Result<Map<String, dynamic>> safeValidateSeparateConsultation(Map<String, dynamic> data) =>
+      SeparateConsultationSchema.safeValidate(data);
 
   /// Validação segura para filtros
-  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateSeparationFilters(
-    Map<String, dynamic> filters,
-  ) {
-    try {
-      final result = separationFiltersSchema.parse(filters);
-      return (success: true, data: result, error: null);
-    } catch (e) {
-      return (success: false, data: null, error: e.toString());
-    }
-  }
+  static Result<Map<String, dynamic>> safeValidateSeparationFilters(Map<String, dynamic> filters) =>
+      SeparationFiltersSchema.safeValidate(filters);
 
   // === VALIDAÇÕES DE REGRAS DE NEGÓCIO ===
 
@@ -245,63 +85,22 @@ class SeparationSchemas {
   }
 
   // === SCHEMAS PARA USECASES ===
+  // Delegam para os schemas individuais para manter compatibilidade
 
   /// Schema para AddItemSeparationParams
-  static final addItemSeparationParamsSchema = z
-      .map({
-        'codEmpresa': CommonSchemas.integerSchema,
-        'codSepararEstoque': CommonSchemas.integerSchema,
-        'sessionId': CommonSchemas.sessionIdSchema,
-        'codCarrinhoPercurso': CommonSchemas.integerSchema,
-        'itemCarrinhoPercurso': CommonSchemas.itemIdSchema,
-        'codSeparador': CommonSchemas.integerSchema,
-        'nomeSeparador': CommonSchemas.nonEmptyStringSchema,
-        'codProduto': CommonSchemas.integerSchema,
-        'codUnidadeMedida': CommonSchemas.nonEmptyStringSchema,
-        'quantidade': z.double()
-            .min(0.0001, message: 'Quantidade deve ser maior que zero')
-            .max(9999.9999, message: 'Quantidade não pode exceder 9999.9999'),
-      })
-      .refine((value) {
-        // Validação de precisão decimal (máximo 4 casas)
-        final quantidade = value['quantidade'] as double;
-        final quantidadeStr = quantidade.toStringAsFixed(4);
-        final quantidadeParsed = double.parse(quantidadeStr);
-        return (quantidade - quantidadeParsed).abs() <= 0.0001;
-      }, message: 'Quantidade deve ter no máximo 4 casas decimais');
+  static final addItemSeparationParamsSchema = AddItemSeparationParamsSchema.schema;
 
   /// Schema para CancelCartItemSeparationParams
-  static final cancelCartItemSeparationParamsSchema = z.map({
-    'codEmpresa': CommonSchemas.integerSchema,
-    'codSepararEstoque': CommonSchemas.integerSchema,
-    'sessionId': CommonSchemas.sessionIdSchema,
-    'itemCarrinhoPercurso': CommonSchemas.itemIdSchema,
-    'motivo': CommonSchemas.optionalStringSchema,
-  });
+  static final cancelCartItemSeparationParamsSchema = CancelCartItemSeparationParamsSchema.schema;
 
   // === VALIDAÇÃO SEGURA PARA USECASES ===
+  // Delegam para os schemas individuais para manter compatibilidade
 
   /// Validação segura para AddItemSeparationParams
-  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateAddItemSeparationParams(
-    Map<String, dynamic> data,
-  ) {
-    try {
-      final result = addItemSeparationParamsSchema.parse(data);
-      return (success: true, data: result, error: null);
-    } catch (e) {
-      return (success: false, data: null, error: e.toString());
-    }
-  }
+  static Result<Map<String, dynamic>> safeValidateAddItemSeparationParams(Map<String, dynamic> data) =>
+      AddItemSeparationParamsSchema.safeValidate(data);
 
   /// Validação segura para CancelCartItemSeparationParams
-  static ({bool success, Map<String, dynamic>? data, String? error}) safeValidateCancelCartItemSeparationParams(
-    Map<String, dynamic> data,
-  ) {
-    try {
-      final result = cancelCartItemSeparationParamsSchema.parse(data);
-      return (success: true, data: result, error: null);
-    } catch (e) {
-      return (success: false, data: null, error: e.toString());
-    }
-  }
+  static Result<Map<String, dynamic>> safeValidateCancelCartItemSeparationParams(Map<String, dynamic> data) =>
+      CancelCartItemSeparationParamsSchema.safeValidate(data);
 }
