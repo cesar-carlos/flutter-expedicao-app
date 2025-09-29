@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:exp/core/utils/form_validators.dart';
+import 'package:exp/core/validation/forms/form_validators.dart';
 
 void main() {
   group('FormValidators - Zard Integration Tests', () {

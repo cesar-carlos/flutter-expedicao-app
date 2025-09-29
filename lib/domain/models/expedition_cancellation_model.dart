@@ -1,5 +1,4 @@
 import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/core/validation/schemas/model/expedition_cancellation_schema.dart';
 import 'package:exp/core/results/index.dart';
 
 class ExpeditionCancellationModel {

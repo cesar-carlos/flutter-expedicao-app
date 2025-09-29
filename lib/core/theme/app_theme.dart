@@ -1,5 +1,5 @@
-import 'app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:exp/core/theme/app_colors.dart';
 
 /// Classe responsável por definir os temas da aplicação
 class AppTheme {

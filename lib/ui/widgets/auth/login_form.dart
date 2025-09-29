@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:exp/core/constants/app_strings.dart';
-import 'package:exp/core/utils/form_validators.dart';
+import 'package:exp/core/validation/forms/form_validators.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/domain/viewmodels/config_viewmodel.dart';
 import 'package:exp/ui/widgets/common/index.dart';
