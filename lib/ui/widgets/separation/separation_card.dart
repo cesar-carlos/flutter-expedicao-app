@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:exp/ui/widgets/common/custom_simple_button.dart';
 
 /// Card para exibir informações de uma separação
 class SeparationCard extends StatelessWidget {
@@ -202,23 +203,10 @@ class SeparationCard extends StatelessWidget {
   }
 
   Widget _buildSeparateButton(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: () => _onSeparatePressed(context),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 0,
-        ),
-        icon: const Icon(Icons.inventory_2, size: 20),
-        label: Text('Separar', style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
-      ),
+    return CustomSimpleButtonVariations.primary(
+      text: 'Abrir Separação',
+      icon: Icons.inventory_2,
+      onPressed: () => _onSeparatePressed(context),
     );
   }
 

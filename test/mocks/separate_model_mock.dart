@@ -6,7 +6,7 @@ import 'package:exp/domain/models/entity_type_model.dart';
 SeparateModel createTestSeparate() {
   return SeparateModel(
     codEmpresa: 1,
-    codSepararEstoque: 0,
+    codSepararEstoque: 999999,
     origem: ExpeditionOrigem.orcamentoBalcao,
     codOrigem: 1,
     codTipoOperacaoExpedicao: 1,

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
+import 'package:exp/ui/widgets/common/custom_flat_button.dart';
 
 class CartItemCard extends StatelessWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -466,16 +467,14 @@ class CartItemCard extends StatelessWidget {
       child: Row(
         children: [
           // Botão de Separar
-          if (cart.situacao == ExpeditionCartSituation.emSeparacao) ...[
+          if (_shouldShowSeparateButton()) ...[
             Expanded(
-              child: _buildActionButton(
-                context: context,
-                theme: theme,
-                colorScheme: colorScheme,
+              child: CustomFlatButtonVariations.outlined(
+                text: 'Separar',
                 icon: Icons.play_arrow,
-                label: 'Separar',
-                color: colorScheme.primary,
-                onTap: () => _onSeparateCart(context),
+                textColor: colorScheme.primary,
+                borderColor: colorScheme.primary.withOpacity(0.3),
+                onPressed: () => _onSeparateCart(context),
               ),
             ),
             const SizedBox(width: 8),
@@ -484,14 +483,12 @@ class CartItemCard extends StatelessWidget {
           // Botão de Finalizar
           if (cart.situacao == ExpeditionCartSituation.separando) ...[
             Expanded(
-              child: _buildActionButton(
-                context: context,
-                theme: theme,
-                colorScheme: colorScheme,
+              child: CustomFlatButtonVariations.outlined(
+                text: 'Finalizar',
                 icon: Icons.check_circle,
-                label: 'Finalizar',
-                color: Colors.green,
-                onTap: () => _onFinalizeCart(context),
+                textColor: Colors.green,
+                borderColor: Colors.green.withOpacity(0.3),
+                onPressed: () => _onFinalizeCart(context),
               ),
             ),
             const SizedBox(width: 8),
@@ -513,14 +510,12 @@ class CartItemCard extends StatelessWidget {
           // Botão de Visualizar (para carrinhos finalizados ou cancelados)
           if (_shouldShowViewButton()) ...[
             Expanded(
-              child: _buildActionButton(
-                context: context,
-                theme: theme,
-                colorScheme: colorScheme,
+              child: CustomFlatButtonVariations.outlined(
+                text: 'Visualizar',
                 icon: Icons.visibility,
-                label: 'Visualizar',
-                color: colorScheme.tertiary,
-                onTap: () => _onViewCart(context),
+                textColor: colorScheme.tertiary,
+                borderColor: colorScheme.tertiary.withOpacity(0.3),
+                onPressed: () => _onViewCart(context),
               ),
             ),
           ],
@@ -537,61 +532,13 @@ class CartItemCard extends StatelessWidget {
   ) {
     final isCancelling = viewModel.isCartBeingCancelled(cart.codCarrinho);
 
-    return _buildActionButton(
-      context: context,
-      theme: theme,
-      colorScheme: colorScheme,
+    return CustomFlatButtonVariations.outlined(
+      text: isCancelling ? 'Cancelando...' : 'Cancelar',
       icon: isCancelling ? null : Icons.cancel_outlined,
-      label: isCancelling ? 'Cancelando...' : 'Cancelar',
-      color: colorScheme.error,
-      onTap: isCancelling ? null : () => _showCancelDialog(context),
+      textColor: colorScheme.error,
+      borderColor: colorScheme.error.withOpacity(0.3),
+      onPressed: isCancelling ? null : () => _showCancelDialog(context),
       isLoading: isCancelling,
-    );
-  }
-
-  Widget _buildActionButton({
-    required BuildContext context,
-    required ThemeData theme,
-    required ColorScheme colorScheme,
-    IconData? icon,
-    required String label,
-    required Color color,
-    VoidCallback? onTap,
-    bool isLoading = false,
-  }) {
-    return InkWell(
-      onTap: isLoading ? null : onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withOpacity(isLoading ? 0.05 : 0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(isLoading ? 0.1 : 0.3), width: 1),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (isLoading) ...[
-              SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(color)),
-              ),
-            ] else if (icon != null) ...[
-              Icon(icon, color: color, size: 18),
-            ],
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: color.withOpacity(isLoading ? 0.7 : 1.0),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -623,6 +570,16 @@ class CartItemCard extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.tertiary,
       ),
     );
+  }
+
+  bool _shouldShowSeparateButton() {
+    // Mostra botão de separar para carrinhos que podem iniciar a separação
+    // Adiciona mais situações onde faz sentido mostrar o botão Separar
+    return cart.situacao == ExpeditionCartSituation.emSeparacao ||
+        cart.situacao == ExpeditionCartSituation.liberado ||
+        cart.situacao == ExpeditionCartSituation.separado ||
+        cart.situacao == ExpeditionCartSituation.conferido ||
+        cart.situacao == ExpeditionCartSituation.separando;
   }
 
   bool _shouldShowViewButton() {

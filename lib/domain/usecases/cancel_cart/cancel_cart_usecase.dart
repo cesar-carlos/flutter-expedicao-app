@@ -2,6 +2,7 @@ import 'package:exp/core/results/index.dart';
 import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
+import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_success.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_failure.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
@@ -148,9 +149,9 @@ class CancelCartUseCase {
       final cancellation = ExpeditionCancellationModel(
         codEmpresa: cartInternshipRoute.codEmpresa,
         codCancelamento: 0,
-        origem: cartInternshipRoute.origem,
-        codOrigem: cartInternshipRoute.codOrigem,
-        itemOrigem: cartInternshipRoute.codCarrinho.toString(),
+        origem: ExpeditionOrigem.carrinhoPercursoEstagio,
+        codOrigem: cartInternshipRoute.codCarrinhoPercurso,
+        itemOrigem: cartInternshipRoute.item,
         dataCancelamento: now,
         horaCancelamento: horaCancelamento,
         codUsuarioCancelamento: userSystem.codUsuario,

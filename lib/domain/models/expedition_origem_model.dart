@@ -8,6 +8,7 @@ enum ExpeditionOrigem {
   entregaBalcao('EB', 'Entrega Balcão'),
   entregaBalcaoEN('EN', 'Entrega Balcão'),
   embalagem('EM', 'Embalagem de Mercadoria'),
+  carrinhoPercursoEstagio('CPE', 'Carrinho Percurso Estágio'),
   vazio('', '');
 
   const ExpeditionOrigem(this.code, this.description);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/domain/viewmodels/add_cart_viewmodel.dart';
+import 'package:exp/ui/widgets/common/custom_simple_button.dart';
 
 class CartActionsWidget extends StatefulWidget {
   final AddCartViewModel viewModel;
@@ -137,36 +138,22 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton.icon(
+                    child: CustomSimpleButtonVariations.outlined(
+                      text: 'Cancelar',
+                      icon: Icons.close,
+                      color: colorScheme.outline,
                       onPressed: widget.viewModel.isAdding ? null : widget.onCancel,
-                      icon: const Icon(Icons.close),
-                      label: const Text('Cancelar'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        side: BorderSide(color: colorScheme.outline),
-                      ),
                     ),
                   ),
 
                   const SizedBox(width: 16),
 
                   Expanded(
-                    child: ElevatedButton.icon(
-                      focusNode: _addButtonFocusNode,
+                    child: CustomSimpleButtonVariations.primary(
+                      text: widget.viewModel.isAdding ? 'Adicionando...' : 'Adicionar',
+                      icon: Icons.add_shopping_cart,
                       onPressed: !widget.viewModel.isAdding ? widget.onAdd : null,
-                      icon: widget.viewModel.isAdding
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
-                            )
-                          : const Icon(Icons.add_shopping_cart),
-                      label: Text(widget.viewModel.isAdding ? 'Adicionando...' : 'Adicionar'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
+                      isLoading: widget.viewModel.isAdding,
                     ),
                   ),
                 ],
@@ -176,37 +163,22 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton.icon(
+                    child: CustomSimpleButtonVariations.outlined(
+                      text: 'Cancelar',
+                      icon: Icons.close,
+                      color: colorScheme.outline,
                       onPressed: widget.viewModel.isAdding ? null : widget.onCancel,
-                      icon: const Icon(Icons.close),
-                      label: const Text('Cancelar'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        side: BorderSide(color: colorScheme.outline),
-                      ),
                     ),
                   ),
 
                   if (widget.onNewQuery != null) ...[
                     const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: CustomSimpleButtonVariations.primary(
+                        text: widget.viewModel.isScanning ? 'Buscando...' : 'Nova Consulta',
+                        icon: Icons.search,
                         onPressed: widget.viewModel.isScanning ? null : widget.onNewQuery,
-                        icon: widget.viewModel.isScanning
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
-                              )
-                            : const Icon(Icons.search),
-                        label: Text(widget.viewModel.isScanning ? 'Buscando...' : 'Nova Consulta'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: colorScheme.onPrimary,
-                        ),
+                        isLoading: widget.viewModel.isScanning,
                       ),
                     ),
                   ],
