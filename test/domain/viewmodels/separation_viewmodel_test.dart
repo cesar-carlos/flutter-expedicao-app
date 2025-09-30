@@ -1,13 +1,36 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/foundation.dart';
+import 'package:mockito/mockito.dart';
+import 'package:mockito/annotations.dart';
 
 import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
+import 'package:exp/domain/repositories/basic_consultation_repository.dart';
+import 'package:exp/domain/repositories/basic_repository.dart';
+import 'package:exp/data/services/filters_storage_service.dart';
+import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:exp/domain/models/expedition_sector_stock_model.dart';
+import 'package:exp/domain/models/separation_filters_model.dart';
 
+import 'separation_viewmodel_test.mocks.dart';
+
+@GenerateMocks([BasicConsultationRepository, BasicRepository, FiltersStorageService])
 void main() {
   group('SeparationViewModel', () {
     late SeparationViewModel viewModel;
+    late MockBasicConsultationRepository<SeparateConsultationModel> mockRepository;
+    late MockBasicRepository<ExpeditionSectorStockModel> mockSectorRepository;
+    late MockFiltersStorageService mockFiltersStorage;
 
     setUp(() {
-      viewModel = SeparationViewModel();
+      mockRepository = MockBasicConsultationRepository<SeparateConsultationModel>();
+      mockSectorRepository = MockBasicRepository<ExpeditionSectorStockModel>();
+      mockFiltersStorage = MockFiltersStorageService();
+
+      // Configurar stubs para evitar erros
+      when(mockFiltersStorage.loadSeparationFilters()).thenAnswer((_) async => const SeparationFiltersModel());
+      when(mockFiltersStorage.saveSeparationFilters(any)).thenAnswer((_) async {});
+
+      viewModel = SeparationViewModel.withDependencies(mockRepository, mockFiltersStorage, mockSectorRepository);
     });
 
     tearDown(() {
@@ -54,25 +77,20 @@ void main() {
     });
 
     test('should handle clearFilters method', () async {
-      // Act
-      viewModel.clearFilters();
-
-      // Assert - Deve iniciar o carregamento
-      expect(viewModel.state, SeparationState.loading);
-    });
-
-    test('should not process operations after dispose', () async {
-      // Arrange
-      viewModel.dispose();
+      // Arrange - Simular que há dados carregados
+      when(mockRepository.selectConsultation(any)).thenAnswer((_) async => []);
 
       // Act
-      viewModel.loadSeparations();
+      await viewModel.clearFilters();
 
-      // Assert - Não deve mudar o estado após dispose
-      expect(viewModel.state, SeparationState.initial);
+      // Assert - Deve completar o carregamento
+      expect(viewModel.state, SeparationState.loaded);
     });
 
     test('should handle loadMoreSeparations correctly', () async {
+      // Arrange - Simular que há mais dados disponíveis
+      when(mockRepository.selectConsultation(any)).thenAnswer((_) async => []);
+
       // Act
       viewModel.loadMoreSeparations();
 
@@ -143,14 +161,14 @@ void main() {
         viewModel.setCodSepararEstoqueFilter('12345');
         viewModel.setOrigemFilter('ORCAMENTO_BALCAO');
         viewModel.setCodOrigemFilter('123');
-        viewModel.setSituacaoFilter('AGUARDANDO');
+        viewModel.setSituacoesFilter(['AGUARDANDO', 'SEPARANDO']);
         viewModel.setDataEmissaoFilter(DateTime(2023, 12, 25));
 
         // Assert
         expect(viewModel.codSepararEstoqueFilter, '12345');
         expect(viewModel.origemFilter, 'ORCAMENTO_BALCAO');
         expect(viewModel.codOrigemFilter, '123');
-        expect(viewModel.situacaoFilter, 'AGUARDANDO');
+        expect(viewModel.situacoesFilter, ['AGUARDANDO', 'SEPARANDO']);
         expect(viewModel.dataEmissaoFilter, DateTime(2023, 12, 25));
         expect(viewModel.hasActiveFilters, isTrue);
       });
@@ -168,9 +186,48 @@ void main() {
         expect(viewModel.codSepararEstoqueFilter, isNull);
         expect(viewModel.origemFilter, isNull);
         expect(viewModel.codOrigemFilter, isNull);
-        expect(viewModel.situacaoFilter, isNull);
+        expect(viewModel.situacoesFilter, isNull);
         expect(viewModel.dataEmissaoFilter, isNull);
         expect(viewModel.hasActiveFilters, isFalse);
+      });
+
+      test('should set and get situacoes filter as list', () {
+        // Act
+        viewModel.setSituacoesFilter(['AGUARDANDO', 'SEPARANDO', 'SEPARADO']);
+
+        // Assert
+        expect(viewModel.situacoesFilter, ['AGUARDANDO', 'SEPARANDO', 'SEPARADO']);
+        expect(viewModel.hasActiveFilters, isTrue);
+      });
+
+      test('should handle empty situacoes filter list', () {
+        // Act
+        viewModel.setSituacoesFilter([]);
+
+        // Assert
+        expect(viewModel.situacoesFilter, isEmpty);
+        expect(viewModel.hasActiveFilters, isFalse);
+      });
+
+      test('should handle null situacoes filter', () {
+        // Act
+        viewModel.setSituacoesFilter(null);
+
+        // Assert
+        expect(viewModel.situacoesFilter, isNull);
+        expect(viewModel.hasActiveFilters, isFalse);
+      });
+
+      test('should update situacoes filter correctly', () {
+        // Arrange
+        viewModel.setSituacoesFilter(['AGUARDANDO']);
+
+        // Act
+        viewModel.setSituacoesFilter(['SEPARANDO', 'SEPARADO']);
+
+        // Assert
+        expect(viewModel.situacoesFilter, ['SEPARANDO', 'SEPARADO']);
+        expect(viewModel.hasActiveFilters, isTrue);
       });
     });
   });

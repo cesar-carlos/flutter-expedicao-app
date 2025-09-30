@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/models/user_system_models.dart';
+import 'package:exp/domain/models/picking_state.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
@@ -46,15 +47,15 @@ class CardPickingViewModel extends ChangeNotifier {
   List<SeparateItemConsultationModel> get items => List.unmodifiable(_items);
   bool get hasItems => _items.isNotEmpty;
 
-  // Estado do picking
-  final Map<String, int> _pickedQuantities = {}; // Quantidade separada por item
-  final Map<String, bool> _itemsCompleted = {}; // Itens completados
+  // Estado consolidado do picking
+  PickingState _pickingState = const PickingState({});
+  PickingState get pickingState => _pickingState;
 
-  // Progresso do picking
-  int get totalItems => _items.length;
-  int get completedItems => _itemsCompleted.values.where((completed) => completed).length;
-  double get progress => totalItems > 0 ? completedItems / totalItems : 0.0;
-  bool get isPickingComplete => completedItems == totalItems && totalItems > 0;
+  // Progresso do picking (delegado para PickingState)
+  int get totalItems => _pickingState.totalItems;
+  int get completedItems => _pickingState.completedItems;
+  double get progress => _pickingState.progress;
+  bool get isPickingComplete => _pickingState.isComplete;
 
   // Flag para evitar dispose durante operações
   bool _disposed = false;
@@ -141,14 +142,8 @@ class CardPickingViewModel extends ChangeNotifier {
 
       _items = items;
 
-      // Inicializar estado dos itens
-      for (var item in _items) {
-        final itemId = item.item;
-        _pickedQuantities[itemId] = item.quantidadeSeparacao.toInt();
-        _itemsCompleted[itemId] = item.isCompletamenteSeparado;
-      }
-
-      // Carrinho inicializado com sucesso
+      // Inicializar estado consolidado do picking
+      _pickingState = PickingState.initial(_items);
 
       // Notificar listeners após carregar os itens
       _safeNotifyListeners();
@@ -205,10 +200,10 @@ class CardPickingViewModel extends ChangeNotifier {
 
       return result.fold(
         (success) {
-          // Atualizar quantidade local
-          final currentQuantity = _pickedQuantities[item.item] ?? 0;
+          // Atualizar quantidade local usando PickingState
+          final currentQuantity = _pickingState.getPickedQuantity(item.item);
           final newQuantity = currentQuantity + quantity;
-          updatePickedQuantity(item.item, newQuantity);
+          _pickingState = _pickingState.updateItemQuantity(item.item, newQuantity);
 
           return AddItemSeparationResult.success(
             'Item adicionado: ${success.addedQuantity} unidades',
@@ -229,15 +224,7 @@ class CardPickingViewModel extends ChangeNotifier {
   void updatePickedQuantity(String itemId, int quantity) {
     if (_disposed) return;
 
-    _pickedQuantities[itemId] = quantity;
-
-    // Verificar se o item foi completado
-    final item = _items.firstWhere((item) => item.item == itemId);
-    final totalQuantity = item.quantidade.toInt();
-    _itemsCompleted[itemId] = quantity >= totalQuantity;
-
-    // Progresso atualizado
-
+    _pickingState = _pickingState.updateItemQuantity(itemId, quantity);
     _safeNotifyListeners();
   }
 
@@ -245,23 +232,18 @@ class CardPickingViewModel extends ChangeNotifier {
   void completeItem(String itemId) {
     if (_disposed) return;
 
-    final item = _items.firstWhere((item) => item.item == itemId);
-    final totalQuantity = item.quantidade.toInt();
-
-    _pickedQuantities[itemId] = totalQuantity;
-    _itemsCompleted[itemId] = true;
-
+    _pickingState = _pickingState.completeItem(itemId);
     _safeNotifyListeners();
   }
 
   /// Obtém a quantidade separada de um item
   int getPickedQuantity(String itemId) {
-    return _pickedQuantities[itemId] ?? 0;
+    return _pickingState.getPickedQuantity(itemId);
   }
 
   /// Verifica se um item foi completado
   bool isItemCompleted(String itemId) {
-    return _itemsCompleted[itemId] ?? false;
+    return _pickingState.isItemCompleted(itemId);
   }
 
   /// Finaliza o picking do carrinho

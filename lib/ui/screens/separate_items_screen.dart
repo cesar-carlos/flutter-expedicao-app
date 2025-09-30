@@ -7,6 +7,7 @@ import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/ui/widgets/separate_items/separate_item_card.dart';
 import 'package:exp/ui/widgets/separate_items/separate_items_bottom_navigation.dart';
@@ -102,16 +103,24 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
         },
       ),
       bottomNavigationBar: SeparateItemsBottomNavigation(tabController: _tabController),
-      floatingActionButton:
-          _tabController.index ==
-              1 // Apenas na aba de carrinhos
-          ? FloatingActionButton.extended(
-              onPressed: () => _onAddCart(context),
-              icon: const Icon(Icons.add_shopping_cart),
-              label: const Text('Incluir Carrinho'),
-              tooltip: 'Incluir novo carrinho na separação',
-            )
-          : null,
+      floatingActionButton: Consumer<SeparateItemsViewModel>(
+        builder: (context, viewModel, child) {
+          // Mostrar FAB apenas na aba de carrinhos
+          if (_tabController.index != 1) return const SizedBox.shrink();
+
+          final canAddCart = _canAddCart(viewModel.separation);
+
+          return FloatingActionButton.extended(
+            onPressed: canAddCart ? () => _onAddCart(context) : null,
+            icon: const Icon(Icons.add_shopping_cart),
+            label: const Text('Incluir Carrinho'),
+            tooltip: canAddCart
+                ? 'Incluir novo carrinho na separação'
+                : 'Não é possível adicionar carrinho na situação atual',
+            backgroundColor: canAddCart ? null : Colors.grey,
+          );
+        },
+      ),
     );
   }
 
@@ -230,6 +239,23 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
   Future<void> _onAddCart(BuildContext context) async {
     final viewModel = context.read<SeparateItemsViewModel>();
 
+    // Verificar se a separação permite adicionar carrinho
+    if (!_canAddCart(viewModel.separation)) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Não é possível adicionar carrinho. Situação atual: ${viewModel.separation?.situacao.description ?? 'Desconhecida'}\n'
+              'Permitido apenas em: Aguardando, Separando ou Em Separação',
+            ),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+      return;
+    }
+
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (context) => AddCartScreen(
@@ -254,6 +280,16 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
         await _openSeparationForNewestCart(context, viewModel);
       }
     }
+  }
+
+  /// Verifica se é possível adicionar carrinho baseado na situação da separação
+  bool _canAddCart(SeparateConsultationModel? separation) {
+    if (separation == null) return false;
+
+    // Permitir apenas nas situações: Aguardando, Separando, Em Separação
+    return separation.situacao == ExpeditionSituation.aguardando ||
+        separation.situacao == ExpeditionSituation.separando ||
+        separation.situacao == ExpeditionSituation.emSeparacao;
   }
 
   /// Abre a separação do carrinho mais recente (recém-adicionado)

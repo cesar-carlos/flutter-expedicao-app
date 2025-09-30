@@ -7,6 +7,8 @@ import 'package:exp/domain/models/expedition_cart_route_internship_consultation_
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/core/services/audio_service.dart';
+import 'package:exp/core/services/barcode_validation_service.dart';
+import 'package:exp/ui/widgets/common/picking_dialog.dart';
 import 'package:exp/di/locator.dart';
 
 class PickingCardScan extends StatefulWidget {
@@ -145,14 +147,18 @@ class _PickingCardScanState extends State<PickingCardScan> {
     // Obter a quantidade informada
     final quantity = int.tryParse(_quantityController.text) ?? 1;
 
-    // Ordenar produtos por enderecoDescricao para obter sequência correta
-    final items = List.from(widget.viewModel.items)
-      ..sort((a, b) => (a.enderecoDescricao ?? '').compareTo(b.enderecoDescricao ?? ''));
+    // Validar código de barras usando o serviço
+    final validationResult = BarcodeValidationService.validateScannedBarcode(
+      barcode,
+      widget.viewModel.items,
+      widget.viewModel.isItemCompleted,
+    );
 
-    // Encontrar o próximo item a ser separado (primeiro não completo)
-    final nextItem = items.where((item) => !widget.viewModel.isItemCompleted(item.item)).firstOrNull;
+    if (validationResult.isEmpty) {
+      return;
+    }
 
-    if (nextItem == null) {
+    if (validationResult.allItemsCompleted) {
       // Reproduzir som de alerta para todos os itens completos
       _audioService.playAlert();
       _showAllItemsCompletedDialog();
@@ -161,21 +167,12 @@ class _PickingCardScanState extends State<PickingCardScan> {
       return;
     }
 
-    // Verificar se o código bipado corresponde ao próximo item
-    final trimmedBarcode = barcode.trim().toLowerCase();
-    final expectedBarcode1 = nextItem.codigoBarras?.trim().toLowerCase();
-    final expectedBarcode2 = nextItem.codigoBarras2?.trim().toLowerCase();
-
-    final isCorrectBarcode =
-        (expectedBarcode1 != null && expectedBarcode1 == trimmedBarcode) ||
-        (expectedBarcode2 != null && expectedBarcode2 == trimmedBarcode);
-
-    if (isCorrectBarcode) {
-      await _addItemToSeparation(nextItem, barcode, quantity);
+    if (validationResult.isValid && validationResult.expectedItem != null) {
+      await _addItemToSeparation(validationResult.expectedItem!, barcode, quantity);
     } else {
       // Reproduzir som de erro para produto errado
       _audioService.playError();
-      _showWrongProductDialog(barcode, nextItem);
+      _showWrongProductDialog(barcode, validationResult.expectedItem!);
     }
 
     // Limpar o campo e manter o foco
@@ -186,11 +183,7 @@ class _PickingCardScanState extends State<PickingCardScan> {
   /// Adiciona item escaneado na separação via use case
   Future<void> _addItemToSeparation(SeparateItemConsultationModel item, String barcode, int quantity) async {
     // Mostrar loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
+    showDialog(context: context, barrierDismissible: false, builder: (context) => PickingDialogs.loading());
 
     try {
       // Chamar use case através do ViewModel
@@ -240,113 +233,26 @@ class _PickingCardScanState extends State<PickingCardScan> {
   }
 
   void _showErrorDialog(SeparateItemConsultationModel item, String errorMessage, String barcode) {
-    final theme = Theme.of(context);
-
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.error, color: Colors.red, size: 24),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Erro ao Adicionar', overflow: TextOverflow.ellipsis)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Código: $barcode', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text('Produto: ${item.nomeProduto}', style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.withOpacity(0.3)),
-              ),
-              child: Text(errorMessage, style: theme.textTheme.bodyMedium?.copyWith(color: Colors.red.shade700)),
-            ),
-          ],
-        ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar'))],
-      ),
+      builder: (context) =>
+          PickingDialogs.addItemError(barcode: barcode, productName: item.nomeProduto, errorMessage: errorMessage),
     );
   }
 
   void _showWrongProductDialog(String barcode, SeparateItemConsultationModel expectedItem) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.warning, color: Colors.orange, size: 24),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Produto Incorreto', overflow: TextOverflow.ellipsis, maxLines: 1)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Código escaneado: $barcode'),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Próximo produto esperado:',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade700),
-                  ),
-                  const SizedBox(height: 6),
-                  Text('📍 ${expectedItem.enderecoDescricao}'),
-                  Text('📦 ${expectedItem.nomeProduto}'),
-                  if (expectedItem.codigoBarras != null) Text('🏷️ ${expectedItem.codigoBarras}'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text('Escaneie o produto correto da sequência de separação.'),
-          ],
-        ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Entendi'))],
+      builder: (context) => PickingDialogs.wrongProduct(
+        scannedBarcode: barcode,
+        expectedAddress: expectedItem.enderecoDescricao ?? 'Endereço não definido',
+        expectedProduct: expectedItem.nomeProduto,
+        expectedBarcode: expectedItem.codigoBarras,
       ),
     );
   }
 
   void _showAllItemsCompletedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 24),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Separação Completa!', overflow: TextOverflow.ellipsis, maxLines: 1)),
-          ],
-        ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('🎉 Parabéns! Todos os itens foram separados com sucesso.'),
-            SizedBox(height: 12),
-            Text('Você pode:'),
-            Text('• Revisar os itens separados no menu'),
-            Text('• Finalizar a separação'),
-          ],
-        ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
-      ),
-    );
+    showDialog(context: context, builder: (context) => PickingDialogs.separationComplete());
   }
 }

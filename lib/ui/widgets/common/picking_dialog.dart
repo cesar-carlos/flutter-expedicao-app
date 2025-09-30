@@ -1,0 +1,165 @@
+import 'package:flutter/material.dart';
+
+/// Widget reutilizável para dialogs de picking
+class PickingDialog extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final IconData icon;
+  final Color iconColor;
+  final Widget content;
+  final List<Widget>? actions;
+  final bool showCloseButton;
+
+  const PickingDialog({
+    super.key,
+    required this.title,
+    this.subtitle,
+    required this.icon,
+    required this.iconColor,
+    required this.content,
+    this.actions,
+    this.showCloseButton = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AlertDialog(
+      title: Row(
+        children: [
+          Icon(icon, color: iconColor, size: 24),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (subtitle != null) ...[
+            Text(subtitle!, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            const SizedBox(height: 12),
+          ],
+          content,
+        ],
+      ),
+      actions:
+          actions ??
+          [if (showCloseButton) TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar'))],
+    );
+  }
+}
+
+/// Dialogs específicos para picking
+class PickingDialogs {
+  /// Dialog de produto incorreto
+  static Widget wrongProduct({
+    required String scannedBarcode,
+    required String expectedAddress,
+    required String expectedProduct,
+    String? expectedBarcode,
+  }) {
+    return PickingDialog(
+      title: 'Produto Incorreto',
+      icon: Icons.warning,
+      iconColor: Colors.orange,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Código escaneado: $scannedBarcode'),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue.withOpacity(0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Próximo produto esperado:',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+                ),
+                const SizedBox(height: 6),
+                Text('📍 $expectedAddress'),
+                Text('📦 $expectedProduct'),
+                if (expectedBarcode != null) Text('🏷️ $expectedBarcode'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text('Escaneie o produto correto da sequência de separação.'),
+        ],
+      ),
+    );
+  }
+
+  /// Dialog de erro ao adicionar item
+  static Widget addItemError({required String barcode, required String productName, required String errorMessage}) {
+    return PickingDialog(
+      title: 'Erro ao Adicionar',
+      icon: Icons.error,
+      iconColor: Colors.red,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Código: $barcode', style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('Produto: $productName'),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.red.withOpacity(0.3)),
+            ),
+            child: Text(errorMessage, style: TextStyle(color: Colors.red.shade700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Dialog de separação completa
+  static Widget separationComplete() {
+    return PickingDialog(
+      title: 'Separação Completa!',
+      icon: Icons.check_circle,
+      iconColor: Colors.green,
+      content: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('🎉 Parabéns! Todos os itens foram separados com sucesso.'),
+          SizedBox(height: 12),
+          Text('Você pode:'),
+          Text('• Revisar os itens separados no menu'),
+          Text('• Finalizar a separação'),
+        ],
+      ),
+    );
+  }
+
+  /// Dialog de loading
+  static Widget loading({String message = 'Processando...'}) {
+    return PickingDialog(
+      title: message,
+      icon: Icons.hourglass_empty,
+      iconColor: Colors.blue,
+      showCloseButton: false,
+      content: const Center(
+        child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()),
+      ),
+    );
+  }
+}

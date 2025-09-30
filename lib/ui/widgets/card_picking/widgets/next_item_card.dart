@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/ui/widgets/card_picking/widgets/product_detail_item.dart';
+import 'package:exp/core/utils/picking_utils.dart';
 
 class NextItemCard extends StatelessWidget {
   final CardPickingViewModel viewModel;
@@ -14,16 +15,12 @@ class NextItemCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Ordenar produtos por enderecoDescricao
-    final sortedItems = List.from(viewModel.items)
-      ..sort((a, b) => (a.enderecoDescricao ?? '').compareTo(b.enderecoDescricao ?? ''));
+    // Encontrar o próximo item a ser separado usando utilitário
+    final nextItem = PickingUtils.findNextItemToPick(viewModel.items, viewModel.isItemCompleted);
 
-    // Encontrar o próximo item a ser separado (primeiro não completo)
-    final nextItem = sortedItems.where((item) => !viewModel.isItemCompleted(item.item)).firstOrNull;
-
-    // Contar itens completos e totais
-    final completedCount = sortedItems.where((item) => viewModel.isItemCompleted(item.item)).length;
-    final totalCount = sortedItems.length;
+    // Contar itens completos e totais usando PickingState
+    final completedCount = viewModel.completedItems;
+    final totalCount = viewModel.totalItems;
 
     return Container(
       padding: const EdgeInsets.all(10),

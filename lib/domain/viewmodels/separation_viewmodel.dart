@@ -22,6 +22,9 @@ class SeparationViewModel extends ChangeNotifier {
       _filtersStorage = locator<FiltersStorageService>(),
       _sectorRepository = locator<BasicRepository<ExpeditionSectorStockModel>>();
 
+  // Construtor para testes - permite injeção de dependências
+  SeparationViewModel.withDependencies(this._repository, this._filtersStorage, this._sectorRepository);
+
   SeparationState _state = SeparationState.initial;
   List<SeparateConsultationModel> _separations = [];
   String? _errorMessage;
