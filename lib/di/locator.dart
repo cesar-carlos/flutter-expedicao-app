@@ -21,6 +21,7 @@ import 'package:exp/data/datasources/user_preferences_service.dart';
 import 'package:exp/data/services/socket_service.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/data/services/user_session_service.dart';
+import 'package:exp/core/services/audio_service.dart';
 import 'package:exp/domain/usecases/add_cart/add_cart_usecase.dart';
 import 'package:exp/data/repositories/expedition_cart_consultation_repository_impl.dart';
 import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
@@ -78,6 +79,7 @@ void setupLocator() {
   locator.registerLazySingleton(() => ConfigService());
   locator.registerLazySingleton(() => UserPreferencesService());
   locator.registerLazySingleton(() => SocketService());
+  locator.registerLazySingleton(() => AudioService());
 
   locator.registerLazySingleton(() => ConfigViewModel(locator<ConfigService>()));
 

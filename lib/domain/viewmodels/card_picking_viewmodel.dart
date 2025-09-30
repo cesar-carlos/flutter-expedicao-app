@@ -94,7 +94,6 @@ class CardPickingViewModel extends ChangeNotifier {
     } catch (e) {
       _hasError = true;
       _errorMessage = 'Erro ao inicializar dados do picking: ${e.toString()}';
-      debugPrint('Erro ao inicializar picking: $e');
     } finally {
       _isLoading = false;
       _safeNotifyListeners();
@@ -110,33 +109,16 @@ class CardPickingViewModel extends ChangeNotifier {
       final codSepararEstoque = _cart!.codOrigem; // Usando codOrigem como codSepararEstoque
       final codSetorEstoqueUsuario = _userModel?.codSetorEstoque;
 
-      debugPrint('Carregando itens com filtros:');
-      debugPrint('- codEmpresa: $codEmpresa');
-      debugPrint('- codSepararEstoque: $codSepararEstoque');
-      debugPrint('- codSetorEstoque (usuário): $codSetorEstoqueUsuario');
-      debugPrint('- Incluindo produtos com codSetorEstoque: NULL ou = $codSetorEstoqueUsuario');
-
       List<SeparateItemConsultationModel> items = [];
 
       if (codSetorEstoqueUsuario != null) {
         // Implementar filtro OR: produtos do setor do usuário OU produtos sem setor específico (NULL)
-
-        // Query 1: Produtos do setor do usuário
-        final queryUserSector = QueryBuilder()
-          ..equals('CodEmpresa', codEmpresa.toString())
-          ..equals('CodSepararEstoque', codSepararEstoque.toString())
-          ..equals('CodSetorEstoque', codSetorEstoqueUsuario.toString())
-          ..orderBy('EnderecoDescricao');
-
-        debugPrint('Query 1 (setor usuário): ${queryUserSector.buildSqlWhere()}');
-
-        // Query 2: Produtos sem setor específico (assumindo que NULL não é filtrado quando não especificado)
+        // Buscar todos os produtos e filtrar manualmente
         final queryNoSector = QueryBuilder()
           ..equals('CodEmpresa', codEmpresa.toString())
           ..equals('CodSepararEstoque', codSepararEstoque.toString())
           ..orderBy('EnderecoDescricao');
 
-        debugPrint('Query 2 (todos produtos): ${queryNoSector.buildSqlWhere()}');
         final allItems = await _repository.selectConsultation(queryNoSector);
 
         // Filtrar manualmente produtos que não têm setor definido ou têm o setor do usuário
@@ -145,7 +127,6 @@ class CardPickingViewModel extends ChangeNotifier {
         }).toList();
 
         items = filteredItems;
-        debugPrint('Filtro OR aplicado: ${filteredItems.length} itens encontrados');
       } else {
         // Se o usuário não tem setor definido, busca todos os produtos
         final queryBuilder = QueryBuilder()
@@ -153,7 +134,6 @@ class CardPickingViewModel extends ChangeNotifier {
           ..equals('CodSepararEstoque', codSepararEstoque.toString())
           ..orderBy('EnderecoDescricao');
 
-        debugPrint('Query (sem filtro setor): ${queryBuilder.buildSqlWhere()}');
         items = await _repository.selectConsultation(queryBuilder);
       }
 
@@ -168,9 +148,12 @@ class CardPickingViewModel extends ChangeNotifier {
         _itemsCompleted[itemId] = item.isCompletamenteSeparado;
       }
 
-      debugPrint('Carregados ${_items.length} itens para picking do repository');
+      print('🚀 Carrinho inicializado: ${_items.length} itens');
+      print('📊 Progresso inicial: $completedItems/$totalItems (${(progress * 100).toInt()}%)');
+
+      // Notificar listeners após carregar os itens
+      _safeNotifyListeners();
     } catch (e) {
-      debugPrint('Erro ao carregar itens: $e');
       rethrow;
     }
   }
@@ -189,6 +172,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
       // Obter sessão do usuário
       final appUser = await _userSessionService.loadUserSession();
+
       if (appUser?.userSystemModel == null) {
         return AddItemSeparationResult.error('Usuário não autenticado');
       }
@@ -217,15 +201,11 @@ class CardPickingViewModel extends ChangeNotifier {
         quantidade: quantity.toDouble(),
       );
 
-      debugPrint('Adicionando item via scanner: ${params.description}');
-
       // Executar use case
       final result = await _addItemSeparationUseCase.call(params);
 
       return result.fold(
         (success) {
-          debugPrint('Item adicionado com sucesso: ${success.addedQuantity} unidades');
-
           // Atualizar quantidade local
           final currentQuantity = _pickedQuantities[item.item] ?? 0;
           final newQuantity = currentQuantity + quantity;
@@ -238,12 +218,10 @@ class CardPickingViewModel extends ChangeNotifier {
         },
         (failure) {
           final errorMsg = failure is AppFailure ? failure.message : failure.toString();
-          debugPrint('Erro ao adicionar item: $errorMsg');
           return AddItemSeparationResult.error(errorMsg);
         },
       );
     } catch (e) {
-      debugPrint('Exceção ao adicionar item: $e');
       return AddItemSeparationResult.error('Erro inesperado: ${e.toString()}');
     }
   }
@@ -258,6 +236,9 @@ class CardPickingViewModel extends ChangeNotifier {
     final item = _items.firstWhere((item) => item.item == itemId);
     final totalQuantity = item.quantidade.toInt();
     _itemsCompleted[itemId] = quantity >= totalQuantity;
+
+    print('🔄 Progresso atualizado: $itemId - $quantity/$totalQuantity - Completo: ${_itemsCompleted[itemId]}');
+    print('📊 Total: $completedItems/$totalItems (${(progress * 100).toInt()}%)');
 
     _safeNotifyListeners();
   }
@@ -316,9 +297,6 @@ class CardPickingViewModel extends ChangeNotifier {
         return false;
       }
 
-      debugPrint('Picking finalizado com sucesso para carrinho ${_cart!.codCarrinho}');
-      debugPrint('Total de itens separados: $completedItems de $totalItems');
-
       // TODO: Implementar use case específico para finalização quando necessário
       // Por enquanto, apenas validamos que todos os itens foram separados
 
@@ -326,7 +304,6 @@ class CardPickingViewModel extends ChangeNotifier {
     } catch (e) {
       _hasError = true;
       _errorMessage = 'Erro ao finalizar picking: ${e.toString()}';
-      debugPrint('Erro ao finalizar picking: $e');
       return false;
     } finally {
       _isLoading = false;
@@ -358,9 +335,6 @@ class CardPickingViewModel extends ChangeNotifier {
         return false;
       }
 
-      debugPrint('Picking cancelado para carrinho ${_cart!.codCarrinho}');
-      debugPrint('Itens que estavam separados: $completedItems de $totalItems');
-
       // TODO: Implementar use case específico para cancelamento quando necessário
       // Por enquanto, apenas validamos as condições básicas
 
@@ -368,7 +342,6 @@ class CardPickingViewModel extends ChangeNotifier {
     } catch (e) {
       _hasError = true;
       _errorMessage = 'Erro ao cancelar picking: ${e.toString()}';
-      debugPrint('Erro ao cancelar picking: $e');
       return false;
     } finally {
       _isLoading = false;

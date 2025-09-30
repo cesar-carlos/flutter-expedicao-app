@@ -1,5 +1,5 @@
-import 'package:exp/domain/models/situation_model.dart';
 import 'package:flutter/foundation.dart';
+import 'package:exp/domain/models/situation_model.dart';
 
 import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/domain/models/separation_item_status.dart';
@@ -513,9 +513,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
     if (_cartsFilters.dataInicioFinal != null) {
       queryBuilder.lessThan('DataInicio', _cartsFilters.dataInicioFinal!.toIso8601String());
     }
-    if (_cartsFilters.carrinhoAgrupador != null) {
-      queryBuilder.equals('CarrinhoAgrupador', _cartsFilters.carrinhoAgrupador!);
-    }
+    queryBuilder.equals('CarrinhoAgrupador', _cartsFilters.carrinhoAgrupador);
   }
 
   /// Salva filtros de itens

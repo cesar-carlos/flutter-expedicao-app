@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:exp/domain/models/user/app_user.dart';
 import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/ui/widgets/user_profile/widgets/index.dart';
 
 class UserInfoChips extends StatelessWidget {
   final AppUser user;
@@ -10,188 +11,72 @@ class UserInfoChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Informações da empresa
-        _buildCompanySection(context, colorScheme, theme),
+        // Informações básicas do usuário
+        _buildUserBasicInfo(context),
 
-        const SizedBox(height: 20),
+        // Informações da empresa e setores
+        _buildCompanySection(context),
 
         // Permissões e acessos
-        _buildPermissionsSection(context, colorScheme, theme),
+        _buildPermissionsSection(context),
       ],
     );
   }
 
-  Widget _buildCompanySection(BuildContext context, ColorScheme colorScheme, ThemeData theme) {
+  Widget _buildUserBasicInfo(BuildContext context) {
     final systemData = user.userSystemModel;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
-      ),
+    return PrimaryProfileSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(8)),
-                child: Icon(Icons.business, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Informações Corporativas',
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, color: colorScheme.onSurface),
-              ),
-            ],
-          ),
+          SectionHeader(title: 'Informações do Usuário', icon: Icons.person),
 
           const SizedBox(height: 16),
 
-          // Grid de informações
-          Row(
-            children: [
-              if (systemData?.codEmpresa != null) ...[
-                Expanded(
-                  child: _buildInfoCard(
-                    context,
-                    'Empresa',
-                    '${systemData!.codEmpresa}',
-                    Icons.corporate_fare,
-                    colorScheme,
-                    theme,
-                  ),
-                ),
-              ],
-              if (systemData?.codEmpresa != null && systemData?.nomeContaFinanceira != null) const SizedBox(width: 12),
-              if (systemData?.nomeContaFinanceira != null) ...[
-                Expanded(
-                  flex: 2,
-                  child: _buildInfoCard(
-                    context,
-                    'Conta Financeira',
-                    systemData!.nomeContaFinanceira!,
-                    Icons.account_balance,
-                    colorScheme,
-                    theme,
-                  ),
-                ),
-              ],
-            ],
-          ),
-
-          if (systemData?.nomeCaixaOperador != null) ...[
-            const SizedBox(height: 12),
-            _buildInfoCard(
-              context,
-              'Operador de Caixa',
-              systemData!.nomeCaixaOperador!,
-              Icons.point_of_sale,
-              colorScheme,
-              theme,
-              fullWidth: true,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPermissionsSection(BuildContext context, ColorScheme colorScheme, ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHigh.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Título da seção
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: colorScheme.secondary, borderRadius: BorderRadius.circular(8)),
-                child: Icon(Icons.security, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Permissões e Acessos',
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, color: colorScheme.onSurface),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Grid de permissões
+          // Grid de informações básicas
           Column(
             children: [
               Row(
                 children: [
                   Expanded(
-                    child: _buildPermissionCard(
-                      context,
-                      'Separações',
-                      'Gerenciar separação de estoque',
-                      Icons.inventory_2,
-                      user.userSystemModel?.canWorkWithSeparations ?? false,
-                      colorScheme,
-                      theme,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildPermissionCard(
-                      context,
-                      'Conferências',
-                      'Realizar conferências',
-                      Icons.checklist,
-                      user.userSystemModel?.canWorkWithConferences ?? false,
-                      colorScheme,
-                      theme,
-                    ),
+                    child: DetailedInfoCard(label: 'Nome Completo', value: user.nome, icon: Icons.account_circle),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 12),
+              if (systemData?.nomeUsuario.isNotEmpty == true) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DetailedInfoCard(
+                        label: 'Nome no Sistema',
+                        value: systemData!.nomeUsuario,
+                        icon: Icons.badge,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
 
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
-                    child: _buildPermissionCard(
-                      context,
-                      'Carrinhos',
-                      'Gerenciar carrinhos de outros',
-                      Icons.shopping_cart,
-                      user.userSystemModel?.canManageOtherCarts ?? false,
-                      colorScheme,
-                      theme,
+                    child: DetailedInfoCard(
+                      label: 'Status',
+                      value: user.isActive ? 'Ativo' : 'Inativo',
+                      icon: user.isActive ? Icons.check_circle : Icons.cancel,
+                      statusColor: user.isActive ? Colors.green : Colors.red,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildPermissionCard(
-                      context,
-                      'Fora Sequência',
-                      'Trabalhar fora da sequência',
-                      Icons.shuffle,
-                      user.userSystemModel?.permiteSepararForaSequencia == Situation.ativo,
-                      colorScheme,
-                      theme,
-                    ),
+                    child: DetailedInfoCard(label: 'ID Login', value: '${user.codLoginApp}', icon: Icons.key),
                   ),
                 ],
               ),
@@ -202,101 +87,188 @@ class UserInfoChips extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-    ColorScheme colorScheme,
-    ThemeData theme, {
-    bool fullWidth = false,
-  }) {
-    return Container(
-      width: fullWidth ? double.infinity : null,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
-        boxShadow: [BoxShadow(color: colorScheme.primary.withOpacity(0.05), offset: const Offset(0, 2))],
-      ),
+  Widget _buildCompanySection(BuildContext context) {
+    final systemData = user.userSystemModel;
+
+    if (systemData == null) {
+      return ErrorProfileSection(
+        child: Row(
+          children: [
+            Icon(Icons.warning, color: Theme.of(context).colorScheme.error, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Dados do sistema não carregados. Faça logout e login novamente.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SecondaryProfileSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          SectionHeader(
+            title: 'Informações Corporativas',
+            icon: Icons.business,
+            iconBackgroundColor: Theme.of(context).colorScheme.secondary,
+            iconColor: Theme.of(context).colorScheme.onSecondary,
           ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface, fontWeight: FontWeight.w700),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+
+          const SizedBox(height: 16),
+
+          // Grid de informações corporativas
+          Column(
+            children: [
+              if (systemData.codEmpresa != null) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: DetailedInfoCard(
+                        label: 'Código da Empresa',
+                        value: '${systemData.codEmpresa}',
+                        icon: Icons.corporate_fare,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              // Setores
+              if (systemData.nomeSetorEstoque != null ||
+                  systemData.nomeSetorConferencia != null ||
+                  systemData.nomeSetorArmazenagem != null) ...[
+                _buildSectorInfo(context, systemData),
+                const SizedBox(height: 12),
+              ],
+
+              // Conta financeira e operador
+              if (systemData.nomeContaFinanceira != null || systemData.nomeCaixaOperador != null) ...[
+                if (systemData.nomeContaFinanceira != null) ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DetailedInfoCard(
+                          label: 'Conta Financeira',
+                          value: systemData.nomeContaFinanceira!,
+                          icon: Icons.account_balance,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                if (systemData.nomeCaixaOperador != null) ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DetailedInfoCard(
+                          label: 'Operador de Caixa',
+                          value: systemData.nomeCaixaOperador!,
+                          icon: Icons.point_of_sale,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPermissionCard(
-    BuildContext context,
-    String title,
-    String description,
-    IconData icon,
-    bool hasPermission,
-    ColorScheme colorScheme,
-    ThemeData theme,
-  ) {
-    final color = hasPermission ? Colors.green : colorScheme.onSurfaceVariant;
-    final backgroundColor = hasPermission
-        ? Colors.green.withOpacity(0.1)
-        : colorScheme.surfaceContainerHighest.withOpacity(0.5);
+  Widget _buildSectorInfo(BuildContext context, dynamic systemData) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
-        boxShadow: hasPermission ? [BoxShadow(color: Colors.green.withOpacity(0.1), offset: const Offset(0, 2))] : null,
+    final sectors = <Map<String, dynamic>>[];
+
+    if (systemData.nomeSetorEstoque != null) {
+      sectors.add({'name': systemData.nomeSetorEstoque!, 'icon': Icons.inventory_2, 'type': 'Estoque'});
+    }
+
+    if (systemData.nomeSetorConferencia != null) {
+      sectors.add({'name': systemData.nomeSetorConferencia!, 'icon': Icons.checklist, 'type': 'Conferência'});
+    }
+
+    if (systemData.nomeSetorArmazenagem != null) {
+      sectors.add({'name': systemData.nomeSetorArmazenagem!, 'icon': Icons.warehouse, 'type': 'Armazenagem'});
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Setores Vinculados',
+          style: theme.textTheme.labelLarge?.copyWith(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        ...sectors.map(
+          (sector) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: DetailedInfoCard(label: sector['type'], value: sector['name'], icon: sector['icon']),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPermissionsSection(BuildContext context) {
+    final systemData = user.userSystemModel;
+
+    if (systemData == null) return const SizedBox.shrink();
+
+    final permissions = [
+      PermissionData(
+        title: 'Separações',
+        description: 'Gerenciar separação de estoque',
+        icon: Icons.inventory_2,
+        hasPermission: systemData.permiteSepararForaSequencia == Situation.ativo,
       ),
+      PermissionData(
+        title: 'Conferências',
+        description: 'Realizar conferências',
+        icon: Icons.checklist,
+        hasPermission: systemData.permiteConferirForaSequencia == Situation.ativo,
+      ),
+      PermissionData(
+        title: 'Visualizar Todas',
+        description: 'Ver todas as separações',
+        icon: Icons.visibility,
+        hasPermission: systemData.visualizaTodasSeparacoes == Situation.ativo,
+      ),
+      PermissionData(
+        title: 'Gerenciar Carrinhos',
+        description: 'Editar carrinhos de outros',
+        icon: Icons.shopping_cart,
+        hasPermission: systemData.editaCarrinhoOutroUsuario == Situation.ativo,
+      ),
+    ];
+
+    return TertiaryProfileSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                child: Icon(icon, size: 18, color: color),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.titleSmall?.copyWith(color: color, fontWeight: FontWeight.w700),
-                ),
-              ),
-              Icon(hasPermission ? Icons.check_circle : Icons.cancel, size: 20, color: color),
-            ],
+          SectionHeader(
+            title: 'Permissões e Acessos',
+            icon: Icons.security,
+            iconBackgroundColor: Theme.of(context).colorScheme.tertiary,
+            iconColor: Theme.of(context).colorScheme.onTertiary,
           ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: theme.textTheme.bodySmall?.copyWith(color: color.withOpacity(0.8), fontWeight: FontWeight.w500),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+
+          const SizedBox(height: 16),
+
+          PermissionsGrid(permissions: permissions),
         ],
       ),
     );

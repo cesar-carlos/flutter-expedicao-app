@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/data/repositories/expedition_sector_stock_repository_impl.dart';
+
 import '../../mocks/expedition_sector_stock_model_mock.dart';
 import '../../core/socket_integration_test_base.dart';
 

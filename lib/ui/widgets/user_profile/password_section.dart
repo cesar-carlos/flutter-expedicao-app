@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:exp/domain/viewmodels/profile_viewmodel.dart';
 import 'package:exp/core/constants/app_strings.dart';
 import 'package:exp/core/theme/app_colors.dart';
+import 'package:exp/ui/widgets/user_profile/widgets/index.dart';
 
 class PasswordSection extends StatefulWidget {
   final ProfileViewModel viewModel;
@@ -33,134 +34,57 @@ class _PasswordSectionState extends State<PasswordSection> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [colorScheme.secondaryContainer.withOpacity(0.3), colorScheme.tertiaryContainer.withOpacity(0.2)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.secondary.withOpacity(0.3)),
-        boxShadow: [BoxShadow(color: colorScheme.secondary.withOpacity(0.1), offset: const Offset(0, 4))],
-      ),
+    return ProfileSectionContainer(
+      margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
-          InkWell(
+          // Header clicável usando ExpandableSectionHeader
+          ExpandableSectionHeader(
+            title: 'Segurança da Conta',
+            subtitle: 'Altere sua senha de acesso ao sistema',
+            icon: Icons.shield_outlined,
+            iconBackgroundColor: colorScheme.errorContainer,
+            iconColor: colorScheme.error,
+            isExpanded: _isPasswordSectionExpanded,
             onTap: () {
               setState(() {
                 _isPasswordSectionExpanded = !_isPasswordSectionExpanded;
               });
             },
-            borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(20),
-              bottom: _isPasswordSectionExpanded ? Radius.zero : const Radius.circular(20),
-            ),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: _isPasswordSectionExpanded
-                    ? LinearGradient(
-                        colors: [colorScheme.secondary.withOpacity(0.15), colorScheme.secondary.withOpacity(0.08)],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      )
-                    : null,
-                borderRadius: BorderRadius.vertical(
-                  top: const Radius.circular(20),
-                  bottom: _isPasswordSectionExpanded ? Radius.zero : const Radius.circular(20),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [colorScheme.secondary, colorScheme.secondary.withOpacity(0.8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [BoxShadow(color: colorScheme.secondary.withOpacity(0.3), offset: const Offset(0, 2))],
-                    ),
-                    child: Icon(Icons.shield_outlined, color: Colors.white, size: 24),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Segurança da Conta',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Altere sua senha de acesso ao sistema',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.7),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: AnimatedRotation(
-                      turns: _isPasswordSectionExpanded ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 300),
-                      child: Icon(Icons.expand_more, color: colorScheme.secondary, size: 20),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
 
+          // Conteúdo expansível
           AnimatedSize(
-            duration: const Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 250),
             curve: Curves.easeInOut,
             child: _isPasswordSectionExpanded
                 ? Container(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                     child: Column(
                       children: [
+                        // Divisor
                         Container(
                           height: 1,
-                          margin: const EdgeInsets.symmetric(vertical: 16),
+                          margin: const EdgeInsets.only(bottom: 20),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [
-                                colorScheme.secondary.withOpacity(0.2),
-                                colorScheme.secondary.withOpacity(0.1),
-                                colorScheme.secondary.withOpacity(0.2),
-                              ],
+                              colors: [Colors.transparent, colorScheme.outline.withOpacity(0.2), Colors.transparent],
                             ),
                           ),
                         ),
 
+                        // Aviso de segurança
                         _buildSecurityWarning(theme, colorScheme),
 
                         const SizedBox(height: 20),
 
-                        _buildCurrentPasswordField(colorScheme),
-
+                        // Campos de senha
+                        _buildCurrentPasswordField(colorScheme, theme),
                         const SizedBox(height: 16),
-
-                        _buildNewPasswordField(colorScheme),
-
+                        _buildNewPasswordField(colorScheme, theme),
                         const SizedBox(height: 16),
-
-                        _buildConfirmPasswordField(colorScheme),
+                        _buildConfirmPasswordField(colorScheme, theme),
                       ],
                     ),
                   )
@@ -175,18 +99,21 @@ class _PasswordSectionState extends State<PasswordSection> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.withOpacity(AppColors.warning, 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.withOpacity(AppColors.warning, 0.3)),
+        color: AppColors.warning.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.warning.withOpacity(0.2)),
       ),
       child: Row(
         children: [
           Icon(Icons.info_outline, color: AppColors.warning, size: 20),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               'Use uma senha forte com pelo menos 4 caracteres',
-              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.warning),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.warning.withOpacity(0.9),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -194,25 +121,19 @@ class _PasswordSectionState extends State<PasswordSection> {
     );
   }
 
-  Widget _buildCurrentPasswordField(ColorScheme colorScheme) {
-    return TextFormField(
+  Widget _buildCurrentPasswordField(ColorScheme colorScheme, ThemeData theme) {
+    return _buildPasswordField(
       controller: widget.currentPasswordController,
+      labelText: AppStrings.currentPasswordLabel,
+      hintText: AppStrings.currentPasswordHint,
+      prefixIcon: Icons.lock_outline,
       obscureText: !_showCurrentPassword,
+      onVisibilityToggle: () {
+        setState(() {
+          _showCurrentPassword = !_showCurrentPassword;
+        });
+      },
       onChanged: widget.viewModel.setCurrentPassword,
-      decoration: InputDecoration(
-        labelText: AppStrings.currentPasswordLabel,
-        hintText: AppStrings.currentPasswordHint,
-        prefixIcon: const Icon(Icons.lock_outline),
-        suffixIcon: IconButton(
-          icon: Icon(_showCurrentPassword ? Icons.visibility : Icons.visibility_off),
-          onPressed: () {
-            setState(() {
-              _showCurrentPassword = !_showCurrentPassword;
-            });
-          },
-        ),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
       validator: (value) {
         if (widget.newPasswordController.text.isNotEmpty) {
           if (value == null || value.isEmpty) {
@@ -221,56 +142,48 @@ class _PasswordSectionState extends State<PasswordSection> {
         }
         return null;
       },
+      colorScheme: colorScheme,
+      theme: theme,
     );
   }
 
-  Widget _buildNewPasswordField(ColorScheme colorScheme) {
-    return TextFormField(
+  Widget _buildNewPasswordField(ColorScheme colorScheme, ThemeData theme) {
+    return _buildPasswordField(
       controller: widget.newPasswordController,
+      labelText: AppStrings.newPasswordLabel,
+      hintText: AppStrings.newPasswordHint,
+      prefixIcon: Icons.lock_reset,
       obscureText: !_showNewPassword,
+      onVisibilityToggle: () {
+        setState(() {
+          _showNewPassword = !_showNewPassword;
+        });
+      },
       onChanged: widget.viewModel.setNewPassword,
-      decoration: InputDecoration(
-        labelText: AppStrings.newPasswordLabel,
-        hintText: AppStrings.newPasswordHint,
-        prefixIcon: const Icon(Icons.lock_reset),
-        suffixIcon: IconButton(
-          icon: Icon(_showNewPassword ? Icons.visibility : Icons.visibility_off),
-          onPressed: () {
-            setState(() {
-              _showNewPassword = !_showNewPassword;
-            });
-          },
-        ),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
       validator: (value) {
         if (value != null && value.isNotEmpty && value.length < 4) {
           return AppStrings.passwordMinLengthProfile;
         }
         return null;
       },
+      colorScheme: colorScheme,
+      theme: theme,
     );
   }
 
-  Widget _buildConfirmPasswordField(ColorScheme colorScheme) {
-    return TextFormField(
+  Widget _buildConfirmPasswordField(ColorScheme colorScheme, ThemeData theme) {
+    return _buildPasswordField(
       controller: widget.confirmPasswordController,
+      labelText: AppStrings.confirmNewPasswordLabel,
+      hintText: AppStrings.confirmNewPasswordHint,
+      prefixIcon: Icons.verified_user,
       obscureText: !_showConfirmPassword,
+      onVisibilityToggle: () {
+        setState(() {
+          _showConfirmPassword = !_showConfirmPassword;
+        });
+      },
       onChanged: widget.viewModel.setConfirmPassword,
-      decoration: InputDecoration(
-        labelText: AppStrings.confirmNewPasswordLabel,
-        hintText: AppStrings.confirmNewPasswordHint,
-        prefixIcon: const Icon(Icons.verified_user),
-        suffixIcon: IconButton(
-          icon: Icon(_showConfirmPassword ? Icons.visibility : Icons.visibility_off),
-          onPressed: () {
-            setState(() {
-              _showConfirmPassword = !_showConfirmPassword;
-            });
-          },
-        ),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
       validator: (value) {
         if (widget.newPasswordController.text.isNotEmpty) {
           if (value != widget.newPasswordController.text) {
@@ -279,6 +192,52 @@ class _PasswordSectionState extends State<PasswordSection> {
         }
         return null;
       },
+      colorScheme: colorScheme,
+      theme: theme,
+    );
+  }
+
+  Widget _buildPasswordField({
+    required TextEditingController controller,
+    required String labelText,
+    required String hintText,
+    required IconData prefixIcon,
+    required bool obscureText,
+    required VoidCallback onVisibilityToggle,
+    required Function(String?) onChanged,
+    required String? Function(String?) validator,
+    required ColorScheme colorScheme,
+    required ThemeData theme,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      onChanged: onChanged,
+      style: theme.textTheme.bodyMedium,
+      decoration: InputDecoration(
+        labelText: labelText,
+        hintText: hintText,
+        prefixIcon: Icon(prefixIcon, color: colorScheme.onSurfaceVariant),
+        suffixIcon: IconButton(
+          icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility, color: colorScheme.onSurfaceVariant),
+          onPressed: onVisibilityToggle,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.3)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+        ),
+        filled: true,
+        fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      ),
+      validator: validator,
     );
   }
 }

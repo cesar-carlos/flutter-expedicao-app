@@ -1,3 +1,5 @@
+import 'package:exp/domain/models/situation_model.dart';
+
 class CartsFiltersModel {
   final String? codCarrinho;
   final String? nomeCarrinho;
@@ -6,7 +8,7 @@ class CartsFiltersModel {
   final String? nomeUsuarioInicio;
   final DateTime? dataInicioInicial;
   final DateTime? dataInicioFinal;
-  final String? carrinhoAgrupador;
+  final Situation carrinhoAgrupador;
 
   const CartsFiltersModel({
     this.codCarrinho,
@@ -16,7 +18,7 @@ class CartsFiltersModel {
     this.nomeUsuarioInicio,
     this.dataInicioInicial,
     this.dataInicioFinal,
-    this.carrinhoAgrupador,
+    this.carrinhoAgrupador = Situation.inativo,
   });
 
   factory CartsFiltersModel.fromJson(Map<String, dynamic> json) {
@@ -28,7 +30,9 @@ class CartsFiltersModel {
       nomeUsuarioInicio: json['nomeUsuarioInicio'],
       dataInicioInicial: json['dataInicioInicial'] != null ? DateTime.parse(json['dataInicioInicial']) : null,
       dataInicioFinal: json['dataInicioFinal'] != null ? DateTime.parse(json['dataInicioFinal']) : null,
-      carrinhoAgrupador: json['carrinhoAgrupador'],
+      carrinhoAgrupador: json['carrinhoAgrupador'] != null
+          ? Situation.fromCodeWithFallback(json['carrinhoAgrupador'])
+          : Situation.inativo,
     );
   }
 
@@ -41,7 +45,7 @@ class CartsFiltersModel {
       'nomeUsuarioInicio': nomeUsuarioInicio,
       'dataInicioInicial': dataInicioInicial?.toIso8601String(),
       'dataInicioFinal': dataInicioFinal?.toIso8601String(),
-      'carrinhoAgrupador': carrinhoAgrupador,
+      'carrinhoAgrupador': carrinhoAgrupador.code,
     };
   }
 
@@ -53,7 +57,7 @@ class CartsFiltersModel {
       nomeUsuarioInicio == null &&
       dataInicioInicial == null &&
       dataInicioFinal == null &&
-      carrinhoAgrupador == null;
+      carrinhoAgrupador == Situation.inativo;
 
   bool get isNotEmpty => !isEmpty;
 
@@ -65,7 +69,7 @@ class CartsFiltersModel {
     String? nomeUsuarioInicio,
     DateTime? dataInicioInicial,
     DateTime? dataInicioFinal,
-    String? carrinhoAgrupador,
+    Situation? carrinhoAgrupador,
   }) {
     return CartsFiltersModel(
       codCarrinho: codCarrinho ?? this.codCarrinho,
@@ -93,7 +97,7 @@ class CartsFiltersModel {
         'nomeUsuarioInicio: $nomeUsuarioInicio, '
         'dataInicioInicial: $dataInicioInicial, '
         'dataInicioFinal: $dataInicioFinal, '
-        'carrinhoAgrupador: $carrinhoAgrupador'
+        'carrinhoAgrupador: ${carrinhoAgrupador.code} (${carrinhoAgrupador.description})'
         ')';
   }
 

@@ -43,7 +43,10 @@ class UserSystemApiService extends BaseApiService {
       final response = await get(_baseEndpoint, queryParameters: {'CodUsuario': codUsuario});
 
       if (response.data != null && response.data is Map<String, dynamic>) {
-        return UserSystemModel.fromJson(response.data);
+        final data = response.data as Map<String, dynamic>;
+        if (data.containsKey('data') && data['data'] is Map<String, dynamic>) {
+          return UserSystemModel.fromJson(data['data'] as Map<String, dynamic>);
+        }
       }
       return null;
     } on UserApiException catch (e) {

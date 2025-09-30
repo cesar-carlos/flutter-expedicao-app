@@ -1,13 +1,13 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 
+import 'package:exp/ui/widgets/card_picking/widgets/index.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
+import 'package:exp/core/services/audio_service.dart';
+import 'package:exp/di/locator.dart';
 
 class PickingCardScan extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -27,6 +27,7 @@ class _PickingCardScanState extends State<PickingCardScan> {
 
   Timer? _scanTimer;
   bool _keyboardEnabled = false; // Estado do teclado
+  final AudioService _audioService = locator<AudioService>();
 
   @override
   void initState() {
@@ -45,15 +46,24 @@ class _PickingCardScanState extends State<PickingCardScan> {
     // Cancelar timer anterior se existir
     _scanTimer?.cancel();
 
-    // Criar novo timer que dispara após 300ms de inatividade
-    // (indicando que o scanner terminou de enviar o código)
-    // Só funciona quando teclado está desabilitado (modo scanner)
-    if (_scanController.text.isNotEmpty && !_keyboardEnabled) {
-      _scanTimer = Timer(const Duration(milliseconds: 300), () {
+    // Diferentes estratégias para scanner vs teclado
+    if (!_keyboardEnabled && _scanController.text.isNotEmpty) {
+      // Modo scanner: usar timer para detectar fim da entrada
+      _scanTimer = Timer(const Duration(milliseconds: 500), () {
         if (_scanController.text.isNotEmpty) {
           _onBarcodeScanned(_scanController.text);
         }
       });
+    }
+
+    // Detectar códigos de barras comuns (8-14 dígitos) automaticamente
+    if (!_keyboardEnabled && _scanController.text.length >= 8) {
+      final text = _scanController.text.trim();
+      // Verificar se parece com um código de barras (apenas números)
+      if (RegExp(r'^\d{8,14}$').hasMatch(text)) {
+        _scanTimer?.cancel();
+        _onBarcodeScanned(text);
+      }
     }
   }
 
@@ -62,7 +72,7 @@ class _PickingCardScanState extends State<PickingCardScan> {
       _keyboardEnabled = !_keyboardEnabled;
     });
 
-    // Forçar foco e abrir teclado quando necessário
+    // Forçar foco e controlar teclado quando necessário
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_keyboardEnabled) {
         // Perder foco primeiro, depois recuperar para forçar o teclado
@@ -71,22 +81,15 @@ class _PickingCardScanState extends State<PickingCardScan> {
           _scanFocusNode.requestFocus();
         });
       } else {
-        _scanFocusNode.requestFocus();
+        // Fechar teclado virtual primeiro
+        _scanFocusNode.unfocus();
+        FocusScope.of(context).unfocus(); // Garantir que teclado feche
+        // Depois manter foco para receber dados do scanner físico
+        Future.delayed(const Duration(milliseconds: 200), () {
+          _scanFocusNode.requestFocus();
+        });
       }
     });
-
-    // Mostrar feedback
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _keyboardEnabled
-              ? 'Modo teclado ativado - Digite o código manualmente'
-              : 'Modo scanner ativado - Use o scanner integrado',
-        ),
-        backgroundColor: _keyboardEnabled ? Colors.blue : Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
   @override
@@ -102,8 +105,6 @@ class _PickingCardScanState extends State<PickingCardScan> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Padding(
@@ -114,439 +115,26 @@ class _PickingCardScanState extends State<PickingCardScan> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Resumo de separação ordenado por endereço
-            _buildSeparationSummary(context, theme, colorScheme),
+            // Card do próximo item
+            NextItemCard(viewModel: widget.viewModel),
 
             const SizedBox(height: 6),
 
-            // Campo de entrada do scanner
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: colorScheme.primary.withOpacity(0.3), width: 2),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.barcode_reader, color: colorScheme.primary, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Escaneie o código de barras',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                      const Spacer(),
-                      Consumer<SocketViewModel>(
-                        builder: (context, socketViewModel, child) {
-                          final isConnected = socketViewModel.isConnected;
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: (isConnected ? Colors.green : Colors.red).withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  isConnected ? Icons.wifi : Icons.wifi_off,
-                                  color: isConnected ? Colors.green : Colors.red,
-                                  size: 14,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  socketViewModel.connectionStateDescription,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: isConnected ? Colors.green : Colors.red,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _scanController,
-                    focusNode: _scanFocusNode,
-                    autofocus: true,
-                    readOnly: !_keyboardEnabled,
-                    keyboardType: _keyboardEnabled ? TextInputType.number : TextInputType.none,
-                    decoration: InputDecoration(
-                      hintText: _keyboardEnabled ? 'Digite o código...' : 'Aguardando scanner',
-                      prefixIcon: IconButton(
-                        icon: Icon(
-                          _keyboardEnabled ? Icons.keyboard : Icons.qr_code_scanner,
-                          color: colorScheme.primary,
-                        ),
-                        onPressed: _toggleKeyboard,
-                        tooltip: _keyboardEnabled ? 'Usar scanner' : 'Usar teclado',
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
-                        onPressed: () {
-                          _scanController.clear();
-                          _scanFocusNode.requestFocus();
-                        },
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: colorScheme.outline),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                      ),
-                      filled: true,
-                      fillColor: colorScheme.surface,
-                    ),
-                    onSubmitted: _onBarcodeScanned,
-                    textInputAction: TextInputAction.done,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _keyboardEnabled
-                        ? 'Digite o código de barras e pressione Enter'
-                        : 'Posicione o produto no scanner ou toque no ícone para usar o teclado',
-                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                  ),
-                ],
-              ),
-            ),
+            // Card de seleção de quantidade
+            QuantitySelectorCard(controller: _quantityController, focusNode: _quantityFocusNode),
 
             const SizedBox(height: 6),
 
-            // Campo de quantidade
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange.withOpacity(0.3), width: 2),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.inventory, color: Colors.orange, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Quantidade a Separar',
-                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.orange),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      // Botão diminuir
-                      IconButton(
-                        onPressed: () {
-                          final currentValue = int.tryParse(_quantityController.text) ?? 1;
-                          if (currentValue > 1) {
-                            _quantityController.text = (currentValue - 1).toString();
-                          }
-                        },
-                        icon: Icon(Icons.remove, color: Colors.orange),
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.orange.withOpacity(0.1),
-                          shape: CircleBorder(),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Campo de quantidade
-                      Expanded(
-                        child: TextField(
-                          controller: _quantityController,
-                          focusNode: _quantityFocusNode,
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                            hintText: '1',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.orange),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.orange, width: 2),
-                            ),
-                            filled: true,
-                            fillColor: Colors.orange.withOpacity(0.05),
-                          ),
-                          onChanged: (value) {
-                            // Validar que seja um número positivo
-                            final intValue = int.tryParse(value);
-                            if (intValue == null || intValue < 1) {
-                              _quantityController.text = '1';
-                              _quantityController.selection = TextSelection.fromPosition(
-                                TextPosition(offset: _quantityController.text.length),
-                              );
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Botão aumentar
-                      IconButton(
-                        onPressed: () {
-                          final currentValue = int.tryParse(_quantityController.text) ?? 1;
-                          _quantityController.text = (currentValue + 1).toString();
-                        },
-                        icon: Icon(Icons.add, color: Colors.orange),
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.orange.withOpacity(0.1),
-                          shape: CircleBorder(),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Defina a quantidade que será separada quando escanear o produto',
-                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                  ),
-                ],
-              ),
+            // Card do scanner de código de barras
+            BarcodeScannerCard(
+              controller: _scanController,
+              focusNode: _scanFocusNode,
+              keyboardEnabled: _keyboardEnabled,
+              onToggleKeyboard: _toggleKeyboard,
+              onSubmitted: _onBarcodeScanned,
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildSeparationSummary(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
-    // Ordenar produtos por enderecoDescricao
-    final sortedItems = List.from(widget.viewModel.items)
-      ..sort((a, b) => (a.enderecoDescricao ?? '').compareTo(b.enderecoDescricao ?? ''));
-
-    // Encontrar o próximo item a ser separado (primeiro não completo)
-    final nextItem = sortedItems.where((item) => !widget.viewModel.isItemCompleted(item.item)).firstOrNull;
-
-    // Contar itens completos e totais
-    final completedCount = sortedItems.where((item) => widget.viewModel.isItemCompleted(item.item)).length;
-    final totalCount = sortedItems.length;
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.primary.withOpacity(0.3), width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            children: [
-              Icon(Icons.my_location, color: colorScheme.primary, size: 24),
-              const SizedBox(width: 8),
-              Text(
-                'Próximo Item',
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: completedCount == totalCount
-                      ? Colors.green.withOpacity(0.2)
-                      : colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '$completedCount/$totalCount',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: completedCount == totalCount ? Colors.green.shade700 : colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 6),
-
-          // Produto atual
-          if (nextItem != null) ...[
-            const SizedBox(height: 6),
-
-            // Endereço destacado
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(8)),
-              child: Row(
-                children: [
-                  Icon(Icons.location_on, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      nextItem.enderecoDescricao ?? 'Endereço não definido',
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 6),
-
-            // Informações do produto
-            Text(
-              'Produto',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              nextItem.nomeProduto,
-              style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-
-            const SizedBox(height: 6),
-
-            // Detalhes em grid
-            IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: _buildDetailItem(theme, colorScheme, 'Unidade', nextItem.codUnidadeMedida, Icons.straighten),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 1,
-                    child: _buildDetailItem(
-                      theme,
-                      colorScheme,
-                      'Quantidade',
-                      '${widget.viewModel.getPickedQuantity(nextItem.item)}/${nextItem.quantidade}',
-                      Icons.inventory_2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 6),
-
-            // Código de barras se disponível
-            if (nextItem.codigoBarras != null && nextItem.codigoBarras!.isNotEmpty) ...[
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.qr_code, color: colorScheme.onSurfaceVariant, size: 16),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        nextItem.codigoBarras!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontFamily: 'monospace',
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ] else ...[
-            // Todos os itens foram separados
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.withOpacity(0.3), width: 2),
-              ),
-              child: Column(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green, size: 48),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Separação Concluída!',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green.shade700,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Todos os itens foram separados com sucesso.',
-                    style: theme.textTheme.bodyMedium?.copyWith(color: Colors.green.shade600),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailItem(ThemeData theme, ColorScheme colorScheme, String label, String value, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  label,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-        ],
       ),
     );
   }
@@ -557,23 +145,37 @@ class _PickingCardScanState extends State<PickingCardScan> {
     // Obter a quantidade informada
     final quantity = int.tryParse(_quantityController.text) ?? 1;
 
-    // Buscar o produto pelo código de barras
-    final items = widget.viewModel.items;
-    SeparateItemConsultationModel? foundItem;
+    // Ordenar produtos por enderecoDescricao para obter sequência correta
+    final items = List.from(widget.viewModel.items)
+      ..sort((a, b) => (a.enderecoDescricao ?? '').compareTo(b.enderecoDescricao ?? ''));
 
-    for (final item in items) {
-      if (item.codigoBarras != null && item.codigoBarras!.trim().toLowerCase() == barcode.trim().toLowerCase()) {
-        foundItem = item;
-        break;
-      }
+    // Encontrar o próximo item a ser separado (primeiro não completo)
+    final nextItem = items.where((item) => !widget.viewModel.isItemCompleted(item.item)).firstOrNull;
+
+    if (nextItem == null) {
+      // Reproduzir som de alerta para todos os itens completos
+      _audioService.playAlert();
+      _showAllItemsCompletedDialog();
+      _scanController.clear();
+      _scanFocusNode.requestFocus();
+      return;
     }
 
-    if (foundItem != null) {
-      // Produto encontrado - adicionar na separação via use case
-      await _addItemToSeparation(foundItem, barcode, quantity);
+    // Verificar se o código bipado corresponde ao próximo item
+    final trimmedBarcode = barcode.trim().toLowerCase();
+    final expectedBarcode1 = nextItem.codigoBarras?.trim().toLowerCase();
+    final expectedBarcode2 = nextItem.codigoBarras2?.trim().toLowerCase();
+
+    final isCorrectBarcode =
+        (expectedBarcode1 != null && expectedBarcode1 == trimmedBarcode) ||
+        (expectedBarcode2 != null && expectedBarcode2 == trimmedBarcode);
+
+    if (isCorrectBarcode) {
+      await _addItemToSeparation(nextItem, barcode, quantity);
     } else {
-      // Produto não encontrado
-      _showProductNotFoundDialog(barcode);
+      // Reproduzir som de erro para produto errado
+      _audioService.playError();
+      _showWrongProductDialog(barcode, nextItem);
     }
 
     // Limpar o campo e manter o foco
@@ -583,9 +185,6 @@ class _PickingCardScanState extends State<PickingCardScan> {
 
   /// Adiciona item escaneado na separação via use case
   Future<void> _addItemToSeparation(SeparateItemConsultationModel item, String barcode, int quantity) async {
-    final currentPicked = widget.viewModel.getPickedQuantity(item.item);
-    final maxQuantity = item.quantidade.toInt();
-
     // Mostrar loading
     showDialog(
       context: context,
@@ -601,9 +200,21 @@ class _PickingCardScanState extends State<PickingCardScan> {
       if (mounted) Navigator.of(context).pop();
 
       if (result.isSuccess) {
-        // Sucesso - mostrar feedback positivo
-        _showSuccessDialog(item, quantity, currentPicked + quantity, maxQuantity);
+        // Reproduzir som de scan bem-sucedido e feedback tátil
+        _audioService.playBarcodeScan();
+        _provideTactileFeedback();
+
+        // Resetar quantidade para 1 se estiver maior que 1
+        if (_quantityController.text.isNotEmpty && int.tryParse(_quantityController.text) != null) {
+          final currentQuantity = int.parse(_quantityController.text);
+          if (currentQuantity > 1) {
+            _quantityController.text = '1';
+          }
+        }
       } else {
+        // Reproduzir som de erro
+        _audioService.playError();
+
         // Erro - mostrar mensagem de erro
         _showErrorDialog(item, result.message, barcode);
       }
@@ -611,83 +222,21 @@ class _PickingCardScanState extends State<PickingCardScan> {
       // Fechar loading
       if (mounted) Navigator.of(context).pop();
 
+      // Reproduzir som de erro
+      _audioService.playError();
+
       // Mostrar erro inesperado
       _showErrorDialog(item, 'Erro inesperado: ${e.toString()}', barcode);
     }
   }
 
-  void _showSuccessDialog(SeparateItemConsultationModel item, int quantity, int newTotal, int maxQuantity) {
-    final theme = Theme.of(context);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 24),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Item Adicionado!', overflow: TextOverflow.ellipsis)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Produto: ${item.nomeProduto}',
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text('Endereço: ${item.enderecoDescricao}', style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green.withOpacity(0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Quantidade adicionada:', style: theme.textTheme.bodySmall),
-                      Text(
-                        '+$quantity',
-                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.green),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Total separado:', style: theme.textTheme.bodySmall),
-                      Text(
-                        '$newTotal / $maxQuantity',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: newTotal >= maxQuantity ? Colors.green : Colors.orange,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+  void _provideTactileFeedback() {
+    try {
+      // Feedback tátil leve para confirmar sucesso
+      HapticFeedback.lightImpact();
+    } catch (e) {
+      // Ignorar se não suportado no dispositivo
+    }
   }
 
   void _showErrorDialog(SeparateItemConsultationModel item, String errorMessage, String barcode) {
@@ -727,15 +276,15 @@ class _PickingCardScanState extends State<PickingCardScan> {
     );
   }
 
-  void _showProductNotFoundDialog(String barcode) {
+  void _showWrongProductDialog(String barcode, SeparateItemConsultationModel expectedItem) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.error_outline, color: Colors.red, size: 24),
+            Icon(Icons.warning, color: Colors.orange, size: 24),
             const SizedBox(width: 8),
-            const Expanded(child: Text('Produto Não Encontrado', overflow: TextOverflow.ellipsis, maxLines: 1)),
+            const Expanded(child: Text('Produto Incorreto', overflow: TextOverflow.ellipsis, maxLines: 1)),
           ],
         ),
         content: Column(
@@ -743,15 +292,60 @@ class _PickingCardScanState extends State<PickingCardScan> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Código escaneado: $barcode'),
-            const SizedBox(height: 6),
-            const Text('Este produto não está na lista de itens para separação.'),
-            const SizedBox(height: 6),
-            const Text('Verifique se:'),
-            const Text('• O código está correto'),
-            const Text('• O produto faz parte desta separação'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Próximo produto esperado:',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+                  ),
+                  const SizedBox(height: 6),
+                  Text('📍 ${expectedItem.enderecoDescricao}'),
+                  Text('📦 ${expectedItem.nomeProduto}'),
+                  if (expectedItem.codigoBarras != null) Text('🏷️ ${expectedItem.codigoBarras}'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text('Escaneie o produto correto da sequência de separação.'),
           ],
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar'))],
+        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Entendi'))],
+      ),
+    );
+  }
+
+  void _showAllItemsCompletedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 24),
+            const SizedBox(width: 8),
+            const Expanded(child: Text('Separação Completa!', overflow: TextOverflow.ellipsis, maxLines: 1)),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('🎉 Parabéns! Todos os itens foram separados com sucesso.'),
+            SizedBox(height: 12),
+            Text('Você pode:'),
+            Text('• Revisar os itens separados no menu'),
+            Text('• Finalizar a separação'),
+          ],
+        ),
+        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
       ),
     );
   }

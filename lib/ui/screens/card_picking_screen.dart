@@ -7,8 +7,8 @@ import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/ui/widgets/card_picking/picking_actions_bottom_bar.dart';
 import 'package:exp/ui/widgets/card_picking/picking_card_scan.dart';
-import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 import 'package:exp/ui/screens/picking_products_list_screen.dart';
+import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 
 class CardPickingScreen extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -186,7 +186,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
           children: [
             Icon(Icons.shopping_cart, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 8),
-            const Text('Informações do Carrinho'),
+            const Expanded(child: Text('Informações do Carrinho', overflow: TextOverflow.ellipsis)),
           ],
         ),
         content: Column(

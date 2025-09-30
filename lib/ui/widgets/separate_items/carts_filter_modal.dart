@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
 import 'package:exp/domain/models/carts_filters_model.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/domain/models/situation_model.dart';
 
 /// Modal para filtros da aba de carrinhos
 class CartsFilterModal extends StatefulWidget {
@@ -20,7 +21,7 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
   late TextEditingController _codigoBarrasCarrinhoController;
   late TextEditingController _nomeUsuarioInicioController;
   String? _selectedSituacao;
-  String? _selectedCarrinhoAgrupador;
+  Situation? _selectedCarrinhoAgrupador;
   DateTime? _dataInicioInicial;
   DateTime? _dataInicioFinal;
 
@@ -35,7 +36,9 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
     );
     _nomeUsuarioInicioController = TextEditingController(text: widget.viewModel.cartsFilters.nomeUsuarioInicio ?? '');
     _selectedSituacao = widget.viewModel.cartsFilters.situacao;
-    _selectedCarrinhoAgrupador = widget.viewModel.cartsFilters.carrinhoAgrupador;
+    _selectedCarrinhoAgrupador = widget.viewModel.cartsFilters.carrinhoAgrupador == Situation.inativo
+        ? null
+        : widget.viewModel.cartsFilters.carrinhoAgrupador;
     _dataInicioInicial = widget.viewModel.cartsFilters.dataInicioInicial;
     _dataInicioFinal = widget.viewModel.cartsFilters.dataInicioFinal;
   }
@@ -178,17 +181,18 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
                 const SizedBox(height: 16),
 
                 // Carrinho Agrupador
-                DropdownButtonFormField<String>(
+                DropdownButtonFormField<Situation>(
                   initialValue: _selectedCarrinhoAgrupador,
                   decoration: const InputDecoration(
                     labelText: 'Carrinho Agrupador',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.group_work),
                   ),
-                  items: const [
-                    DropdownMenuItem<String>(value: null, child: Text('Todos')),
-                    DropdownMenuItem<String>(value: 'S', child: Text('Sim')),
-                    DropdownMenuItem<String>(value: 'N', child: Text('Não')),
+                  items: [
+                    const DropdownMenuItem<Situation>(value: null, child: Text('Todos')),
+                    ...Situation.values.map(
+                      (situation) => DropdownMenuItem<Situation>(value: situation, child: Text(situation.description)),
+                    ),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -327,7 +331,7 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
           : null,
       dataInicioInicial: _dataInicioInicial,
       dataInicioFinal: _dataInicioFinal,
-      carrinhoAgrupador: _selectedCarrinhoAgrupador,
+      carrinhoAgrupador: _selectedCarrinhoAgrupador ?? Situation.inativo,
     );
 
     Navigator.of(context).pop();

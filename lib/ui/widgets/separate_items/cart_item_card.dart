@@ -478,22 +478,20 @@ class CartItemCard extends StatelessWidget {
             const SizedBox(height: 8),
           ],
 
-          // Segunda linha: Botões Cancelar e Finalizar lado a lado
+          // Segunda linha: Botão Cancelar (ícone) e Finalizar lado a lado
           if (cart.situacao == ExpeditionCartSituation.separando) ...[
             Row(
               children: [
-                // Botão Cancelar
-                Expanded(
-                  child: viewModel != null
-                      ? _buildCancelButton(context, theme, colorScheme, viewModel!)
-                      : Consumer<SeparateItemsViewModel>(
-                          builder: (context, vm, child) {
-                            return _buildCancelButton(context, theme, colorScheme, vm);
-                          },
-                        ),
-                ),
+                // Botão Cancelar (apenas ícone)
+                viewModel != null
+                    ? _buildCancelIconButton(context, theme, colorScheme, viewModel!)
+                    : Consumer<SeparateItemsViewModel>(
+                        builder: (context, vm, child) {
+                          return _buildCancelIconButton(context, theme, colorScheme, vm);
+                        },
+                      ),
                 const SizedBox(width: 8),
-                // Botão Finalizar
+                // Botão Finalizar (ocupa o resto do espaço)
                 Expanded(
                   child: CustomFlatButtonVariations.outlined(
                     text: 'Finalizar',
@@ -525,7 +523,7 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCancelButton(
+  Widget _buildCancelIconButton(
     BuildContext context,
     ThemeData theme,
     ColorScheme colorScheme,
@@ -533,13 +531,30 @@ class CartItemCard extends StatelessWidget {
   ) {
     final isCancelling = viewModel.isCartBeingCancelled(cart.codCarrinho);
 
-    return CustomFlatButtonVariations.outlined(
-      text: isCancelling ? 'Cancelando...' : 'Cancelar',
-      icon: isCancelling ? null : Icons.cancel_outlined,
-      textColor: colorScheme.error,
-      borderColor: colorScheme.error.withOpacity(0.3),
-      onPressed: isCancelling ? null : () => _showCancelDialog(context),
-      isLoading: isCancelling,
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.error.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.transparent,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: isCancelling ? null : () => _showCancelDialog(context),
+          child: Center(
+            child: isCancelling
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.error),
+                  )
+                : Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
+          ),
+        ),
+      ),
     );
   }
 

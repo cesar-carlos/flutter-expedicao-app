@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/domain/viewmodels/profile_viewmodel.dart';
-import 'editable_avatar.dart';
+import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/ui/widgets/user_profile/editable_avatar.dart';
+import 'package:exp/ui/widgets/user_profile/widgets/index.dart';
 
 class ProfileHeader extends StatelessWidget {
   final ProfileViewModel viewModel;
@@ -21,105 +23,148 @@ class ProfileHeader extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [colorScheme.primary.withOpacity(0.1), colorScheme.secondary.withOpacity(0.05)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: colorScheme.primary.withOpacity(0.2), width: 1),
-        boxShadow: [BoxShadow(color: colorScheme.primary.withOpacity(0.1), offset: const Offset(0, 8))],
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.08),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: Column(
         children: [
-          // Header principal com avatar e nome
+          // Header com gradiente sutil
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [colorScheme.primary.withOpacity(0.15), colorScheme.primary.withOpacity(0.08)],
+                colors: [colorScheme.primaryContainer.withOpacity(0.1), colorScheme.surface],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
-              borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
             ),
             child: Column(
               children: [
-                // Avatar com anel de status
-                Stack(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: user.isActive
-                              ? [Colors.green.shade400, Colors.green.shade600]
-                              : [Colors.grey.shade400, Colors.grey.shade600],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: EditableAvatar(viewModel: viewModel),
-                    ),
-                    // Badge de status
-                    Positioned(
-                      bottom: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: user.isActive ? Colors.green : Colors.grey,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: colorScheme.surface, width: 3),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), offset: const Offset(0, 2))],
-                        ),
-                        child: Icon(user.isActive ? Icons.check : Icons.close, size: 12, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
+                // Avatar com design limpo
+                _buildAvatar(user, colorScheme),
 
                 const SizedBox(height: 20),
 
                 // Nome do usuário
                 Text(
-                  user.nome.toUpperCase(),
+                  user.nome,
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: colorScheme.onPrimaryContainer,
-                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
                   ),
                   textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
 
                 const SizedBox(height: 8),
 
-                // Cargo/Função (se disponível)
-                if (user.userSystemModel?.nomeContaFinanceira != null)
+                // Nome do sistema (se diferente)
+                if (user.userSystemModel?.nomeUsuario.isNotEmpty == true &&
+                    user.userSystemModel!.nomeUsuario != user.nome) ...[
                   Text(
-                    user.userSystemModel!.nomeContaFinanceira!,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onPrimaryContainer.withOpacity(0.8),
+                    user.userSystemModel!.nomeUsuario,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
                       fontStyle: FontStyle.italic,
                     ),
                     textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 8),
+                ],
 
-                const SizedBox(height: 16),
+                // Função/Cargo
+                if (user.userSystemModel?.nomeContaFinanceira != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
+                    ),
+                    child: Text(
+                      user.userSystemModel!.nomeContaFinanceira!,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ],
+            ),
+          ),
 
-                // IDs profissionais
+          // Seção de informações básicas
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // IDs em grid responsivo
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildIdChip(context, 'ID', '${user.codLoginApp}', Icons.badge, colorScheme),
-                    if (user.codUsuario != null) ...[
-                      const SizedBox(width: 12),
-                      _buildIdChip(context, 'CÓDIGO', '${user.codUsuario}', Icons.person, colorScheme),
-                    ],
+                    Expanded(
+                      child: InfoCard(label: 'ID Login', value: '${user.codLoginApp}', icon: Icons.badge),
+                    ),
+                    const SizedBox(width: 12),
+                    if (user.codUsuario != null)
+                      Expanded(
+                        child: InfoCard(label: 'Código', value: '${user.codUsuario}', icon: Icons.person),
+                      ),
                   ],
                 ),
+
+                const SizedBox(height: 12),
+
+                // Status em linha
+                Row(
+                  children: [
+                    Expanded(
+                      child: StatusChip(
+                        label: 'Login',
+                        status: user.ativo == Situation.ativo ? 'Ativo' : 'Inativo',
+                        isActive: user.ativo == Situation.ativo,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    if (user.userSystemModel != null)
+                      Expanded(
+                        child: StatusChip(
+                          label: 'Sistema',
+                          status: user.userSystemModel!.ativo == Situation.ativo ? 'Ativo' : 'Inativo',
+                          isActive: user.userSystemModel!.ativo == Situation.ativo,
+                        ),
+                      ),
+                  ],
+                ),
+
+                // Empresa (se disponível)
+                if (user.userSystemModel?.codEmpresa != null) ...[
+                  const SizedBox(height: 12),
+                  InfoCard(
+                    label: 'Empresa',
+                    value: '${user.userSystemModel!.codEmpresa}',
+                    icon: Icons.business,
+                    fullWidth: true,
+                  ),
+                ],
               ],
             ),
           ),
@@ -128,26 +173,34 @@ class ProfileHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildIdChip(BuildContext context, String label, String value, IconData icon, ColorScheme colorScheme) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.primary.withOpacity(0.3), width: 1),
-        boxShadow: [BoxShadow(color: colorScheme.primary.withOpacity(0.1), offset: const Offset(0, 2))],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: colorScheme.primary),
-          const SizedBox(width: 6),
-          Text(
-            '$label: $value',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colorScheme.primary, letterSpacing: 0.5),
+  Widget _buildAvatar(dynamic user, ColorScheme colorScheme) {
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: user.isActive ? Colors.green.shade100 : Colors.grey.shade200,
+            border: Border.all(color: user.isActive ? Colors.green.shade300 : Colors.grey.shade400, width: 2),
           ),
-        ],
-      ),
+          child: EditableAvatar(viewModel: viewModel),
+        ),
+        // Badge de status mais discreto
+        Positioned(
+          bottom: 4,
+          right: 4,
+          child: Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: user.isActive ? Colors.green : Colors.grey,
+              shape: BoxShape.circle,
+              border: Border.all(color: colorScheme.surface, width: 2),
+            ),
+            child: Icon(user.isActive ? Icons.check : Icons.close, size: 10, color: Colors.white),
+          ),
+        ),
+      ],
     );
   }
 }

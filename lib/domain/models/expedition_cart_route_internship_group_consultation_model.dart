@@ -1,6 +1,7 @@
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/expedition_item_situation_model.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
+import 'package:exp/domain/models/situation_model.dart';
 import 'package:exp/core/results/index.dart';
 
 class ExpeditionCartRouteInternshipGroupConsultationModel {
@@ -18,7 +19,7 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
   final int codCarrinho;
   final String nomeCarrinho;
   final String codigoBarrasCarrinho;
-  final String carrinhoAgrupador;
+  final Situation carrinhoAgrupador;
   final String? nomeCarrinhoAgrupador;
   final DateTime dataInicio;
   final String horaInicio;
@@ -41,7 +42,7 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
     required this.codCarrinho,
     required this.nomeCarrinho,
     required this.codigoBarrasCarrinho,
-    required this.carrinhoAgrupador,
+    this.carrinhoAgrupador = Situation.inativo,
     required this.dataInicio,
     required this.horaInicio,
     required this.codUsuarioInicio,
@@ -64,7 +65,7 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
     int? codCarrinho,
     String? nomeCarrinho,
     String? codigoBarrasCarrinho,
-    String? carrinhoAgrupador,
+    Situation? carrinhoAgrupador,
     DateTime? dataInicio,
     String? horaInicio,
     int? codUsuarioInicio,
@@ -112,7 +113,9 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
         codCarrinho: json['CodCarrinho'],
         nomeCarrinho: json['NomeCarrinho'],
         codigoBarrasCarrinho: json['CodigoBarrasCarrinho'],
-        carrinhoAgrupador: json['CarrinhoAgrupador'],
+        carrinhoAgrupador: json['CarrinhoAgrupador'] != null
+            ? Situation.fromCodeWithFallback(json['CarrinhoAgrupador'])
+            : Situation.inativo,
         dataInicio: DateTime.parse(json['DataInicio']),
         horaInicio: json['HoraInicio'],
         codUsuarioInicio: json['CodUsuarioInicio'],
@@ -146,7 +149,7 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
       'CodCarrinho': codCarrinho,
       'NomeCarrinho': nomeCarrinho,
       'CodigoBarrasCarrinho': codigoBarrasCarrinho,
-      'CarrinhoAgrupador': carrinhoAgrupador,
+      'CarrinhoAgrupador': carrinhoAgrupador.code,
       'DataInicio': dataInicio.toIso8601String(),
       'HoraInicio': horaInicio,
       'CodUsuarioInicio': codUsuarioInicio,
@@ -185,7 +188,7 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
         codCarrinho: $codCarrinho, 
         nomeCarrinho: $nomeCarrinho, 
         codigoBarrasCarrinho: $codigoBarrasCarrinho,
-        carrinhoAgrupador: $carrinhoAgrupador,
+        carrinhoAgrupador: ${carrinhoAgrupador.code} (${carrinhoAgrupador.description}),
         dataInicio: $dataInicio, 
         horaInicio: $horaInicio, 
         codUsuarioInicio: $codUsuarioInicio, 

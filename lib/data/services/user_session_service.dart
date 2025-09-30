@@ -30,7 +30,8 @@ class UserSessionService {
 
       if (userJson != null) {
         final userMap = jsonDecode(userJson);
-        return AppUser.fromJson(userMap);
+        final appUser = AppUser.fromJson(userMap);
+        return appUser;
       }
     } catch (e) {
       print('Erro ao carregar sessão do usuário: $e');

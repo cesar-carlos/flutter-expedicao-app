@@ -50,6 +50,7 @@ dependencies:
   zard: ^0.0.21
   shared_preferences: ^2.5.3
   result_dart: ^2.1.1
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +65,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.1
   hive_generator: ^2.0.1
   build_runner: ^2.4.7
+  mockito: ^5.4.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -97,6 +99,15 @@ flutter:
     - assets/images/log_white.png
     - assets/images/log_white32px.png
     - assets/images/produto-sem-foto.jpg
+
+    # Sons
+    - assets/som/
+    - assets/som/Alert.wav
+    - assets/som/BarcodeScan.wav
+    - assets/som/Disconected.wav
+    - assets/som/Error.wav
+    - assets/som/Fail.wav
+    - assets/som/Notification.wav
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -3,12 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:exp/core/routing/app_router.dart';
+import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/ui/widgets/separation/separation_filter_modal.dart';
 import 'package:exp/ui/widgets/separation/separation_card.dart';
 import 'package:exp/ui/widgets/app_drawer/app_drawer.dart';
-import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 
 class SeparationScreen extends StatefulWidget {
   const SeparationScreen({super.key});
