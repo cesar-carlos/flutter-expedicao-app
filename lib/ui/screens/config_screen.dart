@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:exp/core/constants/app_strings.dart';
 import 'package:exp/core/routing/app_router.dart';
+import 'package:exp/core/constants/app_strings.dart';
 import 'package:exp/domain/viewmodels/config_viewmodel.dart';
 import 'package:exp/ui/widgets/config/index.dart';
 

@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/separation_filters_model.dart';
+import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
+import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/di/locator.dart';
@@ -13,15 +15,21 @@ enum SeparationState { initial, loading, loaded, error }
 class SeparationViewModel extends ChangeNotifier {
   final BasicConsultationRepository<SeparateConsultationModel> _repository;
   final FiltersStorageService _filtersStorage;
+  final BasicRepository<ExpeditionSectorStockModel> _sectorRepository;
 
   SeparationViewModel()
     : _repository = locator<BasicConsultationRepository<SeparateConsultationModel>>(),
-      _filtersStorage = locator<FiltersStorageService>();
+      _filtersStorage = locator<FiltersStorageService>(),
+      _sectorRepository = locator<BasicRepository<ExpeditionSectorStockModel>>();
 
   SeparationState _state = SeparationState.initial;
   List<SeparateConsultationModel> _separations = [];
   String? _errorMessage;
   bool _disposed = false;
+
+  // Lista de setores disponíveis
+  List<ExpeditionSectorStockModel> _availableSectors = [];
+  bool _sectorsLoaded = false;
 
   int _currentPage = 0;
   final int _pageSize = 20;
@@ -31,8 +39,9 @@ class SeparationViewModel extends ChangeNotifier {
   String? _codSepararEstoqueFilter;
   String? _origemFilter;
   String? _codOrigemFilter;
-  String? _situacaoFilter;
+  List<String>? _situacoesFilter; // Mudado de String? para List<String>?
   DateTime? _dataEmissaoFilter;
+  ExpeditionSectorStockModel? _setorEstoqueFilter;
 
   SeparationState get state => _state;
 
@@ -57,15 +66,20 @@ class SeparationViewModel extends ChangeNotifier {
   String? get codSepararEstoqueFilter => _codSepararEstoqueFilter;
   String? get origemFilter => _origemFilter;
   String? get codOrigemFilter => _codOrigemFilter;
-  String? get situacaoFilter => _situacaoFilter;
+  List<String>? get situacoesFilter => _situacoesFilter;
   DateTime? get dataEmissaoFilter => _dataEmissaoFilter;
+  ExpeditionSectorStockModel? get setorEstoqueFilter => _setorEstoqueFilter;
+
+  List<ExpeditionSectorStockModel> get availableSectors => List.unmodifiable(_availableSectors);
+  bool get sectorsLoaded => _sectorsLoaded;
 
   bool get hasActiveFilters =>
       _codSepararEstoqueFilter != null ||
       _origemFilter != null ||
       _codOrigemFilter != null ||
-      _situacaoFilter != null ||
-      _dataEmissaoFilter != null;
+      (_situacoesFilter != null && _situacoesFilter!.isNotEmpty) ||
+      _dataEmissaoFilter != null ||
+      _setorEstoqueFilter != null;
 
   Future<void> loadSeparations() async {
     if (_disposed) return;
@@ -102,8 +116,9 @@ class SeparationViewModel extends ChangeNotifier {
     _codSepararEstoqueFilter = null;
     _origemFilter = null;
     _codOrigemFilter = null;
-    _situacaoFilter = null;
+    _situacoesFilter = null;
     _dataEmissaoFilter = null;
+    _setorEstoqueFilter = null;
 
     // Limpa os filtros salvos também
     await _clearSavedFilters();
@@ -133,17 +148,43 @@ class SeparationViewModel extends ChangeNotifier {
     }
   }
 
-  void setSituacaoFilter(String? situacao) {
-    if (_situacaoFilter != situacao) {
-      _situacaoFilter = situacao?.isNotEmpty == true ? situacao : null;
-      _safeNotifyListeners();
-    }
+  void setSituacoesFilter(List<String>? situacoes) {
+    _situacoesFilter = situacoes;
+    _safeNotifyListeners();
   }
 
   void setDataEmissaoFilter(DateTime? dataEmissao) {
     if (_dataEmissaoFilter != dataEmissao) {
       _dataEmissaoFilter = dataEmissao;
       _safeNotifyListeners();
+    }
+  }
+
+  void setSetorEstoqueFilter(ExpeditionSectorStockModel? setorEstoque) {
+    if (_setorEstoqueFilter != setorEstoque) {
+      _setorEstoqueFilter = setorEstoque;
+      _safeNotifyListeners();
+    }
+  }
+
+  /// Carrega os setores de estoque disponíveis
+  Future<void> loadAvailableSectors() async {
+    if (_sectorsLoaded || _disposed) return;
+
+    try {
+      final queryBuilder = QueryBuilder()..orderByAsc('Descricao');
+
+      final sectors = await _sectorRepository.select(queryBuilder);
+
+      if (_disposed) return;
+
+      _availableSectors = sectors;
+      _sectorsLoaded = true;
+      _safeNotifyListeners();
+    } catch (e) {
+      debugPrint('Erro ao carregar setores de estoque: $e');
+      _availableSectors = [];
+      _sectorsLoaded = false;
     }
   }
 
@@ -230,8 +271,8 @@ class SeparationViewModel extends ChangeNotifier {
       queryBuilder.equals('CodOrigem', _codOrigemFilter!);
     }
 
-    if (_situacaoFilter != null) {
-      queryBuilder.equals('Situacao', _situacaoFilter!);
+    if (_situacoesFilter != null && _situacoesFilter!.isNotEmpty) {
+      queryBuilder.inList('Situacao', _situacoesFilter!);
     }
 
     if (_dataEmissaoFilter != null) {
@@ -241,6 +282,10 @@ class SeparationViewModel extends ChangeNotifier {
           '${_dataEmissaoFilter!.month.toString().padLeft(2, '0')}-'
           '${_dataEmissaoFilter!.day.toString().padLeft(2, '0')}';
       queryBuilder.like('DataEmissao', '$dateString%');
+    }
+
+    if (_setorEstoqueFilter != null) {
+      queryBuilder.equals('CodSetorEstoque', _setorEstoqueFilter!.codSetorEstoque.toString());
     }
 
     return queryBuilder;
@@ -278,8 +323,9 @@ class SeparationViewModel extends ChangeNotifier {
         _codSepararEstoqueFilter = savedFilters.codSepararEstoque;
         _origemFilter = savedFilters.origem;
         _codOrigemFilter = savedFilters.codOrigem;
-        _situacaoFilter = savedFilters.situacao;
+        _situacoesFilter = savedFilters.situacoes;
         _dataEmissaoFilter = savedFilters.dataEmissao;
+        _setorEstoqueFilter = savedFilters.setorEstoque;
 
         // Notifica os listeners que os filtros foram carregados
         notifyListeners();
@@ -297,8 +343,9 @@ class SeparationViewModel extends ChangeNotifier {
         codSepararEstoque: _codSepararEstoqueFilter,
         origem: _origemFilter,
         codOrigem: _codOrigemFilter,
-        situacao: _situacaoFilter,
+        situacoes: _situacoesFilter,
         dataEmissao: _dataEmissaoFilter,
+        setorEstoque: _setorEstoqueFilter,
       );
 
       await _filtersStorage.saveSeparationFilters(currentFilters);
@@ -321,7 +368,8 @@ class SeparationViewModel extends ChangeNotifier {
     codSepararEstoque: _codSepararEstoqueFilter,
     origem: _origemFilter,
     codOrigem: _codOrigemFilter,
-    situacao: _situacaoFilter,
+    situacoes: _situacoesFilter,
     dataEmissao: _dataEmissaoFilter,
+    setorEstoque: _setorEstoqueFilter,
   );
 }

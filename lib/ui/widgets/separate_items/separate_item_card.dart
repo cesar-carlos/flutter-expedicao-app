@@ -70,11 +70,7 @@ class SeparateItemCard extends StatelessWidget {
               // Informações de quantidade e grupo
               _buildQuantityRow(context, theme, colorScheme, isCompleted),
 
-              // Botão de ação (se não estiver completo)
-              if (!isCompleted && onSeparate != null) ...[
-                const SizedBox(height: 16),
-                _buildActionButton(context, theme, colorScheme),
-              ],
+              // Botão de ação removido conforme solicitado
             ],
           ),
         ),
@@ -296,23 +292,6 @@ class SeparateItemCard extends StatelessWidget {
           overflow: maxLines != null ? TextOverflow.ellipsis : null,
         ),
       ],
-    );
-  }
-
-  Widget _buildActionButton(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: onSeparate,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        icon: const Icon(Icons.shopping_cart, size: 20),
-        label: const Text('Separar Item', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
     );
   }
 }

@@ -165,10 +165,10 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
     }
   }
 
-  void _showProductList(BuildContext context, String filter) {
+  Future<void> _showProductList(BuildContext context, String filter) async {
     final viewModel = context.read<CardPickingViewModel>();
 
-    Navigator.of(context).push(
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ChangeNotifierProvider.value(
           value: viewModel,
@@ -176,6 +176,11 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
         ),
       ),
     );
+
+    // Recarregar dados do carrinho quando retornar da tela de produtos
+    if (context.mounted) {
+      await viewModel.refresh();
+    }
   }
 
   void _showCartInfo(BuildContext context) {

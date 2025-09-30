@@ -3,11 +3,14 @@ import 'package:intl/intl.dart';
 
 import 'package:exp/domain/models/separation_item_consultation_model.dart';
 import 'package:exp/domain/models/expedition_item_situation_model.dart';
+import 'package:exp/domain/viewmodels/separated_products_viewmodel.dart';
+import 'package:exp/ui/widgets/common/custom_flat_button.dart';
 
 class SeparatedProductItem extends StatelessWidget {
   final SeparationItemConsultationModel item;
+  final SeparatedProductsViewModel? viewModel;
 
-  const SeparatedProductItem({super.key, required this.item});
+  const SeparatedProductItem({super.key, required this.item, this.viewModel});
 
   @override
   Widget build(BuildContext context) {
@@ -40,20 +43,29 @@ class SeparatedProductItem extends StatelessWidget {
                     ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: item.situacao.color, borderRadius: BorderRadius.circular(12)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(_getSituationIcon(item.situacao), color: Colors.white, size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                        item.situacao.description,
-                        style: theme.textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(color: item.situacao.color, borderRadius: BorderRadius.circular(12)),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(_getSituationIcon(item.situacao), color: Colors.white, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            item.situacao.description,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    // Removido o botão pequeno - agora temos o botão principal na parte inferior
+                  ],
                 ),
               ],
             ),
@@ -166,6 +178,28 @@ class SeparatedProductItem extends StatelessWidget {
               ],
             ),
           ),
+
+          // Botão de cancelamento na parte inferior
+          if (item.situacao != ExpeditionItemSituation.cancelado && viewModel != null && viewModel!.canCancelItems)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+              ),
+              child: CustomFlatButtonVariations.outlined(
+                text: 'Cancelar Item',
+                onPressed: viewModel!.isItemBeingCancelled(item.item) ? null : () => _showCancelDialog(context),
+                isLoading: viewModel!.isItemBeingCancelled(item.item),
+                textColor: theme.colorScheme.error,
+                borderColor: theme.colorScheme.error,
+                icon: Icons.cancel_outlined,
+              ),
+            ),
         ],
       ),
     );
@@ -246,5 +280,65 @@ class SeparatedProductItem extends StatelessWidget {
       case ExpeditionItemSituation.vazio:
         return Icons.remove_circle_outline;
     }
+  }
+
+  /// Mostra diálogo de confirmação de cancelamento
+  void _showCancelDialog(BuildContext context) {
+    if (viewModel == null) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Theme.of(context).colorScheme.error),
+            const SizedBox(width: 8),
+            const Text('Cancelar Item'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Deseja realmente cancelar este item?'),
+            const SizedBox(height: 8),
+            Text(
+              'Produto: ${item.nomeProduto}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Quantidade: ${item.quantidade.toStringAsFixed(2)} ${item.codUnidadeMedida}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Não')),
+          FilledButton.tonal(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              final success = await viewModel!.cancelItem(item);
+
+              if (success && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Item cancelado com sucesso!'), backgroundColor: Colors.green),
+                );
+              } else if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(viewModel!.errorMessage ?? 'Erro ao cancelar item'),
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                  ),
+                );
+              }
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.errorContainer,
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Sim, Cancelar'),
+          ),
+        ],
+      ),
+    );
   }
 }

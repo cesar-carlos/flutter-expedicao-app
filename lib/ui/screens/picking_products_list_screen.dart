@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/domain/viewmodels/separated_products_viewmodel.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/ui/widgets/picking_products_list/picking_product_list_item.dart';
 import 'package:exp/ui/widgets/separated_products/separated_product_item.dart';
+import 'package:exp/domain/viewmodels/separated_products_viewmodel.dart';
+import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 
 class PickingProductsListScreen extends StatefulWidget {
   final String filterType; // 'pending' ou 'completed'
@@ -22,6 +22,7 @@ class PickingProductsListScreen extends StatefulWidget {
 
 class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
   late SeparatedProductsViewModel _separatedProductsViewModel;
+  bool _needsRefresh = false;
 
   @override
   void initState() {
@@ -31,6 +32,9 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     if (widget.filterType == 'completed') {
       _separatedProductsViewModel = SeparatedProductsViewModel();
 
+      // Adicionar listener para detectar quando um item é cancelado
+      _separatedProductsViewModel.addListener(_onSeparatedProductsChanged);
+
       // Carregar produtos separados após o frame atual
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _separatedProductsViewModel.loadSeparatedProducts(widget.cart);
@@ -38,9 +42,17 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     }
   }
 
+  void _onSeparatedProductsChanged() {
+    // Marcar que precisa atualizar quando voltar para a tela anterior
+    if (!_separatedProductsViewModel.isLoading && !_separatedProductsViewModel.isCancelling) {
+      _needsRefresh = true;
+    }
+  }
+
   @override
   void dispose() {
     if (widget.filterType == 'completed') {
+      _separatedProductsViewModel.removeListener(_onSeparatedProductsChanged);
       _separatedProductsViewModel.dispose();
     }
     super.dispose();
@@ -56,26 +68,52 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     final icon = isPendingFilter ? Icons.pending_actions : Icons.check_circle;
     final iconColor = isPendingFilter ? Colors.orange : Colors.green;
 
-    return Scaffold(
-      appBar: CustomAppBar(
-        title: title,
-        showSocketStatus: false,
-        leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
-      ),
-      body: widget.filterType == 'completed'
-          ? ChangeNotifierProvider<SeparatedProductsViewModel>.value(
-              value: _separatedProductsViewModel,
-              child: Consumer<SeparatedProductsViewModel>(
-                builder: (context, separatedViewModel, child) {
-                  return _buildSeparatedProductsBody(context, theme, colorScheme, icon, iconColor, separatedViewModel);
+    return PopScope(
+      onPopInvoked: (didPop) async {
+        if (didPop && _needsRefresh && widget.filterType == 'completed') {
+          // Atualizar o CardPickingViewModel quando voltar da tela de produtos separados
+          await widget.viewModel.refresh();
+        }
+      },
+      child: Scaffold(
+        appBar: CustomAppBar(
+          title: title,
+          showSocketStatus: false,
+          leading: IconButton(
+            onPressed: () async {
+              if (_needsRefresh && widget.filterType == 'completed') {
+                await widget.viewModel.refresh();
+              }
+              if (context.mounted) {
+                context.pop();
+              }
+            },
+            icon: const Icon(Icons.arrow_back),
+            tooltip: 'Voltar',
+          ),
+        ),
+        body: widget.filterType == 'completed'
+            ? ChangeNotifierProvider<SeparatedProductsViewModel>.value(
+                value: _separatedProductsViewModel,
+                child: Consumer<SeparatedProductsViewModel>(
+                  builder: (context, separatedViewModel, child) {
+                    return _buildSeparatedProductsBody(
+                      context,
+                      theme,
+                      colorScheme,
+                      icon,
+                      iconColor,
+                      separatedViewModel,
+                    );
+                  },
+                ),
+              )
+            : Consumer<CardPickingViewModel>(
+                builder: (context, viewModel, child) {
+                  return _buildPendingProductsBody(context, theme, colorScheme, icon, iconColor);
                 },
               ),
-            )
-          : Consumer<CardPickingViewModel>(
-              builder: (context, viewModel, child) {
-                return _buildPendingProductsBody(context, theme, colorScheme, icon, iconColor);
-              },
-            ),
+      ),
     );
   }
 
@@ -252,7 +290,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
             itemCount: viewModel.items.length,
             itemBuilder: (context, index) {
               final item = viewModel.items[index];
-              return SeparatedProductItem(item: item);
+              return SeparatedProductItem(item: item, viewModel: viewModel);
             },
           ),
         ),

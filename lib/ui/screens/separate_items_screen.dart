@@ -6,6 +6,8 @@ import 'package:exp/core/routing/app_router.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
+import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/ui/widgets/separate_items/separate_item_card.dart';
 import 'package:exp/ui/widgets/separate_items/separate_items_bottom_navigation.dart';
 import 'package:exp/ui/widgets/separate_items/separate_items_filter_modal.dart';
@@ -14,6 +16,7 @@ import 'package:exp/ui/widgets/separate_items/separation_info_view.dart';
 import 'package:exp/ui/widgets/separate_items/carts_filter_modal.dart';
 import 'package:exp/ui/widgets/separate_items/carts_list_view.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
+import 'package:exp/ui/screens/card_picking_screen.dart';
 import 'package:exp/ui/screens/add_cart_screen.dart';
 
 class SeparateItemsScreen extends StatefulWidget {
@@ -65,31 +68,32 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
           tooltip: 'Voltar',
         ),
         actions: [
-          // Botão de filtro baseado na aba ativa
-          Consumer<SeparateItemsViewModel>(
-            builder: (context, viewModel, child) {
-              return IconButton(
-                onPressed: () => _showFilterModal(context),
-                icon: Stack(
-                  children: [
-                    const Icon(Icons.filter_alt),
-                    if ((_tabController.index == 0 && viewModel.hasActiveItemsFilters) ||
-                        (_tabController.index == 1 && viewModel.hasActiveCartsFilters))
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+          // Botão de filtro baseado na aba ativa (não mostrar na aba Informações)
+          if (_tabController.index != 2) // Não mostrar filtro na aba Informações
+            Consumer<SeparateItemsViewModel>(
+              builder: (context, viewModel, child) {
+                return IconButton(
+                  onPressed: () => _showFilterModal(context),
+                  icon: Stack(
+                    children: [
+                      const Icon(Icons.filter_alt),
+                      if ((_tabController.index == 0 && viewModel.hasActiveItemsFilters) ||
+                          (_tabController.index == 1 && viewModel.hasActiveCartsFilters))
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                          ),
                         ),
-                      ),
-                  ],
-                ),
-                tooltip: _tabController.index == 0 ? 'Filtros de Produtos' : 'Filtros de Carrinhos',
-              );
-            },
-          ),
+                    ],
+                  ),
+                  tooltip: _tabController.index == 0 ? 'Filtros de Produtos' : 'Filtros de Carrinhos',
+                );
+              },
+            ),
         ],
       ),
       body: Consumer<SeparateItemsViewModel>(
@@ -235,12 +239,71 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
       ),
     );
 
-    // Se o carrinho foi adicionado com sucesso, atualizar a lista
+    // Se o carrinho foi adicionado com sucesso, atualizar a lista e abrir separação
     if (result == true) {
       await viewModel.refresh();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Carrinho adicionado com sucesso!'), backgroundColor: Colors.green),
+        );
+
+        // Aguardar um pouco para o usuário ver o SnackBar
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Buscar o carrinho recém-adicionado e abrir a separação
+        await _openSeparationForNewestCart(context, viewModel);
+      }
+    }
+  }
+
+  /// Abre a separação do carrinho mais recente (recém-adicionado)
+  Future<void> _openSeparationForNewestCart(BuildContext context, SeparateItemsViewModel viewModel) async {
+    try {
+      // Buscar o carrinho mais recente que pode ser separado
+      final newestCart =
+          viewModel.carts
+              .where(
+                (cart) =>
+                    cart.situacao == ExpeditionCartSituation.emSeparacao ||
+                    cart.situacao == ExpeditionCartSituation.liberado ||
+                    cart.situacao == ExpeditionCartSituation.separado ||
+                    cart.situacao == ExpeditionCartSituation.conferido ||
+                    cart.situacao == ExpeditionCartSituation.separando,
+              )
+              .toList()
+            ..sort((a, b) => b.dataInicio.compareTo(a.dataInicio)); // Ordenar por data mais recente
+
+      if (newestCart.isNotEmpty) {
+        final cart = newestCart.first;
+
+        // Navegar para a tela de separação do carrinho
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ChangeNotifierProvider(
+              create: (_) => CardPickingViewModel(),
+              child: CardPickingScreen(
+                cart: cart,
+                userModel: null, // TODO: Passar modelo do usuário quando disponível
+              ),
+            ),
+          ),
+        );
+      } else {
+        // Se não encontrou carrinho adequado, mostrar mensagem
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Nenhum carrinho disponível para separação'), backgroundColor: Colors.orange),
+          );
+        }
+      }
+    } catch (e) {
+      // Em caso de erro, mostrar mensagem
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao abrir separação: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     }

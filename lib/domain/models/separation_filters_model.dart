@@ -1,21 +1,31 @@
 import 'package:exp/core/results/index.dart';
+import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 
 class SeparationFiltersModel {
   final String? codSepararEstoque;
   final String? origem;
   final String? codOrigem;
-  final String? situacao;
+  final List<String>? situacoes; // Mudado de String? para List<String>?
   final DateTime? dataEmissao;
+  final ExpeditionSectorStockModel? setorEstoque;
 
-  const SeparationFiltersModel({this.codSepararEstoque, this.origem, this.codOrigem, this.situacao, this.dataEmissao});
+  const SeparationFiltersModel({
+    this.codSepararEstoque,
+    this.origem,
+    this.codOrigem,
+    this.situacoes,
+    this.dataEmissao,
+    this.setorEstoque,
+  });
 
   factory SeparationFiltersModel.fromJson(Map<String, dynamic> json) {
     return SeparationFiltersModel(
       codSepararEstoque: json['codSepararEstoque'],
       origem: json['origem'],
       codOrigem: json['codOrigem'],
-      situacao: json['situacao'],
+      situacoes: json['situacoes'] != null ? List<String>.from(json['situacoes']) : null,
       dataEmissao: json['dataEmissao'] != null ? DateTime.parse(json['dataEmissao']) : null,
+      setorEstoque: json['setorEstoque'] != null ? ExpeditionSectorStockModel.fromJson(json['setorEstoque']) : null,
     );
   }
 
@@ -30,13 +40,19 @@ class SeparationFiltersModel {
       'codSepararEstoque': codSepararEstoque,
       'origem': origem,
       'codOrigem': codOrigem,
-      'situacao': situacao,
+      'situacoes': situacoes,
       'dataEmissao': dataEmissao?.toIso8601String(),
+      'setorEstoque': setorEstoque?.toJson(),
     };
   }
 
   bool get isEmpty =>
-      codSepararEstoque == null && origem == null && codOrigem == null && situacao == null && dataEmissao == null;
+      codSepararEstoque == null &&
+      origem == null &&
+      codOrigem == null &&
+      (situacoes == null || situacoes!.isEmpty) &&
+      dataEmissao == null &&
+      setorEstoque == null;
 
   bool get isNotEmpty => !isEmpty;
 
@@ -44,15 +60,17 @@ class SeparationFiltersModel {
     String? codSepararEstoque,
     String? origem,
     String? codOrigem,
-    String? situacao,
+    List<String>? situacoes,
     DateTime? dataEmissao,
+    ExpeditionSectorStockModel? setorEstoque,
   }) {
     return SeparationFiltersModel(
       codSepararEstoque: codSepararEstoque ?? this.codSepararEstoque,
       origem: origem ?? this.origem,
       codOrigem: codOrigem ?? this.codOrigem,
-      situacao: situacao ?? this.situacao,
+      situacoes: situacoes ?? this.situacoes,
       dataEmissao: dataEmissao ?? this.dataEmissao,
+      setorEstoque: setorEstoque ?? this.setorEstoque,
     );
   }
 
@@ -66,8 +84,9 @@ class SeparationFiltersModel {
         'codSepararEstoque: $codSepararEstoque, '
         'origem: $origem, '
         'codOrigem: $codOrigem, '
-        'situacao: $situacao, '
-        'dataEmissao: $dataEmissao'
+        'situacoes: $situacoes, '
+        'dataEmissao: $dataEmissao, '
+        'setorEstoque: $setorEstoque'
         ')';
   }
 
@@ -78,12 +97,23 @@ class SeparationFiltersModel {
         other.codSepararEstoque == codSepararEstoque &&
         other.origem == origem &&
         other.codOrigem == codOrigem &&
-        other.situacao == situacao &&
-        other.dataEmissao == dataEmissao;
+        _listEquals(other.situacoes, situacoes) &&
+        other.dataEmissao == dataEmissao &&
+        other.setorEstoque == setorEstoque;
   }
 
   @override
   int get hashCode {
-    return Object.hash(codSepararEstoque, origem, codOrigem, situacao, dataEmissao);
+    return Object.hash(codSepararEstoque, origem, codOrigem, situacoes, dataEmissao, setorEstoque);
+  }
+
+  /// Compara duas listas para igualdade
+  bool _listEquals(List<String>? a, List<String>? b) {
+    if (a == null) return b == null;
+    if (b == null || a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 }

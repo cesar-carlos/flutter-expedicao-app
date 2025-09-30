@@ -4,12 +4,17 @@ import 'package:exp/domain/models/separation_item_consultation_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
+import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';
+import 'package:exp/domain/models/expedition_item_situation_model.dart';
+import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/di/locator.dart';
 
 /// ViewModel para gerenciar a lista de produtos separados
 class SeparatedProductsViewModel extends ChangeNotifier {
   // Repository para carregar os itens separados
   final BasicConsultationRepository<SeparationItemConsultationModel> _repository;
+  final CancelItemSeparationUseCase _cancelItemSeparationUseCase;
 
   // Estado do carrinho
   ExpeditionCartRouteInternshipConsultationModel? _cart;
@@ -38,8 +43,17 @@ class SeparatedProductsViewModel extends ChangeNotifier {
   // Flag para evitar dispose durante operações
   bool _disposed = false;
 
+  // Estado de cancelamento
+  bool _isCancelling = false;
+  bool get isCancelling => _isCancelling;
+
+  String? _cancellingItemId;
+  String? get cancellingItemId => _cancellingItemId;
+
   // Construtor
-  SeparatedProductsViewModel() : _repository = locator<BasicConsultationRepository<SeparationItemConsultationModel>>();
+  SeparatedProductsViewModel()
+    : _repository = locator<BasicConsultationRepository<SeparationItemConsultationModel>>(),
+      _cancelItemSeparationUseCase = locator<CancelItemSeparationUseCase>();
 
   @override
   void dispose() {
@@ -166,5 +180,59 @@ class SeparatedProductsViewModel extends ChangeNotifier {
     });
 
     return stats;
+  }
+
+  /// Verifica se um item está sendo cancelado
+  bool isItemBeingCancelled(String itemId) => _isCancelling && _cancellingItemId == itemId;
+
+  /// Verifica se o carrinho está em situação que permite cancelamento
+  bool get canCancelItems => _cart?.situacao == ExpeditionCartSituation.separando;
+
+  /// Cancela um item específico da separação
+  Future<bool> cancelItem(SeparationItemConsultationModel item) async {
+    if (_disposed || _cart == null) return false;
+    if (_isCancelling) return false;
+    if (item.situacao == ExpeditionItemSituation.cancelado) return false;
+    if (!canCancelItems) {
+      _errorMessage = 'Só é possível cancelar itens quando o carrinho está em separação';
+      return false;
+    }
+
+    try {
+      _isCancelling = true;
+      _cancellingItemId = item.item;
+      _safeNotifyListeners();
+
+      // Criar parâmetros para o use case
+      final params = CancelItemSeparationParams(
+        codEmpresa: _cart!.codEmpresa,
+        codSepararEstoque: _cart!.codOrigem,
+        item: item.item,
+      );
+
+      // Executar use case
+      final result = await _cancelItemSeparationUseCase.call(params);
+
+      return result.fold(
+        (success) async {
+          // Recarregar lista após cancelamento bem-sucedido
+          await refresh();
+          return true;
+        },
+        (failure) {
+          _hasError = true;
+          _errorMessage = failure.toString();
+          return false;
+        },
+      );
+    } catch (e) {
+      _hasError = true;
+      _errorMessage = 'Erro ao cancelar item: ${e.toString()}';
+      return false;
+    } finally {
+      _isCancelling = false;
+      _cancellingItemId = null;
+      _safeNotifyListeners();
+    }
   }
 }

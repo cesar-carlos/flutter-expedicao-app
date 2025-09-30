@@ -154,7 +154,7 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
                   ),
                   items: [
                     const DropdownMenuItem<String>(value: null, child: Text('Todas as situações')),
-                    ...ExpeditionCartSituation.values.map(
+                    ..._getFilteredSituations().map(
                       (situacao) => DropdownMenuItem<String>(value: situacao.code, child: Text(situacao.description)),
                     ),
                   ],
@@ -342,5 +342,16 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
     return '${date.day.toString().padLeft(2, '0')}/'
         '${date.month.toString().padLeft(2, '0')}/'
         '${date.year}';
+  }
+
+  /// Retorna apenas as situações que devem aparecer no filtro
+  List<ExpeditionCartSituation> _getFilteredSituations() {
+    return [
+      ExpeditionCartSituation.emSeparacao,
+      ExpeditionCartSituation.liberado,
+      ExpeditionCartSituation.separando,
+      ExpeditionCartSituation.separado,
+      ExpeditionCartSituation.agrupado,
+    ];
   }
 }
