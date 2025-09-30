@@ -230,6 +230,7 @@ class SeparationInfoView extends StatelessWidget {
                     viewModel.isSeparationComplete ? 'Completa' : 'Em Andamento',
                     viewModel.isSeparationComplete ? Icons.done_all : Icons.hourglass_empty,
                     viewModel.isSeparationComplete ? Colors.green : colorScheme.error,
+                    fontSize: theme.textTheme.titleMedium?.fontSize, // ✅ Fonte menor para o status
                   ),
                 ),
               ],
@@ -306,7 +307,14 @@ class SeparationInfoView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatColumn(BuildContext context, String label, String value, IconData icon, Color color) {
+  Widget _buildStatColumn(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color color, {
+    double? fontSize,
+  }) {
     final theme = Theme.of(context);
 
     return Column(
@@ -315,7 +323,9 @@ class SeparationInfoView extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           value,
-          style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: color),
+          style: (fontSize != null
+              ? theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color, fontSize: fontSize)
+              : theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: color)),
         ),
         const SizedBox(height: 4),
         Text(

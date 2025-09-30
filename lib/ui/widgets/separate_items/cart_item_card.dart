@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:exp/ui/screens/card_picking_screen.dart';
 import 'package:exp/ui/widgets/common/custom_flat_button.dart';
+import 'package:exp/ui/screens/picking_products_list_screen.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
@@ -585,18 +586,29 @@ class CartItemCard extends StatelessWidget {
   }
 
   void _onViewCart(BuildContext context) {
-    // TODO: Implementar ação de visualizar carrinho
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Visualizar carrinho #${cart.codCarrinho} - Em desenvolvimento'),
-        backgroundColor: Theme.of(context).colorScheme.tertiary,
+    // Criar ViewModel temporário para navegação
+    final tempViewModel = CardPickingViewModel();
+
+    // Navegar para a tela de produtos separados
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ChangeNotifierProvider.value(
+          value: tempViewModel,
+          child: PickingProductsListScreen(filterType: 'completed', viewModel: tempViewModel, cart: cart),
+        ),
       ),
     );
   }
 
   bool _shouldShowSeparateButton() {
+    // Não mostrar botão de separar para carrinhos finalizados ou cancelados
+    if (cart.situacao == ExpeditionCartSituation.cancelado ||
+        cart.situacao == ExpeditionCartSituation.cancelada ||
+        cart.dataFinalizacao != null) {
+      return false;
+    }
+
     // Mostra botão de separar para carrinhos que podem iniciar a separação
-    // Adiciona mais situações onde faz sentido mostrar o botão Separar
     return cart.situacao == ExpeditionCartSituation.emSeparacao ||
         cart.situacao == ExpeditionCartSituation.liberado ||
         cart.situacao == ExpeditionCartSituation.separado ||

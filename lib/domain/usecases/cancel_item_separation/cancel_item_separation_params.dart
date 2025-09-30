@@ -1,18 +1,10 @@
-import 'package:exp/core/validation/common/socket_validation_helper.dart';
-
 /// Parâmetros para cancelar um item específico da separação
 class CancelItemSeparationParams {
   final int codEmpresa;
   final int codSepararEstoque;
   final String item;
-  final String sessionId;
 
-  const CancelItemSeparationParams({
-    required this.codEmpresa,
-    required this.codSepararEstoque,
-    required this.item,
-    required this.sessionId,
-  });
+  const CancelItemSeparationParams({required this.codEmpresa, required this.codSepararEstoque, required this.item});
 
   /// Valida se os parâmetros são válidos
   bool get isValid => validationErrors.isEmpty;
@@ -35,16 +27,6 @@ class CancelItemSeparationParams {
       errors.add('Item deve ter no máximo 5 caracteres');
     }
 
-    // Validação robusta do sessionId
-    if (sessionId.isEmpty) {
-      errors.add('Session ID não pode estar vazio');
-    } else {
-      // Validação de formato do sessionId do Socket.IO
-      if (!SocketValidationHelper.isValidSocketSessionId(sessionId)) {
-        errors.add('Session ID não possui formato válido do Socket.IO');
-      }
-    }
-
     return errors;
   }
 
@@ -53,8 +35,7 @@ class CancelItemSeparationParams {
     return 'CancelItemSeparationParams('
         'codEmpresa: $codEmpresa, '
         'codSepararEstoque: $codSepararEstoque, '
-        'item: $item, '
-        'sessionId: $sessionId'
+        'item: $item'
         ')';
   }
 
@@ -64,12 +45,11 @@ class CancelItemSeparationParams {
     return other is CancelItemSeparationParams &&
         other.codEmpresa == codEmpresa &&
         other.codSepararEstoque == codSepararEstoque &&
-        other.item == item &&
-        other.sessionId == sessionId;
+        other.item == item;
   }
 
   @override
-  int get hashCode => Object.hash(codEmpresa, codSepararEstoque, item, sessionId);
+  int get hashCode => Object.hash(codEmpresa, codSepararEstoque, item);
 
   @override
   String toString() => description;

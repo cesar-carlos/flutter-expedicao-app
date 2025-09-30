@@ -172,7 +172,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
       MaterialPageRoute(
         builder: (context) => ChangeNotifierProvider.value(
           value: viewModel,
-          child: PickingProductsListScreen(filterType: filter, viewModel: viewModel),
+          child: PickingProductsListScreen(filterType: filter, viewModel: viewModel, cart: widget.cart),
         ),
       ),
     );

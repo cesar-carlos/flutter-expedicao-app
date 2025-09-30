@@ -2,23 +2,56 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separated_products_viewmodel.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 import 'package:exp/ui/widgets/picking_products_list/picking_product_list_item.dart';
+import 'package:exp/ui/widgets/separated_products/separated_product_item.dart';
 
-class PickingProductsListScreen extends StatelessWidget {
+class PickingProductsListScreen extends StatefulWidget {
   final String filterType; // 'pending' ou 'completed'
   final CardPickingViewModel viewModel;
+  final ExpeditionCartRouteInternshipConsultationModel cart;
 
-  const PickingProductsListScreen({super.key, required this.filterType, required this.viewModel});
+  const PickingProductsListScreen({super.key, required this.filterType, required this.viewModel, required this.cart});
+
+  @override
+  State<PickingProductsListScreen> createState() => _PickingProductsListScreenState();
+}
+
+class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
+  late SeparatedProductsViewModel _separatedProductsViewModel;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Se for a tela de produtos separados, criar e inicializar o ViewModel
+    if (widget.filterType == 'completed') {
+      _separatedProductsViewModel = SeparatedProductsViewModel();
+
+      // Carregar produtos separados após o frame atual
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _separatedProductsViewModel.loadSeparatedProducts(widget.cart);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget.filterType == 'completed') {
+      _separatedProductsViewModel.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final isPendingFilter = filterType == 'pending';
+    final isPendingFilter = widget.filterType == 'pending';
     final title = isPendingFilter ? 'Produtos Pendentes' : 'Produtos Separados';
     final icon = isPendingFilter ? Icons.pending_actions : Icons.check_circle;
     final iconColor = isPendingFilter ? Colors.orange : Colors.green;
@@ -29,20 +62,131 @@ class PickingProductsListScreen extends StatelessWidget {
         showSocketStatus: false,
         leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
       ),
-      body: Consumer<CardPickingViewModel>(
-        builder: (context, viewModel, child) {
-          return _buildBody(context, theme, colorScheme, icon, iconColor);
-        },
-      ),
+      body: widget.filterType == 'completed'
+          ? ChangeNotifierProvider<SeparatedProductsViewModel>.value(
+              value: _separatedProductsViewModel,
+              child: Consumer<SeparatedProductsViewModel>(
+                builder: (context, separatedViewModel, child) {
+                  return _buildSeparatedProductsBody(context, theme, colorScheme, icon, iconColor, separatedViewModel);
+                },
+              ),
+            )
+          : Consumer<CardPickingViewModel>(
+              builder: (context, viewModel, child) {
+                return _buildPendingProductsBody(context, theme, colorScheme, icon, iconColor);
+              },
+            ),
     );
   }
 
-  Widget _buildBody(BuildContext context, ThemeData theme, ColorScheme colorScheme, IconData icon, Color iconColor) {
-    if (viewModel.isLoading) {
+  // Método para produtos pendentes (usando CardPickingViewModel)
+  Widget _buildPendingProductsBody(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    IconData icon,
+    Color iconColor,
+  ) {
+    if (widget.viewModel.isLoading) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando produtos...')],
+        ),
+      );
+    }
+
+    if (widget.viewModel.hasError) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+              const SizedBox(height: 16),
+              Text(
+                'Erro ao carregar produtos',
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                widget.viewModel.errorMessage ?? 'Erro desconhecido',
+                style: theme.textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(onPressed: () => widget.viewModel.retry(), child: const Text('Tentar Novamente')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Filtrar produtos pendentes
+    final pendingItems = widget.viewModel.items.where((item) => !widget.viewModel.isItemCompleted(item.item)).toList();
+
+    if (pendingItems.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 64, color: iconColor.withOpacity(0.5)),
+              const SizedBox(height: 16),
+              Text('Nenhum produto pendente', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text(
+                'Todos os produtos já foram separados!',
+                style: theme.textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        // Header com estatísticas
+        _buildHeader(context, theme, colorScheme, icon, iconColor, pendingItems.length),
+
+        // Lista de produtos pendentes
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: pendingItems.length,
+            itemBuilder: (context, index) {
+              final item = pendingItems[index];
+              return PickingProductListItem(
+                item: item,
+                viewModel: widget.viewModel,
+                isCompleted: false,
+                allowEdit: false,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Método para produtos separados (usando SeparatedProductsViewModel)
+  Widget _buildSeparatedProductsBody(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    IconData icon,
+    Color iconColor,
+    SeparatedProductsViewModel viewModel,
+  ) {
+    if (viewModel.isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando produtos separados...')],
         ),
       );
     }
@@ -74,10 +218,7 @@ class PickingProductsListScreen extends StatelessWidget {
       );
     }
 
-    // Filtrar produtos baseado no tipo
-    final filteredItems = _getFilteredItems();
-
-    if (filteredItems.isEmpty) {
+    if (viewModel.items.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -86,13 +227,10 @@ class PickingProductsListScreen extends StatelessWidget {
             children: [
               Icon(icon, size: 64, color: iconColor.withOpacity(0.5)),
               const SizedBox(height: 16),
-              Text(
-                filterType == 'pending' ? 'Nenhum produto pendente' : 'Nenhum produto separado',
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
+              Text('Nenhum produto separado', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Text(
-                filterType == 'pending' ? 'Todos os produtos já foram separados!' : 'Ainda não há produtos separados.',
+                'Ainda não há produtos separados neste carrinho.',
                 style: theme.textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
@@ -105,21 +243,16 @@ class PickingProductsListScreen extends StatelessWidget {
     return Column(
       children: [
         // Header com estatísticas
-        _buildHeader(context, theme, colorScheme, icon, iconColor, filteredItems.length),
+        _buildHeader(context, theme, colorScheme, icon, iconColor, viewModel.items.length),
 
-        // Lista de produtos
+        // Lista de produtos separados
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: filteredItems.length,
+            itemCount: viewModel.items.length,
             itemBuilder: (context, index) {
-              final item = filteredItems[index];
-              return PickingProductListItem(
-                item: item,
-                viewModel: viewModel,
-                isCompleted: viewModel.isItemCompleted(item.item),
-                allowEdit: filterType == 'completed', // Só permite editar produtos separados
-              );
+              final item = viewModel.items[index];
+              return SeparatedProductItem(item: item);
             },
           ),
         ),
@@ -135,6 +268,8 @@ class PickingProductsListScreen extends StatelessWidget {
     Color iconColor,
     int itemCount,
   ) {
+    final title = widget.filterType == 'pending' ? 'Produtos Pendentes' : 'Produtos Separados';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -151,7 +286,7 @@ class PickingProductsListScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  filterType == 'pending' ? 'Produtos Pendentes' : 'Produtos Separados',
+                  title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: iconColor.withOpacity(0.8),
@@ -175,15 +310,5 @@ class PickingProductsListScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  List<SeparateItemConsultationModel> _getFilteredItems() {
-    if (filterType == 'pending') {
-      // Produtos pendentes: não completados
-      return viewModel.items.where((item) => !viewModel.isItemCompleted(item.item)).toList();
-    } else {
-      // Produtos separados: completados
-      return viewModel.items.where((item) => viewModel.isItemCompleted(item.item)).toList();
-    }
   }
 }

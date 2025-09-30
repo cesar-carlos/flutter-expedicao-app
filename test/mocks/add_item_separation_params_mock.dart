@@ -1,16 +1,12 @@
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_params.dart';
 
-/// Cria parâmetros padrão para teste do AddItemSeparation com sessionId específico
-AddItemSeparationParams createTestAddItemSeparationParams(String sessionId) {
-  if (sessionId.isEmpty) {
-    throw StateError('Socket não conectado. SessionId não disponível para teste.');
-  }
-
+/// Cria parâmetros padrão para teste do AddItemSeparation
+AddItemSeparationParams createTestAddItemSeparationParams() {
   // Gerar itemCarrinhoPercurso único respeitando varchar(5)
   return AddItemSeparationParams(
     codEmpresa: 1,
     codSepararEstoque: 999999,
-    sessionId: sessionId,
+    sessionId: 'test-session-id',
     codCarrinhoPercurso: 1,
     itemCarrinhoPercurso: '00001', // varchar(5) - 5 caracteres
     codSeparador: 1,
@@ -22,8 +18,8 @@ AddItemSeparationParams createTestAddItemSeparationParams(String sessionId) {
 }
 
 /// Cria parâmetros padrão para teste
-AddItemSeparationParams createDefaultTestAddItemSeparationParams(String sessionId) {
-  return createTestAddItemSeparationParams(sessionId);
+AddItemSeparationParams createDefaultTestAddItemSeparationParams() {
+  return createTestAddItemSeparationParams();
 }
 
 /// Cria parâmetros com sessionId específico

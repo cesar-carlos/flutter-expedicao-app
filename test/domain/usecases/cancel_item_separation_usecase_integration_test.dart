@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exp/core/network/socket_config.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/expedition_item_situation_model.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
@@ -30,11 +29,8 @@ void main() {
     late SeparationItemRepositoryImpl separationItemRepository;
     late SeparateRepositoryImpl separateRepository;
     late UserSessionService userSessionService;
-    late String sessionId;
-
     setUpAll(() async {
       await UseCaseIntegrationTestBase.setupUseCaseTest();
-      sessionId = SocketConfig.sessionId!;
     });
 
     setUp(() async {
@@ -92,7 +88,7 @@ void main() {
         UseCaseIntegrationTestBase.validateSocketState();
 
         // Primeiro adicionar um item
-        final addParams = createDefaultTestAddItemSeparationParams(sessionId);
+        final addParams = createDefaultTestAddItemSeparationParams();
         final addResult = await addUseCase.call(addParams);
 
         expect(addResult.isSuccess(), isTrue, reason: 'Deve conseguir adicionar item primeiro');
@@ -101,7 +97,7 @@ void main() {
         await UseCaseIntegrationTestBase.waitForOperation('Adição do item');
 
         // Cancelar o item
-        final cancelParams = createTestCancelItemSeparationParamsWithItem(sessionId, addedItem.item);
+        final cancelParams = createTestCancelItemSeparationParamsWithItem(addedItem.item);
         final result = await cancelUseCase.call(cancelParams);
 
         // Verificar resultado
@@ -127,7 +123,7 @@ void main() {
       test('deve falhar quando item não existe', () async {
         UseCaseIntegrationTestBase.logTestStart('Validação de item inexistente');
 
-        final params = createTestCancelItemSeparationParamsWithNonExistentItem(sessionId);
+        final params = createTestCancelItemSeparationParamsWithNonExistentItem();
         final result = await cancelUseCase.call(params);
 
         expect(result.isSuccess(), isFalse, reason: 'UseCase deveria falhar com item inexistente');
@@ -156,7 +152,7 @@ void main() {
           final addParams = AddItemSeparationParams(
             codEmpresa: 1,
             codSepararEstoque: 999997,
-            sessionId: sessionId,
+            sessionId: 'test-session-id',
             codCarrinhoPercurso: 1,
             itemCarrinhoPercurso: '00020',
             codSeparador: 1,
@@ -173,7 +169,6 @@ void main() {
               codEmpresa: 1,
               codSepararEstoque: 999997,
               item: addedItem.item,
-              sessionId: sessionId,
             );
 
             final result = await cancelUseCase.call(cancelParams);
@@ -205,19 +200,19 @@ void main() {
         UseCaseIntegrationTestBase.logTestStart('Validação de item já cancelado');
 
         // Adicionar e cancelar item
-        final addParams = createDefaultTestAddItemSeparationParams(sessionId);
+        final addParams = createDefaultTestAddItemSeparationParams();
         final addResult = await addUseCase.call(addParams);
 
         if (addResult.isSuccess()) {
           final addedItem = addResult.getOrNull()!.createdSeparationItem;
 
           // Primeiro cancelamento
-          final cancelParams1 = createTestCancelItemSeparationParamsWithItem(sessionId, addedItem.item);
+          final cancelParams1 = createTestCancelItemSeparationParamsWithItem(addedItem.item);
           final cancelResult1 = await cancelUseCase.call(cancelParams1);
           expect(cancelResult1.isSuccess(), isTrue, reason: 'Primeiro cancelamento deve ter sucesso');
 
           // Tentar cancelar novamente
-          final cancelParams2 = createTestCancelItemSeparationParamsWithItem(sessionId, addedItem.item);
+          final cancelParams2 = createTestCancelItemSeparationParamsWithItem(addedItem.item);
           final result = await cancelUseCase.call(cancelParams2);
 
           expect(result.isSuccess(), isFalse, reason: 'UseCase deveria falhar ao cancelar item já cancelado');

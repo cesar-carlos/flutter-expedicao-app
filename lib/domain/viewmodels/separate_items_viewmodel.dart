@@ -112,13 +112,41 @@ class SeparateItemsViewModel extends ChangeNotifier {
 
       final queryBuilder = QueryBuilder()
         ..equals('CodEmpresa', separation.codEmpresa.toString())
-        ..equals('CodSepararEstoque', separation.codSepararEstoque.toString())
-        ..orderBy('EnderecoDescricao');
+        ..equals('CodSepararEstoque', separation.codSepararEstoque.toString());
 
       // Aplica filtros salvos do usuário se existirem
       await _applySavedFiltersToQuery(queryBuilder);
 
+      // Buscar itens sem ordenação para ordenar localmente
       final items = await _repository.selectConsultation(queryBuilder);
+
+      if (_disposed) return;
+
+      // Ordenação natural dos endereços
+      _items = items
+        ..sort((a, b) {
+          final endA = a.enderecoDescricao?.toLowerCase() ?? '';
+          final endB = b.enderecoDescricao?.toLowerCase() ?? '';
+
+          // Extrair números do início do endereço (01, 02, etc)
+          final regExp = RegExp(r'^(\d+)');
+          final matchA = regExp.firstMatch(endA);
+          final matchB = regExp.firstMatch(endB);
+
+          // Se ambos começam com números, comparar numericamente
+          if (matchA != null && matchB != null) {
+            final numA = int.parse(matchA.group(1)!);
+            final numB = int.parse(matchB.group(1)!);
+            if (numA != numB) return numA.compareTo(numB);
+          }
+
+          // Se um começa com número e outro não, priorizar o que começa com número
+          if (matchA != null && matchB == null) return -1;
+          if (matchA == null && matchB != null) return 1;
+
+          // Caso contrário, ordenar alfabeticamente
+          return endA.compareTo(endB);
+        });
 
       if (_disposed) return;
 
@@ -418,8 +446,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
     try {
       final queryBuilder = QueryBuilder()
         ..equals('CodEmpresa', _separation!.codEmpresa.toString())
-        ..equals('CodSepararEstoque', _separation!.codSepararEstoque.toString())
-        ..orderBy('EnderecoDescricao');
+        ..equals('CodSepararEstoque', _separation!.codSepararEstoque.toString());
 
       // Aplica filtros de itens
       _applyItemsFiltersToQuery(queryBuilder);
@@ -427,6 +454,31 @@ class SeparateItemsViewModel extends ChangeNotifier {
       final items = await _repository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
+
+      // Ordenação natural dos endereços
+      items.sort((a, b) {
+        final endA = a.enderecoDescricao?.toLowerCase() ?? '';
+        final endB = b.enderecoDescricao?.toLowerCase() ?? '';
+
+        // Extrair números do início do endereço (01, 02, etc)
+        final regExp = RegExp(r'^(\d+)');
+        final matchA = regExp.firstMatch(endA);
+        final matchB = regExp.firstMatch(endB);
+
+        // Se ambos começam com números, comparar numericamente
+        if (matchA != null && matchB != null) {
+          final numA = int.parse(matchA.group(1)!);
+          final numB = int.parse(matchB.group(1)!);
+          if (numA != numB) return numA.compareTo(numB);
+        }
+
+        // Se um começa com número e outro não, priorizar o que começa com número
+        if (matchA != null && matchB == null) return -1;
+        if (matchA == null && matchB != null) return 1;
+
+        // Caso contrário, ordenar alfabeticamente
+        return endA.compareTo(endB);
+      });
 
       // Aplica filtro de situação localmente
       _items = _applySituacaoFilter(items);

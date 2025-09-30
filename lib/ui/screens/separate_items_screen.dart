@@ -137,37 +137,60 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
 
   Widget _buildWaitingItemsView(BuildContext context, SeparateItemsViewModel viewModel) {
     if (!viewModel.hasData) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.inventory_2_outlined, size: 64, color: Theme.of(context).colorScheme.outline),
-              const SizedBox(height: 16),
-              Text(
-                'Nenhum item encontrado',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+      return RefreshIndicator(
+        onRefresh: () async {
+          await viewModel.refresh();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.inventory_2_outlined, size: 64, color: Theme.of(context).colorScheme.outline),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Nenhum item encontrado',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Não há itens para separar nesta separação.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Puxe para atualizar',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Não há itens para separar nesta separação.',
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-            ],
+            ),
           ),
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Aumenta padding inferior para 100px
-      itemCount: viewModel.items.length,
-      itemBuilder: (context, index) {
-        final item = viewModel.items[index];
-        return SeparateItemCard(item: item, onSeparate: () => _onSeparateItem(context, item, viewModel));
+    return RefreshIndicator(
+      onRefresh: () async {
+        await viewModel.refresh();
       },
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Aumenta padding inferior para 100px
+        itemCount: viewModel.items.length,
+        itemBuilder: (context, index) {
+          final item = viewModel.items[index];
+          return SeparateItemCard(item: item, onSeparate: () => _onSeparateItem(context, item, viewModel));
+        },
+      ),
     );
   }
 
