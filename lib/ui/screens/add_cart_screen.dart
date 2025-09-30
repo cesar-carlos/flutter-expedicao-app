@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:exp/domain/viewmodels/add_cart_viewmodel.dart';
-import 'package:exp/ui/widgets/common/custom_app_bar.dart';
-import 'package:exp/ui/widgets/add_cart/barcode_scanner_widget.dart';
 import 'package:exp/ui/widgets/add_cart/cart_details_widget.dart';
+import 'package:exp/ui/widgets/add_cart/barcode_scanner_widget.dart';
 import 'package:exp/ui/widgets/add_cart/cart_actions_widget.dart';
+import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 
 class AddCartScreen extends StatefulWidget {
   final int codEmpresa;

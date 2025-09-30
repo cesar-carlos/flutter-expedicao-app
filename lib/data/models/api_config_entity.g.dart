@@ -1,20 +1,22 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'api_config.dart';
+part of 'api_config_entity.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class ApiConfigAdapter extends TypeAdapter<ApiConfig> {
+class ApiConfigEntityAdapter extends TypeAdapter<ApiConfigEntity> {
   @override
   final int typeId = 0;
 
   @override
-  ApiConfig read(BinaryReader reader) {
+  ApiConfigEntity read(BinaryReader reader) {
     final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read()};
-    return ApiConfig(
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return ApiConfigEntity(
       apiUrl: fields[0] as String,
       apiPort: fields[1] as int,
       useHttps: fields[2] as bool,
@@ -23,7 +25,7 @@ class ApiConfigAdapter extends TypeAdapter<ApiConfig> {
   }
 
   @override
-  void write(BinaryWriter writer, ApiConfig obj) {
+  void write(BinaryWriter writer, ApiConfigEntity obj) {
     writer
       ..writeByte(4)
       ..writeByte(0)
@@ -41,5 +43,8 @@ class ApiConfigAdapter extends TypeAdapter<ApiConfig> {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is ApiConfigAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+      identical(this, other) ||
+      other is ApiConfigEntityAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }

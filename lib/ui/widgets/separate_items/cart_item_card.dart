@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:exp/ui/screens/card_picking_screen.dart';
+import 'package:exp/ui/widgets/common/custom_flat_button.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
-import 'package:exp/ui/widgets/common/custom_flat_button.dart';
+import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 
 class CartItemCard extends StatelessWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
-  final VoidCallback? onTap;
   final VoidCallback? onCancel;
   final SeparateItemsViewModel? viewModel;
 
-  const CartItemCard({super.key, required this.cart, this.onTap, this.onCancel, this.viewModel});
+  const CartItemCard({super.key, required this.cart, this.onCancel, this.viewModel});
 
   @override
   Widget build(BuildContext context) {
@@ -32,51 +33,47 @@ class CartItemCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: situationColor.withOpacity(0.4), width: 2),
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [situationColor.withOpacity(0.05), situationColor.withOpacity(0.02)],
-            ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [situationColor.withOpacity(0.05), situationColor.withOpacity(0.02)],
           ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header principal
-              _buildMainHeader(context, theme, colorScheme, isActive, isFinalized, situationColor),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header principal
+            _buildMainHeader(context, theme, colorScheme, isActive, isFinalized, situationColor),
 
-              const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-              // Código de barras e situação
-              _buildCodeAndSituation(context, theme, colorScheme, situationColor),
+            // Código de barras e situação
+            _buildCodeAndSituation(context, theme, colorScheme, situationColor),
 
-              const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-              // Informações de tempo e usuário
-              _buildTimelineInfo(context, theme, colorScheme, isFinalized),
+            // Informações de tempo e usuário
+            _buildTimelineInfo(context, theme, colorScheme, isFinalized),
 
-              if (cart.nomeSetorEstoque != null) ...[
-                const SizedBox(height: 12),
-                _buildSectorInfo(context, theme, colorScheme),
-              ],
-
-              // Informações adicionais
-              if (cart.carrinhoAgrupadorCode.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _buildGroupInfo(context, theme, colorScheme),
-              ],
-
-              // Seção de ações
-              const SizedBox(height: 16),
-              _buildActionsSection(context, theme, colorScheme, situationColor),
+            if (cart.nomeSetorEstoque != null) ...[
+              const SizedBox(height: 12),
+              _buildSectorInfo(context, theme, colorScheme),
             ],
-          ),
+
+            // Informações adicionais
+            if (cart.carrinhoAgrupadorCode.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildGroupInfo(context, theme, colorScheme),
+            ],
+
+            // Seção de ações
+            const SizedBox(height: 16),
+            _buildActionsSection(context, theme, colorScheme, situationColor),
+          ],
         ),
       ),
     );
@@ -464,11 +461,12 @@ class CartItemCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: situationColor.withOpacity(0.2), width: 1),
       ),
-      child: Row(
+      child: Column(
         children: [
-          // Botão de Separar
+          // Primeira linha: Botão Separar (largura completa)
           if (_shouldShowSeparateButton()) ...[
-            Expanded(
+            SizedBox(
+              width: double.infinity,
               child: CustomFlatButtonVariations.outlined(
                 text: 'Separar',
                 icon: Icons.play_arrow,
@@ -477,39 +475,42 @@ class CartItemCard extends StatelessWidget {
                 onPressed: () => _onSeparateCart(context),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(height: 8),
           ],
 
-          // Botão de Finalizar
+          // Segunda linha: Botões Cancelar e Finalizar lado a lado
           if (cart.situacao == ExpeditionCartSituation.separando) ...[
-            Expanded(
-              child: CustomFlatButtonVariations.outlined(
-                text: 'Finalizar',
-                icon: Icons.check_circle,
-                textColor: Colors.green,
-                borderColor: Colors.green.withOpacity(0.3),
-                onPressed: () => _onFinalizeCart(context),
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-
-          // Botão de Cancelar
-          if (cart.situacao == ExpeditionCartSituation.separando) ...[
-            Expanded(
-              child: viewModel != null
-                  ? _buildCancelButton(context, theme, colorScheme, viewModel!)
-                  : Consumer<SeparateItemsViewModel>(
-                      builder: (context, vm, child) {
-                        return _buildCancelButton(context, theme, colorScheme, vm);
-                      },
-                    ),
+            Row(
+              children: [
+                // Botão Cancelar
+                Expanded(
+                  child: viewModel != null
+                      ? _buildCancelButton(context, theme, colorScheme, viewModel!)
+                      : Consumer<SeparateItemsViewModel>(
+                          builder: (context, vm, child) {
+                            return _buildCancelButton(context, theme, colorScheme, vm);
+                          },
+                        ),
+                ),
+                const SizedBox(width: 8),
+                // Botão Finalizar
+                Expanded(
+                  child: CustomFlatButtonVariations.outlined(
+                    text: 'Finalizar',
+                    icon: Icons.check_circle,
+                    textColor: Colors.green,
+                    borderColor: Colors.green.withOpacity(0.3),
+                    onPressed: () => _onFinalizeCart(context),
+                  ),
+                ),
+              ],
             ),
           ],
 
           // Botão de Visualizar (para carrinhos finalizados ou cancelados)
           if (_shouldShowViewButton()) ...[
-            Expanded(
+            SizedBox(
+              width: double.infinity,
               child: CustomFlatButtonVariations.outlined(
                 text: 'Visualizar',
                 icon: Icons.visibility,
@@ -543,11 +544,17 @@ class CartItemCard extends StatelessWidget {
   }
 
   void _onSeparateCart(BuildContext context) {
-    // TODO: Implementar ação de separar carrinho
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Separar carrinho #${cart.codCarrinho} - Em desenvolvimento'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+    // Navegar para a tela de CardPicking
+    // TODO: Obter UserSystemModel do contexto/provider quando disponível
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ChangeNotifierProvider(
+          create: (_) => CardPickingViewModel(),
+          child: CardPickingScreen(
+            cart: cart,
+            userModel: null, // TODO: Passar modelo do usuário quando disponível
+          ),
+        ),
       ),
     );
   }

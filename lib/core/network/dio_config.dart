@@ -26,9 +26,7 @@ class DioConfig {
     if (_currentApiConfig == null) {
       throw StateError('DioConfig não foi inicializado.');
     }
-
-    final protocol = _currentApiConfig!.useHttps ? 'https' : 'http';
-    return '$protocol://${_currentApiConfig!.apiUrl}:${_currentApiConfig!.apiPort}';
+    return _currentApiConfig!.fullUrl;
   }
 
   /// Atualiza as configurações da API
@@ -39,12 +37,9 @@ class DioConfig {
 
   /// Cria uma nova instância do Dio com as configurações
   static Dio _createDioInstance(ApiConfig apiConfig) {
-    final protocol = apiConfig.useHttps ? 'https' : 'http';
-    final baseUrl = '$protocol://${apiConfig.apiUrl}:${apiConfig.apiPort}';
-
     final dio = Dio(
       BaseOptions(
-        baseUrl: baseUrl,
+        baseUrl: apiConfig.fullUrl,
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 30),
         sendTimeout: const Duration(seconds: 30),
@@ -56,89 +51,32 @@ class DioConfig {
     );
 
     // Adicionar interceptors para logging e tratamento de erros
-    dio.interceptors.add(_createLoggingInterceptor());
-    dio.interceptors.add(_createErrorInterceptor());
-
-    return dio;
-  }
-
-  /// Interceptor para logging das requisições
-  static Interceptor _createLoggingInterceptor() {
-    return InterceptorsWrapper(
-      onRequest: (options, handler) {
-        print('🔵 [REQUEST] ${options.method} ${options.path}');
-        if (options.queryParameters.isNotEmpty) {
-          print('🔵 [QUERY] ${options.queryParameters}');
-        }
-        if (options.data != null) {
-          print('🔵 [BODY] ${options.data}');
-        }
-        handler.next(options);
-      },
-      onResponse: (response, handler) {
-        print('🟢 [RESPONSE] ${response.statusCode} ${response.requestOptions.path}');
-        handler.next(response);
-      },
-      onError: (error, handler) {
-        print('🔴 [ERROR] ${error.response?.statusCode} ${error.requestOptions.path}');
-        print('🔴 [ERROR] ${error.message}');
-        handler.next(error);
-      },
-    );
-  }
-
-  /// Interceptor para tratamento padronizado de erros
-  static Interceptor _createErrorInterceptor() {
-    return InterceptorsWrapper(
-      onError: (error, handler) {
-        // Aqui você pode adicionar tratamentos globais de erro
-        // Por exemplo, refresh de token, logout automático, etc.
-
-        if (error.response?.statusCode == 401) {
-          print('🔴 [AUTH ERROR] Token expirado ou inválido');
-          // Implementar refresh de token ou logout
-        }
-
-        if (error.response?.statusCode == 500) {
-          print('🔴 [SERVER ERROR] Erro interno do servidor');
-        }
-
-        handler.next(error);
-      },
-    );
-  }
-
-  /// Cria uma instância temporária do Dio para casos específicos
-  static Dio createCustomInstance({
-    Duration? connectTimeout,
-    Duration? receiveTimeout,
-    Duration? sendTimeout,
-    Map<String, String>? customHeaders,
-    bool enableLogging = true,
-  }) {
-    final baseConfig = _currentApiConfig;
-    if (baseConfig == null) {
-      throw StateError('DioConfig não foi inicializado.');
-    }
-
-    final protocol = baseConfig.useHttps ? 'https' : 'http';
-    final baseUrl = '$protocol://${baseConfig.apiUrl}:${baseConfig.apiPort}';
-
-    final dio = Dio(
-      BaseOptions(
-        baseUrl: baseUrl,
-        connectTimeout: connectTimeout ?? const Duration(seconds: 10),
-        receiveTimeout: receiveTimeout ?? const Duration(seconds: 30),
-        sendTimeout: sendTimeout ?? const Duration(seconds: 30),
-        headers: {'Content-Type': 'application/json', 'Accept': 'application/json', ...?customHeaders},
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          // Log da requisição
+          print('🌐 ${options.method} ${options.uri}');
+          if (options.data != null) {
+            print('📦 Request Data: ${options.data}');
+          }
+          handler.next(options);
+        },
+        onResponse: (response, handler) {
+          // Log da resposta
+          print('✅ ${response.statusCode} ${response.requestOptions.uri}');
+          print('📦 Response Data: ${response.data}');
+          handler.next(response);
+        },
+        onError: (error, handler) {
+          // Log de erro
+          print('❌ ${error.type} ${error.message}');
+          if (error.response != null) {
+            print('📦 Error Data: ${error.response?.data}');
+          }
+          handler.next(error);
+        },
       ),
     );
-
-    if (enableLogging) {
-      dio.interceptors.add(_createLoggingInterceptor());
-    }
-
-    dio.interceptors.add(_createErrorInterceptor());
 
     return dio;
   }

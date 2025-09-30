@@ -45,14 +45,19 @@ class SeparateItemsBottomNavigation extends StatelessWidget {
   Widget _buildTab({required IconData icon, required String label, required ColorScheme colorScheme}) {
     return Tab(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 20),
             const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 10), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),

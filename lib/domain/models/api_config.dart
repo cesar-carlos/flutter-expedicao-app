@@ -1,22 +1,11 @@
-import 'package:hive/hive.dart';
+/// Modelo de domínio para configuração da API
+class ApiConfig {
+  final String apiUrl;
+  final int apiPort;
+  final bool useHttps;
+  final DateTime? lastUpdated;
 
-part 'api_config.g.dart';
-
-@HiveType(typeId: 0)
-class ApiConfig extends HiveObject {
-  @HiveField(0)
-  String apiUrl;
-
-  @HiveField(1)
-  int apiPort;
-
-  @HiveField(2)
-  bool useHttps;
-
-  @HiveField(3)
-  DateTime? lastUpdated;
-
-  ApiConfig({required this.apiUrl, required this.apiPort, this.useHttps = false, this.lastUpdated});
+  const ApiConfig({required this.apiUrl, required this.apiPort, this.useHttps = false, this.lastUpdated});
 
   String get fullUrl {
     final protocol = useHttps ? 'https' : 'http';

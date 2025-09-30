@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:exp/domain/models/api_config.dart';
+import 'package:exp/data/models/api_config_entity.dart';
 
 class ConfigService {
   static const String _boxName = 'config';
@@ -17,7 +18,7 @@ class ConfigService {
     await Hive.initFlutter();
 
     if (!Hive.isAdapterRegistered(0)) {
-      Hive.registerAdapter(ApiConfigAdapter());
+      Hive.registerAdapter(ApiConfigEntityAdapter());
     }
 
     _configBox = await Hive.openBox(_boxName);
@@ -26,16 +27,16 @@ class ConfigService {
 
   Future<void> saveApiConfig(ApiConfig config) async {
     _ensureInitialized();
-    config.lastUpdated = DateTime.now();
-    await _configBox.put(_apiConfigKey, config);
+    final entity = ApiConfigEntity.fromDomain(config);
+    await _configBox.put(_apiConfigKey, entity);
   }
 
   ApiConfig getApiConfig() {
     _ensureInitialized();
-    final config = _configBox.get(_apiConfigKey);
+    final entity = _configBox.get(_apiConfigKey);
 
-    if (config is ApiConfig) {
-      return config;
+    if (entity is ApiConfigEntity) {
+      return entity.toDomain();
     }
 
     return ApiConfig.defaultConfig;

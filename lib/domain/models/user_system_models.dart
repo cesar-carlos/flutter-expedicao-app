@@ -9,6 +9,12 @@ class UserSystemModel {
   final String? codContaFinanceira;
   final String? nomeContaFinanceira;
   final String? nomeCaixaOperador;
+  final int? codSetorEstoque;
+  final String? nomeSetorEstoque;
+  final int? codSetorConferencia;
+  final String? nomeSetorConferencia;
+  final int? codSetorArmazenagem;
+  final String? nomeSetorArmazenagem;
   final int? codLoginApp;
   final Situation permiteSepararForaSequencia;
   final Situation visualizaTodasSeparacoes;
@@ -26,6 +32,12 @@ class UserSystemModel {
     this.codContaFinanceira,
     this.nomeContaFinanceira,
     this.nomeCaixaOperador,
+    this.codSetorEstoque,
+    this.nomeSetorEstoque,
+    this.codSetorConferencia,
+    this.nomeSetorConferencia,
+    this.codSetorArmazenagem,
+    this.nomeSetorArmazenagem,
     this.codLoginApp,
     required this.permiteSepararForaSequencia,
     required this.visualizaTodasSeparacoes,
@@ -45,6 +57,12 @@ class UserSystemModel {
       codContaFinanceira: map['CodContaFinanceira'] as String?,
       nomeContaFinanceira: map['NomeContaFinanceira'] as String?,
       nomeCaixaOperador: map['NomeCaixaOperador'] as String?,
+      codSetorEstoque: map['CodSetorEstoque'] as int?,
+      nomeSetorEstoque: map['NomeSetorEstoque'] as String?,
+      codSetorConferencia: map['CodSetorConferencia'] as int?,
+      nomeSetorConferencia: map['NomeSetorConferencia'] as String?,
+      codSetorArmazenagem: map['CodSetorArmazenagem'] as int?,
+      nomeSetorArmazenagem: map['NomeSetorArmazenagem'] as String?,
       codLoginApp: map['CodLoginApp'] as int?,
       permiteSepararForaSequencia: Situation.fromCodeWithFallback(map['PermiteSepararForaSequencia'] as String? ?? 'N'),
       visualizaTodasSeparacoes: Situation.fromCodeWithFallback(map['VisualizaTodasSeparacoes'] as String? ?? 'N'),
@@ -73,6 +91,12 @@ class UserSystemModel {
       'CodContaFinanceira': codContaFinanceira,
       'NomeContaFinanceira': nomeContaFinanceira,
       'NomeCaixaOperador': nomeCaixaOperador,
+      'CodSetorEstoque': codSetorEstoque,
+      'NomeSetorEstoque': nomeSetorEstoque,
+      'CodSetorConferencia': codSetorConferencia,
+      'NomeSetorConferencia': nomeSetorConferencia,
+      'CodSetorArmazenagem': codSetorArmazenagem,
+      'NomeSetorArmazenagem': nomeSetorArmazenagem,
       'CodLoginApp': codLoginApp,
       'PermiteSepararForaSequencia': permiteSepararForaSequencia.code,
       'VisualizaTodasSeparacoes': visualizaTodasSeparacoes.code,

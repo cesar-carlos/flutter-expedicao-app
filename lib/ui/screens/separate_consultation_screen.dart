@@ -4,11 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:exp/ui/widgets/common/index.dart';
 import 'package:exp/ui/widgets/app_drawer/app_drawer.dart';
+import 'package:exp/domain/models/pagination/query_builder_extension.dart';
 import 'package:exp/ui/widgets/data_grid/separate_consultation_data_grid.dart';
 import 'package:exp/domain/viewmodels/separate_consultation_viewmodel.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
-import 'package:exp/domain/models/pagination/query_builder_extension.dart';
 
 /// Tela para exibir consultas de separação de expedição
 class SeparateConsultationScreen extends StatefulWidget {
