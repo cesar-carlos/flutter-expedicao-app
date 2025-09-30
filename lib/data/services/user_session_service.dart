@@ -17,7 +17,7 @@ class UserSessionService {
       // Marca como logado
       await prefs.setBool(_isLoggedInKey, true);
     } catch (e) {
-      print('Erro ao salvar sessão do usuário: $e');
+      // Erro ao salvar sessão do usuário
       rethrow;
     }
   }
@@ -34,10 +34,10 @@ class UserSessionService {
         return appUser;
       }
     } catch (e) {
-      print('Erro ao carregar sessão do usuário: $e');
+      // Erro ao carregar sessão do usuário
       // Se há erro de deserialização (dados antigos), limpar sessão
       if (e.toString().contains('bool') && e.toString().contains('String')) {
-        print('Detectado formato antigo de dados, limpando sessão...');
+        // Detectado formato antigo de dados, limpando sessão
         await clearUserSession();
       }
     }
@@ -50,7 +50,7 @@ class UserSessionService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_appUserKey, jsonEncode(appUser.toJson()));
     } catch (e) {
-      print('Erro ao atualizar sessão do usuário: $e');
+      // Erro ao atualizar sessão do usuário
       rethrow;
     }
   }
@@ -61,7 +61,7 @@ class UserSessionService {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool(_isLoggedInKey) ?? false;
     } catch (e) {
-      print('Erro ao verificar sessão ativa: $e');
+      // Erro ao verificar sessão ativa
       return false;
     }
   }
@@ -75,7 +75,7 @@ class UserSessionService {
       final appUser = await loadUserSession();
       return appUser != null;
     } catch (e) {
-      print('Erro ao verificar se usuário está logado: $e');
+      // Erro ao verificar se usuário está logado
       return false;
     }
   }
@@ -86,7 +86,7 @@ class UserSessionService {
       final prefs = await SharedPreferences.getInstance();
       await Future.wait([prefs.remove(_appUserKey), prefs.remove(_isLoggedInKey)]);
     } catch (e) {
-      print('Erro ao limpar sessão do usuário: $e');
+      // Erro ao limpar sessão do usuário
       rethrow;
     }
   }

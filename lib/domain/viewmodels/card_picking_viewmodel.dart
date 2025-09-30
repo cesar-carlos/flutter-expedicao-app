@@ -148,8 +148,7 @@ class CardPickingViewModel extends ChangeNotifier {
         _itemsCompleted[itemId] = item.isCompletamenteSeparado;
       }
 
-      print('🚀 Carrinho inicializado: ${_items.length} itens');
-      print('📊 Progresso inicial: $completedItems/$totalItems (${(progress * 100).toInt()}%)');
+      // Carrinho inicializado com sucesso
 
       // Notificar listeners após carregar os itens
       _safeNotifyListeners();
@@ -237,8 +236,7 @@ class CardPickingViewModel extends ChangeNotifier {
     final totalQuantity = item.quantidade.toInt();
     _itemsCompleted[itemId] = quantity >= totalQuantity;
 
-    print('🔄 Progresso atualizado: $itemId - $quantity/$totalQuantity - Completo: ${_itemsCompleted[itemId]}');
-    print('📊 Total: $completedItems/$totalItems (${(progress * 100).toInt()}%)');
+    // Progresso atualizado
 
     _safeNotifyListeners();
   }

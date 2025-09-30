@@ -69,7 +69,7 @@ class SeparatedProductsViewModel extends ChangeNotifier {
         ..equals('CodEmpresa', cart.codEmpresa.toString())
         ..equals('CodSepararEstoque', cart.codOrigem.toString())
         ..equals('CodCarrinhoPercurso', cart.codCarrinhoPercurso.toString())
-        ..equals('ItemCarrinhoPercurso', cart.item.toString());
+        ..equals('ItemCarrinhoPercurso', cart.item);
 
       // Buscar itens separados
       final items = await _repository.selectConsultation(queryBuilder);
@@ -102,14 +102,14 @@ class SeparatedProductsViewModel extends ChangeNotifier {
       _items = items;
 
       if (kDebugMode) {
-        print('✅ Produtos separados carregados: ${_items.length} itens');
+        // Produtos separados carregados
       }
     } catch (e) {
       _hasError = true;
       _errorMessage = 'Erro ao carregar produtos separados: ${e.toString()}';
 
       if (kDebugMode) {
-        print('❌ Erro ao carregar produtos separados: $e');
+        // Erro ao carregar produtos separados
       }
     } finally {
       _isLoading = false;

@@ -55,23 +55,22 @@ class DioConfig {
       InterceptorsWrapper(
         onRequest: (options, handler) {
           // Log da requisição
-          print('🌐 ${options.method} ${options.uri}');
+          // Request log
           if (options.data != null) {
-            print('📦 Request Data: ${options.data}');
+            // Request data log
           }
           handler.next(options);
         },
         onResponse: (response, handler) {
           // Log da resposta
-          print('✅ ${response.statusCode} ${response.requestOptions.uri}');
-          print('📦 Response Data: ${response.data}');
+          // Response log
           handler.next(response);
         },
         onError: (error, handler) {
           // Log de erro
-          print('❌ ${error.type} ${error.message}');
+          // Error log
           if (error.response != null) {
-            print('📦 Error Data: ${error.response?.data}');
+            // Error data log
           }
           handler.next(error);
         },

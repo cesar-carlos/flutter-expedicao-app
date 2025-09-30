@@ -151,7 +151,7 @@ class ProfileViewModel extends ChangeNotifier {
     try {
       return await _userRepository.validateCurrentPassword(nome: currentUser!.nome, currentPassword: _currentPassword!);
     } catch (e) {
-      debugPrint('Erro ao validar senha atual: $e');
+      // Erro ao validar senha atual
       return false;
     }
   }

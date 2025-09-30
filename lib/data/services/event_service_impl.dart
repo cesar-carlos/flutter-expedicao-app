@@ -94,7 +94,7 @@ class EventServiceImpl implements EventService {
       try {
         listener.callback(basicEvent);
       } catch (e) {
-        print('Erro ao executar callback do listener ${listener.id}: $e');
+        // Erro ao executar callback do listener
       }
     }
   }
@@ -113,7 +113,7 @@ class EventServiceImpl implements EventService {
         return BasicEventModel.empty(eventType: eventType);
       }
     } catch (e) {
-      print('Erro ao converter dados do evento: $e');
+      // Erro ao converter dados do evento
       final eventType = _extractEventType(eventName);
       return BasicEventModel.empty(eventType: eventType);
     }

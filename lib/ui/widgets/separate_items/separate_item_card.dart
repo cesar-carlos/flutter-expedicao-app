@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
+import 'package:exp/domain/models/separation_item_status.dart';
 
 class SeparateItemCard extends StatelessWidget {
   final SeparateItemConsultationModel item;
@@ -13,23 +14,21 @@ class SeparateItemCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final isCompleted = item.quantidadeSeparacao >= item.quantidade;
-    final isPartiallyCompleted = item.quantidadeSeparacao > 0 && !isCompleted;
-    final completionColor = isCompleted
-        ? Colors.green
-        : isPartiallyCompleted
-        ? colorScheme.primary
-        : colorScheme.outline;
+    // Usar a situação real do item
+    final situacao = item.situacaoSeparacao;
+    final situacaoColor = situacao.color;
+    final isCompleted = situacao == SeparationItemStatus.separado;
+    final isPartiallyCompleted = situacao == SeparationItemStatus.parcial;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: isCompleted ? 3 : 0,
-      shadowColor: isCompleted ? Colors.green.withOpacity(0.3) : null,
+      shadowColor: isCompleted ? situacaoColor.withOpacity(0.3) : null,
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: completionColor.withOpacity(isCompleted ? 0.6 : 0.3),
+          color: situacaoColor.withOpacity(isCompleted ? 0.6 : 0.3),
           width: isCompleted
               ? 3
               : isPartiallyCompleted
@@ -44,7 +43,7 @@ class SeparateItemCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Colors.green.withOpacity(0.08), Colors.green.withOpacity(0.03)],
+                  colors: [situacaoColor.withOpacity(0.08), situacaoColor.withOpacity(0.03)],
                 ),
               )
             : null,

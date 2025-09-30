@@ -215,7 +215,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       if (_disposed) return;
-      debugPrint('Erro ao carregar setores de estoque: $e');
+      // Erro ao carregar setores de estoque
       _sectorsLoaded = true;
       notifyListeners();
     }
@@ -419,7 +419,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
         _applyItemsFiltersToQuery(queryBuilder);
       }
     } catch (e) {
-      debugPrint('Erro ao aplicar filtros salvos de itens: $e');
+      // Erro ao aplicar filtros salvos de itens
       // Não quebra a aplicação se houver erro ao carregar filtros
     }
   }
@@ -434,7 +434,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
         _applyCartsFiltersToQuery(queryBuilder);
       }
     } catch (e) {
-      debugPrint('Erro ao aplicar filtros salvos de carrinhos: $e');
+      // Erro ao aplicar filtros salvos de carrinhos
       // Não quebra a aplicação se houver erro ao carregar filtros
     }
   }
@@ -483,7 +483,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
       // Aplica filtro de situação localmente
       _items = _applySituacaoFilter(items);
     } catch (e) {
-      debugPrint('Erro ao carregar itens filtrados: $e');
+      // Erro ao carregar itens filtrados
     }
   }
 
@@ -506,7 +506,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
       // Ordena os carrinhos por item em ordem decrescente (mais recentes primeiro)
       _carts = carts..sort((a, b) => b.item.compareTo(a.item));
     } catch (e) {
-      debugPrint('Erro ao carregar carrinhos filtrados: $e');
+      // Erro ao carregar carrinhos filtrados
     }
   }
 
@@ -573,7 +573,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
     try {
       await _filtersStorage.saveSeparateItemsFilters(_itemsFilters);
     } catch (e) {
-      debugPrint('Erro ao salvar filtros de itens: $e');
+      // Erro ao salvar filtros de itens
     }
   }
 
@@ -582,7 +582,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
     try {
       await _filtersStorage.saveCartsFilters(_cartsFilters);
     } catch (e) {
-      debugPrint('Erro ao salvar filtros de carrinhos: $e');
+      // Erro ao salvar filtros de carrinhos
     }
   }
 
@@ -591,7 +591,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
     try {
       await _filtersStorage.clearSeparateItemsFilters();
     } catch (e) {
-      debugPrint('Erro ao limpar filtros de itens: $e');
+      // Erro ao limpar filtros de itens
     }
   }
 
@@ -600,7 +600,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
     try {
       await _filtersStorage.clearCartsFilters();
     } catch (e) {
-      debugPrint('Erro ao limpar filtros de carrinhos: $e');
+      // Erro ao limpar filtros de carrinhos
     }
   }
 

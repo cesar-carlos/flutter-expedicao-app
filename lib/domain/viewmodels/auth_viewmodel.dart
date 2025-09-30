@@ -48,13 +48,13 @@ class AuthViewModel extends ChangeNotifier {
         await _loadAndAttachUserSystemModel();
 
         _status = AuthStatus.authenticated;
-        debugPrint('Usuário carregado da sessão: ${savedUser.nome}');
+        // Usuário carregado da sessão
       } else {
         _status = AuthStatus.unauthenticated;
-        debugPrint('Nenhuma sessão salva encontrada');
+        // Nenhuma sessão salva encontrada
       }
     } catch (e) {
-      debugPrint('Erro ao verificar sessão salva: $e');
+      // Erro ao verificar sessão salva
       _status = AuthStatus.unauthenticated;
     }
 
@@ -123,9 +123,9 @@ class AuthViewModel extends ChangeNotifier {
     try {
       // Limpar sessão persistida
       await _userSessionService.clearUserSession();
-      debugPrint('Sessão limpa com sucesso');
+      // Sessão limpa com sucesso
     } catch (e) {
-      debugPrint('Erro ao limpar sessão: $e');
+      // Erro ao limpar sessão
     }
 
     await Future.delayed(const Duration(milliseconds: 500));
@@ -156,7 +156,7 @@ class AuthViewModel extends ChangeNotifier {
 
     // Salvar sessão atualizada
     await _userSessionService.saveUserSession(updatedUser).catchError((e) {
-      debugPrint('Erro ao salvar sessão atualizada: $e');
+      // Erro ao salvar sessão atualizada
     });
 
     // Carregar UserSystemModel após seleção de usuário
@@ -175,12 +175,12 @@ class AuthViewModel extends ChangeNotifier {
   /// Chama esse método após login manual, login automático e seleção de usuário
   Future<void> _loadAndAttachUserSystemModel() async {
     if (_currentUser?.codUsuario == null) {
-      debugPrint('Não é possível carregar UserSystemModel: codUsuario é null');
+      // Não é possível carregar UserSystemModel: codUsuario é null
       return;
     }
 
     try {
-      debugPrint('Carregando UserSystemModel do servidor para usuário: ${_currentUser!.codUsuario}');
+      // Carregando UserSystemModel do servidor
 
       final userSystemModel = await _userSystemRepository.getUserById(_currentUser!.codUsuario!);
 
@@ -191,12 +191,12 @@ class AuthViewModel extends ChangeNotifier {
         // Salvar sessão atualizada com UserSystemModel
         await _userSessionService.saveUserSession(_currentUser!);
 
-        debugPrint('UserSystemModel carregado e anexado com sucesso para: ${userSystemModel.nomeUsuario}');
+        // UserSystemModel carregado e anexado com sucesso
       } else {
-        debugPrint('UserSystemModel não encontrado no servidor para usuário: ${_currentUser!.codUsuario}');
+        // UserSystemModel não encontrado no servidor
       }
     } catch (e) {
-      debugPrint('Erro ao carregar UserSystemModel do servidor: $e');
+      // Erro ao carregar UserSystemModel do servidor
       // Não falha o login, apenas registra o erro
     }
   }

@@ -45,7 +45,7 @@ class SocketViewModel extends ChangeNotifier {
     try {
       await socketService.connect();
     } catch (e) {
-      debugPrint('Erro ao conectar WebSocket no ViewModel: $e');
+      // Erro ao conectar WebSocket no ViewModel
     }
   }
 
@@ -54,7 +54,7 @@ class SocketViewModel extends ChangeNotifier {
     try {
       socketService.disconnect();
     } catch (e) {
-      debugPrint('Erro ao desconectar WebSocket no ViewModel: $e');
+      // Erro ao desconectar WebSocket no ViewModel
     }
   }
 
@@ -63,14 +63,14 @@ class SocketViewModel extends ChangeNotifier {
     try {
       await socketService.reconnect();
     } catch (e) {
-      debugPrint('Erro ao reconectar WebSocket no ViewModel: $e');
+      // Erro ao reconectar WebSocket no ViewModel
     }
   }
 
   /// Envia dados de localização
   void sendLocationUpdate(double latitude, double longitude) {
     if (!isConnected) {
-      debugPrint('WebSocket não conectado. Não é possível enviar localização.');
+      // WebSocket não conectado - localização
       return;
     }
 
@@ -80,7 +80,7 @@ class SocketViewModel extends ChangeNotifier {
   /// Envia resultado de scanner
   void sendScannerResult(String scanData, String scanType) {
     if (!isConnected) {
-      debugPrint('WebSocket não conectado. Não é possível enviar resultado do scanner.');
+      // WebSocket não conectado - scanner
       return;
     }
 
@@ -90,7 +90,7 @@ class SocketViewModel extends ChangeNotifier {
   /// Envia mensagem
   void sendMessage(String message, {String? recipientId}) {
     if (!isConnected) {
-      debugPrint('WebSocket não conectado. Não é possível enviar mensagem.');
+      // WebSocket não conectado - mensagem
       return;
     }
 
@@ -110,7 +110,7 @@ class SocketViewModel extends ChangeNotifier {
   /// Emite um evento personalizado
   void emitCustomEvent(String eventName, dynamic data) {
     if (!isConnected) {
-      debugPrint('WebSocket não conectado. Não é possível emitir evento: $eventName');
+      // WebSocket não conectado - evento
       return;
     }
 

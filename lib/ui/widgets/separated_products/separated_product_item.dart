@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:exp/domain/models/separation_item_consultation_model.dart';
+import 'package:exp/domain/models/expedition_item_situation_model.dart';
 
 class SeparatedProductItem extends StatelessWidget {
   final SeparationItemConsultationModel item;
@@ -23,32 +24,32 @@ class SeparatedProductItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
+              color: item.situacao.color.withOpacity(0.1),
               borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
             ),
             child: Row(
               children: [
-                Icon(Icons.location_on, color: Colors.green, size: 20),
+                Icon(Icons.location_on, color: item.situacao.color, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     item.enderecoDescricao ?? 'Endereço não definido',
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.green.shade700,
+                      color: item.situacao.color,
                     ),
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: item.situacao.color, borderRadius: BorderRadius.circular(12)),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check, color: Colors.white, size: 14),
+                      Icon(_getSituationIcon(item.situacao), color: Colors.white, size: 14),
                       const SizedBox(width: 4),
                       Text(
-                        'Separado',
+                        item.situacao.description,
                         style: theme.textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -216,5 +217,34 @@ class SeparatedProductItem extends StatelessWidget {
     final dateFormat = DateFormat('dd/MM/yyyy');
     final formattedDate = dateFormat.format(date);
     return '$formattedDate às $time';
+  }
+
+  IconData _getSituationIcon(ExpeditionItemSituation situation) {
+    switch (situation) {
+      case ExpeditionItemSituation.separado:
+        return Icons.check;
+      case ExpeditionItemSituation.cancelado:
+        return Icons.cancel;
+      case ExpeditionItemSituation.pendente:
+        return Icons.pending;
+      case ExpeditionItemSituation.conferido:
+        return Icons.verified;
+      case ExpeditionItemSituation.embalado:
+        return Icons.inventory;
+      case ExpeditionItemSituation.entregue:
+        return Icons.local_shipping;
+      case ExpeditionItemSituation.expedido:
+        return Icons.send;
+      case ExpeditionItemSituation.pausado:
+        return Icons.pause;
+      case ExpeditionItemSituation.reiniciado:
+        return Icons.refresh;
+      case ExpeditionItemSituation.finalizado:
+        return Icons.done_all;
+      case ExpeditionItemSituation.armazenar:
+        return Icons.warehouse;
+      case ExpeditionItemSituation.vazio:
+        return Icons.remove_circle_outline;
+    }
   }
 }

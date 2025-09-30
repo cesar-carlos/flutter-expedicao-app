@@ -40,7 +40,7 @@ class AudioService {
       await _audioPlayer.play(AssetSource(soundType.path));
     } catch (e) {
       if (kDebugMode) {
-        print('Erro ao reproduzir som ${soundType.name}: $e');
+        // Erro ao reproduzir som
       }
     }
   }
@@ -81,7 +81,7 @@ class AudioService {
       await _audioPlayer.stop();
     } catch (e) {
       if (kDebugMode) {
-        print('Erro ao parar reprodução: $e');
+        // Erro ao parar reprodução
       }
     }
   }
@@ -92,7 +92,7 @@ class AudioService {
       await _audioPlayer.dispose();
     } catch (e) {
       if (kDebugMode) {
-        print('Erro ao liberar recursos do AudioPlayer: $e');
+        // Erro ao liberar recursos do AudioPlayer
       }
     }
   }
@@ -103,7 +103,7 @@ class AudioService {
       await _audioPlayer.setVolume(volume.clamp(0.0, 1.0));
     } catch (e) {
       if (kDebugMode) {
-        print('Erro ao definir volume: $e');
+        // Erro ao definir volume
       }
     }
   }
@@ -117,7 +117,7 @@ class AudioService {
       await playSound(soundType);
     } catch (e) {
       if (kDebugMode) {
-        print('Erro ao reproduzir som com volume: $e');
+        // Erro ao reproduzir som com volume
       }
     }
   }

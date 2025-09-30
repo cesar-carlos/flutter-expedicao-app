@@ -35,7 +35,7 @@ class SocketService extends ChangeNotifier {
       _setupSocketListeners();
       await connect();
     } catch (e) {
-      debugPrint('Erro ao inicializar SocketService: $e');
+      // Erro ao inicializar SocketService
       _updateConnectionState(SocketConnectionState.error);
     }
   }
@@ -50,7 +50,7 @@ class SocketService extends ChangeNotifier {
       _updateConnectionState(SocketConnectionState.connecting);
       await SocketConfig.connect();
     } catch (e) {
-      debugPrint('Erro ao conectar WebSocket: $e');
+      // Erro ao conectar WebSocket
       _updateConnectionState(SocketConnectionState.error);
     }
   }
@@ -62,7 +62,7 @@ class SocketService extends ChangeNotifier {
       SocketConfig.disconnect();
       _updateConnectionState(SocketConnectionState.disconnected);
     } catch (e) {
-      debugPrint('Erro ao desconectar WebSocket: $e');
+      // Erro ao desconectar WebSocket
     }
   }
 
@@ -72,7 +72,7 @@ class SocketService extends ChangeNotifier {
       _updateConnectionState(SocketConnectionState.reconnecting);
       await SocketConfig.reconnect();
     } catch (e) {
-      debugPrint('Erro ao reconectar WebSocket: $e');
+      // Erro ao reconectar WebSocket
       _updateConnectionState(SocketConnectionState.error);
     }
   }
@@ -80,7 +80,7 @@ class SocketService extends ChangeNotifier {
   /// Emite um evento para o servidor
   void emit(String eventName, dynamic data) {
     if (!isConnected) {
-      debugPrint('Socket não conectado. Não é possível emitir evento: $eventName');
+      // Socket não conectado
       return;
     }
 
@@ -88,9 +88,9 @@ class SocketService extends ChangeNotifier {
       final payload = {'userId': _userId, 'timestamp': DateTime.now().toIso8601String(), 'data': data};
 
       SocketConfig.instance.emit(eventName, payload);
-      debugPrint('Evento emitido: $eventName');
+      // Evento emitido
     } catch (e) {
-      debugPrint('Erro ao emitir evento $eventName: $e');
+      // Erro ao emitir evento
     }
   }
 
@@ -137,7 +137,7 @@ class SocketService extends ChangeNotifier {
         reconnect();
       }
     } catch (e) {
-      debugPrint('Erro ao atualizar configuração do socket: $e');
+      // Erro ao atualizar configuração do socket
     }
   }
 
@@ -146,7 +146,7 @@ class SocketService extends ChangeNotifier {
     final socket = SocketConfig.instance;
 
     socket.onConnect((_) {
-      debugPrint('Socket conectado com sucesso');
+      // Socket conectado com sucesso
       _updateConnectionState(SocketConnectionState.connected);
       _startHeartbeat();
 
@@ -157,23 +157,23 @@ class SocketService extends ChangeNotifier {
     });
 
     socket.onDisconnect((_) {
-      debugPrint('Socket desconectado');
+      // Socket desconectado
       _updateConnectionState(SocketConnectionState.disconnected);
       _stopHeartbeat();
     });
 
     socket.onConnectError((data) {
-      debugPrint('Erro de conexão do socket: $data');
+      // Erro de conexão do socket
       _updateConnectionState(SocketConnectionState.error);
     });
 
     socket.onError((data) {
-      debugPrint('Erro do socket: $data');
+      // Erro do socket
       _updateConnectionState(SocketConnectionState.error);
     });
 
     socket.onReconnect((_) {
-      debugPrint('Socket reconectado');
+      // Socket reconectado
       _updateConnectionState(SocketConnectionState.connected);
     });
   }
@@ -198,7 +198,7 @@ class SocketService extends ChangeNotifier {
     if (_connectionState != newState) {
       _connectionState = newState;
       notifyListeners();
-      debugPrint('Socket state changed to: ${newState.name}');
+      // Socket state changed
     }
   }
 

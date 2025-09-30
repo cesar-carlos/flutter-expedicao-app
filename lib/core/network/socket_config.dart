@@ -80,7 +80,7 @@ class SocketConfig {
 
   /// Cria uma nova instância do Socket.IO com as configurações
   static IO.Socket _createSocketInstance(ApiConfig apiConfig) {
-    debugPrint('🔌 Conectando ao Socket.IO: ${apiConfig.fullUrl}');
+    // Conectando ao Socket.IO
 
     final socket = IO.io(apiConfig.fullUrl, <String, dynamic>{
       'transports': ['websocket'],
@@ -93,33 +93,31 @@ class SocketConfig {
 
     // Adiciona listeners padrão
     socket.onConnect((_) {
-      debugPrint('✅ Socket.IO conectado: ${apiConfig.fullUrl}');
-      debugPrint('🔑 Socket.IO ID: ${socket.id}');
+      // Socket.IO conectado
     });
 
     socket.onDisconnect((_) {
-      debugPrint('❌ Socket.IO desconectado');
+      // Socket.IO desconectado
     });
 
     socket.onError((error) {
-      debugPrint('❌ Socket.IO erro: $error');
+      // Socket.IO erro
     });
 
     socket.onConnectError((error) {
-      debugPrint('❌ Socket.IO erro de conexão: $error');
+      // Socket.IO erro de conexão
     });
 
     socket.onReconnect((_) {
-      debugPrint('🔄 Socket.IO reconectado');
-      debugPrint('🔑 Novo Socket.IO ID: ${socket.id}');
+      // Socket.IO reconectado
     });
 
     socket.onReconnectError((error) {
-      debugPrint('❌ Socket.IO erro de reconexão: $error');
+      // Socket.IO erro de reconexão
     });
 
     socket.onReconnectFailed((_) {
-      debugPrint('❌ Socket.IO falha na reconexão');
+      // Socket.IO falha na reconexão
     });
 
     return socket;

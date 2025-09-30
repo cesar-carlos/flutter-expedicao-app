@@ -25,7 +25,7 @@ class ScannerViewModel extends ChangeNotifier {
         _scanHistory = _scanHistory.take(50).toList();
       }
 
-      debugPrint("Código processado: $_scannedCode");
+      // Código processado
       notifyListeners();
     }
   }

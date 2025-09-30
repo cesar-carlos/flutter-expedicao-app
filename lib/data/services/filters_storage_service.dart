@@ -17,7 +17,7 @@ class FiltersStorageService {
       await prefs.setString(_separationFiltersKey, filtersJson);
     } catch (e) {
       // Log do erro, mas não quebra a aplicação
-      print('Erro ao salvar filtros de separação: $e');
+      // Erro ao salvar filtros de separação
     }
   }
 
@@ -33,7 +33,7 @@ class FiltersStorageService {
       }
     } catch (e) {
       // Log do erro, mas retorna filtros vazios
-      print('Erro ao carregar filtros de separação: $e');
+      // Erro ao carregar filtros de separação
     }
 
     return const SeparationFiltersModel();
@@ -45,7 +45,7 @@ class FiltersStorageService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_separationFiltersKey);
     } catch (e) {
-      print('Erro ao limpar filtros de separação: $e');
+      // Erro ao limpar filtros de separação
     }
   }
 
@@ -55,7 +55,7 @@ class FiltersStorageService {
       final prefs = await SharedPreferences.getInstance();
       return prefs.containsKey(_separationFiltersKey);
     } catch (e) {
-      print('Erro ao verificar filtros salvos: $e');
+      // Erro ao verificar filtros salvos
       return false;
     }
   }
@@ -69,7 +69,7 @@ class FiltersStorageService {
       final filtersJson = jsonEncode(filters.toJson());
       await prefs.setString(_separateItemsFiltersKey, filtersJson);
     } catch (e) {
-      print('Erro ao salvar filtros de produtos: $e');
+      // Erro ao salvar filtros de produtos
     }
   }
 
@@ -84,7 +84,7 @@ class FiltersStorageService {
         return SeparateItemsFiltersModel.fromJson(filtersMap);
       }
     } catch (e) {
-      print('Erro ao carregar filtros de produtos: $e');
+      // Erro ao carregar filtros de produtos
     }
 
     return const SeparateItemsFiltersModel();
@@ -96,7 +96,7 @@ class FiltersStorageService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_separateItemsFiltersKey);
     } catch (e) {
-      print('Erro ao limpar filtros de produtos: $e');
+      // Erro ao limpar filtros de produtos
     }
   }
 
@@ -106,7 +106,7 @@ class FiltersStorageService {
       final prefs = await SharedPreferences.getInstance();
       return prefs.containsKey(_separateItemsFiltersKey);
     } catch (e) {
-      print('Erro ao verificar filtros salvos de produtos: $e');
+      // Erro ao verificar filtros salvos de produtos
       return false;
     }
   }
@@ -120,7 +120,7 @@ class FiltersStorageService {
       final filtersJson = jsonEncode(filters.toJson());
       await prefs.setString(_cartsFiltersKey, filtersJson);
     } catch (e) {
-      print('Erro ao salvar filtros de carrinhos: $e');
+      // Erro ao salvar filtros de carrinhos
     }
   }
 
@@ -135,7 +135,7 @@ class FiltersStorageService {
         return CartsFiltersModel.fromJson(filtersMap);
       }
     } catch (e) {
-      print('Erro ao carregar filtros de carrinhos: $e');
+      // Erro ao carregar filtros de carrinhos
     }
 
     return const CartsFiltersModel();
@@ -147,7 +147,7 @@ class FiltersStorageService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_cartsFiltersKey);
     } catch (e) {
-      print('Erro ao limpar filtros de carrinhos: $e');
+      // Erro ao limpar filtros de carrinhos
     }
   }
 
@@ -157,7 +157,7 @@ class FiltersStorageService {
       final prefs = await SharedPreferences.getInstance();
       return prefs.containsKey(_cartsFiltersKey);
     } catch (e) {
-      print('Erro ao verificar filtros salvos de carrinhos: $e');
+      // Erro ao verificar filtros salvos de carrinhos
       return false;
     }
   }
