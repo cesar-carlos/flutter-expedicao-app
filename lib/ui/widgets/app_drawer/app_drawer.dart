@@ -6,9 +6,9 @@ import 'package:exp/core/utils/string_utils.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/domain/viewmodels/theme_viewmodel.dart';
 import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
-import 'package:exp/core/routing/app_router.dart';
-import 'package:exp/core/utils/avatar_utils.dart';
 import 'package:exp/ui/widgets/app_drawer/drawer_menu_tile.dart';
+import 'package:exp/core/utils/avatar_utils.dart';
+import 'package:exp/core/routing/app_router.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -12,20 +13,110 @@ class BarcodeScanner extends StatefulWidget {
 }
 
 class _BarcodeScannerState extends State<BarcodeScanner> {
-  final _barcodeController = TextEditingController(text: '00015520240603');
+  final _barcodeController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+
+  Timer? _scanTimer;
+  bool _keyboardEnabled = false; // Estado do teclado
 
   @override
   void initState() {
     super.initState();
+
+    // Listener para detectar quando o scanner termina de enviar o código
+    _barcodeController.addListener(_onScannerInput);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
   }
 
+  void _onScannerInput() {
+    // Cancelar timer anterior se existir
+    _scanTimer?.cancel();
+
+    // Diferentes estratégias para scanner vs teclado
+    if (!_keyboardEnabled && _barcodeController.text.isNotEmpty) {
+      final currentLength = _barcodeController.text.length;
+      final text = _barcodeController.text.trim();
+
+      // Detectar códigos de 14 dígitos imediatamente (código completo)
+      if (currentLength == 14 && RegExp(r'^\d{14}$').hasMatch(text)) {
+        _processScannedCode();
+        return;
+      }
+
+      // Para outros tamanhos, usar timer baseado no comprimento
+      final waitTime = _getWaitTimeForLength(currentLength);
+      _scanTimer = Timer(Duration(milliseconds: waitTime), () {
+        if (_barcodeController.text.isNotEmpty) {
+          _processScannedCode();
+        }
+      });
+    }
+  }
+
+  /// Retorna o tempo de espera baseado no comprimento do código
+  int _getWaitTimeForLength(int length) {
+    if (length < 5) return 800; // Aguardar mais dados
+    if (length < 14) return 500; // Tempo médio
+    return 200; // Processar rápido
+  }
+
+  void _processBarcode(String text) {
+    if (text.isEmpty || widget.isLoading) return;
+
+    // Limpar caracteres especiais que podem vir do scanner
+    final cleanText = text.replaceAll(RegExp(r'[^\d]'), '');
+
+    // Validar comprimento para evitar códigos incompletos
+    final minLength = _keyboardEnabled ? 3 : 5;
+
+    if (cleanText.length >= minLength) {
+      // Processar código válido
+      widget.onBarcodeScanned(cleanText);
+
+      // Limpar campo e restaurar foco
+      _barcodeController.clear();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _focusNode.requestFocus();
+      });
+    }
+  }
+
+  void _processScannedCode() {
+    final text = _barcodeController.text.trim();
+    _processBarcode(text);
+  }
+
+  void _toggleKeyboard() {
+    setState(() {
+      _keyboardEnabled = !_keyboardEnabled;
+    });
+
+    // Gerenciar foco baseado no modo selecionado
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_keyboardEnabled) {
+        // Modo teclado: forçar abertura do teclado virtual
+        _focusNode.unfocus();
+        Future.delayed(const Duration(milliseconds: 100), () {
+          _focusNode.requestFocus();
+        });
+      } else {
+        // Modo scanner: fechar teclado virtual e manter foco para scanner físico
+        _focusNode.unfocus();
+        FocusScope.of(context).unfocus();
+        Future.delayed(const Duration(milliseconds: 200), () {
+          _focusNode.requestFocus();
+        });
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _scanTimer?.cancel();
+    _barcodeController.removeListener(_onScannerInput);
     _barcodeController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -62,7 +153,9 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
           const SizedBox(height: 6),
 
           Text(
-            'Posicione o leitor sobre o código de barras do carrinho',
+            _keyboardEnabled
+                ? 'Digite o código de barras e pressione Enter'
+                : 'Posicione o leitor sobre o código de barras do carrinho',
             style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7)),
             textAlign: TextAlign.center,
           ),
@@ -75,12 +168,18 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
             enabled: !widget.isLoading,
             autofocus: true,
             textInputAction: TextInputAction.done,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            keyboardType: _keyboardEnabled ? TextInputType.number : TextInputType.none,
+            inputFormatters: _keyboardEnabled ? [FilteringTextInputFormatter.digitsOnly] : null,
+            enableInteractiveSelection: _keyboardEnabled,
+            showCursor: true,
             decoration: InputDecoration(
               labelText: 'Código de Barras',
-              hintText: 'Digite ou escaneie o código',
-              prefixIcon: Icon(Icons.barcode_reader, color: colorScheme.primary),
+              hintText: _keyboardEnabled ? 'Digite o código...' : 'Aguardando scanner',
+              prefixIcon: IconButton(
+                icon: Icon(_keyboardEnabled ? Icons.keyboard : Icons.qr_code_scanner, color: colorScheme.primary),
+                onPressed: _toggleKeyboard,
+                tooltip: _keyboardEnabled ? 'Usar scanner' : 'Usar teclado',
+              ),
               suffixIcon: widget.isLoading
                   ? Container(
                       width: 20,
@@ -88,10 +187,22 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
                       margin: const EdgeInsets.all(12),
                       child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.primary),
                     )
-                  : IconButton(
-                      onPressed: _barcodeController.text.isNotEmpty ? () => _onScanPressed() : null,
-                      icon: const Icon(Icons.search),
-                      tooltip: 'Buscar carrinho',
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
+                          onPressed: () {
+                            _barcodeController.clear();
+                            _focusNode.requestFocus();
+                          },
+                        ),
+                        IconButton(
+                          onPressed: _barcodeController.text.isNotEmpty ? () => _onScanPressed() : null,
+                          icon: const Icon(Icons.search),
+                          tooltip: 'Buscar carrinho',
+                        ),
+                      ],
                     ),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               focusedBorder: OutlineInputBorder(
@@ -128,10 +239,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
   }
 
   void _onScanPressed() {
-    if (_barcodeController.text.isNotEmpty && !widget.isLoading) {
-      widget.onBarcodeScanned(_barcodeController.text.trim());
-
-      _focusNode.requestFocus();
-    }
+    final text = _barcodeController.text.trim();
+    _processBarcode(text);
   }
 }

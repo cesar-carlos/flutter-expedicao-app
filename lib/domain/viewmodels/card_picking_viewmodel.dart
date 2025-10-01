@@ -1,21 +1,30 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
-import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/domain/models/picking_state.dart';
-import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/domain/models/user_system_models.dart';
+import 'package:exp/domain/models/separation_item_status.dart';
+import 'package:exp/domain/models/expedition_sector_stock_model.dart';
+import 'package:exp/domain/models/pending_products_filters_model.dart';
+import 'package:exp/domain/models/separate_item_consultation_model.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_params.dart';
+import 'package:exp/domain/repositories/basic_consultation_repository.dart';
+import 'package:exp/core/validation/common/socket_validation_helper.dart';
+import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/data/services/filters_storage_service.dart';
+import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/core/results/index.dart';
-import 'package:exp/core/validation/common/socket_validation_helper.dart';
 import 'package:exp/di/locator.dart';
 
+/// ViewModel para gerenciar o estado do picking de um carrinho
+/// Os produtos são ordenados por endereço usando ordenação natural (01, 02, 10, 11, etc.)
 class CardPickingViewModel extends ChangeNotifier {
   // Repository para carregar os itens
   final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
+  final BasicRepository<ExpeditionSectorStockModel> _sectorStockRepository;
+  final FiltersStorageService _filtersStorage;
 
   // Use case para adicionar itens na separação
   final AddItemSeparationUseCase _addItemSeparationUseCase;
@@ -60,9 +69,29 @@ class CardPickingViewModel extends ChangeNotifier {
   // Flag para evitar dispose durante operações
   bool _disposed = false;
 
+  // === FILTROS ===
+  PendingProductsFiltersModel _filters = const PendingProductsFiltersModel();
+  PendingProductsFiltersModel get filters => _filters;
+  bool get hasActiveFilters => _filters.isNotEmpty;
+
+  // === SETORES DE ESTOQUE ===
+  List<ExpeditionSectorStockModel> _availableSectors = [];
+  bool _sectorsLoaded = false;
+  List<ExpeditionSectorStockModel> get availableSectors => List.unmodifiable(_availableSectors);
+  bool get sectorsLoaded => _sectorsLoaded;
+
+  // === OPÇÕES DE FILTRO DE SITUAÇÃO ===
+  List<SeparationItemStatus> get situacaoFilterOptions => [
+    SeparationItemStatus.pendente,
+    SeparationItemStatus.separado,
+    SeparationItemStatus.cancelado,
+  ];
+
   // Construtor
   CardPickingViewModel()
     : _repository = locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
+      _sectorStockRepository = locator<BasicRepository<ExpeditionSectorStockModel>>(),
+      _filtersStorage = locator<FiltersStorageService>(),
       _addItemSeparationUseCase = locator<AddItemSeparationUseCase>(),
       _userSessionService = locator<UserSessionService>();
 
@@ -76,6 +105,12 @@ class CardPickingViewModel extends ChangeNotifier {
     if (!_disposed) {
       notifyListeners();
     }
+  }
+
+  void _setError(String message) {
+    _hasError = true;
+    _errorMessage = message;
+    _safeNotifyListeners();
   }
 
   /// Inicializa o carrinho e carrega os dados necessários
@@ -106,47 +141,11 @@ class CardPickingViewModel extends ChangeNotifier {
     if (_cart == null) return;
 
     try {
-      final codEmpresa = _cart!.codEmpresa;
-      final codSepararEstoque = _cart!.codOrigem; // Usando codOrigem como codSepararEstoque
-      final codSetorEstoqueUsuario = _userModel?.codSetorEstoque;
+      // Carregar filtros salvos primeiro
+      await _loadSavedFilters();
 
-      List<SeparateItemConsultationModel> items = [];
-
-      if (codSetorEstoqueUsuario != null) {
-        // Implementar filtro OR: produtos do setor do usuário OU produtos sem setor específico (NULL)
-        // Buscar todos os produtos e filtrar manualmente
-        final queryNoSector = QueryBuilder()
-          ..equals('CodEmpresa', codEmpresa.toString())
-          ..equals('CodSepararEstoque', codSepararEstoque.toString())
-          ..orderBy('EnderecoDescricao');
-
-        final allItems = await _repository.selectConsultation(queryNoSector);
-
-        // Filtrar manualmente produtos que não têm setor definido ou têm o setor do usuário
-        final filteredItems = allItems.where((item) {
-          return item.codSetorEstoque == null || item.codSetorEstoque == codSetorEstoqueUsuario;
-        }).toList();
-
-        items = filteredItems;
-      } else {
-        // Se o usuário não tem setor definido, busca todos os produtos
-        final queryBuilder = QueryBuilder()
-          ..equals('CodEmpresa', codEmpresa.toString())
-          ..equals('CodSepararEstoque', codSepararEstoque.toString())
-          ..orderBy('EnderecoDescricao');
-
-        items = await _repository.selectConsultation(queryBuilder);
-      }
-
-      if (_disposed) return;
-
-      _items = items;
-
-      // Inicializar estado consolidado do picking
-      _pickingState = PickingState.initial(_items);
-
-      // Notificar listeners após carregar os itens
-      _safeNotifyListeners();
+      // Carregar itens com filtros aplicados
+      await _loadFilteredItems();
     } catch (e) {
       rethrow;
     }
@@ -343,6 +342,209 @@ class CardPickingViewModel extends ChangeNotifier {
     _hasError = false;
     _errorMessage = null;
     await initializeCart(_cart!);
+  }
+
+  /// Ordena itens por endereço usando ordenação natural
+  List<SeparateItemConsultationModel> _sortItemsByAddress(List<SeparateItemConsultationModel> items) {
+    return List.from(items)..sort((a, b) {
+      final endA = a.enderecoDescricao?.toLowerCase() ?? '';
+      final endB = b.enderecoDescricao?.toLowerCase() ?? '';
+
+      // Extrair números do início do endereço (01, 02, etc)
+      final regExp = RegExp(r'^(\d+)');
+      final matchA = regExp.firstMatch(endA);
+      final matchB = regExp.firstMatch(endB);
+
+      // Se ambos começam com números, comparar numericamente
+      if (matchA != null && matchB != null) {
+        final numA = int.parse(matchA.group(1)!);
+        final numB = int.parse(matchB.group(1)!);
+        if (numA != numB) return numA.compareTo(numB);
+      }
+
+      // Se um começa com número e outro não, priorizar o que começa com número
+      if (matchA != null && matchB == null) return -1;
+      if (matchA == null && matchB != null) return 1;
+
+      // Caso contrário, ordenar alfabeticamente
+      return endA.compareTo(endB);
+    });
+  }
+
+  // === MÉTODOS DE FILTROS ===
+
+  /// Carrega setores de estoque disponíveis
+  Future<void> loadAvailableSectors() async {
+    if (_disposed || _sectorsLoaded) return;
+
+    try {
+      final sectors = await _sectorStockRepository.select(QueryBuilder());
+      if (_disposed) return;
+
+      _availableSectors = sectors;
+      _sectorsLoaded = true;
+      _safeNotifyListeners();
+    } catch (e) {
+      _availableSectors = [];
+      _sectorsLoaded = false;
+    }
+  }
+
+  /// Aplica filtros aos produtos pendentes
+  Future<void> applyFilters(PendingProductsFiltersModel filters) async {
+    if (_disposed) return;
+
+    try {
+      _filters = filters;
+      await _saveFilters();
+      await _loadFilteredItems();
+      _safeNotifyListeners();
+    } catch (e) {
+      _setError('Erro ao aplicar filtros: ${e.toString()}');
+    }
+  }
+
+  /// Limpa filtros
+  Future<void> clearFilters() async {
+    if (_disposed) return;
+
+    try {
+      _filters = const PendingProductsFiltersModel();
+      await _clearFilters();
+      await _loadFilteredItems();
+      _safeNotifyListeners();
+    } catch (e) {
+      _setError('Erro ao limpar filtros: ${e.toString()}');
+    }
+  }
+
+  /// Carrega itens com filtros aplicados
+  Future<void> _loadFilteredItems() async {
+    if (_cart == null) return;
+
+    try {
+      final codEmpresa = _cart!.codEmpresa;
+      final codSepararEstoque = _cart!.codOrigem;
+      final codSetorEstoqueUsuario = _userModel?.codSetorEstoque;
+
+      List<SeparateItemConsultationModel> items = [];
+
+      if (codSetorEstoqueUsuario != null) {
+        // Implementar filtro OR: produtos do setor do usuário OU produtos sem setor específico (NULL)
+        final queryNoSector = QueryBuilder()
+          ..equals('CodEmpresa', codEmpresa.toString())
+          ..equals('CodSepararEstoque', codSepararEstoque.toString())
+          ..orderBy('EnderecoDescricao');
+
+        final allItems = await _repository.selectConsultation(queryNoSector);
+
+        // Filtrar manualmente produtos que não têm setor definido ou têm o setor do usuário
+        final filteredItems = allItems.where((item) {
+          return item.codSetorEstoque == null || item.codSetorEstoque == codSetorEstoqueUsuario;
+        }).toList();
+
+        items = filteredItems;
+      } else {
+        // Se o usuário não tem setor definido, busca todos os produtos
+        final queryBuilder = QueryBuilder()
+          ..equals('CodEmpresa', codEmpresa.toString())
+          ..equals('CodSepararEstoque', codSepararEstoque.toString())
+          ..orderBy('EnderecoDescricao');
+
+        items = await _repository.selectConsultation(queryBuilder);
+      }
+
+      if (_disposed) return;
+
+      // Aplicar filtros locais
+      items = _applyLocalFilters(items);
+
+      // Aplicar ordenação natural por endereço
+      _items = _sortItemsByAddress(items);
+
+      // Inicializar estado consolidado do picking
+      _pickingState = PickingState.initial(_items);
+
+      // Notificar listeners após carregar os itens
+      _safeNotifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Aplica filtros locais aos itens
+  List<SeparateItemConsultationModel> _applyLocalFilters(List<SeparateItemConsultationModel> items) {
+    return items.where((item) {
+      // Filtro por código do produto
+      if (_filters.codProduto != null && _filters.codProduto!.isNotEmpty) {
+        if (!item.codProduto.toString().toLowerCase().contains(_filters.codProduto!.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Filtro por código de barras
+      if (_filters.codigoBarras != null && _filters.codigoBarras!.isNotEmpty) {
+        final barcode = item.codigoBarras?.toLowerCase() ?? '';
+        if (!barcode.contains(_filters.codigoBarras!.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Filtro por nome do produto
+      if (_filters.nomeProduto != null && _filters.nomeProduto!.isNotEmpty) {
+        if (!item.nomeProduto.toLowerCase().contains(_filters.nomeProduto!.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Filtro por endereço/descrição
+      if (_filters.enderecoDescricao != null && _filters.enderecoDescricao!.isNotEmpty) {
+        final endereco = item.enderecoDescricao?.toLowerCase() ?? '';
+        if (!endereco.contains(_filters.enderecoDescricao!.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Filtro por setor de estoque
+      if (_filters.setorEstoque != null) {
+        if (item.codSetorEstoque != _filters.setorEstoque!.codSetorEstoque) {
+          return false;
+        }
+      }
+
+      return true;
+    }).toList();
+  }
+
+  /// Salva filtros no armazenamento local
+  Future<void> _saveFilters() async {
+    try {
+      await _filtersStorage.savePendingProductsFilters(_filters);
+    } catch (e) {
+      // Erro ao salvar filtros - não quebra a aplicação
+    }
+  }
+
+  /// Limpa filtros salvos do armazenamento local
+  Future<void> _clearFilters() async {
+    try {
+      await _filtersStorage.clearPendingProductsFilters();
+    } catch (e) {
+      // Erro ao limpar filtros - não quebra a aplicação
+    }
+  }
+
+  /// Carrega filtros salvos do armazenamento local
+  Future<void> _loadSavedFilters() async {
+    try {
+      final savedFilters = await _filtersStorage.loadPendingProductsFilters();
+      if (savedFilters != null) {
+        _filters = savedFilters;
+        notifyListeners();
+      }
+    } catch (e) {
+      // Log do erro, mas não quebra a aplicação
+    }
   }
 }
 

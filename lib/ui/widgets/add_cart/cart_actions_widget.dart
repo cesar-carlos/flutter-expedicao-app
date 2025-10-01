@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/domain/viewmodels/add_cart_viewmodel.dart';
-import 'package:exp/ui/widgets/common/custom_simple_button.dart';
+import 'package:exp/ui/widgets/common/custom_flat_button.dart';
 
 class CartActionsWidget extends StatefulWidget {
   final AddCartViewModel viewModel;
@@ -137,23 +137,37 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
               // Botões para carrinho válido
               Row(
                 children: [
-                  Expanded(
-                    child: CustomSimpleButtonVariations.outlined(
-                      text: 'Cancelar',
-                      icon: Icons.close,
-                      color: colorScheme.outline,
-                      onPressed: widget.viewModel.isAdding ? null : widget.onCancel,
+                  // Botão Cancelar - apenas ícone para economizar espaço
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colorScheme.outline),
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.transparent,
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: widget.viewModel.isAdding ? null : widget.onCancel,
+                        child: Center(child: Icon(Icons.close, color: colorScheme.outline, size: 20)),
+                      ),
                     ),
                   ),
 
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
 
+                  // Botão Adicionar - usando CustomFlatButton ocupando o espaço restante
                   Expanded(
-                    child: CustomSimpleButtonVariations.primary(
+                    child: CustomFlatButton(
                       text: widget.viewModel.isAdding ? 'Adicionando...' : 'Adicionar',
                       icon: Icons.add_shopping_cart,
                       onPressed: !widget.viewModel.isAdding ? widget.onAdd : null,
                       isLoading: widget.viewModel.isAdding,
+                      backgroundColor: colorScheme.primary,
+                      textColor: colorScheme.onPrimary,
+                      borderRadius: 8,
                     ),
                   ),
                 ],
@@ -162,23 +176,37 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
               // Botões para carrinho inválido
               Row(
                 children: [
-                  Expanded(
-                    child: CustomSimpleButtonVariations.outlined(
-                      text: 'Cancelar',
-                      icon: Icons.close,
-                      color: colorScheme.outline,
-                      onPressed: widget.viewModel.isAdding ? null : widget.onCancel,
+                  // Botão Cancelar - apenas ícone para economizar espaço
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colorScheme.outline),
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.transparent,
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: widget.viewModel.isAdding ? null : widget.onCancel,
+                        child: Center(child: Icon(Icons.close, color: colorScheme.outline, size: 20)),
+                      ),
                     ),
                   ),
 
                   if (widget.onNewQuery != null) ...[
                     const SizedBox(width: 12),
+                    // Botão Nova Consulta - usando CustomFlatButton ocupando o espaço restante
                     Expanded(
-                      child: CustomSimpleButtonVariations.primary(
+                      child: CustomFlatButton(
                         text: widget.viewModel.isScanning ? 'Buscando...' : 'Nova Consulta',
                         icon: Icons.search,
                         onPressed: widget.viewModel.isScanning ? null : widget.onNewQuery,
                         isLoading: widget.viewModel.isScanning,
+                        backgroundColor: colorScheme.primary,
+                        textColor: colorScheme.onPrimary,
+                        borderRadius: 8,
                       ),
                     ),
                   ],

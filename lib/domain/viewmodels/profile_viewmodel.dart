@@ -2,12 +2,12 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
+import 'package:exp/di/locator.dart';
 import 'package:exp/domain/models/user/app_user.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
 import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/core/utils/avatar_utils.dart';
-import 'package:exp/di/locator.dart';
 
 enum ProfileState { idle, loading, success, error }
 

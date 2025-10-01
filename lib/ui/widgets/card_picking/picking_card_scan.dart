@@ -237,7 +237,12 @@ class _PickingCardScanState extends State<PickingCardScan> {
       context: context,
       builder: (context) =>
           PickingDialogs.addItemError(barcode: barcode, productName: item.nomeProduto, errorMessage: errorMessage),
-    );
+    ).then((_) {
+      // Retornar foco para o campo de scanner após fechar o diálogo
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scanFocusNode.requestFocus();
+      });
+    });
   }
 
   void _showWrongProductDialog(String barcode, SeparateItemConsultationModel expectedItem) {
@@ -249,10 +254,20 @@ class _PickingCardScanState extends State<PickingCardScan> {
         expectedProduct: expectedItem.nomeProduto,
         expectedBarcode: expectedItem.codigoBarras,
       ),
-    );
+    ).then((_) {
+      // Retornar foco para o campo de scanner após fechar o diálogo
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scanFocusNode.requestFocus();
+      });
+    });
   }
 
   void _showAllItemsCompletedDialog() {
-    showDialog(context: context, builder: (context) => PickingDialogs.separationComplete());
+    showDialog(context: context, builder: (context) => PickingDialogs.separationComplete()).then((_) {
+      // Retornar foco para o campo de scanner após fechar o diálogo
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scanFocusNode.requestFocus();
+      });
+    });
   }
 }

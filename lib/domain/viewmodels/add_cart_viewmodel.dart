@@ -45,9 +45,9 @@ class AddCartViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      final carts = await _cartConsultationRepository.selectConsultation(
-        QueryBuilder().equals('codigoBarras', barcode),
-      );
+      final query = QueryBuilder().equals('codigoBarras', barcode);
+
+      final carts = await _cartConsultationRepository.selectConsultation(query);
 
       if (carts.isNotEmpty) {
         _scannedCart = carts.first;

@@ -6,6 +6,7 @@ import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/ui/widgets/picking_products_list/picking_product_list_item.dart';
 import 'package:exp/ui/widgets/separated_products/separated_product_item.dart';
+import 'package:exp/ui/widgets/picking_products_list/pending_products_filter_modal.dart';
 import 'package:exp/domain/viewmodels/separated_products_viewmodel.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 
@@ -98,6 +99,33 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
             icon: const Icon(Icons.arrow_back),
             tooltip: 'Voltar',
           ),
+          actions: [
+            // Botão de filtro apenas para produtos pendentes
+            if (widget.filterType == 'pending')
+              Consumer<CardPickingViewModel>(
+                builder: (context, viewModel, child) {
+                  return IconButton(
+                    onPressed: () => _showFilterModal(context),
+                    icon: Stack(
+                      children: [
+                        const Icon(Icons.filter_alt),
+                        if (viewModel.hasActiveFilters)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                            ),
+                          ),
+                      ],
+                    ),
+                    tooltip: 'Filtros de Produtos Pendentes',
+                  );
+                },
+              ),
+          ],
         ),
         body: widget.filterType == 'completed'
             ? ChangeNotifierProvider<SeparatedProductsViewModel>.value(
@@ -359,6 +387,15 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showFilterModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => PendingProductsFilterModal(viewModel: widget.viewModel),
     );
   }
 }

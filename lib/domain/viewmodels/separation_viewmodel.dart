@@ -1,14 +1,14 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:exp/di/locator.dart';
 import 'package:exp/core/errors/app_error.dart';
-import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/separation_filters_model.dart';
+import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
-import 'package:exp/di/locator.dart';
+import 'package:exp/domain/repositories/basic_repository.dart';
 
 enum SeparationState { initial, loading, loaded, error }
 
@@ -185,7 +185,6 @@ class SeparationViewModel extends ChangeNotifier {
       _sectorsLoaded = true;
       _safeNotifyListeners();
     } catch (e) {
-      debugPrint('Erro ao carregar setores de estoque: $e');
       _availableSectors = [];
       _sectorsLoaded = false;
     }
@@ -335,7 +334,6 @@ class SeparationViewModel extends ChangeNotifier {
       }
     } catch (e) {
       // Log do erro, mas não quebra a aplicação
-      debugPrint('Erro ao carregar filtros salvos: $e');
     }
   }
 
@@ -353,7 +351,7 @@ class SeparationViewModel extends ChangeNotifier {
 
       await _filtersStorage.saveSeparationFilters(currentFilters);
     } catch (e) {
-      debugPrint('Erro ao salvar filtros: $e');
+      // Erro ao salvar filtros - não quebra a aplicação
     }
   }
 
@@ -362,7 +360,7 @@ class SeparationViewModel extends ChangeNotifier {
     try {
       await _filtersStorage.clearSeparationFilters();
     } catch (e) {
-      debugPrint('Erro ao limpar filtros salvos: $e');
+      // Erro ao limpar filtros - não quebra a aplicação
     }
   }
 

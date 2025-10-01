@@ -11,6 +11,7 @@ import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/di/locator.dart';
 
 /// ViewModel para gerenciar a lista de produtos separados
+/// Os produtos são ordenados por ordem de inclusão decrescente (mais recente primeiro)
 class SeparatedProductsViewModel extends ChangeNotifier {
   // Repository para carregar os itens separados
   final BasicConsultationRepository<SeparationItemConsultationModel> _repository;
@@ -96,29 +97,14 @@ class SeparatedProductsViewModel extends ChangeNotifier {
       // Buscar itens separados
       final items = await _repository.selectConsultation(queryBuilder);
 
-      // Ordenação natural dos endereços
+      // Ordenação por ordem de inclusão decrescente (mais recente primeiro)
       items.sort((a, b) {
-        final endA = a.enderecoDescricao?.toLowerCase() ?? '';
-        final endB = b.enderecoDescricao?.toLowerCase() ?? '';
+        // Primeiro, comparar por data de separação
+        final dateComparison = b.dataSeparacao.compareTo(a.dataSeparacao);
+        if (dateComparison != 0) return dateComparison;
 
-        // Extrair números do início do endereço (01, 02, etc)
-        final regExp = RegExp(r'^(\d+)');
-        final matchA = regExp.firstMatch(endA);
-        final matchB = regExp.firstMatch(endB);
-
-        // Se ambos começam com números, comparar numericamente
-        if (matchA != null && matchB != null) {
-          final numA = int.parse(matchA.group(1)!);
-          final numB = int.parse(matchB.group(1)!);
-          if (numA != numB) return numA.compareTo(numB);
-        }
-
-        // Se um começa com número e outro não, priorizar o que começa com número
-        if (matchA != null && matchB == null) return -1;
-        if (matchA == null && matchB != null) return 1;
-
-        // Caso contrário, ordenar alfabeticamente
-        return endA.compareTo(endB);
+        // Se as datas forem iguais, comparar por hora de separação
+        return b.horaSeparacao.compareTo(a.horaSeparacao);
       });
 
       _items = items;
