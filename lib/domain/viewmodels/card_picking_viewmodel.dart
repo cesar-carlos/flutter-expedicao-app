@@ -194,8 +194,8 @@ class CardPickingViewModel extends ChangeNotifier {
         quantidade: quantity.toDouble(),
       );
 
-      // Executar use case
-      final result = await _addItemSeparationUseCase.call(params);
+      // Executar use case (passando userSystem para evitar recarga)
+      final result = await _addItemSeparationUseCase.call(params, userSystem: userSystem);
 
       return result.fold(
         (success) {
@@ -203,6 +203,9 @@ class CardPickingViewModel extends ChangeNotifier {
           final currentQuantity = _pickingState.getPickedQuantity(item.item);
           final newQuantity = currentQuantity + quantity;
           _pickingState = _pickingState.updateItemQuantity(item.item, newQuantity);
+
+          // Notificar listeners para atualizar a UI
+          _safeNotifyListeners();
 
           return AddItemSeparationResult.success(
             'Item adicionado: ${success.addedQuantity} unidades',

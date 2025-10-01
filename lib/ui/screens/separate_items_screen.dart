@@ -17,6 +17,7 @@ import 'package:exp/ui/widgets/separate_items/separation_info_view.dart';
 import 'package:exp/ui/widgets/separate_items/carts_filter_modal.dart';
 import 'package:exp/ui/widgets/separate_items/carts_list_view.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
+import 'package:exp/ui/widgets/common/connection_status_bar.dart';
 import 'package:exp/ui/screens/card_picking_screen.dart';
 import 'package:exp/ui/screens/add_cart_screen.dart';
 
@@ -63,6 +64,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Separar Itens',
+        showSocketStatus: false,
         leading: IconButton(
           onPressed: () => context.go(AppRouter.separation),
           icon: const Icon(Icons.arrow_back),
@@ -97,10 +99,20 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
             ),
         ],
       ),
-      body: Consumer<SeparateItemsViewModel>(
-        builder: (context, viewModel, child) {
-          return _buildBody(context, viewModel);
-        },
+      body: Column(
+        children: [
+          // Faixa de status de conexão logo abaixo do AppBar
+          const ConnectionStatusBar(),
+
+          // Conteúdo principal
+          Expanded(
+            child: Consumer<SeparateItemsViewModel>(
+              builder: (context, viewModel, child) {
+                return _buildBody(context, viewModel);
+              },
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: SeparateItemsBottomNavigation(tabController: _tabController),
       floatingActionButton: Consumer<SeparateItemsViewModel>(
@@ -289,7 +301,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
     // Permitir apenas nas situações: Aguardando, Separando, Em Separação
     return separation.situacao == ExpeditionSituation.aguardando ||
         separation.situacao == ExpeditionSituation.separando ||
-        separation.situacao == ExpeditionSituation.emSeparacao;
+        separation.situacao == ExpeditionSituation.aguardando;
   }
 
   /// Abre a separação do carrinho mais recente (recém-adicionado)
@@ -300,11 +312,10 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
           viewModel.carts
               .where(
                 (cart) =>
-                    cart.situacao == ExpeditionCartSituation.emSeparacao ||
-                    cart.situacao == ExpeditionCartSituation.liberado ||
-                    cart.situacao == ExpeditionCartSituation.separado ||
-                    cart.situacao == ExpeditionCartSituation.conferido ||
-                    cart.situacao == ExpeditionCartSituation.separando,
+                    cart.situacao == ExpeditionSituation.aguardando ||
+                    cart.situacao == ExpeditionSituation.separado ||
+                    cart.situacao == ExpeditionSituation.conferido ||
+                    cart.situacao == ExpeditionSituation.separando,
               )
               .toList()
             ..sort((a, b) => b.dataInicio.compareTo(a.dataInicio)); // Ordenar por data mais recente

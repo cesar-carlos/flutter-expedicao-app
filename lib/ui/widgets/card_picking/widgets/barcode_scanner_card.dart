@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/ui/widgets/card_picking/widgets/connection_status_indicator.dart';
-
 class BarcodeScannerCard extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
@@ -52,8 +50,6 @@ class BarcodeScannerCard extends StatelessWidget {
           'Escaneie o código de barras',
           style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
         ),
-        const Spacer(),
-        const ConnectionStatusIndicator(),
       ],
     );
   }

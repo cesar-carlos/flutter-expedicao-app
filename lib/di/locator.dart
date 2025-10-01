@@ -31,7 +31,6 @@ import 'package:exp/domain/repositories/event_generic_repository.dart';
 import 'package:exp/data/repositories/event_repository/event_generic_repository_impl.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
 import 'package:exp/data/repositories/expedition_cancellation_repository_impl.dart';
-import 'package:exp/domain/repositories/expedition_cart_route_internship_repository.dart';
 import 'package:exp/data/repositories/expedition_cart_route_internship_repository_impl.dart';
 import 'package:exp/domain/models/expedition_cancellation_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
@@ -121,7 +120,7 @@ void setupLocator() {
     () => SeparateItemConsultationRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<ExpeditionCartRouteInternshipRepository>(
+  locator.registerLazySingleton<BasicRepository<ExpeditionCartRouteInternshipModel>>(
     () => ExpeditionCartRouteInternshipRepositoryImpl(),
   );
 
@@ -139,10 +138,6 @@ void setupLocator() {
   locator.registerLazySingleton<BasicRepository<ExpeditionCartModel>>(() => ExpeditionCartRepositoryImpl());
 
   locator.registerLazySingleton<BasicRepository<ExpeditionCartRouteModel>>(() => ExpeditionCartRouteRepositoryImpl());
-
-  locator.registerLazySingleton<BasicRepository<ExpeditionCartRouteInternshipModel>>(
-    () => ExpeditionCartRouteInternshipRepositoryImpl(),
-  );
 
   locator.registerLazySingleton<BasicRepository<ExpeditionInternshipModel>>(() => ExpeditionInternshipRepositoryImpl());
 

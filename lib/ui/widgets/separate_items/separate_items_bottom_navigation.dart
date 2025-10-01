@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:exp/core/theme/app_colors.dart';
+
 class SeparateItemsBottomNavigation extends StatelessWidget {
   final TabController tabController;
 
@@ -13,12 +15,14 @@ class SeparateItemsBottomNavigation extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        boxShadow: [BoxShadow(color: colorScheme.shadow.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, -2))],
+        boxShadow: [
+          BoxShadow(color: AppColors.withOpacity(colorScheme.shadow, 0.1), blurRadius: 8, offset: const Offset(0, -2)),
+        ],
       ),
       child: SafeArea(
         top: false,
         child: Container(
-          height: 64,
+          height: 56,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
           child: TabBar(
             controller: tabController,

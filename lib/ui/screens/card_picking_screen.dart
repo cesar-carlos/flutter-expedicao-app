@@ -9,6 +9,7 @@ import 'package:exp/ui/widgets/card_picking/picking_actions_bottom_bar.dart';
 import 'package:exp/ui/widgets/card_picking/picking_card_scan.dart';
 import 'package:exp/ui/screens/picking_products_list_screen.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
+import 'package:exp/ui/widgets/common/connection_status_bar.dart';
 
 class CardPickingScreen extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -88,10 +89,20 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
           ),
         ],
       ),
-      body: Consumer<CardPickingViewModel>(
-        builder: (context, viewModel, child) {
-          return _buildBody(context, viewModel);
-        },
+      body: Column(
+        children: [
+          // Faixa de status de conexão logo abaixo do AppBar
+          const ConnectionStatusBar(),
+
+          // Conteúdo principal
+          Expanded(
+            child: Consumer<CardPickingViewModel>(
+              builder: (context, viewModel, child) {
+                return _buildBody(context, viewModel);
+              },
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: Consumer<CardPickingViewModel>(
         builder: (context, viewModel, child) {

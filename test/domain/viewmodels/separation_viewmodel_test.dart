@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/foundation.dart';
-import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 
 import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';

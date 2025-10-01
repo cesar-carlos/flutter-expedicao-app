@@ -1,5 +1,5 @@
 import 'package:exp/core/utils/app_helper.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/core/results/index.dart';
 
@@ -11,7 +11,7 @@ class ExpeditionCartRouteInternshipModel {
   final int codOrigem;
   final int codPercursoEstagio;
   final int codCarrinho;
-  final ExpeditionCartSituation situacao;
+  final ExpeditionSituation situacao;
   final DateTime dataInicio;
   final String horaInicio;
   final int codUsuarioInicio;
@@ -48,7 +48,7 @@ class ExpeditionCartRouteInternshipModel {
     int? codOrigem,
     int? codPercursoEstagio,
     int? codCarrinho,
-    ExpeditionCartSituation? situacao,
+    ExpeditionSituation? situacao,
     DateTime? dataInicio,
     String? horaInicio,
     int? codUsuarioInicio,
@@ -88,7 +88,7 @@ class ExpeditionCartRouteInternshipModel {
         codOrigem: json['CodOrigem'],
         codPercursoEstagio: json['CodPercursoEstagio'],
         codCarrinho: json['CodCarrinho'],
-        situacao: ExpeditionCartSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionCartSituation.vazio,
+        situacao: ExpeditionSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionSituation.naoLocalizada,
         dataInicio: DateTime.parse(json['DataInicio']),
         horaInicio: json['HoraInicio'],
         codUsuarioInicio: json['CodUsuarioInicio'],

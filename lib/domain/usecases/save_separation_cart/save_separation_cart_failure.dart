@@ -1,13 +1,14 @@
 import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
+import 'package:exp/core/results/app_failure.dart';
 
-class SaveSeparationCartFailure implements Exception {
+class SaveSeparationCartFailure extends AppFailure {
   final ExpeditionCartRouteInternshipModel? cart;
-  final String message;
   final String? details;
   final DateTime timestamp;
 
-  SaveSeparationCartFailure({this.cart, required this.message, this.details, DateTime? timestamp})
-    : timestamp = timestamp ?? DateTime.now();
+  SaveSeparationCartFailure({this.cart, required super.message, this.details, DateTime? timestamp})
+    : timestamp = timestamp ?? DateTime.now(),
+      super(code: 'SAVE_SEPARATION_CART_ERROR');
 
   SaveSeparationCartFailure copyWith({
     ExpeditionCartRouteInternshipModel? cart,

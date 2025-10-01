@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:exp/core/theme/app_colors.dart';
 
 class PickingActionsBottomBar extends StatelessWidget {
   final CardPickingViewModel viewModel;
@@ -17,19 +18,15 @@ class PickingActionsBottomBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        boxShadow: [BoxShadow(color: colorScheme.shadow.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, -2))],
+        boxShadow: [
+          BoxShadow(color: AppColors.withOpacity(colorScheme.shadow, 0.1), blurRadius: 8, offset: const Offset(0, -2)),
+        ],
       ),
       child: SafeArea(
         top: false,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Informações de progresso
-              _buildProgressInfo(context, theme, colorScheme),
-            ],
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: _buildProgressInfo(context, theme, colorScheme),
         ),
       ),
     );
@@ -44,15 +41,21 @@ class PickingActionsBottomBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: isComplete ? Colors.green.withOpacity(0.1) : colorScheme.primaryContainer.withOpacity(0.3),
+        color: isComplete
+            ? AppColors.withOpacity(AppColors.success, 0.1)
+            : AppColors.withOpacity(colorScheme.primaryContainer, 0.3),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: isComplete ? Colors.green.withOpacity(0.3) : colorScheme.primary.withOpacity(0.3)),
+        border: Border.all(
+          color: isComplete
+              ? AppColors.withOpacity(AppColors.success, 0.3)
+              : AppColors.withOpacity(colorScheme.primary, 0.3),
+        ),
       ),
       child: Row(
         children: [
           Icon(
             isComplete ? Icons.check_circle : Icons.inventory_2,
-            color: isComplete ? Colors.green : colorScheme.primary,
+            color: isComplete ? AppColors.success : colorScheme.primary,
             size: 20,
           ),
           const SizedBox(width: 8),
@@ -65,7 +68,7 @@ class PickingActionsBottomBar extends StatelessWidget {
                   isComplete ? 'Picking Concluído!' : 'Progresso do Picking',
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: isComplete ? Colors.green.shade700 : colorScheme.primary,
+                    color: isComplete ? AppColors.success : colorScheme.primary,
                   ),
                 ),
                 Text(
@@ -79,12 +82,12 @@ class PickingActionsBottomBar extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: isComplete ? Colors.green : colorScheme.primary,
+              color: isComplete ? AppColors.success : colorScheme.primary,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
               '${(progress * 100).toInt()}%',
-              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold, color: AppColors.white),
             ),
           ),
         ],

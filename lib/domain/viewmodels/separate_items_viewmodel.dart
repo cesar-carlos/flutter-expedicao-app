@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:exp/domain/models/situation_model.dart';
 
+import 'package:exp/di/locator.dart';
 import 'package:exp/core/errors/app_error.dart';
+import 'package:exp/domain/models/situation_model.dart';
 import 'package:exp/domain/models/separation_item_status.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
@@ -19,7 +20,6 @@ import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/domain/models/carts_filters_model.dart';
-import 'package:exp/di/locator.dart';
 
 enum SeparateItemsState { initial, loading, loaded, error }
 
@@ -56,6 +56,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
   // === CANCELAMENTO ===
   bool _isCancelling = false;
   int? _cancellingCartId;
+  String? _lastCancelError;
 
   // === FILTROS ===
   SeparateItemsFiltersModel _itemsFilters = const SeparateItemsFiltersModel();
@@ -81,6 +82,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
   // === CANCELAMENTO GETTERS ===
   bool get isCancelling => _isCancelling;
   bool isCartBeingCancelled(int cartId) => _isCancelling && _cancellingCartId == cartId;
+  String? get lastCancelError => _lastCancelError;
   int get itemsSeparados => _items.where((item) => item.quantidadeSeparacao > 0).length;
   int get itemsPendentes => totalItems - itemsSeparados;
   double get percentualConcluido => totalItems > 0 ? (itemsSeparados / totalItems) * 100 : 0;
@@ -238,12 +240,8 @@ class SeparateItemsViewModel extends ChangeNotifier {
     if (_disposed) return;
 
     try {
-      // Validações baseadas na implementação desktop
-
       // 1. Validação de quantidade
-      if (quantidade <= 0) {
-        throw 'Quantidade deve ser maior que zero';
-      }
+      if (quantidade <= 0) throw 'Quantidade deve ser maior que zero';
 
       if (quantidade > item.quantidade) {
         throw 'Quantidade não pode exceder a quantidade disponível (${item.quantidade})';
@@ -254,11 +252,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
         throw 'Produto não encontrado na lista de separação';
       }
 
-      // TODO: Implementar validação de setor de estoque
-      // TODO: Implementar conversão de unidades de medida
-      // TODO: Implementar lógica real de separação via API
-
-      await Future.delayed(const Duration(milliseconds: 500));
+      //await Future.delayed(const Duration(milliseconds: 100));
 
       // Simula atualização local (em produção seria via API)
       _safeNotifyListeners();
@@ -659,6 +653,8 @@ class SeparateItemsViewModel extends ChangeNotifier {
 
       return resultCancelCart.fold(
         (success) async {
+          // Limpar erro anterior
+          _lastCancelError = null;
           // Recarregar dados após sucesso
           if (_separation != null) {
             await loadSeparationCarts(_separation!);
@@ -666,7 +662,8 @@ class SeparateItemsViewModel extends ChangeNotifier {
           return true;
         },
         (failure) {
-          // TODO: Considerar rollback dos itens de separação se necessário
+          // Capturar mensagem específica do erro
+          _lastCancelError = failure.toString();
           return false;
         },
       );

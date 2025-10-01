@@ -4,6 +4,7 @@ import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/domain/models/separate_item_model.dart';
 import 'package:exp/domain/models/separation_item_model.dart';
 import 'package:exp/domain/models/expedition_item_situation_model.dart';
+import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_params.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_success.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_failure.dart';
@@ -36,9 +37,10 @@ class AddItemSeparationUseCase {
   /// Adiciona um item à separação
   ///
   /// [params] - Parâmetros para adição do item
+  /// [userSystem] - Sistema do usuário (opcional, se não fornecido será carregado)
   ///
   /// Retorna [Result<AddItemSeparationSuccess>] com sucesso ou falha
-  Future<Result<AddItemSeparationSuccess>> call(AddItemSeparationParams params) async {
+  Future<Result<AddItemSeparationSuccess>> call(AddItemSeparationParams params, {UserSystemModel? userSystem}) async {
     try {
       // 1. Validar parâmetros
       if (!params.isValid) {
@@ -46,13 +48,8 @@ class AddItemSeparationUseCase {
         return failure(AddItemSeparationFailure.invalidParams('Parâmetros inválidos: ${errors.join(', ')}'));
       }
 
-      // 2. Verificar usuário autenticado
-      final appUser = await _userSessionService.loadUserSession();
-      if (appUser?.userSystemModel == null) {
-        return failure(AddItemSeparationFailure.userNotFound());
-      }
-
-      final userSystem = appUser!.userSystemModel!;
+      // 2. Verificar usuário autenticado (usar fornecido ou carregar)
+      UserSystemModel user = userSystem ?? await _loadUserSystem();
 
       // 3. Buscar item de separação disponível
       final separateItem = await _findSeparateItem(params);
@@ -73,7 +70,7 @@ class AddItemSeparationUseCase {
       }
 
       // 5. Executar operação transacional: INSERT + UPDATE
-      return await _executeTransactionalOperation(params, separateItem, userSystem);
+      return await _executeTransactionalOperation(params, separateItem, user);
     } on DataError catch (e) {
       return failure(AddItemSeparationFailure.networkError(e.message, Exception(e.message)));
     } on Exception catch (e) {
@@ -81,11 +78,20 @@ class AddItemSeparationUseCase {
     }
   }
 
+  /// Carrega o sistema do usuário
+  Future<UserSystemModel> _loadUserSystem() async {
+    final appUser = await _userSessionService.loadUserSession();
+    if (appUser?.userSystemModel == null) {
+      throw Exception('Usuário não autenticado');
+    }
+    return appUser!.userSystemModel!;
+  }
+
   /// Executa a operação transacional de INSERT + UPDATE
   Future<Result<AddItemSeparationSuccess>> _executeTransactionalOperation(
     AddItemSeparationParams params,
     SeparateItemModel separateItem,
-    dynamic userSystem,
+    UserSystemModel userSystem,
   ) async {
     try {
       // INSERT: Criar e inserir novo item de separação

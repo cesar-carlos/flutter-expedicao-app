@@ -9,6 +9,7 @@ import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_su
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_failure.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/core/utils/app_helper.dart';
@@ -41,7 +42,6 @@ class SaveSeparationCartUseCase {
       );
 
       if (itemsSeparation.isEmpty) return Failure(SaveSeparationCartFailure.noItems());
-
       final hasSeparatedItems = itemsSeparation.any((item) => item.situacao == ExpeditionItemSituation.separado);
       if (!hasSeparatedItems) return Failure(SaveSeparationCartFailure.noSeparatedItems());
 
@@ -52,7 +52,7 @@ class SaveSeparationCartUseCase {
       );
 
       if (cartRouteInternship == null) return Failure(SaveSeparationCartFailure.cartRouteInternshiptNotFound());
-      if (cartRouteInternship.situacao != ExpeditionCartSituation.separando) {
+      if (cartRouteInternship.situacao != ExpeditionSituation.separando) {
         return Failure(SaveSeparationCartFailure.invalidStatus(cartRouteInternship));
       }
 
@@ -66,7 +66,7 @@ class SaveSeparationCartUseCase {
       final copyWithCart = cartModel.copyWith(situacao: ExpeditionCartSituation.separado);
 
       final copyWithCartRouteInternship = cartRouteInternship.copyWith(
-        situacao: ExpeditionCartSituation.separado,
+        situacao: ExpeditionSituation.separado,
         dataFinalizacao: now,
         horaFinalizacao: currentTime,
         codUsuarioFinalizacao: userModel.codUsuario,

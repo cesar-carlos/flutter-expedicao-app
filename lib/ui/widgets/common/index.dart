@@ -1,6 +1,7 @@
 // Common widgets used throughout the application
 export 'adaptive_logo.dart';
 export 'app_header.dart';
+export 'connection_status_bar.dart';
 export 'custom_app_bar.dart';
 export 'custom_dialog.dart';
 export 'custom_flat_button.dart';

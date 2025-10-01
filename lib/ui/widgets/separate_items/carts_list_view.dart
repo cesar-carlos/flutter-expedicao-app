@@ -29,7 +29,11 @@ class CartsListView extends StatelessWidget {
         itemCount: viewModel.carts.length,
         itemBuilder: (context, index) {
           final cart = viewModel.carts[index];
-          return CartItemCard(cart: cart, onCancel: () => _onCartCancel(context, cart), viewModel: viewModel);
+          return CartItemCard(
+            cartRouteInternshipConsultation: cart,
+            onCancel: () => _onCartCancel(context, cart),
+            viewModel: viewModel,
+          );
         },
       ),
     );

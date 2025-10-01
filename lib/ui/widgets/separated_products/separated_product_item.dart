@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 
 import 'package:exp/domain/models/separation_item_consultation_model.dart';
 import 'package:exp/domain/models/expedition_item_situation_model.dart';
@@ -180,7 +180,7 @@ class SeparatedProductItem extends StatelessWidget {
           ),
 
           // Botão de cancelamento na parte inferior
-          if (item.situacao != ExpeditionItemSituation.cancelado && viewModel != null && viewModel!.canCancelItems)
+          if (item.situacao == ExpeditionItemSituation.separado && viewModel != null && viewModel!.canCancelItems)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -248,7 +248,7 @@ class SeparatedProductItem extends StatelessWidget {
   }
 
   String _formatDateTime(DateTime date, String time) {
-    final dateFormat = DateFormat('dd/MM/yyyy');
+    final dateFormat = intl.DateFormat('dd/MM/yyyy');
     final formattedDate = dateFormat.format(date);
     return '$formattedDate às $time';
   }

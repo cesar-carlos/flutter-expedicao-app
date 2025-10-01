@@ -1,6 +1,6 @@
 import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/core/results/index.dart';
 
 class SeparationItemSummaryConsultationModel {
@@ -8,7 +8,7 @@ class SeparationItemSummaryConsultationModel {
   final int codSepararEstoque;
   final ExpeditionOrigem origem;
   final int codOrigem;
-  final ExpeditionCartSituation situacao;
+  final ExpeditionSituation situacao;
   final int codCarrinhoPercurso;
   final String itemCarrinhoPercurso;
   final int codCarrinho;
@@ -49,7 +49,7 @@ class SeparationItemSummaryConsultationModel {
     int? codSepararEstoque,
     ExpeditionOrigem? origem,
     int? codOrigem,
-    ExpeditionCartSituation? situacao,
+    ExpeditionSituation? situacao,
     int? codCarrinhoPercurso,
     String? itemCarrinhoPercurso,
     int? codCarrinho,
@@ -93,7 +93,7 @@ class SeparationItemSummaryConsultationModel {
         codSepararEstoque: json['CodSepararEstoque'],
         origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
         codOrigem: json['CodOrigem'],
-        situacao: ExpeditionCartSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionCartSituation.vazio,
+        situacao: ExpeditionSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionSituation.naoLocalizada,
         codCarrinhoPercurso: json['CodCarrinhoPercurso'],
         itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
         codCarrinho: json['CodCarrinho'],

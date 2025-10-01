@@ -1,5 +1,5 @@
 import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/domain/models/expedition_item_situation_model.dart';
+import 'package:exp/domain/models/expedition_cart_router_situation_model.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/situation_model.dart';
 import 'package:exp/core/results/index.dart';
@@ -11,7 +11,7 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
   final String itemCarrinhoPercurso;
   final ExpeditionOrigem origem;
   final int codOrigem;
-  final ExpeditionItemSituation situacao;
+  final ExpeditionCartRouterSituation situacao;
   final ExpeditionSituation situacaoPercurso;
   final int? codPercursoEstagio;
   final String? descricaoPercursoEstagio;
@@ -56,7 +56,7 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
     String? itemCarrinhoPercurso,
     ExpeditionOrigem? origem,
     int? codOrigem,
-    ExpeditionItemSituation? situacao,
+    ExpeditionCartRouterSituation? situacao,
     ExpeditionSituation? situacaoPercurso,
     int? codPercursoEstagio,
     String? descricaoPercursoEstagio,
@@ -104,7 +104,7 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
         itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
         origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
         codOrigem: json['CodOrigem'],
-        situacao: ExpeditionItemSituation.fromCode(json['Situacao']) ?? ExpeditionItemSituation.vazio,
+        situacao: ExpeditionCartRouterSituation.fromCode(json['Situacao']) ?? ExpeditionCartRouterSituation.vazio,
         situacaoPercurso: ExpeditionSituation.fromCode(json['SituacaoPercurso']) ?? ExpeditionSituation.aguardando,
         codPercursoEstagio: json['CodPercursoEstagio'],
         descricaoPercursoEstagio: json['DescricaoPercursoEstagio'],

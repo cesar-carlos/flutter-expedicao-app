@@ -374,24 +374,11 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
   /// Removidas as situações marcadas em vermelho conforme solicitado
   List<ExpeditionSituation> _getFilteredSituations() {
     return ExpeditionSituation.values.where((situacao) {
-      // Situações removidas conforme imagem:
-      // - Em Andamento (EM ANDAMENTO)
-      // - Em Conferencia (EM CONFERENCIA)
-      // - Cancelada (CANCELADA)
-      // - Devolvida (DEVOLVIDA)
-      // - Conferindo (CONFERINDO)
-      // - Conferido (CONFERIDO)
-      // - Entregue (ENTREGUE)
-      // - Embalando (EMBALANDO)
-
-      return situacao != ExpeditionSituation.emAndamento &&
-          situacao != ExpeditionSituation.emConferencia &&
+      return situacao != ExpeditionSituation.emPausa &&
+          situacao != ExpeditionSituation.emPausa &&
           situacao != ExpeditionSituation.cancelada &&
-          situacao != ExpeditionSituation.devolvida &&
-          situacao != ExpeditionSituation.conferindo &&
-          situacao != ExpeditionSituation.conferido &&
-          situacao != ExpeditionSituation.entregue &&
-          situacao != ExpeditionSituation.embalando;
+          situacao != ExpeditionSituation.separado &&
+          situacao != ExpeditionSituation.agrupado;
     }).toList();
   }
 }

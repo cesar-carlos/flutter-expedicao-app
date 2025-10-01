@@ -3,12 +3,13 @@ import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/domain/usecases/cancel_cart/cancel_cart_success.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_failure.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
+import 'package:exp/domain/usecases/cancel_cart/cancel_cart_success.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_params.dart';
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/models/expedition_cancellation_model.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/domain/models/user_system_models.dart';
@@ -134,7 +135,7 @@ class CancelCartUseCase {
 
   /// Verifica se o carrinho pode ser cancelado
   bool _cancelCartInternshipRoute(ExpeditionCartRouteInternshipModel cartInternshipRoute) {
-    return cartInternshipRoute.situacao == ExpeditionCartSituation.separando;
+    return cartInternshipRoute.situacao == ExpeditionSituation.separando;
   }
 
   /// Cria o registro de cancelamento
@@ -171,7 +172,7 @@ class CancelCartUseCase {
     required ExpeditionCartRouteInternshipModel cartInternshipRoute,
   }) async {
     try {
-      final updatedCartInternshipRoute = cartInternshipRoute.copyWith(situacao: ExpeditionCartSituation.cancelada);
+      final updatedCartInternshipRoute = cartInternshipRoute.copyWith(situacao: ExpeditionSituation.cancelada);
       await _cartInternshipRouteRepository.update(updatedCartInternshipRoute);
       return updatedCartInternshipRoute;
     } catch (e) {

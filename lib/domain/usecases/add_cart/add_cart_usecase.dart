@@ -1,5 +1,3 @@
-import 'package:result_dart/result_dart.dart';
-
 import 'package:exp/domain/usecases/base_usecase.dart';
 import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
@@ -13,6 +11,7 @@ import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/repositories/user_system_repository.dart';
 import 'package:exp/domain/models/expedition_cart_route_model.dart';
 import 'package:exp/domain/models/expedition_internship_model.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/services/user_session_service.dart';
@@ -226,7 +225,6 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     }
   }
 
-  /// Atualiza a situação do carrinho para SEPARADO
   Future<void> _updateCartSituation(ExpeditionCartConsultationModel cart) async {
     final cartModel = ExpeditionCartModel(
       codEmpresa: cart.codEmpresa,
@@ -234,7 +232,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
       descricao: cart.descricaoCarrinho,
       ativo: cart.ativo,
       codigoBarras: cart.codigoBarras,
-      situacao: ExpeditionCartSituation.separando,
+      situacao: ExpeditionCartSituation.emSeparacao,
     );
 
     await _cartRepository.update(cartModel);
@@ -274,7 +272,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
       codOrigem: params.codOrigem,
       codPercursoEstagio: internshipCode,
       codCarrinho: cart.codCarrinho,
-      situacao: ExpeditionCartSituation.separando,
+      situacao: ExpeditionSituation.separando,
       dataInicio: now,
       horaInicio: AppHelper.formatTime(now),
       codUsuarioInicio: userSystem.codUsuario,

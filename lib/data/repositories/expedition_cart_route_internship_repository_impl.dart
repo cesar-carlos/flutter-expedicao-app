@@ -4,14 +4,13 @@ import 'package:uuid/uuid.dart';
 
 import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/data/dtos/send_mutation_socket_dto.dart';
-import 'package:exp/domain/repositories/expedition_cart_route_internship_repository.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/dtos/send_query_socket_dto.dart';
 import 'package:exp/core/network/socket_config.dart';
 
-class ExpeditionCartRouteInternshipRepositoryImpl implements ExpeditionCartRouteInternshipRepository {
+class ExpeditionCartRouteInternshipRepositoryImpl implements BasicRepository<ExpeditionCartRouteInternshipModel> {
   final selectEvent = 'carrinho.percurso.estagio.select';
   final insertEvent = 'carrinho.percurso.estagio.insert';
   final updateEvent = 'carrinho.percurso.estagio.update';
@@ -189,65 +188,5 @@ class ExpeditionCartRouteInternshipRepositoryImpl implements ExpeditionCartRoute
       socket.off(responseId);
       throw DataError(message: e.toString());
     }
-  }
-
-  @override
-  Future<ExpeditionCartRouteInternshipModel?> getCartRouteByKeys({
-    required int codEmpresa,
-    required int codCarrinhoPercurso,
-    required String item,
-  }) async {
-    final queryBuilder = QueryBuilder()
-        .equals('CodEmpresa', codEmpresa)
-        .equals('CodCarrinhoPercurso', codCarrinhoPercurso)
-        .equals('Item', item);
-
-    final results = await select(queryBuilder);
-    return results.isNotEmpty ? results.first : null;
-  }
-
-  @override
-  Future<ExpeditionCartRouteInternshipModel> updateCartSituation({
-    required int codEmpresa,
-    required int codCarrinhoPercurso,
-    required String item,
-    required String newSituation,
-    required int codUsuario,
-    required String nomeUsuario,
-  }) async {
-    // Buscar o carrinho atual
-    final currentCart = await getCartRouteByKeys(
-      codEmpresa: codEmpresa,
-      codCarrinhoPercurso: codCarrinhoPercurso,
-      item: item,
-    );
-
-    if (currentCart == null) {
-      throw DataError(message: 'Carrinho não encontrado');
-    }
-
-    // Criar nova situação
-    final newSituationEnum = ExpeditionCartSituation.fromCode(newSituation);
-    if (newSituationEnum == null) {
-      throw DataError(message: 'Situação inválida: $newSituation');
-    }
-
-    // Atualizar o carrinho com nova situação
-    final now = DateTime.now();
-    final updatedCart = currentCart.copyWith(
-      situacao: newSituationEnum,
-      dataFinalizacao: now,
-      horaFinalizacao: '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-      codUsuarioFinalizacao: codUsuario,
-      nomeUsuarioFinalizacao: nomeUsuario,
-    );
-
-    // Salvar no banco
-    final results = await update(updatedCart);
-    if (results.isEmpty) {
-      throw DataError(message: 'Falha ao atualizar carrinho');
-    }
-
-    return results.first;
   }
 }

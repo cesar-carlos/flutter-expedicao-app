@@ -1,25 +1,24 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:exp/di/locator.dart';
+import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/models/separation_item_consultation_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';
+import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/models/expedition_item_situation_model.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
-import 'package:exp/di/locator.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
 
 /// ViewModel para gerenciar a lista de produtos separados
 /// Os produtos são ordenados por ordem de inclusão decrescente (mais recente primeiro)
 class SeparatedProductsViewModel extends ChangeNotifier {
-  // Repository para carregar os itens separados
   final BasicConsultationRepository<SeparationItemConsultationModel> _repository;
   final CancelItemSeparationUseCase _cancelItemSeparationUseCase;
 
-  // Estado do carrinho
-  ExpeditionCartRouteInternshipConsultationModel? _cart;
-  ExpeditionCartRouteInternshipConsultationModel? get cart => _cart;
+  ExpeditionCartRouteInternshipConsultationModel? _cartRouteInternshipConsultation;
+  ExpeditionCartRouteInternshipConsultationModel? get cartRouteInternshipConsultation =>
+      _cartRouteInternshipConsultation;
 
   // Estado de carregamento
   bool _isLoading = false;
@@ -83,7 +82,7 @@ class SeparatedProductsViewModel extends ChangeNotifier {
       _isLoading = true;
       _hasError = false;
       _errorMessage = null;
-      _cart = cart;
+      _cartRouteInternshipConsultation = cart;
       _isReadOnly = isReadOnly;
       _safeNotifyListeners();
 
@@ -127,17 +126,17 @@ class SeparatedProductsViewModel extends ChangeNotifier {
 
   /// Recarrega os dados
   Future<void> refresh() async {
-    if (_disposed || _cart == null) return;
-    await loadSeparatedProducts(_cart!);
+    if (_disposed || _cartRouteInternshipConsultation == null) return;
+    await loadSeparatedProducts(_cartRouteInternshipConsultation!);
   }
 
   /// Tenta novamente após erro
   Future<void> retry() async {
-    if (_disposed || _cart == null) return;
+    if (_disposed || _cartRouteInternshipConsultation == null) return;
 
     _hasError = false;
     _errorMessage = null;
-    await loadSeparatedProducts(_cart!);
+    await loadSeparatedProducts(_cartRouteInternshipConsultation!);
   }
 
   /// Filtra itens por separador
@@ -180,11 +179,12 @@ class SeparatedProductsViewModel extends ChangeNotifier {
   bool isItemBeingCancelled(String itemId) => _isCancelling && _cancellingItemId == itemId;
 
   /// Verifica se o carrinho está em situação que permite cancelamento
-  bool get canCancelItems => !_isReadOnly && _cart?.situacao == ExpeditionCartSituation.separando;
+  bool get canCancelItems =>
+      !_isReadOnly && _cartRouteInternshipConsultation?.situacao == ExpeditionSituation.separando;
 
   /// Cancela um item específico da separação
   Future<bool> cancelItem(SeparationItemConsultationModel item) async {
-    if (_disposed || _cart == null) return false;
+    if (_disposed || _cartRouteInternshipConsultation == null) return false;
     if (_isCancelling) return false;
     if (item.situacao == ExpeditionItemSituation.cancelado) return false;
     if (!canCancelItems) {
@@ -199,8 +199,8 @@ class SeparatedProductsViewModel extends ChangeNotifier {
 
       // Criar parâmetros para o use case
       final params = CancelItemSeparationParams(
-        codEmpresa: _cart!.codEmpresa,
-        codSepararEstoque: _cart!.codOrigem,
+        codEmpresa: _cartRouteInternshipConsultation!.codEmpresa,
+        codSepararEstoque: _cartRouteInternshipConsultation!.codOrigem,
         item: item.item,
       );
 

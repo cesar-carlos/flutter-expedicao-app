@@ -182,15 +182,9 @@ class _PickingCardScanState extends State<PickingCardScan> {
 
   /// Adiciona item escaneado na separação via use case
   Future<void> _addItemToSeparation(SeparateItemConsultationModel item, String barcode, int quantity) async {
-    // Mostrar loading
-    showDialog(context: context, barrierDismissible: false, builder: (context) => PickingDialogs.loading());
-
     try {
       // Chamar use case através do ViewModel
       final result = await widget.viewModel.addScannedItem(codProduto: item.codProduto, quantity: quantity);
-
-      // Fechar loading
-      if (mounted) Navigator.of(context).pop();
 
       if (result.isSuccess) {
         // Reproduzir som de scan bem-sucedido e feedback tátil
@@ -212,9 +206,6 @@ class _PickingCardScanState extends State<PickingCardScan> {
         _showErrorDialog(item, result.message, barcode);
       }
     } catch (e) {
-      // Fechar loading
-      if (mounted) Navigator.of(context).pop();
-
       // Reproduzir som de erro
       _audioService.playError();
 

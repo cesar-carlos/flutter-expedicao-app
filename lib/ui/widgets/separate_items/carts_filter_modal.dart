@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
-import 'package:exp/domain/models/carts_filters_model.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
+import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/domain/models/expedition_situation_model.dart';
+import 'package:exp/domain/models/carts_filters_model.dart';
+import 'package:exp/core/utils/date_helper.dart';
 
 /// Modal para filtros da aba de carrinhos
 class CartsFilterModal extends StatefulWidget {
@@ -214,7 +216,9 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
                       suffixIcon: Icon(Icons.arrow_drop_down),
                     ),
                     child: Text(
-                      _dataInicioInicial != null ? _formatDate(_dataInicioInicial!) : 'Selecionar data inicial',
+                      _dataInicioInicial != null
+                          ? DateHelper.dateToString(_dataInicioInicial!)
+                          : 'Selecionar data inicial',
                       style: theme.textTheme.bodyLarge,
                     ),
                   ),
@@ -233,7 +237,7 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
                       suffixIcon: Icon(Icons.arrow_drop_down),
                     ),
                     child: Text(
-                      _dataInicioFinal != null ? _formatDate(_dataInicioFinal!) : 'Selecionar data final',
+                      _dataInicioFinal != null ? DateHelper.dateToString(_dataInicioFinal!) : 'Selecionar data final',
                       style: theme.textTheme.bodyLarge,
                     ),
                   ),
@@ -338,20 +342,15 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
     widget.viewModel.applyCartsFilters(filters);
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/'
-        '${date.month.toString().padLeft(2, '0')}/'
-        '${date.year}';
-  }
-
   /// Retorna apenas as situações que devem aparecer no filtro
-  List<ExpeditionCartSituation> _getFilteredSituations() {
+  List<ExpeditionSituation> _getFilteredSituations() {
     return [
-      ExpeditionCartSituation.emSeparacao,
-      ExpeditionCartSituation.liberado,
-      ExpeditionCartSituation.separando,
-      ExpeditionCartSituation.separado,
-      ExpeditionCartSituation.agrupado,
+      ExpeditionSituation.aguardando,
+      ExpeditionSituation.emPausa,
+      ExpeditionSituation.cancelada,
+      ExpeditionSituation.separando,
+      ExpeditionSituation.separado,
+      ExpeditionSituation.agrupado,
     ];
   }
 }

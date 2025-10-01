@@ -15,18 +15,9 @@ class CancelCartParams {
   List<String> get validationErrors {
     final errors = <String>[];
 
-    if (codEmpresa <= 0) {
-      errors.add('Código da empresa deve ser maior que zero');
-    }
-
-    if (codCarrinhoPercurso <= 0) {
-      errors.add('Código do carrinho percurso deve ser maior que zero');
-    }
-
-    if (item.isEmpty) {
-      errors.add('Código do carrinho deve ser maior que zero');
-    }
-
+    if (codEmpresa <= 0) errors.add('Código da empresa deve ser maior que zero');
+    if (codCarrinhoPercurso <= 0) errors.add('Código do carrinho percurso deve ser maior que zero');
+    if (item.isEmpty) errors.add('Código do carrinho deve ser maior que zero');
     return errors;
   }
 

@@ -3,17 +3,15 @@ import 'package:flutter/material.dart';
 enum ExpeditionSituation {
   aguardando('AGUARDANDO', 'Aguardando', Colors.grey),
   emPausa('EM PAUSA', 'Em Pausa', Colors.yellow),
-  emAndamento('EM ANDAMENTO', 'Em Andamento', Colors.blue),
-  emSeparacao('EM SEPARACAO', 'Em Separação', Colors.orange),
-  emConferencia('EM CONFERENCIA', 'Em Conferência', Colors.purple),
   cancelada('CANCELADA', 'Cancelada', Colors.red),
-  devolvida('DEVOLVIDA', 'Devolvida', Colors.deepOrange),
   separando('SEPARANDO', 'Separando', Colors.orange),
   separado('SEPARADO', 'Separado', Colors.lightGreen),
   conferindo('CONFERINDO', 'Conferindo', Colors.purple),
   conferido('CONFERIDO', 'Conferido', Colors.lightGreen),
   entregue('ENTREGUE', 'Entregue', Colors.green),
   embalando('EMBALANDO', 'Embalando', Colors.teal),
+  embalado('EMBALADO', 'Embalado', Colors.teal),
+  agrupado('AGRUPADO', 'Agrupado', Colors.red),
   finalizada('FINALIZADA', 'Finalizada', Colors.green),
   naoLocalizada('NÃO LOCALIZADO', 'Não Localizada', Colors.red);
 

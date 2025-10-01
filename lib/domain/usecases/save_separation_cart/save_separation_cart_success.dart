@@ -2,11 +2,11 @@ import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
 
 /// Representa o sucesso ao salvar um carrinho na separação
 class SaveSeparationCartSuccess {
-  final ExpeditionCartRouteInternshipModel cart;
   final DateTime dataFinalizacao;
   final String horaFinalizacao;
   final int codUsuarioFinalizacao;
   final String nomeUsuarioFinalizacao;
+  final ExpeditionCartRouteInternshipModel cart;
 
   const SaveSeparationCartSuccess({
     required this.cart,
@@ -15,6 +15,20 @@ class SaveSeparationCartSuccess {
     required this.codUsuarioFinalizacao,
     required this.nomeUsuarioFinalizacao,
   });
+
+  /// Mensagem de sucesso
+  String get message => 'Carrinho finalizado com sucesso!';
+
+  /// Detalhes adicionais do sucesso
+  String? get details =>
+      'Finalizado por $nomeUsuarioFinalizacao em ${_formatDate(dataFinalizacao)} às $horaFinalizacao';
+
+  /// Formata data para exibição
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.year}';
+  }
 
   SaveSeparationCartSuccess copyWith({
     ExpeditionCartRouteInternshipModel? cart,
