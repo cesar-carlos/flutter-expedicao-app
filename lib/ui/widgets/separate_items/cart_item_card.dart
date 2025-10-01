@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:exp/di/locator.dart';
-import 'package:exp/ui/screens/card_picking_screen.dart';
 import 'package:exp/ui/widgets/common/custom_flat_button.dart';
 import 'package:exp/ui/screens/picking_products_list_screen.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
@@ -14,6 +12,7 @@ import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_su
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_failure.dart';
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:exp/ui/screens/card_picking_screen.dart';
 import 'package:exp/core/results/app_failure.dart';
 
 class CartItemCard extends StatelessWidget {
@@ -503,12 +502,12 @@ class CartItemCard extends StatelessWidget {
             const SizedBox(height: 8),
           ],
 
-          // Segunda linha: Botão Finalizar (largura completa)
+          // Segunda linha: Botão Salvar (largura completa)
           if (cartRouteInternshipConsultation.situacao == ExpeditionSituation.separando) ...[
             SizedBox(
               width: double.infinity,
               child: CustomFlatButtonVariations.outlined(
-                text: 'Finalizar',
+                text: 'Salvar',
                 icon: Icons.check_circle,
                 textColor: Colors.green,
                 borderColor: Colors.green.withOpacity(0.3),
@@ -721,14 +720,14 @@ class CartItemCard extends StatelessWidget {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Finalizar Carrinho'),
-            content: Text('Deseja realmente finalizar o carrinho #${cartRouteInternshipConsultation.codCarrinho}?'),
+            title: const Text('Salvar Carrinho'),
+            content: Text('Deseja realmente salvar o carrinho #${cartRouteInternshipConsultation.codCarrinho}?'),
             actions: [
               TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancelar')),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                child: const Text('Finalizar', style: TextStyle(color: Colors.white)),
+                child: const Text('Salvar', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),

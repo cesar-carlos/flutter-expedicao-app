@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:exp/domain/models/situation_model.dart';
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/models/expedition_situation_model.dart';
 import 'package:exp/domain/models/carts_filters_model.dart';
 import 'package:exp/core/utils/date_helper.dart';
@@ -100,153 +99,156 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
             ],
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
-          // Campos de filtro
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                // Código do Carrinho
-                TextField(
-                  controller: _codCarrinhoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Código do Carrinho',
-                    hintText: 'Ex: 12345',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.shopping_cart),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-
-                const SizedBox(height: 16),
-
-                // Nome do Carrinho
-                TextField(
-                  controller: _nomeCarrinhoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nome do Carrinho',
-                    hintText: 'Ex: Carrinho ABC',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.label),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Código de Barras do Carrinho
-                TextField(
-                  controller: _codigoBarrasCarrinhoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Código de Barras do Carrinho',
-                    hintText: 'Ex: 7891234567890',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.qr_code),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Situação
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedSituacao,
-                  decoration: const InputDecoration(
-                    labelText: 'Situação',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.info),
-                  ),
-                  items: [
-                    const DropdownMenuItem<String>(value: null, child: Text('Todas as situações')),
-                    ..._getFilteredSituations().map(
-                      (situacao) => DropdownMenuItem<String>(value: situacao.code, child: Text(situacao.description)),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedSituacao = value;
-                    });
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                // Nome do Usuário de Início
-                TextField(
-                  controller: _nomeUsuarioInicioController,
-                  decoration: const InputDecoration(
-                    labelText: 'Usuário de Início',
-                    hintText: 'Ex: João Silva',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Carrinho Agrupador
-                DropdownButtonFormField<Situation>(
-                  initialValue: _selectedCarrinhoAgrupador,
-                  decoration: const InputDecoration(
-                    labelText: 'Carrinho Agrupador',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.group_work),
-                  ),
-                  items: [
-                    const DropdownMenuItem<Situation>(value: null, child: Text('Todos')),
-                    ...Situation.values.map(
-                      (situation) => DropdownMenuItem<Situation>(value: situation, child: Text(situation.description)),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCarrinhoAgrupador = value;
-                    });
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                // Data de Início Inicial
-                InkWell(
-                  onTap: () => _selectDataInicioInicial(context),
-                  child: InputDecorator(
+          // Campos de filtro - usando Expanded para ocupar espaço disponível
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Código do Carrinho
+                  TextField(
+                    controller: _codCarrinhoController,
                     decoration: const InputDecoration(
-                      labelText: 'Data de Início (Inicial)',
+                      labelText: 'Código do Carrinho',
+                      hintText: 'Ex: 12345',
                       border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.calendar_today),
-                      suffixIcon: Icon(Icons.arrow_drop_down),
+                      prefixIcon: Icon(Icons.shopping_cart),
                     ),
-                    child: Text(
-                      _dataInicioInicial != null
-                          ? DateHelper.dateToString(_dataInicioInicial!)
-                          : 'Selecionar data inicial',
-                      style: theme.textTheme.bodyLarge,
-                    ),
+                    keyboardType: TextInputType.number,
                   ),
-                ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Data de Início Final
-                InkWell(
-                  onTap: () => _selectDataInicioFinal(context),
-                  child: InputDecorator(
+                  // Nome do Carrinho
+                  TextField(
+                    controller: _nomeCarrinhoController,
                     decoration: const InputDecoration(
-                      labelText: 'Data de Início (Final)',
+                      labelText: 'Nome do Carrinho',
+                      hintText: 'Ex: Carrinho ABC',
                       border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.calendar_today),
-                      suffixIcon: Icon(Icons.arrow_drop_down),
-                    ),
-                    child: Text(
-                      _dataInicioFinal != null ? DateHelper.dateToString(_dataInicioFinal!) : 'Selecionar data final',
-                      style: theme.textTheme.bodyLarge,
+                      prefixIcon: Icon(Icons.label),
                     ),
                   ),
-                ),
-              ],
+
+                  const SizedBox(height: 16),
+
+                  // Código de Barras do Carrinho
+                  TextField(
+                    controller: _codigoBarrasCarrinhoController,
+                    decoration: const InputDecoration(
+                      labelText: 'Código de Barras do Carrinho',
+                      hintText: 'Ex: 7891234567890',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.qr_code),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Situação
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedSituacao,
+                    decoration: const InputDecoration(
+                      labelText: 'Situação',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.info),
+                    ),
+                    items: [
+                      const DropdownMenuItem<String>(value: null, child: Text('Todas as situações')),
+                      ..._getFilteredSituations().map(
+                        (situacao) => DropdownMenuItem<String>(value: situacao.code, child: Text(situacao.description)),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedSituacao = value;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Nome do Usuário de Início
+                  TextField(
+                    controller: _nomeUsuarioInicioController,
+                    decoration: const InputDecoration(
+                      labelText: 'Usuário de Início',
+                      hintText: 'Ex: João Silva',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Carrinho Agrupador
+                  DropdownButtonFormField<Situation>(
+                    initialValue: _selectedCarrinhoAgrupador,
+                    decoration: const InputDecoration(
+                      labelText: 'Carrinho Agrupador',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.group_work),
+                    ),
+                    items: [
+                      const DropdownMenuItem<Situation>(value: null, child: Text('Todos')),
+                      ...Situation.values.map(
+                        (situation) =>
+                            DropdownMenuItem<Situation>(value: situation, child: Text(situation.description)),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCarrinhoAgrupador = value;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Data de Início Inicial
+                  InkWell(
+                    onTap: () => _selectDataInicioInicial(context),
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Data de Início (Inicial)',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.calendar_today),
+                        suffixIcon: Icon(Icons.arrow_drop_down),
+                      ),
+                      child: Text(
+                        _dataInicioInicial != null
+                            ? DateHelper.dateToString(_dataInicioInicial!)
+                            : 'Selecionar data inicial',
+                        style: theme.textTheme.bodyLarge,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Data de Início Final
+                  InkWell(
+                    onTap: () => _selectDataInicioFinal(context),
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Data de Início (Final)',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.calendar_today),
+                        suffixIcon: Icon(Icons.arrow_drop_down),
+                      ),
+                      child: Text(
+                        _dataInicioFinal != null ? DateHelper.dateToString(_dataInicioFinal!) : 'Selecionar data final',
+                        style: theme.textTheme.bodyLarge,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ), // Fechar SingleChildScrollView e Expanded
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Botões
           Row(

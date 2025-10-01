@@ -120,118 +120,123 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
             ],
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
-          // Campos de filtro
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                // Código do Produto
-                TextField(
-                  controller: _codProdutoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Código do Produto',
-                    hintText: 'Ex: 12345',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.tag),
+          // Campos de filtro - usando Expanded para ocupar espaço disponível
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Código do Produto
+                  TextField(
+                    controller: _codProdutoController,
+                    decoration: const InputDecoration(
+                      labelText: 'Código do Produto',
+                      hintText: 'Ex: 12345',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.tag),
+                    ),
+                    keyboardType: TextInputType.number,
                   ),
-                  keyboardType: TextInputType.number,
-                ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Código de Barras
-                TextField(
-                  controller: _codigoBarrasController,
-                  decoration: const InputDecoration(
-                    labelText: 'Código de Barras',
-                    hintText: 'Ex: 7891234567890',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.qr_code),
+                  // Código de Barras
+                  TextField(
+                    controller: _codigoBarrasController,
+                    decoration: const InputDecoration(
+                      labelText: 'Código de Barras',
+                      hintText: 'Ex: 7891234567890',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.qr_code),
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Nome do Produto
-                TextField(
-                  controller: _nomeProdutoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nome do Produto',
-                    hintText: 'Ex: Produto ABC',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.inventory),
+                  // Nome do Produto
+                  TextField(
+                    controller: _nomeProdutoController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nome do Produto',
+                      hintText: 'Ex: Produto ABC',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.inventory),
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Endereço/Descrição
-                TextField(
-                  controller: _enderecoDescricaoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Endereço/Descrição',
-                    hintText: 'Ex: A1-B2-C3',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.location_on),
+                  // Endereço/Descrição
+                  TextField(
+                    controller: _enderecoDescricaoController,
+                    decoration: const InputDecoration(
+                      labelText: 'Endereço/Descrição',
+                      hintText: 'Ex: A1-B2-C3',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.location_on),
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Situação
-                DropdownButtonFormField<SeparationItemStatus?>(
-                  decoration: const InputDecoration(labelText: 'Situação', border: OutlineInputBorder()),
-                  initialValue: _selectedSituacao,
-                  items: [
-                    const DropdownMenuItem<SeparationItemStatus?>(value: null, child: Text('Todos')),
-                    ...widget.viewModel.situacaoFilterOptions.map((situacao) {
-                      return DropdownMenuItem<SeparationItemStatus?>(
-                        value: situacao,
-                        child: Row(
-                          children: [
-                            Icon(Icons.circle, color: situacao.color, size: 12),
-                            const SizedBox(width: 8),
-                            Text(situacao.description),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
-                  onChanged: (situacao) {
-                    setState(() {
-                      _selectedSituacao = situacao;
-                    });
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                // Setor de Estoque
-                DropdownButtonFormField<ExpeditionSectorStockModel?>(
-                  decoration: const InputDecoration(
-                    labelText: 'Setor de Estoque',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.business),
+                  // Situação
+                  DropdownButtonFormField<SeparationItemStatus?>(
+                    decoration: const InputDecoration(labelText: 'Situação', border: OutlineInputBorder()),
+                    initialValue: _selectedSituacao,
+                    items: [
+                      const DropdownMenuItem<SeparationItemStatus?>(value: null, child: Text('Todos')),
+                      ...widget.viewModel.situacaoFilterOptions.map((situacao) {
+                        return DropdownMenuItem<SeparationItemStatus?>(
+                          value: situacao,
+                          child: Row(
+                            children: [
+                              Icon(Icons.circle, color: situacao.color, size: 12),
+                              const SizedBox(width: 8),
+                              Text(situacao.description),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                    onChanged: (situacao) {
+                      setState(() {
+                        _selectedSituacao = situacao;
+                      });
+                    },
                   ),
-                  initialValue: _getValidSelectedSector(),
-                  items: [
-                    const DropdownMenuItem<ExpeditionSectorStockModel?>(value: null, child: Text('Todos os setores')),
-                    ...widget.viewModel.availableSectors.map((setor) {
-                      return DropdownMenuItem<ExpeditionSectorStockModel?>(value: setor, child: Text(setor.descricao));
-                    }),
-                  ],
-                  onChanged: (setor) {
-                    setState(() {
-                      _selectedSetorEstoque = setor;
-                    });
-                  },
-                ),
-              ],
+
+                  const SizedBox(height: 16),
+
+                  // Setor de Estoque
+                  DropdownButtonFormField<ExpeditionSectorStockModel?>(
+                    decoration: const InputDecoration(
+                      labelText: 'Setor de Estoque',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.business),
+                    ),
+                    initialValue: _getValidSelectedSector(),
+                    items: [
+                      const DropdownMenuItem<ExpeditionSectorStockModel?>(value: null, child: Text('Todos os setores')),
+                      ...widget.viewModel.availableSectors.map((setor) {
+                        return DropdownMenuItem<ExpeditionSectorStockModel?>(
+                          value: setor,
+                          child: Text(setor.descricao),
+                        );
+                      }),
+                    ],
+                    onChanged: (setor) {
+                      setState(() {
+                        _selectedSetorEstoque = setor;
+                      });
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
+          ), // Fechar SingleChildScrollView e Expanded
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Botões
           Row(

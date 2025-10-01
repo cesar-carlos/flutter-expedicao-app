@@ -50,22 +50,35 @@ class _PickingCardScanState extends State<PickingCardScan> {
 
     // Diferentes estratégias para scanner vs teclado
     if (!_keyboardEnabled && _scanController.text.isNotEmpty) {
-      // Modo scanner: usar timer para detectar fim da entrada
-      _scanTimer = Timer(const Duration(milliseconds: 500), () {
+      final text = _scanController.text.trim();
+
+      // Verificar se parece com um código de barras completo (8-14 dígitos)
+      if (text.length >= 8 && RegExp(r'^\d{8,14}$').hasMatch(text)) {
+        // Scanner detectou código completo - processar imediatamente
+        final barcode = text;
+        // Aguardar um pouco para o usuário ver o valor antes de limpar
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            _scanController.clear();
+          }
+        });
+        _onBarcodeScanned(barcode);
+        return;
+      }
+
+      // Aguardar mais caracteres ou fim da entrada do scanner
+      _scanTimer = Timer(const Duration(milliseconds: 300), () {
         if (_scanController.text.isNotEmpty) {
-          _onBarcodeScanned(_scanController.text);
+          final barcode = _scanController.text.trim();
+          // Aguardar um pouco para o usuário ver o valor antes de limpar
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              _scanController.clear();
+            }
+          });
+          _onBarcodeScanned(barcode);
         }
       });
-    }
-
-    // Detectar códigos de barras comuns (8-14 dígitos) automaticamente
-    if (!_keyboardEnabled && _scanController.text.length >= 8) {
-      final text = _scanController.text.trim();
-      // Verificar se parece com um código de barras (apenas números)
-      if (RegExp(r'^\d{8,14}$').hasMatch(text)) {
-        _scanTimer?.cancel();
-        _onBarcodeScanned(text);
-      }
     }
   }
 
@@ -162,8 +175,6 @@ class _PickingCardScanState extends State<PickingCardScan> {
       // Reproduzir som de alerta para todos os itens completos
       _audioService.playAlert();
       _showAllItemsCompletedDialog();
-      _scanController.clear();
-      _scanFocusNode.requestFocus();
       return;
     }
 
@@ -174,10 +185,6 @@ class _PickingCardScanState extends State<PickingCardScan> {
       _audioService.playError();
       _showWrongProductDialog(barcode, validationResult.expectedItem!);
     }
-
-    // Limpar o campo e manter o foco
-    _scanController.clear();
-    _scanFocusNode.requestFocus();
   }
 
   /// Adiciona item escaneado na separação via use case
