@@ -78,8 +78,8 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
                   icon: Stack(
                     children: [
                       const Icon(Icons.filter_alt),
-                      if ((_tabController.index == 0 && viewModel.hasActiveItemsFilters) ||
-                          (_tabController.index == 1 && viewModel.hasActiveCartsFilters))
+                      if ((_tabController.index == 1 && viewModel.hasActiveItemsFilters) ||
+                          (_tabController.index == 0 && viewModel.hasActiveCartsFilters))
                         Positioned(
                           right: 0,
                           top: 0,
@@ -91,7 +91,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
                         ),
                     ],
                   ),
-                  tooltip: _tabController.index == 0 ? 'Filtros de Produtos' : 'Filtros de Carrinhos',
+                  tooltip: _tabController.index == 1 ? 'Filtros de Produtos' : 'Filtros de Carrinhos',
                 );
               },
             ),
@@ -106,7 +106,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
       floatingActionButton: Consumer<SeparateItemsViewModel>(
         builder: (context, viewModel, child) {
           // Mostrar FAB apenas na aba de carrinhos
-          if (_tabController.index != 1) return const SizedBox.shrink();
+          if (_tabController.index != 0) return const SizedBox.shrink();
 
           final canAddCart = _canAddCart(viewModel.separation);
 
@@ -141,8 +141,8 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
     return TabBarView(
       controller: _tabController,
       children: [
-        _buildWaitingItemsView(context, viewModel),
         CartsListView(viewModel: viewModel),
+        _buildWaitingItemsView(context, viewModel),
         SeparationInfoView(separation: widget.separation, viewModel: viewModel),
       ],
     );
@@ -215,7 +215,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        if (_tabController.index == 0) {
+        if (_tabController.index == 1) {
           // Aba de produtos
           return SeparateItemsFilterModal(viewModel: viewModel);
         } else {

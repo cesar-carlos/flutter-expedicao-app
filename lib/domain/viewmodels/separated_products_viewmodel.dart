@@ -43,6 +43,10 @@ class SeparatedProductsViewModel extends ChangeNotifier {
   // Flag para evitar dispose durante operações
   bool _disposed = false;
 
+  // Modo somente leitura
+  bool _isReadOnly = false;
+  bool get isReadOnly => _isReadOnly;
+
   // Estado de cancelamento
   bool _isCancelling = false;
   bool get isCancelling => _isCancelling;
@@ -68,7 +72,10 @@ class SeparatedProductsViewModel extends ChangeNotifier {
   }
 
   /// Carrega os produtos separados do carrinho
-  Future<void> loadSeparatedProducts(ExpeditionCartRouteInternshipConsultationModel cart) async {
+  Future<void> loadSeparatedProducts(
+    ExpeditionCartRouteInternshipConsultationModel cart, {
+    bool isReadOnly = false,
+  }) async {
     if (_disposed) return;
 
     try {
@@ -76,6 +83,7 @@ class SeparatedProductsViewModel extends ChangeNotifier {
       _hasError = false;
       _errorMessage = null;
       _cart = cart;
+      _isReadOnly = isReadOnly;
       _safeNotifyListeners();
 
       // Construir query com parâmetros do carrinho
@@ -186,7 +194,7 @@ class SeparatedProductsViewModel extends ChangeNotifier {
   bool isItemBeingCancelled(String itemId) => _isCancelling && _cancellingItemId == itemId;
 
   /// Verifica se o carrinho está em situação que permite cancelamento
-  bool get canCancelItems => _cart?.situacao == ExpeditionCartSituation.separando;
+  bool get canCancelItems => !_isReadOnly && _cart?.situacao == ExpeditionCartSituation.separando;
 
   /// Cancela um item específico da separação
   Future<bool> cancelItem(SeparationItemConsultationModel item) async {

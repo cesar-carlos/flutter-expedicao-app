@@ -8,6 +8,9 @@ import 'package:exp/domain/models/expedition_cart_route_internship_consultation_
 import 'package:exp/domain/models/expedition_cart_situation_model.dart';
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
+import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
+import 'package:exp/di/locator.dart';
 
 class CartItemCard extends StatelessWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -464,45 +467,50 @@ class CartItemCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Primeira linha: Botão Separar (largura completa)
+          // Primeira linha: Botão Separar, Visualizar e Cancelar lado a lado
           if (_shouldShowSeparateButton()) ...[
-            SizedBox(
-              width: double.infinity,
-              child: CustomFlatButtonVariations.outlined(
-                text: 'Separar',
-                icon: Icons.play_arrow,
-                textColor: colorScheme.primary,
-                borderColor: colorScheme.primary.withOpacity(0.3),
-                onPressed: () => _onSeparateCart(context),
-              ),
+            Row(
+              children: [
+                // Botão Separar (ocupa a maior parte do espaço)
+                Expanded(
+                  child: CustomFlatButtonVariations.outlined(
+                    text: 'Separar',
+                    icon: Icons.play_arrow,
+                    textColor: colorScheme.primary,
+                    borderColor: colorScheme.primary.withOpacity(0.3),
+                    onPressed: () => _onSeparateCart(context),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Botão Visualizar (apenas ícone)
+                _buildViewIconButton(context, theme, colorScheme),
+                // Botão Cancelar (apenas ícone) - mostrar se carrinho está separando
+                if (cart.situacao == ExpeditionCartSituation.separando) ...[
+                  const SizedBox(width: 8),
+                  viewModel != null
+                      ? _buildCancelIconButton(context, theme, colorScheme, viewModel!)
+                      : Consumer<SeparateItemsViewModel>(
+                          builder: (context, vm, child) {
+                            return _buildCancelIconButton(context, theme, colorScheme, vm);
+                          },
+                        ),
+                ],
+              ],
             ),
             const SizedBox(height: 8),
           ],
 
-          // Segunda linha: Botão Cancelar (ícone) e Finalizar lado a lado
+          // Segunda linha: Botão Finalizar (largura completa)
           if (cart.situacao == ExpeditionCartSituation.separando) ...[
-            Row(
-              children: [
-                // Botão Cancelar (apenas ícone)
-                viewModel != null
-                    ? _buildCancelIconButton(context, theme, colorScheme, viewModel!)
-                    : Consumer<SeparateItemsViewModel>(
-                        builder: (context, vm, child) {
-                          return _buildCancelIconButton(context, theme, colorScheme, vm);
-                        },
-                      ),
-                const SizedBox(width: 8),
-                // Botão Finalizar (ocupa o resto do espaço)
-                Expanded(
-                  child: CustomFlatButtonVariations.outlined(
-                    text: 'Finalizar',
-                    icon: Icons.check_circle,
-                    textColor: Colors.green,
-                    borderColor: Colors.green.withOpacity(0.3),
-                    onPressed: () => _onFinalizeCart(context),
-                  ),
-                ),
-              ],
+            SizedBox(
+              width: double.infinity,
+              child: CustomFlatButtonVariations.outlined(
+                text: 'Finalizar',
+                icon: Icons.check_circle,
+                textColor: Colors.green,
+                borderColor: Colors.green.withOpacity(0.3),
+                onPressed: () => _onFinalizeCart(context),
+              ),
             ),
           ],
 
@@ -559,6 +567,26 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
+  Widget _buildViewIconButton(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.tertiary.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.transparent,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => _onViewCartReadOnly(context),
+          child: Center(child: Icon(Icons.visibility, color: colorScheme.tertiary, size: 20)),
+        ),
+      ),
+    );
+  }
+
   void _onSeparateCart(BuildContext context) {
     // Navegar para a tela de CardPicking
     // TODO: Obter UserSystemModel do contexto/provider quando disponível
@@ -575,14 +603,56 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
-  void _onFinalizeCart(BuildContext context) {
-    // TODO: Implementar ação de finalizar carrinho
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Finalizar carrinho #${cart.codCarrinho} - Em desenvolvimento'),
-        backgroundColor: Colors.green,
-      ),
-    );
+  void _onFinalizeCart(BuildContext context) async {
+    // Mostrar diálogo de confirmação
+    final confirmed = await _showFinalizeConfirmationDialog(context);
+    if (!confirmed) return;
+
+    // Mostrar indicador de carregamento
+    _showLoadingDialog(context);
+
+    try {
+      // Obter o use case do locator
+      final saveSeparationCartUseCase = locator<SaveSeparationCartUseCase>();
+
+      // Criar parâmetros
+      final params = SaveSeparationCartParams(
+        codEmpresa: cart.codEmpresa,
+        codCarrinhoPercurso: cart.codCarrinhoPercurso,
+        itemCarrinhoPercurso: cart.item,
+      );
+
+      // Executar o use case
+      final result = await saveSeparationCartUseCase.call(params);
+
+      // Fechar diálogo de carregamento
+      if (context.mounted) Navigator.of(context).pop();
+
+      // Processar resultado
+      result.fold(
+        (failure) {
+          _showErrorDialog(context, failure);
+        },
+        (success) {
+          _showSuccessDialog(context, success);
+
+          // Atualizar a lista de carrinhos
+          if (viewModel != null) {
+            viewModel!.refresh();
+          }
+        },
+      );
+    } catch (e) {
+      // Fechar diálogo de carregamento se ainda estiver aberto
+      if (context.mounted) Navigator.of(context).pop();
+
+      // Mostrar erro genérico
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro inesperado: ${e.toString()}'), backgroundColor: Colors.red));
+      }
+    }
   }
 
   void _onViewCart(BuildContext context) {
@@ -595,6 +665,26 @@ class CartItemCard extends StatelessWidget {
         builder: (context) => ChangeNotifierProvider.value(
           value: tempViewModel,
           child: PickingProductsListScreen(filterType: 'completed', viewModel: tempViewModel, cart: cart),
+        ),
+      ),
+    );
+  }
+
+  void _onViewCartReadOnly(BuildContext context) {
+    // Criar ViewModel temporário para navegação (modo somente leitura)
+    final tempViewModel = CardPickingViewModel();
+
+    // Navegar para a tela de produtos separados em modo somente leitura
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ChangeNotifierProvider.value(
+          value: tempViewModel,
+          child: PickingProductsListScreen(
+            filterType: 'completed',
+            viewModel: tempViewModel,
+            cart: cart,
+            isReadOnly: true, // Novo parâmetro para modo somente leitura
+          ),
         ),
       ),
     );
@@ -624,6 +714,91 @@ class CartItemCard extends StatelessWidget {
         cart.situacao == ExpeditionCartSituation.agrupado ||
         cart.situacao == ExpeditionCartSituation.cancelado ||
         cart.situacao == ExpeditionCartSituation.cancelada;
+  }
+
+  Future<bool> _showFinalizeConfirmationDialog(BuildContext context) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Finalizar Carrinho'),
+            content: Text('Deseja realmente finalizar o carrinho #${cart.codCarrinho}?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancelar')),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                child: const Text('Finalizar', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  void _showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Finalizando carrinho...')]),
+      ),
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, dynamic success) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            const SizedBox(width: 8),
+            const Text('Sucesso'),
+          ],
+        ),
+        content: Text('Carrinho #${cart.codCarrinho} finalizado com sucesso!'),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text('OK', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, dynamic failure) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.error, color: Colors.red),
+            const SizedBox(width: 8),
+            const Text('Erro'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(failure.message),
+            if (failure.details != null) ...[
+              const SizedBox(height: 8),
+              Text(failure.details!, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('OK', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showCancelDialog(BuildContext context) {

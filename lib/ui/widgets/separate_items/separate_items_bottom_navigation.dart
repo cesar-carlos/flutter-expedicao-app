@@ -32,8 +32,8 @@ class SeparateItemsBottomNavigation extends StatelessWidget {
             splashFactory: NoSplash.splashFactory,
             overlayColor: WidgetStateProperty.all(Colors.transparent),
             tabs: [
-              _buildTab(icon: Icons.inventory_2, label: 'Produtos', colorScheme: colorScheme),
               _buildTab(icon: Icons.shopping_cart, label: 'Carrinhos', colorScheme: colorScheme),
+              _buildTab(icon: Icons.inventory_2, label: 'Produtos', colorScheme: colorScheme),
               _buildTab(icon: Icons.info_outline, label: 'Informações', colorScheme: colorScheme),
             ],
           ),

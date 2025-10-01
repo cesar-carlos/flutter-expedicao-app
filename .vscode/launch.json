@@ -8,8 +8,7 @@
       "name": "expedicao (debug mode)",
       "request": "launch",
       "type": "dart",
-      "flutterMode": "debug",
-      "deviceId": "emulator-5554"
+      "flutterMode": "debug"
     },
     {
       "name": "expedicao (debug mode) - TC60",

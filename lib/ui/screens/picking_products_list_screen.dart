@@ -13,8 +13,15 @@ class PickingProductsListScreen extends StatefulWidget {
   final String filterType; // 'pending' ou 'completed'
   final CardPickingViewModel viewModel;
   final ExpeditionCartRouteInternshipConsultationModel cart;
+  final bool isReadOnly; // Novo parâmetro para modo somente leitura
 
-  const PickingProductsListScreen({super.key, required this.filterType, required this.viewModel, required this.cart});
+  const PickingProductsListScreen({
+    super.key,
+    required this.filterType,
+    required this.viewModel,
+    required this.cart,
+    this.isReadOnly = false, // Padrão é false (permite edição)
+  });
 
   @override
   State<PickingProductsListScreen> createState() => _PickingProductsListScreenState();
@@ -37,7 +44,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
 
       // Carregar produtos separados após o frame atual
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _separatedProductsViewModel.loadSeparatedProducts(widget.cart);
+        _separatedProductsViewModel.loadSeparatedProducts(widget.cart, isReadOnly: widget.isReadOnly);
       });
     }
   }
@@ -285,13 +292,18 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
 
         // Lista de produtos separados
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: viewModel.items.length,
-            itemBuilder: (context, index) {
-              final item = viewModel.items[index];
-              return SeparatedProductItem(item: item, viewModel: viewModel);
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await viewModel.refresh();
             },
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: viewModel.items.length,
+              itemBuilder: (context, index) {
+                final item = viewModel.items[index];
+                return SeparatedProductItem(item: item, viewModel: viewModel);
+              },
+            ),
           ),
         ),
       ],

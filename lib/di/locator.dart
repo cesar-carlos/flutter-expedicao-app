@@ -72,6 +72,7 @@ import 'package:exp/data/repositories/expedition_sector_stock_repository_impl.da
 import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
+import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 
 final GetIt locator = GetIt.instance;
 
@@ -249,6 +250,15 @@ void setupLocator() {
       separateItemRepository: locator<BasicRepository<SeparateItemModel>>(),
       separationItemRepository: locator<BasicRepository<SeparationItemModel>>(),
       separateRepository: locator<BasicRepository<SeparateModel>>(),
+      userSessionService: locator<UserSessionService>(),
+    ),
+  );
+
+  locator.registerLazySingleton<SaveSeparationCartUseCase>(
+    () => SaveSeparationCartUseCase(
+      cartRouteInternshipRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
+      separationItemConsultationRepository: locator<BasicConsultationRepository<SeparationItemConsultationModel>>(),
+      cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
       userSessionService: locator<UserSessionService>(),
     ),
   );
