@@ -91,10 +91,7 @@ class StartSeparationUseCase {
   Future<SeparateModel?> _findSeparation(StartSeparationParams params) async {
     try {
       final separations = await _separateRepository.select(
-        QueryBuilder()
-            .equals('CodEmpresa', params.codEmpresa)
-            .equals('Origem', params.origem.code)
-            .equals('CodOrigem', params.codOrigem),
+        QueryBuilder().equals('CodEmpresa', params.codEmpresa).equals('CodSepararEstoque', params.codOrigem),
       );
 
       return separations.isNotEmpty ? separations.first : null;

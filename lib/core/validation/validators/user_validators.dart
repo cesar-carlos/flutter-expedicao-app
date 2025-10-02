@@ -1,7 +1,7 @@
 import 'package:zard/zard.dart';
 
 import 'package:exp/core/validation/schemas/enum_schemas.dart';
-import 'package:exp/core/validation/schemas/model/index.dart';
+import 'package:exp/core/validation/schemas/model_schema/index.dart';
 import 'package:exp/core/results/index.dart';
 
 /// Schemas para validação de models de usuário

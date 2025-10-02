@@ -1,5 +1,5 @@
 import 'package:exp/domain/models/expedition_cancellation_model.dart';
-import 'package:exp/core/validation/schemas/model/expedition_cancellation_schema.dart';
+import 'package:exp/core/validation/schemas/model_schema/expedition_cancellation_schema.dart';
 
 /// Exemplo demonstrando a validação de schema no ExpeditionCancellationModel
 void main() {

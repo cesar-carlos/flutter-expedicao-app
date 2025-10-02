@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:exp/di/locator.dart';
 import 'package:exp/core/errors/app_error.dart';
-import 'package:exp/domain/models/separation_filters_model.dart';
+import 'package:exp/domain/models/filter/separation_filters_model.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';

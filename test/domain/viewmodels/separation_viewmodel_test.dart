@@ -8,7 +8,7 @@ import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
-import 'package:exp/domain/models/separation_filters_model.dart';
+import 'package:exp/domain/models/filter/separation_filters_model.dart';
 
 import 'separation_viewmodel_test.mocks.dart';
 

@@ -1,10 +1,15 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:exp/core/results/index.dart';
+import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/domain/usecases/add_cart/add_cart_params.dart';
+import 'package:exp/domain/models/expedition_cart_route_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
+import 'package:exp/domain/models/situation/expedition_cart_router_situation_model.dart';
 import 'package:exp/domain/models/situation/expedition_cart_situation_model.dart';
+import 'package:exp/domain/usecases/start_separation/start_separation_usecase.dart';
+import 'package:exp/domain/usecases/start_separation/start_separation_params.dart';
 import 'package:exp/domain/usecases/add_cart/add_cart_usecase.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
@@ -17,6 +22,8 @@ class AddCartViewModel extends ChangeNotifier {
   // Repositórios e UseCases
   final AddCartUseCase _addCartUseCase;
   final BasicConsultationRepository<ExpeditionCartConsultationModel> _cartConsultationRepository;
+  final BasicRepository<ExpeditionCartRouteModel> _cartRouteRepository;
+  final StartSeparationUseCase _startSeparationUseCase;
   // Estado
   bool _isScanning = false;
   bool _isAdding = false;
@@ -25,7 +32,9 @@ class AddCartViewModel extends ChangeNotifier {
 
   AddCartViewModel({required this.codEmpresa, required this.codSepararEstoque})
     : _addCartUseCase = locator<AddCartUseCase>(),
-      _cartConsultationRepository = locator<BasicConsultationRepository<ExpeditionCartConsultationModel>>();
+      _cartConsultationRepository = locator<BasicConsultationRepository<ExpeditionCartConsultationModel>>(),
+      _cartRouteRepository = locator<BasicRepository<ExpeditionCartRouteModel>>(),
+      _startSeparationUseCase = locator<StartSeparationUseCase>();
 
   // Getters
   bool get isScanning => _isScanning;
@@ -73,6 +82,18 @@ class AddCartViewModel extends ChangeNotifier {
     _clearError();
 
     try {
+      // 1. Verificar se já existe um carrinho percurso iniciado (apenas para origem 'SE')
+      if (ExpeditionOrigem.separacaoEstoque.code == ExpeditionOrigem.separacaoEstoque.code) {
+        final existingCartRoute = await _checkExistingCartRoute();
+        if (existingCartRoute == null) {
+          final startResult = await _startSeparation();
+          if (!startResult) {
+            return false;
+          }
+        }
+      }
+
+      // 3. Adicionar o carrinho à separação
       final params = AddCartParams(
         codEmpresa: codEmpresa,
         origem: ExpeditionOrigem.separacaoEstoque,
@@ -81,7 +102,6 @@ class AddCartViewModel extends ChangeNotifier {
       );
 
       final result = await _addCartUseCase.call(params);
-
       return result.fold((success) => true, (failure) {
         final message = failure is AppFailure ? failure.userMessage : failure.toString();
         _setError(message);
@@ -92,6 +112,45 @@ class AddCartViewModel extends ChangeNotifier {
       return false;
     } finally {
       _setAdding(false);
+    }
+  }
+
+  /// Verifica se já existe um carrinho percurso iniciado para esta separação
+  Future<ExpeditionCartRouteModel?> _checkExistingCartRoute() async {
+    try {
+      final cartRoutes = await _cartRouteRepository.select(
+        QueryBuilder()
+            .equals('CodEmpresa', codEmpresa)
+            .equals('Origem', ExpeditionOrigem.separacaoEstoque.code)
+            .equals('CodOrigem', codSepararEstoque)
+            .notEquals('Situacao', ExpeditionCartRouterSituation.cancelada.code),
+      );
+
+      return cartRoutes.isNotEmpty ? cartRoutes.first : null;
+    } catch (e) {
+      _setError('Erro ao verificar carrinho percurso existente: ${e.toString()}');
+      return null;
+    }
+  }
+
+  /// Inicia uma nova separação
+  Future<bool> _startSeparation() async {
+    try {
+      final params = StartSeparationParams(
+        codEmpresa: codEmpresa,
+        origem: ExpeditionOrigem.separacaoEstoque,
+        codOrigem: codSepararEstoque,
+      );
+
+      final result = await _startSeparationUseCase.call(params);
+      return result.fold((success) => true, (failure) {
+        final message = failure is AppFailure ? failure.userMessage : failure.toString();
+        _setError('Erro ao iniciar separação: $message');
+        return false;
+      });
+    } catch (e) {
+      _setError('Erro inesperado ao iniciar separação: ${e.toString()}');
+      return false;
     }
   }
 

@@ -6,7 +6,7 @@ import 'package:exp/domain/models/situation/situation_model.dart';
 import 'package:exp/domain/models/separation_item_status.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/domain/models/separate_items_filters_model.dart';
+import 'package:exp/domain/models/filter/separate_items_filters_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_success.dart';
@@ -19,7 +19,7 @@ import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
-import 'package:exp/domain/models/carts_filters_model.dart';
+import 'package:exp/domain/models/filter/carts_filters_model.dart';
 
 enum SeparateItemsState { initial, loading, loaded, error }
 

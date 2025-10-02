@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
-import 'package:exp/domain/models/separate_items_filters_model.dart';
+import 'package:exp/domain/models/filter/separate_items_filters_model.dart';
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/domain/models/separation_item_status.dart';
 

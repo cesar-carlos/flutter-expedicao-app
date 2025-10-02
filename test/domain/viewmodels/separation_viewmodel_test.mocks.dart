@@ -6,12 +6,11 @@
 import 'dart:async' as _i6;
 
 import 'package:exp/data/services/filters_storage_service.dart' as _i9;
-import 'package:exp/domain/models/carts_filters_model.dart' as _i4;
+import 'package:exp/domain/models/filter/carts_filters_model.dart' as _i4;
 import 'package:exp/domain/models/pagination/query_builder.dart' as _i7;
-import 'package:exp/domain/models/separate_items_filters_model.dart' as _i3;
-import 'package:exp/domain/models/separation_filters_model.dart' as _i2;
-import 'package:exp/domain/repositories/basic_consultation_repository.dart'
-    as _i5;
+import 'package:exp/domain/models/filter/separate_items_filters_model.dart' as _i3;
+import 'package:exp/domain/models/filter/separation_filters_model.dart' as _i2;
+import 'package:exp/domain/repositories/basic_consultation_repository.dart' as _i5;
 import 'package:exp/domain/repositories/basic_repository.dart' as _i8;
 import 'package:mockito/mockito.dart' as _i1;
 
@@ -28,44 +27,22 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeSeparationFiltersModel_0 extends _i1.SmartFake
-    implements _i2.SeparationFiltersModel {
-  _FakeSeparationFiltersModel_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+class _FakeSeparationFiltersModel_0 extends _i1.SmartFake implements _i2.SeparationFiltersModel {
+  _FakeSeparationFiltersModel_0(Object parent, Invocation parentInvocation) : super(parent, parentInvocation);
 }
 
-class _FakeSeparateItemsFiltersModel_1 extends _i1.SmartFake
-    implements _i3.SeparateItemsFiltersModel {
-  _FakeSeparateItemsFiltersModel_1(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+class _FakeSeparateItemsFiltersModel_1 extends _i1.SmartFake implements _i3.SeparateItemsFiltersModel {
+  _FakeSeparateItemsFiltersModel_1(Object parent, Invocation parentInvocation) : super(parent, parentInvocation);
 }
 
-class _FakeCartsFiltersModel_2 extends _i1.SmartFake
-    implements _i4.CartsFiltersModel {
-  _FakeCartsFiltersModel_2(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+class _FakeCartsFiltersModel_2 extends _i1.SmartFake implements _i4.CartsFiltersModel {
+  _FakeCartsFiltersModel_2(Object parent, Invocation parentInvocation) : super(parent, parentInvocation);
 }
 
 /// A class which mocks [BasicConsultationRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBasicConsultationRepository<T> extends _i1.Mock
-    implements _i5.BasicConsultationRepository<T> {
+class MockBasicConsultationRepository<T> extends _i1.Mock implements _i5.BasicConsultationRepository<T> {
   MockBasicConsultationRepository() {
     _i1.throwOnMissingStub(this);
   }
@@ -73,66 +50,45 @@ class MockBasicConsultationRepository<T> extends _i1.Mock
   @override
   _i6.Future<List<T>> selectConsultation(_i7.QueryBuilder? queryBuilder) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #selectConsultation,
-          [queryBuilder],
-        ),
-        returnValue: _i6.Future<List<T>>.value(<T>[]),
-      ) as _i6.Future<List<T>>);
+            Invocation.method(#selectConsultation, [queryBuilder]),
+            returnValue: _i6.Future<List<T>>.value(<T>[]),
+          )
+          as _i6.Future<List<T>>);
 }
 
 /// A class which mocks [BasicRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBasicRepository<T> extends _i1.Mock
-    implements _i8.BasicRepository<T> {
+class MockBasicRepository<T> extends _i1.Mock implements _i8.BasicRepository<T> {
   MockBasicRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
   _i6.Future<List<T>> select(_i7.QueryBuilder? queryBuilder) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #select,
-          [queryBuilder],
-        ),
-        returnValue: _i6.Future<List<T>>.value(<T>[]),
-      ) as _i6.Future<List<T>>);
+      (super.noSuchMethod(Invocation.method(#select, [queryBuilder]), returnValue: _i6.Future<List<T>>.value(<T>[]))
+          as _i6.Future<List<T>>);
 
   @override
-  _i6.Future<List<T>> insert(T? entity) => (super.noSuchMethod(
-        Invocation.method(
-          #insert,
-          [entity],
-        ),
-        returnValue: _i6.Future<List<T>>.value(<T>[]),
-      ) as _i6.Future<List<T>>);
+  _i6.Future<List<T>> insert(T? entity) =>
+      (super.noSuchMethod(Invocation.method(#insert, [entity]), returnValue: _i6.Future<List<T>>.value(<T>[]))
+          as _i6.Future<List<T>>);
 
   @override
-  _i6.Future<List<T>> update(T? entity) => (super.noSuchMethod(
-        Invocation.method(
-          #update,
-          [entity],
-        ),
-        returnValue: _i6.Future<List<T>>.value(<T>[]),
-      ) as _i6.Future<List<T>>);
+  _i6.Future<List<T>> update(T? entity) =>
+      (super.noSuchMethod(Invocation.method(#update, [entity]), returnValue: _i6.Future<List<T>>.value(<T>[]))
+          as _i6.Future<List<T>>);
 
   @override
-  _i6.Future<List<T>> delete(T? entity) => (super.noSuchMethod(
-        Invocation.method(
-          #delete,
-          [entity],
-        ),
-        returnValue: _i6.Future<List<T>>.value(<T>[]),
-      ) as _i6.Future<List<T>>);
+  _i6.Future<List<T>> delete(T? entity) =>
+      (super.noSuchMethod(Invocation.method(#delete, [entity]), returnValue: _i6.Future<List<T>>.value(<T>[]))
+          as _i6.Future<List<T>>);
 }
 
 /// A class which mocks [FiltersStorageService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFiltersStorageService extends _i1.Mock
-    implements _i9.FiltersStorageService {
+class MockFiltersStorageService extends _i1.Mock implements _i9.FiltersStorageService {
   MockFiltersStorageService() {
     _i1.throwOnMissingStub(this);
   }
@@ -140,141 +96,102 @@ class MockFiltersStorageService extends _i1.Mock
   @override
   _i6.Future<void> saveSeparationFilters(_i2.SeparationFiltersModel? filters) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #saveSeparationFilters,
-          [filters],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+            Invocation.method(#saveSeparationFilters, [filters]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
   _i6.Future<_i2.SeparationFiltersModel> loadSeparationFilters() =>
       (super.noSuchMethod(
-        Invocation.method(
-          #loadSeparationFilters,
-          [],
-        ),
-        returnValue: _i6.Future<_i2.SeparationFiltersModel>.value(
-            _FakeSeparationFiltersModel_0(
-          this,
-          Invocation.method(
-            #loadSeparationFilters,
-            [],
-          ),
-        )),
-      ) as _i6.Future<_i2.SeparationFiltersModel>);
+            Invocation.method(#loadSeparationFilters, []),
+            returnValue: _i6.Future<_i2.SeparationFiltersModel>.value(
+              _FakeSeparationFiltersModel_0(this, Invocation.method(#loadSeparationFilters, [])),
+            ),
+          )
+          as _i6.Future<_i2.SeparationFiltersModel>);
 
   @override
-  _i6.Future<void> clearSeparationFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #clearSeparationFilters,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
-
-  @override
-  _i6.Future<bool> hasSavedSeparationFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #hasSavedSeparationFilters,
-          [],
-        ),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
-
-  @override
-  _i6.Future<void> saveSeparateItemsFilters(
-          _i3.SeparateItemsFiltersModel? filters) =>
+  _i6.Future<void> clearSeparationFilters() =>
       (super.noSuchMethod(
-        Invocation.method(
-          #saveSeparateItemsFilters,
-          [filters],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+            Invocation.method(#clearSeparationFilters, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<bool> hasSavedSeparationFilters() =>
+      (super.noSuchMethod(Invocation.method(#hasSavedSeparationFilters, []), returnValue: _i6.Future<bool>.value(false))
+          as _i6.Future<bool>);
+
+  @override
+  _i6.Future<void> saveSeparateItemsFilters(_i3.SeparateItemsFiltersModel? filters) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveSeparateItemsFilters, [filters]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
   _i6.Future<_i3.SeparateItemsFiltersModel> loadSeparateItemsFilters() =>
       (super.noSuchMethod(
-        Invocation.method(
-          #loadSeparateItemsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<_i3.SeparateItemsFiltersModel>.value(
-            _FakeSeparateItemsFiltersModel_1(
-          this,
-          Invocation.method(
-            #loadSeparateItemsFilters,
-            [],
-          ),
-        )),
-      ) as _i6.Future<_i3.SeparateItemsFiltersModel>);
+            Invocation.method(#loadSeparateItemsFilters, []),
+            returnValue: _i6.Future<_i3.SeparateItemsFiltersModel>.value(
+              _FakeSeparateItemsFiltersModel_1(this, Invocation.method(#loadSeparateItemsFilters, [])),
+            ),
+          )
+          as _i6.Future<_i3.SeparateItemsFiltersModel>);
 
   @override
-  _i6.Future<void> clearSeparateItemsFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #clearSeparateItemsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> clearSeparateItemsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearSeparateItemsFilters, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<bool> hasSavedSeparateItemsFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #hasSavedSeparateItemsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
+  _i6.Future<bool> hasSavedSeparateItemsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#hasSavedSeparateItemsFilters, []),
+            returnValue: _i6.Future<bool>.value(false),
+          )
+          as _i6.Future<bool>);
 
   @override
   _i6.Future<void> saveCartsFilters(_i4.CartsFiltersModel? filters) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #saveCartsFilters,
-          [filters],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+            Invocation.method(#saveCartsFilters, [filters]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<_i4.CartsFiltersModel> loadCartsFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #loadCartsFilters,
-          [],
-        ),
-        returnValue:
-            _i6.Future<_i4.CartsFiltersModel>.value(_FakeCartsFiltersModel_2(
-          this,
-          Invocation.method(
-            #loadCartsFilters,
-            [],
-          ),
-        )),
-      ) as _i6.Future<_i4.CartsFiltersModel>);
+  _i6.Future<_i4.CartsFiltersModel> loadCartsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#loadCartsFilters, []),
+            returnValue: _i6.Future<_i4.CartsFiltersModel>.value(
+              _FakeCartsFiltersModel_2(this, Invocation.method(#loadCartsFilters, [])),
+            ),
+          )
+          as _i6.Future<_i4.CartsFiltersModel>);
 
   @override
-  _i6.Future<void> clearCartsFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #clearCartsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> clearCartsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearCartsFilters, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<bool> hasSavedCartsFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #hasSavedCartsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
+  _i6.Future<bool> hasSavedCartsFilters() =>
+      (super.noSuchMethod(Invocation.method(#hasSavedCartsFilters, []), returnValue: _i6.Future<bool>.value(false))
+          as _i6.Future<bool>);
 }

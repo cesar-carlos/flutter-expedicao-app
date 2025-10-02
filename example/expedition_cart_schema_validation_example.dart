@@ -1,5 +1,5 @@
 import 'package:exp/domain/models/expedition_cart_model.dart';
-import 'package:exp/core/validation/schemas/model/expedition_cart_schema.dart';
+import 'package:exp/core/validation/schemas/model_schema/expedition_cart_schema.dart';
 
 /// Exemplo demonstrando a validação de schema no ExpeditionCartModel
 void main() {
