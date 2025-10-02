@@ -21,7 +21,7 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
   late TextEditingController _nomeCarrinhoController;
   late TextEditingController _codigoBarrasCarrinhoController;
   late TextEditingController _nomeUsuarioInicioController;
-  String? _selectedSituacao;
+  List<String> _selectedSituacoes = [];
   Situation? _selectedCarrinhoAgrupador;
   DateTime? _dataInicioInicial;
   DateTime? _dataInicioFinal;
@@ -36,7 +36,7 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
       text: widget.viewModel.cartsFilters.codigoBarrasCarrinho ?? '',
     );
     _nomeUsuarioInicioController = TextEditingController(text: widget.viewModel.cartsFilters.nomeUsuarioInicio ?? '');
-    _selectedSituacao = widget.viewModel.cartsFilters.situacao;
+    _selectedSituacoes = widget.viewModel.cartsFilters.situacoes ?? [];
     _selectedCarrinhoAgrupador = widget.viewModel.cartsFilters.carrinhoAgrupador == Situation.inativo
         ? null
         : widget.viewModel.cartsFilters.carrinhoAgrupador;
@@ -147,24 +147,65 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
                   const SizedBox(height: 16),
 
                   // Situação
-                  DropdownButtonFormField<String>(
-                    initialValue: _selectedSituacao,
-                    decoration: const InputDecoration(
-                      labelText: 'Situação',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.info),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Theme.of(context).colorScheme.outline),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    items: [
-                      const DropdownMenuItem<String>(value: null, child: Text('Todas as situações')),
-                      ..._getFilteredSituations().map(
-                        (situacao) => DropdownMenuItem<String>(value: situacao.code, child: Text(situacao.description)),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedSituacao = value;
-                      });
-                    },
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.info, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Situação',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        ..._getFilteredSituations().map(
+                          (situacao) => CheckboxListTile(
+                            title: Text(situacao.description),
+                            value: _selectedSituacoes.contains(situacao.code),
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  _selectedSituacoes.add(situacao.code);
+                                } else {
+                                  _selectedSituacoes.remove(situacao.code);
+                                }
+                              });
+                            },
+                            contentPadding: EdgeInsets.zero,
+                            dense: true,
+                          ),
+                        ),
+                        if (_selectedSituacoes.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 4,
+                            children: _selectedSituacoes.map((code) {
+                              final situacao = ExpeditionSituation.fromCode(code);
+                              return Chip(
+                                label: Text(situacao?.description ?? code),
+                                onDeleted: () {
+                                  setState(() {
+                                    _selectedSituacoes.remove(code);
+                                  });
+                                },
+                                deleteIcon: const Icon(Icons.close, size: 16),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 16),
@@ -314,7 +355,7 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
       _nomeCarrinhoController.clear();
       _codigoBarrasCarrinhoController.clear();
       _nomeUsuarioInicioController.clear();
-      _selectedSituacao = null;
+      _selectedSituacoes.clear();
       _selectedCarrinhoAgrupador = null;
       _dataInicioInicial = null;
       _dataInicioFinal = null;
@@ -331,7 +372,7 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
       codigoBarrasCarrinho: _codigoBarrasCarrinhoController.text.trim().isNotEmpty
           ? _codigoBarrasCarrinhoController.text.trim()
           : null,
-      situacao: _selectedSituacao,
+      situacoes: _selectedSituacoes.isNotEmpty ? _selectedSituacoes : null,
       nomeUsuarioInicio: _nomeUsuarioInicioController.text.trim().isNotEmpty
           ? _nomeUsuarioInicioController.text.trim()
           : null,
@@ -352,7 +393,14 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
       ExpeditionSituation.cancelada,
       ExpeditionSituation.separando,
       ExpeditionSituation.separado,
+      ExpeditionSituation.conferindo,
+      ExpeditionSituation.conferido,
+      ExpeditionSituation.entregue,
+      ExpeditionSituation.embalando,
+      ExpeditionSituation.embalado,
       ExpeditionSituation.agrupado,
+      ExpeditionSituation.finalizada,
+      ExpeditionSituation.naoLocalizada,
     ];
   }
 }

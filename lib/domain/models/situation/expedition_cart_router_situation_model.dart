@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 enum ExpeditionCartRouterSituation {
   cancelada('CANCELADA', 'Cancelada', Colors.red),
   conferido('CONFERIDO', 'Conferido', Colors.lightGreen),
-  emAndamento('EM ANDAMENTO', 'Em Andamento', Colors.blue),
   emConferencia('EM CONFERENCIA', 'Em Conferência', Colors.purple),
   emEntrega('EM ENTREGA', 'Em Entrega', Colors.teal),
   emSeparacao('EM SEPARACAO', 'Em Separação', Colors.orange),

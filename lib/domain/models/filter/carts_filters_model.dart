@@ -4,7 +4,7 @@ class CartsFiltersModel {
   final String? codCarrinho;
   final String? nomeCarrinho;
   final String? codigoBarrasCarrinho;
-  final String? situacao;
+  final List<String>? situacoes;
   final String? nomeUsuarioInicio;
   final DateTime? dataInicioInicial;
   final DateTime? dataInicioFinal;
@@ -14,7 +14,7 @@ class CartsFiltersModel {
     this.codCarrinho,
     this.nomeCarrinho,
     this.codigoBarrasCarrinho,
-    this.situacao,
+    this.situacoes,
     this.nomeUsuarioInicio,
     this.dataInicioInicial,
     this.dataInicioFinal,
@@ -26,7 +26,7 @@ class CartsFiltersModel {
       codCarrinho: json['codCarrinho'],
       nomeCarrinho: json['nomeCarrinho'],
       codigoBarrasCarrinho: json['codigoBarrasCarrinho'],
-      situacao: json['situacao'],
+      situacoes: json['situacoes'] != null ? List<String>.from(json['situacoes']) : null,
       nomeUsuarioInicio: json['nomeUsuarioInicio'],
       dataInicioInicial: json['dataInicioInicial'] != null ? DateTime.parse(json['dataInicioInicial']) : null,
       dataInicioFinal: json['dataInicioFinal'] != null ? DateTime.parse(json['dataInicioFinal']) : null,
@@ -41,7 +41,7 @@ class CartsFiltersModel {
       'codCarrinho': codCarrinho,
       'nomeCarrinho': nomeCarrinho,
       'codigoBarrasCarrinho': codigoBarrasCarrinho,
-      'situacao': situacao,
+      'situacoes': situacoes,
       'nomeUsuarioInicio': nomeUsuarioInicio,
       'dataInicioInicial': dataInicioInicial?.toIso8601String(),
       'dataInicioFinal': dataInicioFinal?.toIso8601String(),
@@ -53,7 +53,7 @@ class CartsFiltersModel {
       codCarrinho == null &&
       nomeCarrinho == null &&
       codigoBarrasCarrinho == null &&
-      situacao == null &&
+      (situacoes == null || situacoes!.isEmpty) &&
       nomeUsuarioInicio == null &&
       dataInicioInicial == null &&
       dataInicioFinal == null &&
@@ -65,7 +65,7 @@ class CartsFiltersModel {
     String? codCarrinho,
     String? nomeCarrinho,
     String? codigoBarrasCarrinho,
-    String? situacao,
+    List<String>? situacoes,
     String? nomeUsuarioInicio,
     DateTime? dataInicioInicial,
     DateTime? dataInicioFinal,
@@ -75,7 +75,7 @@ class CartsFiltersModel {
       codCarrinho: codCarrinho ?? this.codCarrinho,
       nomeCarrinho: nomeCarrinho ?? this.nomeCarrinho,
       codigoBarrasCarrinho: codigoBarrasCarrinho ?? this.codigoBarrasCarrinho,
-      situacao: situacao ?? this.situacao,
+      situacoes: situacoes ?? this.situacoes,
       nomeUsuarioInicio: nomeUsuarioInicio ?? this.nomeUsuarioInicio,
       dataInicioInicial: dataInicioInicial ?? this.dataInicioInicial,
       dataInicioFinal: dataInicioFinal ?? this.dataInicioFinal,
@@ -93,7 +93,7 @@ class CartsFiltersModel {
         'codCarrinho: $codCarrinho, '
         'nomeCarrinho: $nomeCarrinho, '
         'codigoBarrasCarrinho: $codigoBarrasCarrinho, '
-        'situacao: $situacao, '
+        'situacoes: $situacoes, '
         'nomeUsuarioInicio: $nomeUsuarioInicio, '
         'dataInicioInicial: $dataInicioInicial, '
         'dataInicioFinal: $dataInicioFinal, '
@@ -108,7 +108,7 @@ class CartsFiltersModel {
         other.codCarrinho == codCarrinho &&
         other.nomeCarrinho == nomeCarrinho &&
         other.codigoBarrasCarrinho == codigoBarrasCarrinho &&
-        other.situacao == situacao &&
+        _listEquals(other.situacoes, situacoes) &&
         other.nomeUsuarioInicio == nomeUsuarioInicio &&
         other.dataInicioInicial == dataInicioInicial &&
         other.dataInicioFinal == dataInicioFinal &&
@@ -121,11 +121,21 @@ class CartsFiltersModel {
       codCarrinho,
       nomeCarrinho,
       codigoBarrasCarrinho,
-      situacao,
+      situacoes,
       nomeUsuarioInicio,
       dataInicioInicial,
       dataInicioFinal,
       carrinhoAgrupador,
     );
+  }
+
+  /// Helper method to compare lists
+  bool _listEquals<T>(List<T>? a, List<T>? b) {
+    if (a == null) return b == null;
+    if (b == null || a.length != b.length) return false;
+    for (int index = 0; index < a.length; index += 1) {
+      if (a[index] != b[index]) return false;
+    }
+    return true;
   }
 }

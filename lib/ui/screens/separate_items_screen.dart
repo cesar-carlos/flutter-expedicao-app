@@ -36,7 +36,6 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _cartsScrollController = ScrollController();
   final ScrollController _itemsScrollController = ScrollController();
-  bool _showScrollToTop = false;
 
   @override
   void initState() {
@@ -48,39 +47,12 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
       setState(() {});
     });
 
-    // Listeners para detectar scroll e mostrar/ocultar botão de voltar ao topo
-    _cartsScrollController.addListener(_onScroll);
-    _itemsScrollController.addListener(_onScroll);
-
     // Carrega os itens e carrinhos quando a tela é inicializada
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = context.read<SeparateItemsViewModel>();
       viewModel.loadSeparationItems(widget.separation);
       viewModel.loadSeparationCarts(widget.separation);
     });
-  }
-
-  void _onScroll() {
-    final ScrollController currentController = _getCurrentScrollController();
-    if (currentController.hasClients) {
-      final showButton = currentController.offset > 200;
-      if (showButton != _showScrollToTop) {
-        setState(() {
-          _showScrollToTop = showButton;
-        });
-      }
-    }
-  }
-
-  ScrollController _getCurrentScrollController() {
-    return _tabController.index == 0 ? _cartsScrollController : _itemsScrollController;
-  }
-
-  void _scrollToTop() {
-    final ScrollController currentController = _getCurrentScrollController();
-    if (currentController.hasClients) {
-      currentController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
-    }
   }
 
   @override
@@ -104,29 +76,41 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
           tooltip: 'Voltar',
         ),
         actions: [
-          // Botão de filtro baseado na aba ativa (não mostrar na aba Informações)
+          // Botões de ação baseados na aba ativa (não mostrar na aba Informações)
           if (_tabController.index != 2) // Não mostrar filtro na aba Informações
             Consumer<SeparateItemsViewModel>(
               builder: (context, viewModel, child) {
-                return IconButton(
-                  onPressed: () => _showFilterModal(context),
-                  icon: Stack(
-                    children: [
-                      const Icon(Icons.filter_alt),
-                      if ((_tabController.index == 1 && viewModel.hasActiveItemsFilters) ||
-                          (_tabController.index == 0 && viewModel.hasActiveCartsFilters))
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                          ),
-                        ),
-                    ],
-                  ),
-                  tooltip: _tabController.index == 1 ? 'Filtros de Produtos' : 'Filtros de Carrinhos',
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Botão de filtro
+                    IconButton(
+                      onPressed: () => _showFilterModal(context),
+                      icon: Stack(
+                        children: [
+                          const Icon(Icons.filter_alt),
+                          if ((_tabController.index == 1 && viewModel.hasActiveItemsFilters) ||
+                              (_tabController.index == 0 && viewModel.hasActiveCartsFilters))
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                              ),
+                            ),
+                        ],
+                      ),
+                      tooltip: _tabController.index == 1 ? 'Filtros de Produtos' : 'Filtros de Carrinhos',
+                    ),
+                    // Botão de atualizar
+                    IconButton(
+                      onPressed: () => _refreshData(viewModel),
+                      icon: const Icon(Icons.refresh),
+                      tooltip: 'Atualizar dados',
+                    ),
+                  ],
                 );
               },
             ),
@@ -152,35 +136,6 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
         builder: (context, viewModel, child) {
           // Na aba de informações (índice 2), não mostrar nenhum FAB
           if (_tabController.index == 2) return const SizedBox.shrink();
-
-          // Se estiver visível o botão de voltar ao topo, mostrá-lo
-          if (_showScrollToTop) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FloatingActionButton(
-                  heroTag: 'scrollToTop',
-                  onPressed: _scrollToTop,
-                  tooltip: 'Voltar ao topo',
-                  child: const Icon(Icons.arrow_upward),
-                ),
-                // Se estiver na aba de carrinhos, mostrar também o botão de adicionar
-                if (_tabController.index == 0) ...[
-                  const SizedBox(height: 16),
-                  FloatingActionButton.extended(
-                    heroTag: 'addCart',
-                    onPressed: _canAddCart(viewModel.separation) ? () => _onAddCart(context) : null,
-                    icon: const Icon(Icons.add_shopping_cart),
-                    label: const Text('Incluir Carrinho'),
-                    tooltip: _canAddCart(viewModel.separation)
-                        ? 'Incluir novo carrinho na separação'
-                        : 'Não é possível adicionar carrinho na situação atual',
-                    backgroundColor: _canAddCart(viewModel.separation) ? null : Colors.grey,
-                  ),
-                ],
-              ],
-            );
-          }
 
           // Mostrar FAB de adicionar carrinho apenas na aba de carrinhos
           if (_tabController.index == 0) {
@@ -285,6 +240,10 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
         },
       ),
     );
+  }
+
+  void _refreshData(SeparateItemsViewModel viewModel) {
+    viewModel.refresh();
   }
 
   void _showFilterModal(BuildContext context) {

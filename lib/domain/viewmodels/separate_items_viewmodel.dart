@@ -177,8 +177,12 @@ class SeparateItemsViewModel extends ChangeNotifier {
       final carts = await _cartRepository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
+
+      // Aplica filtro de situação localmente se houver filtros salvos
+      final filteredCarts = _applySituacaoFilterToCarts(carts);
+
       // Ordena os carrinhos por item em ordem decrescente (mais recentes primeiro)
-      _carts = carts..sort((a, b) => b.item.compareTo(a.item));
+      _carts = filteredCarts..sort((a, b) => b.item.compareTo(a.item));
       _cartsLoaded = true;
       notifyListeners();
     } catch (e) {
@@ -491,14 +495,18 @@ class SeparateItemsViewModel extends ChangeNotifier {
         ..equals('Origem', ExpeditionOrigem.separacaoEstoque.code)
         ..orderByDesc('Item');
 
-      // Aplica filtros de carrinhos
-      _applyCartsFiltersToQuery(queryBuilder);
+      // Aplica filtros de carrinhos (exceto situação que será filtrada localmente)
+      _applyCartsFiltersToQueryWithoutSituacao(queryBuilder);
 
       final carts = await _cartRepository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
+
+      // Aplica filtro de situação localmente
+      final filteredCarts = _applySituacaoFilterToCarts(carts);
+
       // Ordena os carrinhos por item em ordem decrescente (mais recentes primeiro)
-      _carts = carts..sort((a, b) => b.item.compareTo(a.item));
+      _carts = filteredCarts..sort((a, b) => b.item.compareTo(a.item));
     } catch (e) {
       // Erro ao carregar carrinhos filtrados
     }
@@ -536,8 +544,8 @@ class SeparateItemsViewModel extends ChangeNotifier {
     }).toList();
   }
 
-  /// Aplica filtros de carrinhos à query
-  void _applyCartsFiltersToQuery(QueryBuilder queryBuilder) {
+  /// Aplica filtros de carrinhos à query (sem situação)
+  void _applyCartsFiltersToQueryWithoutSituacao(QueryBuilder queryBuilder) {
     if (_cartsFilters.codCarrinho != null) {
       queryBuilder.like('CodCarrinho', _cartsFilters.codCarrinho!);
     }
@@ -546,9 +554,6 @@ class SeparateItemsViewModel extends ChangeNotifier {
     }
     if (_cartsFilters.codigoBarrasCarrinho != null) {
       queryBuilder.like('CodigoBarrasCarrinho', _cartsFilters.codigoBarrasCarrinho!);
-    }
-    if (_cartsFilters.situacao != null) {
-      queryBuilder.equals('Situacao', _cartsFilters.situacao!);
     }
     if (_cartsFilters.nomeUsuarioInicio != null) {
       queryBuilder.like('NomeUsuarioInicio', _cartsFilters.nomeUsuarioInicio!);
@@ -560,6 +565,28 @@ class SeparateItemsViewModel extends ChangeNotifier {
       queryBuilder.lessThan('DataInicio', _cartsFilters.dataInicioFinal!.toIso8601String());
     }
     queryBuilder.equals('CarrinhoAgrupador', _cartsFilters.carrinhoAgrupador);
+  }
+
+  /// Aplica filtros de carrinhos à query (método original mantido para compatibilidade)
+  void _applyCartsFiltersToQuery(QueryBuilder queryBuilder) {
+    _applyCartsFiltersToQueryWithoutSituacao(queryBuilder);
+    if (_cartsFilters.situacoes != null && _cartsFilters.situacoes!.isNotEmpty) {
+      queryBuilder.inList('Situacao', _cartsFilters.situacoes!);
+    }
+  }
+
+  /// Aplica filtro de situação localmente aos carrinhos
+  List<ExpeditionCartRouteInternshipConsultationModel> _applySituacaoFilterToCarts(
+    List<ExpeditionCartRouteInternshipConsultationModel> carts,
+  ) {
+    if (_cartsFilters.situacoes == null || _cartsFilters.situacoes!.isEmpty) {
+      return carts;
+    }
+
+    return carts.where((cart) {
+      final cartSituacao = cart.situacao.code;
+      return _cartsFilters.situacoes!.contains(cartSituacao);
+    }).toList();
   }
 
   /// Salva filtros de itens
