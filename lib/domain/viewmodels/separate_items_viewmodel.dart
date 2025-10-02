@@ -221,7 +221,10 @@ class SeparateItemsViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       if (_disposed) return;
-      // Erro ao carregar setores de estoque
+      // Log do erro para debug, mas não quebra a aplicação
+      if (kDebugMode) {
+        print('Erro ao carregar setores de estoque: $e');
+      }
       _sectorsLoaded = true;
       notifyListeners();
     }
@@ -417,8 +420,10 @@ class SeparateItemsViewModel extends ChangeNotifier {
         _applyItemsFiltersToQuery(queryBuilder);
       }
     } catch (e) {
-      // Erro ao aplicar filtros salvos de itens
-      // Não quebra a aplicação se houver erro ao carregar filtros
+      // Log do erro para debug, mas não quebra a aplicação
+      if (kDebugMode) {
+        print('Erro ao aplicar filtros salvos de itens: $e');
+      }
     }
   }
 
@@ -429,11 +434,14 @@ class SeparateItemsViewModel extends ChangeNotifier {
       final savedCartsFilters = await _filtersStorage.loadCartsFilters();
       if (savedCartsFilters.isNotEmpty) {
         _cartsFilters = savedCartsFilters;
-        _applyCartsFiltersToQuery(queryBuilder);
+        // Aplica apenas filtros que devem ir para o servidor (sem situação)
+        _applyCartsFiltersToQueryWithoutSituacao(queryBuilder);
       }
     } catch (e) {
-      // Erro ao aplicar filtros salvos de carrinhos
-      // Não quebra a aplicação se houver erro ao carregar filtros
+      // Log do erro para debug, mas não quebra a aplicação
+      if (kDebugMode) {
+        print('Erro ao aplicar filtros salvos de carrinhos: $e');
+      }
     }
   }
 
@@ -481,7 +489,11 @@ class SeparateItemsViewModel extends ChangeNotifier {
       // Aplica filtro de situação localmente
       _items = _applySituacaoFilter(items);
     } catch (e) {
-      // Erro ao carregar itens filtrados
+      if (_disposed) return;
+      // Log do erro para debug, mas não quebra a aplicação
+      if (kDebugMode) {
+        print('Erro ao carregar itens filtrados: $e');
+      }
     }
   }
 
@@ -508,7 +520,11 @@ class SeparateItemsViewModel extends ChangeNotifier {
       // Ordena os carrinhos por item em ordem decrescente (mais recentes primeiro)
       _carts = filteredCarts..sort((a, b) => b.item.compareTo(a.item));
     } catch (e) {
-      // Erro ao carregar carrinhos filtrados
+      if (_disposed) return;
+      // Log do erro para debug, mas não quebra a aplicação
+      if (kDebugMode) {
+        print('Erro ao carregar carrinhos filtrados: $e');
+      }
     }
   }
 
@@ -564,15 +580,7 @@ class SeparateItemsViewModel extends ChangeNotifier {
     if (_cartsFilters.dataInicioFinal != null) {
       queryBuilder.lessThan('DataInicio', _cartsFilters.dataInicioFinal!.toIso8601String());
     }
-    queryBuilder.equals('CarrinhoAgrupador', _cartsFilters.carrinhoAgrupador);
-  }
-
-  /// Aplica filtros de carrinhos à query (método original mantido para compatibilidade)
-  void _applyCartsFiltersToQuery(QueryBuilder queryBuilder) {
-    _applyCartsFiltersToQueryWithoutSituacao(queryBuilder);
-    if (_cartsFilters.situacoes != null && _cartsFilters.situacoes!.isNotEmpty) {
-      queryBuilder.inList('Situacao', _cartsFilters.situacoes!);
-    }
+    queryBuilder.equals('CarrinhoAgrupador', _cartsFilters.carrinhoAgrupador.code);
   }
 
   /// Aplica filtro de situação localmente aos carrinhos
@@ -594,7 +602,10 @@ class SeparateItemsViewModel extends ChangeNotifier {
     try {
       await _filtersStorage.saveSeparateItemsFilters(_itemsFilters);
     } catch (e) {
-      // Erro ao salvar filtros de itens
+      // Log do erro para debug, mas não quebra a aplicação
+      if (kDebugMode) {
+        print('Erro ao salvar filtros de itens: $e');
+      }
     }
   }
 
@@ -603,7 +614,10 @@ class SeparateItemsViewModel extends ChangeNotifier {
     try {
       await _filtersStorage.saveCartsFilters(_cartsFilters);
     } catch (e) {
-      // Erro ao salvar filtros de carrinhos
+      // Log do erro para debug, mas não quebra a aplicação
+      if (kDebugMode) {
+        print('Erro ao salvar filtros de carrinhos: $e');
+      }
     }
   }
 
@@ -612,7 +626,10 @@ class SeparateItemsViewModel extends ChangeNotifier {
     try {
       await _filtersStorage.clearSeparateItemsFilters();
     } catch (e) {
-      // Erro ao limpar filtros de itens
+      // Log do erro para debug, mas não quebra a aplicação
+      if (kDebugMode) {
+        print('Erro ao limpar filtros de itens: $e');
+      }
     }
   }
 
@@ -621,7 +638,10 @@ class SeparateItemsViewModel extends ChangeNotifier {
     try {
       await _filtersStorage.clearCartsFilters();
     } catch (e) {
-      // Erro ao limpar filtros de carrinhos
+      // Log do erro para debug, mas não quebra a aplicação
+      if (kDebugMode) {
+        print('Erro ao limpar filtros de carrinhos: $e');
+      }
     }
   }
 

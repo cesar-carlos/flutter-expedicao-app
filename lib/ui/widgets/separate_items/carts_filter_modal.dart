@@ -147,64 +147,21 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
                   const SizedBox(height: 16),
 
                   // Situação
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Theme.of(context).colorScheme.outline),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.info, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Situação',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        ..._getFilteredSituations().map(
-                          (situacao) => CheckboxListTile(
-                            title: Text(situacao.description),
-                            value: _selectedSituacoes.contains(situacao.code),
-                            onChanged: (bool? value) {
-                              setState(() {
-                                if (value == true) {
-                                  _selectedSituacoes.add(situacao.code);
-                                } else {
-                                  _selectedSituacoes.remove(situacao.code);
-                                }
-                              });
-                            },
-                            contentPadding: EdgeInsets.zero,
-                            dense: true,
-                          ),
-                        ),
-                        if (_selectedSituacoes.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 4,
-                            children: _selectedSituacoes.map((code) {
-                              final situacao = ExpeditionSituation.fromCode(code);
-                              return Chip(
-                                label: Text(situacao?.description ?? code),
-                                onDeleted: () {
-                                  setState(() {
-                                    _selectedSituacoes.remove(code);
-                                  });
-                                },
-                                deleteIcon: const Icon(Icons.close, size: 16),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ],
+                  InkWell(
+                    onTap: () => _showSituacoesDialog(context),
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Situação',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.info),
+                        suffixIcon: Icon(Icons.arrow_drop_down),
+                      ),
+                      child: Text(
+                        _selectedSituacoes.isEmpty
+                            ? 'Todas as situações'
+                            : '${_selectedSituacoes.length} selecionada(s)',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
                     ),
                   ),
 
@@ -385,6 +342,21 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
     widget.viewModel.applyCartsFilters(filters);
   }
 
+  /// Mostra diálogo para seleção múltipla de situações
+  Future<void> _showSituacoesDialog(BuildContext context) async {
+    final situacoes = _getFilteredSituations();
+    final result = await showDialog<List<String>>(
+      context: context,
+      builder: (context) => _MultiSelectSituacoesDialog(situacoes: situacoes, selectedSituacoes: _selectedSituacoes),
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedSituacoes = result;
+      });
+    }
+  }
+
   /// Retorna apenas as situações que devem aparecer no filtro
   List<ExpeditionSituation> _getFilteredSituations() {
     return [
@@ -402,5 +374,67 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
       ExpeditionSituation.finalizada,
       ExpeditionSituation.naoLocalizada,
     ];
+  }
+}
+
+/// Widget de diálogo para seleção múltipla de situações
+class _MultiSelectSituacoesDialog extends StatefulWidget {
+  final List<ExpeditionSituation> situacoes;
+  final List<String> selectedSituacoes;
+
+  const _MultiSelectSituacoesDialog({required this.situacoes, required this.selectedSituacoes});
+
+  @override
+  State<_MultiSelectSituacoesDialog> createState() => _MultiSelectSituacoesDialogState();
+}
+
+class _MultiSelectSituacoesDialogState extends State<_MultiSelectSituacoesDialog> {
+  late List<String> _tempSelected;
+
+  @override
+  void initState() {
+    super.initState();
+    _tempSelected = List<String>.from(widget.selectedSituacoes);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Selecionar Situações'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: ListView(
+          shrinkWrap: true,
+          children: widget.situacoes.map((situacao) {
+            final isSelected = _tempSelected.contains(situacao.code);
+            return CheckboxListTile(
+              title: Text(situacao.description),
+              value: isSelected,
+              onChanged: (bool? checked) {
+                setState(() {
+                  if (checked == true) {
+                    _tempSelected.add(situacao.code);
+                  } else {
+                    _tempSelected.remove(situacao.code);
+                  }
+                });
+              },
+            );
+          }).toList(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            setState(() {
+              _tempSelected.clear();
+            });
+          },
+          child: const Text('Limpar Todas'),
+        ),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
+        ElevatedButton(onPressed: () => Navigator.of(context).pop(_tempSelected), child: const Text('Aplicar')),
+      ],
+    );
   }
 }
