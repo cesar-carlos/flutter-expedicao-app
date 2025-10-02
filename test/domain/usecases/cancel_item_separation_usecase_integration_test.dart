@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exp/domain/models/expedition_situation_model.dart';
-import 'package:exp/domain/models/expedition_item_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_failure.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';

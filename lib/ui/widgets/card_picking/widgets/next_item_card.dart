@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/ui/widgets/card_picking/widgets/product_detail_item.dart';
 import 'package:exp/core/utils/picking_utils.dart';
 

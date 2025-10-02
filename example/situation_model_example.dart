@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/domain/models/situation/situation_model.dart';
 
 void main() {
   // Exemplo de uso do SituationModel
@@ -32,18 +32,13 @@ void main() {
   // 4. Uso da classe utilitária
   print('4. Uso da classe utilitária:');
   print('Todos os códigos: ${SituationModel.getAllCodes()}'); // [S, N]
-  print(
-    'Todas as descrições: ${SituationModel.getAllDescriptions()}',
-  ); // [Sim, Não]
+  print('Todas as descrições: ${SituationModel.getAllDescriptions()}'); // [Sim, Não]
   print('Mapa: ${SituationModel.situationMap}'); // {S: Sim, N: Não}
   print('');
 
   // 5. Conversão com fallback
   print('5. Conversão com fallback:');
-  final situacaoComFallback = Situation.fromCodeWithFallback(
-    'X',
-    fallback: Situation.inativo,
-  );
+  final situacaoComFallback = Situation.fromCodeWithFallback('X', fallback: Situation.inativo);
   print('String "X" com fallback -> ${situacaoComFallback.description}'); // Não
   print('');
 
@@ -56,10 +51,7 @@ void main() {
 
   // 7. Exemplo prático de uso em modelo
   print('7. Exemplo prático de uso em modelo:');
-  final exemploModelo = ExemploModelo(
-    nome: 'Produto Teste',
-    ativo: Situation.fromCodeWithFallback('S'),
-  );
+  final exemploModelo = ExemploModelo(nome: 'Produto Teste', ativo: Situation.fromCodeWithFallback('S'));
   print('Modelo: $exemploModelo');
   print('Está ativo? ${exemploModelo.ativo.description}'); // Sim
 }
@@ -72,10 +64,7 @@ class ExemploModelo {
   ExemploModelo({required this.nome, required this.ativo});
 
   factory ExemploModelo.fromJson(Map<String, dynamic> json) {
-    return ExemploModelo(
-      nome: json['Nome'] ?? '',
-      ativo: Situation.fromCodeWithFallback(json['Ativo'] ?? 'N'),
-    );
+    return ExemploModelo(nome: json['Nome'] ?? '', ativo: Situation.fromCodeWithFallback(json['Ativo'] ?? 'N'));
   }
 
   Map<String, dynamic> toJson() {

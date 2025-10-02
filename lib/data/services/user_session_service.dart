@@ -11,7 +11,7 @@ class UserSessionService {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // Salva o AppUser (que já inclui UserSystemData)
+      // Salva o AppUser (que já inclui UserSystemModel)
       await prefs.setString(_appUserKey, jsonEncode(appUser.toJson()));
 
       // Marca como logado
@@ -22,7 +22,7 @@ class UserSessionService {
     }
   }
 
-  /// Carrega o AppUser salvo (que inclui UserSystemData)
+  /// Carrega o AppUser salvo (que inclui UserSystemModel)
   Future<AppUser?> loadUserSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();

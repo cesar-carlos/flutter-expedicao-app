@@ -3,21 +3,20 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:exp/core/routing/app_router.dart';
+import 'package:exp/domain/models/situation/expedition_situation_model.dart';
+import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
-import 'package:exp/domain/models/expedition_situation_model.dart';
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/ui/widgets/separate_items/separate_item_card.dart';
+import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/ui/widgets/separate_items/separate_items_bottom_navigation.dart';
 import 'package:exp/ui/widgets/separate_items/separate_items_filter_modal.dart';
 import 'package:exp/ui/widgets/separate_items/separate_items_error_state.dart';
 import 'package:exp/ui/widgets/separate_items/separation_info_view.dart';
 import 'package:exp/ui/widgets/separate_items/carts_filter_modal.dart';
 import 'package:exp/ui/widgets/separate_items/carts_list_view.dart';
-import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 import 'package:exp/ui/widgets/common/connection_status_bar.dart';
+import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 import 'package:exp/ui/screens/card_picking_screen.dart';
 import 'package:exp/ui/screens/add_cart_screen.dart';
 

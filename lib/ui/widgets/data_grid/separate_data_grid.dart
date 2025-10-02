@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 import 'package:exp/domain/models/separate_model.dart';
-import 'package:exp/domain/models/expedition_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 import 'package:exp/core/utils/fields_helper.dart';
 
 /// DataGrid para exibir separações de expedição

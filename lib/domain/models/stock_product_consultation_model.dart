@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/domain/models/situation/situation_model.dart';
 import 'package:exp/core/results/index.dart';
 
 class StockProductConsultationModel {

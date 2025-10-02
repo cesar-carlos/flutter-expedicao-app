@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:exp/core/network/socket_config.dart';
-import 'package:exp/domain/models/expedition_item_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_failure.dart';
 import 'package:exp/data/repositories/separation_item_repository_impl.dart';

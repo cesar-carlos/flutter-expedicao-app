@@ -1,5 +1,5 @@
 import 'package:exp/domain/models/user_system_models.dart';
-import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/domain/models/situation/situation_model.dart';
 
 UserSystemModel createTestUserSystem() {
   return UserSystemModel(
@@ -15,9 +15,12 @@ UserSystemModel createTestUserSystem() {
     visualizaTodasSeparacoes: Situation.ativo,
     permiteConferirForaSequencia: Situation.ativo,
     visualizaTodasConferencias: Situation.ativo,
+    permiteArmazenarForaSequencia: Situation.ativo,
+    visualizaTodasArmazenagem: Situation.ativo,
     salvaCarrinhoOutroUsuario: Situation.inativo,
     editaCarrinhoOutroUsuario: Situation.inativo,
     excluiCarrinhoOutroUsuario: Situation.inativo,
+    expedicaoEntregaBalcaoPreVenda: Situation.inativo,
   );
 }
 
@@ -39,9 +42,12 @@ UserSystemModel createUpdatedTestUserSystem(UserSystemModel originalUser) {
     visualizaTodasSeparacoes: originalUser.visualizaTodasSeparacoes,
     permiteConferirForaSequencia: originalUser.permiteConferirForaSequencia,
     visualizaTodasConferencias: originalUser.visualizaTodasConferencias,
+    permiteArmazenarForaSequencia: originalUser.permiteArmazenarForaSequencia,
+    visualizaTodasArmazenagem: originalUser.visualizaTodasArmazenagem,
     salvaCarrinhoOutroUsuario: originalUser.salvaCarrinhoOutroUsuario,
     editaCarrinhoOutroUsuario: originalUser.editaCarrinhoOutroUsuario,
     excluiCarrinhoOutroUsuario: originalUser.excluiCarrinhoOutroUsuario,
+    expedicaoEntregaBalcaoPreVenda: originalUser.expedicaoEntregaBalcaoPreVenda,
   );
 }
 
@@ -59,8 +65,11 @@ UserSystemModel createInactiveTestUserSystem() {
     visualizaTodasSeparacoes: Situation.inativo,
     permiteConferirForaSequencia: Situation.inativo,
     visualizaTodasConferencias: Situation.inativo,
+    permiteArmazenarForaSequencia: Situation.inativo,
+    visualizaTodasArmazenagem: Situation.inativo,
     salvaCarrinhoOutroUsuario: Situation.inativo,
     editaCarrinhoOutroUsuario: Situation.inativo,
     excluiCarrinhoOutroUsuario: Situation.inativo,
+    expedicaoEntregaBalcaoPreVenda: Situation.inativo,
   );
 }

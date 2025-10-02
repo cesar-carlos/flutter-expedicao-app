@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'home_menu_card.dart';
+import 'package:exp/ui/widgets/home/home_menu_card.dart';
 
 /// Grid de menu principal para a tela inicial
 class HomeMenuGrid extends StatelessWidget {

@@ -7,8 +7,8 @@ import 'package:exp/domain/models/expedition_cart_route_internship_consultation_
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/models/expedition_item_situation_model.dart';
-import 'package:exp/domain/models/expedition_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_item_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 
 /// ViewModel para gerenciar a lista de produtos separados
 /// Os produtos são ordenados por ordem de inclusão decrescente (mais recente primeiro)

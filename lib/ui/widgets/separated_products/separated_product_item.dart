@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'package:exp/domain/models/separation_item_consultation_model.dart';
-import 'package:exp/domain/models/expedition_item_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:exp/domain/viewmodels/separated_products_viewmodel.dart';
 import 'package:exp/ui/widgets/common/custom_flat_button.dart';
 

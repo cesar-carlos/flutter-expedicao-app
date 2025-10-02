@@ -1,6 +1,6 @@
 import 'package:zard/zard.dart';
 import 'package:exp/core/constants/app_strings.dart';
-import 'package:exp/domain/models/expedition_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/entity_type_model.dart';
 

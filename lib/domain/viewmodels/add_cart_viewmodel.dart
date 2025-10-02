@@ -4,7 +4,7 @@ import 'package:exp/core/results/index.dart';
 import 'package:exp/domain/usecases/add_cart/add_cart_params.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:exp/domain/usecases/add_cart/add_cart_usecase.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';

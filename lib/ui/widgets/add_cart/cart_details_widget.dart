@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:exp/core/utils/app_helper.dart';
 
 class CartDetailsWidget extends StatelessWidget {

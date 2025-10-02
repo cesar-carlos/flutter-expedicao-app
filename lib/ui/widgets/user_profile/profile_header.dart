@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/domain/viewmodels/profile_viewmodel.dart';
-import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/domain/models/situation/situation_model.dart';
 import 'package:exp/ui/widgets/user_profile/editable_avatar.dart';
 import 'package:exp/ui/widgets/user_profile/widgets/index.dart';
 

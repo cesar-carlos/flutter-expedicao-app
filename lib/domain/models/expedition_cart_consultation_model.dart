@@ -1,7 +1,7 @@
 import 'package:exp/core/utils/app_helper.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/domain/models/situation/situation_model.dart';
 import 'package:exp/core/results/index.dart';
 
 class ExpeditionCartConsultationModel {

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:exp/di/locator.dart';
 import 'package:exp/core/errors/app_error.dart';
-import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/domain/models/situation/situation_model.dart';
 import 'package:exp/domain/models/separation_item_status.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';

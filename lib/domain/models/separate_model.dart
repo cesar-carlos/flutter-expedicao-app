@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/core/utils/date_helper.dart';
-import 'package:exp/domain/models/expedition_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/entity_type_model.dart';
 import 'package:exp/core/results/index.dart';

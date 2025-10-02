@@ -1,7 +1,7 @@
 import 'package:exp/domain/models/entity_type_model.dart';
-import 'package:exp/domain/models/expedition_situation_model.dart';
-import 'package:exp/domain/models/expedition_item_situation_model.dart';
-import 'package:exp/domain/models/expedition_cart_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_item_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:exp/core/validation/schemas/common_schemas.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 

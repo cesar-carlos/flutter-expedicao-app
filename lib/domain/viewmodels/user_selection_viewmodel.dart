@@ -6,7 +6,7 @@ import 'package:exp/domain/models/pagination/pagination.dart';
 import 'package:exp/domain/repositories/user_system_repository.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
 import 'package:exp/domain/models/user/user_models.dart';
-import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/domain/models/situation/situation_model.dart';
 import 'package:exp/ui/widgets/common/index.dart';
 
 enum UserSelectionState { initial, loading, loaded, selecting, selected }

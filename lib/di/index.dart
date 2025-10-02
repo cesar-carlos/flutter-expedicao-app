@@ -12,9 +12,9 @@ export '../domain/models/expedition_cart_route_internship_consultation_model.dar
 
 // Models - Expedition Enums
 export '../domain/models/expedition_origem_model.dart';
-export '../domain/models/expedition_item_situation_model.dart';
-export '../domain/models/expedition_situation_model.dart' hide ExpedicaoSituacaoModel;
-export '../domain/models/expedition_cart_situation_model.dart';
+export '../domain/models/situation/expedition_item_situation_model.dart';
+export '../domain/models/situation/expedition_situation_model.dart' hide ExpedicaoSituacaoModel;
+export '../domain/models/situation/expedition_cart_situation_model.dart';
 
 // Models - Other
 export '../domain/models/separate_model.dart';
@@ -22,7 +22,7 @@ export '../domain/models/separate_consultation_model.dart';
 export '../domain/models/separate_item_model.dart';
 export '../domain/models/separate_item_consultation_model.dart';
 export '../domain/models/stock_product_consultation_model.dart';
-export '../domain/models/situation_model.dart';
+export '../domain/models/situation/situation_model.dart';
 
 // Repositories - Interfaces
 export '../domain/repositories/basic_repository.dart';

@@ -1,16 +1,16 @@
-import 'package:exp/core/results/index.dart';
-import 'package:exp/core/errors/app_error.dart';
 import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/domain/models/separate_item_model.dart';
 import 'package:exp/domain/models/separation_item_model.dart';
-import 'package:exp/domain/models/expedition_item_situation_model.dart';
-import 'package:exp/domain/models/user_system_models.dart';
+import 'package:exp/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_params.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_success.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_failure.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/services/user_session_service.dart';
+import 'package:exp/domain/models/user_system_models.dart';
+import 'package:exp/core/errors/app_error.dart';
+import 'package:exp/core/results/index.dart';
 
 /// Use case para adicionar itens na separação de estoque
 ///
@@ -53,12 +53,10 @@ class AddItemSeparationUseCase {
 
       // 3. Buscar item de separação disponível
       final separateItem = await _findSeparateItem(params);
-      if (separateItem == null) {
-        return failure(AddItemSeparationFailure.separateItemNotFound(params.codProduto));
-      }
+      if (separateItem == null) return failure(AddItemSeparationFailure.separateItemNotFound(params.codProduto));
 
       // 4. Validar quantidade disponível
-      final availableQuantity = separateItem.quantidade - separateItem.quantidadeSeparacao;
+      final availableQuantity = (separateItem.quantidade - separateItem.quantidadeSeparacao).toDouble();
       if (availableQuantity < params.quantidade) {
         return failure(
           AddItemSeparationFailure.insufficientQuantity(
@@ -104,7 +102,7 @@ class AddItemSeparationUseCase {
 
       // UPDATE: Atualizar quantidade de separação no separate_item
       final updatedSeparateItem = separateItem.copyWith(
-        quantidadeSeparacao: separateItem.quantidadeSeparacao + params.quantidade,
+        quantidadeSeparacao: (separateItem.quantidadeSeparacao + params.quantidade).toDouble(),
       );
 
       final updatedSeparateItems = await _separateItemRepository.update(updatedSeparateItem);

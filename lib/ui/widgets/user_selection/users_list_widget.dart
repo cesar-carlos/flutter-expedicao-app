@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:exp/domain/viewmodels/user_selection_viewmodel.dart';
 import 'package:exp/domain/models/user_system_models.dart';
-import 'package:exp/domain/models/situation_model.dart';
+import 'package:exp/domain/models/situation/situation_model.dart';
 import 'package:exp/core/theme/app_colors.dart';
 
 class UsersListWidget extends StatelessWidget {

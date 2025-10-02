@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:exp/di/locator.dart';
 import 'package:exp/ui/widgets/common/custom_flat_button.dart';
 import 'package:exp/ui/screens/picking_products_list_screen.dart';
-import 'package:exp/domain/models/expedition_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_params.dart';

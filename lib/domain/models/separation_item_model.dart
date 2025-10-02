@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/core/utils/app_helper.dart';
-import 'package:exp/domain/models/expedition_item_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:exp/core/results/index.dart';
 
 class SeparationItemModel {
