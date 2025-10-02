@@ -103,6 +103,7 @@ flutter:
     # Sons
     - assets/som/
     - assets/som/Alert.wav
+    - assets/som/AlertFalha.wav
     - assets/som/BarcodeScan.wav
     - assets/som/Disconected.wav
     - assets/som/Error.wav

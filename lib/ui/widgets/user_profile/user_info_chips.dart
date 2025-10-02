@@ -126,16 +126,22 @@ class UserInfoChips extends StatelessWidget {
           // Grid de informações corporativas
           Column(
             children: [
-              if (systemData.codEmpresa != null) ...[
+              if (systemData.codEmpresa != null || systemData.nomeEmpresa != null) ...[
                 Row(
                   children: [
-                    Expanded(
-                      child: DetailedInfoCard(
-                        label: 'Código da Empresa',
-                        value: '${systemData.codEmpresa}',
-                        icon: Icons.corporate_fare,
+                    if (systemData.codEmpresa != null)
+                      Expanded(
+                        child: DetailedInfoCard(label: 'Código', value: '${systemData.codEmpresa}', icon: Icons.tag),
                       ),
-                    ),
+                    if (systemData.codEmpresa != null && systemData.nomeEmpresa != null) const SizedBox(width: 12),
+                    if (systemData.nomeEmpresa != null)
+                      Expanded(
+                        child: DetailedInfoCard(
+                          label: 'Nome da Empresa',
+                          value: systemData.nomeEmpresa!,
+                          icon: Icons.corporate_fare,
+                        ),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -146,6 +152,33 @@ class UserInfoChips extends StatelessWidget {
                   systemData.nomeSetorConferencia != null ||
                   systemData.nomeSetorArmazenagem != null) ...[
                 _buildSectorInfo(context, systemData),
+                const SizedBox(height: 12),
+              ],
+
+              // Vendedor e Local de Armazenagem
+              if (systemData.nomeVendedor != null || systemData.nomeLocalArmazenagem != null) ...[
+                Row(
+                  children: [
+                    if (systemData.nomeVendedor != null)
+                      Expanded(
+                        child: DetailedInfoCard(
+                          label: 'Vendedor',
+                          value: systemData.nomeVendedor!,
+                          icon: Icons.person_pin,
+                        ),
+                      ),
+                    if (systemData.nomeVendedor != null && systemData.nomeLocalArmazenagem != null)
+                      const SizedBox(width: 12),
+                    if (systemData.nomeLocalArmazenagem != null)
+                      Expanded(
+                        child: DetailedInfoCard(
+                          label: 'Local Armazenagem',
+                          value: systemData.nomeLocalArmazenagem!,
+                          icon: Icons.place,
+                        ),
+                      ),
+                  ],
+                ),
                 const SizedBox(height: 12),
               ],
 
@@ -194,15 +227,24 @@ class UserInfoChips extends StatelessWidget {
     final sectors = <Map<String, dynamic>>[];
 
     if (systemData.nomeSetorEstoque != null) {
-      sectors.add({'name': systemData.nomeSetorEstoque!, 'icon': Icons.inventory_2, 'type': 'Estoque'});
+      final value = systemData.codSetorEstoque != null
+          ? '${systemData.nomeSetorEstoque} (${systemData.codSetorEstoque})'
+          : systemData.nomeSetorEstoque!;
+      sectors.add({'name': value, 'icon': Icons.inventory_2, 'type': 'Estoque'});
     }
 
     if (systemData.nomeSetorConferencia != null) {
-      sectors.add({'name': systemData.nomeSetorConferencia!, 'icon': Icons.checklist, 'type': 'Conferência'});
+      final value = systemData.codSetorConferencia != null
+          ? '${systemData.nomeSetorConferencia} (${systemData.codSetorConferencia})'
+          : systemData.nomeSetorConferencia!;
+      sectors.add({'name': value, 'icon': Icons.checklist, 'type': 'Conferência'});
     }
 
     if (systemData.nomeSetorArmazenagem != null) {
-      sectors.add({'name': systemData.nomeSetorArmazenagem!, 'icon': Icons.warehouse, 'type': 'Armazenagem'});
+      final value = systemData.codSetorArmazenagem != null
+          ? '${systemData.nomeSetorArmazenagem} (${systemData.codSetorArmazenagem})'
+          : systemData.nomeSetorArmazenagem!;
+      sectors.add({'name': value, 'icon': Icons.warehouse, 'type': 'Armazenagem'});
     }
 
     return Column(

@@ -55,6 +55,19 @@ class CardPickingViewModel extends ChangeNotifier {
   List<SeparateItemConsultationModel> _items = [];
   List<SeparateItemConsultationModel> get items => List.unmodifiable(_items);
   bool get hasItems => _items.isNotEmpty;
+  
+  /// Verifica se há itens disponíveis para o setor do usuário
+  bool get hasItemsForUserSector {
+    if (_items.isEmpty) return false;
+    
+    final userSectorCode = _userModel?.codSetorEstoque;
+    
+    // Se usuário não tem setor, todos os itens estão disponíveis
+    if (userSectorCode == null) return true;
+    
+    // Verificar se há itens sem setor ou do setor do usuário
+    return _items.any((item) => item.codSetorEstoque == null || item.codSetorEstoque == userSectorCode);
+  }
 
   // Estado consolidado do picking
   PickingState _pickingState = const PickingState({});
@@ -347,9 +360,34 @@ class CardPickingViewModel extends ChangeNotifier {
     await initializeCart(_cart!);
   }
 
-  /// Ordena itens por endereço usando ordenação natural
+  /// Ordena itens por setor de estoque e depois por endereço usando ordenação natural
+  ///
+  /// REGRA DE NEGÓCIO:
+  /// 1. Produtos SEM setor (codSetorEstoque == null) aparecem PRIMEIRO para todos os usuários
+  /// 2. Depois, produtos DO setor do usuário logado (se o usuário tiver setor)
+  /// 3. Dentro de cada grupo (sem setor / com setor), ordenar por endereço (ordenação natural)
   List<SeparateItemConsultationModel> _sortItemsByAddress(List<SeparateItemConsultationModel> items) {
+    final userSectorCode = _userModel?.codSetorEstoque;
+
     return List.from(items)..sort((a, b) {
+      final sectorA = a.codSetorEstoque;
+      final sectorB = b.codSetorEstoque;
+
+      // Priorizar produtos sem setor definido (aparecem primeiro)
+      if (sectorA == null && sectorB != null) return -1;
+      if (sectorA != null && sectorB == null) return 1;
+
+      // Se usuário tem setor definido, agrupar produtos do mesmo setor
+      if (userSectorCode != null && sectorA != null && sectorB != null) {
+        final isASameUserSector = sectorA == userSectorCode;
+        final isBSameUserSector = sectorB == userSectorCode;
+
+        // Priorizar produtos do setor do usuário
+        if (isASameUserSector && !isBSameUserSector) return -1;
+        if (!isASameUserSector && isBSameUserSector) return 1;
+      }
+
+      // Dentro do mesmo grupo (sem setor / mesmo setor), ordenar por endereço
       final endA = a.enderecoDescricao?.toLowerCase() ?? '';
       final endB = b.enderecoDescricao?.toLowerCase() ?? '';
 

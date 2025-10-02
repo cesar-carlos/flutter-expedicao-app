@@ -19,6 +19,8 @@ import 'package:exp/ui/widgets/common/connection_status_bar.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 import 'package:exp/ui/screens/card_picking_screen.dart';
 import 'package:exp/ui/screens/add_cart_screen.dart';
+import 'package:exp/data/services/user_session_service.dart';
+import 'package:exp/di/locator.dart';
 
 class SeparateItemsScreen extends StatefulWidget {
   final SeparateConsultationModel separation;
@@ -32,6 +34,9 @@ class SeparateItemsScreen extends StatefulWidget {
 class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _cartsScrollController = ScrollController();
+  final ScrollController _itemsScrollController = ScrollController();
+  bool _showScrollToTop = false;
 
   @override
   void initState() {
@@ -43,6 +48,10 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
       setState(() {});
     });
 
+    // Listeners para detectar scroll e mostrar/ocultar botão de voltar ao topo
+    _cartsScrollController.addListener(_onScroll);
+    _itemsScrollController.addListener(_onScroll);
+
     // Carrega os itens e carrinhos quando a tela é inicializada
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = context.read<SeparateItemsViewModel>();
@@ -51,10 +60,35 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
     });
   }
 
+  void _onScroll() {
+    final ScrollController currentController = _getCurrentScrollController();
+    if (currentController.hasClients) {
+      final showButton = currentController.offset > 200;
+      if (showButton != _showScrollToTop) {
+        setState(() {
+          _showScrollToTop = showButton;
+        });
+      }
+    }
+  }
+
+  ScrollController _getCurrentScrollController() {
+    return _tabController.index == 0 ? _cartsScrollController : _itemsScrollController;
+  }
+
+  void _scrollToTop() {
+    final ScrollController currentController = _getCurrentScrollController();
+    if (currentController.hasClients) {
+      currentController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+    }
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
+    _cartsScrollController.dispose();
+    _itemsScrollController.dispose();
     super.dispose();
   }
 
@@ -116,20 +150,54 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
       bottomNavigationBar: SeparateItemsBottomNavigation(tabController: _tabController),
       floatingActionButton: Consumer<SeparateItemsViewModel>(
         builder: (context, viewModel, child) {
-          // Mostrar FAB apenas na aba de carrinhos
-          if (_tabController.index != 0) return const SizedBox.shrink();
+          // Na aba de informações (índice 2), não mostrar nenhum FAB
+          if (_tabController.index == 2) return const SizedBox.shrink();
 
-          final canAddCart = _canAddCart(viewModel.separation);
+          // Se estiver visível o botão de voltar ao topo, mostrá-lo
+          if (_showScrollToTop) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FloatingActionButton(
+                  heroTag: 'scrollToTop',
+                  onPressed: _scrollToTop,
+                  tooltip: 'Voltar ao topo',
+                  child: const Icon(Icons.arrow_upward),
+                ),
+                // Se estiver na aba de carrinhos, mostrar também o botão de adicionar
+                if (_tabController.index == 0) ...[
+                  const SizedBox(height: 16),
+                  FloatingActionButton.extended(
+                    heroTag: 'addCart',
+                    onPressed: _canAddCart(viewModel.separation) ? () => _onAddCart(context) : null,
+                    icon: const Icon(Icons.add_shopping_cart),
+                    label: const Text('Incluir Carrinho'),
+                    tooltip: _canAddCart(viewModel.separation)
+                        ? 'Incluir novo carrinho na separação'
+                        : 'Não é possível adicionar carrinho na situação atual',
+                    backgroundColor: _canAddCart(viewModel.separation) ? null : Colors.grey,
+                  ),
+                ],
+              ],
+            );
+          }
 
-          return FloatingActionButton.extended(
-            onPressed: canAddCart ? () => _onAddCart(context) : null,
-            icon: const Icon(Icons.add_shopping_cart),
-            label: const Text('Incluir Carrinho'),
-            tooltip: canAddCart
-                ? 'Incluir novo carrinho na separação'
-                : 'Não é possível adicionar carrinho na situação atual',
-            backgroundColor: canAddCart ? null : Colors.grey,
-          );
+          // Mostrar FAB de adicionar carrinho apenas na aba de carrinhos
+          if (_tabController.index == 0) {
+            final canAddCart = _canAddCart(viewModel.separation);
+            return FloatingActionButton.extended(
+              heroTag: 'addCart',
+              onPressed: canAddCart ? () => _onAddCart(context) : null,
+              icon: const Icon(Icons.add_shopping_cart),
+              label: const Text('Incluir Carrinho'),
+              tooltip: canAddCart
+                  ? 'Incluir novo carrinho na separação'
+                  : 'Não é possível adicionar carrinho na situação atual',
+              backgroundColor: canAddCart ? null : Colors.grey,
+            );
+          }
+
+          return const SizedBox.shrink();
         },
       ),
     );
@@ -152,7 +220,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
     return TabBarView(
       controller: _tabController,
       children: [
-        CartsListView(viewModel: viewModel),
+        CartsListView(viewModel: viewModel, scrollController: _cartsScrollController),
         _buildWaitingItemsView(context, viewModel),
         SeparationInfoView(separation: widget.separation, viewModel: viewModel),
       ],
@@ -208,6 +276,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
         await viewModel.refresh();
       },
       child: ListView.builder(
+        controller: _itemsScrollController,
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Aumenta padding inferior para 100px
         itemCount: viewModel.items.length,
         itemBuilder: (context, index) {
@@ -306,6 +375,11 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
   /// Abre a separação do carrinho mais recente (recém-adicionado)
   Future<void> _openSeparationForNewestCart(BuildContext context, SeparateItemsViewModel viewModel) async {
     try {
+      // Obter o userModel da sessão
+      final userSessionService = locator<UserSessionService>();
+      final appUser = await userSessionService.loadUserSession();
+      final userModel = appUser?.userSystemModel;
+
       // Buscar o carrinho mais recente que pode ser separado
       final newestCart =
           viewModel.carts
@@ -329,7 +403,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
               create: (_) => CardPickingViewModel(),
               child: CardPickingScreen(
                 cart: cart,
-                userModel: null, // TODO: Passar modelo do usuário quando disponível
+                userModel: userModel, // ✅ Agora passa o userModel correto
               ),
             ),
           ),

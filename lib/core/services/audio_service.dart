@@ -8,6 +8,7 @@ enum SoundType {
   error('som/Error.wav'),
   fail('som/Fail.wav'),
   alert('som/Alert.wav'),
+  alertComplete('som/AlertFalha.wav'), // Som para separação completa
   disconnected('som/Disconected.wav');
 
   const SoundType(this.path);
@@ -68,6 +69,11 @@ class AudioService {
   /// Reproduz som de alerta
   Future<void> playAlert() async {
     await playSound(SoundType.alert);
+  }
+
+  /// Reproduz som de alerta de separação completa
+  Future<void> playAlertComplete() async {
+    await playSound(SoundType.alertComplete);
   }
 
   /// Reproduz som de desconexão

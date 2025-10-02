@@ -41,8 +41,10 @@ class QueryBuilder {
 
   /// Adds a parameter with in operator
   QueryBuilder inList<P>(String key, List<P> values) {
-    final valueString = values.map((v) => _formatValue(v)).join(',');
-    return addParam(key, valueString, operator: 'IN');
+    if (values.isEmpty) return this;
+    final valueString = '(${values.map((v) => _formatValue(v)).join(',')})';
+    _params.add(QueryParam.createWithOperator(key, valueString, 'IN'));
+    return this;
   }
 
   /// Adds pagination to the query

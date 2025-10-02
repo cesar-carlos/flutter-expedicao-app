@@ -28,6 +28,10 @@ class QueryParam<P> {
 
   /// Formats the value for query string
   String _formatValue(P value) {
+    // Se o valor já está formatado (contém parênteses para IN), retorna direto
+    if (value is String && value.startsWith('(') && value.endsWith(')')) {
+      return value;
+    }
     if (value is String) {
       return "'$value'";
     } else if (value is DateTime) {
@@ -39,6 +43,10 @@ class QueryParam<P> {
 
   /// Formats the value for SQL
   String _formatSqlValue(P value) {
+    // Se o valor já está formatado (contém parênteses para IN), retorna direto
+    if (value is String && value.startsWith('(') && value.endsWith(')')) {
+      return value;
+    }
     if (value is String) {
       return "'$value'";
     } else if (value is DateTime) {

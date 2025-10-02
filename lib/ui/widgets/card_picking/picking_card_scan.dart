@@ -165,9 +165,17 @@ class _PickingCardScanState extends State<PickingCardScan> {
       barcode,
       widget.viewModel.items,
       widget.viewModel.isItemCompleted,
+      userSectorCode: widget.viewModel.userModel?.codSetorEstoque,
     );
 
     if (validationResult.isEmpty) {
+      return;
+    }
+
+    if (validationResult.noItemsForSector) {
+      // Reproduzir som de alerta para não haver mais itens do setor
+      _audioService.playAlert();
+      _showNoItemsForSectorDialog(validationResult.userSectorCode!);
       return;
     }
 
@@ -175,6 +183,13 @@ class _PickingCardScanState extends State<PickingCardScan> {
       // Reproduzir som de alerta para todos os itens completos
       _audioService.playAlert();
       _showAllItemsCompletedDialog();
+      return;
+    }
+
+    if (validationResult.isWrongSector) {
+      // Reproduzir som de erro para produto de outro setor
+      _audioService.playError();
+      _showWrongSectorDialog(barcode, validationResult.scannedItem!, validationResult.userSectorCode!);
       return;
     }
 
@@ -205,6 +220,9 @@ class _PickingCardScanState extends State<PickingCardScan> {
             _quantityController.text = '1';
           }
         }
+
+        // 🆕 VERIFICAR: Acabaram os itens do setor após adicionar este item?
+        await _checkIfSectorItemsCompleted();
       } else {
         // Reproduzir som de erro
         _audioService.playError();
@@ -218,6 +236,24 @@ class _PickingCardScanState extends State<PickingCardScan> {
 
       // Mostrar erro inesperado
       _showErrorDialog(item, 'Erro inesperado: ${e.toString()}', barcode);
+    }
+  }
+
+  /// Verifica se todos os itens do setor do usuário foram separados
+  /// Se sim, oferece opção de salvar o carrinho imediatamente
+  Future<void> _checkIfSectorItemsCompleted() async {
+    final userSectorCode = widget.viewModel.userModel?.codSetorEstoque;
+
+    // Se usuário não tem setor definido, não fazer nada
+    if (userSectorCode == null) return;
+
+    // Verificar se ainda há itens do setor para separar
+    if (!widget.viewModel.hasItemsForUserSector) {
+      // Reproduzir som de separação completa
+      await _audioService.playAlertComplete();
+
+      // Mostrar diálogo oferecendo salvar o carrinho
+      _showSaveCartAfterSectorCompletedDialog(userSectorCode);
     }
   }
 
@@ -260,6 +296,44 @@ class _PickingCardScanState extends State<PickingCardScan> {
     });
   }
 
+  void _showWrongSectorDialog(String barcode, SeparateItemConsultationModel scannedItem, int userSectorCode) {
+    showDialog(
+      context: context,
+      builder: (context) => PickingDialogs.wrongSector(
+        scannedBarcode: barcode,
+        productName: scannedItem.nomeProduto,
+        productSector: scannedItem.nomeSetorEstoque ?? 'Setor ${scannedItem.codSetorEstoque}',
+        userSectorCode: userSectorCode,
+      ),
+    ).then((_) {
+      // Retornar foco para o campo de scanner após fechar o diálogo
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scanFocusNode.requestFocus();
+      });
+    });
+  }
+
+  void _showNoItemsForSectorDialog(int userSectorCode) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => PickingDialogs.noItemsForSector(
+        userSectorCode: userSectorCode,
+        onFinish: () async {
+          Navigator.of(context).pop(); // Fechar o diálogo
+          await _finishPicking();
+        },
+        onCancel: () {
+          Navigator.of(context).pop(); // Fechar o diálogo
+          // Retornar foco para o scanner
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scanFocusNode.requestFocus();
+          });
+        },
+      ),
+    );
+  }
+
   void _showAllItemsCompletedDialog() {
     showDialog(context: context, builder: (context) => PickingDialogs.separationComplete()).then((_) {
       // Retornar foco para o campo de scanner após fechar o diálogo
@@ -267,5 +341,90 @@ class _PickingCardScanState extends State<PickingCardScan> {
         _scanFocusNode.requestFocus();
       });
     });
+  }
+
+  Future<void> _finishPicking() async {
+    // Voltar para a tela anterior
+    if (mounted) {
+      Navigator.of(context).pop(true); // Pop com resultado true indicando finalização
+    }
+  }
+
+  /// Mostra diálogo após completar todos os itens do setor, oferecendo salvar o carrinho
+  void _showSaveCartAfterSectorCompletedDialog(int userSectorCode) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.check_circle_outline, color: Colors.green, size: 28),
+            const SizedBox(width: 8),
+            const Text('Setor Concluído!'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '✓ Todos os itens do seu setor foram separados!',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade700),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Seu setor: Setor $userSectorCode', style: TextStyle(color: Colors.green.shade600)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Deseja salvar o carrinho agora?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 8),
+            const Text(
+              'Os itens restantes pertencem a outros setores e serão separados por outros usuários.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Fechar o diálogo
+              // Retornar foco para o scanner
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _scanFocusNode.requestFocus();
+              });
+            },
+            child: const Text('Continuar Escaneando'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () async {
+              Navigator.of(context).pop(); // Fechar o diálogo
+              await _saveCartAndReturn();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            icon: const Icon(Icons.check_circle, color: Colors.white),
+            label: const Text('Salvar Carrinho', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Salva o carrinho e volta para a tela anterior
+  Future<void> _saveCartAndReturn() async {
+    // Voltar para a tela anterior indicando que deve salvar
+    if (mounted) {
+      Navigator.of(context).pop('save_cart'); // Pop com resultado especial
+    }
   }
 }

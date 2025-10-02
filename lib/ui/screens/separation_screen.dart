@@ -11,6 +11,7 @@ import 'package:exp/ui/widgets/separation/separation_filter_modal.dart';
 import 'package:exp/ui/widgets/separation/separation_card.dart';
 import 'package:exp/ui/widgets/app_drawer/app_drawer.dart';
 
+/// Tela principal de listagem de separações
 class SeparationScreen extends StatefulWidget {
   const SeparationScreen({super.key});
 
@@ -19,18 +20,24 @@ class SeparationScreen extends StatefulWidget {
 }
 
 class _SeparationScreenState extends State<SeparationScreen> {
+  // Constantes
+  static const double _scrollThresholdToShowButton = 200.0;
+  static const double _scrollThresholdToLoadMore = 200.0;
+  static const Duration _scrollAnimationDuration = Duration(milliseconds: 500);
+
+  // Controladores
   final ScrollController _scrollController = ScrollController();
+
+  // Estado
+  bool _showScrollToTop = false;
+
+  // ========== Lifecycle ==========
 
   @override
   void initState() {
     super.initState();
-    // Carrega as separações quando a tela é inicializada
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SeparationViewModel>().loadSeparations();
-    });
-
-    // Adiciona listener para scroll infinito
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData());
   }
 
   @override
@@ -39,12 +46,67 @@ class _SeparationScreenState extends State<SeparationScreen> {
     super.dispose();
   }
 
+  // ========== Data Loading ==========
+
+  void _loadInitialData() {
+    context.read<SeparationViewModel>().loadSeparations();
+  }
+
+  // ========== Scroll Handling ==========
+
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      // Carrega mais dados quando está próximo do final
+    if (!_scrollController.hasClients) return;
+
+    _updateScrollToTopButtonVisibility();
+    _loadMoreIfNeeded();
+  }
+
+  void _updateScrollToTopButtonVisibility() {
+    final shouldShow = _scrollController.offset > _scrollThresholdToShowButton;
+    if (shouldShow != _showScrollToTop) {
+      setState(() => _showScrollToTop = shouldShow);
+    }
+  }
+
+  void _loadMoreIfNeeded() {
+    final isNearBottom =
+        _scrollController.position.pixels >= _scrollController.position.maxScrollExtent - _scrollThresholdToLoadMore;
+    if (isNearBottom) {
       context.read<SeparationViewModel>().loadMoreSeparations();
     }
   }
+
+  void _scrollToTop() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(0, duration: _scrollAnimationDuration, curve: Curves.easeInOut);
+  }
+
+  void _refreshAndScrollToTop(SeparationViewModel viewModel) {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+    }
+    viewModel.refresh();
+  }
+
+  // ========== UI Actions ==========
+
+  void _onSeparationTap(SeparateConsultationModel separation) {
+    context.push(AppRouter.separateItems, extra: separation.toJson());
+  }
+
+  void _showFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) => ChangeNotifierProvider.value(
+        value: context.read<SeparationViewModel>(),
+        child: const SeparationFilterModal(),
+      ),
+    );
+  }
+
+  // ========== Build Methods ==========
 
   @override
   Widget build(BuildContext context) {
@@ -57,31 +119,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Voltar',
         ),
-        actions: [
-          Consumer<SeparationViewModel>(
-            builder: (context, viewModel, child) {
-              return IconButton(
-                onPressed: () => _showFilterModal(context),
-                icon: Stack(
-                  children: [
-                    const Icon(Icons.filter_alt),
-                    if (viewModel.hasActiveFilters)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                        ),
-                      ),
-                  ],
-                ),
-                tooltip: 'Filtros',
-              );
-            },
-          ),
-        ],
+        actions: [_buildAppBarActions()],
       ),
       drawer: const AppDrawer(),
       body: Column(
@@ -96,31 +134,58 @@ class _SeparationScreenState extends State<SeparationScreen> {
           ),
         ],
       ),
+      floatingActionButton: _showScrollToTop
+          ? FloatingActionButton(
+              onPressed: _scrollToTop,
+              tooltip: 'Voltar ao topo',
+              child: const Icon(Icons.arrow_upward),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildAppBarActions() {
+    return Consumer<SeparationViewModel>(
+      builder: (context, viewModel, child) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [_buildFilterButton(viewModel), _buildRefreshButton(viewModel)],
+      ),
+    );
+  }
+
+  Widget _buildFilterButton(SeparationViewModel viewModel) {
+    return IconButton(
+      onPressed: _showFilterModal,
+      icon: _FilterIconWithBadge(hasActiveFilters: viewModel.hasActiveFilters),
+      tooltip: 'Filtros',
+    );
+  }
+
+  Widget _buildRefreshButton(SeparationViewModel viewModel) {
+    return IconButton(
+      onPressed: () => _refreshAndScrollToTop(viewModel),
+      icon: const Icon(Icons.refresh),
+      tooltip: 'Atualizar lista',
     );
   }
 
   Widget _buildBody(BuildContext context, SeparationViewModel viewModel) {
-    if (viewModel.isLoading) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando separações...')],
-        ),
-      );
-    }
-
-    if (viewModel.hasError) {
-      return _buildErrorState(context, viewModel);
-    }
-
-    if (!viewModel.hasData) {
-      return _buildEmptyState(context);
-    }
-
-    return _buildSeparationsList(context, viewModel);
+    if (viewModel.isLoading) return _buildLoadingState();
+    if (viewModel.hasError) return _buildErrorState(viewModel);
+    if (!viewModel.hasData) return _buildEmptyState();
+    return _buildSeparationsList(viewModel);
   }
 
-  Widget _buildErrorState(BuildContext context, SeparationViewModel viewModel) {
+  Widget _buildLoadingState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando separações...')],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(SeparationViewModel viewModel) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -141,7 +206,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => viewModel.refresh(),
+              onPressed: viewModel.refresh,
               icon: const Icon(Icons.refresh),
               label: const Text('Tentar Novamente'),
             ),
@@ -151,7 +216,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState() {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -182,32 +247,33 @@ class _SeparationScreenState extends State<SeparationScreen> {
     );
   }
 
-  Widget _buildSeparationsList(BuildContext context, SeparationViewModel viewModel) {
+  Widget _buildSeparationsList(SeparationViewModel viewModel) {
     return RefreshIndicator(
-      onRefresh: () => viewModel.refresh(),
+      onRefresh: viewModel.refresh,
       child: ListView.builder(
+        key: const PageStorageKey<String>('separations_list'),
         controller: _scrollController,
         itemCount: viewModel.separations.length + (viewModel.hasMoreData ? 1 : 0),
-        itemBuilder: (context, index) {
-          // Se é o último item e há mais dados, mostra loading indicator
-          if (index == viewModel.separations.length) {
-            return _buildLoadingMoreIndicator(viewModel);
-          }
-
-          final separation = viewModel.separations[index];
-          return SeparationCard(separation: separation, onSeparate: () => _onSeparationSeparate(context, separation));
-        },
+        itemBuilder: (context, index) => _buildListItem(index, viewModel),
       ),
     );
+  }
+
+  Widget _buildListItem(int index, SeparationViewModel viewModel) {
+    if (index == viewModel.separations.length) {
+      return _buildLoadingMoreIndicator(viewModel);
+    }
+
+    final separation = viewModel.separations[index];
+    return SeparationCard(separation: separation, onSeparate: () => _onSeparationTap(separation));
   }
 
   Widget _buildLoadingMoreIndicator(SeparationViewModel viewModel) {
     if (!viewModel.isLoadingMore) return const SizedBox.shrink();
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      alignment: Alignment.center,
-      child: const Row(
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
@@ -217,24 +283,30 @@ class _SeparationScreenState extends State<SeparationScreen> {
       ),
     );
   }
+}
 
-  void _showFilterModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (modalContext) {
-        // Passa o Provider do contexto pai para o modal
-        return ChangeNotifierProvider.value(
-          value: context.read<SeparationViewModel>(),
-          child: const SeparationFilterModal(),
-        );
-      },
+/// Widget auxiliar para exibir ícone de filtro com badge de indicador
+class _FilterIconWithBadge extends StatelessWidget {
+  final bool hasActiveFilters;
+
+  const _FilterIconWithBadge({required this.hasActiveFilters});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        const Icon(Icons.filter_alt),
+        if (hasActiveFilters)
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+            ),
+          ),
+      ],
     );
-  }
-
-  void _onSeparationSeparate(BuildContext context, SeparateConsultationModel separation) {
-    // Navega para a tela de separação de itens
-    context.go(AppRouter.separateItems, extra: separation.toJson());
   }
 }

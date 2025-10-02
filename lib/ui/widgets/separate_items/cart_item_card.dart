@@ -14,6 +14,9 @@ import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/ui/screens/card_picking_screen.dart';
 import 'package:exp/core/results/app_failure.dart';
+import 'package:exp/data/services/user_session_service.dart';
+import 'package:exp/domain/models/user_system_models.dart';
+import 'package:exp/domain/services/cart_validation_service.dart';
 
 class CartItemCard extends StatelessWidget {
   final ExpeditionCartRouteInternshipConsultationModel cartRouteInternshipConsultation;
@@ -589,29 +592,199 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
-  void _onSeparateCart(BuildContext context) {
+  Future<void> _onSeparateCart(BuildContext context) async {
+    // Obter usuário da sessão
+    final userModel = await _getUserModel();
+    final currentUserCode = userModel?.codUsuario;
+    final userSectorCode = userModel?.codSetorEstoque;
+
+    // Validação 1: Verificar permissão de acesso ao carrinho
+    final accessValidation = CartValidationService.validateCartAccess(
+      currentUserCode: currentUserCode,
+      cart: cartRouteInternshipConsultation,
+      userModel: userModel,
+      accessType: CartAccessType.edit,
+    );
+
+    if (!accessValidation.canAccess) {
+      if (context.mounted && accessValidation.cartOwnerName != null) {
+        _showDifferentUserDialog(context, accessValidation.cartOwnerName!);
+      }
+      return;
+    }
+
+    // Validação 2: Verificar se há itens disponíveis para o setor do usuário
+    if (userSectorCode != null) {
+      final hasItems = await CartValidationService.hasItemsForUserSector(
+        codEmpresa: cartRouteInternshipConsultation.codEmpresa,
+        codOrigem: cartRouteInternshipConsultation.codOrigem,
+        userSectorCode: userSectorCode,
+      );
+
+      if (!hasItems && context.mounted) {
+        _showNoItemsForSectorDialog(context, userSectorCode);
+        return;
+      }
+    }
+
     // Navegar para a tela de CardPicking
-    // TODO: Obter UserSystemModel do contexto/provider quando disponível
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider(
-          create: (_) => CardPickingViewModel(),
-          child: CardPickingScreen(
-            cart: cartRouteInternshipConsultation,
-            userModel: null, // TODO: Passar modelo do usuário quando disponível
+    if (context.mounted) {
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ChangeNotifierProvider(
+            create: (_) => CardPickingViewModel(),
+            child: CardPickingScreen(cart: cartRouteInternshipConsultation, userModel: userModel),
           ),
         ),
+      );
+
+      // Se o resultado for 'save_cart', executar salvamento automático
+      if (result == 'save_cart' && context.mounted) {
+        final saved = await _onFinalizeCart(context, skipConfirmation: true);
+
+        // Se salvou com sucesso, mostrar snackbar e atualizar lista
+        if (saved && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Carrinho salvo com sucesso!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  /// Obtém o modelo do usuário da sessão
+  Future<UserSystemModel?> _getUserModel() async {
+    final userSessionService = locator<UserSessionService>();
+    final appUser = await userSessionService.loadUserSession();
+    return appUser?.userSystemModel;
+  }
+
+  void _showDifferentUserDialog(BuildContext context, String cartOwnerName) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.block, color: Colors.red),
+            const SizedBox(width: 8),
+            const Expanded(child: Text('Acesso Negado', overflow: TextOverflow.ellipsis)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '❌ Você não pode separar neste carrinho',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Carrinho incluído por: $cartOwnerName', style: TextStyle(color: Colors.red.shade600)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Este carrinho foi incluído por outro usuário.'),
+            const SizedBox(height: 8),
+            const Text(
+              'Apenas o usuário que incluiu o carrinho pode realizar a separação.',
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar'))],
       ),
     );
   }
 
-  void _onFinalizeCart(BuildContext context) async {
-    // Mostrar diálogo de confirmação
-    final confirmed = await _showFinalizeConfirmationDialog(context);
-    if (!confirmed) return;
+  void _showNoItemsForSectorDialog(BuildContext context, int userSectorCode) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.blue),
+            const SizedBox(width: 8),
+            const Expanded(child: Text('Sem Itens para Separar', overflow: TextOverflow.ellipsis)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Todos os itens do seu setor já foram separados!',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Seu setor: Setor $userSectorCode', style: TextStyle(color: Colors.blue.shade600)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Não há mais produtos do seu setor neste carrinho para separar.'),
+            const SizedBox(height: 8),
+            const Text(
+              'Os itens restantes pertencem a outros setores e serão separados por outros usuários.',
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar'))],
+      ),
+    );
+  }
+
+  Future<bool> _onFinalizeCart(BuildContext context, {bool skipConfirmation = false}) async {
+    // Obter usuário da sessão e validar acesso
+    final userModel = await _getUserModel();
+
+    final accessValidation = CartValidationService.validateCartAccess(
+      currentUserCode: userModel?.codUsuario,
+      cart: cartRouteInternshipConsultation,
+      userModel: userModel,
+      accessType: CartAccessType.save,
+    );
+
+    if (!accessValidation.canAccess) {
+      if (context.mounted && accessValidation.cartOwnerName != null) {
+        _showDifferentUserDialog(context, accessValidation.cartOwnerName!);
+      }
+      return false;
+    }
+
+    // Mostrar diálogo de confirmação (pular se já confirmado)
+    if (!skipConfirmation) {
+      final confirmed = await _showFinalizeConfirmationDialog(context);
+      if (!confirmed) return false;
+    }
 
     // Mostrar indicador de carregamento
-    _showLoadingDialog(context);
+    if (context.mounted) _showLoadingDialog(context);
 
     try {
       // Obter o use case do locator
@@ -631,17 +804,23 @@ class CartItemCard extends StatelessWidget {
       if (context.mounted) Navigator.of(context).pop();
 
       // Processar resultado
-      result.fold(
+      return result.fold(
         (success) {
-          _showSuccessDialog(context, success);
+          // Se skipConfirmation, não mostrar diálogo (salvamento automático)
+          if (!skipConfirmation) {
+            _showSuccessDialog(context, success);
+          }
 
           // Atualizar a lista de carrinhos
           if (viewModel != null) {
             viewModel!.refresh();
           }
+
+          return true;
         },
         (failure) {
           _showErrorDialog(context, failure as AppFailure);
+          return false;
         },
       );
     } catch (e) {
@@ -654,6 +833,7 @@ class CartItemCard extends StatelessWidget {
           context,
         ).showSnackBar(SnackBar(content: Text('Erro inesperado: ${e.toString()}'), backgroundColor: Colors.red));
       }
+      return false;
     }
   }
 
@@ -811,7 +991,24 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
-  void _showCancelDialog(BuildContext context) {
+  Future<void> _showCancelDialog(BuildContext context) async {
+    // Obter usuário da sessão e validar acesso
+    final userModel = await _getUserModel();
+
+    final accessValidation = CartValidationService.validateCartAccess(
+      currentUserCode: userModel?.codUsuario,
+      cart: cartRouteInternshipConsultation,
+      userModel: userModel,
+      accessType: CartAccessType.delete,
+    );
+
+    if (!accessValidation.canAccess) {
+      if (context.mounted && accessValidation.cartOwnerName != null) {
+        _showDifferentUserDialog(context, accessValidation.cartOwnerName!);
+      }
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

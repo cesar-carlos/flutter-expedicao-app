@@ -16,7 +16,11 @@ class NextItemCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     // Encontrar o próximo item a ser separado usando utilitário
-    final nextItem = PickingUtils.findNextItemToPick(viewModel.items, viewModel.isItemCompleted);
+    final nextItem = PickingUtils.findNextItemToPick(
+      viewModel.items,
+      viewModel.isItemCompleted,
+      userSectorCode: viewModel.userModel?.codSetorEstoque,
+    );
 
     // Contar itens completos e totais usando PickingState
     final completedCount = viewModel.completedItems;
@@ -184,6 +188,45 @@ class NextItemCard extends StatelessWidget {
   }
 
   Widget _buildCompletionMessage(ThemeData theme) {
+    // Verificar se não há itens para o setor do usuário
+    final hasItemsForSector = viewModel.hasItemsForUserSector;
+    final userSectorCode = viewModel.userModel?.codSetorEstoque;
+
+    if (!hasItemsForSector && userSectorCode != null) {
+      // Usuário tem setor definido mas não há itens para ele
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.blue.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.blue.withOpacity(0.3), width: 2),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.info_outline, color: Colors.blue, size: 48),
+            const SizedBox(height: 6),
+            Text(
+              'Sem Itens para Separar',
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Não há itens do seu setor (Setor $userSectorCode) neste carrinho para separar.',
+              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.blue.shade600),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Os itens deste carrinho pertencem a outros setores.',
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.blue.shade500),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Todos os itens foram separados
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(

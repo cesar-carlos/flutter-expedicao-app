@@ -7,8 +7,9 @@ import 'package:exp/ui/widgets/separate_items/cart_item_card.dart';
 
 class CartsListView extends StatelessWidget {
   final SeparateItemsViewModel viewModel;
+  final ScrollController? scrollController;
 
-  const CartsListView({super.key, required this.viewModel});
+  const CartsListView({super.key, required this.viewModel, this.scrollController});
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +26,7 @@ class CartsListView extends StatelessWidget {
         await viewModel.refresh();
       },
       child: ListView.builder(
+        controller: scrollController,
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
         itemCount: viewModel.carts.length,
         itemBuilder: (context, index) {
