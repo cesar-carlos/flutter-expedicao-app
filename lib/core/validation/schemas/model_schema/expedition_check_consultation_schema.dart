@@ -1,25 +1,24 @@
 import 'package:zard/zard.dart';
-
 import 'package:exp/core/validation/schemas/common_schemas.dart';
 import 'package:exp/core/validation/schemas/enum_schemas.dart';
 import 'package:exp/core/results/index.dart';
 
-/// Schema para validação de SeparateConsultationModel
-class SeparateConsultationSchema {
-  SeparateConsultationSchema._();
+/// Schema para validação de ExpeditionCheckConsultationModel
+class ExpeditionCheckConsultationSchema {
+  ExpeditionCheckConsultationSchema._();
 
-  /// Schema para SeparateConsultationModel
+  /// Schema para ExpeditionCheckConsultationModel
+  /// Baseado nos campos reais do modelo
   static final schema = z.map({
     'CodEmpresa': CommonSchemas.integerSchema,
-    'CodSepararEstoque': CommonSchemas.integerSchema,
+    'CodConferir': CommonSchemas.integerSchema,
     'Origem': EnumSchemas.expeditionOrigemSchema,
     'CodOrigem': CommonSchemas.integerSchema,
-    'CodTipoOperacaoExpedicao': CommonSchemas.integerSchema,
-    'NomeTipoOperacaoExpedicao': CommonSchemas.nonEmptyStringSchema,
-    'Situacao': EnumSchemas.expeditionSituationSchema,
+    'Situacao': EnumSchemas.expeditionCartRouterSituationSchema,
+    'CodCarrinhoPercurso': CommonSchemas.integerSchema,
+    'DataLancamento': CommonSchemas.dateTimeSchema,
+    'HoraLancamento': CommonSchemas.nonEmptyStringSchema,
     'TipoEntidade': EnumSchemas.entityTypeSchema,
-    'DataEmissao': CommonSchemas.dateTimeSchema,
-    'HoraEmissao': CommonSchemas.nonEmptyStringSchema,
     'CodEntidade': CommonSchemas.integerSchema,
     'NomeEntidade': CommonSchemas.nonEmptyStringSchema,
     'CodPrioridade': CommonSchemas.integerSchema,
@@ -28,16 +27,16 @@ class SeparateConsultationSchema {
     'Observacao': CommonSchemas.optionalStringSchema,
   });
 
-  /// Valida dados de consulta de separação
+  /// Valida dados de consulta de conferência de expedição
   static Map<String, dynamic> validate(Map<String, dynamic> data) {
     try {
       return schema.parse(data);
     } catch (e) {
-      throw 'Erro na validação da consulta de separação: $e';
+      throw 'Erro na validação da consulta de conferência de expedição: $e';
     }
   }
 
-  /// Validação segura para consulta de separação
+  /// Validação segura para consulta de conferência de expedição
   static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> data) {
     return safeCallSync(() => validate(data));
   }

@@ -4,6 +4,11 @@ export 'expedition_cart_consultation_schema.dart';
 export 'expedition_cart_route_internship_schema.dart';
 export 'expedition_cart_route_internship_group_schema.dart';
 export 'expedition_cart_schema.dart';
+export 'expedition_check_schema.dart';
+export 'expedition_check_consultation_schema.dart';
+export 'expedition_check_cart_consultation_schema.dart';
+export 'expedition_check_item_schema.dart';
+export 'expedition_check_item_consultation_schema.dart';
 
 // === SEPARATION SCHEMAS ===
 export 'separate_consultation_schema.dart';

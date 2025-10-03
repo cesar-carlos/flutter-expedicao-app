@@ -5,9 +5,11 @@ enum ExpeditionCartRouterSituation {
   conferido('CONFERIDO', 'Conferido', Colors.lightGreen),
   emConferencia('EM CONFERENCIA', 'Em Conferência', Colors.purple),
   emEntrega('EM ENTREGA', 'Em Entrega', Colors.teal),
+  entregue('ENTREGUE', 'Entregue', Colors.yellow),
   emSeparacao('EM SEPARACAO', 'Em Separação', Colors.orange),
   finalizada('FINALIZADA', 'Finalizada', Colors.green),
   separado('SEPARADO', 'Separado', Colors.lightGreen),
+  embalado('EMBALADO', 'Embalado', Colors.teal),
   vazio('', '', Colors.grey);
 
   const ExpeditionCartRouterSituation(this.code, this.description, this.color);

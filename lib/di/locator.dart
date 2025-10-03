@@ -68,6 +68,16 @@ import 'package:exp/domain/models/separation_item_model.dart';
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/data/repositories/separation_item_repository_impl.dart';
 import 'package:exp/data/repositories/expedition_sector_stock_repository_impl.dart';
+import 'package:exp/domain/models/expedition_check.dart';
+import 'package:exp/data/repositories/expedition_check_repository_impl.dart';
+import 'package:exp/domain/models/expedition_check_consultation_model.dart';
+import 'package:exp/data/repositories/expedition_check_consultation_repository_impl.dart';
+import 'package:exp/domain/models/expedition_check_cart_consultation_model.dart';
+import 'package:exp/data/repositories/expedition_check_cart_consultation_repository_impl.dart';
+import 'package:exp/domain/models/expedition_check_item_model.dart';
+import 'package:exp/data/repositories/expedition_check_item_repository_impl.dart';
+import 'package:exp/domain/models/expedition_check_item_consultation_model.dart';
+import 'package:exp/data/repositories/expedition_check_item_consultation_repository_impl.dart';
 import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
@@ -144,6 +154,22 @@ void setupLocator() {
 
   locator.registerLazySingleton<BasicRepository<ExpeditionSectorStockModel>>(
     () => ExpeditionSectorStockRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<BasicRepository<ExpeditionCheckModel>>(() => ExpeditionCheckRepositoryImpl());
+
+  locator.registerLazySingleton<BasicConsultationRepository<ExpeditionCheckConsultationModel>>(
+    () => ExpeditionCheckConsultationRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<BasicConsultationRepository<ExpeditionCheckCartConsultationModel>>(
+    () => ExpeditionCheckCartConsultationRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<BasicRepository<ExpeditionCheckItemModel>>(() => ExpeditionCheckItemRepositoryImpl());
+
+  locator.registerLazySingleton<BasicConsultationRepository<ExpeditionCheckItemConsultationModel>>(
+    () => ExpeditionCheckItemConsultationRepositoryImpl(),
   );
 
   locator.registerFactory(() => RegisterUserUseCase(locator<UserRepository>()));

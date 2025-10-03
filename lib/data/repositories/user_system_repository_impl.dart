@@ -1,10 +1,10 @@
 import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/domain/models/pagination/pagination.dart';
+import 'package:exp/domain/models/situation/situation_model.dart';
 import 'package:exp/domain/repositories/user_system_repository.dart';
 import 'package:exp/data/dtos/user_system_list_response_dto.dart';
 import 'package:exp/data/services/user_system_api_service.dart';
 import 'package:exp/domain/models/user/user_models.dart';
-import 'package:exp/domain/models/situation/situation_model.dart';
 
 /// Implementação do repositório de usuários do sistema
 ///

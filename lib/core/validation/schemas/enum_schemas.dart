@@ -2,6 +2,7 @@ import 'package:exp/domain/models/entity_type_model.dart';
 import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 import 'package:exp/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:exp/domain/models/situation/expedition_cart_situation_model.dart';
+import 'package:exp/domain/models/situation/expedition_cart_router_situation_model.dart';
 import 'package:exp/core/validation/schemas/common_schemas.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 
@@ -54,6 +55,18 @@ class EnumSchemas {
   static final optionalExpeditionCartSituationSchema = CommonSchemas.optionalEnumSchema(
     ExpeditionCartSituation.getAllCodes(),
     'Situação do carrinho de expedição',
+  );
+
+  /// Schema para ExpeditionCartRouterSituation
+  static final expeditionCartRouterSituationSchema = CommonSchemas.enumSchema(
+    ExpeditionCartRouterSituation.getAllCodes(),
+    'Situação do roteador do carrinho de expedição',
+  );
+
+  /// Schema opcional para ExpeditionCartRouterSituation
+  static final optionalExpeditionCartRouterSituationSchema = CommonSchemas.optionalEnumSchema(
+    ExpeditionCartRouterSituation.getAllCodes(),
+    'Situação do roteador do carrinho de expedição',
   );
 
   /// Schema para EntityType
