@@ -38,7 +38,9 @@ import 'package:exp/data/repositories/event_repository/separate_event_repository
 import 'package:exp/domain/models/separate_model.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/repositories/separate_consultation_repository_impl.dart';
+import 'package:exp/data/repositories/separate_progress_consultation_repository_impl.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:exp/domain/models/separate_progress_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/data/repositories/expedition_cart_route_internship_gorup_consultation_repository_impl.dart'
     as group_consultation;
@@ -101,6 +103,10 @@ void setupLocator() {
 
   locator.registerLazySingleton<BasicConsultationRepository<SeparateConsultationModel>>(
     () => SeparateConsultationRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<BasicConsultationRepository<SeparateProgressConsultationModel>>(
+    () => SeparateProgressConsultationRepositoryImpl(),
   );
 
   locator.registerLazySingleton<BasicConsultationRepository<SeparationItemConsultationModel>>(

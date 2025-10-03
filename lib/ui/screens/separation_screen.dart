@@ -114,11 +114,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
       appBar: CustomAppBar(
         title: 'Separação',
         showSocketStatus: false,
-        leading: IconButton(
-          onPressed: () => context.go(AppRouter.home),
-          icon: const Icon(Icons.arrow_back),
-          tooltip: 'Voltar',
-        ),
+        leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
         actions: [_buildAppBarActions()],
       ),
       drawer: const AppDrawer(),

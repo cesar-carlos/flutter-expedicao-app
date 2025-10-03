@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:exp/core/routing/app_router.dart';
 import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
@@ -70,11 +68,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
       appBar: CustomAppBar(
         title: 'Separar Itens',
         showSocketStatus: false,
-        leading: IconButton(
-          onPressed: () => context.go(AppRouter.separation),
-          icon: const Icon(Icons.arrow_back),
-          tooltip: 'Voltar',
-        ),
+        leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
         actions: [
           // Botões de ação baseados na aba ativa (não mostrar na aba Informações)
           if (_tabController.index != 2) // Não mostrar filtro na aba Informações

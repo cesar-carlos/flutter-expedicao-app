@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'package:exp/di/locator.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
 import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
@@ -26,7 +27,6 @@ import 'package:exp/domain/viewmodels/user_selection_viewmodel.dart';
 import 'package:exp/domain/viewmodels/profile_viewmodel.dart';
 import 'package:exp/domain/viewmodels/separate_consultation_viewmodel.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
-import 'package:exp/di/locator.dart';
 
 /// Configuração das rotas da aplicação usando GoRouter
 class AppRouter {
@@ -35,17 +35,17 @@ class AppRouter {
   static const String register = '/register';
   static const String config = '/config';
   static const String home = '/home';
-  static const String scanner = '/scanner';
+  static const String scanner = '/home/scanner';
   static const String userSelection = '/user-selection';
   static const String profile = '/profile';
   static const String shipmentSeparateConsultation = '/shipment-separate-consultation';
-  static const String separation = '/separation';
-  static const String separateItems = '/separate-items';
-  static const String conference = '/conference';
-  static const String counterDelivery = '/counter-delivery';
-  static const String packaging = '/packaging';
-  static const String storage = '/storage';
-  static const String collection = '/collection';
+  static const String separation = '/home/separation';
+  static const String separateItems = '/home/separate-items';
+  static const String conference = '/home/conference';
+  static const String counterDelivery = '/home/counter-delivery';
+  static const String packaging = '/home/packaging';
+  static const String storage = '/home/storage';
+  static const String collection = '/home/collection';
 
   /// Configuração do GoRouter
   static GoRouter createRouter(AuthViewModel authViewModel) {
@@ -120,7 +120,7 @@ class AppRouter {
           ),
         ),
 
-        // Rota da Home (com subrotas)
+        // Rota da Home (com todas as subrotas)
         GoRoute(
           path: home,
           name: 'home',
@@ -128,6 +128,54 @@ class AppRouter {
           routes: [
             // Scanner como subrota
             GoRoute(path: 'scanner', name: 'scanner', builder: (context, state) => const ScannerScreen()),
+
+            // Separação como subrota
+            GoRoute(
+              path: 'separation',
+              name: 'separation',
+              builder: (context, state) => ChangeNotifierProvider(
+                create: (_) => locator<SeparationViewModel>(),
+                child: const SeparationScreen(),
+              ),
+            ),
+
+            // Separação de Itens como subrota
+            GoRoute(
+              path: 'separate-items',
+              name: 'separate-items',
+              builder: (context, state) {
+                final separationData = state.extra as Map<String, dynamic>?;
+                if (separationData == null) {
+                  return const Scaffold(body: Center(child: Text('Dados da separação não encontrados')));
+                }
+
+                final separation = SeparateConsultationModel.fromJson(separationData);
+
+                return ChangeNotifierProvider(
+                  create: (_) => locator<SeparateItemsViewModel>(),
+                  child: SeparateItemsScreen(separation: separation),
+                );
+              },
+            ),
+
+            // Conferência como subrota
+            GoRoute(path: 'conference', name: 'conference', builder: (context, state) => const ConferenceScreen()),
+
+            // Entrega Balcão como subrota
+            GoRoute(
+              path: 'counter-delivery',
+              name: 'counter-delivery',
+              builder: (context, state) => const CounterDeliveryScreen(),
+            ),
+
+            // Embalagem como subrota
+            GoRoute(path: 'packaging', name: 'packaging', builder: (context, state) => const PackagingScreen()),
+
+            // Armazenagem como subrota
+            GoRoute(path: 'storage', name: 'storage', builder: (context, state) => const StorageScreen()),
+
+            // Coleta como subrota
+            GoRoute(path: 'collection', name: 'collection', builder: (context, state) => const CollectionScreen()),
           ],
         ),
 
@@ -151,52 +199,6 @@ class AppRouter {
             child: const SeparateConsultationScreen(),
           ),
         ),
-
-        // Rota de Separação
-        GoRoute(
-          path: separation,
-          name: 'separation',
-          builder: (context, state) =>
-              ChangeNotifierProvider(create: (_) => locator<SeparationViewModel>(), child: const SeparationScreen()),
-        ),
-
-        // Rota de Separação de Itens
-        GoRoute(
-          path: separateItems,
-          name: 'separate-items',
-          builder: (context, state) {
-            final separationData = state.extra as Map<String, dynamic>?;
-            if (separationData == null) {
-              return const Scaffold(body: Center(child: Text('Dados da separação não encontrados')));
-            }
-
-            final separation = SeparateConsultationModel.fromJson(separationData);
-
-            return ChangeNotifierProvider(
-              create: (_) => locator<SeparateItemsViewModel>(),
-              child: SeparateItemsScreen(separation: separation),
-            );
-          },
-        ),
-
-        // Rota de Conferência
-        GoRoute(path: conference, name: 'conference', builder: (context, state) => const ConferenceScreen()),
-
-        // Rota de Entrega Balcão
-        GoRoute(
-          path: counterDelivery,
-          name: 'counter-delivery',
-          builder: (context, state) => const CounterDeliveryScreen(),
-        ),
-
-        // Rota de Embalagem
-        GoRoute(path: packaging, name: 'packaging', builder: (context, state) => const PackagingScreen()),
-
-        // Rota de Armazenagem
-        GoRoute(path: storage, name: 'storage', builder: (context, state) => const StorageScreen()),
-
-        // Rota de Coleta
-        GoRoute(path: collection, name: 'collection', builder: (context, state) => const CollectionScreen()),
       ],
 
       // Página de erro

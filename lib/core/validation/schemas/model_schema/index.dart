@@ -12,6 +12,7 @@ export 'expedition_check_item_consultation_schema.dart';
 
 // === SEPARATION SCHEMAS ===
 export 'separate_consultation_schema.dart';
+export 'separate_progress_consultation_schema.dart';
 export 'separate_schema.dart';
 export 'separate_item_consultation_schema.dart';
 export 'separate_item_schema.dart';
