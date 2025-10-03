@@ -84,6 +84,7 @@ import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
+import 'package:exp/domain/usecases/save_separation/save_separation_usecase.dart';
 import 'package:exp/domain/usecases/start_separation/start_separation_usecase.dart';
 
 final GetIt locator = GetIt.instance;
@@ -287,7 +288,16 @@ void setupLocator() {
       cartRouteInternshipRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
       separationItemConsultationRepository: locator<BasicConsultationRepository<SeparationItemConsultationModel>>(),
       cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
+      separateProgressRepository: locator<BasicConsultationRepository<SeparateProgressConsultationModel>>(),
       userSessionService: locator<UserSessionService>(),
+    ),
+  );
+
+  locator.registerLazySingleton<SaveSeparationUseCase>(
+    () => SaveSeparationUseCase(
+      separateProgressRepository: locator<BasicConsultationRepository<SeparateProgressConsultationModel>>(),
+      separateRepository: locator<BasicRepository<SeparateModel>>(),
+      cartRouteRepository: locator<BasicRepository<ExpeditionCartRouteModel>>(),
     ),
   );
 

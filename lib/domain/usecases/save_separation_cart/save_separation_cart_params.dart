@@ -3,11 +3,13 @@ class SaveSeparationCartParams {
   final int codEmpresa;
   final int codCarrinhoPercurso;
   final String itemCarrinhoPercurso;
+  final int codSepararEstoque;
 
   const SaveSeparationCartParams({
     required this.codEmpresa,
     required this.codCarrinhoPercurso,
     required this.itemCarrinhoPercurso,
+    required this.codSepararEstoque,
   });
 
   @override
@@ -16,7 +18,8 @@ class SaveSeparationCartParams {
       SaveSeparationCartParams(
         codEmpresa: $codEmpresa,
         codCarrinhoPercurso: $codCarrinhoPercurso,
-        itemCarrinhoPercurso: $itemCarrinhoPercurso
+        itemCarrinhoPercurso: $itemCarrinhoPercurso,
+        codSepararEstoque: $codSepararEstoque
       )''';
   }
 }

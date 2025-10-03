@@ -795,6 +795,7 @@ class CartItemCard extends StatelessWidget {
         codEmpresa: cartRouteInternshipConsultation.codEmpresa,
         codCarrinhoPercurso: cartRouteInternshipConsultation.codCarrinhoPercurso,
         itemCarrinhoPercurso: cartRouteInternshipConsultation.item,
+        codSepararEstoque: cartRouteInternshipConsultation.codOrigem,
       );
 
       // Executar o use case

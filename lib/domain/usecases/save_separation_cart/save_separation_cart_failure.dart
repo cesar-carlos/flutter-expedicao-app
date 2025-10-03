@@ -52,6 +52,17 @@ class SaveSeparationCartFailure extends AppFailure {
     return SaveSeparationCartFailure(message: 'Nenhum item foi separado neste carrinho');
   }
 
+  factory SaveSeparationCartFailure.separationNotFound() {
+    return SaveSeparationCartFailure(message: 'Separação não encontrada');
+  }
+
+  factory SaveSeparationCartFailure.invalidSeparationStatus(String currentStatus) {
+    return SaveSeparationCartFailure(
+      message: 'Separação deve estar em situação SEPARANDO para finalizar o carrinho',
+      details: 'Situação atual: $currentStatus',
+    );
+  }
+
   factory SaveSeparationCartFailure.userNotAuthenticated() {
     return SaveSeparationCartFailure(message: 'Usuário não autenticado');
   }

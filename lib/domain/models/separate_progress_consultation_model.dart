@@ -9,7 +9,7 @@ class SeparateProgressConsultationModel {
   final ExpeditionOrigem origem;
   final int codOrigem;
   final ExpeditionSituation situacao;
-  final String processoSeparacao;
+  final ExpeditionSituation processoSeparacao;
 
   const SeparateProgressConsultationModel({
     required this.codEmpresa,
@@ -28,7 +28,8 @@ class SeparateProgressConsultationModel {
         origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String),
         codOrigem: json['CodOrigem'] ?? 0,
         situacao: ExpeditionSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionSituation.aguardando,
-        processoSeparacao: json['ProcessoSeparacao'] ?? '',
+        processoSeparacao:
+            ExpeditionSituation.fromCode(json['ProcessoSeparacao'] as String? ?? '') ?? ExpeditionSituation.aguardando,
       );
     } catch (e) {
       rethrow;
@@ -42,7 +43,7 @@ class SeparateProgressConsultationModel {
       'Origem': origem.code,
       'CodOrigem': codOrigem,
       'Situacao': situacao.code,
-      'ProcessoSeparacao': processoSeparacao,
+      'ProcessoSeparacao': processoSeparacao.code,
     };
   }
 
