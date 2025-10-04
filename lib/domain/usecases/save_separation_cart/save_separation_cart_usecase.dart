@@ -18,21 +18,21 @@ import 'package:exp/core/utils/app_helper.dart';
 class SaveSeparationCartUseCase {
   final BasicRepository<ExpeditionCartRouteInternshipModel> _cartRouteInternshipRepository;
   final BasicConsultationRepository<SeparationItemConsultationModel> _separationItemRepository;
-  final BasicRepository<ExpeditionCartModel> _cartRepository;
   final BasicConsultationRepository<SeparateProgressConsultationModel> _separateProgressRepository;
+  final BasicRepository<ExpeditionCartModel> _cartRepository;
   final UserSessionService _userSessionService;
 
   SaveSeparationCartUseCase({
     required BasicRepository<ExpeditionCartRouteInternshipModel> cartRouteInternshipRepository,
     required BasicConsultationRepository<SeparationItemConsultationModel> separationItemConsultationRepository,
-    required BasicRepository<ExpeditionCartModel> cartRepository,
     required BasicConsultationRepository<SeparateProgressConsultationModel> separateProgressRepository,
+    required BasicRepository<ExpeditionCartModel> cartRepository,
     required UserSessionService userSessionService,
   }) : _cartRouteInternshipRepository = cartRouteInternshipRepository,
        _separationItemRepository = separationItemConsultationRepository,
+       _separateProgressRepository = separateProgressRepository,
        _userSessionService = userSessionService,
-       _cartRepository = cartRepository,
-       _separateProgressRepository = separateProgressRepository;
+       _cartRepository = cartRepository;
 
   Future<Result<SaveSeparationCartSuccess>> call(SaveSeparationCartParams params) async {
     try {

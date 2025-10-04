@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 enum SoundType {
   barcodeScan('som/BarcodeScan.wav'),
   success('som/Notification.wav'),
+  itemCompleted('som/success.wav'), // Som para quando um item é completamente separado
   error('som/Error.wav'),
   fail('som/Fail.wav'),
   alert('som/Alert.wav'),
@@ -54,6 +55,11 @@ class AudioService {
   /// Reproduz som de sucesso/notificação
   Future<void> playSuccess() async {
     await playSound(SoundType.success);
+  }
+
+  /// Reproduz som de item completamente separado
+  Future<void> playItemCompleted() async {
+    await playSound(SoundType.itemCompleted);
   }
 
   /// Reproduz som de erro

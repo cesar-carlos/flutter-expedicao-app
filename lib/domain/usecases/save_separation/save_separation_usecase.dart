@@ -25,16 +25,16 @@ import 'package:exp/core/errors/app_error.dart';
 /// - Atualizar situacao do SeparateModel para SEPARADO
 class SaveSeparationUseCase {
   final BasicConsultationRepository<SeparateProgressConsultationModel> _separateProgressRepository;
-  final BasicRepository<SeparateModel> _separateRepository;
   final BasicRepository<ExpeditionCartRouteModel> _cartRouteRepository;
+  final BasicRepository<SeparateModel> _separateRepository;
 
   SaveSeparationUseCase({
     required BasicConsultationRepository<SeparateProgressConsultationModel> separateProgressRepository,
-    required BasicRepository<SeparateModel> separateRepository,
     required BasicRepository<ExpeditionCartRouteModel> cartRouteRepository,
+    required BasicRepository<SeparateModel> separateRepository,
   }) : _separateProgressRepository = separateProgressRepository,
-       _separateRepository = separateRepository,
-       _cartRouteRepository = cartRouteRepository;
+       _cartRouteRepository = cartRouteRepository,
+       _separateRepository = separateRepository;
 
   /// Salva uma separação
   ///
@@ -60,7 +60,7 @@ class SaveSeparationUseCase {
       }
 
       // 3. Validar se a separação está com situacao = 'SEPARANDO'
-      if (separateModel.situacao != ExpeditionSituation.separando) {
+      if (separateModel.situacao.code != ExpeditionSituation.separando.code) {
         return failure(
           BusinessFailure.invalidState(
             'Separação deve estar com situação "SEPARANDO", mas está: ${separateModel.situacao.description}',

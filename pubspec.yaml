@@ -109,6 +109,7 @@ flutter:
     - assets/som/Error.wav
     - assets/som/Fail.wav
     - assets/som/Notification.wav
+    - assets/som/success.wav
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

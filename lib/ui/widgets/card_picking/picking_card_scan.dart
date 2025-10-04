@@ -1,15 +1,16 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:exp/di/locator.dart';
+import 'package:exp/core/services/audio_service.dart';
 import 'package:exp/ui/widgets/card_picking/widgets/index.dart';
+import 'package:exp/core/services/barcode_validation_service.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/core/services/audio_service.dart';
-import 'package:exp/core/services/barcode_validation_service.dart';
 import 'package:exp/ui/widgets/common/picking_dialog.dart';
-import 'package:exp/di/locator.dart';
 
 class PickingCardScan extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -209,16 +210,41 @@ class _PickingCardScanState extends State<PickingCardScan> {
       final result = await widget.viewModel.addScannedItem(codProduto: item.codProduto, quantity: quantity);
 
       if (result.isSuccess) {
+        // Verificar se o item foi completamente separado após adicionar a quantidade
+        final itemId = item.item;
+        final wasCompletedBefore = widget.viewModel.isItemCompleted(itemId);
+        final currentPickedQuantity = widget.viewModel.getPickedQuantity(itemId);
+        final totalQuantity = item.quantidade.toInt();
+        final newPickedQuantity = currentPickedQuantity + quantity;
+
         // Reproduzir som de scan bem-sucedido e feedback tátil
         _audioService.playBarcodeScan();
         _provideTactileFeedback();
 
+        // Verificar se o item foi completado após a adição
+        // Aguardar um pouco para o ViewModel atualizar o estado
+        await Future.delayed(const Duration(milliseconds: 100));
+        final isCompletedNow = widget.viewModel.isItemCompleted(itemId);
+
+        // Debug: Log para verificar o estado
+        if (kDebugMode) {
+          print('Item $itemId - Antes: $wasCompletedBefore, Depois: $isCompletedNow');
+          print('Quantidades - Atual: $currentPickedQuantity, Nova: $newPickedQuantity, Total: $totalQuantity');
+        }
+
+        // Verificar se o item foi completado baseado na lógica de quantidades
+        // Se não estava completo antes e a nova quantidade >= total, então foi completado
+        final wasCompletedByQuantity = !wasCompletedBefore && newPickedQuantity >= totalQuantity;
+
+        // Se o item não estava completo antes e agora está (por estado ou por quantidade), reproduzir som especial
+        if ((wasCompletedBefore && isCompletedNow)) {
+          _audioService.playItemCompleted();
+        }
+
         // Resetar quantidade para 1 se estiver maior que 1
         if (_quantityController.text.isNotEmpty && int.tryParse(_quantityController.text) != null) {
           final currentQuantity = int.parse(_quantityController.text);
-          if (currentQuantity > 1) {
-            _quantityController.text = '1';
-          }
+          if (currentQuantity > 1) _quantityController.text = '1';
         }
 
         // 🆕 VERIFICAR: Acabaram os itens do setor após adicionar este item?
