@@ -289,6 +289,7 @@ void setupLocator() {
       separationItemConsultationRepository: locator<BasicConsultationRepository<SeparationItemConsultationModel>>(),
       cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
       separateProgressRepository: locator<BasicConsultationRepository<SeparateProgressConsultationModel>>(),
+      separationItemModelRepository: locator<BasicRepository<SeparationItemModel>>(),
       userSessionService: locator<UserSessionService>(),
     ),
   );

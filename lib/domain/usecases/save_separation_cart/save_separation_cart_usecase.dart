@@ -1,4 +1,5 @@
 import 'package:exp/core/results/index.dart';
+import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/domain/models/expedition_cart_model.dart';
 import 'package:exp/domain/models/separation_item_consultation_model.dart';
@@ -13,23 +14,26 @@ import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
-import 'package:exp/core/utils/app_helper.dart';
+import 'package:exp/domain/models/separation_item_model.dart';
 
 class SaveSeparationCartUseCase {
   final BasicRepository<ExpeditionCartRouteInternshipModel> _cartRouteInternshipRepository;
   final BasicConsultationRepository<SeparationItemConsultationModel> _separationItemRepository;
   final BasicConsultationRepository<SeparateProgressConsultationModel> _separateProgressRepository;
   final BasicRepository<ExpeditionCartModel> _cartRepository;
+  final BasicRepository<SeparationItemModel> _separationItemModelRepository;
   final UserSessionService _userSessionService;
 
   SaveSeparationCartUseCase({
     required BasicRepository<ExpeditionCartRouteInternshipModel> cartRouteInternshipRepository,
     required BasicConsultationRepository<SeparationItemConsultationModel> separationItemConsultationRepository,
     required BasicConsultationRepository<SeparateProgressConsultationModel> separateProgressRepository,
+    required BasicRepository<SeparationItemModel> separationItemModelRepository,
     required BasicRepository<ExpeditionCartModel> cartRepository,
     required UserSessionService userSessionService,
   }) : _cartRouteInternshipRepository = cartRouteInternshipRepository,
        _separationItemRepository = separationItemConsultationRepository,
+       _separationItemModelRepository = separationItemModelRepository,
        _separateProgressRepository = separateProgressRepository,
        _userSessionService = userSessionService,
        _cartRepository = cartRepository;
@@ -83,6 +87,13 @@ class SaveSeparationCartUseCase {
         horaFinalizacao: currentTime,
         codUsuarioFinalizacao: userModel.codUsuario,
         nomeUsuarioFinalizacao: userModel.nomeUsuario,
+      );
+
+      // Atualizar situação dos itens de separação para finalizado
+      await _updateSeparationItemsToFinalized(
+        params.codEmpresa,
+        params.codCarrinhoPercurso,
+        params.itemCarrinhoPercurso,
       );
 
       await _cartRouteInternshipRepository.update(copyWithCartRouteInternship);
@@ -150,5 +161,24 @@ class SaveSeparationCartUseCase {
     final separateProgresses = await _separateProgressRepository.selectConsultation(query);
     if (separateProgresses.isEmpty) return null;
     return separateProgresses.first;
+  }
+
+  Future<void> _updateSeparationItemsToFinalized(
+    int codEmpresa,
+    int codCarrinhoPercurso,
+    String itemCarrinhoPercurso,
+  ) async {
+    final query = QueryBuilder()
+      ..equals('CodEmpresa', codEmpresa.toString())
+      ..equals('CodCarrinhoPercurso', codCarrinhoPercurso.toString())
+      ..equals('ItemCarrinhoPercurso', itemCarrinhoPercurso)
+      ..notEquals('Situacao', ExpeditionItemSituation.cancelado.code);
+
+    final separationItems = await _separationItemModelRepository.select(query);
+
+    for (final item in separationItems) {
+      final updatedItem = item.copyWith(situacao: ExpeditionItemSituation.finalizado);
+      await _separationItemModelRepository.update(updatedItem);
+    }
   }
 }
