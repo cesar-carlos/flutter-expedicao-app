@@ -56,6 +56,29 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
         showSocketStatus: false,
         leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
         actions: [
+          // Botão de atualização
+          Consumer<CardPickingViewModel>(
+            builder: (context, viewModel, child) {
+              return IconButton(
+                onPressed: viewModel.isLoading
+                    ? null
+                    : () async {
+                        await viewModel.refresh();
+                      },
+                icon: viewModel.isLoading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
+                        ),
+                      )
+                    : const Icon(Icons.refresh),
+                tooltip: 'Atualizar dados',
+              );
+            },
+          ),
           // Menu de três pontos
           PopupMenuButton<String>(
             onSelected: (value) => _onMenuItemSelected(context, value),

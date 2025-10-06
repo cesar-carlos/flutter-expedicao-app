@@ -240,28 +240,48 @@ class CardPickingViewModel extends ChangeNotifier {
       // Executar use case (passando userSystem para evitar recarga)
       final result = await _addItemSeparationUseCase.call(params, userSystem: userSystem);
 
-      return result.fold(
-        (success) {
-          // Atualizar quantidade local usando PickingState
-          final currentQuantity = _pickingState.getPickedQuantity(item.item);
-          final newQuantity = currentQuantity + quantity;
-          _pickingState = _pickingState.updateItemQuantity(item.item, newQuantity);
+      return await result.fold(
+        (success) async {
+          // Atualizar estado local
+          _updateLocalPickingState(item.item, quantity);
 
-          // Notificar listeners para atualizar a UI
-          _safeNotifyListeners();
+          // Sincronizar dados com servidor
+          await _syncDataWithServer();
 
           return AddItemSeparationResult.success(
             'Item adicionado: ${success.addedQuantity} unidades',
             addedQuantity: success.addedQuantity,
           );
         },
-        (failure) {
+        (failure) async {
           final errorMsg = failure is AppFailure ? failure.message : failure.toString();
           return AddItemSeparationResult.error(errorMsg);
         },
       );
     } catch (e) {
       return AddItemSeparationResult.error('Erro inesperado: ${e.toString()}');
+    }
+  }
+
+  /// Atualiza o estado local do picking após adicionar item
+  void _updateLocalPickingState(String itemId, int quantity) {
+    if (_disposed) return;
+
+    final currentQuantity = _pickingState.getPickedQuantity(itemId);
+    final newQuantity = currentQuantity + quantity;
+    _pickingState = _pickingState.updateItemQuantity(itemId, newQuantity);
+    _safeNotifyListeners();
+  }
+
+  /// Sincroniza dados com o servidor após operação bem-sucedida
+  Future<void> _syncDataWithServer() async {
+    try {
+      await refresh();
+    } catch (e) {
+      // Log do erro mas não falha a operação principal
+      if (kDebugMode) {
+        debugPrint('Erro ao sincronizar dados com servidor: ${e.toString()}');
+      }
     }
   }
 

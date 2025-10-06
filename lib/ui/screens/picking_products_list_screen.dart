@@ -75,87 +75,186 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     final colorScheme = theme.colorScheme;
 
     final isPendingFilter = widget.filterType == 'pending';
-    final title = isPendingFilter ? 'Produtos Pendentes' : 'Produtos Separados';
     final icon = isPendingFilter ? Icons.pending_actions : Icons.check_circle;
     final iconColor = isPendingFilter ? Colors.orange : Colors.green;
 
+    final scaffold = _buildScaffold(context, theme, colorScheme, icon, iconColor);
+
+    // Para produtos separados, envolver toda a tela com o Provider
+    if (widget.filterType == 'completed') {
+      return ChangeNotifierProvider<SeparatedProductsViewModel>.value(
+        value: _separatedProductsViewModel,
+        child: _buildPopScope(scaffold),
+      );
+    }
+
+    // Para produtos pendentes, usar o Scaffold normal
+    return _buildPopScope(scaffold);
+  }
+
+  /// Constrói o PopScope com lógica de refresh
+  Widget _buildPopScope(Widget child) {
     return PopScope(
       onPopInvoked: (didPop) async {
         if (didPop && _needsRefresh && widget.filterType == 'completed') {
-          // Atualizar o CardPickingViewModel quando voltar da tela de produtos separados
           await widget.viewModel.refresh();
         }
       },
-      child: Scaffold(
-        appBar: CustomAppBar(
-          title: widget.filterType == 'completed'
-              ? const SeparatedProductsTitleWithConnectionStatus()
-              : widget.filterType == 'pending'
-              ? const PendingProductsTitleWithConnectionStatus()
-              : title,
-          showSocketStatus: false,
-          leading: IconButton(
-            onPressed: () async {
-              if (_needsRefresh && widget.filterType == 'completed') {
-                await widget.viewModel.refresh();
-              }
-              if (context.mounted) {
-                context.pop();
-              }
-            },
-            icon: const Icon(Icons.arrow_back),
-            tooltip: 'Voltar',
-          ),
-          actions: [
-            // Botão de filtro apenas para produtos pendentes
-            if (widget.filterType == 'pending')
-              Consumer<CardPickingViewModel>(
-                builder: (context, viewModel, child) {
-                  return IconButton(
-                    onPressed: () => _showFilterModal(context),
-                    icon: Stack(
-                      children: [
-                        const Icon(Icons.filter_alt),
-                        if (viewModel.hasActiveFilters)
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                            ),
-                          ),
-                      ],
-                    ),
-                    tooltip: 'Filtros de Produtos Pendentes',
-                  );
-                },
-              ),
-          ],
-        ),
-        body: widget.filterType == 'completed'
-            ? ChangeNotifierProvider<SeparatedProductsViewModel>.value(
-                value: _separatedProductsViewModel,
-                child: Consumer<SeparatedProductsViewModel>(
-                  builder: (context, separatedViewModel, child) {
-                    return _buildSeparatedProductsBody(
-                      context,
-                      theme,
-                      colorScheme,
-                      icon,
-                      iconColor,
-                      separatedViewModel,
-                    );
-                  },
+      child: child,
+    );
+  }
+
+  /// Constrói o título da AppBar baseado no tipo de filtro
+  Widget _buildAppBarTitle() {
+    switch (widget.filterType) {
+      case 'completed':
+        return const SeparatedProductsTitleWithConnectionStatus();
+      case 'pending':
+        return const PendingProductsTitleWithConnectionStatus();
+      default:
+        return Text(widget.filterType == 'pending' ? 'Produtos Pendentes' : 'Produtos Separados');
+    }
+  }
+
+  /// Constrói os botões de ação da AppBar
+  List<Widget> _buildAppBarActions(BuildContext context) {
+    final actions = <Widget>[];
+
+    // Botão de filtro apenas para produtos pendentes
+    if (widget.filterType == 'pending') {
+      actions.add(_buildFilterButton(context));
+    }
+
+    // Botão de atualização
+    actions.add(_buildRefreshButton(context));
+
+    return actions;
+  }
+
+  /// Constrói o botão de filtro para produtos pendentes
+  Widget _buildFilterButton(BuildContext context) {
+    return Consumer<CardPickingViewModel>(
+      builder: (context, viewModel, child) {
+        return IconButton(
+          onPressed: () => _showFilterModal(context),
+          icon: Stack(
+            children: [
+              const Icon(Icons.filter_alt),
+              if (viewModel.hasActiveFilters)
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                  ),
                 ),
-              )
-            : Consumer<CardPickingViewModel>(
-                builder: (context, viewModel, child) {
-                  return _buildPendingProductsBody(context, theme, colorScheme, icon, iconColor);
+            ],
+          ),
+          tooltip: 'Filtros de Produtos Pendentes',
+        );
+      },
+    );
+  }
+
+  /// Constrói o botão de atualização baseado no tipo de filtro
+  Widget _buildRefreshButton(BuildContext context) {
+    if (widget.filterType == 'completed') {
+      return _buildSeparatedProductsRefreshButton(context);
+    } else {
+      return _buildPendingProductsRefreshButton(context);
+    }
+  }
+
+  /// Constrói o botão de atualização para produtos separados
+  Widget _buildSeparatedProductsRefreshButton(BuildContext context) {
+    return Consumer<SeparatedProductsViewModel>(
+      builder: (context, separatedViewModel, child) {
+        return IconButton(
+          onPressed: separatedViewModel.isLoading
+              ? null
+              : () async {
+                  await separatedViewModel.refresh();
                 },
-              ),
+          icon: separatedViewModel.isLoading
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
+                  ),
+                )
+              : const Icon(Icons.refresh),
+          tooltip: 'Atualizar produtos separados',
+        );
+      },
+    );
+  }
+
+  /// Constrói o botão de atualização para produtos pendentes
+  Widget _buildPendingProductsRefreshButton(BuildContext context) {
+    return Consumer<CardPickingViewModel>(
+      builder: (context, viewModel, child) {
+        return IconButton(
+          onPressed: viewModel.isLoading
+              ? null
+              : () async {
+                  await viewModel.refresh();
+                },
+          icon: viewModel.isLoading
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
+                  ),
+                )
+              : const Icon(Icons.refresh),
+          tooltip: 'Atualizar produtos pendentes',
+        );
+      },
+    );
+  }
+
+  Widget _buildScaffold(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    IconData icon,
+    Color iconColor,
+  ) {
+    return Scaffold(
+      appBar: CustomAppBar(
+        title: _buildAppBarTitle(),
+        showSocketStatus: false,
+        leading: IconButton(
+          onPressed: () async {
+            if (_needsRefresh && widget.filterType == 'completed') {
+              await widget.viewModel.refresh();
+            }
+            if (context.mounted) {
+              context.pop();
+            }
+          },
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Voltar',
+        ),
+        actions: _buildAppBarActions(context),
       ),
+      body: widget.filterType == 'completed'
+          ? Consumer<SeparatedProductsViewModel>(
+              builder: (context, separatedViewModel, child) {
+                return _buildSeparatedProductsBody(context, theme, colorScheme, icon, iconColor, separatedViewModel);
+              },
+            )
+          : Consumer<CardPickingViewModel>(
+              builder: (context, viewModel, child) {
+                return _buildPendingProductsBody(context, theme, colorScheme, icon, iconColor);
+              },
+            ),
     );
   }
 

@@ -63,68 +63,61 @@ class BarcodeScannerCard extends StatelessWidget {
   }
 
   Widget _buildScannerField(ThemeData theme, ColorScheme colorScheme) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            enabled: enabled,
-            onSubmitted: enabled ? onSubmitted : null,
-            decoration: InputDecoration(
-              hintText: enabled ? 'Aguardando scanner' : 'Scanner desabilitado',
-              prefixIcon: Icon(Icons.qr_code, color: enabled ? colorScheme.onSurfaceVariant : Colors.grey),
-              suffixIcon: enabled
-                  ? IconButton(
-                      onPressed: () {
-                        controller.clear();
-                        focusNode.requestFocus();
-                      },
-                      icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: enabled ? colorScheme.outline : Colors.grey),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: enabled ? colorScheme.outline : Colors.grey),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: enabled ? colorScheme.primary : Colors.grey, width: 2),
-              ),
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              fillColor: enabled ? null : Colors.grey.withOpacity(0.1),
-              filled: !enabled,
-            ),
-            style: TextStyle(color: enabled ? null : Colors.grey),
-          ),
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      enabled: enabled,
+      onSubmitted: enabled ? onSubmitted : null,
+      decoration: InputDecoration(
+        hintText: enabled
+            ? (keyboardEnabled ? 'Digite o código de barras' : 'Aguardando scanner')
+            : 'Scanner desabilitado',
+        prefixIcon: enabled
+            ? IconButton(
+                onPressed: onToggleKeyboard,
+                icon: Icon(keyboardEnabled ? Icons.qr_code_scanner : Icons.keyboard, color: colorScheme.primary),
+                tooltip: keyboardEnabled ? 'Usar Scanner' : 'Usar Teclado',
+              )
+            : Icon(Icons.qr_code, color: Colors.grey),
+        suffixIcon: enabled
+            ? IconButton(
+                onPressed: () {
+                  controller.clear();
+                  focusNode.requestFocus();
+                },
+                icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
+              )
+            : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: enabled ? colorScheme.outline : Colors.grey),
         ),
-        if (enabled) ...[
-          const SizedBox(width: 8),
-          IconButton(
-            onPressed: onToggleKeyboard,
-            icon: Icon(keyboardEnabled ? Icons.keyboard_hide : Icons.keyboard, color: colorScheme.primary),
-            style: IconButton.styleFrom(
-              backgroundColor: colorScheme.primary.withOpacity(0.1),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-          ),
-        ],
-      ],
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: enabled ? colorScheme.outline : Colors.grey),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: enabled ? colorScheme.primary : Colors.grey, width: 2),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        fillColor: enabled ? null : Colors.grey.withOpacity(0.1),
+        filled: !enabled,
+      ),
+      style: TextStyle(color: enabled ? null : Colors.grey),
     );
   }
 
   Widget _buildHelpText(ThemeData theme, ColorScheme colorScheme) {
     return Text(
       enabled
-          ? 'Posicione o produto no scanner ou toque no ícone para usar o teclado'
+          ? (keyboardEnabled
+                ? 'Digite o código de barras manualmente ou toque no ícone para usar o scanner'
+                : 'Posicione o produto no scanner ou toque no ícone para usar o teclado')
           : 'Scanner desabilitado - carrinho não está em situação de separação',
       style: theme.textTheme.bodySmall?.copyWith(color: enabled ? colorScheme.onSurfaceVariant : Colors.grey),
     );
