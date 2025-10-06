@@ -4,8 +4,9 @@ import 'package:flutter/services.dart';
 class QuantitySelectorCard extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
+  final bool enabled;
 
-  const QuantitySelectorCard({super.key, required this.controller, required this.focusNode});
+  const QuantitySelectorCard({super.key, required this.controller, required this.focusNode, this.enabled = true});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,7 @@ class QuantitySelectorCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.withOpacity(0.3), width: 2),
+        border: Border.all(color: enabled ? Colors.orange.withOpacity(0.3) : Colors.grey.withOpacity(0.3), width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,11 +36,14 @@ class QuantitySelectorCard extends StatelessWidget {
   Widget _buildHeader(ThemeData theme) {
     return Row(
       children: [
-        Icon(Icons.inventory, color: Colors.orange, size: 20),
-        const SizedBox(width: 8),
+        Icon(Icons.inventory_2, color: enabled ? Colors.orange : Colors.grey, size: 20),
+        const SizedBox(width: 6),
         Text(
           'Quantidade a Separar',
-          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.orange),
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: enabled ? Colors.orange : Colors.grey,
+          ),
         ),
       ],
     );
@@ -59,27 +63,37 @@ class QuantitySelectorCard extends StatelessWidget {
 
   Widget _buildDecrementButton() {
     return IconButton(
-      onPressed: () {
-        final currentValue = int.tryParse(controller.text) ?? 1;
-        if (currentValue > 1) {
-          controller.text = (currentValue - 1).toString();
-        }
-      },
-      icon: Icon(Icons.remove, color: Colors.orange),
-      style: IconButton.styleFrom(backgroundColor: Colors.orange.withOpacity(0.1), shape: CircleBorder()),
+      onPressed: enabled
+          ? () {
+              final currentValue = int.tryParse(controller.text) ?? 1;
+              if (currentValue > 1) {
+                controller.text = (currentValue - 1).toString();
+              }
+            }
+          : null,
+      icon: Icon(Icons.remove, color: enabled ? Colors.orange : Colors.grey),
+      style: IconButton.styleFrom(
+        backgroundColor: enabled ? Colors.orange.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+        shape: CircleBorder(),
+      ),
     );
   }
 
   Widget _buildIncrementButton() {
     return IconButton(
-      onPressed: () {
-        final currentValue = int.tryParse(controller.text) ?? 1;
-        if (currentValue < 999) {
-          controller.text = (currentValue + 1).toString();
-        }
-      },
-      icon: Icon(Icons.add, color: Colors.orange),
-      style: IconButton.styleFrom(backgroundColor: Colors.orange.withOpacity(0.1), shape: CircleBorder()),
+      onPressed: enabled
+          ? () {
+              final currentValue = int.tryParse(controller.text) ?? 1;
+              if (currentValue < 999) {
+                controller.text = (currentValue + 1).toString();
+              }
+            }
+          : null,
+      icon: Icon(Icons.add, color: enabled ? Colors.orange : Colors.grey),
+      style: IconButton.styleFrom(
+        backgroundColor: enabled ? Colors.orange.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+        shape: CircleBorder(),
+      ),
     );
   }
 
@@ -88,40 +102,32 @@ class QuantitySelectorCard extends StatelessWidget {
       child: TextField(
         controller: controller,
         focusNode: focusNode,
+        enabled: enabled,
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
-        inputFormatters: [
-          FilteringTextInputFormatter.digitsOnly,
-          LengthLimitingTextInputFormatter(3), // Limita a 3 dígitos (máximo 999)
-        ],
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(3)],
         decoration: InputDecoration(
-          hintText: '1',
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.orange),
+            borderSide: BorderSide(color: enabled ? Colors.orange : Colors.grey),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: enabled ? Colors.orange : Colors.grey),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.orange, width: 2),
+            borderSide: BorderSide(color: enabled ? Colors.orange : Colors.grey, width: 2),
           ),
-          filled: true,
-          fillColor: Colors.orange.withOpacity(0.05),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey),
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          fillColor: enabled ? null : Colors.grey.withOpacity(0.1),
+          filled: !enabled,
         ),
-        onTap: () {
-          // Selecionar todo o texto quando o usuário tocar no campo
-          controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
-        },
-        onChanged: (value) {
-          // Validar que seja um número positivo e não exceda 999
-          final intValue = int.tryParse(value);
-          if (intValue == null || intValue < 1) {
-            controller.text = '1';
-            controller.selection = TextSelection.fromPosition(TextPosition(offset: controller.text.length));
-          } else if (intValue > 999) {
-            controller.text = '999';
-            controller.selection = TextSelection.fromPosition(TextPosition(offset: controller.text.length));
-          }
-        },
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: enabled ? null : Colors.grey),
       ),
     );
   }
@@ -129,7 +135,7 @@ class QuantitySelectorCard extends StatelessWidget {
   Widget _buildHelpText(ThemeData theme, ColorScheme colorScheme) {
     return Text(
       'Defina a quantidade que será separada quando escanear o produto (máximo: 999)',
-      style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+      style: theme.textTheme.bodySmall?.copyWith(color: enabled ? colorScheme.onSurfaceVariant : Colors.grey),
     );
   }
 }

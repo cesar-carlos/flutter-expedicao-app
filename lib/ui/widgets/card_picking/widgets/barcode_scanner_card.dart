@@ -6,6 +6,7 @@ class BarcodeScannerCard extends StatelessWidget {
   final bool keyboardEnabled;
   final VoidCallback onToggleKeyboard;
   final ValueChanged<String> onSubmitted;
+  final bool enabled;
 
   const BarcodeScannerCard({
     super.key,
@@ -14,6 +15,7 @@ class BarcodeScannerCard extends StatelessWidget {
     required this.keyboardEnabled,
     required this.onToggleKeyboard,
     required this.onSubmitted,
+    this.enabled = true,
   });
 
   @override
@@ -26,7 +28,10 @@ class BarcodeScannerCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.primary.withOpacity(0.3), width: 2),
+        border: Border.all(
+          color: enabled ? colorScheme.primary.withOpacity(0.3) : Colors.grey.withOpacity(0.3),
+          width: 2,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,63 +49,84 @@ class BarcodeScannerCard extends StatelessWidget {
   Widget _buildHeader(ThemeData theme, ColorScheme colorScheme) {
     return Row(
       children: [
-        Icon(Icons.barcode_reader, color: colorScheme.primary, size: 20),
-        const SizedBox(width: 8),
+        Icon(Icons.qr_code_scanner, color: enabled ? colorScheme.primary : Colors.grey, size: 20),
+        const SizedBox(width: 6),
         Text(
           'Escaneie o código de barras',
-          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: enabled ? colorScheme.primary : Colors.grey,
+          ),
         ),
       ],
     );
   }
 
   Widget _buildScannerField(ThemeData theme, ColorScheme colorScheme) {
-    return TextField(
-      controller: controller,
-      focusNode: focusNode,
-      autofocus: true,
-      // Remover readOnly para permitir que o scanner físico insira dados
-      // readOnly: !keyboardEnabled,
-      keyboardType: keyboardEnabled ? TextInputType.number : TextInputType.none,
-      // Desabilitar o teclado virtual quando não estiver em modo teclado
-      enableInteractiveSelection: keyboardEnabled,
-      showCursor: true, // Sempre mostrar cursor para indicar que está ativo
-      decoration: InputDecoration(
-        hintText: keyboardEnabled ? 'Digite o código...' : 'Aguardando scanner',
-        prefixIcon: IconButton(
-          icon: Icon(keyboardEnabled ? Icons.keyboard : Icons.qr_code_scanner, color: colorScheme.primary),
-          onPressed: onToggleKeyboard,
-          tooltip: keyboardEnabled ? 'Usar scanner' : 'Usar teclado',
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: controller,
+            focusNode: focusNode,
+            enabled: enabled,
+            onSubmitted: enabled ? onSubmitted : null,
+            decoration: InputDecoration(
+              hintText: enabled ? 'Aguardando scanner' : 'Scanner desabilitado',
+              prefixIcon: Icon(Icons.qr_code, color: enabled ? colorScheme.onSurfaceVariant : Colors.grey),
+              suffixIcon: enabled
+                  ? IconButton(
+                      onPressed: () {
+                        controller.clear();
+                        focusNode.requestFocus();
+                      },
+                      icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: enabled ? colorScheme.outline : Colors.grey),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: enabled ? colorScheme.outline : Colors.grey),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: enabled ? colorScheme.primary : Colors.grey, width: 2),
+              ),
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              fillColor: enabled ? null : Colors.grey.withOpacity(0.1),
+              filled: !enabled,
+            ),
+            style: TextStyle(color: enabled ? null : Colors.grey),
+          ),
         ),
-        suffixIcon: IconButton(
-          icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
-          onPressed: () {
-            controller.clear();
-            focusNode.requestFocus();
-          },
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: colorScheme.outline),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: colorScheme.primary, width: 2),
-        ),
-        filled: true,
-        fillColor: colorScheme.surface,
-      ),
-      onSubmitted: onSubmitted,
-      textInputAction: TextInputAction.done,
+        if (enabled) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: onToggleKeyboard,
+            icon: Icon(keyboardEnabled ? Icons.keyboard_hide : Icons.keyboard, color: colorScheme.primary),
+            style: IconButton.styleFrom(
+              backgroundColor: colorScheme.primary.withOpacity(0.1),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
   Widget _buildHelpText(ThemeData theme, ColorScheme colorScheme) {
     return Text(
-      keyboardEnabled
-          ? 'Digite o código de barras e pressione Enter'
-          : 'Posicione o produto no scanner ou toque no ícone para usar o teclado',
-      style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+      enabled
+          ? 'Posicione o produto no scanner ou toque no ícone para usar o teclado'
+          : 'Scanner desabilitado - carrinho não está em situação de separação',
+      style: theme.textTheme.bodySmall?.copyWith(color: enabled ? colorScheme.onSurfaceVariant : Colors.grey),
     );
   }
 }

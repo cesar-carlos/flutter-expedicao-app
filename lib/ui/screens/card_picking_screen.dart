@@ -10,6 +10,9 @@ import 'package:exp/ui/widgets/card_picking/picking_actions_bottom_bar.dart';
 import 'package:exp/ui/widgets/card_picking/picking_card_scan.dart';
 import 'package:exp/ui/screens/picking_products_list_screen.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
+import 'package:exp/ui/widgets/card_picking/cart_status_warning.dart';
+import 'package:exp/ui/widgets/cart_title_with_status.dart';
+import 'package:exp/ui/widgets/cart_status_bar.dart';
 
 class CardPickingScreen extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -34,11 +37,23 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
   }
 
   @override
+  void dispose() {
+    // Para o monitoramento de eventos de carrinho
+    try {
+      final viewModel = context.read<CardPickingViewModel>();
+      viewModel.stopCartEventMonitoring();
+    } catch (e) {
+      // Ignora erro se o contexto não estiver mais disponível
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: CustomAppBar(
-        title: widget.cart.nomeCarrinho,
+        title: CartTitleWithStatus(cartName: widget.cart.nomeCarrinho),
         showSocketStatus: false,
         leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
         actions: [
@@ -93,6 +108,12 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
         children: [
           // Faixa de status de conexão logo abaixo do AppBar
           const ConnectionStatusBar(),
+
+          // Barra de status do carrinho
+          const CartStatusBar(),
+
+          // Aviso de status do carrinho
+          const CartStatusWarning(),
 
           // Conteúdo principal
           Expanded(

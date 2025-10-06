@@ -24,6 +24,12 @@ import 'package:exp/di/locator.dart';
 /// ViewModel para gerenciar o estado do picking de um carrinho
 /// Os produtos são ordenados por endereço usando ordenação natural (01, 02, 10, 11, etc.)
 class CardPickingViewModel extends ChangeNotifier {
+  // === CONSTANTES ===
+  static const String _cartUpdateListenerId = 'card_picking_viewmodel_cart_update';
+
+  // Códigos de situação para carrinho em separação
+  static const String _cartInSeparationCode = 'EM SEPARACAO';
+  static const String _cartSeparatingCode = 'SEPARANDO';
   // Repository para carregar os itens
   final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
   final BasicRepository<ExpeditionSectorStockModel> _sectorStockRepository;
@@ -34,6 +40,9 @@ class CardPickingViewModel extends ChangeNotifier {
 
   // Service para obter sessão do usuário
   final UserSessionService _userSessionService;
+
+  // Repository para eventos de carrinho
+  final SeparateCartInternshipEventRepository _cartEventRepository;
 
   // Estado do carrinho
   ExpeditionCartRouteInternshipConsultationModel? _cart;
@@ -58,16 +67,16 @@ class CardPickingViewModel extends ChangeNotifier {
   List<SeparateItemConsultationModel> _items = [];
   List<SeparateItemConsultationModel> get items => List.unmodifiable(_items);
   bool get hasItems => _items.isNotEmpty;
-  
+
   /// Verifica se há itens disponíveis para o setor do usuário
   bool get hasItemsForUserSector {
     if (_items.isEmpty) return false;
-    
+
     final userSectorCode = _userModel?.codSetorEstoque;
-    
+
     // Se usuário não tem setor, todos os itens estão disponíveis
     if (userSectorCode == null) return true;
-    
+
     // Verificar se há itens sem setor ou do setor do usuário
     return _items.any((item) => item.codSetorEstoque == null || item.codSetorEstoque == userSectorCode);
   }
@@ -82,8 +91,20 @@ class CardPickingViewModel extends ChangeNotifier {
   double get progress => _pickingState.progress;
   bool get isPickingComplete => _pickingState.isComplete;
 
+  /// Verifica se o carrinho está em situação de separação
+  bool get isCartInSeparationStatus {
+    return _cart?.situacao.code == _cartInSeparationCode || _cart?.situacao.code == _cartSeparatingCode;
+  }
+
+  /// Verifica se o status do carrinho mudou durante a sessão
+  bool get hasCartStatusChanged => _cartStatusChanged;
+
   // Flag para evitar dispose durante operações
   bool _disposed = false;
+
+  // === MONITORAMENTO DE EVENTOS DE CARRINHO ===
+  bool _cartEventListenersRegistered = false;
+  bool _cartStatusChanged = false;
 
   // === FILTROS ===
   PendingProductsFiltersModel _filters = const PendingProductsFiltersModel();
@@ -109,11 +130,13 @@ class CardPickingViewModel extends ChangeNotifier {
       _sectorStockRepository = locator<BasicRepository<ExpeditionSectorStockModel>>(),
       _filtersStorage = locator<FiltersStorageService>(),
       _addItemSeparationUseCase = locator<AddItemSeparationUseCase>(),
-      _userSessionService = locator<UserSessionService>();
+      _userSessionService = locator<UserSessionService>(),
+      _cartEventRepository = locator<SeparateCartInternshipEventRepository>();
 
   @override
   void dispose() {
     _disposed = true;
+    stopCartEventMonitoring();
     super.dispose();
   }
 
@@ -139,10 +162,14 @@ class CardPickingViewModel extends ChangeNotifier {
       _errorMessage = null;
       _cart = cart;
       _userModel = userModel;
+      _cartStatusChanged = false;
       _safeNotifyListeners();
 
       // Carregar itens do carrinho através de use case
       await _loadCartItems();
+
+      // Iniciar monitoramento de eventos de carrinho
+      startCartEventMonitoring();
     } catch (e) {
       _hasError = true;
       _errorMessage = 'Erro ao inicializar dados do picking: ${e.toString()}';
@@ -589,6 +616,110 @@ class CardPickingViewModel extends ChangeNotifier {
     } catch (e) {
       // Log do erro, mas não quebra a aplicação
     }
+  }
+
+  // === MÉTODOS DE MONITORAMENTO DE EVENTOS DE CARRINHO ===
+
+  /// Inicia o monitoramento de eventos de carrinho
+  void startCartEventMonitoring() {
+    if (_disposed || _cart == null) return;
+    _registerCartEventListener();
+  }
+
+  /// Para o monitoramento de eventos de carrinho
+  void stopCartEventMonitoring() {
+    if (_disposed) return;
+    _unregisterCartEventListener();
+  }
+
+  /// Registra o listener para eventos de atualização de carrinho
+  void _registerCartEventListener() {
+    if (_disposed || _cartEventListenersRegistered || _cart == null) return;
+
+    try {
+      _cartEventRepository.addListener(
+        EventListenerModel(id: _cartUpdateListenerId, event: Event.update, callback: _onCartEvent, allEvent: false),
+      );
+
+      _cartEventListenersRegistered = true;
+    } catch (e) {
+      // Erro ao registrar listener - continuar sem eventos
+    }
+  }
+
+  /// Remove o listener de eventos de carrinho
+  void _unregisterCartEventListener() {
+    if (!_cartEventListenersRegistered) return;
+
+    try {
+      _cartEventRepository.removeListener(_cartUpdateListenerId);
+      _cartEventListenersRegistered = false;
+    } catch (e) {
+      // Erro ao remover listener - continuar
+    }
+  }
+
+  /// Callback chamado quando há evento de carrinho
+  void _onCartEvent(BasicEventModel event) {
+    if (_disposed || _cart == null) return;
+
+    try {
+      _processCartEventData(event);
+    } catch (e) {
+      // Erro ao processar evento - continuar
+    }
+  }
+
+  /// Processa os dados do evento de carrinho
+  void _processCartEventData(BasicEventModel event) {
+    if (event.data == null) return;
+
+    try {
+      if (event.data is Map<String, dynamic>) {
+        final dataMap = event.data as Map<String, dynamic>;
+
+        if (dataMap.containsKey('Mutation') && dataMap['Mutation'] is List) {
+          final mutations = dataMap['Mutation'] as List;
+
+          for (final mutation in mutations) {
+            if (mutation is Map<String, dynamic>) {
+              final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(mutation);
+              _handleCartUpdate(cartData);
+            }
+          }
+        } else {
+          final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(dataMap);
+          _handleCartUpdate(cartData);
+        }
+      }
+    } catch (e) {
+      // Erro ao processar dados - continuar
+    }
+  }
+
+  /// Processa evento de atualização de carrinho
+  void _handleCartUpdate(ExpeditionCartRouteInternshipConsultationModel cartData) {
+    if (_disposed || _cart == null) return;
+
+    // Verificar se é o mesmo carrinho
+    if (!_isSameCart(cartData)) return;
+
+    // Verificar se a situação mudou
+    final oldSituation = _cart!.situacao.code;
+    final newSituation = cartData.situacao.code;
+
+    if (oldSituation != newSituation) {
+      _cartStatusChanged = true;
+      _cart = cartData;
+      _safeNotifyListeners();
+    }
+  }
+
+  /// Verifica se o carrinho do evento corresponde ao carrinho atual
+  bool _isSameCart(ExpeditionCartRouteInternshipConsultationModel cartData) {
+    return cartData.codEmpresa == _cart!.codEmpresa &&
+        cartData.codCarrinhoPercurso == _cart!.codCarrinhoPercurso &&
+        cartData.item == _cart!.item;
   }
 }
 

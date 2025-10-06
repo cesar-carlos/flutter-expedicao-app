@@ -6,7 +6,7 @@ import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/core/utils/string_utils.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
+  final dynamic title; // Aceita String ou Widget
   final List<Widget>? actions;
   final Widget? leading;
   final bool showSocketStatus;
@@ -71,14 +71,18 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _buildNormalTitle() {
-    return Text(title, style: foregroundColor != null ? TextStyle(color: foregroundColor) : null);
+    if (title is Widget) {
+      return title as Widget;
+    } else {
+      return Text(title as String, style: foregroundColor != null ? TextStyle(color: foregroundColor) : null);
+    }
   }
 
   Widget _buildUserTitle(BuildContext context) {
     return Consumer<AuthViewModel>(
       builder: (context, authViewModel, child) {
         final currentUser = authViewModel.currentUser;
-        final userName = currentUser?.nome ?? title;
+        final userName = currentUser?.nome ?? (title is String ? title as String : 'Usuário');
         return Text(
           'Olá ${StringUtils.capitalizeWords(userName)}',
           style: foregroundColor != null ? TextStyle(color: foregroundColor) : null,
@@ -149,6 +153,29 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       showSocketStatus: showSocketStatus,
       showUserInfo: true,
       replaceWithUserName: replaceWithUserName,
+      centerTitle: centerTitle,
+      backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
+      elevation: elevation,
+    );
+  }
+
+  /// Factory para criar AppBar com título customizado (Widget)
+  factory CustomAppBar.withCustomTitle({
+    required Widget title,
+    List<Widget>? actions,
+    Widget? leading,
+    bool showSocketStatus = true,
+    bool centerTitle = false,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    double? elevation,
+  }) {
+    return CustomAppBar(
+      title: title,
+      actions: actions,
+      leading: leading,
+      showSocketStatus: showSocketStatus,
       centerTitle: centerTitle,
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,

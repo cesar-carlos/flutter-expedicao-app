@@ -85,6 +85,7 @@ import 'package:exp/data/repositories/expedition_check_item_consultation_reposit
 import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
+import 'package:exp/domain/usecases/delete_item_separation/delete_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:exp/domain/usecases/save_separation/save_separation_usecase.dart';
 import 'package:exp/domain/usecases/start_separation/start_separation_usecase.dart';
@@ -274,6 +275,15 @@ void setupLocator() {
 
   locator.registerLazySingleton<CancelItemSeparationUseCase>(
     () => CancelItemSeparationUseCase(
+      separateItemRepository: locator<BasicRepository<SeparateItemModel>>(),
+      separationItemRepository: locator<BasicRepository<SeparationItemModel>>(),
+      separateRepository: locator<BasicRepository<SeparateModel>>(),
+      userSessionService: locator<UserSessionService>(),
+    ),
+  );
+
+  locator.registerLazySingleton<DeleteItemSeparationUseCase>(
+    () => DeleteItemSeparationUseCase(
       separateItemRepository: locator<BasicRepository<SeparateItemModel>>(),
       separationItemRepository: locator<BasicRepository<SeparationItemModel>>(),
       separateRepository: locator<BasicRepository<SeparateModel>>(),

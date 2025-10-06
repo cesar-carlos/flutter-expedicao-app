@@ -12,6 +12,10 @@ class SeparatedProductItem extends StatelessWidget {
 
   const SeparatedProductItem({super.key, required this.item, this.viewModel});
 
+  // === CONSTANTES ===
+  static const EdgeInsets _dialogSpacing = EdgeInsets.only(top: 8);
+  static const double _warningIconSize = 20;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -192,12 +196,14 @@ class SeparatedProductItem extends StatelessWidget {
                 ),
               ),
               child: CustomFlatButtonVariations.outlined(
-                text: 'Cancelar Item',
-                onPressed: viewModel!.isItemBeingCancelled(item.item) ? null : () => _showCancelDialog(context),
+                text: 'Excluir Item',
+                onPressed: (viewModel!.isItemBeingCancelled(item.item) || !viewModel!.isCartInSeparationStatus)
+                    ? null
+                    : () => _showDeleteDialog(context),
                 isLoading: viewModel!.isItemBeingCancelled(item.item),
-                textColor: theme.colorScheme.error,
-                borderColor: theme.colorScheme.error,
-                icon: Icons.cancel_outlined,
+                textColor: viewModel!.isCartInSeparationStatus ? theme.colorScheme.error : Colors.grey,
+                borderColor: viewModel!.isCartInSeparationStatus ? theme.colorScheme.error : Colors.grey,
+                icon: Icons.delete_outline,
               ),
             ),
         ],
@@ -282,62 +288,105 @@ class SeparatedProductItem extends StatelessWidget {
     }
   }
 
-  /// Mostra diálogo de confirmação de cancelamento
-  void _showCancelDialog(BuildContext context) {
+  /// Mostra diálogo de confirmação de exclusão
+  void _showDeleteDialog(BuildContext context) {
     if (viewModel == null) return;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.warning, color: Theme.of(context).colorScheme.error),
-            const SizedBox(width: 8),
-            const Text('Cancelar Item'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Deseja realmente cancelar este item?'),
-            const SizedBox(height: 8),
-            Text(
-              'Produto: ${item.nomeProduto}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            Text(
-              'Quantidade: ${item.quantidade.toStringAsFixed(2)} ${item.codUnidadeMedida}',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Não')),
-          FilledButton.tonal(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              final success = await viewModel!.cancelItem(item);
 
-              if (success && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Item cancelado com sucesso!'), backgroundColor: Colors.green),
-                );
-              } else if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(viewModel!.errorMessage ?? 'Erro ao cancelar item'),
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                  ),
-                );
-              }
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.errorContainer,
-              foregroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text('Sim, Cancelar'),
+    showDialog(context: context, builder: (context) => _buildDeleteDialog(context));
+  }
+
+  /// Constrói o diálogo de exclusão
+  Widget _buildDeleteDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return AlertDialog(
+      title: _buildDialogTitle(context, colorScheme),
+      content: _buildDialogContent(context, theme),
+      actions: _buildDialogActions(context, colorScheme),
+    );
+  }
+
+  /// Constrói o título do diálogo
+  Widget _buildDialogTitle(BuildContext context, ColorScheme colorScheme) {
+    return Row(
+      children: [
+        Icon(Icons.warning, color: colorScheme.error, size: _warningIconSize),
+        const SizedBox(width: 8),
+        const Text('Excluir Item'),
+      ],
+    );
+  }
+
+  /// Constrói o conteúdo do diálogo
+  Widget _buildDialogContent(BuildContext context, ThemeData theme) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Deseja realmente excluir este item?'),
+        Padding(
+          padding: _dialogSpacing,
+          child: Text(
+            'Esta ação não pode ser desfeita.',
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
           ),
-        ],
+        ),
+        Padding(
+          padding: _dialogSpacing,
+          child: Text(
+            'Produto: ${item.nomeProduto}',
+            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+        ),
+        Text(
+          'Quantidade: ${item.quantidade.toStringAsFixed(2)} ${item.codUnidadeMedida}',
+          style: theme.textTheme.bodyMedium,
+        ),
+      ],
+    );
+  }
+
+  /// Constrói as ações do diálogo
+  List<Widget> _buildDialogActions(BuildContext context, ColorScheme colorScheme) {
+    return [
+      TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Não')),
+      FilledButton.tonal(
+        onPressed: () => _handleDeleteConfirmation(context),
+        style: FilledButton.styleFrom(backgroundColor: colorScheme.errorContainer, foregroundColor: colorScheme.error),
+        child: const Text('Sim, Excluir'),
+      ),
+    ];
+  }
+
+  /// Manipula a confirmação de exclusão
+  Future<void> _handleDeleteConfirmation(BuildContext context) async {
+    Navigator.of(context).pop();
+
+    final success = await viewModel!.deleteItem(item);
+
+    if (!context.mounted) return;
+
+    if (success) {
+      _showSuccessMessage(context);
+    } else {
+      _showErrorMessage(context);
+    }
+  }
+
+  /// Mostra mensagem de sucesso
+  void _showSuccessMessage(BuildContext context) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Item excluído com sucesso!'), backgroundColor: Colors.green));
+  }
+
+  /// Mostra mensagem de erro
+  void _showErrorMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(viewModel!.errorMessage ?? 'Erro ao excluir item'),
+        backgroundColor: Theme.of(context).colorScheme.error,
       ),
     );
   }

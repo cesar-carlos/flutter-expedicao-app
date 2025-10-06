@@ -525,7 +525,7 @@ class SeparationViewModel extends ChangeNotifier {
 
     if (_situacoesFilter != null &&
         _situacoesFilter!.isNotEmpty &&
-        !_situacoesFilter!.contains(separationData.situacao.name)) {
+        !_situacoesFilter!.contains(separationData.situacao.code)) {
       return false;
     }
 

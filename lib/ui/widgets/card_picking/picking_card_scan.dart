@@ -137,7 +137,11 @@ class _PickingCardScanState extends State<PickingCardScan> {
             const SizedBox(height: 6),
 
             // Card de seleção de quantidade
-            QuantitySelectorCard(controller: _quantityController, focusNode: _quantityFocusNode),
+            QuantitySelectorCard(
+              controller: _quantityController,
+              focusNode: _quantityFocusNode,
+              enabled: widget.viewModel.isCartInSeparationStatus,
+            ),
 
             const SizedBox(height: 6),
 
@@ -148,6 +152,7 @@ class _PickingCardScanState extends State<PickingCardScan> {
               keyboardEnabled: _keyboardEnabled,
               onToggleKeyboard: _toggleKeyboard,
               onSubmitted: _onBarcodeScanned,
+              enabled: widget.viewModel.isCartInSeparationStatus,
             ),
           ],
         ),
