@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:exp/core/routing/app_router.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
-import 'package:exp/ui/widgets/common/connection_status_bar.dart';
+import 'package:exp/ui/widgets/separation_title_with_connection_status.dart';
 import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/ui/widgets/separation/separation_filter_modal.dart';
@@ -126,7 +126,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Separação',
+        title: const SeparationTitleWithConnectionStatus(),
         showSocketStatus: false,
         leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
         actions: [_buildAppBarActions()],
@@ -134,7 +134,6 @@ class _SeparationScreenState extends State<SeparationScreen> {
       drawer: const AppDrawer(),
       body: Column(
         children: [
-          const ConnectionStatusBar(),
           Expanded(
             child: Consumer<SeparationViewModel>(
               builder: (context, viewModel, child) {

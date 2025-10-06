@@ -16,7 +16,7 @@ import 'package:exp/ui/widgets/separate_items/separate_items_error_state.dart';
 import 'package:exp/ui/widgets/separate_items/separation_info_view.dart';
 import 'package:exp/ui/widgets/separate_items/carts_filter_modal.dart';
 import 'package:exp/ui/widgets/separate_items/carts_list_view.dart';
-import 'package:exp/ui/widgets/common/connection_status_bar.dart';
+import 'package:exp/ui/widgets/separation_title_with_connection_status.dart';
 import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 import 'package:exp/ui/screens/card_picking_screen.dart';
@@ -78,7 +78,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Separar Itens',
+        title: const SeparationTitleWithConnectionStatus(),
         showSocketStatus: false,
         leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
         actions: [
@@ -124,9 +124,6 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       ),
       body: Column(
         children: [
-          // Faixa de status de conexão logo abaixo do AppBar
-          const ConnectionStatusBar(),
-
           // Conteúdo principal
           Expanded(
             child: Consumer<SeparationItemsViewModel>(

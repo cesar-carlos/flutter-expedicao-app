@@ -10,7 +10,8 @@ import 'package:exp/ui/widgets/picking_products_list/pending_products_filter_mod
 import 'package:exp/domain/viewmodels/separated_products_viewmodel.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/ui/widgets/separated_products/separated_products_cart_status_warning.dart';
-import 'package:exp/ui/widgets/cart_status_bar.dart';
+import 'package:exp/ui/widgets/separated_products_title_with_connection_status.dart';
+import 'package:exp/ui/widgets/pending_products_title_with_connection_status.dart';
 
 class PickingProductsListScreen extends StatefulWidget {
   final String filterType; // 'pending' ou 'completed'
@@ -87,7 +88,11 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
       },
       child: Scaffold(
         appBar: CustomAppBar(
-          title: title,
+          title: widget.filterType == 'completed'
+              ? const SeparatedProductsTitleWithConnectionStatus()
+              : widget.filterType == 'pending'
+              ? const PendingProductsTitleWithConnectionStatus()
+              : title,
           showSocketStatus: false,
           leading: IconButton(
             onPressed: () async {
@@ -317,9 +322,6 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
 
     return Column(
       children: [
-        // Barra de status do carrinho
-        const CartStatusBar(),
-
         // Aviso de status do carrinho
         const SeparatedProductsCartStatusWarning(),
 
