@@ -37,11 +37,25 @@ class _SeparationScreenState extends State<SeparationScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadInitialData();
+
+      // Inicia o monitoramento de eventos quando a tela é aberta
+      final viewModel = context.read<SeparationViewModel>();
+      viewModel.startEventMonitoring();
+    });
   }
 
   @override
   void dispose() {
+    // Para o monitoramento de eventos quando a tela é fechada
+    try {
+      final viewModel = context.read<SeparationViewModel>();
+      viewModel.stopEventMonitoring();
+    } catch (e) {
+      // Ignora erro se o contexto não estiver mais disponível
+    }
+
     _scrollController.dispose();
     super.dispose();
   }

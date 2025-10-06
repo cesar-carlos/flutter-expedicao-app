@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
+
+import 'package:exp/di/locator.dart';
+import 'package:exp/ui/screens/add_cart_screen.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separation_items_viewmodel.dart';
 import 'package:exp/ui/widgets/separate_items/separate_item_card.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
+import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 import 'package:exp/ui/widgets/separate_items/separate_items_bottom_navigation.dart';
 import 'package:exp/ui/widgets/separate_items/separate_items_filter_modal.dart';
 import 'package:exp/ui/widgets/separate_items/separate_items_error_state.dart';
@@ -14,26 +17,24 @@ import 'package:exp/ui/widgets/separate_items/separation_info_view.dart';
 import 'package:exp/ui/widgets/separate_items/carts_filter_modal.dart';
 import 'package:exp/ui/widgets/separate_items/carts_list_view.dart';
 import 'package:exp/ui/widgets/common/connection_status_bar.dart';
+import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 import 'package:exp/ui/screens/card_picking_screen.dart';
-import 'package:exp/ui/screens/add_cart_screen.dart';
-import 'package:exp/data/services/user_session_service.dart';
-import 'package:exp/di/locator.dart';
 
-class SeparateItemsScreen extends StatefulWidget {
+class SeparationItemsScreen extends StatefulWidget {
   final SeparateConsultationModel separation;
 
-  const SeparateItemsScreen({super.key, required this.separation});
+  const SeparationItemsScreen({super.key, required this.separation});
 
   @override
-  State<SeparateItemsScreen> createState() => _SeparateItemsScreenState();
+  State<SeparationItemsScreen> createState() => _SeparationItemsScreenState();
 }
 
-class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerProviderStateMixin {
+class _SeparationItemsScreenState extends State<SeparationItemsScreen> with TickerProviderStateMixin {
   late TabController _tabController;
-  final TextEditingController _searchController = TextEditingController();
-  final ScrollController _cartsScrollController = ScrollController();
-  final ScrollController _itemsScrollController = ScrollController();
+  final _searchController = TextEditingController();
+  final _cartsScrollController = ScrollController();
+  final _itemsScrollController = ScrollController();
 
   @override
   void initState() {
@@ -47,14 +48,25 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
 
     // Carrega os itens e carrinhos quando a tela é inicializada
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final viewModel = context.read<SeparateItemsViewModel>();
+      final viewModel = context.read<SeparationItemsViewModel>();
       viewModel.loadSeparationItems(widget.separation);
       viewModel.loadSeparationCarts(widget.separation);
+
+      // Inicia o monitoramento de eventos de carrinho
+      viewModel.startCartEventMonitoring();
     });
   }
 
   @override
   void dispose() {
+    // Para o monitoramento de eventos de carrinho
+    try {
+      final viewModel = context.read<SeparationItemsViewModel>();
+      viewModel.stopCartEventMonitoring();
+    } catch (e) {
+      // Ignora erro se o contexto não estiver mais disponível
+    }
+
     _tabController.dispose();
     _searchController.dispose();
     _cartsScrollController.dispose();
@@ -72,7 +84,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
         actions: [
           // Botões de ação baseados na aba ativa (não mostrar na aba Informações)
           if (_tabController.index != 2) // Não mostrar filtro na aba Informações
-            Consumer<SeparateItemsViewModel>(
+            Consumer<SeparationItemsViewModel>(
               builder: (context, viewModel, child) {
                 return Row(
                   mainAxisSize: MainAxisSize.min,
@@ -117,7 +129,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
 
           // Conteúdo principal
           Expanded(
-            child: Consumer<SeparateItemsViewModel>(
+            child: Consumer<SeparationItemsViewModel>(
               builder: (context, viewModel, child) {
                 return _buildBody(context, viewModel);
               },
@@ -126,7 +138,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
         ],
       ),
       bottomNavigationBar: SeparateItemsBottomNavigation(tabController: _tabController),
-      floatingActionButton: Consumer<SeparateItemsViewModel>(
+      floatingActionButton: Consumer<SeparationItemsViewModel>(
         builder: (context, viewModel, child) {
           // Na aba de informações (índice 2), não mostrar nenhum FAB
           if (_tabController.index == 2) return const SizedBox.shrink();
@@ -152,7 +164,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
     );
   }
 
-  Widget _buildBody(BuildContext context, SeparateItemsViewModel viewModel) {
+  Widget _buildBody(BuildContext context, SeparationItemsViewModel viewModel) {
     if (viewModel.isLoading) {
       return const Center(
         child: Column(
@@ -176,7 +188,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
     );
   }
 
-  Widget _buildWaitingItemsView(BuildContext context, SeparateItemsViewModel viewModel) {
+  Widget _buildWaitingItemsView(BuildContext context, SeparationItemsViewModel viewModel) {
     if (!viewModel.hasData) {
       return RefreshIndicator(
         onRefresh: () async {
@@ -236,12 +248,12 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
     );
   }
 
-  void _refreshData(SeparateItemsViewModel viewModel) {
+  void _refreshData(SeparationItemsViewModel viewModel) {
     viewModel.refresh();
   }
 
   void _showFilterModal(BuildContext context) {
-    final viewModel = context.read<SeparateItemsViewModel>();
+    final viewModel = context.read<SeparationItemsViewModel>();
 
     showModalBottomSheet(
       context: context,
@@ -259,7 +271,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
     );
   }
 
-  void _onSeparateItem(BuildContext context, SeparateItemConsultationModel item, SeparateItemsViewModel viewModel) {
+  void _onSeparateItem(BuildContext context, SeparateItemConsultationModel item, SeparationItemsViewModel viewModel) {
     // TODO: Implementar ação de separar item específico
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -270,7 +282,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
   }
 
   Future<void> _onAddCart(BuildContext context) async {
-    final viewModel = context.read<SeparateItemsViewModel>();
+    final viewModel = context.read<SeparationItemsViewModel>();
 
     // Verificar se a separação permite adicionar carrinho
     if (!_canAddCart(viewModel.separation)) {
@@ -326,7 +338,7 @@ class _SeparateItemsScreenState extends State<SeparateItemsScreen> with TickerPr
   }
 
   /// Abre a separação do carrinho mais recente (recém-adicionado)
-  Future<void> _openSeparationForNewestCart(BuildContext context, SeparateItemsViewModel viewModel) async {
+  Future<void> _openSeparationForNewestCart(BuildContext context, SeparationItemsViewModel viewModel) async {
     try {
       // Obter o userModel da sessão
       final userSessionService = locator<UserSessionService>();

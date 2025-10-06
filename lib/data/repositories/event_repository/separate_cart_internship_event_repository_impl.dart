@@ -1,19 +1,20 @@
-import 'package:exp/domain/repositories/separate_event_repository.dart';
+import 'package:exp/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:exp/data/repositories/event_repository/event_generic_repository_impl.dart';
 import 'package:exp/domain/models/event_model/event_listener_model.dart';
-import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 
-/// Implementação do repositório de eventos para separação de expedição
+/// Implementação do repositório de eventos para carrinhos de separação de expedição
 ///
 /// Esta implementação segue o padrão arquitetural do projeto:
-/// - Interface no domínio (SeparateEventRepository)
-/// - Implementação na camada de dados (SeparateEventRepositoryImpl)
+/// - Interface no domínio (SeparateCartInternshipEventRepository)
+/// - Implementação na camada de dados (SeparateCartInternshipEventRepositoryImpl)
 /// - Delegação para implementação genérica (EventGenericRepositoryImpl)
-class SeparateEventRepositoryImpl implements SeparateEventRepository {
-  final EventGenericRepositoryImpl<SeparateConsultationModel> _genericRepository;
+class SeparateCartInternshipEventRepositoryImpl implements SeparateCartInternshipEventRepository {
+  final EventGenericRepositoryImpl<ExpeditionCartRouteInternshipConsultationModel> _genericRepository;
 
-  SeparateEventRepositoryImpl(EventGenericRepositoryImpl<SeparateConsultationModel> genericRepository)
-    : _genericRepository = genericRepository;
+  SeparateCartInternshipEventRepositoryImpl(
+    EventGenericRepositoryImpl<ExpeditionCartRouteInternshipConsultationModel> genericRepository,
+  ) : _genericRepository = genericRepository;
 
   @override
   void addListener(EventListenerModel listener) => _genericRepository.addListener(listener);

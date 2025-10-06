@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/domain/models/situation/situation_model.dart';
-import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separation_items_viewmodel.dart';
 import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 import 'package:exp/domain/models/filter/carts_filters_model.dart';
 import 'package:exp/core/utils/date_helper.dart';
 
 /// Modal para filtros da aba de carrinhos
 class CartsFilterModal extends StatefulWidget {
-  final SeparateItemsViewModel viewModel;
+  final SeparationItemsViewModel viewModel;
 
   const CartsFilterModal({super.key, required this.viewModel});
 

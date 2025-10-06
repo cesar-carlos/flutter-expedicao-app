@@ -234,7 +234,7 @@ class _PickingCardScanState extends State<PickingCardScan> {
 
         // Verificar se o item foi completado baseado na lógica de quantidades
         // Se não estava completo antes e a nova quantidade >= total, então foi completado
-        final wasCompletedByQuantity = !wasCompletedBefore && newPickedQuantity >= totalQuantity;
+        //final wasCompletedByQuantity = !wasCompletedBefore && newPickedQuantity >= totalQuantity;
 
         // Se o item não estava completo antes e agora está (por estado ou por quantidade), reproduzir som especial
         if ((wasCompletedBefore && isCompletedNow)) {

@@ -2,10 +2,13 @@ import 'package:flutter/foundation.dart';
 
 import 'package:exp/di/locator.dart';
 import 'package:exp/core/errors/app_error.dart';
-import 'package:exp/domain/models/filter/separation_filters_model.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
+import 'package:exp/domain/models/filter/separation_filters_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
+import 'package:exp/domain/models/event_model/event_listener_model.dart';
+import 'package:exp/domain/repositories/separate_event_repository.dart';
+import 'package:exp/domain/models/event_model/basic_event_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
@@ -16,14 +19,21 @@ class SeparationViewModel extends ChangeNotifier {
   final BasicConsultationRepository<SeparateConsultationModel> _repository;
   final FiltersStorageService _filtersStorage;
   final BasicRepository<ExpeditionSectorStockModel> _sectorRepository;
+  final SeparateEventRepository _eventRepository;
 
   SeparationViewModel()
     : _repository = locator<BasicConsultationRepository<SeparateConsultationModel>>(),
       _filtersStorage = locator<FiltersStorageService>(),
-      _sectorRepository = locator<BasicRepository<ExpeditionSectorStockModel>>();
+      _sectorRepository = locator<BasicRepository<ExpeditionSectorStockModel>>(),
+      _eventRepository = locator<SeparateEventRepository>();
 
   // Construtor para testes - permite injeção de dependências
-  SeparationViewModel.withDependencies(this._repository, this._filtersStorage, this._sectorRepository);
+  SeparationViewModel.withDependencies(
+    this._repository,
+    this._filtersStorage,
+    this._sectorRepository,
+    this._eventRepository,
+  );
 
   SeparationState _state = SeparationState.initial;
   List<SeparateConsultationModel> _separations = [];
@@ -45,6 +55,12 @@ class SeparationViewModel extends ChangeNotifier {
   List<String>? _situacoesFilter; // Mudado de String? para List<String>?
   DateTime? _dataEmissaoFilter;
   ExpeditionSectorStockModel? _setorEstoqueFilter;
+
+  // === CAMPOS DE EVENTOS ===
+  final String _insertListenerId = 'separation_viewmodel_insert';
+  final String _updateListenerId = 'separation_viewmodel_update';
+  final String _deleteListenerId = 'separation_viewmodel_delete';
+  bool _eventListenersRegistered = false;
 
   SeparationState get state => _state;
 
@@ -373,4 +389,159 @@ class SeparationViewModel extends ChangeNotifier {
     dataEmissao: _dataEmissaoFilter,
     setorEstoque: _setorEstoqueFilter,
   );
+
+  // === MÉTODOS DE EVENTOS ===
+
+  /// Inicia o monitoramento de eventos
+  void startEventMonitoring() {
+    if (_disposed) return;
+    _registerEventListener();
+  }
+
+  /// Para o monitoramento de eventos
+  void stopEventMonitoring() {
+    if (_disposed) return;
+    _unregisterEventListener();
+  }
+
+  /// Registra os listeners para todos os eventos de separação
+  void _registerEventListener() {
+    if (_disposed || _eventListenersRegistered) return;
+
+    try {
+      _eventRepository.addListener(
+        EventListenerModel(id: _insertListenerId, event: Event.insert, callback: _onSeparationEvent, allEvent: false),
+      );
+
+      _eventRepository.addListener(
+        EventListenerModel(id: _updateListenerId, event: Event.update, callback: _onSeparationEvent, allEvent: false),
+      );
+
+      _eventRepository.addListener(
+        EventListenerModel(id: _deleteListenerId, event: Event.delete, callback: _onSeparationEvent, allEvent: false),
+      );
+
+      _eventListenersRegistered = true;
+    } catch (e) {
+      // Erro ao registrar listeners - continuar sem eventos
+    }
+  }
+
+  /// Remove os listeners de eventos
+  void _unregisterEventListener() {
+    if (!_eventListenersRegistered) return;
+
+    try {
+      _eventRepository.removeListeners([_insertListenerId, _updateListenerId, _deleteListenerId]);
+      _eventListenersRegistered = false;
+    } catch (e) {
+      // Erro ao remover listeners - continuar
+    }
+  }
+
+  /// Callback chamado quando há qualquer evento de separação
+  void _onSeparationEvent(BasicEventModel event) {
+    if (_disposed) return;
+
+    try {
+      _processEventData(event);
+    } catch (e) {
+      // Erro ao processar evento - continuar
+    }
+  }
+
+  /// Processa os dados do evento baseado na estrutura recebida
+  void _processEventData(BasicEventModel event) {
+    if (event.data == null) return;
+
+    try {
+      if (event.data is Map<String, dynamic>) {
+        final dataMap = event.data as Map<String, dynamic>;
+
+        if (dataMap.containsKey('Mutation') && dataMap['Mutation'] is List) {
+          final mutations = dataMap['Mutation'] as List;
+
+          for (final mutation in mutations) {
+            if (mutation is Map<String, dynamic>) {
+              final separationData = SeparateConsultationModel.fromJson(mutation);
+              _handleSeparationEvent(event.eventType, separationData);
+            }
+          }
+        } else {
+          final separationData = SeparateConsultationModel.fromJson(dataMap);
+          _handleSeparationEvent(event.eventType, separationData);
+        }
+      }
+    } catch (e) {
+      // Erro ao processar dados - continuar
+    }
+  }
+
+  /// Processa eventos de separação baseado no tipo
+  void _handleSeparationEvent(Event eventType, SeparateConsultationModel separationData) {
+    if (_disposed) return;
+
+    switch (eventType) {
+      case Event.insert:
+        _separations.insert(0, separationData);
+        break;
+      case Event.update:
+        final index = _separations.indexWhere(
+          (s) => s.codEmpresa == separationData.codEmpresa && s.codSepararEstoque == separationData.codSepararEstoque,
+        );
+        if (index != -1) {
+          _separations[index] = separationData;
+        } else if (_shouldAddToCurrentList(separationData)) {
+          _separations.insert(0, separationData);
+        }
+        break;
+      case Event.delete:
+        _separations.removeWhere(
+          (s) => s.codEmpresa == separationData.codEmpresa && s.codSepararEstoque == separationData.codSepararEstoque,
+        );
+        break;
+    }
+
+    if (!_disposed) {
+      notifyListeners();
+    }
+  }
+
+  /// Verifica se uma separação deve ser adicionada à lista atual baseada nos filtros aplicados
+  bool _shouldAddToCurrentList(SeparateConsultationModel separationData) {
+    if (!hasActiveFilters) return true;
+
+    if (_codSepararEstoqueFilter != null && separationData.codSepararEstoque.toString() != _codSepararEstoqueFilter) {
+      return false;
+    }
+
+    if (_origemFilter != null && separationData.origem.name != _origemFilter) {
+      return false;
+    }
+
+    if (_codOrigemFilter != null && separationData.codOrigem.toString() != _codOrigemFilter) {
+      return false;
+    }
+
+    if (_situacoesFilter != null &&
+        _situacoesFilter!.isNotEmpty &&
+        !_situacoesFilter!.contains(separationData.situacao.name)) {
+      return false;
+    }
+
+    if (_dataEmissaoFilter != null) {
+      final separationDate = separationData.dataEmissao;
+      if (separationDate.year != _dataEmissaoFilter!.year ||
+          separationDate.month != _dataEmissaoFilter!.month ||
+          separationDate.day != _dataEmissaoFilter!.day) {
+        return false;
+      }
+    }
+
+    if (_setorEstoqueFilter != null) {
+      return false; // SeparateConsultationModel não possui codSetorEstoque
+    }
+
+    return true;
+  }
 }

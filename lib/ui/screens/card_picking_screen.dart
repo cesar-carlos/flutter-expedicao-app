@@ -3,13 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:exp/domain/models/user_system_models.dart';
+import 'package:exp/ui/widgets/common/connection_status_bar.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/ui/widgets/card_picking/picking_actions_bottom_bar.dart';
 import 'package:exp/ui/widgets/card_picking/picking_card_scan.dart';
 import 'package:exp/ui/screens/picking_products_list_screen.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
-import 'package:exp/ui/widgets/common/connection_status_bar.dart';
 
 class CardPickingScreen extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;

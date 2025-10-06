@@ -6,6 +6,9 @@ import 'package:exp/domain/models/event_model/basic_event_model.dart';
 import 'package:exp/core/network/socket_config.dart';
 
 /// Implementação do serviço de eventos
+///
+/// Gerencia listeners de eventos e comunica com o SocketConfig para receber
+/// eventos em tempo real do servidor.
 class EventServiceImpl implements EventService {
   final Map<String, List<EventListenerModel>> _eventListeners = {};
   final Map<String, String> _listenerToEvent = {}; // listenerId -> eventName
@@ -77,6 +80,9 @@ class EventServiceImpl implements EventService {
   }
 
   /// Manipula eventos recebidos do socket
+  ///
+  /// Converte os dados recebidos para BasicEventModel e executa os callbacks
+  /// dos listeners registrados, respeitando as configurações de sessão.
   void _handleEvent(String eventName, dynamic data) {
     final listeners = _eventListeners[eventName];
     if (listeners == null || listeners.isEmpty) return;
@@ -94,26 +100,45 @@ class EventServiceImpl implements EventService {
       try {
         listener.callback(basicEvent);
       } catch (e) {
-        // Erro ao executar callback do listener
+        // Erro ao executar callback do listener - continuar com outros listeners
       }
     }
   }
 
   /// Converte dados recebidos para BasicEventModel
+  ///
+  /// Suporta diferentes formatos de dados (String JSON, Map) e extrai
+  /// automaticamente o tipo de evento baseado no nome do evento.
   BasicEventModel _convertToBasicEvent(dynamic data, String eventName) {
     try {
+      Map<String, dynamic>? eventData;
+
       if (data is String) {
-        final decoded = jsonDecode(data);
-        return BasicEventModel.fromJson(decoded);
+        eventData = jsonDecode(data);
       } else if (data is Map<String, dynamic>) {
-        return BasicEventModel.fromJson(data);
+        eventData = data;
       } else {
-        // Extrai o tipo de evento do nome do evento
+        // Dados não reconhecidos - criar evento vazio
+        final eventType = _extractEventType(eventName);
+        return BasicEventModel.empty(eventType: eventType);
+      }
+
+      if (eventData != null) {
+        final eventType = _extractEventType(eventName);
+
+        // Criar BasicEventModel com os dados corretos
+        return BasicEventModel(
+          session: eventData['Session'] ?? eventData['session'],
+          data: eventData, // Passar os dados completos do evento
+          timestamp: DateTime.now(),
+          eventType: eventType,
+        );
+      } else {
         final eventType = _extractEventType(eventName);
         return BasicEventModel.empty(eventType: eventType);
       }
     } catch (e) {
-      // Erro ao converter dados do evento
+      // Erro ao converter dados do evento - criar evento vazio
       final eventType = _extractEventType(eventName);
       return BasicEventModel.empty(eventType: eventType);
     }

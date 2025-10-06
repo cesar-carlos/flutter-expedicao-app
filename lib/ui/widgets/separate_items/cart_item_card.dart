@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:exp/di/locator.dart';
+import 'package:exp/core/results/app_failure.dart';
+import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/ui/widgets/common/custom_flat_button.dart';
 import 'package:exp/ui/screens/picking_products_list_screen.dart';
 import 'package:exp/domain/models/situation/expedition_situation_model.dart';
@@ -10,18 +12,16 @@ import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_us
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_success.dart';
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_failure.dart';
-import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separation_items_viewmodel.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/ui/screens/card_picking_screen.dart';
-import 'package:exp/core/results/app_failure.dart';
-import 'package:exp/data/services/user_session_service.dart';
-import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/domain/services/cart_validation_service.dart';
+import 'package:exp/domain/models/user_system_models.dart';
+import 'package:exp/ui/screens/card_picking_screen.dart';
 
 class CartItemCard extends StatelessWidget {
   final ExpeditionCartRouteInternshipConsultationModel cartRouteInternshipConsultation;
   final VoidCallback? onCancel;
-  final SeparateItemsViewModel? viewModel;
+  final SeparationItemsViewModel? viewModel;
 
   const CartItemCard({super.key, required this.cartRouteInternshipConsultation, this.onCancel, this.viewModel});
 
@@ -494,7 +494,7 @@ class CartItemCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   viewModel != null
                       ? _buildCancelIconButton(context, theme, colorScheme, viewModel!)
-                      : Consumer<SeparateItemsViewModel>(
+                      : Consumer<SeparationItemsViewModel>(
                           builder: (context, vm, child) {
                             return _buildCancelIconButton(context, theme, colorScheme, vm);
                           },
@@ -541,7 +541,7 @@ class CartItemCard extends StatelessWidget {
     BuildContext context,
     ThemeData theme,
     ColorScheme colorScheme,
-    SeparateItemsViewModel viewModel,
+    SeparationItemsViewModel viewModel,
   ) {
     final isCancelling = viewModel.isCartBeingCancelled(cartRouteInternshipConsultation.codCarrinho);
 
@@ -1082,7 +1082,7 @@ class CartItemCard extends StatelessWidget {
   Future<void> _cancelCart(BuildContext context) async {
     try {
       // Obter o ViewModel - usar o passado como parâmetro ou tentar do contexto
-      final vm = viewModel ?? context.read<SeparateItemsViewModel>();
+      final vm = viewModel ?? context.read<SeparationItemsViewModel>();
 
       // Executar cancelamento através do ViewModel
       final success = await vm.cancelCart(cartRouteInternshipConsultation.codCarrinho);

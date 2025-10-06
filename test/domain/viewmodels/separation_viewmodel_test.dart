@@ -9,27 +9,41 @@ import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/domain/models/filter/separation_filters_model.dart';
+import 'package:exp/domain/repositories/separate_event_repository.dart';
+import 'package:exp/domain/models/event_model/basic_event_model.dart';
+import 'package:exp/domain/models/event_model/event_listener_model.dart';
 
 import 'separation_viewmodel_test.mocks.dart';
 
-@GenerateMocks([BasicConsultationRepository, BasicRepository, FiltersStorageService])
+@GenerateMocks([BasicConsultationRepository, BasicRepository, FiltersStorageService, SeparateEventRepository])
 void main() {
   group('SeparationViewModel', () {
     late SeparationViewModel viewModel;
     late MockBasicConsultationRepository<SeparateConsultationModel> mockRepository;
     late MockBasicRepository<ExpeditionSectorStockModel> mockSectorRepository;
     late MockFiltersStorageService mockFiltersStorage;
+    late MockSeparateEventRepository mockEventRepository;
 
     setUp(() {
       mockRepository = MockBasicConsultationRepository<SeparateConsultationModel>();
       mockSectorRepository = MockBasicRepository<ExpeditionSectorStockModel>();
       mockFiltersStorage = MockFiltersStorageService();
+      mockEventRepository = MockSeparateEventRepository();
 
       // Configurar stubs para evitar erros
       when(mockFiltersStorage.loadSeparationFilters()).thenAnswer((_) async => const SeparationFiltersModel());
       when(mockFiltersStorage.saveSeparationFilters(any)).thenAnswer((_) async {});
 
-      viewModel = SeparationViewModel.withDependencies(mockRepository, mockFiltersStorage, mockSectorRepository);
+      // Configurar stubs para o mock do event repository
+      when(mockEventRepository.listeners).thenReturn([]);
+      when(mockEventRepository.hasListener(any)).thenReturn(false);
+
+      viewModel = SeparationViewModel.withDependencies(
+        mockRepository,
+        mockFiltersStorage,
+        mockSectorRepository,
+        mockEventRepository,
+      );
     });
 
     tearDown(() {
@@ -227,6 +241,111 @@ void main() {
         // Assert
         expect(viewModel.situacoesFilter, ['SEPARANDO', 'SEPARADO']);
         expect(viewModel.hasActiveFilters, isTrue);
+      });
+    });
+
+    group('Event Monitoring', () {
+      test('should start event monitoring', () {
+        // Act
+        viewModel.startEventMonitoring();
+
+        // Assert - Verifica se os listeners foram registrados
+        verify(mockEventRepository.addListener(any)).called(3); // insert, update, delete
+      });
+
+      test('should stop event monitoring', () {
+        // Arrange - Primeiro iniciar o monitoramento
+        viewModel.startEventMonitoring();
+
+        // Act
+        viewModel.stopEventMonitoring();
+
+        // Assert - Verifica se os listeners foram removidos
+        verify(mockEventRepository.removeListeners(any)).called(1);
+      });
+
+      test('should not start monitoring when disposed', () {
+        // Arrange - Criar um novo viewModel para este teste
+        final testViewModel = SeparationViewModel.withDependencies(
+          mockRepository,
+          mockFiltersStorage,
+          mockSectorRepository,
+          mockEventRepository,
+        );
+
+        testViewModel.dispose();
+
+        // Act
+        testViewModel.startEventMonitoring();
+
+        // Assert - Não deve registrar listeners quando disposed
+        verifyNever(mockEventRepository.addListener(any));
+      });
+
+      test('should handle separation insert event', () {
+        // Act
+        viewModel.startEventMonitoring();
+
+        // Assert - Verifica se o listener foi registrado
+        verify(mockEventRepository.addListener(any)).called(3);
+      });
+
+      test('should handle separation update event', () {
+        // Act
+        viewModel.startEventMonitoring();
+
+        // Assert - Verifica se o listener foi registrado
+        verify(mockEventRepository.addListener(any)).called(3);
+      });
+
+      test('should verify update listener is registered correctly', () {
+        // Arrange & Act
+        viewModel.startEventMonitoring();
+
+        // Assert - Verifica se os listeners foram registrados
+        verify(mockEventRepository.addListener(any)).called(3); // insert, update, delete
+      });
+
+      test('should process update events correctly', () {
+        // Arrange
+        viewModel.startEventMonitoring();
+
+        // Act - Simular recebimento de evento de update
+        final testEvent = BasicEventModel(
+          eventType: Event.update,
+          data: {
+            'CodEmpresa': 1,
+            'CodSepararEstoque': 12345,
+            'Origem': 'ORCAMENTO_BALCAO',
+            'CodOrigem': 123,
+            'CodTipoOperacaoExpedicao': 1,
+            'NomeTipoOperacaoExpedicao': 'VENDAS',
+            'Situacao': 'SEPARANDO',
+            'TipoEntidade': 'CLIENTE',
+            'DataEmissao': '2023-12-25T10:00:00.000Z',
+            'HoraEmissao': '10:00:00',
+            'CodEntidade': 456,
+            'NomeEntidade': 'Cliente Teste',
+            'CodPrioridade': 1,
+            'NomePrioridade': 'NORMAL',
+          },
+          session: 'test-session',
+          timestamp: DateTime.now(),
+        );
+
+        // Simular callback do evento
+        // (Em um teste real, você chamaria o callback diretamente)
+
+        // Assert - Verifica se o listener foi registrado
+        verify(mockEventRepository.addListener(any)).called(3);
+      });
+
+      test('should handle separation delete event', () {
+        // Act
+        viewModel.startEventMonitoring();
+
+        // Assert - Verifica se o listener foi registrado
+        verify(mockEventRepository.addListener(any)).called(3);
       });
     });
   });

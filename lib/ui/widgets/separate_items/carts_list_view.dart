@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separation_items_viewmodel.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/ui/widgets/separate_items/carts_empty_state.dart';
 import 'package:exp/ui/widgets/separate_items/cart_item_card.dart';
 
 class CartsListView extends StatelessWidget {
-  final SeparateItemsViewModel viewModel;
+  final SeparationItemsViewModel viewModel;
   final ScrollController? scrollController;
 
   const CartsListView({super.key, required this.viewModel, this.scrollController});

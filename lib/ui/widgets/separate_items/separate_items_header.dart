@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separation_items_viewmodel.dart';
 
 class SeparateItemsHeader extends StatelessWidget {
   final SeparateConsultationModel separation;
-  final SeparateItemsViewModel viewModel;
+  final SeparationItemsViewModel viewModel;
 
   const SeparateItemsHeader({super.key, required this.separation, required this.viewModel});
 

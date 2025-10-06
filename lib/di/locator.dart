@@ -15,7 +15,7 @@ import 'package:exp/domain/viewmodels/profile_viewmodel.dart';
 import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
 import 'package:exp/domain/viewmodels/home_viewmodel.dart';
 import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
-import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separation_items_viewmodel.dart';
 import 'package:exp/data/datasources/config_service.dart';
 import 'package:exp/data/datasources/user_preferences_service.dart';
 import 'package:exp/data/services/socket_service.dart';
@@ -27,14 +27,16 @@ import 'package:exp/data/repositories/expedition_cart_consultation_repository_im
 import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
 import 'package:exp/domain/services/event_service.dart';
 import 'package:exp/data/services/event_service_impl.dart';
-import 'package:exp/domain/repositories/event_generic_repository.dart';
 import 'package:exp/data/repositories/event_repository/event_generic_repository_impl.dart';
+import 'package:exp/domain/repositories/separate_event_repository.dart';
+import 'package:exp/data/repositories/event_repository/separate_event_repository_impl.dart';
+import 'package:exp/domain/repositories/separate_cart_internship_event_repository.dart';
+import 'package:exp/data/repositories/event_repository/separate_cart_internship_event_repository_impl.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
 import 'package:exp/data/repositories/expedition_cancellation_repository_impl.dart';
 import 'package:exp/data/repositories/expedition_cart_route_internship_repository_impl.dart';
 import 'package:exp/domain/models/expedition_cancellation_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
-import 'package:exp/data/repositories/event_repository/separate_event_repository_impl.dart';
 import 'package:exp/domain/models/separate_model.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/repositories/separate_consultation_repository_impl.dart';
@@ -225,10 +227,6 @@ void setupLocator() {
 
   locator.registerFactory(() => HomeViewModel());
 
-  locator.registerFactory(() => SeparationViewModel());
-
-  locator.registerFactory(() => SeparateItemsViewModel());
-
   locator.registerLazySingleton<FiltersStorageService>(() => FiltersStorageService());
   locator.registerLazySingleton<UserSessionService>(() => UserSessionService());
 
@@ -312,9 +310,25 @@ void setupLocator() {
 
   locator.registerLazySingleton<EventService>(() => EventServiceImpl());
 
-  locator.registerLazySingleton<EventGenericRepositoryImpl<SeparateModel>>(
-    () => EventGenericRepositoryImpl(locator(), 'separar'),
+  locator.registerLazySingleton<EventGenericRepositoryImpl<SeparateConsultationModel>>(
+    () => EventGenericRepositoryImpl(locator<EventService>(), 'separar'),
   );
 
-  locator.registerLazySingleton<EventGenericRepository<SeparateModel>>(() => SeparateEventRepositoryImpl(locator()));
+  locator.registerLazySingleton<SeparateEventRepository>(
+    () => SeparateEventRepositoryImpl(locator<EventGenericRepositoryImpl<SeparateConsultationModel>>()),
+  );
+
+  locator.registerLazySingleton<EventGenericRepositoryImpl<ExpeditionCartRouteInternshipConsultationModel>>(
+    () => EventGenericRepositoryImpl(locator<EventService>(), 'carrinho.percurso.estagio'),
+  );
+
+  locator.registerLazySingleton<SeparateCartInternshipEventRepository>(
+    () => SeparateCartInternshipEventRepositoryImpl(
+      locator<EventGenericRepositoryImpl<ExpeditionCartRouteInternshipConsultationModel>>(),
+    ),
+  );
+
+  // Registro dos ViewModels após os repositórios de eventos
+  locator.registerFactory(() => SeparationViewModel());
+  locator.registerFactory(() => SeparationItemsViewModel());
 }

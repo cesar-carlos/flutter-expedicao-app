@@ -5,9 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:exp/di/locator.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
-import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separation_items_viewmodel.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/ui/screens/separate_items_screen.dart';
+import 'package:exp/ui/screens/separation_items_screen.dart';
 import 'package:exp/ui/screens/splash_screen.dart';
 import 'package:exp/ui/screens/login_screen.dart';
 import 'package:exp/ui/screens/register_screen.dart';
@@ -152,8 +152,8 @@ class AppRouter {
                 final separation = SeparateConsultationModel.fromJson(separationData);
 
                 return ChangeNotifierProvider(
-                  create: (_) => locator<SeparateItemsViewModel>(),
-                  child: SeparateItemsScreen(separation: separation),
+                  create: (_) => locator<SeparationItemsViewModel>(),
+                  child: SeparationItemsScreen(separation: separation),
                 );
               },
             ),

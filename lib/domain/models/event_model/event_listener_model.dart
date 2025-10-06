@@ -24,8 +24,23 @@ class EventListenerModel {
   @override
   int get hashCode => id.hashCode ^ event.hashCode;
 
+  /// Cria uma cópia do listener com novos valores
+  EventListenerModel copyWith({String? id, Event? event, EventCallback? callback, bool? allEvent}) {
+    return EventListenerModel(
+      id: id ?? this.id,
+      event: event ?? this.event,
+      callback: callback ?? this.callback,
+      allEvent: allEvent ?? this.allEvent,
+    );
+  }
+
+  /// Verifica se o listener escuta um evento específico
+  bool listensTo(Event eventType) {
+    return event == eventType || allEvent;
+  }
+
   @override
   String toString() {
-    return 'RepositoryEventListenerModel(id: $id, event: $event, allEvent: $allEvent)';
+    return 'EventListenerModel(id: $id, event: $event, allEvent: $allEvent)';
   }
 }

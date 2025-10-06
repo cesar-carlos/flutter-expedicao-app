@@ -2,12 +2,12 @@ import 'package:flutter/foundation.dart';
 
 import 'package:exp/di/locator.dart';
 import 'package:exp/core/errors/app_error.dart';
-import 'package:exp/domain/models/situation/situation_model.dart';
 import 'package:exp/domain/models/separation_item_status.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
+import 'package:exp/domain/models/situation/situation_model.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/domain/models/filter/separate_items_filters_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
+import 'package:exp/domain/models/filter/separate_items_filters_model.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_success.dart';
 import 'package:exp/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_params.dart';
@@ -16,25 +16,30 @@ import 'package:exp/domain/models/expedition_cart_route_internship_consultation_
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
 import 'package:exp/domain/usecases/cancel_cart/cancel_cart_params.dart';
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
+import 'package:exp/domain/models/filter/carts_filters_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
-import 'package:exp/domain/models/filter/carts_filters_model.dart';
+import 'package:exp/domain/repositories/separate_cart_internship_event_repository.dart';
+import 'package:exp/domain/models/event_model/event_listener_model.dart';
+import 'package:exp/domain/models/event_model/basic_event_model.dart';
 
 enum SeparateItemsState { initial, loading, loaded, error }
 
 /// ViewModel para separação de itens específicos
-class SeparateItemsViewModel extends ChangeNotifier {
+class SeparationItemsViewModel extends ChangeNotifier {
   final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
   final BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel> _cartRepository;
   final BasicRepository<ExpeditionSectorStockModel> _sectorStockRepository;
   final FiltersStorageService _filtersStorage;
+  final SeparateCartInternshipEventRepository _cartEventRepository;
 
-  SeparateItemsViewModel()
+  SeparationItemsViewModel()
     : _repository = locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
       _cartRepository = locator<BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel>>(),
       _sectorStockRepository = locator<BasicRepository<ExpeditionSectorStockModel>>(),
-      _filtersStorage = locator<FiltersStorageService>();
+      _filtersStorage = locator<FiltersStorageService>(),
+      _cartEventRepository = locator<SeparateCartInternshipEventRepository>();
 
   // === ESTADO ===
   SeparateItemsState _state = SeparateItemsState.initial;
@@ -61,6 +66,12 @@ class SeparateItemsViewModel extends ChangeNotifier {
   // === FILTROS ===
   SeparateItemsFiltersModel _itemsFilters = const SeparateItemsFiltersModel();
   CartsFiltersModel _cartsFilters = const CartsFiltersModel();
+
+  // === CAMPOS DE EVENTOS DE CARRINHO ===
+  static const String _cartInsertListenerId = 'separation_items_viewmodel_cart_insert';
+  static const String _cartUpdateListenerId = 'separation_items_viewmodel_cart_update';
+  static const String _cartDeleteListenerId = 'separation_items_viewmodel_cart_delete';
+  bool _cartEventListenersRegistered = false;
 
   // === GETTERS ===
   SeparateItemsState get state => _state;
@@ -721,5 +732,172 @@ class SeparateItemsViewModel extends ChangeNotifier {
       _cancellingCartId = null;
       _safeNotifyListeners();
     }
+  }
+
+  // === MÉTODOS DE EVENTOS DE CARRINHO ===
+
+  /// Inicia o monitoramento de eventos de carrinho
+  void startCartEventMonitoring() {
+    if (_disposed) return;
+    _registerCartEventListener();
+  }
+
+  /// Para o monitoramento de eventos de carrinho
+  void stopCartEventMonitoring() {
+    if (_disposed) return;
+    _unregisterCartEventListener();
+  }
+
+  /// Registra os listeners para todos os eventos de carrinho
+  void _registerCartEventListener() {
+    if (_disposed || _cartEventListenersRegistered) return;
+
+    try {
+      _cartEventRepository.addListener(
+        EventListenerModel(id: _cartInsertListenerId, event: Event.insert, callback: _onCartEvent, allEvent: false),
+      );
+
+      _cartEventRepository.addListener(
+        EventListenerModel(id: _cartUpdateListenerId, event: Event.update, callback: _onCartEvent, allEvent: false),
+      );
+
+      _cartEventRepository.addListener(
+        EventListenerModel(id: _cartDeleteListenerId, event: Event.delete, callback: _onCartEvent, allEvent: false),
+      );
+
+      _cartEventListenersRegistered = true;
+    } catch (e) {
+      // Erro ao registrar listeners - continuar sem eventos
+    }
+  }
+
+  /// Remove os listeners de eventos de carrinho
+  void _unregisterCartEventListener() {
+    if (!_cartEventListenersRegistered) return;
+
+    try {
+      _cartEventRepository.removeListeners([_cartInsertListenerId, _cartUpdateListenerId, _cartDeleteListenerId]);
+      _cartEventListenersRegistered = false;
+    } catch (e) {
+      // Erro ao remover listeners - continuar
+    }
+  }
+
+  /// Callback chamado quando há qualquer evento de carrinho
+  void _onCartEvent(BasicEventModel event) {
+    if (_disposed) return;
+
+    try {
+      _processCartEventData(event);
+    } catch (e) {
+      // Erro ao processar evento - continuar
+    }
+  }
+
+  /// Processa os dados do evento de carrinho baseado na estrutura recebida
+  void _processCartEventData(BasicEventModel event) {
+    if (event.data == null) return;
+
+    try {
+      if (event.data is Map<String, dynamic>) {
+        final dataMap = event.data as Map<String, dynamic>;
+
+        if (dataMap.containsKey('Mutation') && dataMap['Mutation'] is List) {
+          final mutations = dataMap['Mutation'] as List;
+
+          for (final mutation in mutations) {
+            if (mutation is Map<String, dynamic>) {
+              final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(mutation);
+              _handleCartEvent(event.eventType, cartData);
+            }
+          }
+        } else {
+          final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(dataMap);
+          _handleCartEvent(event.eventType, cartData);
+        }
+      }
+    } catch (e) {
+      // Erro ao processar dados - continuar
+    }
+  }
+
+  /// Processa eventos de carrinho baseado no tipo
+  void _handleCartEvent(Event eventType, ExpeditionCartRouteInternshipConsultationModel cartData) {
+    if (_disposed) return;
+
+    // Verificar se o carrinho pertence à separação atual
+    if (!_isCartValidForCurrentSeparation(cartData)) {
+      return;
+    }
+
+    switch (eventType) {
+      case Event.insert:
+        _handleCartInsert(cartData);
+        break;
+      case Event.update:
+        _handleCartUpdate(cartData);
+        break;
+      case Event.delete:
+        _handleCartDelete(cartData);
+        break;
+    }
+
+    if (!_disposed) {
+      notifyListeners();
+    }
+  }
+
+  /// Verifica se o carrinho é válido para a separação atual
+  bool _isCartValidForCurrentSeparation(ExpeditionCartRouteInternshipConsultationModel cartData) {
+    // Se o carrinho já existe na lista atual, é válido para atualização/exclusão
+    final existingCartIndex = _findCartIndex(cartData);
+    if (existingCartIndex != -1) {
+      return true;
+    }
+
+    // Para novos carrinhos, verificar se pertence à separação atual
+    if (_separation != null && cartData.codOrigem != _separation!.codSepararEstoque) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /// Encontra o índice do carrinho na lista usando a chave única
+  int _findCartIndex(ExpeditionCartRouteInternshipConsultationModel cartData) {
+    return _carts.indexWhere(
+      (c) =>
+          c.codEmpresa == cartData.codEmpresa &&
+          c.codCarrinhoPercurso == cartData.codCarrinhoPercurso &&
+          c.item == cartData.item,
+    );
+  }
+
+  /// Processa evento de inserção de carrinho
+  void _handleCartInsert(ExpeditionCartRouteInternshipConsultationModel cartData) {
+    _carts.insert(0, cartData);
+  }
+
+  /// Processa evento de atualização de carrinho
+  void _handleCartUpdate(ExpeditionCartRouteInternshipConsultationModel cartData) {
+    final index = _findCartIndex(cartData);
+
+    if (index != -1) {
+      // Carrinho encontrado na lista - atualizar
+      _carts[index] = cartData;
+    } else {
+      // Carrinho não encontrado na lista atual - adicionar se pertence à separação
+      _carts.insert(0, cartData);
+    }
+  }
+
+  /// Processa evento de exclusão de carrinho
+  void _handleCartDelete(ExpeditionCartRouteInternshipConsultationModel cartData) {
+    _carts.removeWhere(
+      (c) =>
+          c.codEmpresa == cartData.codEmpresa &&
+          c.codCarrinhoPercurso == cartData.codCarrinhoPercurso &&
+          c.item == cartData.item,
+    );
   }
 }

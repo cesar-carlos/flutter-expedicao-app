@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/viewmodels/separate_items_viewmodel.dart';
+import 'package:exp/domain/viewmodels/separation_items_viewmodel.dart';
 
 class SeparateItemsErrorState extends StatelessWidget {
-  final SeparateItemsViewModel viewModel;
+  final SeparationItemsViewModel viewModel;
   final VoidCallback onRefresh;
 
   const SeparateItemsErrorState({super.key, required this.viewModel, required this.onRefresh});

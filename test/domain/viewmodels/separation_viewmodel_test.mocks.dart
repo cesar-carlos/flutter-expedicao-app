@@ -6,12 +6,15 @@
 import 'dart:async' as _i6;
 
 import 'package:exp/data/services/filters_storage_service.dart' as _i9;
+import 'package:exp/domain/models/event_model/event_listener_model.dart' as _i12;
 import 'package:exp/domain/models/filter/carts_filters_model.dart' as _i4;
-import 'package:exp/domain/models/pagination/query_builder.dart' as _i7;
+import 'package:exp/domain/models/filter/pending_products_filters_model.dart' as _i10;
 import 'package:exp/domain/models/filter/separate_items_filters_model.dart' as _i3;
 import 'package:exp/domain/models/filter/separation_filters_model.dart' as _i2;
+import 'package:exp/domain/models/pagination/query_builder.dart' as _i7;
 import 'package:exp/domain/repositories/basic_consultation_repository.dart' as _i5;
 import 'package:exp/domain/repositories/basic_repository.dart' as _i8;
+import 'package:exp/domain/repositories/separate_event_repository.dart' as _i11;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -194,4 +197,79 @@ class MockFiltersStorageService extends _i1.Mock implements _i9.FiltersStorageSe
   _i6.Future<bool> hasSavedCartsFilters() =>
       (super.noSuchMethod(Invocation.method(#hasSavedCartsFilters, []), returnValue: _i6.Future<bool>.value(false))
           as _i6.Future<bool>);
+
+  @override
+  _i6.Future<void> savePendingProductsFilters(_i10.PendingProductsFiltersModel? filters) =>
+      (super.noSuchMethod(
+            Invocation.method(#savePendingProductsFilters, [filters]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<_i10.PendingProductsFiltersModel?> loadPendingProductsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#loadPendingProductsFilters, []),
+            returnValue: _i6.Future<_i10.PendingProductsFiltersModel?>.value(),
+          )
+          as _i6.Future<_i10.PendingProductsFiltersModel?>);
+
+  @override
+  _i6.Future<void> clearPendingProductsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearPendingProductsFilters, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<bool> hasSavedPendingProductsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#hasSavedPendingProductsFilters, []),
+            returnValue: _i6.Future<bool>.value(false),
+          )
+          as _i6.Future<bool>);
+}
+
+/// A class which mocks [SeparateEventRepository].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockSeparateEventRepository extends _i1.Mock implements _i11.SeparateEventRepository {
+  MockSeparateEventRepository() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  List<_i12.EventListenerModel> get listeners =>
+      (super.noSuchMethod(Invocation.getter(#listeners), returnValue: <_i12.EventListenerModel>[])
+          as List<_i12.EventListenerModel>);
+
+  @override
+  void addListener(_i12.EventListenerModel? listener) =>
+      super.noSuchMethod(Invocation.method(#addListener, [listener]), returnValueForMissingStub: null);
+
+  @override
+  void removeListener(String? listenerId) =>
+      super.noSuchMethod(Invocation.method(#removeListener, [listenerId]), returnValueForMissingStub: null);
+
+  @override
+  void removeListeners(List<String>? listenerIds) =>
+      super.noSuchMethod(Invocation.method(#removeListeners, [listenerIds]), returnValueForMissingStub: null);
+
+  @override
+  void removeAllListeners() =>
+      super.noSuchMethod(Invocation.method(#removeAllListeners, []), returnValueForMissingStub: null);
+
+  @override
+  bool hasListener(String? listenerId) =>
+      (super.noSuchMethod(Invocation.method(#hasListener, [listenerId]), returnValue: false) as bool);
+
+  @override
+  _i12.EventListenerModel? getListenerById(String? listenerId) =>
+      (super.noSuchMethod(Invocation.method(#getListenerById, [listenerId])) as _i12.EventListenerModel?);
+
+  @override
+  void dispose() => super.noSuchMethod(Invocation.method(#dispose, []), returnValueForMissingStub: null);
 }
