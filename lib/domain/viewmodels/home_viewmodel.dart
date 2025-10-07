@@ -36,7 +36,6 @@ class HomeViewModel extends ChangeNotifier {
 
   void navigateToFunctionality(String functionality) {
     if (_disposed) return;
-    debugPrint('Navegando para: $functionality');
   }
 
   @override

@@ -39,6 +39,9 @@ class PickingScreenLayout extends StatelessWidget {
   /// Indica se os campos estão habilitados (carrinho em separação)
   final bool isEnabled;
 
+  /// Indica se está processando um scan (bloqueia o campo)
+  final bool isProcessing;
+
   const PickingScreenLayout({
     super.key,
     required this.cart,
@@ -51,6 +54,7 @@ class PickingScreenLayout extends StatelessWidget {
     required this.onToggleKeyboard,
     required this.onBarcodeScanned,
     required this.isEnabled,
+    this.isProcessing = false,
   });
 
   /// Espaçamento vertical entre os cards
@@ -115,6 +119,7 @@ class PickingScreenLayout extends StatelessWidget {
       onToggleKeyboard: onToggleKeyboard,
       onSubmitted: onBarcodeScanned,
       enabled: isEnabled,
+      isProcessing: isProcessing,
     );
   }
 }

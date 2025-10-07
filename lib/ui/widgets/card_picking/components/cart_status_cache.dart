@@ -10,8 +10,8 @@ class CartStatusCache {
   bool? _cachedStatus;
   DateTime? _lastCheck;
 
-  /// TTL de 1 segundo para evitar verificações excessivas
-  static const Duration _cacheTtl = Duration(seconds: 1);
+  /// TTL de 200ms para verificações mais frequentes e status mais atualizado
+  static const Duration _cacheTtl = Duration(milliseconds: 200);
 
   CartStatusCache({required this.viewModel});
 
@@ -49,6 +49,13 @@ class CartStatusCache {
   void invalidateCache() {
     _cachedStatus = null;
     _lastCheck = null;
+  }
+
+  /// Força uma verificação imediata do status (ignora cache)
+  bool forceCheckCartStatus() {
+    _cachedStatus = viewModel.isCartInSeparationStatus;
+    _lastCheck = DateTime.now();
+    return _cachedStatus!;
   }
 
   /// Limpa completamente o cache (alias para invalidateCache)

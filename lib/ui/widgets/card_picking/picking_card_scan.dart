@@ -11,8 +11,24 @@ import 'package:exp/ui/widgets/card_picking/components/index.dart';
 
 /// Tela de escaneamento de itens do carrinho durante a separação
 ///
-/// Gerencia o processo de picking (separação) de itens, permitindo
-/// escanear códigos de barras e adicionar itens ao carrinho.
+/// Responsabilidades:
+/// - Gerenciar entrada de dados via scanner ou teclado manual
+/// - Validar códigos de barras escaneados em tempo real
+/// - Bloquear campo durante processamento para evitar scans duplicados
+/// - Fornecer feedback visual e sonoro para o usuário
+/// - Manter sincronização do status do carrinho via cache
+///
+/// Arquitetura:
+/// - Componentes modulares (KeyboardToggleController, ScanInputProcessor, etc.)
+/// - Estado gerenciado via ViewModel pattern
+/// - Cache inteligente para otimização de performance
+/// - Processamento assíncrono com bloqueio de UI
+///
+/// Performance:
+/// - AutomaticKeepAliveClientMixin para preservar estado
+/// - Cache de status do carrinho (200ms TTL)
+/// - Validações paralelas
+/// - Callbacks otimizados (delay de 10ms)
 class PickingCardScan extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
   final CardPickingViewModel viewModel;
@@ -24,17 +40,39 @@ class PickingCardScan extends StatefulWidget {
 }
 
 class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAliveClientMixin {
-  // Controllers de texto
-  final _scanController = TextEditingController();
-  final _quantityController = TextEditingController(text: '1');
+  // === CONSTANTES ===
 
-  // Focus nodes
+  /// Timeout para aguardar mais entrada do scanner
+  static const Duration _scannerTimeout = Duration(milliseconds: 300);
+
+  /// Delay para limpar o campo após scan bem-sucedido
+  static const Duration _displayDelay = Duration(milliseconds: 500);
+
+  /// Quantidade padrão para adição de itens
+  static const String _defaultQuantity = '1';
+
+  // === CONTROLLERS ===
+
+  /// Controller para o campo de entrada do scanner
+  final _scanController = TextEditingController();
+
+  /// Controller para o campo de quantidade com valor padrão
+  final _quantityController = TextEditingController(text: _defaultQuantity);
+
+  // === FOCUS NODES ===
+
   final _scanFocusNode = FocusNode();
   final _quantityFocusNode = FocusNode();
 
-  // Estado da UI
+  // === ESTADO DA UI ===
+
+  /// Timer para aguardar mais entrada do scanner
   Timer? _scanTimer;
+
+  /// Indica se o modo teclado manual está ativo (vs modo scanner)
   bool _keyboardEnabled = false;
+
+  /// Bloqueia o campo durante processamento para evitar scans duplicados
   bool _isProcessingScan = false;
 
   // Componentes especializados (arquitetura modular)
@@ -56,6 +94,16 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _initializeComponents();
     _setupListeners();
     _requestInitialFocus();
+
+    // 🚀 Forçar verificação de status na inicialização para evitar tela bloqueada
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _statusCache.forceCheckCartStatus();
+        if (mounted) {
+          setState(() {}); // Forçar rebuild com status atualizado
+        }
+      }
+    });
   }
 
   /// Inicializa os componentes refatorados
@@ -97,6 +145,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     // Garantir foco quando as dependências mudarem (tela completamente carregada)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        // 🚀 Verificar status novamente quando dependências mudarem
+        _statusCache.forceCheckCartStatus();
         _scanFocusNode.requestFocus();
       }
     });
@@ -114,7 +164,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   /// Processa entrada específica do scanner
   void _processScannerInput() {
     final text = _scanController.text.trim();
-
     _scanProcessor.processScannerInput(text, _handleCompleteBarcode, _waitForMoreInput);
   }
 
@@ -125,9 +174,11 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   /// Aguarda mais entrada do scanner com timeout
+  ///
+  /// Agenda um timer para processar o código após o timeout,
+  /// permitindo que o scanner complete a entrada de todos os dígitos.
   void _waitForMoreInput() {
-    const scannerTimeout = Duration(milliseconds: 300);
-    _scanTimer = Timer(scannerTimeout, () {
+    _scanTimer = Timer(_scannerTimeout, () {
       if (_scanController.text.isNotEmpty) {
         final barcode = _scanController.text.trim();
         _clearScannerFieldAfterDelay();
@@ -137,9 +188,11 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   /// Limpa o campo do scanner após um delay para o usuário visualizar
+  ///
+  /// O delay permite que o usuário veja o código escaneado antes
+  /// de ser limpo automaticamente para o próximo scan.
   void _clearScannerFieldAfterDelay() {
-    const displayDelay = Duration(milliseconds: 500);
-    Future.delayed(displayDelay, () {
+    Future.delayed(_displayDelay, () {
       if (mounted) {
         _scanController.clear();
       }
@@ -207,15 +260,25 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       onToggleKeyboard: _toggleKeyboard,
       onBarcodeScanned: _onBarcodeScanned,
       isEnabled: isEnabled,
+      isProcessing: _isProcessingScan,
     );
   }
 
   Future<void> _onBarcodeScanned(String barcode) async {
-    if (barcode.trim().isEmpty) return;
+    if (barcode.trim().isEmpty) {
+      return;
+    }
 
     // Evitar múltiplos processamentos simultâneos
-    if (_isProcessingScan) return;
-    _isProcessingScan = true;
+    if (_isProcessingScan) {
+      return;
+    }
+
+    // 🔒 BLOQUEAR CAMPO E LIMPAR PARA PRÓXIMO SCAN
+    setState(() {
+      _isProcessingScan = true;
+    });
+    _scanController.clear();
 
     try {
       // Verificação rápida de status antes da validação pesada
@@ -235,21 +298,18 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       }
 
       if (validationResult.noItemsForSector) {
-        // Reproduzir som de alerta para não haver mais itens do setor
         _audioService.playAlert();
         _dialogManager.showNoItemsForSectorDialog(validationResult.userSectorCode!, _finishPicking);
         return;
       }
 
       if (validationResult.allItemsCompleted) {
-        // Reproduzir som de alerta para todos os itens completos
         _audioService.playAlert();
         _dialogManager.showAllItemsCompletedDialog();
         return;
       }
 
       if (validationResult.isWrongSector) {
-        // Reproduzir som de erro para produto de outro setor
         _audioService.playError();
         _dialogManager.showWrongSectorDialog(
           barcode,
@@ -263,7 +323,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       if (validationResult.isValid && validationResult.expectedItem != null) {
         await _addItemToSeparation(validationResult.expectedItem!, barcode, quantity);
       } else {
-        // Reproduzir som de erro para produto errado
         _audioService.playError();
         _dialogManager.showWrongProductDialog(
           barcode,
@@ -273,7 +332,10 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         );
       }
     } finally {
-      _isProcessingScan = false;
+      // 🔓 LIBERAR CAMPO APÓS PROCESSAR
+      setState(() {
+        _isProcessingScan = false;
+      });
     }
   }
 
@@ -300,12 +362,15 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  /// Resetar quantidade para 1 se estiver maior
+  /// Resetar quantidade para o valor padrão se estiver maior que 1
+  ///
+  /// Este método é chamado após cada adição bem-sucedida de item
+  /// para resetar o campo de quantidade para o valor padrão.
   void _resetQuantityIfNeeded() {
     if (_quantityController.text.isNotEmpty && int.tryParse(_quantityController.text) != null) {
       final currentQuantity = int.parse(_quantityController.text);
       if (currentQuantity > 1) {
-        _quantityController.text = '1';
+        _quantityController.text = _defaultQuantity;
       }
     }
   }
@@ -316,7 +381,9 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     final userSectorCode = widget.viewModel.userModel?.codSetorEstoque;
 
     // Se usuário não tem setor definido, não fazer nada
-    if (userSectorCode == null) return;
+    if (userSectorCode == null) {
+      return;
+    }
 
     // Verificar se ainda há itens do setor para separar
     if (!widget.viewModel.hasItemsForUserSector) {

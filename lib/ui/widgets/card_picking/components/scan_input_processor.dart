@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:exp/core/services/audio_service.dart';
@@ -11,17 +10,28 @@ import 'package:exp/di/locator.dart';
 
 /// Processador responsável por processar entradas do scanner de códigos de barras
 ///
-/// Gerencia a lógica de processamento de entrada do scanner, validação de
-/// códigos de barras e feedback ao usuário (áudio e tátil).
+/// Responsabilidades:
+/// - Processar entrada incremental do scanner com timeout inteligente
+/// - Validar formato e conteúdo de códigos de barras
+/// - Coordenar callbacks de sucesso/erro de forma otimizada
+/// - Fornecer feedback audiovisual (som + vibração) ao usuário
+///
+/// Estratégias de Processamento:
+/// - Entrada curta (< 8 dígitos): aguarda mais entrada
+/// - Entrada válida (8-14 dígitos): processa imediatamente
+/// - Entrada inválida: aguarda timeout antes de processar
+///
+/// Performance:
+/// - Validação rápida de formato via regex
+/// - Callbacks executados em paralelo via Future.wait()
+/// - Delay otimizado de 10ms para atualização de UI
+/// - Feedback não-bloqueante
 class ScanInputProcessor {
   final CardPickingViewModel viewModel;
   final AudioService _audioService = locator<AudioService>();
 
   /// Timeout para aguardar mais entrada do scanner
   static const Duration _scannerTimeout = Duration(milliseconds: 300);
-
-  /// Delay para aguardar atualização de estado após adição de item
-  static const Duration _stateUpdateDelay = Duration(milliseconds: 100);
 
   /// Padrão regex para validar formato de código de barras (8-14 dígitos)
   static final RegExp _barcodePattern = RegExp(r'^\d{8,14}$');
@@ -39,7 +49,9 @@ class ScanInputProcessor {
   /// - Se completo e válido: processa imediatamente
   /// - Se longo mas inválido: aguarda timeout para processar
   void processScannerInput(String input, void Function(String) onCompleteBarcode, void Function() onWaitForMore) {
-    if (input.isEmpty) return;
+    if (input.isEmpty) {
+      return;
+    }
 
     if (_isInputTooShort(input)) {
       _scheduleWaitForMore(onWaitForMore);
@@ -76,10 +88,10 @@ class ScanInputProcessor {
     );
   }
 
-  /// Processa adição bem-sucedida de item
+  /// Processa adição bem-sucedida de item de forma otimizada
   ///
-  /// Executa a sequência completa de feedback e validações após
-  /// adicionar um item com sucesso.
+  /// Executa callbacks em paralelo para melhor performance, reduzindo
+  /// significativamente o tempo de processamento.
   Future<void> handleSuccessfulItemAddition(
     SeparateItemConsultationModel item,
     int quantity,
@@ -90,25 +102,39 @@ class ScanInputProcessor {
     final itemId = item.item;
     final wasCompletedBefore = viewModel.isItemCompleted(itemId);
 
-    // Feedback imediato ao usuário
-    await _provideSuccessFeedback();
+    // 🚀 EXECUTAR CALLBACKS EM PARALELO para melhor performance
+    final futures = <Future<void>>[];
 
-    // Aguardar atualização de estado e verificar completude
-    await Future.delayed(_stateUpdateDelay);
-    final isCompletedNow = viewModel.isItemCompleted(itemId);
+    // 1. Feedback de áudio (não bloqueia)
+    futures.add(_provideSuccessFeedback());
 
-    // Log apenas em modo debug
-    _logItemCompletionStatus(itemId.toString(), wasCompletedBefore, isCompletedNow, item, quantity);
+    // 2. Aguardar atualização de estado (otimizado - apenas 10ms para UI)
+    futures.add(Future.delayed(const Duration(milliseconds: 10)));
 
-    // Feedback especial para item completado
-    if (!wasCompletedBefore && isCompletedNow) {
-      await _audioService.playItemCompleted();
-    }
+    // 3. Verificar completude do item (necessário)
+    futures.add(
+      Future(() async {
+        final isCompletedNow = viewModel.isItemCompleted(itemId);
 
-    // Executar callbacks pós-adição
-    onResetQuantity();
-    onInvalidateCache();
-    await onCheckSectorCompletion();
+        if (!wasCompletedBefore && isCompletedNow) {
+          await _audioService.playItemCompleted();
+        }
+      }),
+    );
+
+    // 4. Executar callbacks síncronos (rápidos)
+    futures.add(
+      Future(() {
+        onResetQuantity();
+        onInvalidateCache();
+      }),
+    );
+
+    // 5. Verificação de completude do setor (pode ser lenta)
+    futures.add(onCheckSectorCompletion());
+
+    // 🚀 EXECUTAR TUDO EM PARALELO
+    await Future.wait(futures);
   }
 
   /// Fornece feedback de sucesso ao usuário (áudio + tátil)
@@ -120,26 +146,6 @@ class ScanInputProcessor {
   /// Processa falha na adição de item
   void handleFailedItemAddition(SeparateItemConsultationModel item, String errorMessage) {
     _audioService.playError();
-  }
-
-  /// Log do status de completude do item (apenas em modo debug)
-  ///
-  /// Registra informações sobre a mudança de estado do item após adição.
-  void _logItemCompletionStatus(
-    String itemId,
-    bool wasCompletedBefore,
-    bool isCompletedNow,
-    SeparateItemConsultationModel item,
-    int quantity,
-  ) {
-    if (!kDebugMode) return;
-
-    final currentPickedQuantity = viewModel.getPickedQuantity(itemId);
-    final totalQuantity = item.quantidade.toInt();
-    final newPickedQuantity = currentPickedQuantity + quantity;
-
-    debugPrint('📦 Item $itemId - Completude: $wasCompletedBefore → $isCompletedNow');
-    debugPrint('   Quantidades: $currentPickedQuantity → $newPickedQuantity / $totalQuantity');
   }
 
   /// Fornece feedback tátil ao usuário

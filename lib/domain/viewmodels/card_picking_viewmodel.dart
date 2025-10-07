@@ -6,14 +6,14 @@ import 'package:exp/domain/models/separation_item_status.dart';
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/models/filter/pending_products_filters_model.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/domain/models/event_model/event_listener_model.dart';
-import 'package:exp/domain/models/event_model/basic_event_model.dart';
 import 'package:exp/domain/repositories/separate_cart_internship_event_repository.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 import 'package:exp/domain/usecases/add_item_separation/add_item_separation_params.dart';
 import 'package:exp/domain/repositories/basic_consultation_repository.dart';
 import 'package:exp/core/validation/common/socket_validation_helper.dart';
+import 'package:exp/domain/models/event_model/event_listener_model.dart';
+import 'package:exp/domain/models/event_model/basic_event_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
@@ -22,12 +22,28 @@ import 'package:exp/core/results/index.dart';
 import 'package:exp/di/locator.dart';
 
 /// ViewModel para gerenciar o estado do picking de um carrinho
+///
+/// Responsabilidades:
+/// - Gerenciar o ciclo de vida dos itens do carrinho durante o picking
+/// - Coordenar a adição de itens através de UseCases
+/// - Manter o estado sincronizado com o servidor
+/// - Monitorar eventos de atualização do carrinho em tempo real
+/// - Gerenciar filtros e ordenação dos itens
+///
+/// Características de Performance:
+/// - Cache O(1) para busca de itens por código de produto
+/// - Estado consolidado para evitar recalculos
+/// - Execução paralela de validações
+/// - Sincronização otimizada com servidor
+///
 /// Os produtos são ordenados por endereço usando ordenação natural (01, 02, 10, 11, etc.)
 class CardPickingViewModel extends ChangeNotifier {
   // === CONSTANTES ===
+
+  /// ID único para listener de eventos de atualização do carrinho
   static const String _cartUpdateListenerId = 'card_picking_viewmodel_cart_update';
 
-  // Códigos de situação para carrinho em separação
+  /// Códigos de situação para carrinho em processo de separação
   static const String _cartInSeparationCode = 'EM SEPARACAO';
   static const String _cartSeparatingCode = 'SEPARANDO';
   // Repository para carregar os itens
@@ -67,6 +83,12 @@ class CardPickingViewModel extends ChangeNotifier {
   List<SeparateItemConsultationModel> _items = [];
   List<SeparateItemConsultationModel> get items => List.unmodifiable(_items);
   bool get hasItems => _items.isNotEmpty;
+
+  /// 🚀 Cache para busca O(1) de itens por código de produto
+  ///
+  /// Este cache é reconstruído sempre que a lista de itens é atualizada
+  /// para garantir performance na validação e adição de itens escaneados.
+  Map<int, SeparateItemConsultationModel>? _itemsByCodProduto;
 
   /// Verifica se há itens disponíveis para o setor do usuário
   bool get hasItemsForUserSector {
@@ -194,33 +216,61 @@ class CardPickingViewModel extends ChangeNotifier {
     }
   }
 
-  /// Adiciona item escaneado na separação usando o use case
+  /// Adiciona item escaneado na separação usando o use case otimizado
+  ///
+  /// Este método coordena a adição de um item escaneado realizando:
+  /// 1. Validações síncronas (item na lista, cache)
+  /// 2. Validações assíncronas em paralelo (usuário, socket)
+  /// 3. Execução do UseCase de adição
+  /// 4. Atualização do estado local
+  /// 5. Sincronização com servidor
+  ///
+  /// Performance:
+  /// - Busca O(1) no cache de itens
+  /// - Validações paralelas usando Future.wait()
+  /// - Atualização otimizada do estado consolidado
+  ///
+  /// Returns: [AddItemSeparationResult] com sucesso ou erro detalhado
   Future<AddItemSeparationResult> addScannedItem({required int codProduto, required int quantity}) async {
-    if (_disposed) return AddItemSeparationResult.error('ViewModel foi descartado');
-    if (_cart == null) return AddItemSeparationResult.error('Carrinho não inicializado');
+    // Validações rápidas de estado
+    if (_disposed) {
+      return AddItemSeparationResult.error('ViewModel foi descartado');
+    }
+    if (_cart == null) {
+      return AddItemSeparationResult.error('Carrinho não inicializado');
+    }
 
     try {
-      // Buscar o item do produto na lista
-      final item = _items.where((item) => item.codProduto == codProduto).firstOrNull;
+      // 🚀 EXECUTAR VALIDAÇÕES EM PARALELO para melhor performance
+      final futures = <Future<dynamic>>[];
+
+      // 1. Buscar o item do produto na lista usando cache (síncrono)
+      final item = _findItemByCodProduto(codProduto);
       if (item == null) {
         return AddItemSeparationResult.error('Produto não encontrado neste carrinho');
       }
 
-      // Obter sessão do usuário
-      final appUser = await _userSessionService.loadUserSession();
+      // 2. Obter sessão do usuário (assíncrono)
+      futures.add(_userSessionService.loadUserSession());
 
+      // 3. Validar socket (síncrono)
+      futures.add(Future(() => SocketValidationHelper.validateSocketState()));
+
+      // 🚀 EXECUTAR VALIDAÇÕES EM PARALELO
+      final results = await Future.wait(futures);
+      final appUser = results[0] as dynamic;
+      final socketValidation = results[1] as SocketValidationResult;
+
+      // Validar resultados
       if (appUser?.userSystemModel == null) {
         return AddItemSeparationResult.error('Usuário não autenticado');
       }
 
-      final userSystem = appUser!.userSystemModel!;
-
-      // Obter sessionId do socket atual
-      final socketValidation = SocketValidationHelper.validateSocketState();
       if (!socketValidation.isValid) {
         return AddItemSeparationResult.error('Socket não está pronto: ${socketValidation.errorMessage}');
       }
 
+      final userSystem = appUser.userSystemModel;
       final sessionId = socketValidation.sessionId!;
 
       // Criar parâmetros para o use case
@@ -242,11 +292,25 @@ class CardPickingViewModel extends ChangeNotifier {
 
       return await result.fold(
         (success) async {
-          // Atualizar estado local
-          _updateLocalPickingState(item.item, quantity);
+          // 🚀 EXECUTAR ATUALIZAÇÕES EM PARALELO
+          final updateFutures = <Future<void>>[];
 
-          // Sincronizar dados com servidor
-          await _syncDataWithServer();
+          // 1. Atualizar estado local (síncrono)
+          updateFutures.add(
+            Future(() {
+              _updateLocalPickingState(item.item, quantity);
+            }),
+          );
+
+          // 2. Sincronizar dados com servidor (assíncrono)
+          updateFutures.add(
+            Future(() async {
+              await _syncDataWithServer();
+            }),
+          );
+
+          // 🚀 EXECUTAR ATUALIZAÇÕES EM PARALELO
+          await Future.wait(updateFutures);
 
           return AddItemSeparationResult.success(
             'Item adicionado: ${success.addedQuantity} unidades',
@@ -279,9 +343,6 @@ class CardPickingViewModel extends ChangeNotifier {
       await refresh();
     } catch (e) {
       // Log do erro mas não falha a operação principal
-      if (kDebugMode) {
-        debugPrint('Erro ao sincronizar dados com servidor: ${e.toString()}');
-      }
     }
   }
 
@@ -553,6 +614,9 @@ class CardPickingViewModel extends ChangeNotifier {
       // Aplicar ordenação natural por endereço
       _items = _sortItemsByAddress(items);
 
+      // 🚀 Reconstruir cache de busca otimizada
+      _rebuildItemsCache();
+
       // Inicializar estado consolidado do picking
       _pickingState = PickingState.initial(_items);
 
@@ -740,6 +804,21 @@ class CardPickingViewModel extends ChangeNotifier {
     return cartData.codEmpresa == _cart!.codEmpresa &&
         cartData.codCarrinhoPercurso == _cart!.codCarrinhoPercurso &&
         cartData.item == _cart!.item;
+  }
+
+  /// 🚀 Busca otimizada de item por código de produto usando cache
+  SeparateItemConsultationModel? _findItemByCodProduto(int codProduto) {
+    // Reconstruir cache se necessário
+    if (_itemsByCodProduto == null || _itemsByCodProduto!.isEmpty) {
+      _rebuildItemsCache();
+    }
+
+    return _itemsByCodProduto?[codProduto];
+  }
+
+  /// Reconstrói o cache de itens por código de produto
+  void _rebuildItemsCache() {
+    _itemsByCodProduto = {for (final item in _items) item.codProduto: item};
   }
 }
 

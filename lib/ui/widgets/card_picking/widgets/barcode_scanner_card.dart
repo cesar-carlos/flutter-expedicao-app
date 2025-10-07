@@ -7,6 +7,7 @@ class BarcodeScannerCard extends StatelessWidget {
   final VoidCallback onToggleKeyboard;
   final ValueChanged<String> onSubmitted;
   final bool enabled;
+  final bool isProcessing;
 
   const BarcodeScannerCard({
     super.key,
@@ -16,6 +17,7 @@ class BarcodeScannerCard extends StatelessWidget {
     required this.onToggleKeyboard,
     required this.onSubmitted,
     this.enabled = true,
+    this.isProcessing = false,
   });
 
   @override
@@ -63,35 +65,54 @@ class BarcodeScannerCard extends StatelessWidget {
   }
 
   Widget _buildScannerField(ThemeData theme, ColorScheme colorScheme) {
+    // 🔒 Bloquear campo quando estiver processando
+    final isFieldEnabled = enabled && !isProcessing;
+
     return TextField(
       controller: controller,
       focusNode: focusNode,
-      enabled: enabled,
-      onSubmitted: enabled ? onSubmitted : null,
+      enabled: isFieldEnabled,
+      onSubmitted: isFieldEnabled ? onSubmitted : null,
       // Permitir entrada do scanner embutido sempre, mas controlar seleção interativa
-      enableInteractiveSelection: enabled && keyboardEnabled,
+      enableInteractiveSelection: isFieldEnabled && keyboardEnabled,
       // Permitir teclado no modo manual, suprimir apenas no modo scanner
-      keyboardType: enabled && keyboardEnabled ? TextInputType.text : TextInputType.none,
+      keyboardType: isFieldEnabled && keyboardEnabled ? TextInputType.text : TextInputType.none,
       decoration: InputDecoration(
-        hintText: enabled
-            ? (keyboardEnabled ? 'Digite o código de barras' : 'Aguardando scanner')
-            : 'Scanner desabilitado',
-        prefixIcon: enabled
-            ? IconButton(
-                onPressed: onToggleKeyboard,
-                icon: Icon(keyboardEnabled ? Icons.qr_code_scanner : Icons.keyboard, color: colorScheme.primary),
-                tooltip: keyboardEnabled ? 'Usar Scanner' : 'Usar Teclado',
+        hintText: isProcessing
+            ? 'Processando...'
+            : (enabled
+                  ? (keyboardEnabled ? 'Digite o código de barras' : 'Aguardando scanner')
+                  : 'Scanner desabilitado'),
+        prefixIcon: isProcessing
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                  ),
+                ),
               )
-            : Icon(Icons.qr_code, color: Colors.grey),
-        suffixIcon: enabled
-            ? IconButton(
-                onPressed: () {
-                  controller.clear();
-                  focusNode.requestFocus();
-                },
-                icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
-              )
-            : null,
+            : (enabled
+                  ? IconButton(
+                      onPressed: onToggleKeyboard,
+                      icon: Icon(keyboardEnabled ? Icons.qr_code_scanner : Icons.keyboard, color: colorScheme.primary),
+                      tooltip: keyboardEnabled ? 'Usar Scanner' : 'Usar Teclado',
+                    )
+                  : Icon(Icons.qr_code, color: Colors.grey)),
+        suffixIcon: isProcessing
+            ? null
+            : (enabled
+                  ? IconButton(
+                      onPressed: () {
+                        controller.clear();
+                        focusNode.requestFocus();
+                      },
+                      icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
+                    )
+                  : null),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: enabled ? colorScheme.outline : Colors.grey),
@@ -118,12 +139,16 @@ class BarcodeScannerCard extends StatelessWidget {
 
   Widget _buildHelpText(ThemeData theme, ColorScheme colorScheme) {
     return Text(
-      enabled
-          ? (keyboardEnabled
-                ? 'Digite o código de barras manualmente ou toque no ícone para usar o scanner'
-                : 'Posicione o produto no scanner ou toque no ícone para usar o teclado')
-          : 'Scanner desabilitado - carrinho não está em situação de separação',
-      style: theme.textTheme.bodySmall?.copyWith(color: enabled ? colorScheme.onSurfaceVariant : Colors.grey),
+      isProcessing
+          ? 'Aguarde, processando item...'
+          : (enabled
+                ? (keyboardEnabled
+                      ? 'Digite o código de barras manualmente ou toque no ícone para usar o scanner'
+                      : 'Posicione o produto no scanner ou toque no ícone para usar o teclado')
+                : 'Scanner desabilitado - carrinho não está em situação de separação'),
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: isProcessing ? colorScheme.primary : (enabled ? colorScheme.onSurfaceVariant : Colors.grey),
+      ),
     );
   }
 }
