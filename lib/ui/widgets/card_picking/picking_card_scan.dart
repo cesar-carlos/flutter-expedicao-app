@@ -1,15 +1,16 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:exp/di/locator.dart';
 import 'package:exp/core/services/audio_service.dart';
-import 'package:exp/ui/widgets/card_picking/widgets/index.dart';
 import 'package:exp/core/services/barcode_validation_service.dart';
+import 'package:exp/di/locator.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:exp/ui/widgets/card_picking/widgets/index.dart';
 import 'package:exp/ui/widgets/common/picking_dialog.dart';
 
 class PickingCardScan extends StatefulWidget {
@@ -23,95 +24,204 @@ class PickingCardScan extends StatefulWidget {
 }
 
 class _PickingCardScanState extends State<PickingCardScan> {
+  // Controllers e FocusNodes
   final TextEditingController _scanController = TextEditingController();
   final FocusNode _scanFocusNode = FocusNode();
   final TextEditingController _quantityController = TextEditingController(text: '1');
   final FocusNode _quantityFocusNode = FocusNode();
 
+  // Estado e timers
   Timer? _scanTimer;
-  bool _keyboardEnabled = false; // Estado do teclado
+  bool _keyboardEnabled = false;
+
+  // Serviços
   final AudioService _audioService = locator<AudioService>();
+
+  // Constantes para melhor legibilidade
+  static const Duration _scannerTimeout = Duration(milliseconds: 300);
+  static const Duration _focusDelay = Duration(milliseconds: 100);
+  static const Duration _keyboardDelay = Duration(milliseconds: 50);
+  static const Duration _initialFocusDelay = Duration(milliseconds: 300);
+  static const Duration _displayDelay = Duration(milliseconds: 500);
+  static const Duration _stateUpdateDelay = Duration(milliseconds: 100);
+
+  // Padrões de validação
+  static final RegExp _barcodePattern = RegExp(r'^\d{8,14}$');
+  static const int _minBarcodeLength = 8;
 
   @override
   void initState() {
     super.initState();
+    _setupListeners();
+    _requestInitialFocus();
+  }
 
-    // Listener para detectar quando o scanner termina de enviar o código
+  /// Configura os listeners necessários
+  void _setupListeners() {
     _scanController.addListener(_onScannerInput);
+    _scanFocusNode.addListener(_onFocusChange);
+  }
 
-    // Manter o foco no campo para receber dados do scanner
+  /// Solicita foco inicial no campo de scanner
+  void _requestInitialFocus() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scanFocusNode.requestFocus();
+      if (mounted) {
+        _scanFocusNode.requestFocus();
+
+        // Garantir foco após delay para telas que ainda estão carregando
+        Future.delayed(_initialFocusDelay, () {
+          if (mounted) {
+            _scanFocusNode.requestFocus();
+          }
+        });
+      }
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Garantir foco quando as dependências mudarem (tela completamente carregada)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _scanFocusNode.requestFocus();
+      }
+    });
+  }
+
+  /// Processa entrada do scanner ou teclado
   void _onScannerInput() {
-    // Cancelar timer anterior se existir
     _scanTimer?.cancel();
 
-    // Diferentes estratégias para scanner vs teclado
     if (!_keyboardEnabled && _scanController.text.isNotEmpty) {
-      final text = _scanController.text.trim();
-
-      // Verificar se parece com um código de barras completo (8-14 dígitos)
-      if (text.length >= 8 && RegExp(r'^\d{8,14}$').hasMatch(text)) {
-        // Scanner detectou código completo - processar imediatamente
-        final barcode = text;
-        // Aguardar um pouco para o usuário ver o valor antes de limpar
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            _scanController.clear();
-          }
-        });
-        _onBarcodeScanned(barcode);
-        return;
-      }
-
-      // Aguardar mais caracteres ou fim da entrada do scanner
-      _scanTimer = Timer(const Duration(milliseconds: 300), () {
-        if (_scanController.text.isNotEmpty) {
-          final barcode = _scanController.text.trim();
-          // Aguardar um pouco para o usuário ver o valor antes de limpar
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted) {
-              _scanController.clear();
-            }
-          });
-          _onBarcodeScanned(barcode);
-        }
-      });
+      _processScannerInput();
     }
   }
 
+  /// Processa entrada específica do scanner
+  void _processScannerInput() {
+    final text = _scanController.text.trim();
+
+    if (_isCompleteBarcode(text)) {
+      _handleCompleteBarcode(text);
+    } else {
+      _waitForMoreInput();
+    }
+  }
+
+  /// Verifica se o texto parece ser um código de barras completo
+  bool _isCompleteBarcode(String text) {
+    return text.length >= _minBarcodeLength && _barcodePattern.hasMatch(text);
+  }
+
+  /// Processa código de barras completo detectado pelo scanner
+  void _handleCompleteBarcode(String barcode) {
+    _clearScannerFieldAfterDelay();
+    _onBarcodeScanned(barcode);
+  }
+
+  /// Aguarda mais entrada do scanner
+  void _waitForMoreInput() {
+    _scanTimer = Timer(_scannerTimeout, () {
+      if (_scanController.text.isNotEmpty) {
+        final barcode = _scanController.text.trim();
+        _clearScannerFieldAfterDelay();
+        _onBarcodeScanned(barcode);
+      }
+    });
+  }
+
+  /// Limpa o campo do scanner após um delay para o usuário ver o valor
+  void _clearScannerFieldAfterDelay() {
+    Future.delayed(_displayDelay, () {
+      if (mounted) {
+        _scanController.clear();
+      }
+    });
+  }
+
+  void _onFocusChange() {
+    // Listener simplificado - apenas para debug
+    if (_keyboardEnabled && _scanFocusNode.hasFocus) {
+      // Campo ganhou foco no modo manual - teclado deveria aparecer automaticamente
+      // Não forçar aqui para evitar conflitos com o toggle
+    }
+  }
+
+  /// Alterna entre modo scanner e teclado
   void _toggleKeyboard() {
     setState(() {
       _keyboardEnabled = !_keyboardEnabled;
     });
 
-    // Forçar foco e controlar teclado quando necessário
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_keyboardEnabled) {
-        // Perder foco primeiro, depois recuperar para forçar o teclado
-        _scanFocusNode.unfocus();
-        Future.delayed(const Duration(milliseconds: 100), () {
-          _scanFocusNode.requestFocus();
-        });
-      } else {
-        // Fechar teclado virtual primeiro
-        _scanFocusNode.unfocus();
-        FocusScope.of(context).unfocus(); // Garantir que teclado feche
-        // Depois manter foco para receber dados do scanner físico
-        Future.delayed(const Duration(milliseconds: 200), () {
-          _scanFocusNode.requestFocus();
-        });
+      if (mounted) {
+        if (_keyboardEnabled) {
+          _enableKeyboardMode();
+        } else {
+          _enableScannerMode();
+        }
       }
     });
+  }
+
+  /// Habilita modo teclado com abertura automática
+  void _enableKeyboardMode() {
+    _scanFocusNode.unfocus();
+
+    Future.delayed(_focusDelay, () {
+      if (mounted) {
+        _scanFocusNode.requestFocus();
+        _forceKeyboardShow();
+      }
+    });
+  }
+
+  /// Habilita modo scanner com fechamento do teclado
+  void _enableScannerMode() {
+    _hideKeyboard();
+
+    Future.delayed(_focusDelay, () {
+      if (mounted) {
+        _scanFocusNode.requestFocus();
+      }
+    });
+  }
+
+  /// Força a abertura do teclado
+  void _forceKeyboardShow() {
+    Future.delayed(_keyboardDelay, () {
+      if (mounted) {
+        try {
+          SystemChannels.textInput.invokeMethod('TextInput.show');
+        } catch (e) {
+          // Fallback: tentar novamente
+          Future.delayed(_focusDelay, () {
+            if (mounted) {
+              _scanFocusNode.requestFocus();
+            }
+          });
+        }
+      }
+    });
+  }
+
+  /// Esconde o teclado
+  void _hideKeyboard() {
+    try {
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
+    } catch (e) {
+      // Fallback: usar unfocus para fechar teclado
+      FocusScope.of(context).unfocus();
+    }
   }
 
   @override
   void dispose() {
     _scanTimer?.cancel();
     _scanController.removeListener(_onScannerInput);
+    _scanFocusNode.removeListener(_onFocusChange);
     _scanController.dispose();
     _scanFocusNode.dispose();
     _quantityController.dispose();
@@ -211,62 +321,76 @@ class _PickingCardScanState extends State<PickingCardScan> {
   /// Adiciona item escaneado na separação via use case
   Future<void> _addItemToSeparation(SeparateItemConsultationModel item, String barcode, int quantity) async {
     try {
-      // Chamar use case através do ViewModel
       final result = await widget.viewModel.addScannedItem(codProduto: item.codProduto, quantity: quantity);
 
       if (result.isSuccess) {
-        // Verificar se o item foi completamente separado após adicionar a quantidade
-        final itemId = item.item;
-        final wasCompletedBefore = widget.viewModel.isItemCompleted(itemId);
-        final currentPickedQuantity = widget.viewModel.getPickedQuantity(itemId);
-        final totalQuantity = item.quantidade.toInt();
-        final newPickedQuantity = currentPickedQuantity + quantity;
-
-        // Reproduzir som de scan bem-sucedido e feedback tátil
-        _audioService.playBarcodeScan();
-        _provideTactileFeedback();
-
-        // Verificar se o item foi completado após a adição
-        // Aguardar um pouco para o ViewModel atualizar o estado
-        await Future.delayed(const Duration(milliseconds: 100));
-        final isCompletedNow = widget.viewModel.isItemCompleted(itemId);
-
-        // Debug: Log para verificar o estado
-        if (kDebugMode) {
-          print('Item $itemId - Antes: $wasCompletedBefore, Depois: $isCompletedNow');
-          print('Quantidades - Atual: $currentPickedQuantity, Nova: $newPickedQuantity, Total: $totalQuantity');
-        }
-
-        // Verificar se o item foi completado baseado na lógica de quantidades
-        // Se não estava completo antes e a nova quantidade >= total, então foi completado
-        //final wasCompletedByQuantity = !wasCompletedBefore && newPickedQuantity >= totalQuantity;
-
-        // Se o item não estava completo antes e agora está (por estado ou por quantidade), reproduzir som especial
-        if ((wasCompletedBefore && isCompletedNow)) {
-          _audioService.playItemCompleted();
-        }
-
-        // Resetar quantidade para 1 se estiver maior que 1
-        if (_quantityController.text.isNotEmpty && int.tryParse(_quantityController.text) != null) {
-          final currentQuantity = int.parse(_quantityController.text);
-          if (currentQuantity > 1) _quantityController.text = '1';
-        }
-
-        // 🆕 VERIFICAR: Acabaram os itens do setor após adicionar este item?
-        await _checkIfSectorItemsCompleted();
+        await _handleSuccessfulItemAddition(item, quantity);
       } else {
-        // Reproduzir som de erro
-        _audioService.playError();
-
-        // Erro - mostrar mensagem de erro
-        _showErrorDialog(item, result.message, barcode);
+        _handleFailedItemAddition(item, result.message, barcode);
       }
     } catch (e) {
-      // Reproduzir som de erro
-      _audioService.playError();
+      _handleFailedItemAddition(item, 'Erro inesperado: ${e.toString()}', barcode);
+    }
+  }
 
-      // Mostrar erro inesperado
-      _showErrorDialog(item, 'Erro inesperado: ${e.toString()}', barcode);
+  /// Processa adição bem-sucedida de item
+  Future<void> _handleSuccessfulItemAddition(SeparateItemConsultationModel item, int quantity) async {
+    final itemId = item.item;
+    final wasCompletedBefore = widget.viewModel.isItemCompleted(itemId);
+
+    // Reproduzir feedback de sucesso
+    _audioService.playBarcodeScan();
+    _provideTactileFeedback();
+
+    // Verificar se o item foi completado após a adição
+    await Future.delayed(_stateUpdateDelay);
+    final isCompletedNow = widget.viewModel.isItemCompleted(itemId);
+
+    _logItemCompletionStatus(itemId.toString(), wasCompletedBefore, isCompletedNow, item, quantity);
+
+    // Reproduzir som especial se item foi completado
+    if (wasCompletedBefore && isCompletedNow) {
+      _audioService.playItemCompleted();
+    }
+
+    // Resetar quantidade se necessário
+    _resetQuantityIfNeeded();
+
+    // Verificar se acabaram os itens do setor
+    await _checkIfSectorItemsCompleted();
+  }
+
+  /// Processa falha na adição de item
+  void _handleFailedItemAddition(SeparateItemConsultationModel item, String errorMessage, String barcode) {
+    _audioService.playError();
+    _showErrorDialog(item, errorMessage, barcode);
+  }
+
+  /// Log do status de completude do item (apenas em debug)
+  void _logItemCompletionStatus(
+    String itemId,
+    bool wasCompletedBefore,
+    bool isCompletedNow,
+    SeparateItemConsultationModel item,
+    int quantity,
+  ) {
+    if (kDebugMode) {
+      final currentPickedQuantity = widget.viewModel.getPickedQuantity(itemId);
+      final totalQuantity = item.quantidade.toInt();
+      final newPickedQuantity = currentPickedQuantity + quantity;
+
+      print('Item $itemId - Antes: $wasCompletedBefore, Depois: $isCompletedNow');
+      print('Quantidades - Atual: $currentPickedQuantity, Nova: $newPickedQuantity, Total: $totalQuantity');
+    }
+  }
+
+  /// Resetar quantidade para 1 se estiver maior
+  void _resetQuantityIfNeeded() {
+    if (_quantityController.text.isNotEmpty && int.tryParse(_quantityController.text) != null) {
+      final currentQuantity = int.parse(_quantityController.text);
+      if (currentQuantity > 1) {
+        _quantityController.text = '1';
+      }
     }
   }
 
@@ -297,51 +421,35 @@ class _PickingCardScanState extends State<PickingCardScan> {
     }
   }
 
+  /// Mostra diálogo de erro genérico
   void _showErrorDialog(SeparateItemConsultationModel item, String errorMessage, String barcode) {
-    showDialog(
-      context: context,
-      builder: (context) =>
-          PickingDialogs.addItemError(barcode: barcode, productName: item.nomeProduto, errorMessage: errorMessage),
-    ).then((_) {
-      // Retornar foco para o campo de scanner após fechar o diálogo
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scanFocusNode.requestFocus();
-      });
-    });
+    _showDialogWithFocusReturn(
+      () => PickingDialogs.addItemError(barcode: barcode, productName: item.nomeProduto, errorMessage: errorMessage),
+    );
   }
 
+  /// Mostra diálogo de produto errado
   void _showWrongProductDialog(String barcode, SeparateItemConsultationModel expectedItem) {
-    showDialog(
-      context: context,
-      builder: (context) => PickingDialogs.wrongProduct(
+    _showDialogWithFocusReturn(
+      () => PickingDialogs.wrongProduct(
         scannedBarcode: barcode,
         expectedAddress: expectedItem.enderecoDescricao ?? 'Endereço não definido',
         expectedProduct: expectedItem.nomeProduto,
         expectedBarcode: expectedItem.codigoBarras,
       ),
-    ).then((_) {
-      // Retornar foco para o campo de scanner após fechar o diálogo
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scanFocusNode.requestFocus();
-      });
-    });
+    );
   }
 
+  /// Mostra diálogo de setor errado
   void _showWrongSectorDialog(String barcode, SeparateItemConsultationModel scannedItem, int userSectorCode) {
-    showDialog(
-      context: context,
-      builder: (context) => PickingDialogs.wrongSector(
+    _showDialogWithFocusReturn(
+      () => PickingDialogs.wrongSector(
         scannedBarcode: barcode,
         productName: scannedItem.nomeProduto,
         productSector: scannedItem.nomeSetorEstoque ?? 'Setor ${scannedItem.codSetorEstoque}',
         userSectorCode: userSectorCode,
       ),
-    ).then((_) {
-      // Retornar foco para o campo de scanner após fechar o diálogo
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scanFocusNode.requestFocus();
-      });
-    });
+    );
   }
 
   void _showNoItemsForSectorDialog(int userSectorCode) {
@@ -365,17 +473,29 @@ class _PickingCardScanState extends State<PickingCardScan> {
     );
   }
 
+  /// Mostra diálogo de separação completa
   void _showAllItemsCompletedDialog() {
-    showDialog(context: context, builder: (context) => PickingDialogs.separationComplete()).then((_) {
-      // Retornar foco para o campo de scanner após fechar o diálogo
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scanFocusNode.requestFocus();
-      });
+    _showDialogWithFocusReturn(() => PickingDialogs.separationComplete());
+  }
+
+  /// Mostra diálogo e retorna foco para o scanner após fechar
+  void _showDialogWithFocusReturn(Widget Function() dialogBuilder) {
+    showDialog(context: context, builder: (context) => dialogBuilder()).then((_) {
+      _returnFocusToScanner();
     });
   }
 
+  /// Retorna foco para o campo de scanner
+  void _returnFocusToScanner() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _scanFocusNode.requestFocus();
+      }
+    });
+  }
+
+  /// Finaliza o picking e volta para a tela anterior
   Future<void> _finishPicking() async {
-    // Voltar para a tela anterior
     if (mounted) {
       Navigator.of(context).pop(true); // Pop com resultado true indicando finalização
     }

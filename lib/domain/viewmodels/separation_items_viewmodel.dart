@@ -28,18 +28,26 @@ enum SeparateItemsState { initial, loading, loaded, error }
 
 /// ViewModel para separação de itens específicos
 class SeparationItemsViewModel extends ChangeNotifier {
-  final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
-  final BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel> _cartRepository;
-  final BasicRepository<ExpeditionSectorStockModel> _sectorStockRepository;
-  final FiltersStorageService _filtersStorage;
-  final SeparateCartInternshipEventRepository _cartEventRepository;
+  late final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
+  late final BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel> _cartRepository;
+  late final BasicRepository<ExpeditionSectorStockModel> _sectorStockRepository;
+  late final FiltersStorageService _filtersStorage;
+  late final SeparateCartInternshipEventRepository _cartEventRepository;
 
-  SeparationItemsViewModel()
-    : _repository = locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
-      _cartRepository = locator<BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel>>(),
-      _sectorStockRepository = locator<BasicRepository<ExpeditionSectorStockModel>>(),
-      _filtersStorage = locator<FiltersStorageService>(),
+  SeparationItemsViewModel() {
+    try {
+      _repository = locator<BasicConsultationRepository<SeparateItemConsultationModel>>();
+      _cartRepository = locator<BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel>>();
+      _sectorStockRepository = locator<BasicRepository<ExpeditionSectorStockModel>>();
+      _filtersStorage = locator<FiltersStorageService>();
       _cartEventRepository = locator<SeparateCartInternshipEventRepository>();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Erro ao inicializar SeparationItemsViewModel: $e');
+      }
+      rethrow;
+    }
+  }
 
   // === ESTADO ===
   SeparateItemsState _state = SeparateItemsState.initial;

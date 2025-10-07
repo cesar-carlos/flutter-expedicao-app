@@ -68,6 +68,10 @@ class BarcodeScannerCard extends StatelessWidget {
       focusNode: focusNode,
       enabled: enabled,
       onSubmitted: enabled ? onSubmitted : null,
+      // Permitir entrada do scanner embutido sempre, mas controlar seleção interativa
+      enableInteractiveSelection: enabled && keyboardEnabled,
+      // Permitir teclado no modo manual, suprimir apenas no modo scanner
+      keyboardType: enabled && keyboardEnabled ? TextInputType.text : TextInputType.none,
       decoration: InputDecoration(
         hintText: enabled
             ? (keyboardEnabled ? 'Digite o código de barras' : 'Aguardando scanner')
