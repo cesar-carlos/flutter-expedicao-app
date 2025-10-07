@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/ui/widgets/card_picking/widgets/index.dart';
+import 'package:exp/ui/widgets/card_picking/widgets/barcode_scanner_card_optimized.dart';
 import 'package:exp/core/constants/ui_constants.dart';
 
 /// Layout principal da tela de picking com otimizações de performance
@@ -28,9 +29,6 @@ class PickingScreenLayout extends StatelessWidget {
   /// FocusNode para o campo de scanner
   final FocusNode scanFocusNode;
 
-  /// Indica se o modo teclado está ativo (vs modo scanner)
-  final bool keyboardEnabled;
-
   /// Callback para alternar entre modo scanner e teclado
   final VoidCallback onToggleKeyboard;
 
@@ -40,9 +38,6 @@ class PickingScreenLayout extends StatelessWidget {
   /// Indica se os campos estão habilitados (carrinho em separação)
   final bool isEnabled;
 
-  /// Indica se está processando um scan (bloqueia o campo)
-  final bool isProcessing;
-
   const PickingScreenLayout({
     super.key,
     required this.cart,
@@ -51,11 +46,9 @@ class PickingScreenLayout extends StatelessWidget {
     required this.quantityFocusNode,
     required this.scanController,
     required this.scanFocusNode,
-    required this.keyboardEnabled,
     required this.onToggleKeyboard,
     required this.onBarcodeScanned,
     required this.isEnabled,
-    this.isProcessing = false,
   });
 
   /// Espaçamento vertical entre os cards
@@ -111,16 +104,19 @@ class PickingScreenLayout extends StatelessWidget {
     );
   }
 
-  /// Constrói o card do scanner de código de barras
+  /// Constrói o card do scanner de código de barras com Provider otimizado
+  ///
+  /// Este componente usa Consumer granular para atualizar APENAS o scanner
+  /// quando necessário, evitando rebuilds de toda a tela.
   Widget _buildBarcodeScanner() {
-    return BarcodeScannerCard(
-      controller: scanController,
-      focusNode: scanFocusNode,
-      keyboardEnabled: keyboardEnabled,
-      onToggleKeyboard: onToggleKeyboard,
-      onSubmitted: onBarcodeScanned,
-      enabled: isEnabled,
-      isProcessing: isProcessing,
+    return RepaintBoundary(
+      child: BarcodeScannerCardOptimized(
+        controller: scanController,
+        focusNode: scanFocusNode,
+        onToggleKeyboard: onToggleKeyboard,
+        onSubmitted: onBarcodeScanned,
+        enabled: isEnabled,
+      ),
     );
   }
 }

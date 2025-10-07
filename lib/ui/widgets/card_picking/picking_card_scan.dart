@@ -1,13 +1,14 @@
 import 'dart:async' show Timer;
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'package:exp/core/services/audio_service.dart';
 import 'package:exp/di/locator.dart';
+import 'package:exp/core/services/audio_service.dart';
+import 'package:exp/ui/widgets/card_picking/components/index.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/ui/widgets/card_picking/components/index.dart';
 
 /// Tela de escaneamento de itens do carrinho durante a separação
 ///
@@ -37,6 +38,55 @@ class PickingCardScan extends StatefulWidget {
 
   @override
   State<PickingCardScan> createState() => _PickingCardScanState();
+}
+
+/// Widget intermediário que fornece o Provider mas não reconstrói
+///
+/// Este widget é necessário para separar a lógica do Provider da lógica
+/// de estado do PickingCardScan, evitando rebuilds desnecessários.
+class _PickingCardScanProvider extends StatelessWidget {
+  final PickingScanState scanState;
+  final ExpeditionCartRouteInternshipConsultationModel cart;
+  final CardPickingViewModel viewModel;
+  final TextEditingController quantityController;
+  final FocusNode quantityFocusNode;
+  final TextEditingController scanController;
+  final FocusNode scanFocusNode;
+  final VoidCallback onToggleKeyboard;
+  final void Function(String) onBarcodeScanned;
+  final bool isEnabled;
+
+  const _PickingCardScanProvider({
+    required this.scanState,
+    required this.cart,
+    required this.viewModel,
+    required this.quantityController,
+    required this.quantityFocusNode,
+    required this.scanController,
+    required this.scanFocusNode,
+    required this.onToggleKeyboard,
+    required this.onBarcodeScanned,
+    required this.isEnabled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // 🚀 Provider fornece estado SEM forçar rebuild deste widget
+    return ChangeNotifierProvider<PickingScanState>.value(
+      value: scanState,
+      child: PickingScreenLayout(
+        cart: cart,
+        viewModel: viewModel,
+        quantityController: quantityController,
+        quantityFocusNode: quantityFocusNode,
+        scanController: scanController,
+        scanFocusNode: scanFocusNode,
+        onToggleKeyboard: onToggleKeyboard,
+        onBarcodeScanned: onBarcodeScanned,
+        isEnabled: isEnabled,
+      ),
+    );
+  }
 }
 
 class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAliveClientMixin {
@@ -69,11 +119,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   /// Timer para aguardar mais entrada do scanner
   Timer? _scanTimer;
 
-  /// Indica se o modo teclado manual está ativo (vs modo scanner)
-  bool _keyboardEnabled = false;
-
-  /// Bloqueia o campo durante processamento para evitar scans duplicados
-  bool _isProcessingScan = false;
+  /// Estado gerenciado via Provider para evitar problemas de setState após dispose
+  late final PickingScanState _scanState;
 
   // Componentes especializados (arquitetura modular)
   late final KeyboardToggleController _keyboardController;
@@ -100,7 +147,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       if (mounted) {
         _statusCache.forceCheckCartStatus();
         if (mounted) {
-          setState(() {}); // Forçar rebuild com status atualizado
+          _scanState.forceUpdate(); // Usar Provider em vez de setState
         }
       }
     });
@@ -108,12 +155,11 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   /// Inicializa os componentes refatorados
   void _initializeComponents() {
+    // Inicializar estado gerenciado via Provider
+    _scanState = PickingScanState();
     _keyboardController = KeyboardToggleController(scanFocusNode: _scanFocusNode, context: context);
-
     _scanProcessor = ScanInputProcessor(viewModel: widget.viewModel);
-
     _statusCache = CartStatusCache(viewModel: widget.viewModel);
-
     _dialogManager = PickingDialogManager(context: context, scanFocusNode: _scanFocusNode);
   }
 
@@ -156,7 +202,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   void _onScannerInput() {
     _scanTimer?.cancel();
 
-    if (!_keyboardEnabled && _scanController.text.isNotEmpty) {
+    if (!_scanState.keyboardEnabled && _scanController.text.isNotEmpty) {
       _processScannerInput();
     }
   }
@@ -179,7 +225,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   /// permitindo que o scanner complete a entrada de todos os dígitos.
   void _waitForMoreInput() {
     _scanTimer = Timer(_scannerTimeout, () {
-      if (_scanController.text.isNotEmpty) {
+      if (mounted && _scanController.text.isNotEmpty) {
         final barcode = _scanController.text.trim();
         _clearScannerFieldAfterDelay();
         _onBarcodeScanned(barcode);
@@ -209,16 +255,12 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   /// Alterna entre modo scanner e teclado
   void _toggleKeyboard() {
-    // Evitar setState se o estado não mudou
-    if (_keyboardEnabled == !_keyboardEnabled) return;
-
-    setState(() {
-      _keyboardEnabled = !_keyboardEnabled;
-    });
+    // Usar Provider para gerenciar estado
+    _scanState.toggleKeyboard();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        if (_keyboardEnabled) {
+        if (_scanState.keyboardEnabled) {
           _keyboardController.enableKeyboardMode();
         } else {
           _keyboardController.enableScannerMode();
@@ -237,8 +279,9 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _quantityController.dispose();
     _quantityFocusNode.dispose();
 
-    // Limpar cache
+    // Limpar cache e estado
     _statusCache.clear();
+    _scanState.dispose();
 
     super.dispose();
   }
@@ -249,18 +292,19 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     final isEnabled = _isCartInSeparationStatus();
 
-    return PickingScreenLayout(
+    // 🚀 Widget intermediário que NÃO reconstrói quando o Provider notifica
+    // O Provider está dentro do _PickingCardScanProvider, isolado desta classe
+    return _PickingCardScanProvider(
+      scanState: _scanState,
       cart: widget.cart,
       viewModel: widget.viewModel,
       quantityController: _quantityController,
       quantityFocusNode: _quantityFocusNode,
       scanController: _scanController,
       scanFocusNode: _scanFocusNode,
-      keyboardEnabled: _keyboardEnabled,
       onToggleKeyboard: _toggleKeyboard,
       onBarcodeScanned: _onBarcodeScanned,
       isEnabled: isEnabled,
-      isProcessing: _isProcessingScan,
     );
   }
 
@@ -270,14 +314,12 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
 
     // Evitar múltiplos processamentos simultâneos
-    if (_isProcessingScan) {
+    if (_scanState.isProcessingScan) {
       return;
     }
 
     // 🔒 BLOQUEAR CAMPO E LIMPAR PARA PRÓXIMO SCAN
-    setState(() {
-      _isProcessingScan = true;
-    });
+    _scanState.startProcessing();
     _scanController.clear();
 
     try {
@@ -333,9 +375,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       }
     } finally {
       // 🔓 LIBERAR CAMPO APÓS PROCESSAR
-      setState(() {
-        _isProcessingScan = false;
-      });
+      _scanState.stopProcessing();
     }
   }
 
