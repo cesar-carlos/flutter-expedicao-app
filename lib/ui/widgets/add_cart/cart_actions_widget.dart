@@ -53,7 +53,7 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: colorScheme.outline.withOpacity(0.2), width: 1),
+        side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.2), width: 1),
       ),
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -66,7 +66,7 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
                 decoration: BoxDecoration(
                   color: Colors.green.shade50,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -100,9 +100,9 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: colorScheme.errorContainer.withOpacity(0.5),
+                  color: colorScheme.errorContainer.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colorScheme.error.withOpacity(0.3)),
+                  border: Border.all(color: colorScheme.error.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -220,9 +220,9 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: colorScheme.errorContainer.withOpacity(0.3),
+                  color: colorScheme.errorContainer.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: colorScheme.error.withOpacity(0.2)),
+                  border: Border.all(color: colorScheme.error.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   'Carrinho deve estar na situação LIBERADO para ser adicionado à separação.',

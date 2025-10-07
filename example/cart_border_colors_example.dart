@@ -136,7 +136,7 @@ class CartBorderExample extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shadowColor: statusColor.withOpacity(0.2),
+      shadowColor: statusColor.withValues(alpha: 0.2),
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -148,7 +148,7 @@ class CartBorderExample extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [statusColor.withOpacity(0.05), statusColor.withOpacity(0.02)],
+            colors: [statusColor.withValues(alpha: 0.05), statusColor.withValues(alpha: 0.02)],
           ),
         ),
         padding: const EdgeInsets.all(16),
@@ -162,7 +162,7 @@ class CartBorderExample extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(Icons.shopping_cart, color: statusColor, size: 24),
@@ -180,7 +180,7 @@ class CartBorderExample extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.2),
+                              color: statusColor.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -200,7 +200,7 @@ class CartBorderExample extends StatelessWidget {
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: statusColor.withOpacity(0.3),
+                                  color: statusColor.withValues(alpha: 0.3),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 ),
@@ -246,9 +246,9 @@ class CartBorderExample extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
+                color: statusColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: statusColor.withOpacity(0.3), width: 1),
+                border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 1),
               ),
               child: Row(
                 children: [

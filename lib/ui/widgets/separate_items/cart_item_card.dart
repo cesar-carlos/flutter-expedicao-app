@@ -17,6 +17,7 @@ import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/domain/services/cart_validation_service.dart';
 import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/ui/screens/card_picking_screen.dart';
+import 'package:exp/core/constants/ui_constants.dart';
 
 class CartItemCard extends StatelessWidget {
   final ExpeditionCartRouteInternshipConsultationModel cartRouteInternshipConsultation;
@@ -37,51 +38,51 @@ class CartItemCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shadowColor: situationColor.withOpacity(0.2),
+      shadowColor: situationColor.withValues(alpha: 0.2),
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: situationColor.withOpacity(0.4), width: 2),
+        borderRadius: BorderRadius.circular(UIConstants.largeBorderRadius),
+        side: BorderSide(color: situationColor.withValues(alpha: 0.4), width: 2),
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(UIConstants.largeBorderRadius),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [situationColor.withOpacity(0.05), situationColor.withOpacity(0.02)],
+            colors: [situationColor.withValues(alpha: 0.05), situationColor.withValues(alpha: 0.02)],
           ),
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(UIConstants.defaultPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header principal
             _buildMainHeader(context, theme, colorScheme, isActive, isFinalized, situationColor),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
 
             // Código de barras e situação
             _buildCodeAndSituation(context, theme, colorScheme, situationColor),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
 
             // Informações de tempo e usuário
             _buildTimelineInfo(context, theme, colorScheme, isFinalized),
 
             if (cartRouteInternshipConsultation.nomeSetorEstoque != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: UIConstants.smallPadding),
               _buildSectorInfo(context, theme, colorScheme),
             ],
 
             // Informações adicionais
             if (cartRouteInternshipConsultation.carrinhoAgrupadorCode.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: UIConstants.smallPadding),
               _buildGroupInfo(context, theme, colorScheme),
             ],
 
             // Seção de ações
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
             _buildActionsSection(context, theme, colorScheme, situationColor),
           ],
         ),
@@ -101,9 +102,12 @@ class CartItemCard extends StatelessWidget {
       children: [
         // Ícone do carrinho
         Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: situationColor.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
-          child: Icon(Icons.shopping_cart, color: situationColor, size: 24),
+          padding: const EdgeInsets.all(UIConstants.smallPadding),
+          decoration: BoxDecoration(
+            color: situationColor.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(UIConstants.defaultBorderRadius),
+          ),
+          child: Icon(Icons.shopping_cart, color: situationColor, size: UIConstants.mediumIconSize),
         ),
         const SizedBox(width: 12),
 
@@ -118,8 +122,8 @@ class CartItemCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: situationColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
+                      color: situationColor.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
                     ),
                     child: Text(
                       '#${cartRouteInternshipConsultation.codCarrinho}',
@@ -157,8 +161,8 @@ class CartItemCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: situationColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: situationColor.withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 2))],
+        borderRadius: BorderRadius.circular(UIConstants.extraLargeBorderRadius),
+        boxShadow: [BoxShadow(color: situationColor.withValues(alpha: 0.3), blurRadius: 4, offset: const Offset(0, 2))],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -170,7 +174,7 @@ class CartItemCard extends StatelessWidget {
                 ? Icons.play_circle_outline
                 : Icons.pause_circle_outline,
             color: Colors.white,
-            size: 16,
+            size: UIConstants.smallIconSize,
           ),
           const SizedBox(width: 4),
           Text(
@@ -184,11 +188,11 @@ class CartItemCard extends StatelessWidget {
 
   Widget _buildCodeAndSituation(BuildContext context, ThemeData theme, ColorScheme colorScheme, Color situationColor) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(UIConstants.smallPadding),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: situationColor.withOpacity(0.2), width: 1),
+        border: Border.all(color: situationColor.withValues(alpha: 0.2), width: 1),
       ),
       child: Row(
         children: [
@@ -200,7 +204,7 @@ class CartItemCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.qr_code_2, size: 18, color: colorScheme.primary),
+                      Icon(Icons.qr_code_2, size: UIConstants.defaultIconSize, color: colorScheme.primary),
                       const SizedBox(width: 6),
                       Text(
                         'Código de Barras',
@@ -215,8 +219,8 @@ class CartItemCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6),
+                      color: colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
                     ),
                     child: Text(
                       cartRouteInternshipConsultation.codigoBarrasCarrinho,
@@ -242,7 +246,7 @@ class CartItemCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.source, size: 18, color: situationColor),
+                    Icon(Icons.source, size: UIConstants.defaultIconSize, color: situationColor),
                     const SizedBox(width: 6),
                     Text(
                       'Origem',
@@ -254,8 +258,8 @@ class CartItemCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: situationColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    color: situationColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
                   ),
                   child: Text(
                     '${cartRouteInternshipConsultation.origem.description} #${cartRouteInternshipConsultation.codOrigem}',
@@ -274,9 +278,9 @@ class CartItemCard extends StatelessWidget {
 
   Widget _buildTimelineInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme, bool isFinalized) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(UIConstants.smallPadding),
       decoration: BoxDecoration(
-        color: colorScheme.secondaryContainer.withOpacity(0.3),
+        color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -287,7 +291,7 @@ class CartItemCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(color: colorScheme.secondary, shape: BoxShape.circle),
-                child: Icon(Icons.play_arrow, color: Colors.white, size: 16),
+                child: Icon(Icons.play_arrow, color: Colors.white, size: UIConstants.smallIconSize),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -304,7 +308,7 @@ class CartItemCard extends StatelessWidget {
                     Text(
                       '${_formatDate(cartRouteInternshipConsultation.dataInicio)} às ${cartRouteInternshipConsultation.horaInicio}',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSecondaryContainer.withOpacity(0.8),
+                        color: colorScheme.onSecondaryContainer.withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -321,7 +325,7 @@ class CartItemCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-                  child: Icon(Icons.check, color: Colors.white, size: 16),
+                  child: Icon(Icons.check, color: Colors.white, size: UIConstants.smallIconSize),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -352,18 +356,21 @@ class CartItemCard extends StatelessWidget {
 
   Widget _buildSectorInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(UIConstants.smallPadding),
       decoration: BoxDecoration(
-        color: colorScheme.tertiaryContainer.withOpacity(0.4),
+        color: colorScheme.tertiaryContainer.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.tertiary.withOpacity(0.3), width: 1),
+        border: Border.all(color: colorScheme.tertiary.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: colorScheme.tertiary, borderRadius: BorderRadius.circular(8)),
-            child: Icon(Icons.warehouse, color: Colors.white, size: 20),
+            decoration: BoxDecoration(
+              color: colorScheme.tertiary,
+              borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+            ),
+            child: Icon(Icons.warehouse, color: Colors.white, size: UIConstants.defaultIconSize),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -395,18 +402,21 @@ class CartItemCard extends StatelessWidget {
 
   Widget _buildGroupInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(UIConstants.smallPadding),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHigh.withOpacity(0.5),
+        color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.3), width: 1),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: colorScheme.outline, borderRadius: BorderRadius.circular(8)),
-            child: Icon(Icons.group_work, color: Colors.white, size: 20),
+            decoration: BoxDecoration(
+              color: colorScheme.outline,
+              borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+            ),
+            child: Icon(Icons.group_work, color: Colors.white, size: UIConstants.defaultIconSize),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -435,7 +445,7 @@ class CartItemCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: colorScheme.outline.withOpacity(0.2),
+                          color: colorScheme.outline.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -465,11 +475,11 @@ class CartItemCard extends StatelessWidget {
 
   Widget _buildActionsSection(BuildContext context, ThemeData theme, ColorScheme colorScheme, Color situationColor) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(UIConstants.smallPadding),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: situationColor.withOpacity(0.2), width: 1),
+        border: Border.all(color: situationColor.withValues(alpha: 0.2), width: 1),
       ),
       child: Column(
         children: [
@@ -482,7 +492,7 @@ class CartItemCard extends StatelessWidget {
                     text: 'Separar',
                     icon: Icons.play_arrow,
                     textColor: colorScheme.primary,
-                    borderColor: colorScheme.primary.withOpacity(0.3),
+                    borderColor: colorScheme.primary.withValues(alpha: 0.3),
                     onPressed: () => _onSeparateCart(context),
                   ),
                 ),
@@ -513,7 +523,7 @@ class CartItemCard extends StatelessWidget {
                 text: 'Salvar',
                 icon: Icons.check_circle,
                 textColor: Colors.green,
-                borderColor: Colors.green.withOpacity(0.3),
+                borderColor: Colors.green.withValues(alpha: 0.3),
                 onPressed: () => _onFinalizeCart(context),
               ),
             ),
@@ -527,7 +537,7 @@ class CartItemCard extends StatelessWidget {
                 text: 'Visualizar',
                 icon: Icons.visibility,
                 textColor: colorScheme.tertiary,
-                borderColor: colorScheme.tertiary.withOpacity(0.3),
+                borderColor: colorScheme.tertiary.withValues(alpha: 0.3),
                 onPressed: () => _onViewCart(context),
               ),
             ),
@@ -546,17 +556,17 @@ class CartItemCard extends StatelessWidget {
     final isCancelling = viewModel.isCartBeingCancelled(cartRouteInternshipConsultation.codCarrinho);
 
     return Container(
-      width: 48,
-      height: 48,
+      width: UIConstants.defaultButtonHeight,
+      height: UIConstants.defaultButtonHeight,
       decoration: BoxDecoration(
-        border: Border.all(color: colorScheme.error.withOpacity(0.3)),
-        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colorScheme.error.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
         color: Colors.transparent,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
           onTap: isCancelling ? null : () => _showCancelDialog(context),
           child: Center(
             child: isCancelling
@@ -565,7 +575,7 @@ class CartItemCard extends StatelessWidget {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.error),
                   )
-                : Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
+                : Icon(Icons.delete_outline, color: colorScheme.error, size: UIConstants.defaultIconSize),
           ),
         ),
       ),
@@ -574,19 +584,21 @@ class CartItemCard extends StatelessWidget {
 
   Widget _buildViewIconButton(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Container(
-      width: 48,
-      height: 48,
+      width: UIConstants.defaultButtonHeight,
+      height: UIConstants.defaultButtonHeight,
       decoration: BoxDecoration(
-        border: Border.all(color: colorScheme.tertiary.withOpacity(0.3)),
-        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colorScheme.tertiary.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
         color: Colors.transparent,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
           onTap: () => _onViewCartReadOnly(context),
-          child: Center(child: Icon(Icons.visibility, color: colorScheme.tertiary, size: 20)),
+          child: Center(
+            child: Icon(Icons.visibility, color: colorScheme.tertiary, size: UIConstants.defaultIconSize),
+          ),
         ),
       ),
     );
@@ -648,7 +660,7 @@ class CartItemCard extends StatelessWidget {
             const SnackBar(
               content: Text('Carrinho salvo com sucesso!'),
               backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
+              duration: UIConstants.snackBarShortDuration,
             ),
           );
         }
@@ -679,11 +691,11 @@ class CartItemCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(UIConstants.smallPadding),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.withOpacity(0.3)),
+                color: Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -697,7 +709,7 @@ class CartItemCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
             const Text('Este carrinho foi incluído por outro usuário.'),
             const SizedBox(height: 8),
             const Text(
@@ -727,11 +739,11 @@ class CartItemCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(UIConstants.smallPadding),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                color: Colors.blue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -745,7 +757,7 @@ class CartItemCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
             const Text('Não há mais produtos do seu setor neste carrinho para separar.'),
             const SizedBox(height: 8),
             const Text(
@@ -762,6 +774,8 @@ class CartItemCard extends StatelessWidget {
   Future<bool> _onFinalizeCart(BuildContext context, {bool skipConfirmation = false}) async {
     // Obter usuário da sessão e validar acesso
     final userModel = await _getUserModel();
+
+    if (!context.mounted) return false;
 
     final accessValidation = CartValidationService.validateCartAccess(
       currentUserCode: userModel?.codUsuario,
@@ -780,11 +794,14 @@ class CartItemCard extends StatelessWidget {
     // Mostrar diálogo de confirmação (pular se já confirmado)
     if (!skipConfirmation) {
       final confirmed = await _showFinalizeConfirmationDialog(context);
-      if (!confirmed) return false;
+      if (!confirmed || !context.mounted) return false;
     }
 
+    // Verificar se ainda está montado após operação assíncrona
+    if (!context.mounted) return false;
+
     // Mostrar indicador de carregamento
-    if (context.mounted) _showLoadingDialog(context);
+    _showLoadingDialog(context);
 
     try {
       // Obter o use case do locator
@@ -1010,6 +1027,8 @@ class CartItemCard extends StatelessWidget {
       return;
     }
 
+    if (!context.mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1027,11 +1046,11 @@ class CartItemCard extends StatelessWidget {
             Text('Deseja realmente cancelar o carrinho?'),
             const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(UIConstants.smallPadding),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Theme.of(context).colorScheme.error.withOpacity(0.3), width: 1),
+                color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                border: Border.all(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3), width: 1),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

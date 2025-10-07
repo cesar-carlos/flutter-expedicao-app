@@ -7,6 +7,7 @@ import 'package:exp/core/services/barcode_validation_service.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/di/locator.dart';
+import 'package:exp/core/constants/ui_constants.dart';
 
 /// Processador responsável por processar entradas do scanner de códigos de barras
 ///
@@ -31,7 +32,7 @@ class ScanInputProcessor {
   final AudioService _audioService = locator<AudioService>();
 
   /// Timeout para aguardar mais entrada do scanner
-  static const Duration _scannerTimeout = Duration(milliseconds: 300);
+  static const Duration _scannerTimeout = UIConstants.slideInDuration;
 
   /// Padrão regex para validar formato de código de barras (8-14 dígitos)
   static final RegExp _barcodePattern = RegExp(r'^\d{8,14}$');
@@ -109,7 +110,7 @@ class ScanInputProcessor {
     futures.add(_provideSuccessFeedback());
 
     // 2. Aguardar atualização de estado (otimizado - apenas 10ms para UI)
-    futures.add(Future.delayed(const Duration(milliseconds: 10)));
+    futures.add(Future.delayed(UIConstants.shortLoadingDelay));
 
     // 3. Verificar completude do item (necessário)
     futures.add(

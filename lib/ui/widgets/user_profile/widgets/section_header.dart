@@ -99,7 +99,10 @@ class ExpandableSectionHeader extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: isExpanded
               ? LinearGradient(
-                  colors: [(iconBackgroundColor ?? colorScheme.errorContainer).withOpacity(0.1), colorScheme.surface],
+                  colors: [
+                    (iconBackgroundColor ?? colorScheme.errorContainer).withValues(alpha: 0.1),
+                    colorScheme.surface,
+                  ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 )
@@ -114,9 +117,9 @@ class ExpandableSectionHeader extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: (iconBackgroundColor ?? colorScheme.errorContainer).withOpacity(0.2),
+                color: (iconBackgroundColor ?? colorScheme.errorContainer).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: (iconBackgroundColor ?? colorScheme.error).withOpacity(0.2)),
+                border: Border.all(color: (iconBackgroundColor ?? colorScheme.error).withValues(alpha: 0.2)),
               ),
               child: Icon(icon, color: iconColor ?? colorScheme.error, size: 22),
             ),
@@ -147,7 +150,7 @@ class ExpandableSectionHeader extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: AnimatedRotation(

@@ -19,7 +19,7 @@ class PickingActionsBottomBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         boxShadow: [
-          BoxShadow(color: AppColors.withOpacity(colorScheme.shadow, 0.1), blurRadius: 8, offset: const Offset(0, -2)),
+          BoxShadow(color: colorScheme.shadow.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, -2)),
         ],
       ),
       child: SafeArea(
@@ -42,13 +42,11 @@ class PickingActionsBottomBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: isComplete
-            ? AppColors.withOpacity(AppColors.success, 0.1)
-            : AppColors.withOpacity(colorScheme.primaryContainer, 0.3),
+            ? AppColors.success.withValues(alpha: 0.1)
+            : colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isComplete
-              ? AppColors.withOpacity(AppColors.success, 0.3)
-              : AppColors.withOpacity(colorScheme.primary, 0.3),
+          color: isComplete ? AppColors.success.withValues(alpha: 0.3) : colorScheme.primary.withValues(alpha: 0.3),
         ),
       ),
       child: Row(

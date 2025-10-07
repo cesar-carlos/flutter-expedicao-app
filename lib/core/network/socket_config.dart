@@ -1,10 +1,10 @@
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import 'package:exp/domain/models/api_config.dart';
 
 /// Configuração global do Socket.IO
 class SocketConfig {
-  static IO.Socket? _socketInstance;
+  static io.Socket? _socketInstance;
   static ApiConfig? _currentApiConfig;
 
   /// Inicializa o Socket.IO com configurações globais
@@ -14,7 +14,7 @@ class SocketConfig {
   }
 
   /// Obtém a instância global do Socket.IO
-  static IO.Socket get instance {
+  static io.Socket get instance {
     if (_socketInstance == null) {
       throw StateError('SocketConfig não foi inicializado. Chame SocketConfig.initialize() primeiro.');
     }
@@ -78,10 +78,10 @@ class SocketConfig {
   }
 
   /// Cria uma nova instância do Socket.IO com as configurações
-  static IO.Socket _createSocketInstance(ApiConfig apiConfig) {
+  static io.Socket _createSocketInstance(ApiConfig apiConfig) {
     // Conectando ao Socket.IO
 
-    final socket = IO.io(apiConfig.fullUrl, <String, dynamic>{
+    final socket = io.io(apiConfig.fullUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
       'reconnection': true,

@@ -31,7 +31,7 @@ class BarcodeScannerCard extends StatelessWidget {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: enabled ? colorScheme.primary.withOpacity(0.3) : Colors.grey.withOpacity(0.3),
+          color: enabled ? colorScheme.primary.withValues(alpha:0.3) : Colors.grey.withValues(alpha:0.3),
           width: 2,
         ),
       ),
@@ -130,7 +130,7 @@ class BarcodeScannerCard extends StatelessWidget {
           borderSide: BorderSide(color: Colors.grey),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        fillColor: enabled ? null : Colors.grey.withOpacity(0.1),
+        fillColor: enabled ? null : Colors.grey.withValues(alpha:0.1),
         filled: !enabled,
       ),
       style: TextStyle(color: enabled ? null : Colors.grey),

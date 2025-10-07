@@ -47,10 +47,10 @@ class SeparationInfoView extends StatelessWidget {
   Widget _buildStatusCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
-      color: separation.situacao.color.withOpacity(0.1),
+      color: separation.situacao.color.withValues(alpha:0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: separation.situacao.color.withOpacity(0.3), width: 2),
+        side: BorderSide(color: separation.situacao.color.withValues(alpha:0.3), width: 2),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -93,7 +93,7 @@ class SeparationInfoView extends StatelessWidget {
   Widget _buildEntityCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
-      color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      color: colorScheme.surfaceContainerHighest.withValues(alpha:0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -125,7 +125,7 @@ class SeparationInfoView extends StatelessWidget {
   Widget _buildOperationCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
-      color: colorScheme.tertiaryContainer.withOpacity(0.3),
+      color: colorScheme.tertiaryContainer.withValues(alpha:0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -168,7 +168,7 @@ class SeparationInfoView extends StatelessWidget {
   Widget _buildStatsCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
-      color: colorScheme.secondaryContainer.withOpacity(0.3),
+      color: colorScheme.secondaryContainer.withValues(alpha:0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -244,7 +244,7 @@ class SeparationInfoView extends StatelessWidget {
   Widget _buildAdditionalInfoCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
-      color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+      color: colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),

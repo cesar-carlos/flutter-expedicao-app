@@ -39,7 +39,7 @@ class ProfileActionButtons extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         gradient: hasChanges
-            ? LinearGradient(colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)])
+            ? LinearGradient(colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8)])
             : null,
         borderRadius: BorderRadius.circular(16),
       ),
@@ -135,7 +135,7 @@ class ProfileSaveButton extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         gradient: hasChanges
-            ? LinearGradient(colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)])
+            ? LinearGradient(colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8)])
             : null,
         borderRadius: BorderRadius.circular(16),
       ),

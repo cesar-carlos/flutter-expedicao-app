@@ -1,3 +1,4 @@
+import 'package:exp/core/utils/app_logger.dart';
 import 'package:exp/domain/models/user/user_models.dart';
 import 'package:exp/domain/models/situation/situation_model.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
@@ -25,19 +26,19 @@ void main() async {
     // Chamar o método PUT para atualizar o usuário
     final updatedUser = await userRepository.putAppUser(appUser);
 
-    print('✅ Usuário atualizado com sucesso!');
-    print('Nome: ${updatedUser.nome}');
-    print('Código: ${updatedUser.codLoginApp}');
-    print('Ativo: ${updatedUser.ativo}');
+    AppLogger.debug('✅ Usuário atualizado com sucesso!');
+    AppLogger.debug('Nome: ${updatedUser.nome}');
+    AppLogger.debug('Código: ${updatedUser.codLoginApp}');
+    AppLogger.debug('Ativo: ${updatedUser.ativo}');
   } on UserApiException catch (e) {
     if (e.statusCode == 400) {
-      print('❌ Erro 400: ${e.message}');
+      AppLogger.debug('❌ Erro 400: ${e.message}');
       // Exemplo: "Erro ao atualizar usuário: Usuário não encontrado"
     } else {
-      print('❌ Erro ${e.statusCode}: ${e.message}');
+      AppLogger.debug('❌ Erro ${e.statusCode}: ${e.message}');
     }
   } catch (e) {
-    print('❌ Erro inesperado: $e');
+    AppLogger.debug('❌ Erro inesperado: $e');
   }
 
   // Exemplo 2: Tentar atualizar usuário inexistente (deve retornar erro 400)
@@ -51,7 +52,7 @@ void main() async {
     await userRepository.putAppUser(nonExistentUser);
   } on UserApiException catch (e) {
     if (e.statusCode == 400) {
-      print('❌ Como esperado - Usuário não encontrado: ${e.message}');
+      AppLogger.debug('❌ Como esperado - Usuário não encontrado: ${e.message}');
     }
   }
 }

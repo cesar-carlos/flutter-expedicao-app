@@ -9,6 +9,7 @@ import 'package:exp/ui/widgets/data_grid/separate_consultation_data_grid.dart';
 import 'package:exp/domain/viewmodels/separate_consultation_viewmodel.dart';
 import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:exp/core/constants/ui_constants.dart';
 
 /// Tela para exibir consultas de separação de expedição
 class SeparateConsultationScreen extends StatefulWidget {
@@ -88,11 +89,11 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
               children: [
                 // Barra de pesquisa e filtros
                 Container(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(UIConstants.defaultPadding),
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2)),
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2)),
                     ],
                   ),
                   child: Column(
@@ -112,13 +113,15 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
                                   icon: const Icon(Icons.clear),
                                 )
                               : null,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(UIConstants.defaultBorderRadius),
+                          ),
                           filled: true,
-                          fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                          fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                         ),
                         onChanged: (value) => viewModel.setSearchQuery(value),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: UIConstants.smallPadding),
                       // Botão de consulta principal
                       SizedBox(
                         width: double.infinity,
@@ -157,7 +160,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
             Text('Erro ao carregar consultas', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(
@@ -165,7 +168,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
             ElevatedButton.icon(
               onPressed: () => _refreshData(viewModel),
               icon: const Icon(Icons.refresh),
@@ -184,7 +187,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.search_off, size: 64, color: Theme.of(context).colorScheme.outline),
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
             Text(
               viewModel.searchQuery.isNotEmpty ? 'Nenhuma consulta encontrada' : 'Nenhuma consulta disponível',
               style: Theme.of(context).textTheme.titleLarge,
@@ -203,7 +206,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
     }
 
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(UIConstants.defaultPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -252,7 +255,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Consulta ${consultation.codSepararEstoque} selecionada'),
-        duration: const Duration(seconds: 2),
+        duration: UIConstants.snackBarShortDuration,
       ),
     );
   }
@@ -320,10 +323,10 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
 
   Widget _buildPaginationControls(ShipmentSeparateConsultationViewModel viewModel) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(UIConstants.defaultPadding),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.2))),
+        border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2))),
       ),
       child: Row(
         children: [
@@ -348,7 +351,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(UIConstants.largeBorderRadius),
             ),
             child: Text(
               '${viewModel.currentPage + 1}',
@@ -394,48 +397,22 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Escolha o tipo de consulta:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
 
             // Opções de filtro
-            Column(
-              children: [
-                RadioListTile<String>(
-                  title: const Text('Todas as separações'),
-                  subtitle: const Text('Buscar todas as separações disponíveis'),
-                  value: 'todos',
-                  groupValue: selectedFilter,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedFilter = value!;
-                    });
-                  },
-                ),
-                RadioListTile<String>(
-                  title: const Text('Por código'),
-                  subtitle: const Text('Buscar por código específico'),
-                  value: 'codigo',
-                  groupValue: selectedFilter,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedFilter = value!;
-                    });
-                  },
-                ),
-                RadioListTile<String>(
-                  title: const Text('Por situação'),
-                  subtitle: const Text('Buscar por situação específica'),
-                  value: 'status',
-                  groupValue: selectedFilter,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedFilter = value!;
-                    });
-                  },
-                ),
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(value: 'todos', label: Text('Todas as separações'), icon: Icon(Icons.all_inbox)),
+                ButtonSegment(value: 'codigo', label: Text('Por código'), icon: Icon(Icons.tag)),
+                ButtonSegment(value: 'status', label: Text('Por situação'), icon: Icon(Icons.flag)),
               ],
+              selected: {selectedFilter},
+              onSelectionChanged: (selection) {
+                setState(() => selectedFilter = selection.first);
+              },
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
 
             // Campo de entrada baseado na seleção
             if (selectedFilter == 'codigo') ...[
@@ -465,15 +442,15 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
               ),
             ],
 
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
 
             // Configurações de paginação
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(UIConstants.smallPadding),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.3)),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -513,12 +490,12 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(UIConstants.smallPadding),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
               ),
               child: Row(
                 children: [
@@ -535,7 +512,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: UIConstants.largePadding),
             // Botões de ação
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -635,7 +612,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
                     : 'Consulta realizada com sucesso! ${viewModel.consultations.length} registros encontrados.',
               ),
               backgroundColor: viewModel.hasError ? Colors.red : Colors.green,
-              duration: const Duration(seconds: 3),
+              duration: UIConstants.snackBarMediumDuration,
             ),
           );
         })
@@ -650,7 +627,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
             SnackBar(
               content: Text('Erro na consulta: $error'),
               backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
+              duration: UIConstants.snackBarMediumDuration,
             ),
           );
         });

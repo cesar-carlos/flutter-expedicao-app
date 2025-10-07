@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:exp/core/constants/ui_constants.dart';
 
 /// Controlador responsável por gerenciar o toggle entre modo scanner e teclado
 ///
@@ -12,13 +13,13 @@ class KeyboardToggleController {
   final BuildContext context;
 
   /// Delay para aguardar mudança de foco
-  static const Duration _focusDelay = Duration(milliseconds: 100);
+  static const Duration _focusDelay = UIConstants.shortDelay;
 
   /// Delay para aguardar abertura do teclado
-  static const Duration _keyboardDelay = Duration(milliseconds: 50);
+  static const Duration _keyboardDelay = UIConstants.shortLoadingDelay;
 
   /// Delay para garantir carregamento completo da tela
-  static const Duration _initialFocusDelay = Duration(milliseconds: 300);
+  static const Duration _initialFocusDelay = UIConstants.slideInDuration;
 
   KeyboardToggleController({required this.scanFocusNode, required this.context});
 

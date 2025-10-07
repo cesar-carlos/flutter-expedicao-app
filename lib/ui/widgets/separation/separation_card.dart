@@ -21,7 +21,7 @@ class SeparationCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.1), width: 1),
+        border: Border.all(color: colorScheme.outline.withValues(alpha:0.1), width: 1),
       ),
       child: Material(
         color: Colors.transparent,

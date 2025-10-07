@@ -10,8 +10,6 @@ import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/expedition_sector_stock_model.dart';
 import 'package:exp/domain/models/filter/separation_filters_model.dart';
 import 'package:exp/domain/repositories/separate_event_repository.dart';
-import 'package:exp/domain/models/event_model/basic_event_model.dart';
-import 'package:exp/domain/models/event_model/event_listener_model.dart';
 
 import 'separation_viewmodel_test.mocks.dart';
 
@@ -311,30 +309,7 @@ void main() {
         viewModel.startEventMonitoring();
 
         // Act - Simular recebimento de evento de update
-        final testEvent = BasicEventModel(
-          eventType: Event.update,
-          data: {
-            'CodEmpresa': 1,
-            'CodSepararEstoque': 12345,
-            'Origem': 'ORCAMENTO_BALCAO',
-            'CodOrigem': 123,
-            'CodTipoOperacaoExpedicao': 1,
-            'NomeTipoOperacaoExpedicao': 'VENDAS',
-            'Situacao': 'SEPARANDO',
-            'TipoEntidade': 'CLIENTE',
-            'DataEmissao': '2023-12-25T10:00:00.000Z',
-            'HoraEmissao': '10:00:00',
-            'CodEntidade': 456,
-            'NomeEntidade': 'Cliente Teste',
-            'CodPrioridade': 1,
-            'NomePrioridade': 'NORMAL',
-          },
-          session: 'test-session',
-          timestamp: DateTime.now(),
-        );
-
-        // Simular callback do evento
-        // (Em um teste real, você chamaria o callback diretamente)
+        // (Em um teste real, você criaria um BasicEventModel e chamaria o callback diretamente)
 
         // Assert - Verifica se o listener foi registrado
         verify(mockEventRepository.addListener(any)).called(3);

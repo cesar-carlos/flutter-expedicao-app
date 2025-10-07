@@ -28,7 +28,7 @@ class AppDrawer extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [theme.colorScheme.primary, theme.colorScheme.primary.withOpacity(0.8)],
+                colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.8)],
               ),
             ),
             child: DrawerHeader(
@@ -52,7 +52,7 @@ class AppDrawer extends StatelessWidget {
                         height: 80,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: theme.colorScheme.onPrimary.withOpacity(0.2),
+                          color: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
                           border: Border.all(color: theme.colorScheme.onPrimary, width: 2),
                         ),
                         child: AvatarUtils.buildAvatar(

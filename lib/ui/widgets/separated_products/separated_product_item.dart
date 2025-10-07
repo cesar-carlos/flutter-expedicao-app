@@ -31,7 +31,7 @@ class SeparatedProductItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: item.situacao.color.withOpacity(0.1),
+              color: item.situacao.color.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
             ),
             child: Row(
@@ -116,7 +116,7 @@ class SeparatedProductItem extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
@@ -160,7 +160,7 @@ class SeparatedProductItem extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+                      border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
@@ -189,7 +189,7 @@ class SeparatedProductItem extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(12),
                   bottomRight: Radius.circular(12),
@@ -223,9 +223,9 @@ class SeparatedProductItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,7 +237,10 @@ class SeparatedProductItem extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 label,
-                style: theme.textTheme.bodySmall?.copyWith(color: color.withOpacity(0.8), fontWeight: FontWeight.w600),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: color.withValues(alpha: 0.8),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),

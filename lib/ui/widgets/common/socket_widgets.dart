@@ -23,7 +23,7 @@ class SocketStatusIndicator extends StatelessWidget {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           padding: padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(color: Colors.black.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(color: Colors.black.withValues(alpha:0.1), borderRadius: BorderRadius.circular(12)),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -50,7 +50,7 @@ class SocketStatusIndicator extends StatelessWidget {
                           height: size * (1.0 + (value * 0.5)),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Color(socketViewModel.connectionStateColor).withOpacity(0.3 * (1.0 - value)),
+                            color: Color(socketViewModel.connectionStateColor).withValues(alpha:0.3 * (1.0 - value)),
                           ),
                         );
                       },

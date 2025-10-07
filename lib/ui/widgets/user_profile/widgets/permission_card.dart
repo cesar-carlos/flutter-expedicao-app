@@ -22,17 +22,17 @@ class PermissionCard extends StatelessWidget {
     final theme = Theme.of(context);
     final color = hasPermission ? Colors.green : colorScheme.onSurfaceVariant;
     final backgroundColor = hasPermission
-        ? Colors.green.withOpacity(0.1)
-        : colorScheme.surfaceContainerHighest.withOpacity(0.5);
+        ? Colors.green.withValues(alpha: 0.1)
+        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
         boxShadow: hasPermission
-            ? [BoxShadow(color: Colors.green.withOpacity(0.1), offset: const Offset(0, 2), blurRadius: 4)]
+            ? [BoxShadow(color: Colors.green.withValues(alpha: 0.1), offset: const Offset(0, 2), blurRadius: 4)]
             : null,
       ),
       child: Column(
@@ -42,7 +42,7 @@ class PermissionCard extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                 child: Icon(icon, size: 18, color: color),
               ),
               const SizedBox(width: 8),
@@ -59,7 +59,10 @@ class PermissionCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             description,
-            style: theme.textTheme.bodySmall?.copyWith(color: color.withOpacity(0.8), fontWeight: FontWeight.w500),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: color.withValues(alpha: 0.8),
+              fontWeight: FontWeight.w500,
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -73,10 +76,7 @@ class PermissionCard extends StatelessWidget {
 class PermissionsGrid extends StatelessWidget {
   final List<PermissionData> permissions;
 
-  const PermissionsGrid({
-    super.key,
-    required this.permissions,
-  });
+  const PermissionsGrid({super.key, required this.permissions});
 
   @override
   Widget build(BuildContext context) {

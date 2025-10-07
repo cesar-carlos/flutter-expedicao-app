@@ -29,14 +29,16 @@ class DrawerMenuTile extends StatelessWidget {
         icon,
         color:
             iconColor ??
-            (isPlaceholder ? theme.colorScheme.onSurfaceVariant.withOpacity(0.6) : theme.colorScheme.onSurfaceVariant),
+            (isPlaceholder
+                ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)
+                : theme.colorScheme.onSurfaceVariant),
       ),
       title: Text(
         title,
         style: TextStyle(
           color:
               textColor ??
-              (isPlaceholder ? theme.colorScheme.onSurfaceVariant.withOpacity(0.6) : theme.colorScheme.onSurface),
+              (isPlaceholder ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6) : theme.colorScheme.onSurface),
           fontSize: 16,
         ),
       ),

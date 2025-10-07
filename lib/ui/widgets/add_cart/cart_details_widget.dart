@@ -18,12 +18,12 @@ class CartDetailsWidget extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: isReleased ? 3 : 1,
-      shadowColor: isReleased ? Colors.green.withOpacity(0.3) : null,
+      shadowColor: isReleased ? Colors.green.withValues(alpha: 0.3) : null,
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isReleased ? Colors.green.withOpacity(0.6) : colorScheme.error.withOpacity(0.6),
+          color: isReleased ? Colors.green.withValues(alpha: 0.6) : colorScheme.error.withValues(alpha: 0.6),
           width: isReleased ? 3 : 2,
         ),
       ),
@@ -34,7 +34,7 @@ class CartDetailsWidget extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Colors.green.withOpacity(0.08), Colors.green.withOpacity(0.03)],
+                  colors: [Colors.green.withValues(alpha: 0.08), Colors.green.withValues(alpha: 0.03)],
                 ),
               )
             : null,
@@ -154,9 +154,9 @@ class CartDetailsWidget extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: colorScheme.surface.withOpacity(0.5),
+            color: colorScheme.surface.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+            border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
           ),
           child: Column(children: children),
         ),
@@ -173,7 +173,7 @@ class CartDetailsWidget extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: colorScheme.primary.withOpacity(0.7)),
+          Icon(icon, size: 16, color: colorScheme.primary.withValues(alpha: 0.7)),
           const SizedBox(width: 8),
           SizedBox(
             width: 100,
@@ -181,7 +181,7 @@ class CartDetailsWidget extends StatelessWidget {
               '$label:',
               style: textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: colorScheme.onSurface.withOpacity(0.7),
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
           ),

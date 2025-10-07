@@ -1,61 +1,61 @@
+import 'package:exp/core/utils/app_logger.dart';
 import 'package:exp/domain/viewmodels/separate_consultation_viewmodel.dart';
 import 'package:exp/domain/models/pagination/query_builder_extension.dart';
 
 /// Exemplo de uso do ShipmentSeparateConsultationViewModel com paginação
 class SeparateConsultationPaginationExample {
-  final ShipmentSeparateConsultationViewModel viewModel =
-      ShipmentSeparateConsultationViewModel();
+  final ShipmentSeparateConsultationViewModel viewModel = ShipmentSeparateConsultationViewModel();
 
   /// Exemplo 1: Carregar dados iniciais com paginação padrão
   Future<void> loadInitialData() async {
-    print('Carregando dados iniciais...');
+    AppLogger.debug('Carregando dados iniciais...');
     await viewModel.loadConsultations();
 
-    print('Estado: ${viewModel.state}');
-    print('Dados carregados: ${viewModel.consultations.length}');
-    print('Página atual: ${viewModel.currentPage}');
-    print('Tamanho da página: ${viewModel.pageSize}');
-    print('Tem mais dados: ${viewModel.hasMoreData}');
+    AppLogger.debug('Estado: ${viewModel.state}');
+    AppLogger.debug('Dados carregados: ${viewModel.consultations.length}');
+    AppLogger.debug('Página atual: ${viewModel.currentPage}');
+    AppLogger.debug('Tamanho da página: ${viewModel.pageSize}');
+    AppLogger.debug('Tem mais dados: ${viewModel.hasMoreData}');
   }
 
   /// Exemplo 2: Carregar próxima página
   Future<void> loadNextPage() async {
     if (viewModel.hasMoreData && !viewModel.isLoading) {
-      print('Carregando próxima página...');
+      AppLogger.debug('Carregando próxima página...');
       await viewModel.loadNextPage();
 
-      print('Total de dados: ${viewModel.consultations.length}');
-      print('Página atual: ${viewModel.currentPage}');
-      print('Tem mais dados: ${viewModel.hasMoreData}');
+      AppLogger.debug('Total de dados: ${viewModel.consultations.length}');
+      AppLogger.debug('Página atual: ${viewModel.currentPage}');
+      AppLogger.debug('Tem mais dados: ${viewModel.hasMoreData}');
     } else {
-      print('Não há mais dados para carregar ou está carregando');
+      AppLogger.debug('Não há mais dados para carregar ou está carregando');
     }
   }
 
   /// Exemplo 3: Carregar página específica
   Future<void> loadSpecificPage(int page) async {
-    print('Carregando página $page...');
+    AppLogger.debug('Carregando página $page...');
     await viewModel.loadPage(page);
 
-    print('Página atual: ${viewModel.currentPage}');
-    print('Dados na página: ${viewModel.consultations.length}');
+    AppLogger.debug('Página atual: ${viewModel.currentPage}');
+    AppLogger.debug('Dados na página: ${viewModel.consultations.length}');
   }
 
   /// Exemplo 4: Alterar tamanho da página
   Future<void> changePageSize(int newSize) async {
-    print('Alterando tamanho da página para $newSize...');
+    AppLogger.debug('Alterando tamanho da página para $newSize...');
     viewModel.setPageSize(newSize);
 
     // Recarrega os dados com o novo tamanho
     await viewModel.loadConsultations();
 
-    print('Novo tamanho da página: ${viewModel.pageSize}');
-    print('Dados carregados: ${viewModel.consultations.length}');
+    AppLogger.debug('Novo tamanho da página: ${viewModel.pageSize}');
+    AppLogger.debug('Dados carregados: ${viewModel.consultations.length}');
   }
 
   /// Exemplo 5: Consulta com filtros personalizados
   Future<void> searchWithCustomFilters() async {
-    print('Realizando consulta com filtros personalizados...');
+    AppLogger.debug('Realizando consulta com filtros personalizados...');
 
     // Cria um QueryBuilder com filtros específicos
     final queryBuilder = QueryBuilderExtension.withDefaultPagination(
@@ -65,13 +65,13 @@ class SeparateConsultationPaginationExample {
 
     await viewModel.performConsultation(queryBuilder);
 
-    print('Consulta realizada com filtros');
-    print('Dados encontrados: ${viewModel.consultations.length}');
+    AppLogger.debug('Consulta realizada com filtros');
+    AppLogger.debug('Dados encontrados: ${viewModel.consultations.length}');
   }
 
   /// Exemplo 6: Usar filtros do ViewModel
   Future<void> useViewModelFilters() async {
-    print('Usando filtros do ViewModel...');
+    AppLogger.debug('Usando filtros do ViewModel...');
 
     // Define filtros
     viewModel.setSearchQuery('SEP001');
@@ -80,19 +80,19 @@ class SeparateConsultationPaginationExample {
     // Carrega dados (os filtros são aplicados localmente)
     await viewModel.loadConsultations();
 
-    print('Filtros aplicados:');
-    print('- Pesquisa: ${viewModel.searchQuery}');
-    print('- Situação: ${viewModel.selectedSituacaoFilter}');
-    print('- Dados filtrados: ${viewModel.filteredConsultations.length}');
+    AppLogger.debug('Filtros aplicados:');
+    AppLogger.debug('- Pesquisa: ${viewModel.searchQuery}');
+    AppLogger.debug('- Situação: ${viewModel.selectedSituacaoFilter}');
+    AppLogger.debug('- Dados filtrados: ${viewModel.filteredConsultations.length}');
   }
 
   /// Exemplo 7: Gerenciar estado de carregamento
   Future<void> handleLoadingState() async {
-    print('Iniciando carregamento...');
+    AppLogger.debug('Iniciando carregamento...');
 
     // Verifica se está carregando
     if (viewModel.isLoading) {
-      print('Já está carregando...');
+      AppLogger.debug('Já está carregando...');
       return;
     }
 
@@ -101,66 +101,60 @@ class SeparateConsultationPaginationExample {
 
     // Verifica estado após carregamento
     if (viewModel.hasError) {
-      print('Erro: ${viewModel.errorMessage}');
+      AppLogger.debug('Erro: ${viewModel.errorMessage}');
     } else if (viewModel.hasData) {
-      print('Dados carregados com sucesso: ${viewModel.consultations.length}');
+      AppLogger.debug('Dados carregados com sucesso: ${viewModel.consultations.length}');
     } else {
-      print('Nenhum dado encontrado');
+      AppLogger.debug('Nenhum dado encontrado');
     }
   }
 
   /// Exemplo 8: Reset completo do estado
   void resetViewModel() {
-    print('Resetando ViewModel...');
+    AppLogger.debug('Resetando ViewModel...');
     viewModel.resetState();
 
-    print('Estado resetado:');
-    print('- Estado: ${viewModel.state}');
-    print('- Dados: ${viewModel.consultations.length}');
-    print('- Página: ${viewModel.currentPage}');
-    print(
-      '- Filtros: pesquisa="${viewModel.searchQuery}", situação="${viewModel.selectedSituacaoFilter}"',
-    );
+    AppLogger.debug('Estado resetado:');
+    AppLogger.debug('- Estado: ${viewModel.state}');
+    AppLogger.debug('- Dados: ${viewModel.consultations.length}');
+    AppLogger.debug('- Página: ${viewModel.currentPage}');
+    AppLogger.debug('- Filtros: pesquisa="${viewModel.searchQuery}", situação="${viewModel.selectedSituacaoFilter}"');
   }
 
   /// Exemplo 9: Simulação de carregamento de múltiplas páginas
   Future<void> loadMultiplePages() async {
-    print('Carregando múltiplas páginas...');
+    AppLogger.debug('Carregando múltiplas páginas...');
 
     // Carrega primeira página
     await viewModel.loadConsultations();
-    print('Página 0: ${viewModel.consultations.length} dados');
+    AppLogger.debug('Página 0: ${viewModel.consultations.length} dados');
 
     // Carrega próximas páginas se houver mais dados
     while (viewModel.hasMoreData) {
       await viewModel.loadNextPage();
-      print(
-        'Página ${viewModel.currentPage}: ${viewModel.consultations.length} dados total',
-      );
+      AppLogger.debug('Página ${viewModel.currentPage}: ${viewModel.consultations.length} dados total');
 
       // Para evitar loop infinito em exemplo
       if (viewModel.currentPage >= 3) break;
     }
 
-    print(
-      'Carregamento concluído. Total: ${viewModel.consultations.length} dados',
-    );
+    AppLogger.debug('Carregamento concluído. Total: ${viewModel.consultations.length} dados');
   }
 
   /// Exemplo 10: Tratamento de erros
   Future<void> handleErrors() async {
-    print('Demonstrando tratamento de erros...');
+    AppLogger.debug('Demonstrando tratamento de erros...');
 
     try {
       // Simula uma operação que pode falhar
       await viewModel.loadConsultations();
 
       if (viewModel.hasError) {
-        print('Erro capturado: ${viewModel.errorMessage}');
+        AppLogger.debug('Erro capturado: ${viewModel.errorMessage}');
         // Aqui você pode implementar lógica de retry ou notificação
       }
     } catch (e) {
-      print('Exceção capturada: $e');
+      AppLogger.debug('Exceção capturada: $e');
     }
   }
 }
@@ -169,47 +163,47 @@ class SeparateConsultationPaginationExample {
 void main() async {
   final example = SeparateConsultationPaginationExample();
 
-  print('=== Exemplos de Paginação com SeparateConsultationViewModel ===\n');
+  AppLogger.debug('=== Exemplos de Paginação com SeparateConsultationViewModel ===\n');
 
   // Exemplo 1: Dados iniciais
   await example.loadInitialData();
-  print('');
+  AppLogger.debug('');
 
   // Exemplo 2: Próxima página
   await example.loadNextPage();
-  print('');
+  AppLogger.debug('');
 
   // Exemplo 3: Página específica
   await example.loadSpecificPage(2);
-  print('');
+  AppLogger.debug('');
 
   // Exemplo 4: Alterar tamanho da página
   await example.changePageSize(10);
-  print('');
+  AppLogger.debug('');
 
   // Exemplo 5: Filtros personalizados
   await example.searchWithCustomFilters();
-  print('');
+  AppLogger.debug('');
 
   // Exemplo 6: Filtros do ViewModel
   await example.useViewModelFilters();
-  print('');
+  AppLogger.debug('');
 
   // Exemplo 7: Estado de carregamento
   await example.handleLoadingState();
-  print('');
+  AppLogger.debug('');
 
   // Exemplo 8: Reset
   example.resetViewModel();
-  print('');
+  AppLogger.debug('');
 
   // Exemplo 9: Múltiplas páginas
   await example.loadMultiplePages();
-  print('');
+  AppLogger.debug('');
 
   // Exemplo 10: Tratamento de erros
   await example.handleErrors();
-  print('');
+  AppLogger.debug('');
 
-  print('=== Exemplos concluídos ===');
+  AppLogger.debug('=== Exemplos concluídos ===');
 }

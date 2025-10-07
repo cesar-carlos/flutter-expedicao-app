@@ -131,12 +131,12 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [colorScheme.primaryContainer.withOpacity(0.3), colorScheme.secondaryContainer.withOpacity(0.1)],
+          colors: [colorScheme.primaryContainer.withValues(alpha:0.3), colorScheme.secondaryContainer.withValues(alpha:0.1)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.primary.withOpacity(0.3), width: 1),
+        border: Border.all(color: colorScheme.primary.withValues(alpha:0.3), width: 1),
       ),
       child: Column(
         children: [
@@ -156,7 +156,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
             _keyboardEnabled
                 ? 'Digite o código de barras e pressione Enter'
                 : 'Posicione o leitor sobre o código de barras do carrinho',
-            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.7)),
+            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withValues(alpha:0.7)),
             textAlign: TextAlign.center,
           ),
 

@@ -29,9 +29,9 @@ class InfoCard extends StatelessWidget {
       width: fullWidth ? double.infinity : null,
       padding: padding ?? const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,10 +85,12 @@ class DetailedInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.surface.withOpacity(0.8),
+        color: colorScheme.surface.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
-        boxShadow: [BoxShadow(color: colorScheme.shadow.withOpacity(0.05), offset: const Offset(0, 2), blurRadius: 4)],
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(color: colorScheme.shadow.withValues(alpha: 0.05), offset: const Offset(0, 2), blurRadius: 4),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

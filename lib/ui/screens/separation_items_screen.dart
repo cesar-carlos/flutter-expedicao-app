@@ -20,6 +20,7 @@ import 'package:exp/ui/widgets/separation_title_with_connection_status.dart';
 import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
 import 'package:exp/ui/screens/card_picking_screen.dart';
+import 'package:exp/core/constants/ui_constants.dart';
 
 class SeparationItemsScreen extends StatefulWidget {
   final SeparateConsultationModel separation;
@@ -166,7 +167,11 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando itens da separação...')],
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: UIConstants.defaultPadding),
+            Text('Carregando itens da separação...'),
+          ],
         ),
       );
     }
@@ -197,23 +202,27 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
             height: MediaQuery.of(context).size.height * 0.7,
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.all(32),
+                padding: const EdgeInsets.all(UIConstants.extraLargePadding),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.inventory_2_outlined, size: 64, color: Theme.of(context).colorScheme.outline),
-                    const SizedBox(height: 16),
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: UIConstants.extraLargeIconSize,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                    const SizedBox(height: UIConstants.defaultPadding),
                     Text(
                       'Nenhum item encontrado',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: UIConstants.smallPadding),
                     Text(
                       'Não há itens para separar nesta separação.',
                       style: Theme.of(context).textTheme.bodyMedium,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: UIConstants.defaultPadding),
                     Text(
                       'Puxe para atualizar',
                       style: Theme.of(
@@ -235,7 +244,12 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       },
       child: ListView.builder(
         controller: _itemsScrollController,
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Aumenta padding inferior para 100px
+        padding: const EdgeInsets.fromLTRB(
+          UIConstants.defaultPadding,
+          UIConstants.defaultPadding,
+          UIConstants.defaultPadding,
+          100,
+        ), // Aumenta padding inferior para 100px
         itemCount: viewModel.items.length,
         itemBuilder: (context, index) {
           final item = viewModel.items[index];
@@ -291,7 +305,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
               'Permitido apenas em: Aguardando, Separando ou Em Separação',
             ),
             backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 4),
+            duration: UIConstants.snackBarLongDuration,
           ),
         );
       }
@@ -316,10 +330,12 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         );
 
         // Aguardar um pouco para o usuário ver o SnackBar
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future.delayed(UIConstants.mediumDelay);
 
         // Buscar o carrinho recém-adicionado e abrir a separação
-        await _openSeparationForNewestCart(context, viewModel);
+        if (context.mounted) {
+          await _openSeparationForNewestCart(context, viewModel);
+        }
       }
     }
   }
@@ -341,6 +357,8 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       final userSessionService = locator<UserSessionService>();
       final appUser = await userSessionService.loadUserSession();
       final userModel = appUser?.userSystemModel;
+
+      if (!context.mounted) return;
 
       // Buscar o carrinho mais recente que pode ser separado
       final newestCart =

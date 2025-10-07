@@ -18,8 +18,8 @@ class SeparateItemsHeader extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: separation.situacao.color.withOpacity(0.1),
-        border: Border(bottom: BorderSide(color: colorScheme.outline.withOpacity(0.2), width: 1)),
+        color: separation.situacao.color.withValues(alpha:0.1),
+        border: Border(bottom: BorderSide(color: colorScheme.outline.withValues(alpha:0.2), width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -5,16 +5,16 @@ import 'package:result_dart/result_dart.dart';
 /// Todos os casos de uso devem estender esta classe
 /// e implementar o método call()
 ///
-/// Usa Result<T> para representar operações que podem falhar
-abstract class UseCase<Type extends Object, Params> {
+/// Usa `Result<T>` para representar operações que podem falhar
+abstract class UseCase<T extends Object, Params> {
   /// Executa o caso de uso
-  Future<Result<Type>> call(Params params);
+  Future<Result<T>> call(Params params);
 }
 
 /// UseCase síncrono para operações que não precisam ser assíncronas
-abstract class SyncUseCase<Type extends Object, Params> {
+abstract class SyncUseCase<T extends Object, Params> {
   /// Executa o caso de uso de forma síncrona
-  Result<Type> call(Params params);
+  Result<T> call(Params params);
 }
 
 /// Classe para usar quando um caso de uso não precisa de parâmetros

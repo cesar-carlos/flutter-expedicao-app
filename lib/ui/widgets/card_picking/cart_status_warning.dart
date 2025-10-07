@@ -8,10 +8,10 @@ class CartStatusWarning extends StatelessWidget {
   const CartStatusWarning({super.key});
 
   // === CONSTANTES ===
-  static const EdgeInsets _containerMargin = EdgeInsets.all(16);
-  static const EdgeInsets _containerPadding = EdgeInsets.all(16);
-  static const EdgeInsets _iconSpacing = EdgeInsets.only(right: 12);
-  static const EdgeInsets _textSpacing = EdgeInsets.only(top: 4);
+  static const _containerMargin = EdgeInsets.all(16);
+  static const _containerPadding = EdgeInsets.all(16);
+  static const _iconSpacing = EdgeInsets.only(right: 12);
+  static const _textSpacing = EdgeInsets.only(top: 4);
 
   static const double _borderRadius = 8.0;
   static const double _iconSize = 24.0;

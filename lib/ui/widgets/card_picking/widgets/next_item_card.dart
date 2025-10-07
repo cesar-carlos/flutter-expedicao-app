@@ -31,7 +31,7 @@ class NextItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: colorScheme.primary.withOpacity(0.3), width: 2),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,7 +61,9 @@ class NextItemCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: completedCount == totalCount ? Colors.green.withOpacity(0.2) : colorScheme.primary.withOpacity(0.1),
+            color: completedCount == totalCount
+                ? Colors.green.withValues(alpha: 0.2)
+                : colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
@@ -170,7 +172,7 @@ class NextItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -197,9 +199,9 @@ class NextItemCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.blue.withOpacity(0.1),
+          color: Colors.blue.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.blue.withOpacity(0.3), width: 2),
+          border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 2),
         ),
         child: Column(
           children: [
@@ -230,9 +232,9 @@ class NextItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.1),
+        color: Colors.green.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green.withOpacity(0.3), width: 2),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.3), width: 2),
       ),
       child: Column(
         children: [

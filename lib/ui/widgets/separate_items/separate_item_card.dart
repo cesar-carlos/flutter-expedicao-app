@@ -23,12 +23,12 @@ class SeparateItemCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: isCompleted ? 3 : 0,
-      shadowColor: isCompleted ? situacaoColor.withOpacity(0.3) : null,
+      shadowColor: isCompleted ? situacaoColor.withValues(alpha: 0.3) : null,
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: situacaoColor.withOpacity(isCompleted ? 0.6 : 0.3),
+          color: situacaoColor.withValues(alpha: isCompleted ? 0.6 : 0.3),
           width: isCompleted
               ? 3
               : isPartiallyCompleted
@@ -43,7 +43,7 @@ class SeparateItemCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [situacaoColor.withOpacity(0.08), situacaoColor.withOpacity(0.03)],
+                  colors: [situacaoColor.withValues(alpha: 0.08), situacaoColor.withValues(alpha: 0.03)],
                 ),
               )
             : null,
@@ -133,7 +133,7 @@ class SeparateItemCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: isCompleted ? Colors.green.withOpacity(0.15) : colorScheme.error.withOpacity(0.1),
+            color: isCompleted ? Colors.green.withValues(alpha: 0.15) : colorScheme.error.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -167,7 +167,7 @@ class SeparateItemCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: colorScheme.tertiaryContainer.withOpacity(0.3),
+                color: colorScheme.tertiaryContainer.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -205,7 +205,7 @@ class SeparateItemCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: colorScheme.secondaryContainer.withOpacity(0.3),
+                color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(

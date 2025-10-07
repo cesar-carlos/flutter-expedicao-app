@@ -29,10 +29,10 @@ class PickingProductListItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shadowColor: statusColor.withOpacity(0.2),
+      shadowColor: statusColor.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: statusColor.withOpacity(0.3), width: 1),
+        side: BorderSide(color: statusColor.withValues(alpha: 0.3), width: 1),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -40,7 +40,7 @@ class PickingProductListItem extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [statusColor.withOpacity(0.05), statusColor.withOpacity(0.02)],
+            colors: [statusColor.withValues(alpha: 0.05), statusColor.withValues(alpha: 0.02)],
           ),
         ),
         padding: const EdgeInsets.all(16),
@@ -71,7 +71,7 @@ class PickingProductListItem extends StatelessWidget {
         // Ícone de status
         Container(
           padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(color: statusColor.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
           child: Icon(isCompleted ? Icons.check_circle : Icons.pending_actions, color: statusColor, size: 20),
         ),
 
@@ -206,9 +206,9 @@ class PickingProductListItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: statusColor.withOpacity(0.3)),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -256,7 +256,7 @@ class PickingProductListItem extends StatelessWidget {
                   iconSize: 20,
                   tooltip: 'Editar quantidade',
                   style: IconButton.styleFrom(
-                    backgroundColor: statusColor.withOpacity(0.1),
+                    backgroundColor: statusColor.withValues(alpha: 0.1),
                     foregroundColor: statusColor,
                   ),
                 ),
@@ -267,7 +267,7 @@ class PickingProductListItem extends StatelessWidget {
                   iconSize: 20,
                   tooltip: 'Remover separação',
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.red.withOpacity(0.1),
+                    backgroundColor: Colors.red.withValues(alpha: 0.1),
                     foregroundColor: Colors.red,
                   ),
                 ),

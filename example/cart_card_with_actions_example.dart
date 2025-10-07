@@ -137,11 +137,11 @@ class CartCardExample extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shadowColor: statusColor.withOpacity(0.2),
+      shadowColor: statusColor.withValues(alpha: 0.2),
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: statusColor.withOpacity(0.4), width: 2),
+        side: BorderSide(color: statusColor.withValues(alpha: 0.4), width: 2),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -149,7 +149,7 @@ class CartCardExample extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [statusColor.withOpacity(0.05), statusColor.withOpacity(0.02)],
+            colors: [statusColor.withValues(alpha: 0.05), statusColor.withValues(alpha: 0.02)],
           ),
         ),
         padding: const EdgeInsets.all(16),
@@ -163,7 +163,7 @@ class CartCardExample extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(Icons.shopping_cart, color: statusColor, size: 24),
@@ -181,7 +181,7 @@ class CartCardExample extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.2),
+                              color: statusColor.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -201,7 +201,7 @@ class CartCardExample extends StatelessWidget {
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: statusColor.withOpacity(0.3),
+                                  color: statusColor.withValues(alpha: 0.3),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 ),
@@ -247,9 +247,9 @@ class CartCardExample extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: statusColor.withOpacity(0.2), width: 1),
+                border: Border.all(color: statusColor.withValues(alpha: 0.2), width: 1),
               ),
               child: Row(
                 children: [
@@ -275,7 +275,7 @@ class CartCardExample extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: colorScheme.primary.withOpacity(0.1),
+                            color: colorScheme.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -313,7 +313,7 @@ class CartCardExample extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.1),
+                            color: statusColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -334,7 +334,7 @@ class CartCardExample extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: colorScheme.secondaryContainer.withOpacity(0.3),
+                color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -359,7 +359,7 @@ class CartCardExample extends StatelessWidget {
                         Text(
                           '16/09/2025 às 14:36:51',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSecondaryContainer.withOpacity(0.8),
+                            color: colorScheme.onSecondaryContainer.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -382,9 +382,9 @@ class CartCardExample extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: statusColor.withOpacity(0.2), width: 1),
+        border: Border.all(color: statusColor.withValues(alpha: 0.2), width: 1),
       ),
       child: Row(
         children: [
@@ -469,9 +469,9 @@ class CartCardExample extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.3), width: 1),
+          border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -29,11 +29,12 @@ class _UserSelectionWrapperState extends State<UserSelectionWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
         final authViewModel = context.read<AuthViewModel>();
         authViewModel.cancelUserSelection();
-        return true;
       },
       child: const UserSelectionScreen(),
     );

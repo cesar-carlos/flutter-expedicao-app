@@ -69,7 +69,11 @@ class _PasswordSectionState extends State<PasswordSection> {
                           margin: const EdgeInsets.only(bottom: 20),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Colors.transparent, colorScheme.outline.withOpacity(0.2), Colors.transparent],
+                              colors: [
+                                Colors.transparent,
+                                colorScheme.outline.withValues(alpha: 0.2),
+                                Colors.transparent,
+                              ],
                             ),
                           ),
                         ),
@@ -99,9 +103,9 @@ class _PasswordSectionState extends State<PasswordSection> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.warning.withOpacity(0.08),
+        color: AppColors.warning.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.warning.withOpacity(0.2)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -111,7 +115,7 @@ class _PasswordSectionState extends State<PasswordSection> {
             child: Text(
               'Use uma senha forte com pelo menos 4 caracteres',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.warning.withOpacity(0.9),
+                color: AppColors.warning.withValues(alpha: 0.9),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -224,18 +228,18 @@ class _PasswordSectionState extends State<PasswordSection> {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.3)),
+          borderSide: BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.3)),
+          borderSide: BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         filled: true,
-        fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       ),
       validator: validator,
     );

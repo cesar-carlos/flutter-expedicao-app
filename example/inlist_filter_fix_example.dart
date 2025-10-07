@@ -25,26 +25,27 @@
 /// EXEMPLO DE USO:
 library;
 
+import 'package:exp/core/utils/app_logger.dart';
 import 'package:exp/domain/models/pagination/query_builder.dart';
 
 void main() {
   // Exemplo 1: Filtro de situações
   final query1 = QueryBuilder()..inList('Situacao', ['AGUARDANDO', 'SEPARANDO', 'FINALIZADA']);
 
-  print('Exemplo 1 - Filtro de Situações:');
-  print('SQL WHERE: ${query1.buildSqlWhere()}');
-  print('Esperado: Situacao IN (\'AGUARDANDO\',\'SEPARANDO\',\'FINALIZADA\')');
-  print('');
+AppLogger.debug('Exemplo 1 - Filtro de Situações:', tag: 'QueryExample');
+    AppLogger.debug('SQL WHERE: ${query1.buildSqlWhere()}', tag: 'QueryExample');
+    AppLogger.debug('Esperado: Situacao IN (\'AGUARDANDO\',\'SEPARANDO\',\'FINALIZADA\')', tag: 'QueryExample');
+    AppLogger.debug('', tag: 'QueryExample');
 
   // Exemplo 2: Filtro com lista vazia (não deve adicionar condição)
   final query2 = QueryBuilder()
     ..equals('Origem', 'VENDA')
     ..inList('Situacao', []); // Lista vazia
 
-  print('Exemplo 2 - Lista Vazia:');
-  print('SQL WHERE: ${query2.buildSqlWhere()}');
-  print('Esperado: Origem = \'VENDA\' (sem condição IN)');
-  print('');
+  AppLogger.debug('Exemplo 2 - Lista Vazia:', tag: 'QueryExample');
+    AppLogger.debug('SQL WHERE: ${query2.buildSqlWhere()}', tag: 'QueryExample');
+    AppLogger.debug('Esperado: Origem = \'VENDA\' (sem condição IN)', tag: 'QueryExample');
+    AppLogger.debug('', tag: 'QueryExample');
 
   // Exemplo 3: Filtro combinado
   final query3 = QueryBuilder()
@@ -53,11 +54,11 @@ void main() {
     ..orderByDesc('DataEmissao')
     ..paginate(limit: 20, offset: 0);
 
-  print('Exemplo 3 - Filtro Combinado:');
-  print('SQL WHERE: ${query3.buildSqlWhere()}');
-  print('ORDER BY: ${query3.buildOrderBySql()}');
-  print('PAGINATION: ${query3.buildPagination()}');
-  print('');
+  AppLogger.debug('Exemplo 3 - Filtro Combinado:', tag: 'QueryExample');
+    AppLogger.debug('SQL WHERE: ${query3.buildSqlWhere()}', tag: 'QueryExample');
+    AppLogger.debug('ORDER BY: ${query3.buildOrderBySql()}', tag: 'QueryExample');
+    AppLogger.debug('PAGINATION: ${query3.buildPagination()}', tag: 'QueryExample');
+    AppLogger.debug('', tag: 'QueryExample');
 
   // Exemplo 4: Query completa para separações
   final query4 = QueryBuilder()
@@ -67,9 +68,9 @@ void main() {
     ..orderByDesc('CodSepararEstoque')
     ..paginate(limit: 20, offset: 0, page: 1);
 
-  print('Exemplo 4 - Query Completa:');
-  print('SQL WHERE: ${query4.buildSqlWhere()}');
-  print('Complete Query: ${query4.buildCompleteQuery()}');
+  AppLogger.debug('Exemplo 4 - Query Completa:', tag: 'QueryExample');
+    AppLogger.debug('SQL WHERE: ${query4.buildSqlWhere()}', tag: 'QueryExample');
+    AppLogger.debug('Complete Query: ${query4.buildCompleteQuery()}', tag: 'QueryExample');
 }
 
 /// IMPACTO DA CORREÇÃO:

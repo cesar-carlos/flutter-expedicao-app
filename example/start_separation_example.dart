@@ -1,5 +1,6 @@
-// ignore_for_file: unused_local_variable, avoid_print
+// ignore_for_file: unused_local_variable
 
+import 'package:exp/core/utils/app_logger.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/usecases/start_separation/start_separation_params.dart';
 import 'package:exp/domain/usecases/start_separation/start_separation_usecase.dart';
@@ -31,7 +32,7 @@ void main() async {
 
 /// Exemplo 1: Iniciar separação de estoque
 Future<void> _exampleStartSeparationFromStock(StartSeparationUseCase useCase) async {
-  print('=== Exemplo 1: Iniciar separação de estoque ===\n');
+  AppLogger.debug('=== Exemplo 1: Iniciar separação de estoque ===\n');
 
   // Criar parâmetros
   final params = StartSeparationParams(
@@ -46,38 +47,38 @@ Future<void> _exampleStartSeparationFromStock(StartSeparationUseCase useCase) as
   // Tratar resultado
   result.fold(
     (success) {
-      print('✓ Separação iniciada com sucesso!');
-      print('  Carrinho Percurso: ${success.codCarrinhoPercurso}');
-      print('  Código Separação: ${success.codSepararEstoque}');
-      print('  Situação: ${success.situacaoDescription}');
-      print('  Entidade: ${success.nomeEntidade}');
-      print('  Data/Hora Início: ${success.dataInicio} ${success.horaInicio}');
-      print('\n  Resumo: ${success.operationSummary}');
-      print('\n  Notificações:');
+      AppLogger.debug('✓ Separação iniciada com sucesso!');
+      AppLogger.debug('  Carrinho Percurso: ${success.codCarrinhoPercurso}');
+      AppLogger.debug('  Código Separação: ${success.codSepararEstoque}');
+      AppLogger.debug('  Situação: ${success.situacaoDescription}');
+      AppLogger.debug('  Entidade: ${success.nomeEntidade}');
+      AppLogger.debug('  Data/Hora Início: ${success.dataInicio} ${success.horaInicio}');
+      AppLogger.debug('\n  Resumo: ${success.operationSummary}');
+      AppLogger.debug('\n  Notificações:');
       for (var notification in success.notifications) {
-        print('    - $notification');
+        AppLogger.debug('    - $notification');
       }
-      print('\n  Auditoria:');
+      AppLogger.debug('\n  Auditoria:');
       success.auditInfo.forEach((key, value) {
-        print('    $key: $value');
+        AppLogger.debug('    $key: $value');
       });
     },
     (failure) {
       final error = failure as StartSeparationFailure;
-      print('✗ Falha ao iniciar separação:');
-      print('  ${error.userMessage}');
+      AppLogger.debug('✗ Falha ao iniciar separação:');
+      AppLogger.debug('  ${error.userMessage}');
       if (error.details != null) {
-        print('  Detalhes: ${error.details}');
+        AppLogger.debug('  Detalhes: ${error.details}');
       }
     },
   );
 
-  print('\n');
+  AppLogger.debug('\n');
 }
 
 /// Exemplo 2: Iniciar separação de orçamento balcão
 Future<void> _exampleStartSeparationFromBudget(StartSeparationUseCase useCase) async {
-  print('=== Exemplo 2: Iniciar separação de orçamento balcão ===\n');
+  AppLogger.debug('=== Exemplo 2: Iniciar separação de orçamento balcão ===\n');
 
   final params = StartSeparationParams(
     codEmpresa: 1,
@@ -89,22 +90,22 @@ Future<void> _exampleStartSeparationFromBudget(StartSeparationUseCase useCase) a
 
   result.fold(
     (success) {
-      print('✓ Separação de balcão iniciada!');
-      print('  ${success.cartRouteInfo}');
-      print('  ${success.separationInfo}');
+      AppLogger.debug('✓ Separação de balcão iniciada!');
+      AppLogger.debug('  ${success.cartRouteInfo}');
+      AppLogger.debug('  ${success.separationInfo}');
     },
     (failure) {
       final error = failure as StartSeparationFailure;
-      print('✗ Erro: ${error.userMessage}');
+      AppLogger.debug('✗ Erro: ${error.userMessage}');
     },
   );
 
-  print('\n');
+  AppLogger.debug('\n');
 }
 
 /// Exemplo 3: Tratamento de diferentes tipos de erro
 Future<void> _exampleErrorHandling(StartSeparationUseCase useCase) async {
-  print('=== Exemplo 3: Tratamento de erros ===\n');
+  AppLogger.debug('=== Exemplo 3: Tratamento de erros ===\n');
 
   // Parâmetros inválidos
   final invalidParams = StartSeparationParams(
@@ -115,30 +116,30 @@ Future<void> _exampleErrorHandling(StartSeparationUseCase useCase) async {
 
   final result = await useCase(invalidParams);
 
-  result.fold((_) => print('Sucesso inesperado'), (failure) {
+  result.fold((_) => AppLogger.debug('Sucesso inesperado'), (failure) {
     final error = failure as StartSeparationFailure;
-    print('Tipo de erro identificado:');
+    AppLogger.debug('Tipo de erro identificado:');
 
     if (error.isValidationError) {
-      print('  → Erro de validação');
-      print('    Mensagem: ${error.message}');
-      print('    Detalhes: ${error.details}');
+      AppLogger.debug('  → Erro de validação');
+      AppLogger.debug('    Mensagem: ${error.message}');
+      AppLogger.debug('    Detalhes: ${error.details}');
     } else if (error.isBusinessError) {
-      print('  → Erro de regra de negócio');
-      print('    ${error.userMessage}');
+      AppLogger.debug('  → Erro de regra de negócio');
+      AppLogger.debug('    ${error.userMessage}');
     } else if (error.isOperationError) {
-      print('  → Erro de operação');
-      print('    ${error.message}');
+      AppLogger.debug('  → Erro de operação');
+      AppLogger.debug('    ${error.message}');
     } else if (error.isNetworkError) {
-      print('  → Erro de rede');
-      print('    ${error.userMessage}');
+      AppLogger.debug('  → Erro de rede');
+      AppLogger.debug('    ${error.userMessage}');
     }
 
-    print('\n  Código do erro: ${error.code}');
-    print('  toString(): $error');
+    AppLogger.debug('\n  Código do erro: ${error.code}');
+    AppLogger.debug('  toString(): $error');
   });
 
-  print('\n');
+  AppLogger.debug('\n');
 }
 
 /// Exemplo 4: Uso em um ViewModel ou Controller
@@ -164,7 +165,7 @@ class SeparationController {
 
   void _handleSuccess(dynamic success) {
     // Exibir mensagem de sucesso
-    print('Separação iniciada: ${success.message}');
+    AppLogger.debug('Separação iniciada: ${success.message}');
 
     // Atualizar estado da UI
     // notifyListeners();
@@ -181,7 +182,7 @@ class SeparationController {
 
   void _handleFailure(dynamic failure) {
     // Exibir mensagem de erro
-    print('Erro: ${failure.userMessage}');
+    AppLogger.debug('Erro: ${failure.userMessage}');
 
     // Log de erro
     // logger.error('Falha ao iniciar separação', failure);
@@ -214,9 +215,9 @@ class StartSeparationValidator {
   static Future<bool> confirm({required String nomeEntidade, required String origemDescription}) async {
     // Simular confirmação do usuário
     // Em produção, seria um Dialog
-    print('Confirmar início de separação?');
-    print('  Entidade: $nomeEntidade');
-    print('  Origem: $origemDescription');
+    AppLogger.debug('Confirmar início de separação?');
+    AppLogger.debug('  Entidade: $nomeEntidade');
+    AppLogger.debug('  Origem: $origemDescription');
 
     // return await showDialog<bool>(...) ?? false;
     return true;
@@ -225,7 +226,7 @@ class StartSeparationValidator {
 
 /// Exemplo de integração completa
 Future<void> _exampleCompleteIntegration() async {
-  print('=== Exemplo de integração completa ===\n');
+  AppLogger.debug('=== Exemplo de integração completa ===\n');
 
   final useCase = locator<StartSeparationUseCase>();
   final controller = SeparationController(useCase);
@@ -234,7 +235,7 @@ Future<void> _exampleCompleteIntegration() async {
   final params = StartSeparationParams(codEmpresa: 1, origem: ExpeditionOrigem.separacaoEstoque, codOrigem: 12345);
 
   // Validar
-  final isValid = StartSeparationValidator.validate(params, onError: (message) => print('Erro: $message'));
+  final isValid = StartSeparationValidator.validate(params, onError: (message) => AppLogger.debug('Erro: $message'));
 
   if (!isValid) return;
 
@@ -245,7 +246,7 @@ Future<void> _exampleCompleteIntegration() async {
   );
 
   if (!confirmed) {
-    print('Operação cancelada pelo usuário');
+    AppLogger.debug('Operação cancelada pelo usuário');
     return;
   }
 

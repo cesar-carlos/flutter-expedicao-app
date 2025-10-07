@@ -25,10 +25,10 @@ class CartStatusBar extends StatelessWidget {
           height: 24,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: situation.color.withOpacity(0.1),
+            color: situation.color.withValues(alpha: 0.1),
             border: Border(
-              top: BorderSide(color: situation.color.withOpacity(0.3), width: 1),
-              bottom: BorderSide(color: situation.color.withOpacity(0.3), width: 1),
+              top: BorderSide(color: situation.color.withValues(alpha: 0.3), width: 1),
+              bottom: BorderSide(color: situation.color.withValues(alpha: 0.3), width: 1),
             ),
           ),
           child: Row(

@@ -25,10 +25,10 @@ class ProfileHeader extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.08),
+            color: colorScheme.shadow.withValues(alpha: 0.08),
             offset: const Offset(0, 4),
             blurRadius: 12,
             spreadRadius: 0,
@@ -42,7 +42,7 @@ class ProfileHeader extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [colorScheme.primaryContainer.withOpacity(0.1), colorScheme.surface],
+                colors: [colorScheme.primaryContainer.withValues(alpha: 0.1), colorScheme.surface],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -91,9 +91,9 @@ class ProfileHeader extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer.withOpacity(0.3),
+                      color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
+                      border: Border.all(color: colorScheme.primary.withValues(alpha: 0.2)),
                     ),
                     child: Text(
                       user.userSystemModel!.nomeContaFinanceira!,

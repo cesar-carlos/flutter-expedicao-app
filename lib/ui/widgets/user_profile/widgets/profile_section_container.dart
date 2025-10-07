@@ -31,10 +31,10 @@ class ProfileSectionContainer extends StatelessWidget {
             : null,
         color: gradientColors == null ? colorScheme.surface : null,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor ?? colorScheme.outline.withOpacity(0.1)),
+        border: Border.all(color: borderColor ?? colorScheme.outline.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.08),
+            color: colorScheme.shadow.withValues(alpha: 0.08),
             offset: const Offset(0, 4),
             blurRadius: 12,
             spreadRadius: 0,
@@ -57,8 +57,11 @@ class PrimaryProfileSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return ProfileSectionContainer(
-      gradientColors: [colorScheme.primaryContainer.withOpacity(0.3), colorScheme.primaryContainer.withOpacity(0.1)],
-      borderColor: colorScheme.primary.withOpacity(0.2),
+      gradientColors: [
+        colorScheme.primaryContainer.withValues(alpha: 0.3),
+        colorScheme.primaryContainer.withValues(alpha: 0.1),
+      ],
+      borderColor: colorScheme.primary.withValues(alpha: 0.2),
       child: child,
     );
   }
@@ -75,10 +78,10 @@ class SecondaryProfileSection extends StatelessWidget {
 
     return ProfileSectionContainer(
       gradientColors: [
-        colorScheme.secondaryContainer.withOpacity(0.3),
-        colorScheme.secondaryContainer.withOpacity(0.1),
+        colorScheme.secondaryContainer.withValues(alpha: 0.3),
+        colorScheme.secondaryContainer.withValues(alpha: 0.1),
       ],
-      borderColor: colorScheme.secondary.withOpacity(0.2),
+      borderColor: colorScheme.secondary.withValues(alpha: 0.2),
       child: child,
     );
   }
@@ -94,8 +97,11 @@ class TertiaryProfileSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return ProfileSectionContainer(
-      gradientColors: [colorScheme.tertiaryContainer.withOpacity(0.3), colorScheme.tertiaryContainer.withOpacity(0.1)],
-      borderColor: colorScheme.tertiary.withOpacity(0.2),
+      gradientColors: [
+        colorScheme.tertiaryContainer.withValues(alpha: 0.3),
+        colorScheme.tertiaryContainer.withValues(alpha: 0.1),
+      ],
+      borderColor: colorScheme.tertiary.withValues(alpha: 0.2),
       child: child,
     );
   }
@@ -112,8 +118,8 @@ class ErrorProfileSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return ProfileSectionContainer(
-      gradientColors: [colorScheme.errorContainer.withOpacity(0.1), colorScheme.surface],
-      borderColor: colorScheme.error.withOpacity(0.3),
+      gradientColors: [colorScheme.errorContainer.withValues(alpha: 0.1), colorScheme.surface],
+      borderColor: colorScheme.error.withValues(alpha: 0.3),
       child: child,
     );
   }

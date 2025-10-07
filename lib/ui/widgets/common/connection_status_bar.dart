@@ -51,10 +51,10 @@ class ConnectionStatusBar extends StatelessWidget {
           height: 24,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: AppColors.withOpacity(statusColor, 0.1),
+            color: statusColor.withValues(alpha: 0.1),
             border: Border(
-              top: BorderSide(color: AppColors.withOpacity(statusColor, 0.3), width: 1),
-              bottom: BorderSide(color: AppColors.withOpacity(statusColor, 0.3), width: 1),
+              top: BorderSide(color: statusColor.withValues(alpha: 0.3), width: 1),
+              bottom: BorderSide(color: statusColor.withValues(alpha: 0.3), width: 1),
             ),
           ),
           child: Row(

@@ -1,4 +1,4 @@
-import 'query_builder.dart';
+import 'package:exp/domain/models/pagination/query_builder.dart';
 
 /// Extension for easy query building
 extension QueryBuilderExtension on QueryBuilder {

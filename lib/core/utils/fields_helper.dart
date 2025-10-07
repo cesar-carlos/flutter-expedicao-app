@@ -1,4 +1,4 @@
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:brasil_fields/brasil_fields.dart';
 
 /// Utilitário para formatação de dados brasileiros
@@ -43,7 +43,7 @@ class FieldsHelper {
 
   /// Formata moeda brasileira
   static String formatMoeda(double valor) {
-    final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+    final formatter = intl.NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
     return formatter.format(valor);
   }
 

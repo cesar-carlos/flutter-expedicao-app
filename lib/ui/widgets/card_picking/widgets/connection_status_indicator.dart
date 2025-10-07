@@ -17,7 +17,7 @@ class ConnectionStatusIndicator extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: AppColors.withOpacity(isConnected ? AppColors.success : AppColors.error, 0.2),
+            color: (isConnected ? AppColors.success : AppColors.error).withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(

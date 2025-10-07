@@ -22,10 +22,10 @@ class PickingItemCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shadowColor: statusColor.withOpacity(0.2),
+      shadowColor: statusColor.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: statusColor.withOpacity(0.4), width: 2),
+        side: BorderSide(color: statusColor.withValues(alpha: 0.4), width: 2),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -33,7 +33,7 @@ class PickingItemCard extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [statusColor.withOpacity(0.05), statusColor.withOpacity(0.02)],
+            colors: [statusColor.withValues(alpha: 0.05), statusColor.withValues(alpha: 0.02)],
           ),
         ),
         padding: const EdgeInsets.all(16),
@@ -67,9 +67,9 @@ class PickingItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: colorScheme.secondaryContainer.withOpacity(0.3),
+        color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.secondary.withOpacity(0.3)),
+        border: Border.all(color: colorScheme.secondary.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -83,7 +83,7 @@ class PickingItemCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.2),
+              color: colorScheme.primary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
@@ -124,7 +124,7 @@ class PickingItemCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+                  border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
                 ),
                 child: Text(
                   item.codigoBarras ?? 'Não informado',
@@ -142,7 +142,10 @@ class PickingItemCard extends StatelessWidget {
             const SizedBox(height: 4),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(6),
+              ),
               child: Text(
                 item.nomeSetorEstoque ?? 'N/A',
                 style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.orange.shade800),
@@ -164,9 +167,9 @@ class PickingItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: statusColor.withOpacity(0.2)),
+        border: Border.all(color: statusColor.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -198,7 +201,7 @@ class PickingItemCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: isCompleted ? Colors.green.withOpacity(0.2) : statusColor.withOpacity(0.2),
+                      color: isCompleted ? Colors.green.withValues(alpha: 0.2) : statusColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -243,7 +246,7 @@ class PickingItemCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.2),
+                      color: Colors.green.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(

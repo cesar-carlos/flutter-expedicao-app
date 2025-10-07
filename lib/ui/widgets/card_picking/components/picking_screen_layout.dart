@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/ui/widgets/card_picking/widgets/index.dart';
+import 'package:exp/core/constants/ui_constants.dart';
 
 /// Layout principal da tela de picking com otimizações de performance
 ///
@@ -58,10 +59,10 @@ class PickingScreenLayout extends StatelessWidget {
   });
 
   /// Espaçamento vertical entre os cards
-  static const double _cardSpacing = 6.0;
+  static const double _cardSpacing = UIConstants.smallPadding;
 
   /// Padding padrão da tela
-  static const double _defaultPadding = 8.0;
+  static const double _defaultPadding = UIConstants.smallPadding;
 
   /// Padding extra quando o teclado está aberto
   static const double _keyboardPadding = 60.0;

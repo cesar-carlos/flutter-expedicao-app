@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:exp/di/locator.dart';
+import 'package:exp/ui/screens/login_screen.dart';
+import 'package:exp/ui/screens/splash_screen.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/domain/viewmodels/user_selection_viewmodel.dart';
-import 'package:exp/ui/screens/splash_screen.dart';
-import 'package:exp/ui/screens/login_screen.dart';
+import 'package:exp/ui/wrappers/user_selection_wrapper.dart';
 import 'package:exp/ui/screens/scanner_screen.dart';
 import 'package:exp/ui/widgets/common/index.dart';
-import 'user_selection_wrapper.dart';
-import 'package:exp/di/locator.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});

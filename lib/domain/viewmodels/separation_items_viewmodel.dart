@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:exp/di/locator.dart';
 import 'package:exp/core/errors/app_error.dart';
+import 'package:exp/core/utils/app_logger.dart';
 import 'package:exp/domain/models/separation_item_status.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/situation/situation_model.dart';
@@ -43,7 +44,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
       _cartEventRepository = locator<SeparateCartInternshipEventRepository>();
     } catch (e) {
       if (kDebugMode) {
-        print('Erro ao inicializar SeparationItemsViewModel: $e');
+        AppLogger.error('Erro ao inicializar SeparationItemsViewModel', tag: 'SeparationItemsVM', error: e);
       }
       rethrow;
     }
@@ -242,7 +243,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
       if (_disposed) return;
       // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
-        print('Erro ao carregar setores de estoque: $e');
+        AppLogger.error('Erro ao carregar setores de estoque', tag: 'SeparationItemsVM', error: e);
       }
       _sectorsLoaded = true;
       notifyListeners();
@@ -441,7 +442,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
     } catch (e) {
       // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
-        print('Erro ao aplicar filtros salvos de itens: $e');
+        AppLogger.error('Erro ao aplicar filtros salvos de itens', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
@@ -459,7 +460,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
     } catch (e) {
       // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
-        print('Erro ao aplicar filtros salvos de carrinhos: $e');
+        AppLogger.error('Erro ao aplicar filtros salvos de carrinhos', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
@@ -511,7 +512,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
       if (_disposed) return;
       // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
-        print('Erro ao carregar itens filtrados: $e');
+        AppLogger.error('Erro ao carregar itens filtrados', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
@@ -542,7 +543,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
       if (_disposed) return;
       // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
-        print('Erro ao carregar carrinhos filtrados: $e');
+        AppLogger.error('Erro ao carregar carrinhos filtrados', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
@@ -623,7 +624,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
     } catch (e) {
       // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
-        print('Erro ao salvar filtros de itens: $e');
+        AppLogger.error('Erro ao salvar filtros de itens', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
@@ -635,7 +636,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
     } catch (e) {
       // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
-        print('Erro ao salvar filtros de carrinhos: $e');
+        AppLogger.error('Erro ao salvar filtros de carrinhos', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
@@ -647,7 +648,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
     } catch (e) {
       // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
-        print('Erro ao limpar filtros de itens: $e');
+        AppLogger.error('Erro ao limpar filtros de itens', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
@@ -659,7 +660,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
     } catch (e) {
       // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
-        print('Erro ao limpar filtros de carrinhos: $e');
+        AppLogger.error('Erro ao limpar filtros de carrinhos', tag: 'SeparationItemsVM', error: e);
       }
     }
   }

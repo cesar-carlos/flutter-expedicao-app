@@ -44,7 +44,10 @@ class PhotoOptionsModal extends StatelessWidget {
               leading: Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(color: theme.colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
                 child: Icon(Icons.camera_alt, color: theme.colorScheme.primary),
               ),
               title: const Text('Tirar Foto'),
@@ -59,7 +62,10 @@ class PhotoOptionsModal extends StatelessWidget {
               leading: Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(color: theme.colorScheme.secondary.withOpacity(0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
                 child: Icon(Icons.photo_library, color: theme.colorScheme.secondary),
               ),
               title: const Text('Escolher da Galeria'),
@@ -75,7 +81,7 @@ class PhotoOptionsModal extends StatelessWidget {
                 leading: Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(color: AppColors.withOpacity(AppColors.error, 0.1), shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), shape: BoxShape.circle),
                   child: const Icon(Icons.delete_outline, color: AppColors.error),
                 ),
                 title: const Text('Remover Foto'),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/ui/widgets/common/picking_dialog.dart';
+import 'package:exp/core/constants/ui_constants.dart';
 
 /// Gerenciador de diálogos da tela de picking
 class PickingDialogManager {
@@ -75,7 +76,7 @@ class PickingDialogManager {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.check_circle_outline, color: Colors.green, size: 28),
+            Icon(Icons.check_circle_outline, color: Colors.green, size: UIConstants.largeIconSize),
             const SizedBox(width: 8),
             const Text('Setor Concluído!'),
           ],
@@ -85,11 +86,11 @@ class PickingDialogManager {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(UIConstants.smallPadding),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green.withOpacity(0.3)),
+                color: Colors.green.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,15 +99,15 @@ class PickingDialogManager {
                     '✓ Todos os itens do seu setor foram separados!',
                     style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade700),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: UIConstants.smallPadding),
                   Text('Seu setor: Setor $userSectorCode', style: TextStyle(color: Colors.green.shade600)),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: UIConstants.defaultPadding),
             Text(
               'Deseja salvar o carrinho agora ou continuar separando itens de outros setores?',
-              style: TextStyle(fontSize: 14),
+              style: TextStyle(fontSize: UIConstants.defaultFontSize),
             ),
           ],
         ),

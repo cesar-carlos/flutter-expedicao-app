@@ -24,11 +24,11 @@ class EditableAvatar extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [colorScheme.primary.withOpacity(0.2), colorScheme.secondary.withOpacity(0.1)],
+                colors: [colorScheme.primary.withValues(alpha: 0.2), colorScheme.secondary.withValues(alpha: 0.1)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              border: Border.all(color: colorScheme.primary.withOpacity(0.3), width: 3),
+              border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 3),
             ),
             child: Container(
               margin: const EdgeInsets.all(4),
@@ -46,7 +46,7 @@ class EditableAvatar extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
+                  colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -97,7 +97,7 @@ class EditableAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
-          colors: [colorScheme.primary.withOpacity(0.8), colorScheme.secondary.withOpacity(0.6)],
+          colors: [colorScheme.primary.withValues(alpha: 0.8), colorScheme.secondary.withValues(alpha: 0.6)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

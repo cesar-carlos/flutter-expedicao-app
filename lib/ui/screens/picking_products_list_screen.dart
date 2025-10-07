@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
+import 'package:exp/core/constants/ui_constants.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/ui/widgets/picking_products_list/picking_product_list_item.dart';
 import 'package:exp/ui/widgets/separated_products/separated_product_item.dart';
@@ -95,7 +96,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
   /// Constrói o PopScope com lógica de refresh
   Widget _buildPopScope(Widget child) {
     return PopScope(
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop && _needsRefresh && widget.filterType == 'completed') {
           await widget.viewModel.refresh();
         }
@@ -270,7 +271,11 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando produtos...')],
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: UIConstants.defaultPadding),
+            Text('Carregando produtos...'),
+          ],
         ),
       );
     }
@@ -278,23 +283,23 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     if (widget.viewModel.hasError) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(UIConstants.extraLargePadding),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-              const SizedBox(height: 16),
+              const SizedBox(height: UIConstants.defaultPadding),
               Text(
                 'Erro ao carregar produtos',
                 style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: UIConstants.smallPadding),
               Text(
                 widget.viewModel.errorMessage ?? 'Erro desconhecido',
                 style: theme.textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: UIConstants.largePadding),
               ElevatedButton(onPressed: () => widget.viewModel.retry(), child: const Text('Tentar Novamente')),
             ],
           ),
@@ -308,14 +313,14 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     if (pendingItems.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(UIConstants.extraLargePadding),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 64, color: iconColor.withOpacity(0.5)),
-              const SizedBox(height: 16),
+              Icon(icon, size: 64, color: iconColor.withValues(alpha: 0.5)),
+              const SizedBox(height: UIConstants.defaultPadding),
               Text('Nenhum produto pendente', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
+              const SizedBox(height: UIConstants.smallPadding),
               Text(
                 'Todos os produtos já foram separados!',
                 style: theme.textTheme.bodyMedium,
@@ -335,7 +340,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
         // Lista de produtos pendentes
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(UIConstants.defaultPadding),
             itemCount: pendingItems.length,
             itemBuilder: (context, index) {
               final item = pendingItems[index];
@@ -365,7 +370,11 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando produtos separados...')],
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: UIConstants.defaultPadding),
+            Text('Carregando produtos separados...'),
+          ],
         ),
       );
     }
@@ -373,23 +382,23 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     if (viewModel.hasError) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(UIConstants.extraLargePadding),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-              const SizedBox(height: 16),
+              const SizedBox(height: UIConstants.defaultPadding),
               Text(
                 'Erro ao carregar produtos',
                 style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: UIConstants.smallPadding),
               Text(
                 viewModel.errorMessage ?? 'Erro desconhecido',
                 style: theme.textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: UIConstants.largePadding),
               ElevatedButton(onPressed: () => viewModel.retry(), child: const Text('Tentar Novamente')),
             ],
           ),
@@ -400,14 +409,14 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     if (viewModel.items.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(UIConstants.extraLargePadding),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 64, color: iconColor.withOpacity(0.5)),
-              const SizedBox(height: 16),
+              Icon(icon, size: 64, color: iconColor.withValues(alpha: 0.5)),
+              const SizedBox(height: UIConstants.defaultPadding),
               Text('Nenhum produto separado', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
+              const SizedBox(height: UIConstants.smallPadding),
               Text(
                 'Ainda não há produtos separados neste carrinho.',
                 style: theme.textTheme.bodyMedium,
@@ -434,7 +443,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
               await viewModel.refresh();
             },
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(UIConstants.defaultPadding),
               itemCount: viewModel.items.length,
               itemBuilder: (context, index) {
                 final item = viewModel.items[index];
@@ -459,10 +468,10 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(UIConstants.defaultPadding),
       decoration: BoxDecoration(
-        color: iconColor.withOpacity(0.1),
-        border: Border(bottom: BorderSide(color: iconColor.withOpacity(0.3))),
+        color: iconColor.withValues(alpha: 0.1),
+        border: Border(bottom: BorderSide(color: iconColor.withValues(alpha: 0.3))),
       ),
       child: Row(
         children: [
@@ -476,19 +485,22 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
                   title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: iconColor.withOpacity(0.8),
+                    color: iconColor.withValues(alpha: 0.8),
                   ),
                 ),
                 Text(
                   '$itemCount ${itemCount == 1 ? 'produto' : 'produtos'}',
-                  style: theme.textTheme.bodyMedium?.copyWith(color: iconColor.withOpacity(0.7)),
+                  style: theme.textTheme.bodyMedium?.copyWith(color: iconColor.withValues(alpha: 0.7)),
                 ),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(color: iconColor, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(
+              color: iconColor,
+              borderRadius: BorderRadius.circular(UIConstants.largeBorderRadius),
+            ),
             child: Text(
               '$itemCount',
               style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),

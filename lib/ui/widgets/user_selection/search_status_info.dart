@@ -12,7 +12,7 @@ class SearchStatusInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     if (viewModel.isWaitingForSearch) {
       return _buildStatusContainer(
-        color: AppColors.withOpacity(AppColors.warning, 0.1),
+        color: AppColors.warning.withValues(alpha: 0.1),
         icon: const SizedBox(
           width: 16,
           height: 16,
