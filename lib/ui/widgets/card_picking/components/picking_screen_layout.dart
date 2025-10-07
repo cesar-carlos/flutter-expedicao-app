@@ -98,7 +98,12 @@ class PickingScreenLayout extends StatelessWidget {
 
   /// Constrói o card de seleção de quantidade
   Widget _buildQuantitySelector() {
-    return QuantitySelectorCard(controller: quantityController, focusNode: quantityFocusNode, enabled: isEnabled);
+    return QuantitySelectorCard(
+      controller: quantityController,
+      focusNode: quantityFocusNode,
+      enabled: isEnabled,
+      viewModel: viewModel,
+    );
   }
 
   /// Constrói o card do scanner de código de barras
