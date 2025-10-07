@@ -54,7 +54,6 @@ class _PickingCardScanProvider extends StatelessWidget {
   final FocusNode scanFocusNode;
   final VoidCallback onToggleKeyboard;
   final void Function(String) onBarcodeScanned;
-  final bool isEnabled;
 
   const _PickingCardScanProvider({
     required this.scanState,
@@ -66,7 +65,6 @@ class _PickingCardScanProvider extends StatelessWidget {
     required this.scanFocusNode,
     required this.onToggleKeyboard,
     required this.onBarcodeScanned,
-    required this.isEnabled,
   });
 
   @override
@@ -83,7 +81,6 @@ class _PickingCardScanProvider extends StatelessWidget {
         scanFocusNode: scanFocusNode,
         onToggleKeyboard: onToggleKeyboard,
         onBarcodeScanned: onBarcodeScanned,
-        isEnabled: isEnabled,
       ),
     );
   }
@@ -291,6 +288,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     super.build(context); // Necessário para AutomaticKeepAliveClientMixin
 
     final isEnabled = _isCartInSeparationStatus();
+    // Atualiza o estado habilitado do Provider sem rebuild do widget pai
+    _scanState.setEnabled(isEnabled);
 
     // 🚀 Widget intermediário que NÃO reconstrói quando o Provider notifica
     // O Provider está dentro do _PickingCardScanProvider, isolado desta classe
@@ -304,7 +303,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       scanFocusNode: _scanFocusNode,
       onToggleKeyboard: _toggleKeyboard,
       onBarcodeScanned: _onBarcodeScanned,
-      isEnabled: isEnabled,
     );
   }
 

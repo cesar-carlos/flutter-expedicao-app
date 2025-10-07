@@ -77,7 +77,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
 
   void _updateScrollToTopButtonVisibility() {
     final shouldShow = _scrollController.offset > _scrollThresholdToShowButton;
-    if (shouldShow != _showScrollToTop) {
+    if (shouldShow != _showScrollToTop && mounted) {
       setState(() => _showScrollToTop = shouldShow);
     }
   }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/ui/widgets/card_picking/widgets/index.dart';
+import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:exp/ui/widgets/card_picking/widgets/barcode_scanner_card_optimized.dart';
+import 'package:exp/ui/widgets/card_picking/components/picking_scan_state.dart';
 import 'package:exp/core/constants/ui_constants.dart';
 
 /// Layout principal da tela de picking com otimizações de performance
@@ -35,9 +37,6 @@ class PickingScreenLayout extends StatelessWidget {
   /// Callback executado quando um código de barras é escaneado
   final void Function(String) onBarcodeScanned;
 
-  /// Indica se os campos estão habilitados (carrinho em separação)
-  final bool isEnabled;
-
   const PickingScreenLayout({
     super.key,
     required this.cart,
@@ -48,7 +47,6 @@ class PickingScreenLayout extends StatelessWidget {
     required this.scanFocusNode,
     required this.onToggleKeyboard,
     required this.onBarcodeScanned,
-    required this.isEnabled,
   });
 
   /// Espaçamento vertical entre os cards
@@ -96,11 +94,16 @@ class PickingScreenLayout extends StatelessWidget {
 
   /// Constrói o card de seleção de quantidade
   Widget _buildQuantitySelector() {
-    return QuantitySelectorCard(
-      controller: quantityController,
-      focusNode: quantityFocusNode,
-      enabled: isEnabled,
-      viewModel: viewModel,
+    return Selector<PickingScanState, bool>(
+      selector: (_, s) => s.enabled,
+      builder: (context, isEnabled, __) {
+        return QuantitySelectorCard(
+          controller: quantityController,
+          focusNode: quantityFocusNode,
+          enabled: isEnabled,
+          viewModel: viewModel,
+        );
+      },
     );
   }
 
@@ -115,7 +118,6 @@ class PickingScreenLayout extends StatelessWidget {
         focusNode: scanFocusNode,
         onToggleKeyboard: onToggleKeyboard,
         onSubmitted: onBarcodeScanned,
-        enabled: isEnabled,
       ),
     );
   }

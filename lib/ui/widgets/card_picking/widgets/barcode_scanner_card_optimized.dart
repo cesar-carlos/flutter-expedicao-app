@@ -12,7 +12,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
   final FocusNode focusNode;
   final VoidCallback onToggleKeyboard;
   final ValueChanged<String> onSubmitted;
-  final bool enabled;
+  // Habilitação agora é lida do Provider (PickingScanState.enabled)
 
   const BarcodeScannerCardOptimized({
     super.key,
@@ -20,7 +20,6 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
     required this.focusNode,
     required this.onToggleKeyboard,
     required this.onSubmitted,
-    this.enabled = true,
   });
 
   @override
@@ -28,32 +27,46 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    final isEnabled = context.select<PickingScanState, bool>((s) => s.enabled);
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: enabled ? colorScheme.primary.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.3),
+          color: isEnabled ? colorScheme.primary.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(theme, colorScheme),
+          _buildHeader(theme, colorScheme, isEnabled),
           const SizedBox(height: 6),
           // 🚀 CONSUMER ESPECÍFICO - Atualiza APENAS o campo do scanner
           Consumer<PickingScanState>(
             builder: (context, scanState, child) {
-              return _buildScannerField(theme, colorScheme, scanState.keyboardEnabled, scanState.isProcessingScan);
+              return _buildScannerField(
+                theme,
+                colorScheme,
+                isEnabled,
+                scanState.keyboardEnabled,
+                scanState.isProcessingScan,
+              );
             },
           ),
           const SizedBox(height: 6),
           // 🚀 CONSUMER ESPECÍFICO - Atualiza APENAS o texto de ajuda
           Consumer<PickingScanState>(
             builder: (context, scanState, child) {
-              return _buildHelpText(theme, colorScheme, scanState.keyboardEnabled, scanState.isProcessingScan);
+              return _buildHelpText(
+                theme,
+                colorScheme,
+                isEnabled,
+                scanState.keyboardEnabled,
+                scanState.isProcessingScan,
+              );
             },
           ),
         ],
@@ -61,23 +74,29 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildHeader(ThemeData theme, ColorScheme colorScheme, bool isEnabled) {
     return Row(
       children: [
-        Icon(Icons.qr_code_scanner, color: enabled ? colorScheme.primary : Colors.grey, size: 20),
+        Icon(Icons.qr_code_scanner, color: isEnabled ? colorScheme.primary : Colors.grey, size: 20),
         const SizedBox(width: 6),
         Text(
           'Escaneie o código de barras',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: enabled ? colorScheme.primary : Colors.grey,
+            color: isEnabled ? colorScheme.primary : Colors.grey,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildScannerField(ThemeData theme, ColorScheme colorScheme, bool keyboardEnabled, bool isProcessing) {
+  Widget _buildScannerField(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool enabled,
+    bool keyboardEnabled,
+    bool isProcessing,
+  ) {
     // 🔒 Bloquear campo quando estiver processando
     final isFieldEnabled = enabled && !isProcessing;
 
@@ -150,7 +169,13 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
     );
   }
 
-  Widget _buildHelpText(ThemeData theme, ColorScheme colorScheme, bool keyboardEnabled, bool isProcessing) {
+  Widget _buildHelpText(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool enabled,
+    bool keyboardEnabled,
+    bool isProcessing,
+  ) {
     return Text(
       isProcessing
           ? 'Aguarde, processando item...'

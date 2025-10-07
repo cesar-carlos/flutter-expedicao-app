@@ -90,25 +90,29 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
   }
 
   void _toggleKeyboard() {
-    setState(() {
-      _keyboardEnabled = !_keyboardEnabled;
-    });
+    if (mounted) {
+      setState(() {
+        _keyboardEnabled = !_keyboardEnabled;
+      });
+    }
 
     // Gerenciar foco baseado no modo selecionado
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_keyboardEnabled) {
-        // Modo teclado: forçar abertura do teclado virtual
-        _focusNode.unfocus();
-        Future.delayed(const Duration(milliseconds: 100), () {
-          _focusNode.requestFocus();
-        });
-      } else {
-        // Modo scanner: fechar teclado virtual e manter foco para scanner físico
-        _focusNode.unfocus();
-        FocusScope.of(context).unfocus();
-        Future.delayed(const Duration(milliseconds: 200), () {
-          _focusNode.requestFocus();
-        });
+      if (mounted) {
+        if (_keyboardEnabled) {
+          // Modo teclado: forçar abertura do teclado virtual
+          _focusNode.unfocus();
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) _focusNode.requestFocus();
+          });
+        } else {
+          // Modo scanner: fechar teclado virtual e manter foco para scanner físico
+          _focusNode.unfocus();
+          FocusScope.of(context).unfocus();
+          Future.delayed(const Duration(milliseconds: 200), () {
+            if (mounted) _focusNode.requestFocus();
+          });
+        }
       }
     });
   }
@@ -131,12 +135,15 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [colorScheme.primaryContainer.withValues(alpha:0.3), colorScheme.secondaryContainer.withValues(alpha:0.1)],
+          colors: [
+            colorScheme.primaryContainer.withValues(alpha: 0.3),
+            colorScheme.secondaryContainer.withValues(alpha: 0.1),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.primary.withValues(alpha:0.3), width: 1),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         children: [
@@ -156,7 +163,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
             _keyboardEnabled
                 ? 'Digite o código de barras e pressione Enter'
                 : 'Posicione o leitor sobre o código de barras do carrinho',
-            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withValues(alpha:0.7)),
+            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.7)),
             textAlign: TextAlign.center,
           ),
 

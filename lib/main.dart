@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:exp/di/locator.dart';
 import 'package:exp/core/network/dio_config.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/domain/viewmodels/config_viewmodel.dart';
@@ -13,7 +14,6 @@ import 'package:exp/core/network/network_initializer.dart';
 import 'package:exp/data/datasources/config_service.dart';
 import 'package:exp/core/routing/app_router.dart';
 import 'package:exp/core/theme/app_theme.dart';
-import 'package:exp/di/locator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

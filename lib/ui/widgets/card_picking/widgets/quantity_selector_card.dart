@@ -1,5 +1,4 @@
-import 'dart:async';
-
+import 'dart:async' show Timer;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -57,7 +56,7 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: widget.enabled ? Colors.orange.withValues(alpha:0.3) : Colors.grey.withValues(alpha:0.3),
+          color: widget.enabled ? Colors.orange.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -201,7 +200,7 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
       onLongPressEnd: widget.enabled ? (_) => _stopDecrementing() : null,
       child: Container(
         decoration: BoxDecoration(
-          color: widget.enabled ? Colors.orange.withValues(alpha:0.1) : Colors.grey.withValues(alpha:0.1),
+          color: widget.enabled ? Colors.orange.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: IconButton(
@@ -220,7 +219,7 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
       onLongPressEnd: widget.enabled ? (_) => _stopIncrementing() : null,
       child: Container(
         decoration: BoxDecoration(
-          color: widget.enabled ? Colors.orange.withValues(alpha:0.1) : Colors.grey.withValues(alpha:0.1),
+          color: widget.enabled ? Colors.orange.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: IconButton(
@@ -269,7 +268,7 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
             borderSide: BorderSide(color: Colors.grey),
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          fillColor: widget.enabled ? null : Colors.grey.withValues(alpha:0.1),
+          fillColor: widget.enabled ? null : Colors.grey.withValues(alpha: 0.1),
           filled: !widget.enabled,
         ),
         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: widget.enabled ? null : Colors.grey),

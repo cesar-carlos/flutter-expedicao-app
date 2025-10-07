@@ -35,7 +35,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Usar addPostFrameCallback para garantir que o viewModel já foi atualizado
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        setState(() {});
+        setState(() {
+          // Força rebuild para sincronizar com mudanças do ViewModel
+        });
       }
     });
   }

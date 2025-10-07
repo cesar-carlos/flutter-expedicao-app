@@ -1,12 +1,11 @@
-import 'dart:async';
-
+import 'dart:async' show Timer;
 import 'package:flutter/services.dart';
 
+import 'package:exp/di/locator.dart';
 import 'package:exp/core/services/audio_service.dart';
 import 'package:exp/core/services/barcode_validation_service.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/di/locator.dart';
 import 'package:exp/core/constants/ui_constants.dart';
 
 /// Processador responsável por processar entradas do scanner de códigos de barras
@@ -106,24 +105,10 @@ class ScanInputProcessor {
     // 🚀 EXECUTAR CALLBACKS EM PARALELO para melhor performance
     final futures = <Future<void>>[];
 
-    // 1. Feedback de áudio (não bloqueia)
-    futures.add(_provideSuccessFeedback());
-
-    // 2. Aguardar atualização de estado (otimizado - apenas 10ms para UI)
+    // 1. Aguardar atualização de estado (otimizado - apenas 10ms para UI)
     futures.add(Future.delayed(UIConstants.shortLoadingDelay));
 
-    // 3. Verificar completude do item (necessário)
-    futures.add(
-      Future(() async {
-        final isCompletedNow = viewModel.isItemCompleted(itemId);
-
-        if (!wasCompletedBefore && isCompletedNow) {
-          await _audioService.playItemCompleted();
-        }
-      }),
-    );
-
-    // 4. Executar callbacks síncronos (rápidos)
+    // 2. Executar callbacks síncronos (rápidos)
     futures.add(
       Future(() {
         onResetQuantity();
@@ -131,11 +116,35 @@ class ScanInputProcessor {
       }),
     );
 
-    // 5. Verificação de completude do setor (pode ser lenta)
+    // 3. Verificação de completude do setor (pode ser lenta)
     futures.add(onCheckSectorCompletion());
 
-    // 🚀 EXECUTAR TUDO EM PARALELO
+    // 🚀 EXECUTAR CALLBACKS EM PARALELO
     await Future.wait(futures);
+
+    // 4. Verificar completude do item APÓS todas as atualizações
+    final isCompletedNow = viewModel.isItemCompleted(itemId);
+
+    // 🚨 VERIFICAÇÃO: Item já estava completo antes do scan
+    if (wasCompletedBefore) {
+      // 🎯 NOVA LÓGICA: Se item já estava completo, mas quantidade atual = total,
+      // significa que estamos escaneando a "última unidade conceitual"
+      final currentQuantity = viewModel.getPickedQuantity(itemId);
+      final totalQuantity = item.quantidade.toInt();
+
+      if (currentQuantity == totalQuantity) {
+        await _audioService.playItemCompleted();
+        return;
+      }
+    }
+
+    if (!wasCompletedBefore && isCompletedNow) {
+      // ⭐ ÚLTIMA UNIDADE: Toca apenas som de sucesso
+      await _audioService.playItemCompleted();
+    } else {
+      // 🔊 UNIDADES NORMAIS: Toca som de scan
+      await _provideSuccessFeedback();
+    }
   }
 
   /// Fornece feedback de sucesso ao usuário (áudio + tátil)

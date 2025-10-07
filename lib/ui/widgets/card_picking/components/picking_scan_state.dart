@@ -10,6 +10,10 @@ import 'package:flutter/material.dart';
 class PickingScanState extends ChangeNotifier {
   // === ESTADO DA UI ===
 
+  /// Indica se os campos da tela estão habilitados (carrinho em separação)
+  bool _enabled = true;
+  bool get enabled => _enabled;
+
   /// Indica se o modo teclado manual está ativo (vs modo scanner)
   bool _keyboardEnabled = false;
   bool get keyboardEnabled => _keyboardEnabled;
@@ -23,6 +27,13 @@ class PickingScanState extends ChangeNotifier {
   bool get disposed => _disposed;
 
   // === MÉTODOS DE CONTROLE DE ESTADO ===
+
+  /// Define se os campos estão habilitados
+  void setEnabled(bool value) {
+    if (_disposed || _enabled == value) return;
+    _enabled = value;
+    notifyListeners();
+  }
 
   /// Alterna entre modo scanner e teclado
   void toggleKeyboard() {

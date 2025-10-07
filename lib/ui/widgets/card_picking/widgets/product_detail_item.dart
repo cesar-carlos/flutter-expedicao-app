@@ -23,7 +23,7 @@ class ProductDetailItem extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: colorScheme.outline.withValues(alpha:0.3)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
