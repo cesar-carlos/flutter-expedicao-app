@@ -13,6 +13,8 @@ class ConfigScreen extends StatelessWidget {
   void _handleReset(BuildContext context) async {
     final configViewModel = context.read<ConfigViewModel>();
 
+    if (!context.mounted) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

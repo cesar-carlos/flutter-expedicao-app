@@ -676,6 +676,8 @@ class CartItemCard extends StatelessWidget {
   }
 
   void _showDifferentUserDialog(BuildContext context, String cartOwnerName) {
+    if (!context.mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -915,6 +917,8 @@ class CartItemCard extends StatelessWidget {
   }
 
   Future<bool> _showFinalizeConfirmationDialog(BuildContext context) async {
+    if (!context.mounted) return false;
+
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
@@ -934,6 +938,8 @@ class CartItemCard extends StatelessWidget {
   }
 
   void _showLoadingDialog(BuildContext context) {
+    if (!context.mounted) return;
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -944,6 +950,8 @@ class CartItemCard extends StatelessWidget {
   }
 
   void _showSuccessDialog(BuildContext context, SaveSeparationCartSuccess success) {
+    if (!context.mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -977,6 +985,8 @@ class CartItemCard extends StatelessWidget {
   }
 
   void _showErrorDialog(BuildContext context, AppFailure failure) {
+    if (!context.mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

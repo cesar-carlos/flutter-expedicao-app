@@ -15,8 +15,18 @@ class UserRepositoryImpl implements UserRepository {
   String get _baseUrl => DioConfig.baseUrl;
 
   @override
-  Future<CreateUserResponse> createUser({required String nome, required String senha, File? profileImage}) async {
-    final createUserDto = CreateUserDto.fromDomainParams(nome: nome, senha: senha, profileImage: profileImage);
+  Future<CreateUserResponse> createUser({
+    required String nome,
+    required String senha,
+    File? profileImage,
+    int? codUsuario,
+  }) async {
+    final createUserDto = CreateUserDto.fromDomainParams(
+      nome: nome,
+      senha: senha,
+      profileImage: profileImage,
+      codUsuario: codUsuario,
+    );
 
     if (!createUserDto.isValid) {
       throw UserApiException('Dados de usuário inválidos', statusCode: 400, isValidationError: true);
@@ -61,7 +71,6 @@ class UserRepositoryImpl implements UserRepository {
       if (response.statusCode == 200 || response.statusCode == 201) {
         try {
           final responseDto = CreateUserResponseDto.fromApiResponse(response.data);
-
           final userResponse = CreateUserResponse.fromJson(responseDto.toDomain());
 
           return userResponse;

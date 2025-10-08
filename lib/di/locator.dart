@@ -89,6 +89,10 @@ import 'package:exp/domain/usecases/delete_item_separation/delete_item_separatio
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:exp/domain/usecases/save_separation/save_separation_usecase.dart';
 import 'package:exp/domain/usecases/start_separation/start_separation_usecase.dart';
+import 'package:exp/domain/repositories/barcode_scanner_repository.dart';
+import 'package:exp/data/repositories/barcode_scanner_repository_mobile_impl.dart';
+import 'package:exp/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
+import 'package:exp/domain/usecases/user/register_via_qrcode_usecase.dart';
 
 final GetIt locator = GetIt.instance;
 
@@ -184,6 +188,14 @@ void setupLocator() {
 
   locator.registerFactory(() => RegisterUserUseCase(locator<UserRepository>()));
   locator.registerFactory(() => LoginUserUseCase(locator<UserRepository>()));
+
+  locator.registerLazySingleton<RegisterViaQRCodeUseCase>(
+    () => RegisterViaQRCodeUseCase(
+      userRepository: locator<UserRepository>(),
+      userSystemRepository: locator<UserSystemRepository>(),
+      userSessionService: locator<UserSessionService>(),
+    ),
+  );
 
   locator.registerFactory(() {
     final configService = locator<ConfigService>();
@@ -336,6 +348,13 @@ void setupLocator() {
     () => SeparateCartInternshipEventRepositoryImpl(
       locator<EventGenericRepositoryImpl<ExpeditionCartRouteInternshipConsultationModel>>(),
     ),
+  );
+
+  // Registro do Barcode Scanner Repository e UseCase
+  locator.registerLazySingleton<BarcodeScannerRepository>(() => BarcodeScannerRepositoryMobileImpl());
+
+  locator.registerLazySingleton<ScanBarcodeUseCase>(
+    () => ScanBarcodeUseCase(scannerRepository: locator<BarcodeScannerRepository>()),
   );
 
   // Registro dos ViewModels após os repositórios de eventos

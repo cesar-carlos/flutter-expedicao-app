@@ -7,6 +7,7 @@ import 'package:exp/ui/screens/login_screen.dart';
 import 'package:exp/ui/screens/splash_screen.dart';
 import 'package:exp/ui/screens/profile_screen.dart';
 import 'package:exp/ui/screens/register_screen.dart';
+import 'package:exp/ui/screens/qrcode_login_screen.dart';
 import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/ui/screens/counter_delivery_screen.dart';
 import 'package:exp/domain/repositories/user_repository.dart';
@@ -33,6 +34,7 @@ class AppRouter {
   static const String splash = '/';
   static const String login = '/login';
   static const String register = '/register';
+  static const String qrcodeLogin = '/qrcode-login';
   static const String config = '/config';
   static const String home = '/home';
   static const String scanner = '/home/scanner';
@@ -66,10 +68,13 @@ class AppRouter {
           return null;
         }
 
-        // Se não está autenticado, permite acesso ao login, registro e config
+        // Se não está autenticado, permite acesso ao login, registro, qrcode-login e config
         if (authStatus == AuthStatus.unauthenticated || authStatus == AuthStatus.error) {
-          // Permite acesso ao login, registro e configuração
-          if (currentLocation != login && currentLocation != register && currentLocation != config) {
+          // Permite acesso ao login, registro, qrcode-login e configuração
+          if (currentLocation != login &&
+              currentLocation != register &&
+              currentLocation != qrcodeLogin &&
+              currentLocation != config) {
             return login;
           }
           return null;
@@ -106,6 +111,9 @@ class AppRouter {
 
         // Rota do Registro
         GoRoute(path: register, name: 'register', builder: (context, state) => const RegisterScreen()),
+
+        // Rota do Login via QR Code
+        GoRoute(path: qrcodeLogin, name: 'qrcode-login', builder: (context, state) => const QRCodeLoginScreen()),
 
         // Rota de Configurações
         GoRoute(path: config, name: 'config', builder: (context, state) => const ConfigScreen()),

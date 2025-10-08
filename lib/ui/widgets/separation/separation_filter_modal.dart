@@ -104,7 +104,7 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(alpha:0.1),
+                        color: colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -321,12 +321,15 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
   /// Mostra diálogo para seleção múltipla de situações
   Future<void> _showSituacoesDialog(BuildContext context) async {
     final situacoes = _getFilteredSituations();
+
+    if (!mounted) return;
+
     final result = await showDialog<List<String>>(
       context: context,
       builder: (context) => _MultiSelectSituacoesDialog(situacoes: situacoes, selectedSituacoes: _selectedSituacoes),
     );
 
-    if (result != null) {
+    if (result != null && mounted) {
       setState(() {
         _selectedSituacoes = result;
       });

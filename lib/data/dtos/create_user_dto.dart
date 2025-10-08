@@ -5,11 +5,17 @@ class CreateUserDto {
   final String nome;
   final String senha;
   final File? profileImage;
+  final int? codUsuario;
 
-  CreateUserDto({required this.nome, required this.senha, this.profileImage});
+  CreateUserDto({required this.nome, required this.senha, this.profileImage, this.codUsuario});
 
   Future<Map<String, dynamic>> toApiRequest() async {
-    final request = {'Nome': nome.trim(), 'Senha': senha};
+    final Map<String, dynamic> request = {'Nome': nome.trim(), 'Senha': senha};
+
+    // Adicionar CodUsuario se fornecido (caso de cadastro via QR Code)
+    if (codUsuario != null) {
+      request['CodUsuario'] = codUsuario!;
+    }
 
     if (hasProfileImage) {
       try {
@@ -24,8 +30,13 @@ class CreateUserDto {
     return request;
   }
 
-  factory CreateUserDto.fromDomainParams({required String nome, required String senha, File? profileImage}) {
-    return CreateUserDto(nome: nome, senha: senha, profileImage: profileImage);
+  factory CreateUserDto.fromDomainParams({
+    required String nome,
+    required String senha,
+    File? profileImage,
+    int? codUsuario,
+  }) {
+    return CreateUserDto(nome: nome, senha: senha, profileImage: profileImage, codUsuario: codUsuario);
   }
 
   bool get hasProfileImage => profileImage != null;

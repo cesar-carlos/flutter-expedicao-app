@@ -43,6 +43,8 @@ class PickingDialogManager {
 
   /// Mostra diálogo de não há itens para o setor
   void showNoItemsForSectorDialog(int userSectorCode, VoidCallback onFinish) {
+    if (!context.mounted) return;
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -70,6 +72,8 @@ class PickingDialogManager {
 
   /// Mostra diálogo após completar todos os itens do setor, oferecendo salvar o carrinho
   void showSaveCartAfterSectorCompletedDialog(int userSectorCode, VoidCallback onSaveCart, VoidCallback onContinue) {
+    if (!context.mounted) return;
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -134,6 +138,8 @@ class PickingDialogManager {
 
   /// Mostra diálogo e retorna foco para o scanner após fechar
   void _showDialogWithFocusReturn(Widget Function() dialogBuilder) {
+    if (!context.mounted) return;
+
     showDialog(context: context, builder: (context) => dialogBuilder()).then((_) {
       _returnFocusToScanner();
     });

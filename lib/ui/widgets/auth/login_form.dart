@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:exp/core/constants/app_strings.dart';
 import 'package:exp/core/validation/forms/form_validators.dart';
-import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/domain/viewmodels/config_viewmodel.dart';
+import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
 import 'package:exp/ui/widgets/common/index.dart';
 
 class LoginForm extends StatefulWidget {
@@ -48,6 +48,8 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void _showServerConfigDialog(String message) {
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -110,13 +112,14 @@ class _LoginFormState extends State<LoginForm> {
                 isLoading: authViewModel.isLoginLoading,
               ),
 
-              const SizedBox(height: 5),
+              const SizedBox(height: 8),
 
+              // Botão Login System
               CustomFlatButton(
-                text: AppStrings.registerText,
-                onPressed: authViewModel.isLoginLoading ? null : () => context.go('/register'),
-                icon: Icons.person_add_outlined,
-                textColor: Theme.of(context).colorScheme.primary,
+                text: 'Login System',
+                onPressed: authViewModel.isLoginLoading ? null : () => context.go('/qrcode-login'),
+                icon: Icons.qr_code_scanner,
+                textColor: Theme.of(context).colorScheme.secondary,
                 backgroundColor: Colors.transparent,
                 borderColor: Colors.transparent,
                 padding: const EdgeInsets.symmetric(vertical: 12),

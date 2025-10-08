@@ -3,7 +3,12 @@ import 'dart:io';
 import 'package:exp/domain/models/user/user_models.dart';
 
 abstract class UserRepository {
-  Future<CreateUserResponse> createUser({required String nome, required String senha, File? profileImage});
+  Future<CreateUserResponse> createUser({
+    required String nome,
+    required String senha,
+    File? profileImage,
+    int? codUsuario,
+  });
 
   Future<LoginResponse> login(String nome, String senha);
 
