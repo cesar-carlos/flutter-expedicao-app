@@ -60,7 +60,11 @@ class SeparationViewModel extends ChangeNotifier {
   final String _insertListenerId = 'separation_viewmodel_insert';
   final String _updateListenerId = 'separation_viewmodel_update';
   final String _deleteListenerId = 'separation_viewmodel_delete';
+  final String _consultationListenerId = 'separation_viewmodel_consultation';
+  final String _updateListListenerId = 'separation_viewmodel_update_list';
   bool _eventListenersRegistered = false;
+  bool _consultationListenerRegistered = false;
+  bool _updateListListenerRegistered = false;
 
   SeparationState get state => _state;
 
@@ -303,7 +307,9 @@ class SeparationViewModel extends ChangeNotifier {
     }
 
     if (_setorEstoqueFilter != null) {
-      queryBuilder.equals('CodSetorEstoque', _setorEstoqueFilter!.codSetorEstoque.toString());
+      // Usar LIKE para buscar o setor na lista CSV de setores
+      // Ex: CodSetoresEstoque = "1,4" deve encontrar setor 1 ou setor 4
+      queryBuilder.like('CodSetoresEstoque', '%${_setorEstoqueFilter!.codSetorEstoque}%');
     }
 
     return queryBuilder;
@@ -396,12 +402,16 @@ class SeparationViewModel extends ChangeNotifier {
   void startEventMonitoring() {
     if (_disposed) return;
     _registerEventListener();
+    _registerConsultationEventListener();
+    _registerUpdateListEventListener();
   }
 
   /// Para o monitoramento de eventos
   void stopEventMonitoring() {
     if (_disposed) return;
     _unregisterEventListener();
+    _unregisterConsultationEventListener();
+    _unregisterUpdateListEventListener();
   }
 
   /// Registra os listeners para todos os eventos de separação
@@ -427,6 +437,25 @@ class SeparationViewModel extends ChangeNotifier {
     }
   }
 
+  /// Registra o listener para eventos de consulta
+  void _registerConsultationEventListener() {
+    if (_disposed || _consultationListenerRegistered) return;
+
+    try {
+      _eventRepository.addConsultationListener(
+        EventListenerModel(
+          id: _consultationListenerId,
+          event: Event.insert, // Tipo não importa para este listener
+          callback: _onConsultationEvent,
+          allEvent: true, // Escutar eventos de todas as sessões
+        ),
+      );
+      _consultationListenerRegistered = true;
+    } catch (e) {
+      // Erro ao registrar listener de consulta - continuar sem eventos
+    }
+  }
+
   /// Remove os listeners de eventos
   void _unregisterEventListener() {
     if (!_eventListenersRegistered) return;
@@ -436,6 +465,49 @@ class SeparationViewModel extends ChangeNotifier {
       _eventListenersRegistered = false;
     } catch (e) {
       // Erro ao remover listeners - continuar
+    }
+  }
+
+  /// Remove o listener de eventos de consulta
+  void _unregisterConsultationEventListener() {
+    if (!_consultationListenerRegistered) return;
+
+    try {
+      _eventRepository.removeConsultationListener(_consultationListenerId);
+      _consultationListenerRegistered = false;
+    } catch (e) {
+      // Erro ao remover listener de consulta - continuar
+    }
+  }
+
+  /// Registra o listener para eventos de atualização de lista (separar.update.listen)
+  void _registerUpdateListEventListener() {
+    if (_disposed || _updateListListenerRegistered) return;
+
+    try {
+      _eventRepository.addUpdateListener(
+        EventListenerModel(
+          id: _updateListListenerId,
+          event: Event.update,
+          callback: _onUpdateListEvent,
+          allEvent: true,
+        ),
+      );
+      _updateListListenerRegistered = true;
+    } catch (e) {
+      // Erro ao registrar listener de atualização - continuar sem eventos
+    }
+  }
+
+  /// Remove o listener de eventos de atualização de lista
+  void _unregisterUpdateListEventListener() {
+    if (!_updateListListenerRegistered) return;
+
+    try {
+      _eventRepository.removeUpdateListener(_updateListListenerId);
+      _updateListListenerRegistered = false;
+    } catch (e) {
+      // Erro ao remover listener de atualização - continuar
     }
   }
 
@@ -539,9 +611,143 @@ class SeparationViewModel extends ChangeNotifier {
     }
 
     if (_setorEstoqueFilter != null) {
-      return false; // SeparateConsultationModel não possui codSetorEstoque
+      // Verificar se o setor selecionado está na lista de setores da separação
+      if (!separationData.codSetoresEstoque.contains(_setorEstoqueFilter!.codSetorEstoque)) {
+        return false;
+      }
     }
 
     return true;
+  }
+
+  /// Callback chamado quando há evento de consulta
+  void _onConsultationEvent(BasicEventModel event) {
+    if (_disposed || event.data == null) return;
+
+    try {
+      _processConsultationEventData(event);
+    } catch (e) {
+      // Erro ao processar evento de consulta
+    }
+  }
+
+  /// Callback chamado quando há evento de atualização de lista (separar.update.listen)
+  void _onUpdateListEvent(BasicEventModel event) {
+    if (_disposed || event.data == null) return;
+
+    try {
+      _processUpdateListEventData(event);
+    } catch (e) {
+      // Erro ao processar evento de atualização
+    }
+  }
+
+  /// Processa os dados do evento de consulta
+  void _processConsultationEventData(BasicEventModel event) {
+    _processListEventData(event);
+  }
+
+  /// Processa os dados do evento de atualização de lista (separar.update.listen)
+  void _processUpdateListEventData(BasicEventModel event) {
+    _processListEventData(event);
+  }
+
+  /// Processa eventos de lista (consulta e update) de forma genérica
+  ///
+  /// Este método centraliza o processamento de eventos que contêm arrays de separações,
+  /// evitando duplicação de código e melhorando a manutenibilidade.
+  void _processListEventData(BasicEventModel event) {
+    final dataMap = event.data as Map<String, dynamic>;
+
+    // Verificar se tem array 'Data'
+    if (!dataMap.containsKey('Data') || dataMap['Data'] is! List) return;
+
+    final dataList = dataMap['Data'] as List;
+    bool hasAnyUpdate = false;
+
+    // Processar cada item do array
+    for (final item in dataList) {
+      if (item is Map<String, dynamic>) {
+        try {
+          final separationData = SeparateConsultationModel.fromJson(item);
+          if (_handleSeparationUpdate(separationData)) {
+            hasAnyUpdate = true;
+          }
+        } catch (e) {
+          // Erro ao parsear separação individual - continuar com próximo item
+        }
+      }
+    }
+
+    // Notificar listeners apenas uma vez se houve alguma mudança
+    if (hasAnyUpdate && !_disposed) {
+      notifyListeners();
+    }
+  }
+
+  /// Processa uma separação recebida via evento de lista
+  ///
+  /// Retorna true se houve mudança na lista (adição ou atualização)
+  bool _handleSeparationUpdate(SeparateConsultationModel separationData) {
+    if (_disposed) return false;
+
+    // Buscar índice da separação existente
+    final index = _findSeparationIndex(separationData);
+
+    if (index != -1) {
+      // Separação já existe - verificar se há mudanças relevantes
+      return _updateExistingSeparation(index, separationData);
+    } else {
+      // Separação não existe - verificar se deve adicionar
+      return _addNewSeparation(separationData);
+    }
+  }
+
+  /// Busca o índice de uma separação na lista
+  int _findSeparationIndex(SeparateConsultationModel separationData) {
+    return _separations.indexWhere(
+      (s) => s.codEmpresa == separationData.codEmpresa && s.codSepararEstoque == separationData.codSepararEstoque,
+    );
+  }
+
+  /// Atualiza uma separação existente se houver mudanças relevantes
+  ///
+  /// Retorna true se houve atualização
+  bool _updateExistingSeparation(int index, SeparateConsultationModel newData) {
+    final currentData = _separations[index];
+
+    if (_hasRelevantChanges(currentData, newData)) {
+      _separations[index] = newData;
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Adiciona uma nova separação se passar pelos filtros ativos
+  ///
+  /// Retorna true se houve adição
+  bool _addNewSeparation(SeparateConsultationModel separationData) {
+    if (_shouldAddToCurrentList(separationData)) {
+      _separations.insert(0, separationData);
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Verifica se há mudanças relevantes entre duas separações
+  ///
+  /// Compara apenas os campos que impactam a visualização na UI,
+  /// evitando atualizações desnecessárias quando dados irrelevantes mudam.
+  bool _hasRelevantChanges(SeparateConsultationModel current, SeparateConsultationModel updated) {
+    return current.situacao != updated.situacao ||
+        current.nomeEntidade != updated.nomeEntidade ||
+        current.nomeTipoOperacaoExpedicao != updated.nomeTipoOperacaoExpedicao ||
+        current.nomePrioridade != updated.nomePrioridade ||
+        current.horaEmissao != updated.horaEmissao ||
+        current.historico != updated.historico ||
+        current.observacao != updated.observacao ||
+        !listEquals(current.codSetoresEstoque, updated.codSetoresEstoque);
   }
 }

@@ -71,4 +71,35 @@ class StringUtils {
     }
     return result;
   }
+
+  /// Converte uma string com valores separados por vírgula em uma lista de inteiros
+  ///
+  /// Pode receber null ou uma string com valores separados por vírgula.
+  /// Remove espaços em branco e valores inválidos.
+  ///
+  /// Exemplo:
+  /// ```dart
+  /// StringUtils.parseCommaSeparatedInts('1,2,4'); // retorna [1, 2, 4]
+  /// StringUtils.parseCommaSeparatedInts('1, 2, 4'); // retorna [1, 2, 4]
+  /// StringUtils.parseCommaSeparatedInts(null); // retorna []
+  /// StringUtils.parseCommaSeparatedInts(''); // retorna []
+  /// StringUtils.parseCommaSeparatedInts('1,abc,3'); // retorna [1, 3]
+  /// ```
+  static List<int> parseCommaSeparatedInts(dynamic value) {
+    if (value == null) return [];
+
+    if (value is String) {
+      if (value.isEmpty) return [];
+
+      return value
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .map((e) => int.tryParse(e) ?? 0)
+          .where((e) => e != 0)
+          .toList();
+    }
+
+    return [];
+  }
 }

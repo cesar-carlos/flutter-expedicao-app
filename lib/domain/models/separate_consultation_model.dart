@@ -1,4 +1,5 @@
 import 'package:exp/core/utils/date_helper.dart';
+import 'package:exp/core/utils/string_utils.dart';
 import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 import 'package:exp/domain/models/entity_type_model.dart';
@@ -20,6 +21,7 @@ class SeparateConsultationModel {
   final String nomeEntidade;
   final int codPrioridade;
   final String nomePrioridade;
+  final List<int> codSetoresEstoque;
   final String? historico;
   final String? observacao;
 
@@ -38,6 +40,7 @@ class SeparateConsultationModel {
     required this.nomeEntidade,
     required this.codPrioridade,
     required this.nomePrioridade,
+    required this.codSetoresEstoque,
     this.historico,
     this.observacao,
   });
@@ -59,6 +62,7 @@ class SeparateConsultationModel {
         nomeEntidade: json['NomeEntidade'] ?? '',
         codPrioridade: json['CodPrioridade'] ?? 0,
         nomePrioridade: json['NomePrioridade'] ?? '',
+        codSetoresEstoque: StringUtils.parseCommaSeparatedInts(json['CodSetoresEstoque']),
         historico: json['Historico'],
         observacao: json['Observacao'],
       );
@@ -83,6 +87,7 @@ class SeparateConsultationModel {
       'NomeEntidade': nomeEntidade,
       'CodPrioridade': codPrioridade,
       'NomePrioridade': nomePrioridade,
+      'CodSetoresEstoque': codSetoresEstoque.isEmpty ? null : codSetoresEstoque.join(','),
       'Historico': historico,
       'Observacao': observacao,
     };
@@ -113,6 +118,6 @@ class SeparateConsultationModel {
 
   @override
   String toString() {
-    return 'SeparateConsultationModel(codSepararEstoque: $codSepararEstoque, origem: ${origem.description}, situacao: ${situacao.description}, tipoEntidade: ${tipoEntidade.description}, nomeEntidade: $nomeEntidade)';
+    return 'SeparateConsultationModel(codSepararEstoque: $codSepararEstoque, origem: ${origem.description}, situacao: ${situacao.description}, tipoEntidade: ${tipoEntidade.description}, nomeEntidade: $nomeEntidade, codSetoresEstoque: $codSetoresEstoque, historico: $historico, observacao: $observacao, dataEmissao: $dataEmissao, horaEmissao: $horaEmissao, codEntidade: $codEntidade, codPrioridade: $codPrioridade)';
   }
 }

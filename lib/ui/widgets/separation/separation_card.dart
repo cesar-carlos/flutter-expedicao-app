@@ -21,7 +21,7 @@ class SeparationCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outline.withValues(alpha:0.1), width: 1),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1), width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -96,11 +96,20 @@ class SeparationCard extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                _buildInfoRow(
-                  context,
-                  icon: Icons.priority_high,
-                  label: 'Prioridade',
-                  value: separation.nomePrioridade,
+                // Prioridade e Setores de Estoque
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoRow(
+                        context,
+                        icon: Icons.priority_high,
+                        label: 'Prioridade',
+                        value: separation.nomePrioridade,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(child: _buildSetoresInfoRow(context)),
+                  ],
                 ),
 
                 const SizedBox(height: 16),
@@ -196,6 +205,45 @@ class SeparationCard extends StatelessWidget {
                   ),
                 ),
               ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSetoresInfoRow(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Formatar a lista de setores no formato [1, 2, 3]
+    final setoresText = '[${separation.codSetoresEstoque.join(', ')}]';
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.business_center, size: 16, color: colorScheme.onSurfaceVariant),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Setores',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                setoresText,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'monospace',
+                  color: colorScheme.primary,
+                ),
+              ),
             ],
           ),
         ),

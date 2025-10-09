@@ -337,7 +337,10 @@ void setupLocator() {
   );
 
   locator.registerLazySingleton<SeparateEventRepository>(
-    () => SeparateEventRepositoryImpl(locator<EventGenericRepositoryImpl<SeparateConsultationModel>>()),
+    () => SeparateEventRepositoryImpl(
+      locator<EventGenericRepositoryImpl<SeparateConsultationModel>>(),
+      locator<EventService>(), // Adicionar esta dependência
+    ),
   );
 
   locator.registerLazySingleton<EventGenericRepositoryImpl<ExpeditionCartRouteInternshipConsultationModel>>(

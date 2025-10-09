@@ -2,6 +2,7 @@ import 'package:exp/domain/repositories/separate_event_repository.dart';
 import 'package:exp/data/repositories/event_repository/event_generic_repository_impl.dart';
 import 'package:exp/domain/models/event_model/event_listener_model.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:exp/domain/services/event_service.dart';
 
 /// Implementação do repositório de eventos para separação de expedição
 ///
@@ -10,10 +11,20 @@ import 'package:exp/domain/models/separate_consultation_model.dart';
 /// - Implementação na camada de dados (SeparateEventRepositoryImpl)
 /// - Delegação para implementação genérica (EventGenericRepositoryImpl)
 class SeparateEventRepositoryImpl implements SeparateEventRepository {
-  final EventGenericRepositoryImpl<SeparateConsultationModel> _genericRepository;
+  // Constantes de eventos customizados
+  static const String _consultationEventName = 'separar.consulta.listen';
+  static const String _updateListEventName = 'separar.update.listen';
 
-  SeparateEventRepositoryImpl(EventGenericRepositoryImpl<SeparateConsultationModel> genericRepository)
-    : _genericRepository = genericRepository;
+  final EventGenericRepositoryImpl<SeparateConsultationModel> _genericRepository;
+  final EventService _eventService;
+
+  SeparateEventRepositoryImpl(
+    EventGenericRepositoryImpl<SeparateConsultationModel> genericRepository,
+    EventService eventService,
+  ) : _genericRepository = genericRepository,
+      _eventService = eventService;
+
+  // === Delegação para repositório genérico ===
 
   @override
   void addListener(EventListenerModel listener) => _genericRepository.addListener(listener);
@@ -38,4 +49,26 @@ class SeparateEventRepositoryImpl implements SeparateEventRepository {
 
   @override
   void dispose() => _genericRepository.dispose();
+
+  // === Listeners customizados para eventos de lista ===
+
+  @override
+  void addConsultationListener(EventListenerModel listener) {
+    _eventService.subscribe(_consultationEventName, listener);
+  }
+
+  @override
+  void removeConsultationListener(String listenerId) {
+    _eventService.unsubscribe(listenerId);
+  }
+
+  @override
+  void addUpdateListener(EventListenerModel listener) {
+    _eventService.subscribe(_updateListEventName, listener);
+  }
+
+  @override
+  void removeUpdateListener(String listenerId) {
+    _eventService.unsubscribe(listenerId);
+  }
 }
