@@ -199,6 +199,7 @@ class UserRepositoryImpl implements UserRepository {
   Future<bool> validateCurrentPassword({required String nome, required String currentPassword}) async {
     try {
       // Usar o endpoint de login para validar a senha atual
+      // A senha já será convertida para lowercase no LoginDto
       await login(nome, currentPassword);
       return true; // Se não deu erro, a senha está correta
     } on UserApiException catch (e) {
@@ -241,7 +242,7 @@ class UserRepositoryImpl implements UserRepository {
           'Ativo': user.ativo.code,
           'Nome': user.nome,
           'CodUsuario': user.codUsuario,
-          'Senha': newPassword, // Nova senha no body
+          'Senha': newPassword.toLowerCase(), // Nova senha em lowercase
         },
       );
 

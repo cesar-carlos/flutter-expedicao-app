@@ -1,5 +1,7 @@
+import 'dart:async' show Future, StreamController, Stream;
 import 'package:flutter/foundation.dart';
 
+import 'package:exp/di/locator.dart';
 import 'package:exp/domain/models/picking_state.dart';
 import 'package:exp/domain/models/user_system_models.dart';
 import 'package:exp/domain/models/separation_item_status.dart';
@@ -19,22 +21,24 @@ import 'package:exp/data/services/filters_storage_service.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/core/results/index.dart';
-import 'package:exp/di/locator.dart';
 
 /// ViewModel para gerenciar o estado do picking de um carrinho
 ///
 /// Responsabilidades:
 /// - Gerenciar o ciclo de vida dos itens do carrinho durante o picking
-/// - Coordenar a adição de itens através de UseCases
+/// - Coordenar a adição de itens através de UseCases (com atualização otimista)
 /// - Manter o estado sincronizado com o servidor
 /// - Monitorar eventos de atualização do carrinho em tempo real
 /// - Gerenciar filtros e ordenação dos itens
+/// - Gerenciar fila de operações pendentes e sincronização em background
 ///
 /// Características de Performance:
 /// - Cache O(1) para busca de itens por código de produto
 /// - Estado consolidado para evitar recalculos
 /// - Execução paralela de validações
-/// - Sincronização otimizada com servidor
+/// - Atualização otimista (feedback instantâneo)
+/// - Sincronização em background sem bloquear UI
+/// - Detecção automática de mudança de produto com refresh
 ///
 /// Os produtos são ordenados por endereço usando ordenação natural (01, 02, 10, 11, etc.)
 class CardPickingViewModel extends ChangeNotifier {
@@ -89,6 +93,18 @@ class CardPickingViewModel extends ChangeNotifier {
   /// Este cache é reconstruído sempre que a lista de itens é atualizada
   /// para garantir performance na validação e adição de itens escaneados.
   Map<int, SeparateItemConsultationModel>? _itemsByCodProduto;
+
+  /// Rastreamento do último produto escaneado para detectar mudança
+  int? _lastScannedCodProduto;
+
+  /// Fila de operações pendentes por item (itemId para List de Future)
+  final Map<String, List<Future<void>>> _pendingOperations = {};
+
+  /// Stream controller para notificar erros de operação
+  final StreamController<OperationError> _errorController = StreamController<OperationError>.broadcast();
+
+  /// Stream de erros de operações assíncronas
+  Stream<OperationError> get operationErrors => _errorController.stream;
 
   /// Verifica se há itens disponíveis para o setor do usuário
   bool get hasItemsForUserSector {
@@ -159,6 +175,7 @@ class CardPickingViewModel extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     stopCartEventMonitoring();
+    _errorController.close();
     super.dispose();
   }
 
@@ -216,47 +233,39 @@ class CardPickingViewModel extends ChangeNotifier {
     }
   }
 
-  /// Adiciona item escaneado na separação usando o use case otimizado
+  /// Adiciona item escaneado na separação usando estratégia otimista
   ///
-  /// Este método coordena a adição de um item escaneado realizando:
-  /// 1. Validações síncronas (item na lista, cache)
-  /// 2. Validações assíncronas em paralelo (usuário, socket)
-  /// 3. Execução do UseCase de adição
-  /// 4. Atualização do estado local
-  /// 5. Sincronização com servidor
+  /// Este método coordena a adição de um item com atualização imediata:
+  /// 1. Validações rápidas (item na lista)
+  /// 2. Validações paralelas (usuário, socket)
+  /// 3. Detecta mudança de produto e aguarda operações pendentes
+  /// 4. Atualização LOCAL IMEDIATA (otimista)
+  /// 5. Execução do UseCase em BACKGROUND
+  /// 6. Tratamento de erro com reversão automática
   ///
   /// Performance:
-  /// - Busca O(1) no cache de itens
-  /// - Validações paralelas usando Future.wait()
-  /// - Atualização otimizada do estado consolidado
+  /// - Retorno instantâneo (~0ms vs ~220ms)
+  /// - Feedback imediato ao usuário
+  /// - Enfileiramento de operações
+  /// - Sincronização em background
   ///
-  /// Returns: [AddItemSeparationResult] com sucesso ou erro detalhado
+  /// Returns: [AddItemSeparationResult] com sucesso otimista ou erro de validação
   Future<AddItemSeparationResult> addScannedItem({required int codProduto, required int quantity}) async {
     // Validações rápidas de estado
-    if (_disposed) {
-      return AddItemSeparationResult.error('ViewModel foi descartado');
-    }
-    if (_cart == null) {
-      return AddItemSeparationResult.error('Carrinho não inicializado');
-    }
+    if (_disposed) return AddItemSeparationResult.error('ViewModel foi descartado');
+    if (_cart == null) return AddItemSeparationResult.error('Carrinho não inicializado');
 
     try {
-      // 🚀 EXECUTAR VALIDAÇÕES EM PARALELO para melhor performance
-      final futures = <Future<dynamic>>[];
-
-      // 1. Buscar o item do produto na lista usando cache (síncrono)
+      // Buscar o item do produto na lista usando cache O(1)
       final item = _findItemByCodProduto(codProduto);
-      if (item == null) {
-        return AddItemSeparationResult.error('Produto não encontrado neste carrinho');
-      }
+      if (item == null) return AddItemSeparationResult.error('Produto não encontrado neste carrinho');
 
-      // 2. Obter sessão do usuário (assíncrono)
-      futures.add(_userSessionService.loadUserSession());
+      // Executar validações em paralelo para melhor performance
+      final futures = <Future<dynamic>>[
+        _userSessionService.loadUserSession(),
+        Future(() => SocketValidationHelper.validateSocketState()),
+      ];
 
-      // 3. Validar socket (síncrono)
-      futures.add(Future(() => SocketValidationHelper.validateSocketState()));
-
-      // 🚀 EXECUTAR VALIDAÇÕES EM PARALELO
       final results = await Future.wait(futures);
       final appUser = results[0] as dynamic;
       final socketValidation = results[1] as SocketValidationResult;
@@ -273,6 +282,12 @@ class CardPickingViewModel extends ChangeNotifier {
       final userSystem = appUser.userSystemModel;
       final sessionId = socketValidation.sessionId!;
 
+      // Detectar mudança de produto e sincronizar operações pendentes
+      if (_lastScannedCodProduto != null && _lastScannedCodProduto != codProduto) {
+        await _waitForPendingOperationsAndRefresh();
+      }
+      _lastScannedCodProduto = codProduto;
+
       // Criar parâmetros para o use case
       final params = AddItemSeparationParams(
         codEmpresa: _cart!.codEmpresa,
@@ -287,63 +302,31 @@ class CardPickingViewModel extends ChangeNotifier {
         quantidade: quantity.toDouble(),
       );
 
-      // Executar use case (passando userSystem para evitar recarga)
-      final result = await _addItemSeparationUseCase.call(params, userSystem: userSystem);
+      // Atualização otimista: atualizar estado local imediatamente
+      final timestamp = DateTime.now();
+      _updateLocalPickingStateOptimistic(item.item, quantity, timestamp);
 
-      return await result.fold(
-        (success) async {
-          // 🚀 EXECUTAR ATUALIZAÇÕES EM PARALELO
-          final updateFutures = <Future<void>>[];
+      // Disparar operação assíncrona sem await (background)
+      _executeAsyncAddItem(params, userSystem, item.item, quantity, timestamp);
 
-          // 1. Atualizar estado local (síncrono)
-          updateFutures.add(
-            Future(() {
-              _updateLocalPickingState(item.item, quantity);
-            }),
-          );
-
-          // 2. Sincronizar dados com servidor (assíncrono)
-          updateFutures.add(
-            Future(() async {
-              await _syncDataWithServer();
-            }),
-          );
-
-          // 🚀 EXECUTAR ATUALIZAÇÕES EM PARALELO
-          await Future.wait(updateFutures);
-
-          return AddItemSeparationResult.success(
-            'Item adicionado: ${success.addedQuantity} unidades',
-            addedQuantity: success.addedQuantity,
-          );
-        },
-        (failure) async {
-          final errorMsg = failure is AppFailure ? failure.message : failure.toString();
-          return AddItemSeparationResult.error(errorMsg);
-        },
-      );
+      // Retornar sucesso imediato (otimista)
+      return AddItemSeparationResult.success('Item adicionado: $quantity unidades', addedQuantity: quantity.toDouble());
     } catch (e) {
       return AddItemSeparationResult.error('Erro inesperado: ${e.toString()}');
     }
   }
 
-  /// Atualiza o estado local do picking após adicionar item
-  void _updateLocalPickingState(String itemId, int quantity) {
+  /// Atualiza o estado local do picking de forma otimista (antes do servidor)
+  void _updateLocalPickingStateOptimistic(String itemId, int quantity, DateTime timestamp) {
     if (_disposed) return;
 
+    // Calcular nova quantidade e atualizar estado com operação pendente
     final currentQuantity = _pickingState.getPickedQuantity(itemId);
-    final newQuantity = currentQuantity + quantity;
-    _pickingState = _pickingState.updateItemQuantity(itemId, newQuantity);
-    _safeNotifyListeners();
-  }
+    _pickingState = _pickingState
+        .updateItemQuantity(itemId, currentQuantity + quantity)
+        .addPendingOperation(itemId, quantity, timestamp);
 
-  /// Sincroniza dados com o servidor após operação bem-sucedida
-  Future<void> _syncDataWithServer() async {
-    try {
-      await refresh();
-    } catch (e) {
-      // Log do erro mas não falha a operação principal
-    }
+    _safeNotifyListeners();
   }
 
   /// Atualiza a quantidade separada de um item (uso interno)
@@ -806,6 +789,119 @@ class CardPickingViewModel extends ChangeNotifier {
         cartData.item == _cart!.item;
   }
 
+  /// Executa operação assíncrona de adição de item
+  Future<void> _executeAsyncAddItem(
+    AddItemSeparationParams params,
+    UserSystemModel userSystem,
+    String itemId,
+    int quantity,
+    DateTime timestamp,
+  ) async {
+    // Criar Future e adicionar à fila
+    final operation = _performAddItemOperation(params, userSystem, itemId, quantity, timestamp);
+
+    // Adicionar à fila de operações pendentes
+    _pendingOperations.putIfAbsent(itemId, () => []).add(operation);
+
+    // Aguardar conclusão
+    await operation;
+
+    // Remover da fila
+    _pendingOperations[itemId]?.remove(operation);
+    if (_pendingOperations[itemId]?.isEmpty ?? false) {
+      _pendingOperations.remove(itemId);
+    }
+  }
+
+  /// Executa a operação real de adição no servidor
+  Future<void> _performAddItemOperation(
+    AddItemSeparationParams params,
+    UserSystemModel userSystem,
+    String itemId,
+    int quantity,
+    DateTime timestamp,
+  ) async {
+    try {
+      // Atualizar status para "syncing"
+      _updateOperationStatus(itemId, timestamp, PendingOperationStatus.syncing);
+
+      // Executar UseCase
+      final result = await _addItemSeparationUseCase.call(params, userSystem: userSystem);
+
+      await result.fold(
+        (success) async {
+          // Sucesso: marcar como sincronizado
+          _updateOperationStatus(itemId, timestamp, PendingOperationStatus.synced);
+
+          // Limpar operações sincronizadas após delay
+          Future.delayed(const Duration(seconds: 2), () {
+            if (!_disposed) {
+              _pickingState = _pickingState.clearSyncedOperations(itemId);
+              _safeNotifyListeners();
+            }
+          });
+        },
+        (failure) async {
+          // Falha: reverter quantidade e marcar erro
+          _handleAddItemFailure(itemId, quantity, timestamp, failure);
+        },
+      );
+    } catch (e) {
+      _handleAddItemFailure(itemId, quantity, timestamp, e);
+    }
+  }
+
+  /// Trata falha na adição de item com reversão automática
+  void _handleAddItemFailure(String itemId, int quantity, DateTime timestamp, dynamic error) {
+    if (_disposed) return;
+
+    // Reverter quantidade local
+    final currentQuantity = _pickingState.getPickedQuantity(itemId);
+    final revertedQuantity = currentQuantity - quantity;
+    final errorMessage = error is AppFailure ? error.message : error.toString();
+
+    _pickingState = _pickingState
+        .updateItemQuantity(itemId, revertedQuantity)
+        .updateOperationStatus(itemId, timestamp, PendingOperationStatus.failed, errorMessage: errorMessage);
+
+    _safeNotifyListeners();
+
+    // Notificar erro via stream
+    _notifyOperationError(itemId, errorMessage);
+  }
+
+  /// Atualiza o status de uma operação pendente
+  void _updateOperationStatus(
+    String itemId,
+    DateTime timestamp,
+    PendingOperationStatus status, {
+    String? errorMessage,
+  }) {
+    if (_disposed) return;
+
+    _pickingState = _pickingState.updateOperationStatus(itemId, timestamp, status, errorMessage: errorMessage);
+    _safeNotifyListeners();
+  }
+
+  /// Aguarda todas as operações pendentes e faz refresh completo
+  Future<void> _waitForPendingOperationsAndRefresh() async {
+    if (_pendingOperations.isEmpty) return;
+
+    // Aguardar todas as operações pendentes
+    final allOperations = _pendingOperations.values.expand((list) => list).toList();
+    await Future.wait(allOperations, eagerError: false);
+
+    // Fazer refresh completo
+    await refresh();
+  }
+
+  /// Notifica erro de operação via stream
+  void _notifyOperationError(String itemId, String errorMessage) {
+    if (!_errorController.isClosed) {
+      _errorController.add(OperationError(itemId, errorMessage));
+    }
+  }
+
   /// 🚀 Busca otimizada de item por código de produto usando cache
   SeparateItemConsultationModel? _findItemByCodProduto(int codProduto) {
     // Reconstruir cache se necessário
@@ -831,4 +927,12 @@ class AddItemSeparationResult {
   AddItemSeparationResult.success(this.message, {this.addedQuantity}) : isSuccess = true;
 
   AddItemSeparationResult.error(this.message) : isSuccess = false, addedQuantity = null;
+}
+
+/// Modelo de erro de operação assíncrona
+class OperationError {
+  final String itemId;
+  final String message;
+
+  OperationError(this.itemId, this.message);
 }

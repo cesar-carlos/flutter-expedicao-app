@@ -1,4 +1,4 @@
-import 'dart:async' show Timer;
+import 'dart:async' show Timer, StreamSubscription;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -128,6 +128,9 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   // Serviços
   final AudioService _audioService = locator<AudioService>();
 
+  // Subscription para erros de operação
+  StreamSubscription<OperationError>? _errorSubscription;
+
   /// Mantém o estado vivo para otimização de performance
   @override
   bool get wantKeepAlive => true;
@@ -148,6 +151,9 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         }
       }
     });
+
+    // Escutar erros de operações assíncronas
+    _errorSubscription = widget.viewModel.operationErrors.listen(_handleOperationError);
   }
 
   /// Inicializa os componentes refatorados
@@ -266,8 +272,31 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     });
   }
 
+  /// Trata erros de operação assíncrona
+  void _handleOperationError(OperationError error) {
+    if (!mounted) return;
+
+    // Tocar som de erro
+    _audioService.playError();
+
+    // Buscar item para mostrar diálogo
+    final item = widget.viewModel.items.cast<SeparateItemConsultationModel?>().firstWhere(
+      (i) => i?.item == error.itemId,
+      orElse: () => null,
+    );
+
+    if (item != null) {
+      _dialogManager.showErrorDialog(
+        item.codigoBarras ?? '',
+        item.nomeProduto,
+        'Erro ao sincronizar: ${error.message}',
+      );
+    }
+  }
+
   @override
   void dispose() {
+    _errorSubscription?.cancel();
     _scanTimer?.cancel();
     _scanController.removeListener(_onScannerInput);
     _scanFocusNode.removeListener(_onFocusChange);
@@ -307,16 +336,12 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   Future<void> _onBarcodeScanned(String barcode) async {
-    if (barcode.trim().isEmpty) {
-      return;
-    }
+    if (barcode.trim().isEmpty) return;
 
     // Evitar múltiplos processamentos simultâneos
-    if (_scanState.isProcessingScan) {
-      return;
-    }
+    if (_scanState.isProcessingScan) return;
 
-    // 🔒 BLOQUEAR CAMPO E LIMPAR PARA PRÓXIMO SCAN
+    // Bloquear campo e limpar para próximo scan
     _scanState.startProcessing();
     _scanController.clear();
 
@@ -333,9 +358,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       // Validar código de barras usando o processador
       final validationResult = _scanProcessor.validateScannedBarcode(barcode);
 
-      if (validationResult.isEmpty) {
-        return;
-      }
+      if (validationResult.isEmpty) return;
 
       if (validationResult.noItemsForSector) {
         _audioService.playAlert();
@@ -372,7 +395,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         );
       }
     } finally {
-      // 🔓 LIBERAR CAMPO APÓS PROCESSAR
       _scanState.stopProcessing();
     }
   }
@@ -390,13 +412,16 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
           _invalidateCartStatusCache,
           _checkIfSectorItemsCompleted,
         );
+        _keyboardController.returnFocusToScanner();
       } else {
         _scanProcessor.handleFailedItemAddition(item, result.message);
         _dialogManager.showErrorDialog(barcode, item.nomeProduto, result.message);
+        _keyboardController.returnFocusToScanner();
       }
     } catch (e) {
       _scanProcessor.handleFailedItemAddition(item, 'Erro inesperado: ${e.toString()}');
       _dialogManager.showErrorDialog(barcode, item.nomeProduto, 'Erro inesperado: ${e.toString()}');
+      _keyboardController.returnFocusToScanner();
     }
   }
 

@@ -34,7 +34,7 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
         title: const Text('Login System'),
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/login')),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -78,7 +78,7 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
             // Mensagem de erro
             if (_errorMessage != null) ...[const SizedBox(height: 16), ErrorMessage(message: _errorMessage!)],
 
-            const Spacer(),
+            const SizedBox(height: 48),
 
             // Informações adicionais
             Container(

@@ -10,7 +10,7 @@ class CreateUserDto {
   CreateUserDto({required this.nome, required this.senha, this.profileImage, this.codUsuario});
 
   Future<Map<String, dynamic>> toApiRequest() async {
-    final Map<String, dynamic> request = {'Nome': nome.trim(), 'Senha': senha};
+    final Map<String, dynamic> request = {'Nome': nome.trim(), 'Senha': senha.toLowerCase()};
 
     // Adicionar CodUsuario se fornecido (caso de cadastro via QR Code)
     if (codUsuario != null) {

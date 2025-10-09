@@ -90,8 +90,8 @@ class ScanInputProcessor {
 
   /// Processa adição bem-sucedida de item de forma otimizada
   ///
-  /// Executa callbacks em paralelo para melhor performance, reduzindo
-  /// significativamente o tempo de processamento.
+  /// Executa callbacks críticos de forma síncrona e instantânea,
+  /// e a verificação de setor em background para não bloquear o usuário.
   Future<void> handleSuccessfulItemAddition(
     SeparateItemConsultationModel item,
     int quantity,
@@ -102,49 +102,37 @@ class ScanInputProcessor {
     final itemId = item.item;
     final wasCompletedBefore = viewModel.isItemCompleted(itemId);
 
-    // 🚀 EXECUTAR CALLBACKS EM PARALELO para melhor performance
-    final futures = <Future<void>>[];
+    // Executar callbacks síncronos imediatamente (atualização otimista já foi feita)
+    onResetQuantity();
+    onInvalidateCache();
 
-    // 1. Aguardar atualização de estado (otimizado - apenas 10ms para UI)
-    futures.add(Future.delayed(UIConstants.shortLoadingDelay));
-
-    // 2. Executar callbacks síncronos (rápidos)
-    futures.add(
-      Future(() {
-        onResetQuantity();
-        onInvalidateCache();
-      }),
-    );
-
-    // 3. Verificação de completude do setor (pode ser lenta)
-    futures.add(onCheckSectorCompletion());
-
-    // 🚀 EXECUTAR CALLBACKS EM PARALELO
-    await Future.wait(futures);
-
-    // 4. Verificar completude do item APÓS todas as atualizações
+    // Verificar completude do item após todas as atualizações
     final isCompletedNow = viewModel.isItemCompleted(itemId);
 
-    // 🚨 VERIFICAÇÃO: Item já estava completo antes do scan
+    // Verificar se item já estava completo antes do scan
     if (wasCompletedBefore) {
-      // 🎯 NOVA LÓGICA: Se item já estava completo, mas quantidade atual = total,
-      // significa que estamos escaneando a "última unidade conceitual"
       final currentQuantity = viewModel.getPickedQuantity(itemId);
       final totalQuantity = item.quantidade.toInt();
 
+      // Item já estava completo e quantidade atual = total
+      // (escaneando a "última unidade conceitual")
       if (currentQuantity == totalQuantity) {
         await _audioService.playItemCompleted();
         return;
       }
     }
 
+    // Tocar som de feedback apropriado
     if (!wasCompletedBefore && isCompletedNow) {
-      // ⭐ ÚLTIMA UNIDADE: Toca apenas som de sucesso
+      // Última unidade: som de sucesso
       await _audioService.playItemCompleted();
     } else {
-      // 🔊 UNIDADES NORMAIS: Toca som de scan
+      // Unidades normais: som de scan
       await _provideSuccessFeedback();
     }
+
+    // Executar verificação de setor em background (não bloqueante)
+    onCheckSectorCompletion().catchError((_) {});
   }
 
   /// Fornece feedback de sucesso ao usuário (áudio + tátil)

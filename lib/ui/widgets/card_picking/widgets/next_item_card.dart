@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
+import 'package:exp/domain/models/picking_state.dart';
 import 'package:exp/ui/widgets/card_picking/widgets/product_detail_item.dart';
 import 'package:exp/core/utils/picking_utils.dart';
 
@@ -166,7 +167,53 @@ class NextItemCard extends StatelessWidget {
     );
   }
 
+  Widget _buildSyncBadge(PickingItemState? itemState) {
+    IconData icon;
+    Color color;
+    String tooltip;
+
+    if (itemState == null || !itemState.hasPendingSync) {
+      // Estado normal: conectado e sincronizado
+      icon = Icons.cloud_done;
+      color = Colors.green;
+      tooltip = 'Conectado';
+    } else {
+      final pendingOps = itemState.pendingOperations;
+      final hasFailed = pendingOps.any((op) => op.status == PendingOperationStatus.failed);
+      final isSyncing = pendingOps.any((op) => op.status == PendingOperationStatus.syncing);
+
+      if (hasFailed) {
+        icon = Icons.sync_problem;
+        color = Colors.red;
+        tooltip = 'Erro ao sincronizar';
+      } else if (isSyncing) {
+        icon = Icons.sync;
+        color = Colors.blue;
+        tooltip = 'Sincronizando...';
+      } else {
+        icon = Icons.cloud_upload;
+        color = Colors.orange;
+        tooltip = 'Aguardando sincronização';
+      }
+    }
+
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: color, width: 1),
+        ),
+        child: Icon(icon, size: 14, color: color),
+      ),
+    );
+  }
+
   Widget _buildBarcodeInfo(ThemeData theme, ColorScheme colorScheme, SeparateItemConsultationModel nextItem) {
+    final itemState = viewModel.pickingState.getItemState(nextItem.item);
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -184,6 +231,8 @@ class NextItemCard extends StatelessWidget {
               style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace', color: colorScheme.onSurfaceVariant),
             ),
           ),
+          const SizedBox(width: 8),
+          _buildSyncBadge(itemState),
         ],
       ),
     );

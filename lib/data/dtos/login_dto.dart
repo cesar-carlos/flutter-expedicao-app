@@ -5,7 +5,7 @@ class LoginDto {
   LoginDto({required this.nome, required this.senha});
 
   Map<String, dynamic> toApiRequest() {
-    return {'Nome': nome.trim(), 'Senha': senha};
+    return {'Nome': nome.trim(), 'Senha': senha.toLowerCase()};
   }
 
   factory LoginDto.fromDomainParams({required String nome, required String senha}) {
