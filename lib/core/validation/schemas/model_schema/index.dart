@@ -16,6 +16,8 @@ export 'separate_progress_consultation_schema.dart';
 export 'separate_schema.dart';
 export 'separate_item_consultation_schema.dart';
 export 'separate_item_schema.dart';
+export 'separation_user_sector_schema.dart';
+export 'separation_user_sector_consultation_schema.dart';
 export 'separation_item_consultation_schema.dart';
 export 'separation_item_schema.dart';
 export 'separation_filters_schema.dart';

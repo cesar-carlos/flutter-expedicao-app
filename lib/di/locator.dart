@@ -38,8 +38,12 @@ import 'package:exp/data/repositories/expedition_cart_route_internship_repositor
 import 'package:exp/domain/models/expedition_cancellation_model.dart';
 import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
 import 'package:exp/domain/models/separate_model.dart';
+import 'package:exp/domain/models/separation_user_sector_model.dart';
+import 'package:exp/domain/models/separation_user_sector_consultation_model.dart';
 import 'package:exp/domain/repositories/basic_repository.dart';
 import 'package:exp/data/repositories/separate_consultation_repository_impl.dart';
+import 'package:exp/data/repositories/separation_user_sector_repository_impl.dart';
+import 'package:exp/data/repositories/separation_user_sector_consultation_repository_impl.dart';
 import 'package:exp/data/repositories/separate_progress_consultation_repository_impl.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/domain/models/separate_progress_consultation_model.dart';
@@ -108,6 +112,12 @@ void setupLocator() {
   locator.registerLazySingleton<UserSystemRepository>(() => UserSystemRepositoryImpl());
 
   locator.registerLazySingleton<BasicRepository<SeparateModel>>(() => SeparateRepositoryImpl());
+
+  locator.registerLazySingleton<BasicRepository<SeparationUserSectorModel>>(() => SeparationUserSectorRepositoryImpl());
+
+  locator.registerLazySingleton<BasicConsultationRepository<SeparationUserSectorConsultationModel>>(
+    () => SeparationUserSectorConsultationRepositoryImpl(),
+  );
 
   locator.registerLazySingleton<BasicConsultationRepository<SeparateConsultationModel>>(
     () => SeparateConsultationRepositoryImpl(),

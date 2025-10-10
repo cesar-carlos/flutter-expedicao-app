@@ -22,6 +22,7 @@ class SeparateConsultationModel {
   final int codPrioridade;
   final String nomePrioridade;
   final List<int> codSetoresEstoque;
+  final List<int> codUsuariosSeparacao;
   final String? historico;
   final String? observacao;
 
@@ -41,6 +42,7 @@ class SeparateConsultationModel {
     required this.codPrioridade,
     required this.nomePrioridade,
     required this.codSetoresEstoque,
+    required this.codUsuariosSeparacao,
     this.historico,
     this.observacao,
   });
@@ -63,6 +65,7 @@ class SeparateConsultationModel {
         codPrioridade: json['CodPrioridade'] ?? 0,
         nomePrioridade: json['NomePrioridade'] ?? '',
         codSetoresEstoque: StringUtils.parseCommaSeparatedInts(json['CodSetoresEstoque']),
+        codUsuariosSeparacao: StringUtils.parseCommaSeparatedInts(json['CodUsuariosSeparacao']),
         historico: json['Historico'],
         observacao: json['Observacao'],
       );
@@ -88,6 +91,7 @@ class SeparateConsultationModel {
       'CodPrioridade': codPrioridade,
       'NomePrioridade': nomePrioridade,
       'CodSetoresEstoque': codSetoresEstoque.isEmpty ? null : codSetoresEstoque.join(','),
+      'CodUsuariosSeparacao': codUsuariosSeparacao.isEmpty ? null : codUsuariosSeparacao.join(','),
       'Historico': historico,
       'Observacao': observacao,
     };
@@ -118,6 +122,6 @@ class SeparateConsultationModel {
 
   @override
   String toString() {
-    return 'SeparateConsultationModel(codSepararEstoque: $codSepararEstoque, origem: ${origem.description}, situacao: ${situacao.description}, tipoEntidade: ${tipoEntidade.description}, nomeEntidade: $nomeEntidade, codSetoresEstoque: $codSetoresEstoque, historico: $historico, observacao: $observacao, dataEmissao: $dataEmissao, horaEmissao: $horaEmissao, codEntidade: $codEntidade, codPrioridade: $codPrioridade)';
+    return 'SeparateConsultationModel(codSepararEstoque: $codSepararEstoque, origem: ${origem.description}, situacao: ${situacao.description}, tipoEntidade: ${tipoEntidade.description}, nomeEntidade: $nomeEntidade, codSetoresEstoque: $codSetoresEstoque, codUsuariosSeparacao: $codUsuariosSeparacao, historico: $historico, observacao: $observacao, dataEmissao: $dataEmissao, horaEmissao: $horaEmissao, codEntidade: $codEntidade, codPrioridade: $codPrioridade)';
   }
 }

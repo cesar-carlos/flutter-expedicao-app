@@ -32,6 +32,12 @@ class SeparationSchemas {
   /// Schema para filtros de separação
   static final separationFiltersSchema = SeparationFiltersSchema.schema;
 
+  /// Schema para SeparationUserSectorModel
+  static final separationUserSectorSchema = SeparationUserSectorSchema.schema;
+
+  /// Schema para SeparationUserSectorConsultationModel
+  static final separationUserSectorConsultationSchema = SeparationUserSectorConsultationSchema.schema;
+
   // === MÉTODOS DE VALIDAÇÃO ===
   // Delegam para os schemas individuais para manter compatibilidade
 
@@ -49,6 +55,14 @@ class SeparationSchemas {
   static Map<String, dynamic> validateSeparationFilters(Map<String, dynamic> filters) =>
       SeparationFiltersSchema.validate(filters);
 
+  /// Valida dados de separação por usuário e setor
+  static Map<String, dynamic> validateSeparationUserSector(Map<String, dynamic> data) =>
+      SeparationUserSectorSchema.validate(data);
+
+  /// Valida dados de consulta de separação por usuário e setor
+  static Map<String, dynamic> validateSeparationUserSectorConsultation(Map<String, dynamic> data) =>
+      SeparationUserSectorConsultationSchema.validate(data);
+
   // === VALIDAÇÃO SEGURA ===
   // Delegam para os schemas individuais para manter compatibilidade
 
@@ -59,6 +73,14 @@ class SeparationSchemas {
   /// Validação segura para filtros
   static Result<Map<String, dynamic>> safeValidateSeparationFilters(Map<String, dynamic> filters) =>
       SeparationFiltersSchema.safeValidate(filters);
+
+  /// Validação segura para separação por usuário e setor
+  static Result<Map<String, dynamic>> safeValidateSeparationUserSector(Map<String, dynamic> data) =>
+      SeparationUserSectorSchema.safeValidate(data);
+
+  /// Validação segura para consulta de separação por usuário e setor
+  static Result<Map<String, dynamic>> safeValidateSeparationUserSectorConsultation(Map<String, dynamic> data) =>
+      SeparationUserSectorConsultationSchema.safeValidate(data);
 
   // === VALIDAÇÕES DE REGRAS DE NEGÓCIO ===
 
