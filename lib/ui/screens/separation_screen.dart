@@ -2,14 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:exp/di/locator.dart';
 import 'package:exp/core/routing/app_router.dart';
 import 'package:exp/ui/widgets/common/custom_app_bar.dart';
-import 'package:exp/ui/widgets/separation_title_with_connection_status.dart';
+import 'package:exp/data/services/user_session_service.dart';
 import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
 import 'package:exp/domain/models/separate_consultation_model.dart';
 import 'package:exp/ui/widgets/separation/separation_filter_modal.dart';
+import 'package:exp/ui/widgets/separation_title_with_connection_status.dart';
+import 'package:exp/domain/usecases/next_separation_user/next_separation_user_usecase.dart';
+import 'package:exp/domain/usecases/next_separation_user/next_separation_user_params.dart';
+import 'package:exp/domain/usecases/next_separation_user/next_separation_user_failure.dart';
+import 'package:exp/domain/usecases/next_separation_user/next_separation_user_success.dart';
+import 'package:exp/core/results/index.dart';
+import 'package:exp/domain/models/separation_user_sector_consultation_model.dart';
 import 'package:exp/ui/widgets/separation/separation_card.dart';
+import 'package:exp/domain/models/expedition_origem_model.dart';
 import 'package:exp/ui/widgets/app_drawer/app_drawer.dart';
+import 'package:exp/domain/models/entity_type_model.dart';
 
 /// Tela principal de listagem de separações
 class SeparationScreen extends StatefulWidget {
@@ -19,17 +29,28 @@ class SeparationScreen extends StatefulWidget {
   State<SeparationScreen> createState() => _SeparationScreenState();
 }
 
-class _SeparationScreenState extends State<SeparationScreen> {
-  // Constantes
+class _SeparationScreenState extends State<SeparationScreen> with TickerProviderStateMixin {
+  // === CONSTANTES ===
   static const double _scrollThresholdToShowButton = 200.0;
   static const double _scrollThresholdToLoadMore = 200.0;
   static const Duration _scrollAnimationDuration = Duration(milliseconds: 500);
+  static const Duration _fabAnimationDuration = Duration(milliseconds: 300);
+  static const double _fabPosition = 16.0;
+  static const double _fabIconSize = 20.0;
+  static const double _modalIconSize = 48.0;
+  static const double _loadingIndicatorSize = 20.0;
+  static const double _emptyStateIconSize = 64.0;
 
-  // Controladores
+  // === CONTROLADORES ===
   final ScrollController _scrollController = ScrollController();
 
-  // Estado
+  // === ESTADO ===
   bool _showScrollToTop = false;
+  bool _isLoadingNextSeparation = false;
+
+  // === ANIMAÇÃO ===
+  late AnimationController _fabAnimationController;
+  late Animation<double> _fabAnimation;
 
   // ========== Lifecycle ==========
 
@@ -37,6 +58,17 @@ class _SeparationScreenState extends State<SeparationScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+
+    // Inicializar animação do FAB
+    _fabAnimationController = AnimationController(duration: _fabAnimationDuration, vsync: this);
+    _fabAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _fabAnimationController, curve: Curves.easeInOut));
+
+    // Iniciar com o botão "Próxima Separação" visível
+    _fabAnimationController.forward();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInitialData();
 
@@ -57,6 +89,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
     }
 
     _scrollController.dispose();
+    _fabAnimationController.dispose();
     super.dispose();
   }
 
@@ -79,6 +112,13 @@ class _SeparationScreenState extends State<SeparationScreen> {
     final shouldShow = _scrollController.offset > _scrollThresholdToShowButton;
     if (shouldShow != _showScrollToTop && mounted) {
       setState(() => _showScrollToTop = shouldShow);
+
+      // Animar transição do FAB
+      if (shouldShow) {
+        _fabAnimationController.reverse();
+      } else {
+        _fabAnimationController.forward();
+      }
     }
   }
 
@@ -120,6 +160,224 @@ class _SeparationScreenState extends State<SeparationScreen> {
     );
   }
 
+  // ========== Next Separation FAB ==========
+
+  Widget _buildFloatingActionButton() {
+    return AnimatedBuilder(
+      animation: _fabAnimation,
+      builder: (context, child) {
+        return Stack(alignment: Alignment.bottomRight, children: [_buildNextSeparationFab(), _buildScrollToTopFab()]);
+      },
+    );
+  }
+
+  /// Botão "Próxima Separação" com animação otimizada
+  Widget _buildNextSeparationFab() {
+    return Positioned(
+      right: _fabPosition,
+      bottom: _fabPosition,
+      child: Transform.scale(
+        scale: _fabAnimation.value,
+        child: Opacity(
+          opacity: _fabAnimation.value,
+          child: IgnorePointer(
+            ignoring: _showScrollToTop,
+            child: FloatingActionButton.extended(
+              heroTag: "next_separation_fab",
+              onPressed: _isLoadingNextSeparation ? null : _findNextSeparation,
+              tooltip: 'Buscar próxima separação',
+              icon: _buildFabIcon(),
+              label: Text(_isLoadingNextSeparation ? 'Buscando...' : 'Próxima Separação'),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Botão "Voltar ao topo" com animação otimizada
+  Widget _buildScrollToTopFab() {
+    return Positioned(
+      right: _fabPosition,
+      bottom: _fabPosition,
+      child: Transform.scale(
+        scale: 1.0 - _fabAnimation.value,
+        child: Opacity(
+          opacity: 1.0 - _fabAnimation.value,
+          child: IgnorePointer(
+            ignoring: !_showScrollToTop,
+            child: FloatingActionButton(
+              heroTag: "scroll_to_top_fab",
+              onPressed: _scrollToTop,
+              tooltip: 'Voltar ao topo',
+              child: const Icon(Icons.arrow_upward),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Ícone do FAB (spinner ou play_arrow)
+  Widget _buildFabIcon() {
+    if (_isLoadingNextSeparation) {
+      return const SizedBox(
+        width: _fabIconSize,
+        height: _fabIconSize,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      );
+    }
+    return const Icon(Icons.play_arrow);
+  }
+
+  /// Busca a próxima separação disponível para o usuário
+  Future<void> _findNextSeparation() async {
+    if (!mounted) return;
+
+    setState(() => _isLoadingNextSeparation = true);
+
+    try {
+      final params = await _getUserParams();
+      if (params == null) return; // Erro já foi tratado
+
+      final result = await _executeNextSeparationUseCase(params);
+      if (!mounted) return;
+
+      _handleNextSeparationResult(result);
+    } catch (e) {
+      if (mounted) {
+        _showErrorModal('Erro Inesperado', 'Erro inesperado: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingNextSeparation = false);
+      }
+    }
+  }
+
+  /// Obtém parâmetros do usuário logado
+  Future<NextSeparationUserParams?> _getUserParams() async {
+    final userSessionService = locator<UserSessionService>();
+    final appUser = await userSessionService.loadUserSession();
+
+    if (appUser?.userSystemModel == null) {
+      if (mounted) {
+        _showErrorModal('Erro de Sessão', 'Usuário não encontrado na sessão');
+      }
+      return null;
+    }
+
+    final userSystemModel = appUser!.userSystemModel!;
+    final params = NextSeparationUserParams(
+      codEmpresa: userSystemModel.codEmpresa ?? 0,
+      codUsuario: userSystemModel.codUsuario,
+      codSetorEstoque: userSystemModel.codSetorEstoque,
+      userSystemModel: userSystemModel,
+    );
+
+    if (!params.hasValidSector) {
+      if (mounted) {
+        _showErrorModal('Configuração Inválida', 'Usuário não possui setor estoque configurado');
+      }
+      return null;
+    }
+
+    return params;
+  }
+
+  /// Executa o usecase de próxima separação
+  Future<Result<NextSeparationUserSuccess>> _executeNextSeparationUseCase(NextSeparationUserParams params) async {
+    final usecase = locator<NextSeparationUserUseCase>();
+    return await usecase(params);
+  }
+
+  /// Processa o resultado da busca de próxima separação
+  void _handleNextSeparationResult(Result<NextSeparationUserSuccess> result) {
+    result.fold(
+      (success) {
+        if (success.hasSeparation) {
+          _openNextSeparation(success.separation!);
+        } else {
+          _showInfoModal('Nenhuma Separação', success.message);
+        }
+      },
+      (failure) {
+        final errorMessage = failure is NextSeparationUserFailure ? failure.userMessage : failure.toString();
+        _showErrorModal('Erro na Busca', errorMessage);
+      },
+    );
+  }
+
+  /// Converte SeparationUserSectorConsultationModel para SeparateConsultationModel
+  /// e navega para a tela de separação
+  void _openNextSeparation(SeparationUserSectorConsultationModel separation) {
+    try {
+      // Converter para SeparateConsultationModel
+      final separateConsultation = SeparateConsultationModel(
+        codEmpresa: separation.codEmpresa,
+        codSepararEstoque: separation.codSepararEstoque,
+        origem: ExpeditionOrigem.vazio, // Valor padrão
+        codOrigem: 0, // Valor padrão
+        codTipoOperacaoExpedicao: 0, // Valor padrão
+        nomeTipoOperacaoExpedicao: 'Operação Padrão', // Valor padrão
+        situacao: separation.separarEstoqueSituacao,
+        tipoEntidade: EntityType.cliente, // Valor padrão
+        dataEmissao: DateTime.now(), // Valor padrão
+        horaEmissao: '00:00:00', // Valor padrão
+        codEntidade: 0, // Valor padrão
+        nomeEntidade: separation.nomeUsuario ?? 'Entidade Padrão',
+        codPrioridade: separation.codPrioridade,
+        nomePrioridade: separation.descricaoPrioridade,
+        codSetoresEstoque: [separation.codSetorEstoque],
+        codUsuariosSeparacao: separation.codUsuario != null ? [separation.codUsuario!] : [],
+        historico: null,
+        observacao: null,
+      );
+
+      // Navegar para a tela de separação
+      context.push(AppRouter.separateItems, extra: separateConsultation.toJson());
+    } catch (e) {
+      _showErrorModal('Erro ao Abrir Separação', 'Erro ao abrir separação: ${e.toString()}');
+    }
+  }
+
+  // ========== Helper Methods ==========
+
+  void _showErrorModal(String title, String message) {
+    _showCustomModal(title: title, message: message, icon: Icons.error_outline, color: Colors.red);
+  }
+
+  void _showInfoModal(String title, String message) {
+    _showCustomModal(title: title, message: message, icon: Icons.info_outline, color: Colors.blue);
+  }
+
+  /// Modal customizado reutilizável
+  void _showCustomModal({
+    required String title,
+    required String message,
+    required IconData icon,
+    required Color color,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        icon: Icon(icon, color: color, size: _modalIconSize),
+        title: Text(
+          title,
+          style: TextStyle(color: color, fontWeight: FontWeight.bold),
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('OK', style: TextStyle(color: color)),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ========== Build Methods ==========
 
   @override
@@ -143,13 +401,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
           ),
         ],
       ),
-      floatingActionButton: _showScrollToTop
-          ? FloatingActionButton(
-              onPressed: _scrollToTop,
-              tooltip: 'Voltar ao topo',
-              child: const Icon(Icons.arrow_upward),
-            )
-          : null,
+      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 
@@ -201,7 +453,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+            Icon(Icons.error_outline, size: _emptyStateIconSize, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 16),
             Text(
               'Erro ao carregar separações',
@@ -232,7 +484,7 @@ class _SeparationScreenState extends State<SeparationScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, size: 64, color: Theme.of(context).colorScheme.outline),
+            Icon(Icons.inventory_2_outlined, size: _emptyStateIconSize, color: Theme.of(context).colorScheme.outline),
             const SizedBox(height: 16),
             Text(
               'Nenhuma separação encontrada',
@@ -285,7 +537,11 @@ class _SeparationScreenState extends State<SeparationScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+          SizedBox(
+            width: _loadingIndicatorSize,
+            height: _loadingIndicatorSize,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
           SizedBox(width: 12),
           Text('Carregando mais separações...'),
         ],

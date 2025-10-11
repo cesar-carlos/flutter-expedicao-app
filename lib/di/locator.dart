@@ -93,6 +93,8 @@ import 'package:exp/domain/usecases/delete_item_separation/delete_item_separatio
 import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:exp/domain/usecases/save_separation/save_separation_usecase.dart';
 import 'package:exp/domain/usecases/start_separation/start_separation_usecase.dart';
+import 'package:exp/domain/usecases/next_separation_user/next_separation_user_usecase.dart';
+import 'package:exp/domain/usecases/register_separation_user_sector/register_separation_user_sector_usecase.dart';
 import 'package:exp/domain/repositories/barcode_scanner_repository.dart';
 import 'package:exp/data/repositories/barcode_scanner_repository_mobile_impl.dart';
 import 'package:exp/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
@@ -337,6 +339,17 @@ void setupLocator() {
       separateRepository: locator<BasicRepository<SeparateModel>>(),
       cartRouteRepository: locator<BasicRepository<ExpeditionCartRouteModel>>(),
       userSessionService: locator<UserSessionService>(),
+    ),
+  );
+
+  locator.registerLazySingleton<RegisterSeparationUserSectorUseCase>(
+    () => RegisterSeparationUserSectorUseCase(repository: locator<BasicRepository<SeparationUserSectorModel>>()),
+  );
+
+  locator.registerLazySingleton<NextSeparationUserUseCase>(
+    () => NextSeparationUserUseCase(
+      separationUserSectorRepository: locator<BasicConsultationRepository<SeparationUserSectorConsultationModel>>(),
+      getRegisterUseCase: () => locator<RegisterSeparationUserSectorUseCase>(),
     ),
   );
 

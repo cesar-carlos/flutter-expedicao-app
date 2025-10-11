@@ -83,193 +83,195 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
         color: colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            children: [
-              Icon(Icons.filter_alt, color: colorScheme.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Filtros de Separação',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Icon(Icons.filter_alt, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Filtros de Separação',
+                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-              Consumer<SeparationViewModel>(
-                builder: (context, viewModel, child) {
-                  if (viewModel.hasActiveFilters) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Ativos',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+                Consumer<SeparationViewModel>(
+                  builder: (context, viewModel, child) {
+                    if (viewModel.hasActiveFilters) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-              const SizedBox(width: 8),
-              IconButton(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.close)),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          // Código de Separação
-          TextField(
-            controller: _codSepararEstoqueController,
-            decoration: const InputDecoration(
-              labelText: 'Código de Separação',
-              hintText: 'Ex: 12345',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.tag),
-            ),
-            keyboardType: TextInputType.number,
-          ),
-
-          const SizedBox(height: 16),
-
-          // Origem
-          DropdownButtonFormField<String>(
-            initialValue: _selectedOrigem,
-            decoration: const InputDecoration(
-              labelText: 'Origem',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.source),
-            ),
-            items: [
-              const DropdownMenuItem<String>(value: null, child: Text('Todas as origens')),
-              ...ExpeditionOrigem.values.map(
-                (origem) => DropdownMenuItem<String>(value: origem.code, child: Text(origem.description)),
-              ),
-            ],
-            onChanged: (value) {
-              setState(() {
-                _selectedOrigem = value;
-              });
-            },
-          ),
-
-          const SizedBox(height: 16),
-
-          // Código de Origem
-          TextField(
-            controller: _codOrigemController,
-            decoration: const InputDecoration(
-              labelText: 'Código de Origem',
-              hintText: 'Ex: 123',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.numbers),
-            ),
-            keyboardType: TextInputType.number,
-          ),
-
-          const SizedBox(height: 16),
-
-          // Situação (Seleção Múltipla)
-          InkWell(
-            onTap: () => _showSituacoesDialog(context),
-            child: InputDecorator(
-              decoration: const InputDecoration(
-                labelText: 'Situação',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.info),
-                suffixIcon: Icon(Icons.arrow_drop_down),
-              ),
-              child: Text(
-                _selectedSituacoes.isEmpty ? 'Todas as situações' : '${_selectedSituacoes.length} selecionada(s)',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Setor de Estoque
-          Consumer<SeparationViewModel>(
-            builder: (context, viewModel, child) {
-              return DropdownButtonFormField<ExpeditionSectorStockModel?>(
-                decoration: const InputDecoration(
-                  labelText: 'Setor de Estoque',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.business),
+                        child: Text(
+                          'Ativos',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
                 ),
-                initialValue: _getValidSelectedSector(viewModel),
-                items: [
-                  const DropdownMenuItem<ExpeditionSectorStockModel?>(value: null, child: Text('Todos os setores')),
-                  ...viewModel.availableSectors.map((setor) {
-                    return DropdownMenuItem<ExpeditionSectorStockModel?>(value: setor, child: Text(setor.descricao));
-                  }),
-                ],
-                onChanged: (setor) {
-                  setState(() {
-                    _selectedSetorEstoque = setor;
-                  });
-                },
-              );
-            },
-          ),
+                const SizedBox(width: 8),
+                IconButton(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.close)),
+              ],
+            ),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-          // Data de Emissão
-          InkWell(
-            onTap: () => _selectDate(context),
-            child: InputDecorator(
+            // Código de Separação
+            TextField(
+              controller: _codSepararEstoqueController,
               decoration: const InputDecoration(
-                labelText: 'Data de Emissão',
+                labelText: 'Código de Separação',
+                hintText: 'Ex: 12345',
                 border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.calendar_today),
-                suffixIcon: Icon(Icons.arrow_drop_down),
+                prefixIcon: Icon(Icons.tag),
               ),
-              child: Text(
-                _selectedDate != null ? _formatDate(_selectedDate!) : 'Selecionar data',
-                style: theme.textTheme.bodyLarge,
+              keyboardType: TextInputType.number,
+            ),
+
+            const SizedBox(height: 16),
+
+            // Origem
+            DropdownButtonFormField<String>(
+              initialValue: _selectedOrigem,
+              decoration: const InputDecoration(
+                labelText: 'Origem',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.source),
+              ),
+              items: [
+                const DropdownMenuItem<String>(value: null, child: Text('Todas as origens')),
+                ...ExpeditionOrigem.values.map(
+                  (origem) => DropdownMenuItem<String>(value: origem.code, child: Text(origem.description)),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedOrigem = value;
+                });
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // Código de Origem
+            TextField(
+              controller: _codOrigemController,
+              decoration: const InputDecoration(
+                labelText: 'Código de Origem',
+                hintText: 'Ex: 123',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.numbers),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+
+            const SizedBox(height: 16),
+
+            // Situação (Seleção Múltipla)
+            InkWell(
+              onTap: () => _showSituacoesDialog(context),
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Situação',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.info),
+                  suffixIcon: Icon(Icons.arrow_drop_down),
+                ),
+                child: Text(
+                  _selectedSituacoes.isEmpty ? 'Todas as situações' : '${_selectedSituacoes.length} selecionada(s)',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
               ),
             ),
-          ),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-          // Botões
-          Consumer<SeparationViewModel>(
-            builder: (context, viewModel, child) {
-              return Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: viewModel.isLoading ? null : _clearFilters,
-                      child: const Text('Limpar Filtros'),
-                    ),
+            // Setor de Estoque
+            Consumer<SeparationViewModel>(
+              builder: (context, viewModel, child) {
+                return DropdownButtonFormField<ExpeditionSectorStockModel?>(
+                  decoration: const InputDecoration(
+                    labelText: 'Setor de Estoque',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.business),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: viewModel.isLoading ? null : _applyFilters,
-                      child: viewModel.isLoading
-                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Text('Aplicar Filtros'),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
+                  initialValue: _getValidSelectedSector(viewModel),
+                  items: [
+                    const DropdownMenuItem<ExpeditionSectorStockModel?>(value: null, child: Text('Todos os setores')),
+                    ...viewModel.availableSectors.map((setor) {
+                      return DropdownMenuItem<ExpeditionSectorStockModel?>(value: setor, child: Text(setor.descricao));
+                    }),
+                  ],
+                  onChanged: (setor) {
+                    setState(() {
+                      _selectedSetorEstoque = setor;
+                    });
+                  },
+                );
+              },
+            ),
 
-          // Espaçamento para teclado
-          SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
-        ],
+            const SizedBox(height: 16),
+
+            // Data de Emissão
+            InkWell(
+              onTap: () => _selectDate(context),
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Data de Emissão',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.calendar_today),
+                  suffixIcon: Icon(Icons.arrow_drop_down),
+                ),
+                child: Text(
+                  _selectedDate != null ? _formatDate(_selectedDate!) : 'Selecionar data',
+                  style: theme.textTheme.bodyLarge,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Botões
+            Consumer<SeparationViewModel>(
+              builder: (context, viewModel, child) {
+                return Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: viewModel.isLoading ? null : _clearFilters,
+                        child: const Text('Limpar Filtros'),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: viewModel.isLoading ? null : _applyFilters,
+                        child: viewModel.isLoading
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Text('Aplicar Filtros'),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+
+            // Espaçamento para teclado
+            SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+          ],
+        ),
       ),
     );
   }

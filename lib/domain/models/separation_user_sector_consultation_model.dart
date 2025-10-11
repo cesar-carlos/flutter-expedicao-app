@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:exp/core/results/index.dart';
+import 'package:exp/core/utils/app_helper.dart';
 import 'package:exp/domain/models/situation/expedition_situation_model.dart';
 
 /// Modelo para consulta de separação por usuário e setor
@@ -13,10 +14,10 @@ class SeparationUserSectorConsultationModel {
   final int codPrioridade;
   final String descricaoPrioridade;
   final int prioridade;
-  final int quantidadeItens;
-  final int quantidadeItensSeparacao;
-  final int quantidadeItensSetor;
-  final int quantidadeItensSeparacaoSetor;
+  final double quantidadeItens;
+  final double quantidadeItensSeparacao;
+  final double quantidadeItensSetor;
+  final double quantidadeItensSeparacaoSetor;
   final String carrinhosAbertosUsuario;
   final int? codUsuario;
   final String? nomeUsuario;
@@ -54,10 +55,10 @@ class SeparationUserSectorConsultationModel {
         codPrioridade: json['CodPrioridade'] as int,
         descricaoPrioridade: json['DescricaoPrioridade'] as String,
         prioridade: json['Prioridade'] as int,
-        quantidadeItens: json['QuantidadeItens'] as int,
-        quantidadeItensSeparacao: json['QuantidadeItensSeparacao'] as int,
-        quantidadeItensSetor: json['QuantidadeItensSetor'] as int,
-        quantidadeItensSeparacaoSetor: json['QuantidadeItensSeparacaoSetor'] as int,
+        quantidadeItens: AppHelper.stringToDouble(json['QuantidadeItens']),
+        quantidadeItensSeparacao: AppHelper.stringToDouble(json['QuantidadeItensSeparacao']),
+        quantidadeItensSetor: AppHelper.stringToDouble(json['QuantidadeItensSetor']),
+        quantidadeItensSeparacaoSetor: AppHelper.stringToDouble(json['QuantidadeItensSeparacaoSetor']),
         carrinhosAbertosUsuario: json['CarrinhosAbertosUsuario'] as String,
         codUsuario: json['CodUsuario'] as int?,
         nomeUsuario: json['NomeUsuario'] as String?,

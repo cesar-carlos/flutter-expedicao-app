@@ -47,6 +47,26 @@ class QueryBuilder {
     return this;
   }
 
+  /// Adds a field comparison (field = field, without quotes on the value)
+  /// Example: fieldEquals('QuantidadeItens', 'QuantidadeItensSeparacao')
+  /// Generates: QuantidadeItens = QuantidadeItensSeparacao (without quotes)
+  QueryBuilder fieldEquals(String key, String fieldName) {
+    _params.add(QueryParam.createFieldComparison(key, fieldName, '='));
+    return this;
+  }
+
+  /// Adds a field comparison with greater than operator
+  QueryBuilder fieldGreaterThan(String key, String fieldName) {
+    _params.add(QueryParam.createFieldComparison(key, fieldName, '>'));
+    return this;
+  }
+
+  /// Adds a field comparison with less than operator
+  QueryBuilder fieldLessThan(String key, String fieldName) {
+    _params.add(QueryParam.createFieldComparison(key, fieldName, '<'));
+    return this;
+  }
+
   /// Adds pagination to the query
   QueryBuilder paginate({int limit = 10, int offset = 0, int page = 1}) {
     _pagination = Pagination(limit: limit, offset: offset, page: page);
