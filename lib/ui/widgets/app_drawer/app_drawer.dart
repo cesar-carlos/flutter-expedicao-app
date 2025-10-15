@@ -111,15 +111,6 @@ class AppDrawer extends StatelessWidget {
                   },
                 ),
 
-                DrawerMenuTile(
-                  icon: Icons.search_outlined,
-                  title: 'Consulta Separações',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.go(AppRouter.shipmentSeparateConsultation);
-                  },
-                ),
-
                 const Divider(),
 
                 DrawerMenuTile(

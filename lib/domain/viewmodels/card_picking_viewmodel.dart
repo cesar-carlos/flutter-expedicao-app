@@ -442,7 +442,12 @@ class CardPickingViewModel extends ChangeNotifier {
   Future<void> refresh() async {
     if (_disposed || _cart == null) return;
 
-    await initializeCart(_cart!);
+    // Resetar estado interno para garantir consistência
+    _lastScannedCodProduto = null;
+    _itemsByCodProduto = null;
+
+    // Preservar o userModel atual durante o refresh
+    await initializeCart(_cart!, userModel: _userModel);
   }
 
   /// Tenta novamente após erro

@@ -2,6 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:exp/di/locator.dart';
+import 'package:exp/core/services/barcode_scanner_service.dart';
+
 class BarcodeScanner extends StatefulWidget {
   final Function(String) onBarcodeScanned;
   final bool isLoading;
@@ -16,8 +19,8 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
   final _barcodeController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
-  Timer? _scanTimer;
   bool _keyboardEnabled = false; // Estado do teclado
+  final BarcodeScannerService _scannerService = locator<BarcodeScannerService>();
 
   @override
   void initState() {
@@ -32,61 +35,23 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
   }
 
   void _onScannerInput() {
-    // Cancelar timer anterior se existir
-    _scanTimer?.cancel();
+    if (_keyboardEnabled || _barcodeController.text.isEmpty) return;
 
-    // Diferentes estratégias para scanner vs teclado
-    if (!_keyboardEnabled && _barcodeController.text.isNotEmpty) {
-      final currentLength = _barcodeController.text.length;
-      final text = _barcodeController.text.trim();
-
-      // Verificar se há caracteres de controle no texto completo
-      if (text.contains('\n') || text.contains('\r') || text.contains('\t')) {
-        // Se há caractere de controle, processar imediatamente
-        _processScannedCode();
-        return;
-      }
-
-      // Detectar códigos EAN-13 (13 dígitos) imediatamente
-      if (currentLength == 13 && RegExp(r'^\d{13}$').hasMatch(text)) {
-        _processScannedCode();
-        return;
-      }
-
-      // Detectar códigos de 14-16 dígitos imediatamente
-      if (currentLength >= 14 && currentLength <= 16 && RegExp(r'^\d+$').hasMatch(text)) {
-        _processScannedCode();
-        return;
-      }
-
-      // Para outros tamanhos, usar timer baseado no comprimento
-      final waitTime = _getWaitTimeForLength(currentLength);
-      _scanTimer = Timer(Duration(milliseconds: waitTime), () {
-        if (_barcodeController.text.isNotEmpty) {
-          _processScannedCode();
-        }
-      });
-    }
-  }
-
-  /// Retorna o tempo de espera baseado no comprimento do código
-  int _getWaitTimeForLength(int length) {
-    if (length < 6) return 1000; // Aguardar mais dados
-    if (length >= 6 && length < 13) return 800; // Tempo maior para códigos menores aguardarem mais entrada
-    if (length >= 13 && length <= 16) return 300; // Tempo reduzido para códigos completos
-    return 200; // Processar rápido para códigos longos
+    _scannerService.processBarcodeInputWithControlDetection(
+      _barcodeController.text,
+      (barcode) => _processScannedCode(),
+      () => _processScannedCode(),
+    );
   }
 
   void _processBarcode(String text) {
     if (text.isEmpty || widget.isLoading) return;
 
-    // Limpar caracteres especiais que podem vir do scanner (incluindo Enter/Return)
-    final cleanText = text.replaceAll(RegExp(r'[^\d]'), '');
+    // Limpar caracteres especiais usando o serviço
+    final cleanText = _scannerService.cleanBarcodeText(text);
 
-    // Validar comprimento para evitar códigos incompletos
-    final minLength = _keyboardEnabled ? 3 : 6;
-
-    if (cleanText.length >= minLength) {
+    // Validar comprimento usando o serviço
+    if (_scannerService.isValidBarcodeLength(cleanText, isKeyboardInput: _keyboardEnabled)) {
       // Processar código válido
       widget.onBarcodeScanned(cleanText);
 
@@ -133,7 +98,6 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
 
   @override
   void dispose() {
-    _scanTimer?.cancel();
     _barcodeController.removeListener(_onScannerInput);
     _barcodeController.dispose();
     _focusNode.dispose();

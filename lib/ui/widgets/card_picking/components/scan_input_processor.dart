@@ -1,8 +1,8 @@
-import 'dart:async' show Timer;
 import 'package:flutter/services.dart';
 
 import 'package:exp/di/locator.dart';
 import 'package:exp/core/services/audio_service.dart';
+import 'package:exp/core/services/barcode_scanner_service.dart';
 import 'package:exp/core/services/barcode_validation_service.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
@@ -29,60 +29,20 @@ import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
 class ScanInputProcessor {
   final CardPickingViewModel viewModel;
   final AudioService _audioService = locator<AudioService>();
-
-  /// Timeout para aguardar mais entrada do scanner (aumentado para códigos longos)
-  static const Duration _scannerTimeout = Duration(milliseconds: 800);
-
-  /// Padrão regex para validar formato de código de barras (6-16 dígitos)
-  static final RegExp _barcodePattern = RegExp(r'^\d{6,16}$');
-
-  /// Comprimento mínimo esperado para um código de barras
-  static const int _minBarcodeLength = 6;
+  final BarcodeScannerService _scannerService = locator<BarcodeScannerService>();
 
   ScanInputProcessor({required this.viewModel});
 
-  /// Processa entrada do scanner com timeout
-  ///
-  /// Analisa a entrada e decide se é um código completo ou se deve aguardar mais entrada.
-  /// - Se vazio: ignora
-  /// - Se muito curto: aguarda mais entrada
-  /// - Se completo e válido: processa imediatamente
-  /// - Se longo mas inválido: aguarda timeout para processar
-  void processScannerInput(String input, void Function(String) onCompleteBarcode, void Function() onWaitForMore) {
-    if (input.isEmpty) {
-      return;
-    }
-
-    // Detecção específica para códigos completos (13-16 dígitos)
-    if (input.length >= 13 && input.length <= 16 && RegExp(r'^\d+$').hasMatch(input)) {
-      onCompleteBarcode(input);
-      return;
-    }
-
-    if (_isInputTooShort(input)) {
-      _scheduleWaitForMore(onWaitForMore);
-      return;
-    }
-
-    // Só processar códigos válidos se tiverem 13+ dígitos (EAN-13+)
-    if (_isValidBarcode(input) && input.length >= 13) {
-      onCompleteBarcode(input);
-      return;
-    }
-
-    // Entrada longa mas formato inválido, aguardar timeout
-    _scheduleWaitForMore(onWaitForMore);
+  /// Limpa recursos quando não precisar mais do processador
+  void dispose() {
+    _scannerService.dispose();
   }
 
-  /// Verifica se a entrada é muito curta para ser um código de barras válido
-  bool _isInputTooShort(String input) => input.length < _minBarcodeLength;
-
-  /// Verifica se a entrada tem formato de código de barras válido
-  bool _isValidBarcode(String input) => _barcodePattern.hasMatch(input);
-
-  /// Agenda callback para aguardar mais entrada após o timeout
-  void _scheduleWaitForMore(void Function() callback) {
-    Timer(_scannerTimeout, callback);
+  /// Processa entrada do scanner com debounce
+  ///
+  /// Delega o processamento para o BarcodeScannerService centralizado.
+  void processScannerInput(String input, void Function(String) onCompleteBarcode, void Function() onWaitForMore) {
+    _scannerService.processBarcodeInput(input, onCompleteBarcode, onWaitForMore);
   }
 
   /// Valida código de barras escaneado
@@ -113,13 +73,10 @@ class ScanInputProcessor {
     onResetQuantity();
     onInvalidateCache();
 
-    // Verificar completude do item após todas as atualizações
-    final isCompletedNow = viewModel.isItemCompleted(itemId);
-
     // Verificar se item já estava completo antes do scan
     if (wasCompletedBefore) {
-      final currentQuantity = viewModel.getPickedQuantity(itemId);
-      final totalQuantity = item.quantidade.toInt();
+      final currentQuantity = _getCurrentQuantity(itemId);
+      final totalQuantity = _getTotalQuantity(item);
 
       // Item já estava completo e quantidade atual = total
       // (escaneando a "última unidade conceitual")
@@ -130,7 +87,7 @@ class ScanInputProcessor {
     }
 
     // Tocar som de feedback apropriado
-    if (!wasCompletedBefore && isCompletedNow) {
+    if (_didItemBecomeCompleted(itemId, wasCompletedBefore)) {
       // Última unidade: som de sucesso
       await _audioService.playItemCompleted();
     } else {
@@ -154,14 +111,22 @@ class ScanInputProcessor {
   }
 
   /// Fornece feedback tátil ao usuário
-  ///
-  /// Usa vibração leve para confirmar sucesso na adição do item.
-  /// Falhas são ignoradas silenciosamente (dispositivo sem vibração).
   void _provideTactileFeedback() {
     try {
       HapticFeedback.lightImpact();
     } catch (_) {
-      // Dispositivo não suporta feedback tátil
+      // Dispositivo não suporta feedback tátil - ignorar silenciosamente
     }
   }
+
+  /// Verifica se um item mudou de status (incompleto -> completo)
+  bool _didItemBecomeCompleted(String itemId, bool wasCompletedBefore) {
+    return !wasCompletedBefore && viewModel.isItemCompleted(itemId);
+  }
+
+  /// Obtém a quantidade atual separada para um item
+  int _getCurrentQuantity(String itemId) => viewModel.getPickedQuantity(itemId);
+
+  /// Obtém a quantidade total esperada para um item
+  int _getTotalQuantity(SeparateItemConsultationModel item) => item.quantidade.toInt();
 }

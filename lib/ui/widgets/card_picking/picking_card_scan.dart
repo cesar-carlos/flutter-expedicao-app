@@ -1,4 +1,4 @@
-import 'dart:async' show Timer, StreamSubscription;
+import 'dart:async' show StreamSubscription;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -89,9 +89,6 @@ class _PickingCardScanProvider extends StatelessWidget {
 class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAliveClientMixin {
   // === CONSTANTES ===
 
-  /// Timeout para aguardar mais entrada do scanner
-  static const Duration _scannerTimeout = Duration(milliseconds: 300);
-
   /// Delay para limpar o campo após scan bem-sucedido
   static const Duration _displayDelay = Duration(milliseconds: 500);
 
@@ -112,9 +109,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   final _quantityFocusNode = FocusNode();
 
   // === ESTADO DA UI ===
-
-  /// Timer para aguardar mais entrada do scanner
-  Timer? _scanTimer;
 
   /// Estado gerenciado via Provider para evitar problemas de setState após dispose
   late final PickingScanState _scanState;
@@ -203,11 +197,9 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   /// Processa entrada do scanner ou teclado
   void _onScannerInput() {
-    _scanTimer?.cancel();
+    if (_scanState.keyboardEnabled || _scanController.text.isEmpty) return;
 
-    if (!_scanState.keyboardEnabled && _scanController.text.isNotEmpty) {
-      _processScannerInput();
-    }
+    _processScannerInput();
   }
 
   /// Processa entrada específica do scanner
@@ -222,18 +214,16 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _onBarcodeScanned(barcode);
   }
 
-  /// Aguarda mais entrada do scanner com timeout
+  /// Aguarda mais entrada do scanner
   ///
-  /// Agenda um timer para processar o código após o timeout,
-  /// permitindo que o scanner complete a entrada de todos os dígitos.
+  /// Este método é chamado quando o debounce detecta que o usuário parou de digitar.
+  /// Processa o código atual se houver conteúdo.
   void _waitForMoreInput() {
-    _scanTimer = Timer(_scannerTimeout, () {
-      if (mounted && _scanController.text.isNotEmpty) {
-        final barcode = _scanController.text.trim();
-        _clearScannerFieldAfterDelay();
-        _onBarcodeScanned(barcode);
-      }
-    });
+    if (!mounted || _scanController.text.isEmpty) return;
+
+    final barcode = _scanController.text.trim();
+    _clearScannerFieldAfterDelay();
+    _onBarcodeScanned(barcode);
   }
 
   /// Limpa o campo do scanner após um delay para o usuário visualizar
@@ -297,7 +287,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   @override
   void dispose() {
     _errorSubscription?.cancel();
-    _scanTimer?.cancel();
     _scanController.removeListener(_onScannerInput);
     _scanFocusNode.removeListener(_onFocusChange);
     _scanController.dispose();
@@ -307,6 +296,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     // Limpar cache e estado
     _statusCache.clear();
+    _scanProcessor.dispose();
     _scanState.dispose();
 
     super.dispose();
