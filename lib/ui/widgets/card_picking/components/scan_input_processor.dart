@@ -6,7 +6,6 @@ import 'package:exp/core/services/audio_service.dart';
 import 'package:exp/core/services/barcode_validation_service.dart';
 import 'package:exp/domain/models/separate_item_consultation_model.dart';
 import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/core/constants/ui_constants.dart';
 
 /// Processador responsável por processar entradas do scanner de códigos de barras
 ///
@@ -17,8 +16,9 @@ import 'package:exp/core/constants/ui_constants.dart';
 /// - Fornecer feedback audiovisual (som + vibração) ao usuário
 ///
 /// Estratégias de Processamento:
-/// - Entrada curta (< 8 dígitos): aguarda mais entrada
-/// - Entrada válida (8-14 dígitos): processa imediatamente
+/// - Entrada curta (< 6 dígitos): aguarda mais entrada
+/// - Entrada válida (6-16 dígitos): processa imediatamente
+/// - Códigos completos (13-16 dígitos): processa imediatamente
 /// - Entrada inválida: aguarda timeout antes de processar
 ///
 /// Performance:
@@ -30,14 +30,14 @@ class ScanInputProcessor {
   final CardPickingViewModel viewModel;
   final AudioService _audioService = locator<AudioService>();
 
-  /// Timeout para aguardar mais entrada do scanner
-  static const Duration _scannerTimeout = UIConstants.slideInDuration;
+  /// Timeout para aguardar mais entrada do scanner (aumentado para códigos longos)
+  static const Duration _scannerTimeout = Duration(milliseconds: 800);
 
-  /// Padrão regex para validar formato de código de barras (8-14 dígitos)
-  static final RegExp _barcodePattern = RegExp(r'^\d{8,14}$');
+  /// Padrão regex para validar formato de código de barras (6-16 dígitos)
+  static final RegExp _barcodePattern = RegExp(r'^\d{6,16}$');
 
   /// Comprimento mínimo esperado para um código de barras
-  static const int _minBarcodeLength = 8;
+  static const int _minBarcodeLength = 6;
 
   ScanInputProcessor({required this.viewModel});
 
@@ -53,12 +53,19 @@ class ScanInputProcessor {
       return;
     }
 
+    // Detecção específica para códigos completos (13-16 dígitos)
+    if (input.length >= 13 && input.length <= 16 && RegExp(r'^\d+$').hasMatch(input)) {
+      onCompleteBarcode(input);
+      return;
+    }
+
     if (_isInputTooShort(input)) {
       _scheduleWaitForMore(onWaitForMore);
       return;
     }
 
-    if (_isValidBarcode(input)) {
+    // Só processar códigos válidos se tiverem 13+ dígitos (EAN-13+)
+    if (_isValidBarcode(input) && input.length >= 13) {
       onCompleteBarcode(input);
       return;
     }

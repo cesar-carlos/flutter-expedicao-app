@@ -40,8 +40,21 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
       final currentLength = _barcodeController.text.length;
       final text = _barcodeController.text.trim();
 
-      // Detectar códigos de 14 dígitos imediatamente (código completo)
-      if (currentLength == 14 && RegExp(r'^\d{14}$').hasMatch(text)) {
+      // Verificar se há caracteres de controle no texto completo
+      if (text.contains('\n') || text.contains('\r') || text.contains('\t')) {
+        // Se há caractere de controle, processar imediatamente
+        _processScannedCode();
+        return;
+      }
+
+      // Detectar códigos EAN-13 (13 dígitos) imediatamente
+      if (currentLength == 13 && RegExp(r'^\d{13}$').hasMatch(text)) {
+        _processScannedCode();
+        return;
+      }
+
+      // Detectar códigos de 14-16 dígitos imediatamente
+      if (currentLength >= 14 && currentLength <= 16 && RegExp(r'^\d+$').hasMatch(text)) {
         _processScannedCode();
         return;
       }
@@ -58,19 +71,20 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
 
   /// Retorna o tempo de espera baseado no comprimento do código
   int _getWaitTimeForLength(int length) {
-    if (length < 5) return 800; // Aguardar mais dados
-    if (length < 14) return 500; // Tempo médio
-    return 200; // Processar rápido
+    if (length < 6) return 1000; // Aguardar mais dados
+    if (length >= 6 && length < 13) return 800; // Tempo maior para códigos menores aguardarem mais entrada
+    if (length >= 13 && length <= 16) return 300; // Tempo reduzido para códigos completos
+    return 200; // Processar rápido para códigos longos
   }
 
   void _processBarcode(String text) {
     if (text.isEmpty || widget.isLoading) return;
 
-    // Limpar caracteres especiais que podem vir do scanner
+    // Limpar caracteres especiais que podem vir do scanner (incluindo Enter/Return)
     final cleanText = text.replaceAll(RegExp(r'[^\d]'), '');
 
     // Validar comprimento para evitar códigos incompletos
-    final minLength = _keyboardEnabled ? 3 : 5;
+    final minLength = _keyboardEnabled ? 3 : 6;
 
     if (cleanText.length >= minLength) {
       // Processar código válido
