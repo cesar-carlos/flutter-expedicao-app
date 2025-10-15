@@ -24,22 +24,10 @@ class RegisterViaQRCodeParams {
   List<String> _validateFields() {
     final errors = <String>[];
 
-    if (qrCodeData.nomeUsuario.trim().isEmpty) {
-      errors.add('Nome de usuário é obrigatório');
-    }
-
-    if (qrCodeData.senhaUsuario.trim().isEmpty) {
-      errors.add('Senha é obrigatória');
-    }
-
-    if (qrCodeData.codUsuario <= 0) {
-      errors.add('Código do usuário deve ser maior que zero');
-    }
-
-    if (qrCodeData.codEmpresa <= 0) {
-      errors.add('Código da empresa deve ser maior que zero');
-    }
-
+    if (qrCodeData.nomeUsuario.trim().isEmpty) errors.add('Nome de usuário é obrigatório');
+    if (qrCodeData.senhaUsuario.trim().isEmpty) errors.add('Senha é obrigatória');
+    if (qrCodeData.codUsuario <= 0) errors.add('Código do usuário deve ser maior que zero');
+    if (qrCodeData.codEmpresa <= 0) errors.add('Código da empresa deve ser maior que zero');
     return errors;
   }
 }
