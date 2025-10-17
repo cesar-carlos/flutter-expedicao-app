@@ -12,6 +12,7 @@ import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/data/services/filters_storage_service.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/core/services/audio_service.dart';
 
 enum SeparationState { initial, loading, loaded, error }
 
@@ -20,12 +21,14 @@ class SeparationViewModel extends ChangeNotifier {
   final FiltersStorageService _filtersStorage;
   final BasicRepository<ExpeditionSectorStockModel> _sectorRepository;
   final SeparateEventRepository _eventRepository;
+  final AudioService _audioService;
 
   SeparationViewModel()
     : _repository = locator<BasicConsultationRepository<SeparateConsultationModel>>(),
       _filtersStorage = locator<FiltersStorageService>(),
       _sectorRepository = locator<BasicRepository<ExpeditionSectorStockModel>>(),
-      _eventRepository = locator<SeparateEventRepository>();
+      _eventRepository = locator<SeparateEventRepository>(),
+      _audioService = locator<AudioService>();
 
   // Construtor para testes - permite injeção de dependências
   SeparationViewModel.withDependencies(
@@ -33,6 +36,7 @@ class SeparationViewModel extends ChangeNotifier {
     this._filtersStorage,
     this._sectorRepository,
     this._eventRepository,
+    this._audioService,
   );
 
   SeparationState _state = SeparationState.initial;
@@ -65,6 +69,17 @@ class SeparationViewModel extends ChangeNotifier {
   bool _eventListenersRegistered = false;
   bool _consultationListenerRegistered = false;
   bool _updateListListenerRegistered = false;
+
+  // === CONTROLE DE VISIBILIDADE DA TELA ===
+  bool _isScreenVisible = false;
+
+  bool get isScreenVisible => _isScreenVisible;
+
+  void setScreenVisible(bool visible) {
+    if (_disposed) return;
+    _isScreenVisible = visible;
+    // Não precisa notifyListeners pois não afeta a UI
+  }
 
   SeparationState get state => _state;
 
@@ -555,7 +570,7 @@ class SeparationViewModel extends ChangeNotifier {
 
     switch (eventType) {
       case Event.insert:
-        _separations.insert(0, separationData);
+        _handleNewSeparation(separationData);
         break;
       case Event.update:
         final index = _separations.indexWhere(
@@ -577,6 +592,15 @@ class SeparationViewModel extends ChangeNotifier {
     if (!_disposed) {
       notifyListeners();
     }
+  }
+
+  /// Processa uma nova separação (Event.insert) com notificação sonora
+  void _handleNewSeparation(SeparateConsultationModel separationData) {
+    // Toca notificação sonora se necessário
+    if (!_isScreenVisible) {
+      _playNotificationIfNeeded(separationData);
+    }
+    _separations.insert(0, separationData);
   }
 
   /// Verifica se uma separação deve ser adicionada à lista atual baseada nos filtros aplicados
@@ -729,11 +753,22 @@ class SeparationViewModel extends ChangeNotifier {
   /// Retorna true se houve adição
   bool _addNewSeparation(SeparateConsultationModel separationData) {
     if (_shouldAddToCurrentList(separationData)) {
+      // Toca notificação sonora se necessário
+      if (!_isScreenVisible) {
+        _playNotificationIfNeeded(separationData);
+      }
       _separations.insert(0, separationData);
       return true;
     }
 
     return false;
+  }
+
+  /// Toca notificação sonora se a separação passa pelos filtros
+  void _playNotificationIfNeeded(SeparateConsultationModel separationData) {
+    if (_shouldAddToCurrentList(separationData)) {
+      _audioService.playSuccess(); // Toca Notification.wav
+    }
   }
 
   /// Verifica se há mudanças relevantes entre duas separações

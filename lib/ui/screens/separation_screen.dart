@@ -29,7 +29,7 @@ class SeparationScreen extends StatefulWidget {
   State<SeparationScreen> createState() => _SeparationScreenState();
 }
 
-class _SeparationScreenState extends State<SeparationScreen> with TickerProviderStateMixin {
+class _SeparationScreenState extends State<SeparationScreen> with TickerProviderStateMixin, WidgetsBindingObserver {
   // === CONSTANTES ===
   static const double _scrollThresholdToShowButton = 200.0;
   static const double _scrollThresholdToLoadMore = 200.0;
@@ -52,11 +52,14 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   late AnimationController _fabAnimationController;
   late Animation<double> _fabAnimation;
 
+  // === LIFECYCLE ===
+
   // ========== Lifecycle ==========
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _scrollController.addListener(_onScroll);
 
     // Inicializar animação do FAB
@@ -75,15 +78,19 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       // Inicia o monitoramento de eventos quando a tela é aberta
       final viewModel = context.read<SeparationViewModel>();
       viewModel.startEventMonitoring();
+      viewModel.setScreenVisible(true); // Marca tela como visível
     });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+
     // Para o monitoramento de eventos quando a tela é fechada
     try {
       final viewModel = context.read<SeparationViewModel>();
       viewModel.stopEventMonitoring();
+      viewModel.setScreenVisible(false); // Marca tela como não visível
     } catch (e) {
       // Ignora erro se o contexto não estiver mais disponível
     }
@@ -91,6 +98,28 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     _scrollController.dispose();
     _fabAnimationController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // Atualizar visibilidade baseado no estado do app
+    try {
+      final viewModel = context.read<SeparationViewModel>();
+
+      // Considera "não visível" se app está em background
+      if (state == AppLifecycleState.paused ||
+          state == AppLifecycleState.inactive ||
+          state == AppLifecycleState.detached) {
+        viewModel.setScreenVisible(false);
+      } else if (state == AppLifecycleState.resumed) {
+        // Só marca como visível se voltou ao foreground
+        viewModel.setScreenVisible(true);
+      }
+    } catch (e) {
+      // Ignora erro se contexto não disponível
+    }
   }
 
   // ========== Data Loading ==========

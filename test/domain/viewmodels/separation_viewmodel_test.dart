@@ -10,10 +10,17 @@ import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/filter/separation_filters_model.dart';
 import 'package:data7_expedicao/domain/repositories/separate_event_repository.dart';
+import 'package:data7_expedicao/core/services/audio_service.dart';
 
 import 'separation_viewmodel_test.mocks.dart';
 
-@GenerateMocks([BasicConsultationRepository, BasicRepository, FiltersStorageService, SeparateEventRepository])
+@GenerateMocks([
+  BasicConsultationRepository,
+  BasicRepository,
+  FiltersStorageService,
+  SeparateEventRepository,
+  AudioService,
+])
 void main() {
   group('SeparationViewModel', () {
     late SeparationViewModel viewModel;
@@ -21,12 +28,14 @@ void main() {
     late MockBasicRepository<ExpeditionSectorStockModel> mockSectorRepository;
     late MockFiltersStorageService mockFiltersStorage;
     late MockSeparateEventRepository mockEventRepository;
+    late MockAudioService mockAudioService;
 
     setUp(() {
       mockRepository = MockBasicConsultationRepository<SeparateConsultationModel>();
       mockSectorRepository = MockBasicRepository<ExpeditionSectorStockModel>();
       mockFiltersStorage = MockFiltersStorageService();
       mockEventRepository = MockSeparateEventRepository();
+      mockAudioService = MockAudioService();
 
       // Configurar stubs para evitar erros
       when(mockFiltersStorage.loadSeparationFilters()).thenAnswer((_) async => const SeparationFiltersModel());
@@ -41,6 +50,7 @@ void main() {
         mockFiltersStorage,
         mockSectorRepository,
         mockEventRepository,
+        mockAudioService,
       );
     });
 
@@ -269,6 +279,7 @@ void main() {
           mockFiltersStorage,
           mockSectorRepository,
           mockEventRepository,
+          mockAudioService,
         );
 
         testViewModel.dispose();
