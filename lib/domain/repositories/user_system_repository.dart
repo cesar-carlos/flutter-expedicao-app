@@ -1,7 +1,7 @@
-import 'package:exp/domain/models/user_system_models.dart';
-import 'package:exp/domain/models/pagination/pagination.dart';
-import 'package:exp/data/dtos/user_system_list_response_dto.dart';
-import 'package:exp/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/domain/models/pagination/pagination.dart';
+import 'package:data7_expedicao/data/dtos/user_system_list_response_dto.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 
 abstract class UserSystemRepository {
   Future<Map<String, dynamic>> getUserSystemInfo(int codUsuario);

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/viewmodels/profile_viewmodel.dart';
-import 'package:exp/core/constants/app_strings.dart';
-import 'package:exp/core/theme/app_colors.dart';
+import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
+import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 /// Widget com botões de ação do perfil (Salvar e Voltar)
 class ProfileActionButtons extends StatelessWidget {

@@ -1,7 +1,7 @@
 import 'package:zard/zard.dart';
 
-import 'package:exp/core/validation/schemas/common_schemas.dart';
-import 'package:exp/core/results/index.dart';
+import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 /// Schema para validação de SeparationUserSectorModel
 class SeparationUserSectorSchema {

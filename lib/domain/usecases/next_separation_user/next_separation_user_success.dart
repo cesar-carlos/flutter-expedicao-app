@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/separation_user_sector_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separation_user_sector_consultation_model.dart';
 
 /// Resultado de sucesso ao buscar a próxima separação para o usuário
 class NextSeparationUserSuccess {

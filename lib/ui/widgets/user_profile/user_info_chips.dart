@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/models/user/app_user.dart';
-import 'package:exp/domain/models/situation/situation_model.dart';
-import 'package:exp/ui/widgets/user_profile/widgets/index.dart';
+import 'package:data7_expedicao/domain/models/user/app_user.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/ui/widgets/user_profile/widgets/index.dart';
 
 class UserInfoChips extends StatelessWidget {
   final AppUser user;

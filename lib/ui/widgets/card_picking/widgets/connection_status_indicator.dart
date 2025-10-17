@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
-import 'package:exp/core/theme/app_colors.dart';
+import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class ConnectionStatusIndicator extends StatelessWidget {
   const ConnectionStatusIndicator({super.key});

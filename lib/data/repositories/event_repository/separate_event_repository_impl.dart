@@ -1,8 +1,8 @@
-import 'package:exp/domain/repositories/separate_event_repository.dart';
-import 'package:exp/data/repositories/event_repository/event_generic_repository_impl.dart';
-import 'package:exp/domain/models/event_model/event_listener_model.dart';
-import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/domain/services/event_service.dart';
+import 'package:data7_expedicao/domain/repositories/separate_event_repository.dart';
+import 'package:data7_expedicao/data/repositories/event_repository/event_generic_repository_impl.dart';
+import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
+import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
+import 'package:data7_expedicao/domain/services/event_service.dart';
 
 /// Implementação do repositório de eventos para separação de expedição
 ///

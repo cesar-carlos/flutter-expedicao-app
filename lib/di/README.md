@@ -14,7 +14,7 @@ Este diretório contém o sistema de injeção de dependências da aplicação, 
 Em vez de importar múltiplos arquivos, você pode usar apenas:
 
 ```dart
-import 'package:exp/di/index.dart';
+import 'package:data7_expedicao/di/index.dart';
 ```
 
 Isso dará acesso a:
@@ -30,7 +30,7 @@ Isso dará acesso a:
 ### Exemplo de Uso
 
 ```dart
-import 'package:exp/di/index.dart';
+import 'package:data7_expedicao/di/index.dart';
 
 void main() {
   // Configurar dependências

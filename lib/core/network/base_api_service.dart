@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 
-import 'package:exp/core/network/dio_config.dart';
-import 'package:exp/core/network/network_initializer.dart';
-import 'package:exp/domain/models/user/user_models.dart';
-import 'package:exp/data/dtos/api_error_dto.dart';
+import 'package:data7_expedicao/core/network/dio_config.dart';
+import 'package:data7_expedicao/core/network/network_initializer.dart';
+import 'package:data7_expedicao/domain/models/user/user_models.dart';
+import 'package:data7_expedicao/data/dtos/api_error_dto.dart';
 
 abstract class BaseApiService {
   Dio get dio {

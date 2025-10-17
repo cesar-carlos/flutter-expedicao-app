@@ -1,5 +1,5 @@
-import 'package:exp/domain/models/expedition_cart_route_model.dart';
-import 'package:exp/domain/models/separate_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
+import 'package:data7_expedicao/domain/models/separate_model.dart';
 
 /// Resultado de sucesso ao iniciar uma separação
 class StartSeparationSuccess {

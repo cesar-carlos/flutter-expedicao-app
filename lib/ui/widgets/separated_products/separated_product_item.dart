@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
-import 'package:exp/domain/models/separation_item_consultation_model.dart';
-import 'package:exp/domain/models/situation/expedition_item_situation_model.dart';
-import 'package:exp/domain/viewmodels/separated_products_viewmodel.dart';
-import 'package:exp/ui/widgets/common/custom_flat_button.dart';
+import 'package:data7_expedicao/domain/models/separation_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
+import 'package:data7_expedicao/domain/viewmodels/separated_products_viewmodel.dart';
+import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
 
 class SeparatedProductItem extends StatelessWidget {
   final SeparationItemConsultationModel item;

@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_model.dart';
 
 /// Representa o sucesso ao salvar um carrinho na separação
 class SaveSeparationCartSuccess {

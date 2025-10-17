@@ -1,5 +1,5 @@
-import 'package:exp/core/utils/date_helper.dart';
-import 'package:exp/core/results/index.dart';
+import 'package:data7_expedicao/core/utils/date_helper.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 class SeparationUserSectorModel {
   final int codEmpresa;

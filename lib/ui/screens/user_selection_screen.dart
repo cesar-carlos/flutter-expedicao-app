@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/core/theme/app_colors.dart';
-import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
-import 'package:exp/domain/viewmodels/user_selection_viewmodel.dart';
-import 'package:exp/ui/widgets/user_selection/index.dart';
-import 'package:exp/ui/widgets/common/index.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
+import 'package:data7_expedicao/ui/widgets/user_selection/index.dart';
+import 'package:data7_expedicao/ui/widgets/common/index.dart';
 
 class UserSelectionScreen extends StatefulWidget {
   const UserSelectionScreen({super.key});

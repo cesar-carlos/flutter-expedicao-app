@@ -1,4 +1,4 @@
-import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';
+import 'package:data7_expedicao/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';
 
 /// Cria parâmetros padrão para teste do CancelItemSeparation
 CancelItemSeparationParams createTestCancelItemSeparationParams() {

@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/event_model/event_listener_model.dart';
+import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
 
 abstract class EventGenericRepository<T> {
   void addListener(EventListenerModel listener);

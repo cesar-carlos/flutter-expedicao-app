@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/domain/viewmodels/separated_products_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/separated_products_viewmodel.dart';
 
 /// Widget que exibe um aviso quando o carrinho não está em situação de separação
 class SeparatedProductsCartStatusWarning extends StatelessWidget {

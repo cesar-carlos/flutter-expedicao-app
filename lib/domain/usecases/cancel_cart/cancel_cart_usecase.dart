@@ -1,19 +1,19 @@
-import 'package:exp/core/results/index.dart';
-import 'package:exp/core/utils/app_helper.dart';
-import 'package:exp/domain/models/expedition_cart_model.dart';
-import 'package:exp/domain/repositories/basic_repository.dart';
-import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/domain/usecases/cancel_cart/cancel_cart_failure.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
-import 'package:exp/domain/usecases/cancel_cart/cancel_cart_success.dart';
-import 'package:exp/domain/usecases/cancel_cart/cancel_cart_params.dart';
-import 'package:exp/domain/models/situation/expedition_cart_situation_model.dart';
-import 'package:exp/domain/models/expedition_cancellation_model.dart';
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
-import 'package:exp/data/services/user_session_service.dart';
-import 'package:exp/domain/models/user_system_models.dart';
-import 'package:exp/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_model.dart';
+import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
+import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_failure.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_model.dart';
+import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_success.dart';
+import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_params.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cancellation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/core/errors/app_error.dart';
 
 class CancelCartUseCase {
   final BasicRepository<ExpeditionCartModel> _cartRepository;

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:exp/core/routing/app_router.dart';
-import 'package:exp/core/constants/app_strings.dart';
-import 'package:exp/domain/viewmodels/config_viewmodel.dart';
-import 'package:exp/ui/widgets/config/index.dart';
+import 'package:data7_expedicao/core/routing/app_router.dart';
+import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/ui/widgets/config/index.dart';
 
 class ConfigScreen extends StatelessWidget {
   const ConfigScreen({super.key});

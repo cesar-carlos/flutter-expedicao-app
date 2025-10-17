@@ -2,12 +2,12 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
-import 'package:exp/di/locator.dart';
-import 'package:exp/domain/models/user/app_user.dart';
-import 'package:exp/domain/repositories/user_repository.dart';
-import 'package:exp/data/services/user_session_service.dart';
-import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
-import 'package:exp/core/utils/avatar_utils.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/models/user/app_user.dart';
+import 'package:data7_expedicao/domain/repositories/user_repository.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 
 enum ProfileState { idle, loading, success, error }
 

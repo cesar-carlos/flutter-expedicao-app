@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/ui/widgets/card_picking/widgets/index.dart';
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/ui/widgets/card_picking/widgets/barcode_scanner_card_optimized.dart';
-import 'package:exp/ui/widgets/card_picking/components/picking_scan_state.dart';
-import 'package:exp/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/widgets/index.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/widgets/barcode_scanner_card_optimized.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_scan_state.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 /// Layout principal da tela de picking com otimizações de performance
 ///

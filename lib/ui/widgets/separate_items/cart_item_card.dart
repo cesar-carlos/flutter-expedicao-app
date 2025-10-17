@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/di/locator.dart';
-import 'package:exp/core/results/app_failure.dart';
-import 'package:exp/data/services/user_session_service.dart';
-import 'package:exp/ui/widgets/common/custom_flat_button.dart';
-import 'package:exp/ui/screens/picking_products_list_screen.dart';
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
-import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
-import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_success.dart';
-import 'package:exp/domain/usecases/save_separation_cart/save_separation_cart_failure.dart';
-import 'package:exp/domain/viewmodels/separation_items_viewmodel.dart';
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/domain/services/cart_validation_service.dart';
-import 'package:exp/domain/models/user_system_models.dart';
-import 'package:exp/ui/screens/card_picking_screen.dart';
-import 'package:exp/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
+import 'package:data7_expedicao/ui/screens/picking_products_list_screen.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
+import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_success.dart';
+import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_failure.dart';
+import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/ui/screens/card_picking_screen.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class CartItemCard extends StatelessWidget {
   final ExpeditionCartRouteInternshipConsultationModel cartRouteInternshipConsultation;

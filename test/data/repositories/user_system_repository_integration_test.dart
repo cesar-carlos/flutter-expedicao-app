@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exp/data/repositories/user_system_repository_impl.dart';
-import 'package:exp/domain/models/pagination/pagination.dart';
-import 'package:exp/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/data/repositories/user_system_repository_impl.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/pagination/pagination.dart';
 import '../../core/api_integration_test_base.dart';
 
 void main() {

@@ -2,24 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:exp/di/locator.dart';
-import 'package:exp/core/routing/app_router.dart';
-import 'package:exp/ui/widgets/common/custom_app_bar.dart';
-import 'package:exp/data/services/user_session_service.dart';
-import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
-import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/ui/widgets/separation/separation_filter_modal.dart';
-import 'package:exp/ui/widgets/separation_title_with_connection_status.dart';
-import 'package:exp/domain/usecases/next_separation_user/next_separation_user_usecase.dart';
-import 'package:exp/domain/usecases/next_separation_user/next_separation_user_params.dart';
-import 'package:exp/domain/usecases/next_separation_user/next_separation_user_failure.dart';
-import 'package:exp/domain/usecases/next_separation_user/next_separation_user_success.dart';
-import 'package:exp/core/results/index.dart';
-import 'package:exp/domain/models/separation_user_sector_consultation_model.dart';
-import 'package:exp/ui/widgets/separation/separation_card.dart';
-import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/ui/widgets/app_drawer/app_drawer.dart';
-import 'package:exp/domain/models/entity_type_model.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/routing/app_router.dart';
+import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/viewmodels/separation_viewmodel.dart';
+import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
+import 'package:data7_expedicao/ui/widgets/separation/separation_filter_modal.dart';
+import 'package:data7_expedicao/ui/widgets/separation_title_with_connection_status.dart';
+import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_params.dart';
+import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_failure.dart';
+import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_success.dart';
+import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/domain/models/separation_user_sector_consultation_model.dart';
+import 'package:data7_expedicao/ui/widgets/separation/separation_card.dart';
+import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
+import 'package:data7_expedicao/ui/widgets/app_drawer/app_drawer.dart';
+import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 
 /// Tela principal de listagem de separações
 class SeparationScreen extends StatefulWidget {

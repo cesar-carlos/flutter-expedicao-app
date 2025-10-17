@@ -1,16 +1,16 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:exp/di/locator.dart';
-import 'package:exp/domain/models/event_model/basic_event_model.dart';
-import 'package:exp/domain/models/separation_item_consultation_model.dart';
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
-import 'package:exp/domain/repositories/separate_cart_internship_event_repository.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/domain/usecases/delete_item_separation/delete_item_separation_usecase.dart';
-import 'package:exp/domain/usecases/delete_item_separation/delete_item_separation_params.dart';
-import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/models/event_model/event_listener_model.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
+import 'package:data7_expedicao/domain/models/separation_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/usecases/delete_item_separation/delete_item_separation_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/delete_item_separation/delete_item_separation_params.dart';
+import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
+import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 
 /// ViewModel para gerenciar a lista de produtos separados
 /// Os produtos são ordenados por ordem de inclusão decrescente (mais recente primeiro)

@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/models/api_config.dart';
-import 'package:exp/data/datasources/config_service.dart';
-import 'package:exp/core/constants/app_strings.dart';
+import 'package:data7_expedicao/domain/models/api_config.dart';
+import 'package:data7_expedicao/data/datasources/config_service.dart';
+import 'package:data7_expedicao/core/constants/app_strings.dart';
 
 /// ViewModel para gerenciar configurações da API
 class ConfigViewModel extends ChangeNotifier {

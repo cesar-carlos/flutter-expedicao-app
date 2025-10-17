@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:exp/domain/models/entity_type_model.dart';
+
+import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 
 void main() {
   group('EntityType', () {

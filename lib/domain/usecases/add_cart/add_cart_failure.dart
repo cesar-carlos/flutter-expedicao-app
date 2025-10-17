@@ -1,4 +1,4 @@
-import 'package:exp/core/results/index.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 /// Falha específica para operações de adicionar carrinho
 class AddCartFailure extends BusinessFailure {

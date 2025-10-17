@@ -1,8 +1,8 @@
 import 'package:zard/zard.dart';
-import 'package:exp/core/constants/app_strings.dart';
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
-import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/domain/models/entity_type_model.dart';
+import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
+import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 
 /// Classe utilitária com validadores comuns para formulários usando Zard
 /// Mantém compatibilidade com TextFormField e adiciona validação robusta

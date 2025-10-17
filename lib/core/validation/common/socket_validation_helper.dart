@@ -1,4 +1,4 @@
-import 'package:exp/core/network/socket_config.dart';
+import 'package:data7_expedicao/core/network/socket_config.dart';
 
 /// Utilitários para validação de Socket e SessionId
 class SocketValidationHelper {

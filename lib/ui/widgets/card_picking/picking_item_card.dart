@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 
 class PickingItemCard extends StatelessWidget {
   final SeparateItemConsultationModel item;

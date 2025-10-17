@@ -85,7 +85,7 @@ O arquivo `lib/core/constants/app_strings.dart` centraliza todas as strings/text
 ### 1. **Importar o arquivo:**
 
 ```dart
-import 'package:exp/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/constants/app_strings.dart';
 ```
 
 ### 2. **Usar as constantes:**

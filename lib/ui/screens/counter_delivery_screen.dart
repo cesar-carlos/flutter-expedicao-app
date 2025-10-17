@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:exp/core/routing/app_router.dart';
+import 'package:data7_expedicao/core/routing/app_router.dart';
 
 class CounterDeliveryScreen extends StatelessWidget {
   const CounterDeliveryScreen({super.key});

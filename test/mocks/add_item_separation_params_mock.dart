@@ -1,4 +1,4 @@
-import 'package:exp/domain/usecases/add_item_separation/add_item_separation_params.dart';
+import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_params.dart';
 
 /// Cria parâmetros padrão para teste do AddItemSeparation
 AddItemSeparationParams createTestAddItemSeparationParams() {

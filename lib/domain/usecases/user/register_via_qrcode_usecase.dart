@@ -1,11 +1,11 @@
-import 'package:exp/domain/usecases/base_usecase.dart';
-import 'package:exp/domain/models/user/system_qrcode_data.dart';
-import 'package:exp/domain/repositories/user_repository.dart';
-import 'package:exp/domain/repositories/user_system_repository.dart';
-import 'package:exp/data/services/user_session_service.dart';
-import 'package:exp/domain/models/user/app_user.dart';
-import 'package:exp/domain/models/situation/situation_model.dart';
-import 'package:exp/core/results/index.dart';
+import 'package:data7_expedicao/domain/usecases/base_usecase.dart';
+import 'package:data7_expedicao/domain/models/user/system_qrcode_data.dart';
+import 'package:data7_expedicao/domain/repositories/user_repository.dart';
+import 'package:data7_expedicao/domain/repositories/user_system_repository.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/models/user/app_user.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 /// Parâmetros para registro via QR Code.
 ///

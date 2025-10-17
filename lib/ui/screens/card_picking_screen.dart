@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:exp/domain/models/user_system_models.dart';
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/ui/widgets/card_picking/picking_actions_bottom_bar.dart';
-import 'package:exp/ui/widgets/card_picking/picking_card_scan.dart';
-import 'package:exp/ui/screens/picking_products_list_screen.dart';
-import 'package:exp/ui/widgets/common/custom_app_bar.dart';
-import 'package:exp/ui/widgets/card_picking/cart_status_warning.dart';
-import 'package:exp/ui/widgets/cart_title_with_connection_status.dart';
-import 'package:exp/ui/widgets/cart_status_bar.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/picking_actions_bottom_bar.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/picking_card_scan.dart';
+import 'package:data7_expedicao/ui/screens/picking_products_list_screen.dart';
+import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/cart_status_warning.dart';
+import 'package:data7_expedicao/ui/widgets/cart_title_with_connection_status.dart';
+import 'package:data7_expedicao/ui/widgets/cart_status_bar.dart';
 
 class CardPickingScreen extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;

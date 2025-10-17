@@ -5,9 +5,9 @@
 ### 1. Em um Widget/Screen
 
 ```dart
-import 'package:exp/di/locator.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_params.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_params.dart';
 
 // No seu widget
 ElevatedButton.icon(
@@ -47,8 +47,8 @@ ElevatedButton.icon(
 ### 2. Em um ViewModel
 
 ```dart
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_params.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_params.dart';
 
 class MyViewModel extends ChangeNotifier {
   final ScanBarcodeUseCase _scanBarcodeUseCase;

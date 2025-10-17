@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:exp/di/locator.dart';
-import 'package:exp/core/services/barcode_scanner_service.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
 
 /// Widget genérico para scanner de códigos de barras
 ///

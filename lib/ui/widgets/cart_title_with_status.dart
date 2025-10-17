@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 
 /// Widget que exibe o título do carrinho com sua situação em tempo real
 class CartTitleWithStatus extends StatelessWidget {

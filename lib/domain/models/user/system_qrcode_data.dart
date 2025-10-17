@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:exp/domain/models/user_system_models.dart';
-import 'package:exp/core/results/app_failure.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:result_dart/result_dart.dart';
 
 /// Modelo para dados do QR Code do Login System.

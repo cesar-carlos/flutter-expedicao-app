@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/ui/widgets/common/adaptive_logo.dart';
+import 'package:data7_expedicao/ui/widgets/common/adaptive_logo.dart';
 
 class AppHeader extends StatelessWidget {
   final String title;

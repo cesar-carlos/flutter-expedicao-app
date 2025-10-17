@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/di/locator.dart';
-import 'package:exp/core/network/dio_config.dart';
-import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
-import 'package:exp/domain/viewmodels/config_viewmodel.dart';
-import 'package:exp/domain/viewmodels/register_viewmodel.dart';
-import 'package:exp/data/datasources/user_preferences_service.dart';
-import 'package:exp/domain/viewmodels/scanner_viewmodel.dart';
-import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
-import 'package:exp/domain/viewmodels/theme_viewmodel.dart';
-import 'package:exp/core/network/network_initializer.dart';
-import 'package:exp/data/datasources/config_service.dart';
-import 'package:exp/core/routing/app_router.dart';
-import 'package:exp/core/theme/app_theme.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/network/dio_config.dart';
+import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/register_viewmodel.dart';
+import 'package:data7_expedicao/data/datasources/user_preferences_service.dart';
+import 'package:data7_expedicao/domain/viewmodels/scanner_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/theme_viewmodel.dart';
+import 'package:data7_expedicao/core/network/network_initializer.dart';
+import 'package:data7_expedicao/data/datasources/config_service.dart';
+import 'package:data7_expedicao/core/routing/app_router.dart';
+import 'package:data7_expedicao/core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

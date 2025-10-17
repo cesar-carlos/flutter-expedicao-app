@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_consultation_model.dart';
 
 class AddCartSuccess {
   final ExpeditionCartConsultationModel addedCart;

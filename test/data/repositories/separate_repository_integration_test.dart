@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exp/domain/models/separate_model.dart';
-import 'package:exp/data/repositories/separate_repository_impl.dart';
+import 'package:data7_expedicao/domain/models/separate_model.dart';
+import 'package:data7_expedicao/data/repositories/separate_repository_impl.dart';
 
 import '../../core/socket_integration_test_base.dart';
 import '../../mocks/separate_model_mock.dart';

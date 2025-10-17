@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:exp/domain/services/event_service.dart';
-import 'package:exp/domain/models/event_model/event_listener_model.dart';
-import 'package:exp/domain/models/event_model/basic_event_model.dart';
-import 'package:exp/core/network/socket_config.dart';
+import 'package:data7_expedicao/domain/services/event_service.dart';
+import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
+import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
+import 'package:data7_expedicao/core/network/socket_config.dart';
 
 /// Implementação do serviço de eventos
 ///

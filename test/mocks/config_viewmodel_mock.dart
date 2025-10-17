@@ -1,4 +1,4 @@
-import 'package:exp/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 
 /// Mock do ConfigViewModel para testes
 class ConfigViewModelMock extends ConfigViewModel {

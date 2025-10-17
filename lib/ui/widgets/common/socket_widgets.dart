@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
-import 'package:exp/data/services/socket_service.dart';
+import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
+import 'package:data7_expedicao/data/services/socket_service.dart';
 
 /// Widget que exibe o status da conexão WebSocket em tempo real
 class SocketStatusIndicator extends StatelessWidget {

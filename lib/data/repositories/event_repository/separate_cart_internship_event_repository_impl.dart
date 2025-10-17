@@ -1,7 +1,7 @@
-import 'package:exp/domain/repositories/separate_cart_internship_event_repository.dart';
-import 'package:exp/data/repositories/event_repository/event_generic_repository_impl.dart';
-import 'package:exp/domain/models/event_model/event_listener_model.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
+import 'package:data7_expedicao/data/repositories/event_repository/event_generic_repository_impl.dart';
+import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 
 /// Implementação do repositório de eventos para carrinhos de separação de expedição
 ///

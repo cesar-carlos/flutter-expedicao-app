@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:exp/ui/widgets/common/custom_app_bar.dart';
-import 'package:exp/core/constants/ui_constants.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/ui/widgets/picking_products_list/picking_product_list_item.dart';
-import 'package:exp/ui/widgets/separated_products/separated_product_item.dart';
-import 'package:exp/ui/widgets/picking_products_list/pending_products_filter_modal.dart';
-import 'package:exp/domain/viewmodels/separated_products_viewmodel.dart';
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/ui/widgets/separated_products/separated_products_cart_status_warning.dart';
-import 'package:exp/ui/widgets/separated_products_title_with_connection_status.dart';
-import 'package:exp/ui/widgets/pending_products_title_with_connection_status.dart';
+import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/ui/widgets/picking_products_list/picking_product_list_item.dart';
+import 'package:data7_expedicao/ui/widgets/separated_products/separated_product_item.dart';
+import 'package:data7_expedicao/ui/widgets/picking_products_list/pending_products_filter_modal.dart';
+import 'package:data7_expedicao/domain/viewmodels/separated_products_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/ui/widgets/separated_products/separated_products_cart_status_warning.dart';
+import 'package:data7_expedicao/ui/widgets/separated_products_title_with_connection_status.dart';
+import 'package:data7_expedicao/ui/widgets/pending_products_title_with_connection_status.dart';
 
 class PickingProductsListScreen extends StatefulWidget {
   final String filterType; // 'pending' ou 'completed'

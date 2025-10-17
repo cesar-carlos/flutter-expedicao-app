@@ -116,9 +116,9 @@ Foi implementada uma arquitetura completa e robusta para scanner de código de b
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:exp/di/locator.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_params.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_params.dart';
 
 class MyScreen extends StatelessWidget {
   const MyScreen({super.key});
@@ -169,8 +169,8 @@ class MyScreen extends StatelessWidget {
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_params.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_params.dart';
 
 class ScannerViewModel extends ChangeNotifier {
   final ScanBarcodeUseCase _scanBarcodeUseCase;
@@ -305,8 +305,8 @@ flutter build apk --release
 ```dart
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
-import 'package:exp/domain/repositories/barcode_scanner_repository.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
+import 'package:data7_expedicao/domain/repositories/barcode_scanner_repository.dart';
 
 class MockBarcodeScannerRepository extends Mock
     implements BarcodeScannerRepository {}

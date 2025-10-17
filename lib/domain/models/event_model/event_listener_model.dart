@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/event_model/basic_event_model.dart';
+import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
 
 /// Tipos de eventos disponíveis
 enum Event { insert, update, delete }

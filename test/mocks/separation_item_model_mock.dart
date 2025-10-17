@@ -1,5 +1,5 @@
-import 'package:exp/domain/models/separation_item_model.dart';
-import 'package:exp/domain/models/situation/expedition_item_situation_model.dart';
+import 'package:data7_expedicao/domain/models/separation_item_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
 
 SeparationItemModel createTestSeparationItem() {
   return SeparationItemModel(

@@ -1,10 +1,10 @@
-import 'package:exp/domain/models/user_system_models.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
-import 'package:exp/domain/models/situation/situation_model.dart';
-import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
-import 'package:exp/di/locator.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/di/locator.dart';
 
 /// Serviço para validações relacionadas a carrinhos de separação
 class CartValidationService {

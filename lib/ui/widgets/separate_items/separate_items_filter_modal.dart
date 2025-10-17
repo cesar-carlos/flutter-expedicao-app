@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/viewmodels/separation_items_viewmodel.dart';
-import 'package:exp/domain/models/filter/separate_items_filters_model.dart';
-import 'package:exp/domain/models/expedition_sector_stock_model.dart';
-import 'package:exp/domain/models/separation_item_status.dart';
+import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
+import 'package:data7_expedicao/domain/models/filter/separate_items_filters_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
+import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 
 /// Modal para filtros da aba de produtos
 class SeparateItemsFilterModal extends StatefulWidget {

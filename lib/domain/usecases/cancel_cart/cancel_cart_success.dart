@@ -1,5 +1,5 @@
-import 'package:exp/domain/models/expedition_cancellation_model.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cancellation_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_model.dart';
 
 /// Resultado de sucesso ao cancelar um carrinho
 class CancelCartSuccess {

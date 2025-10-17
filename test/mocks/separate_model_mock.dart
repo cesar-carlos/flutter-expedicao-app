@@ -1,7 +1,7 @@
-import 'package:exp/domain/models/separate_model.dart';
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
-import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/domain/models/entity_type_model.dart';
+import 'package:data7_expedicao/domain/models/separate_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
+import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 
 SeparateModel createTestSeparate() {
   return SeparateModel(

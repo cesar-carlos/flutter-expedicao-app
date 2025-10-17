@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 
 abstract class BasicRepository<T> {
   /// Seleciona entidades com filtros opcionais

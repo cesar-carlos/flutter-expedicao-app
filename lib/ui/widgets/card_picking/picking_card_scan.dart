@@ -3,12 +3,12 @@ import 'dart:async' show StreamSubscription;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/di/locator.dart';
-import 'package:exp/core/services/audio_service.dart';
-import 'package:exp/ui/widgets/card_picking/components/index.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/services/audio_service.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 
 /// Tela de escaneamento de itens do carrinho durante a separação
 ///

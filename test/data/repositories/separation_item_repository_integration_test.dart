@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exp/domain/models/situation/expedition_item_situation_model.dart';
-import 'package:exp/data/repositories/separation_item_repository_impl.dart';
-import 'package:exp/domain/models/separation_item_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
+import 'package:data7_expedicao/data/repositories/separation_item_repository_impl.dart';
+import 'package:data7_expedicao/domain/models/separation_item_model.dart';
 
 import '../../mocks/separation_item_model_mock.dart';
 import '../../core/socket_integration_test_base.dart';

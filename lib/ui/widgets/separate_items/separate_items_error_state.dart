@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/viewmodels/separation_items_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
 
 class SeparateItemsErrorState extends StatelessWidget {
   final SeparationItemsViewModel viewModel;

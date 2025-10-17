@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/models/scanner_data.dart';
+import 'package:data7_expedicao/domain/models/scanner_data.dart';
 
 /// Widget para exibir os dados escaneados
 class ScannerDisplay extends StatelessWidget {

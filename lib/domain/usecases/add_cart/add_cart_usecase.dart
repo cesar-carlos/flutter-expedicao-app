@@ -1,24 +1,24 @@
-import 'package:exp/domain/usecases/base_usecase.dart';
-import 'package:exp/domain/models/expedition_cart_model.dart';
-import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/domain/usecases/add_cart/add_cart_params.dart';
-import 'package:exp/domain/usecases/add_cart/add_cart_success.dart';
-import 'package:exp/domain/usecases/add_cart/add_cart_failure.dart';
-import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/models/expedition_cart_consultation_model.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
-import 'package:exp/domain/models/situation/expedition_cart_situation_model.dart';
-import 'package:exp/domain/repositories/user_system_repository.dart';
-import 'package:exp/domain/models/expedition_cart_route_model.dart';
-import 'package:exp/domain/models/expedition_internship_model.dart';
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
-import 'package:exp/domain/repositories/basic_repository.dart';
-import 'package:exp/data/services/user_session_service.dart';
-import 'package:exp/domain/models/user_system_models.dart';
-import 'package:exp/domain/models/user/app_user.dart';
-import 'package:exp/core/utils/app_helper.dart';
-import 'package:exp/core/results/index.dart';
+import 'package:data7_expedicao/domain/usecases/base_usecase.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
+import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_params.dart';
+import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_success.dart';
+import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_failure.dart';
+import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
+import 'package:data7_expedicao/domain/repositories/user_system_repository.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_internship_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/domain/models/user/app_user.dart';
+import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 /// UseCase para adicionar um carrinho à separação
 class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {

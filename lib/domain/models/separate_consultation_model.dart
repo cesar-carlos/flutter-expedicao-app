@@ -1,9 +1,9 @@
-import 'package:exp/core/utils/date_helper.dart';
-import 'package:exp/core/utils/string_utils.dart';
-import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
-import 'package:exp/domain/models/entity_type_model.dart';
-import 'package:exp/core/results/index.dart';
+import 'package:data7_expedicao/core/utils/date_helper.dart';
+import 'package:data7_expedicao/core/utils/string_utils.dart';
+import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/models/entity_type_model.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 /// Modelo para consulta de separação de expedição
 class SeparateConsultationModel {

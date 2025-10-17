@@ -1,5 +1,5 @@
-import 'package:exp/data/datasources/config_service.dart';
-import 'package:exp/domain/models/api_config.dart';
+import 'package:data7_expedicao/data/datasources/config_service.dart';
+import 'package:data7_expedicao/domain/models/api_config.dart';
 
 /// Implementação em memória do ConfigService para testes
 class ConfigServiceMock implements ConfigService {

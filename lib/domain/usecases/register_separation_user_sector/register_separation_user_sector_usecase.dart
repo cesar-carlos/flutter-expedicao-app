@@ -1,13 +1,13 @@
-import 'package:exp/core/results/index.dart';
-import 'package:exp/core/utils/app_helper.dart';
-import 'package:exp/core/utils/device_helper.dart';
-import 'package:exp/domain/models/separation_user_sector_model.dart';
-import 'package:exp/domain/repositories/basic_repository.dart';
-import 'package:exp/domain/usecases/register_separation_user_sector/register_separation_user_sector_params.dart';
-import 'package:exp/domain/usecases/register_separation_user_sector/register_separation_user_sector_success.dart';
-import 'package:exp/domain/usecases/register_separation_user_sector/register_separation_user_sector_failure.dart';
-import 'package:exp/core/errors/app_error.dart';
-import 'package:exp/core/utils/app_logger.dart';
+import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/device_helper.dart';
+import 'package:data7_expedicao/domain/models/separation_user_sector_model.dart';
+import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_params.dart';
+import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_success.dart';
+import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_failure.dart';
+import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 /// UseCase para registrar a atribuição de uma separação a um usuário/setor
 ///

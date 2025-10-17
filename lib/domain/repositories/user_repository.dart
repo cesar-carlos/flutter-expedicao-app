@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:exp/domain/models/user/user_models.dart';
+import 'package:data7_expedicao/domain/models/user/user_models.dart';
 
 abstract class UserRepository {
   Future<CreateUserResponse> createUser({

@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
 
 /// Parâmetros para buscar a próxima separação disponível para um usuário
 class NextSeparationUserParams {

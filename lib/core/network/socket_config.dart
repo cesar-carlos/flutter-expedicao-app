@@ -1,6 +1,6 @@
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
-import 'package:exp/domain/models/api_config.dart';
+import 'package:data7_expedicao/domain/models/api_config.dart';
 
 /// Configuração global do Socket.IO
 class SocketConfig {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/core/results/index.dart';
-import 'package:exp/core/utils/app_helper.dart';
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 
 /// Modelo para consulta de separação por usuário e setor
 class SeparationUserSectorConsultationModel {

@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 
 /// Estado de operação pendente
 enum PendingOperationStatus { pending, syncing, synced, failed }

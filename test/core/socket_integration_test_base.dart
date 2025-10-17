@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exp/core/network/socket_config.dart';
-import 'package:exp/domain/models/api_config.dart';
+import 'package:data7_expedicao/core/network/socket_config.dart';
+import 'package:data7_expedicao/domain/models/api_config.dart';
 
 /// Classe base para testes de integração que usam Socket.IO
 abstract class SocketIntegrationTestBase {

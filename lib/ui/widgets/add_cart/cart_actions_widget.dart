@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/viewmodels/add_cart_viewmodel.dart';
-import 'package:exp/ui/widgets/common/custom_flat_button.dart';
+import 'package:data7_expedicao/domain/viewmodels/add_cart_viewmodel.dart';
+import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
 
 class CartActionsWidget extends StatefulWidget {
   final AddCartViewModel viewModel;

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exp/core/network/socket_config.dart';
+import 'package:data7_expedicao/core/network/socket_config.dart';
 import 'socket_integration_test_base.dart';
 
 /// Classe base para testes de integração de usecases que usam Socket.IO

@@ -1,9 +1,9 @@
-import 'package:exp/core/network/dio_config.dart';
-import 'package:exp/core/network/socket_config.dart';
-import 'package:exp/domain/viewmodels/config_viewmodel.dart';
-import 'package:exp/data/datasources/config_service.dart';
-import 'package:exp/data/services/socket_service.dart';
-import 'package:exp/di/locator.dart';
+import 'package:data7_expedicao/core/network/dio_config.dart';
+import 'package:data7_expedicao/core/network/socket_config.dart';
+import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/data/datasources/config_service.dart';
+import 'package:data7_expedicao/data/services/socket_service.dart';
+import 'package:data7_expedicao/di/locator.dart';
 
 class NetworkInitializer {
   static void ensureDioInitialized() {

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:exp/core/utils/string_utils.dart';
-import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
-import 'package:exp/domain/viewmodels/theme_viewmodel.dart';
-import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
-import 'package:exp/ui/widgets/app_drawer/drawer_menu_tile.dart';
-import 'package:exp/core/utils/avatar_utils.dart';
-import 'package:exp/core/routing/app_router.dart';
+import 'package:data7_expedicao/core/utils/string_utils.dart';
+import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/theme_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
+import 'package:data7_expedicao/ui/widgets/app_drawer/drawer_menu_tile.dart';
+import 'package:data7_expedicao/core/utils/avatar_utils.dart';
+import 'package:data7_expedicao/core/routing/app_router.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});

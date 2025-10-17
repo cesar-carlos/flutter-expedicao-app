@@ -1,5 +1,5 @@
-import 'package:exp/domain/models/expedition_cart_route_internship_model.dart';
-import 'package:exp/core/results/app_failure.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_model.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
 
 class SaveSeparationCartFailure extends AppFailure {
   final ExpeditionCartRouteInternshipModel? cart;

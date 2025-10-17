@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/domain/viewmodels/socket_viewmodel.dart';
-import 'package:exp/data/services/socket_service.dart';
-import 'package:exp/core/theme/app_colors.dart';
+import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
+import 'package:data7_expedicao/data/services/socket_service.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 /// Widget que exibe o título "Produtos Pendentes" com status de conexão abaixo
 class PendingProductsTitleWithConnectionStatus extends StatelessWidget {

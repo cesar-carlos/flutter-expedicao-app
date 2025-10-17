@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-import 'package:exp/core/constants/app_strings.dart';
-import 'package:exp/domain/usecases/user/register_user_usecase.dart';
-import 'package:exp/domain/models/user/user_models.dart';
+import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/domain/usecases/user/register_user_usecase.dart';
+import 'package:data7_expedicao/domain/models/user/user_models.dart';
 
 class RegisterViewModel extends ChangeNotifier {
   bool _isLoading = false;

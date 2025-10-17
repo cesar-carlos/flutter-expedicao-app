@@ -5,20 +5,20 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i6;
 
-import 'package:exp/data/services/filters_storage_service.dart' as _i9;
-import 'package:exp/domain/models/event_model/event_listener_model.dart'
+import 'package:data7_expedicao/data/services/filters_storage_service.dart' as _i9;
+import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart'
     as _i12;
-import 'package:exp/domain/models/filter/carts_filters_model.dart' as _i4;
-import 'package:exp/domain/models/filter/pending_products_filters_model.dart'
+import 'package:data7_expedicao/domain/models/filter/carts_filters_model.dart' as _i4;
+import 'package:data7_expedicao/domain/models/filter/pending_products_filters_model.dart'
     as _i10;
-import 'package:exp/domain/models/filter/separate_items_filters_model.dart'
+import 'package:data7_expedicao/domain/models/filter/separate_items_filters_model.dart'
     as _i3;
-import 'package:exp/domain/models/filter/separation_filters_model.dart' as _i2;
-import 'package:exp/domain/models/pagination/query_builder.dart' as _i7;
-import 'package:exp/domain/repositories/basic_consultation_repository.dart'
+import 'package:data7_expedicao/domain/models/filter/separation_filters_model.dart' as _i2;
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart' as _i7;
+import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart'
     as _i5;
-import 'package:exp/domain/repositories/basic_repository.dart' as _i8;
-import 'package:exp/domain/repositories/separate_event_repository.dart' as _i11;
+import 'package:data7_expedicao/domain/repositories/basic_repository.dart' as _i8;
+import 'package:data7_expedicao/domain/repositories/separate_event_repository.dart' as _i11;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint

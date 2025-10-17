@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/core/constants/app_strings.dart';
-import 'package:exp/ui/widgets/common/index.dart';
-import 'package:exp/ui/widgets/auth/index.dart';
+import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/ui/widgets/common/index.dart';
+import 'package:data7_expedicao/ui/widgets/auth/index.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});

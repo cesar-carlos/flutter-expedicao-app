@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:exp/di/locator.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_params.dart';
-import 'package:exp/domain/usecases/user/register_via_qrcode_usecase.dart';
-import 'package:exp/domain/models/user/system_qrcode_data.dart';
-import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
-import 'package:exp/ui/widgets/common/index.dart';
-import 'package:exp/core/results/app_failure.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_params.dart';
+import 'package:data7_expedicao/domain/usecases/user/register_via_qrcode_usecase.dart';
+import 'package:data7_expedicao/domain/models/user/system_qrcode_data.dart';
+import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/ui/widgets/common/index.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
 
 /// Tela para login/cadastro via QR Code do Sistema
 class QRCodeLoginScreen extends StatefulWidget {

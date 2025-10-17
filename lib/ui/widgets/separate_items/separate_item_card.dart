@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
-import 'package:exp/domain/models/separation_item_status.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 
 class SeparateItemCard extends StatelessWidget {
   final SeparateItemConsultationModel item;

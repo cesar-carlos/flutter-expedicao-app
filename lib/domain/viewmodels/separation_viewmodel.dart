@@ -1,17 +1,17 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:exp/di/locator.dart';
-import 'package:exp/core/errors/app_error.dart';
-import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/domain/models/expedition_sector_stock_model.dart';
-import 'package:exp/domain/models/filter/separation_filters_model.dart';
-import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/models/event_model/event_listener_model.dart';
-import 'package:exp/domain/repositories/separate_event_repository.dart';
-import 'package:exp/domain/models/event_model/basic_event_model.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
-import 'package:exp/data/services/filters_storage_service.dart';
-import 'package:exp/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
+import 'package:data7_expedicao/domain/models/filter/separation_filters_model.dart';
+import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
+import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
+import 'package:data7_expedicao/domain/repositories/separate_event_repository.dart';
+import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/data/services/filters_storage_service.dart';
+import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 
 enum SeparationState { initial, loading, loaded, error }
 

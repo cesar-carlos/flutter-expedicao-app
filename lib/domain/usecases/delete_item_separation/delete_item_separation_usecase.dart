@@ -1,14 +1,14 @@
-import 'package:exp/core/results/index.dart';
-import 'package:exp/core/errors/app_error.dart';
-import 'package:exp/domain/models/separate_item_model.dart';
-import 'package:exp/domain/models/separation_item_model.dart';
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
-import 'package:exp/domain/models/separate_model.dart';
-import 'package:exp/domain/usecases/delete_item_separation/delete_item_separation_params.dart';
-import 'package:exp/domain/usecases/delete_item_separation/delete_item_separation_success.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
-import 'package:exp/domain/repositories/basic_repository.dart';
-import 'package:exp/data/services/user_session_service.dart';
+import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/domain/models/separate_item_model.dart';
+import 'package:data7_expedicao/domain/models/separation_item_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_model.dart';
+import 'package:data7_expedicao/domain/usecases/delete_item_separation/delete_item_separation_params.dart';
+import 'package:data7_expedicao/domain/usecases/delete_item_separation/delete_item_separation_success.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
 
 /// Use case para excluir um item específico da separação
 ///

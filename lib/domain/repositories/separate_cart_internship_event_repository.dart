@@ -1,5 +1,5 @@
-import 'package:exp/domain/repositories/event_generic_repository.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/repositories/event_generic_repository.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 
 /// Repositório de eventos específico para carrinhos de separação de expedição
 ///

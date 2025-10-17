@@ -1,5 +1,5 @@
-import 'package:exp/core/utils/app_helper.dart';
-import 'package:exp/core/results/index.dart';
+import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 class ExpeditionCheckItemModel {
   final int codEmpresa;

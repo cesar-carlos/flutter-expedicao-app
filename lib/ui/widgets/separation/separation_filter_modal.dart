@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
-import 'package:exp/domain/models/expedition_origem_model.dart';
-import 'package:exp/domain/models/expedition_sector_stock_model.dart';
+import 'package:data7_expedicao/domain/viewmodels/separation_viewmodel.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 
 /// Modal para filtros da tela de separação
 class SeparationFilterModal extends StatefulWidget {

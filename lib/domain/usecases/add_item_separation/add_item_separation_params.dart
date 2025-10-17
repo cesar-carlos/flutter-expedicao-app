@@ -1,4 +1,4 @@
-import 'package:exp/core/validation/common/socket_validation_helper.dart';
+import 'package:data7_expedicao/core/validation/common/socket_validation_helper.dart';
 
 /// Parâmetros para adicionar itens na separação
 class AddItemSeparationParams {

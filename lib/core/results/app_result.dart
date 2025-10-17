@@ -1,5 +1,5 @@
 import 'package:result_dart/result_dart.dart';
-import 'package:exp/core/results/app_failure.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
 
 /// Função helper para criar um sucesso
 Result<T> success<T extends Object>(T value) => Success(value);

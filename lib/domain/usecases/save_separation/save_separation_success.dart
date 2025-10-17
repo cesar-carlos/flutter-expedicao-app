@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/expedition_cart_route_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
 
 /// Resultado de sucesso ao salvar separação
 class SaveSeparationSuccess {

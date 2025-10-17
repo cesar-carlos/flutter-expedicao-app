@@ -1,5 +1,5 @@
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
-import 'package:exp/core/utils/picking_utils.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/core/utils/picking_utils.dart';
 
 /// Serviço para validação e processamento de códigos de barras
 class BarcodeValidationService {

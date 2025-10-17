@@ -1,5 +1,5 @@
-import 'package:exp/domain/models/expedition_sector_stock_model.dart';
-import 'package:exp/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 
 ExpeditionSectorStockModel createTestSectorStock() {
   return ExpeditionSectorStockModel(

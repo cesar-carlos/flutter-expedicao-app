@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:exp/core/errors/app_error.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
-import 'package:exp/domain/models/pagination/query_param.dart';
-import 'package:exp/domain/models/pagination/query_order_by.dart';
-import 'package:exp/domain/models/pagination/query_builder_extension.dart';
+import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_param.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_order_by.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder_extension.dart';
 
 void main() {
   group('QueryBuilder', () {

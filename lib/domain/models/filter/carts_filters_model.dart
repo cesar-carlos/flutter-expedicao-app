@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 
 class CartsFiltersModel {
   final String? codCarrinho;

@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 
 /// Extension for easy query building
 extension QueryBuilderExtension on QueryBuilder {

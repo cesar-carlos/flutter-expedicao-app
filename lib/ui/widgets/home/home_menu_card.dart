@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/domain/viewmodels/home_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/home_viewmodel.dart';
 
 /// Card de menu para a tela inicial
 class HomeMenuCard extends StatelessWidget {

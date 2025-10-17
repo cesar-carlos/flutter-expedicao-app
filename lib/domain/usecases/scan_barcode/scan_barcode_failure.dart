@@ -1,4 +1,4 @@
-import 'package:exp/core/results/app_failure.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
 
 /// Representa falhas no caso de uso de scan de código de barras
 class ScanBarcodeFailure extends AppFailure {

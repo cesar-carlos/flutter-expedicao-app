@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/models/separate_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 
 class SeparationInfoDialog extends StatelessWidget {
   final SeparateConsultationModel separation;

@@ -1,5 +1,5 @@
-import 'package:exp/core/results/index.dart';
-import 'package:exp/domain/models/expedition_sector_stock_model.dart';
+import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 
 class SeparationFiltersModel {
   final String? codSepararEstoque;

@@ -2,14 +2,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:exp/domain/viewmodels/separation_viewmodel.dart';
-import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/domain/repositories/basic_repository.dart';
-import 'package:exp/data/services/filters_storage_service.dart';
-import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/domain/models/expedition_sector_stock_model.dart';
-import 'package:exp/domain/models/filter/separation_filters_model.dart';
-import 'package:exp/domain/repositories/separate_event_repository.dart';
+import 'package:data7_expedicao/domain/viewmodels/separation_viewmodel.dart';
+import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
+import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/data/services/filters_storage_service.dart';
+import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
+import 'package:data7_expedicao/domain/models/filter/separation_filters_model.dart';
+import 'package:data7_expedicao/domain/repositories/separate_event_repository.dart';
 
 import 'separation_viewmodel_test.mocks.dart';
 

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/ui/widgets/common/index.dart';
-import 'package:exp/ui/widgets/app_drawer/index.dart';
-import 'package:exp/domain/viewmodels/home_viewmodel.dart';
-import 'package:exp/ui/widgets/home/index.dart';
-import 'package:exp/di/locator.dart';
+import 'package:data7_expedicao/ui/widgets/common/index.dart';
+import 'package:data7_expedicao/ui/widgets/app_drawer/index.dart';
+import 'package:data7_expedicao/domain/viewmodels/home_viewmodel.dart';
+import 'package:data7_expedicao/ui/widgets/home/index.dart';
+import 'package:data7_expedicao/di/locator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

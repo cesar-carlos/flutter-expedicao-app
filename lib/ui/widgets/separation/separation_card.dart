@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/ui/widgets/common/custom_simple_button.dart';
+import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
+import 'package:data7_expedicao/ui/widgets/common/custom_simple_button.dart';
 
 /// Card para exibir informações de uma separação
 class SeparationCard extends StatelessWidget {

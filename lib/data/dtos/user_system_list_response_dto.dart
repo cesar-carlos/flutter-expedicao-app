@@ -1,5 +1,5 @@
-import 'package:exp/domain/models/user_system_models.dart';
-import 'package:exp/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 
 class UserSystemListResponseDto {
   final List<UserSystemModel> users;

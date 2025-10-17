@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 
-import 'package:exp/domain/models/user/user_models.dart';
-import 'package:exp/core/network/dio_config.dart';
-import 'package:exp/data/dtos/create_user_dto.dart';
-import 'package:exp/data/dtos/create_user_response_dto.dart';
-import 'package:exp/data/dtos/login_dto.dart';
-import 'package:exp/data/dtos/login_response_dto.dart';
-import 'package:exp/data/dtos/api_error_dto.dart';
-import 'package:exp/domain/repositories/user_repository.dart';
+import 'package:data7_expedicao/domain/models/user/user_models.dart';
+import 'package:data7_expedicao/core/network/dio_config.dart';
+import 'package:data7_expedicao/data/dtos/create_user_dto.dart';
+import 'package:data7_expedicao/data/dtos/create_user_response_dto.dart';
+import 'package:data7_expedicao/data/dtos/login_dto.dart';
+import 'package:data7_expedicao/data/dtos/login_response_dto.dart';
+import 'package:data7_expedicao/data/dtos/api_error_dto.dart';
+import 'package:data7_expedicao/domain/repositories/user_repository.dart';
 
 class UserRepositoryImpl implements UserRepository {
   Dio get _dio => DioConfig.instance;

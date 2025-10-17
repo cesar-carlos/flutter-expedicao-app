@@ -1,6 +1,6 @@
-import 'package:exp/domain/models/pagination/query_param.dart';
-import 'package:exp/domain/models/pagination/pagination.dart';
-import 'package:exp/domain/models/pagination/query_order_by.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_param.dart';
+import 'package:data7_expedicao/domain/models/pagination/pagination.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_order_by.dart';
 
 /// Query builder for constructing complex queries
 class QueryBuilder {

@@ -1,6 +1,6 @@
-import 'package:exp/domain/repositories/event_generic_repository.dart';
-import 'package:exp/domain/models/separate_consultation_model.dart';
-import 'package:exp/domain/models/event_model/event_listener_model.dart';
+import 'package:data7_expedicao/domain/repositories/event_generic_repository.dart';
+import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
 
 /// Repositório de eventos específico para separação de expedição
 ///

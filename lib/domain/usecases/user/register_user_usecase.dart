@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'package:exp/domain/models/user/user_models.dart';
-import 'package:exp/domain/repositories/user_repository.dart';
-import 'package:exp/domain/usecases/legacy_usecase.dart';
+import 'package:data7_expedicao/domain/models/user/user_models.dart';
+import 'package:data7_expedicao/domain/repositories/user_repository.dart';
+import 'package:data7_expedicao/domain/usecases/legacy_usecase.dart';
 
 /// Parâmetros para o caso de uso de registro de usuário
 class RegisterUserParams {

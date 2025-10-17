@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
-import 'package:exp/core/network/socket_config.dart';
-import 'package:exp/domain/models/api_config.dart';
+import 'package:data7_expedicao/core/network/socket_config.dart';
+import 'package:data7_expedicao/domain/models/api_config.dart';
 
 /// Eventos do WebSocket que podem ser emitidos
 enum SocketEvent { userLocationUpdate, scannerResult, notification, statusUpdate, chatMessage }

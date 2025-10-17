@@ -178,7 +178,7 @@ Crie um novo arquivo `barcode_scanner_repository_mobile_impl.dart`:
 
 ```dart
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:exp/domain/repositories/barcode_scanner_repository.dart';
+import 'package:data7_expedicao/domain/repositories/barcode_scanner_repository.dart';
 
 class BarcodeScannerRepositoryMobileImpl implements BarcodeScannerRepository {
   @override

@@ -1,5 +1,5 @@
-import 'package:exp/data/services/user_session_service.dart';
-import 'package:exp/domain/models/user/app_user.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/models/user/app_user.dart';
 import 'user_system_model_mock.dart';
 
 /// Mock do UserSessionService para testes

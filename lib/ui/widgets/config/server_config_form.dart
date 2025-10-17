@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:exp/core/constants/app_strings.dart';
-import 'package:exp/core/validation/forms/form_validators.dart';
-import 'package:exp/domain/viewmodels/config_viewmodel.dart';
-import 'package:exp/ui/widgets/common/index.dart';
+import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/validation/forms/form_validators.dart';
+import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/ui/widgets/common/index.dart';
 
 class ServerConfigForm extends StatefulWidget {
   const ServerConfigForm({super.key});

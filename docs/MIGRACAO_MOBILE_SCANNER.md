@@ -81,9 +81,9 @@ locator.registerLazySingleton<BarcodeScannerRepository>(
 ### Opção 1: Usando `callWithContext` (Recomendado)
 
 ```dart
-import 'package:exp/di/locator.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_params.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_params.dart';
 
 // Em um Widget
 ElevatedButton.icon(

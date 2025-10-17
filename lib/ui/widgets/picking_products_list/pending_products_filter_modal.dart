@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/domain/models/filter/pending_products_filters_model.dart';
-import 'package:exp/domain/models/expedition_sector_stock_model.dart';
-import 'package:exp/domain/models/separation_item_status.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/domain/models/filter/pending_products_filters_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
+import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 
 /// Modal para filtros da tela de produtos pendentes
 class PendingProductsFilterModal extends StatefulWidget {

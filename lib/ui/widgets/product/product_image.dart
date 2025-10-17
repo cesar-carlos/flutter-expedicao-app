@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/core/constants/app_assets.dart';
+import 'package:data7_expedicao/core/constants/app_assets.dart';
 
 class ProductImage extends StatelessWidget {
   final String? imageUrl;

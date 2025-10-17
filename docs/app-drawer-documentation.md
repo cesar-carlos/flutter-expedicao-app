@@ -36,7 +36,7 @@ O `AppDrawer` é um widget reutilizável que implementa o menu lateral da aplica
 ### 1. Importação
 
 ```dart
-import 'package:exp/ui/widgets/app_drawer/index.dart';
+import 'package:data7_expedicao/ui/widgets/app_drawer/index.dart';
 ```
 
 ### 2. Implementação em uma tela

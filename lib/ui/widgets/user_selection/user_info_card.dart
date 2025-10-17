@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class UserInfoCard extends StatelessWidget {
   const UserInfoCard({super.key});

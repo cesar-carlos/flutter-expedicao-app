@@ -1,17 +1,17 @@
-import 'package:exp/core/utils/app_helper.dart';
-import 'package:exp/domain/models/separate_model.dart';
-import 'package:exp/domain/models/expedition_cart_route_model.dart';
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
-import 'package:exp/domain/models/situation/expedition_cart_situation_model.dart';
-import 'package:exp/domain/usecases/start_separation/start_separation_params.dart';
-import 'package:exp/domain/models/situation/expedition_cart_router_situation_model.dart';
-import 'package:exp/domain/usecases/start_separation/start_separation_success.dart';
-import 'package:exp/domain/usecases/start_separation/start_separation_failure.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
-import 'package:exp/domain/repositories/basic_repository.dart';
-import 'package:exp/data/services/user_session_service.dart';
-import 'package:exp/core/errors/app_error.dart';
-import 'package:exp/core/results/index.dart';
+import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/domain/models/separate_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
+import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_params.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_cart_router_situation_model.dart';
+import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_success.dart';
+import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_failure.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 /// Use case para iniciar uma separação de estoque
 ///

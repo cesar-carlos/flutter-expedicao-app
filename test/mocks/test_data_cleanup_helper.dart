@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
-import 'package:exp/data/repositories/separation_item_repository_impl.dart';
-import 'package:exp/data/repositories/separate_item_repository_impl.dart';
-import 'package:exp/data/repositories/separate_repository_impl.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/data/repositories/separation_item_repository_impl.dart';
+import 'package:data7_expedicao/data/repositories/separate_item_repository_impl.dart';
+import 'package:data7_expedicao/data/repositories/separate_repository_impl.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 
 /// Helper para limpeza de dados de teste
 class TestDataCleanupHelper {

@@ -1,5 +1,5 @@
 import 'package:hive/hive.dart';
-import 'package:exp/domain/models/api_config.dart';
+import 'package:data7_expedicao/domain/models/api_config.dart';
 
 part 'api_config_entity.g.dart';
 

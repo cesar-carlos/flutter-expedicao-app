@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
-import 'package:exp/domain/models/user/user_models.dart';
-import 'package:exp/domain/usecases/user/login_user_usecase.dart';
-import 'package:exp/domain/repositories/user_system_repository.dart';
-import 'package:exp/data/services/user_session_service.dart';
-import 'package:exp/di/locator.dart';
+import 'package:data7_expedicao/domain/models/user/user_models.dart';
+import 'package:data7_expedicao/domain/usecases/user/login_user_usecase.dart';
+import 'package:data7_expedicao/domain/repositories/user_system_repository.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/di/locator.dart';
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error, needsUserSelection }
 

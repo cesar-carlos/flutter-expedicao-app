@@ -89,9 +89,9 @@ pubspec.yaml
 ### Exemplo Básico
 
 ```dart
-import 'package:exp/di/locator.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_params.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_params.dart';
 
 // 1. Obter o UseCase
 final scanBarcodeUseCase = locator<ScanBarcodeUseCase>();

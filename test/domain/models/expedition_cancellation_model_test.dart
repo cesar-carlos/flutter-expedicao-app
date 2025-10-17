@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:exp/domain/models/expedition_cancellation_model.dart';
-import 'package:exp/domain/models/expedition_origem_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cancellation_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 
 void main() {
   group('ExpeditionCancellationModel', () {

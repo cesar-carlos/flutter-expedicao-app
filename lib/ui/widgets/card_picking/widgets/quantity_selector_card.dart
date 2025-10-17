@@ -2,8 +2,8 @@ import 'dart:async' show Timer;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:exp/core/utils/picking_utils.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/core/utils/picking_utils.dart';
 
 class QuantitySelectorCard extends StatefulWidget {
   final TextEditingController controller;

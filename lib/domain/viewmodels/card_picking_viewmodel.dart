@@ -1,26 +1,26 @@
 import 'dart:async' show Future, StreamController, Stream;
 import 'package:flutter/foundation.dart';
 
-import 'package:exp/di/locator.dart';
-import 'package:exp/domain/models/picking_state.dart';
-import 'package:exp/domain/models/user_system_models.dart';
-import 'package:exp/domain/models/separation_item_status.dart';
-import 'package:exp/domain/models/expedition_sector_stock_model.dart';
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
-import 'package:exp/domain/models/filter/pending_products_filters_model.dart';
-import 'package:exp/domain/repositories/separate_cart_internship_event_repository.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
-import 'package:exp/domain/usecases/add_item_separation/add_item_separation_params.dart';
-import 'package:exp/domain/repositories/basic_consultation_repository.dart';
-import 'package:exp/core/validation/common/socket_validation_helper.dart';
-import 'package:exp/domain/models/event_model/event_listener_model.dart';
-import 'package:exp/domain/models/event_model/basic_event_model.dart';
-import 'package:exp/domain/models/pagination/query_builder.dart';
-import 'package:exp/data/services/filters_storage_service.dart';
-import 'package:exp/domain/repositories/basic_repository.dart';
-import 'package:exp/data/services/user_session_service.dart';
-import 'package:exp/core/results/index.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/models/picking_state.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/domain/models/separation_item_status.dart';
+import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/filter/pending_products_filters_model.dart';
+import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_params.dart';
+import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
+import 'package:data7_expedicao/core/validation/common/socket_validation_helper.dart';
+import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
+import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/data/services/filters_storage_service.dart';
+import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 /// ViewModel para gerenciar o estado do picking de um carrinho
 ///

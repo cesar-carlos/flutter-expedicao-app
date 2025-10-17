@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:exp/domain/models/user/user_models.dart';
-import 'package:exp/domain/repositories/user_repository.dart';
+import 'package:data7_expedicao/domain/models/user/user_models.dart';
+import 'package:data7_expedicao/domain/repositories/user_repository.dart';
 
 class UserApiService {
   final UserRepository _userRepository;

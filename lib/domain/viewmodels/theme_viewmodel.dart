@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/data/datasources/user_preferences_service.dart';
+import 'package:data7_expedicao/data/datasources/user_preferences_service.dart';
 
 class ThemeViewModel extends ChangeNotifier {
   final UserPreferencesService _preferencesService;

@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
-import 'package:exp/data/services/socket_service.dart';
-import 'package:exp/di/locator.dart';
+import 'package:data7_expedicao/data/services/socket_service.dart';
+import 'package:data7_expedicao/di/locator.dart';
 
 /// ViewModel para gerenciar o estado e comunicação do WebSocket
 class SocketViewModel extends ChangeNotifier {

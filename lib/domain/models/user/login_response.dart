@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/user/app_user.dart';
+import 'package:data7_expedicao/domain/models/user/app_user.dart';
 
 /// Modelo para resposta de login (sucesso)
 class LoginResponse {

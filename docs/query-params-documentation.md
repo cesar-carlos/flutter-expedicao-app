@@ -29,14 +29,14 @@ Este diretório contém as classes relacionadas à construção de parâmetros d
 ### Importação Simples
 
 ```dart
-import 'package:exp/domain/models/query_params.dart';
+import 'package:data7_expedicao/domain/models/query_params.dart';
 ```
 
 ### Importação Específica
 
 ```dart
-import 'package:exp/domain/models/query_builder.dart';
-import 'package:exp/domain/models/query_builder_extension.dart';
+import 'package:data7_expedicao/domain/models/query_builder.dart';
+import 'package:data7_expedicao/domain/models/query_builder_extension.dart';
 ```
 
 ## 📋 Exemplos de Uso

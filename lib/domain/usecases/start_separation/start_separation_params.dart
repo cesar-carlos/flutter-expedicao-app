@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/expedition_origem_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 
 /// Parâmetros para iniciar uma separação
 class StartSeparationParams {

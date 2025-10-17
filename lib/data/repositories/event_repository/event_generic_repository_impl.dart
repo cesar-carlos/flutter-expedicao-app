@@ -1,6 +1,6 @@
-import 'package:exp/domain/repositories/event_generic_repository.dart';
-import 'package:exp/domain/models/event_model/event_listener_model.dart';
-import 'package:exp/domain/services/event_service.dart';
+import 'package:data7_expedicao/domain/repositories/event_generic_repository.dart';
+import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
+import 'package:data7_expedicao/domain/services/event_service.dart';
 
 /// Implementação genérica do repositório de eventos
 class EventGenericRepositoryImpl<T> implements EventGenericRepository<T> {

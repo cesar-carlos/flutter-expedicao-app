@@ -1,11 +1,11 @@
 import 'package:flutter/services.dart';
 
-import 'package:exp/di/locator.dart';
-import 'package:exp/core/services/audio_service.dart';
-import 'package:exp/core/services/barcode_scanner_service.dart';
-import 'package:exp/core/services/barcode_validation_service.dart';
-import 'package:exp/domain/models/separate_item_consultation_model.dart';
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/services/audio_service.dart';
+import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
+import 'package:data7_expedicao/core/services/barcode_validation_service.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 
 /// Processador responsável por processar entradas do scanner de códigos de barras
 ///

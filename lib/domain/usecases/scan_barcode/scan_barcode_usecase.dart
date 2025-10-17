@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/usecases/base_usecase.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_params.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_success.dart';
-import 'package:exp/domain/usecases/scan_barcode/scan_barcode_failure.dart';
-import 'package:exp/domain/repositories/barcode_scanner_repository.dart';
-import 'package:exp/data/repositories/barcode_scanner_repository_mobile_impl.dart';
-import 'package:exp/core/results/index.dart';
+import 'package:data7_expedicao/domain/usecases/base_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_params.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_success.dart';
+import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_failure.dart';
+import 'package:data7_expedicao/domain/repositories/barcode_scanner_repository.dart';
+import 'package:data7_expedicao/data/repositories/barcode_scanner_repository_mobile_impl.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 /// UseCase para escanear código de barras usando a câmera do dispositivo
 ///

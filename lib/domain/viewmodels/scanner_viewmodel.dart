@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:exp/domain/models/scanner_data.dart';
+import 'package:data7_expedicao/domain/models/scanner_data.dart';
 
 class ScannerViewModel extends ChangeNotifier {
   String _scannedCode = "";

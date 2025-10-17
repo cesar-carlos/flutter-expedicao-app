@@ -6,14 +6,14 @@
 import 'dart:async' as _i5;
 import 'dart:io' as _i6;
 
-import 'package:exp/data/dtos/user_system_list_response_dto.dart' as _i3;
-import 'package:exp/data/services/user_session_service.dart' as _i11;
-import 'package:exp/domain/models/pagination/pagination.dart' as _i9;
-import 'package:exp/domain/models/situation/situation_model.dart' as _i8;
-import 'package:exp/domain/models/user/user_models.dart' as _i2;
-import 'package:exp/domain/models/user_system_models.dart' as _i10;
-import 'package:exp/domain/repositories/user_repository.dart' as _i4;
-import 'package:exp/domain/repositories/user_system_repository.dart' as _i7;
+import 'package:data7_expedicao/data/dtos/user_system_list_response_dto.dart' as _i3;
+import 'package:data7_expedicao/data/services/user_session_service.dart' as _i11;
+import 'package:data7_expedicao/domain/models/pagination/pagination.dart' as _i9;
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart' as _i8;
+import 'package:data7_expedicao/domain/models/user/user_models.dart' as _i2;
+import 'package:data7_expedicao/domain/models/user_system_models.dart' as _i10;
+import 'package:data7_expedicao/domain/repositories/user_repository.dart' as _i4;
+import 'package:data7_expedicao/domain/repositories/user_system_repository.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint

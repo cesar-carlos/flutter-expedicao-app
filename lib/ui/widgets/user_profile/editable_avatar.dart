@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/viewmodels/profile_viewmodel.dart';
-import 'package:exp/ui/widgets/user_profile/photo_options_modal.dart';
+import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
+import 'package:data7_expedicao/ui/widgets/user_profile/photo_options_modal.dart';
 
 class EditableAvatar extends StatelessWidget {
   final ProfileViewModel viewModel;

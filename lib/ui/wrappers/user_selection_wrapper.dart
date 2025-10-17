@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/domain/viewmodels/user_selection_viewmodel.dart';
-import 'package:exp/domain/viewmodels/auth_viewmodel.dart';
-import 'package:exp/ui/screens/user_selection_screen.dart';
+import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/ui/screens/user_selection_screen.dart';
 
 class UserSelectionWrapper extends StatefulWidget {
   const UserSelectionWrapper({super.key});

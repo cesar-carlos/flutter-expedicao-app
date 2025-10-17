@@ -1,6 +1,6 @@
-import 'package:exp/domain/models/situation/situation_model.dart';
-import 'package:exp/domain/models/situation/expedition_cart_situation_model.dart';
-import 'package:exp/core/results/index.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 class ExpeditionCartModel {
   final int codEmpresa;

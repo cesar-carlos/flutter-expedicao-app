@@ -1,4 +1,4 @@
-import 'package:exp/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 
 /// Modelo para dados detalhados do AppUser na consulta (com permissões)
 class AppUserConsultation {

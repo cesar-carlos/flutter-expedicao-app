@@ -1,6 +1,6 @@
 import 'package:zard/zard.dart';
 
-import 'package:exp/core/validation/schemas/common_schemas.dart';
+import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
 
 /// Schemas para validação de models de paginação
 class PaginationSchemas {

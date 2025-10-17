@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/domain/viewmodels/separation_items_viewmodel.dart';
-import 'package:exp/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:exp/ui/widgets/separate_items/carts_empty_state.dart';
-import 'package:exp/ui/widgets/separate_items/cart_item_card.dart';
+import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/ui/widgets/separate_items/carts_empty_state.dart';
+import 'package:data7_expedicao/ui/widgets/separate_items/cart_item_card.dart';
 
 class CartsListView extends StatelessWidget {
   final SeparationItemsViewModel viewModel;

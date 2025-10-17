@@ -1,7 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
-import 'package:exp/domain/models/api_config.dart';
-import 'package:exp/data/models/api_config_entity.dart';
+import 'package:data7_expedicao/domain/models/api_config.dart';
+import 'package:data7_expedicao/data/models/api_config_entity.dart';
 
 class ConfigService {
   static const String _boxName = 'config';

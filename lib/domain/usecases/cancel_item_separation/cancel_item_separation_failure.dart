@@ -1,4 +1,4 @@
-import 'package:exp/core/results/index.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 /// Tipos de falha ao cancelar um item específico da separação
 enum CancelItemSeparationFailureType {

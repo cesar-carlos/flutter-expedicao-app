@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:exp/domain/models/filter/separation_filters_model.dart';
-import 'package:exp/domain/models/filter/separate_items_filters_model.dart';
-import 'package:exp/domain/models/filter/carts_filters_model.dart';
-import 'package:exp/domain/models/filter/pending_products_filters_model.dart';
+import 'package:data7_expedicao/domain/models/filter/separation_filters_model.dart';
+import 'package:data7_expedicao/domain/models/filter/separate_items_filters_model.dart';
+import 'package:data7_expedicao/domain/models/filter/carts_filters_model.dart';
+import 'package:data7_expedicao/domain/models/filter/pending_products_filters_model.dart';
 
 class FiltersStorageService {
   static const String _separationFiltersKey = 'separation_filters';

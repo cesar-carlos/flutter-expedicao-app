@@ -1,4 +1,4 @@
-import 'package:exp/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 
 /// Cache inteligente para status do carrinho com TTL (Time-To-Live)
 ///

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:exp/ui/widgets/card_picking/components/picking_scan_state.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_scan_state.dart';
 
 /// Card de scanner de código de barras otimizado com Provider
 ///

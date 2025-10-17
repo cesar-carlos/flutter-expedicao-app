@@ -1,11 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 
-import '../mocks/config_service_mock.dart';
-import '../mocks/config_viewmodel_mock.dart';
-import 'package:exp/data/datasources/config_service.dart';
-import 'package:exp/domain/models/api_config.dart';
-import 'package:exp/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/data/datasources/config_service.dart';
+import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/domain/models/api_config.dart';
 
 /// Classe base para testes de integração que usam API
 abstract class ApiIntegrationTestBase {
@@ -17,9 +15,9 @@ abstract class ApiIntegrationTestBase {
   static Future<void> setupApi() async {
     // Registra o serviço de configuração
     if (!GetIt.I.isRegistered<ConfigService>()) {
-      final configService = ConfigServiceMock();
+      final configService = ConfigService();
       GetIt.I.registerSingleton<ConfigService>(configService);
-      GetIt.I.registerSingleton<ConfigViewModel>(ConfigViewModelMock(configService));
+      GetIt.I.registerSingleton<ConfigViewModel>(ConfigViewModel(configService));
     }
 
     // Configura a API

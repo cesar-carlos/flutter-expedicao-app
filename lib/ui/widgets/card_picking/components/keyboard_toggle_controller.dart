@@ -2,7 +2,7 @@ import 'dart:async' show Future;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:exp/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 /// Controlador responsável por gerenciar o toggle entre modo scanner e teclado
 ///

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:exp/ui/widgets/common/picking_dialog.dart';
-import 'package:exp/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/ui/widgets/common/picking_dialog.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 /// Gerenciador de diálogos da tela de picking
 class PickingDialogManager {

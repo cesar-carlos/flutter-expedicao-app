@@ -1,17 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exp/domain/models/situation/expedition_situation_model.dart';
-import 'package:exp/domain/models/situation/expedition_item_situation_model.dart';
-import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
-import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_failure.dart';
-import 'package:exp/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';
-import 'package:exp/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
-import 'package:exp/domain/usecases/add_item_separation/add_item_separation_params.dart';
-import 'package:exp/data/repositories/separation_item_repository_impl.dart';
-import 'package:exp/data/repositories/separate_item_repository_impl.dart';
-import 'package:exp/data/repositories/separate_repository_impl.dart';
-import 'package:exp/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
+import 'package:data7_expedicao/domain/usecases/cancel_item_separation/cancel_item_separation_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/cancel_item_separation/cancel_item_separation_failure.dart';
+import 'package:data7_expedicao/domain/usecases/cancel_item_separation/cancel_item_separation_params.dart';
+import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_params.dart';
+import 'package:data7_expedicao/data/repositories/separation_item_repository_impl.dart';
+import 'package:data7_expedicao/data/repositories/separate_item_repository_impl.dart';
+import 'package:data7_expedicao/data/repositories/separate_repository_impl.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
 
 import '../../mocks/cancel_item_separation_params_mock.dart';
 import '../../mocks/add_item_separation_params_mock.dart';
