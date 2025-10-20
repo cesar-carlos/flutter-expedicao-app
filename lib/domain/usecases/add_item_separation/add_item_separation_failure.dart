@@ -145,7 +145,7 @@ class AddItemSeparationFailure extends AppFailure {
       case AddItemSeparationFailureType.separateItemNotFound:
         return 'Item não encontrado para separação';
       case AddItemSeparationFailureType.insufficientQuantity:
-        return 'Quantidade solicitada maior que disponível';
+        return 'Quantidade de separação excedida';
       case AddItemSeparationFailureType.insertSeparationItemFailed:
         return 'Falha ao registrar item na separação';
       case AddItemSeparationFailureType.updateSeparateItemFailed:

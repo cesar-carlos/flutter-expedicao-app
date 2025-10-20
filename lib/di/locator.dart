@@ -61,12 +61,14 @@ import 'package:data7_expedicao/data/repositories/separate_item_repository_impl.
 import 'package:data7_expedicao/data/repositories/separate_item_consultation_repository_impl.dart';
 import 'package:data7_expedicao/data/repositories/separation_item_consultation_repository_impl.dart';
 import 'package:data7_expedicao/data/repositories/separation_item_summary_consultation_repository_impl.dart';
+import 'package:data7_expedicao/data/repositories/separate_item_unidade_medida_repository_impl.dart';
 import 'package:data7_expedicao/data/repositories/stock_product_consultation_repository_impl.dart';
 import 'package:data7_expedicao/data/repositories/expedition_cart_repository_impl.dart';
 import 'package:data7_expedicao/data/repositories/expedition_cart_route_repository_impl.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_summary_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/stock_product_consultation_model.dart';
 import 'package:data7_expedicao/data/repositories/expedition_internship_repository_impl.dart';
 import 'package:data7_expedicao/domain/models/expedition_internship_model.dart';
@@ -157,6 +159,10 @@ void setupLocator() {
 
   locator.registerLazySingleton<BasicConsultationRepository<SeparateItemConsultationModel>>(
     () => SeparateItemConsultationRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<BasicConsultationRepository<SeparateItemUnidadeMedidaConsultationModel>>(
+    () => SeparateItemUnidadeMedidaRepositoryImpl(),
   );
 
   locator.registerLazySingleton<BasicRepository<ExpeditionCartRouteInternshipModel>>(

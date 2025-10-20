@@ -1,7 +1,9 @@
 import 'package:data7_expedicao/core/utils/app_helper.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
-import 'package:data7_expedicao/domain/models/separation_item_status.dart';
+import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/tipo_fator_conversao_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
 class SeparateItemConsultationModel {
@@ -39,6 +41,8 @@ class SeparateItemConsultationModel {
   final double quantidadeExterna;
   final double quantidadeSeparacao;
 
+  final List<SeparateItemUnidadeMedidaConsultationModel> unidadeMedidas;
+
   SeparateItemConsultationModel({
     required this.codEmpresa,
     required this.codSepararEstoque,
@@ -73,6 +77,7 @@ class SeparateItemConsultationModel {
     required this.quantidadeInterna,
     required this.quantidadeExterna,
     required this.quantidadeSeparacao,
+    required this.unidadeMedidas,
   });
 
   SeparateItemConsultationModel copyWith({
@@ -109,6 +114,7 @@ class SeparateItemConsultationModel {
     double? quantidadeInterna,
     double? quantidadeExterna,
     double? quantidadeSeparacao,
+    List<SeparateItemUnidadeMedidaConsultationModel>? unidadeMedidas,
   }) {
     return SeparateItemConsultationModel(
       codEmpresa: codEmpresa ?? this.codEmpresa,
@@ -144,6 +150,7 @@ class SeparateItemConsultationModel {
       quantidadeInterna: quantidadeInterna ?? this.quantidadeInterna,
       quantidadeExterna: quantidadeExterna ?? this.quantidadeExterna,
       quantidadeSeparacao: quantidadeSeparacao ?? this.quantidadeSeparacao,
+      unidadeMedidas: unidadeMedidas ?? this.unidadeMedidas,
     );
   }
 
@@ -183,6 +190,14 @@ class SeparateItemConsultationModel {
         quantidadeInterna: AppHelper.stringToDouble(json['QuantidadeInterna']),
         quantidadeExterna: AppHelper.stringToDouble(json['QuantidadeExterna']),
         quantidadeSeparacao: AppHelper.stringToDouble(json['QuantidadeSeparacao']),
+        unidadeMedidas: json['UnidadeMedidas'] != null
+            ? (json['UnidadeMedidas'] as List)
+                  .map<SeparateItemUnidadeMedidaConsultationModel>(
+                    (unidadeJson) =>
+                        SeparateItemUnidadeMedidaConsultationModel.fromJson(unidadeJson as Map<String, dynamic>),
+                  )
+                  .toList()
+            : throw Exception('UnidadeMedidas é obrigatório'),
       );
     } catch (_) {
       rethrow;
@@ -230,6 +245,7 @@ class SeparateItemConsultationModel {
       'QuantidadeInterna': quantidadeInterna.toStringAsFixed(4),
       'QuantidadeExterna': quantidadeExterna.toStringAsFixed(4),
       'QuantidadeSeparacao': quantidadeSeparacao.toStringAsFixed(4),
+      'UnidadeMedidas': unidadeMedidas.map((unidade) => unidade.toJson()).toList(),
     };
   }
 
@@ -265,6 +281,57 @@ class SeparateItemConsultationModel {
 
   /// Verifica se o item está parcialmente separado
   bool get isParcialmenteSeparado => quantidadeSeparacao > 0 && quantidadeSeparacao < quantidade;
+
+  /// Retorna a unidade de medida padrão (onde unidadeMedidaPadrao == Situation.ativo)
+  SeparateItemUnidadeMedidaConsultationModel? get unidadeMedidaPadrao =>
+      unidadeMedidas.where((unidade) => unidade.unidadeMedidaPadrao == Situation.ativo).firstOrNull;
+
+  /// Retorna todas as unidades de medida diferentes da padrão
+  List<SeparateItemUnidadeMedidaConsultationModel> get unidadesMedidaAlternativas =>
+      unidadeMedidas.where((unidade) => unidade.unidadeMedidaPadrao == Situation.inativo).toList();
+
+  /// Converte a quantidade baseada no código de barras fornecido
+  /// Procura pela unidade de medida que corresponde ao código de barras
+  /// e aplica a conversão baseada no tipo de fator (multiplicação ou divisão)
+  ///
+  /// [codigoBarras] - O código de barras escaneado
+  /// [quantidadeRecebida] - A quantidade recebida para ser convertida
+  ///
+  /// Retorna a quantidade convertida ou null se o código de barras não for encontrado
+  double? converterQuantidadePorCodigoBarras(String codigoBarras, double quantidadeRecebida) {
+    try {
+      // Procura pela unidade de medida que corresponde ao código de barras
+      final unidadeMedida = unidadeMedidas.firstWhere(
+        (unidade) => unidade.codigoBarras == codigoBarras,
+        orElse: () => throw StateError('Código de barras não encontrado: $codigoBarras'),
+      );
+
+      // Aplica a conversão baseada no tipo de fator
+      switch (unidadeMedida.tipoFatorConversao) {
+        case TipoFatorConversao.multiplicacao:
+          return quantidadeRecebida * unidadeMedida.fatorConversao;
+        case TipoFatorConversao.divisao:
+          return unidadeMedida.fatorConversao != 0
+              ? quantidadeRecebida / unidadeMedida.fatorConversao
+              : throw ArgumentError('Fator de conversão não pode ser zero para divisão');
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Busca a unidade de medida pelo código de barras
+  ///
+  /// [codigoBarras] - O código de barras para buscar
+  ///
+  /// Retorna a unidade de medida correspondente ou null se não encontrada
+  SeparateItemUnidadeMedidaConsultationModel? buscarUnidadeMedidaPorCodigoBarras(String codigoBarras) {
+    try {
+      return unidadeMedidas.firstWhere((unidade) => unidade.codigoBarras == codigoBarras);
+    } catch (e) {
+      return null;
+    }
+  }
 
   @override
   String toString() {

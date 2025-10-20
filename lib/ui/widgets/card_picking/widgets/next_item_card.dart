@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/picking_state.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/widgets/product_detail_item.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 
@@ -214,6 +216,12 @@ class NextItemCard extends StatelessWidget {
   Widget _buildBarcodeInfo(ThemeData theme, ColorScheme colorScheme, SeparateItemConsultationModel nextItem) {
     final itemState = viewModel.pickingState.getItemState(nextItem.item);
 
+    // Se tem múltiplas unidades de medida, mostrar dropdown
+    if (nextItem.unidadeMedidas.length > 1) {
+      return _buildBarcodeDropdown(theme, colorScheme, nextItem, itemState);
+    }
+
+    // Caso contrário, mostrar como antes
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -233,6 +241,83 @@ class NextItemCard extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           _buildSyncBadge(itemState),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBarcodeDropdown(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    SeparateItemConsultationModel nextItem,
+    PickingItemState? itemState,
+  ) {
+    // Encontrar a unidade padrão primeiro
+    final unidadePadrao = nextItem.unidadeMedidas.firstWhere(
+      (unidade) => unidade.unidadeMedidaPadrao == Situation.ativo,
+      orElse: () => nextItem.unidadeMedidas.first,
+    );
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.qr_code, color: colorScheme.onSurfaceVariant, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<SeparateItemUnidadeMedidaConsultationModel>(
+                value: unidadePadrao,
+                isExpanded: true,
+                isDense: true,
+                items: nextItem.unidadeMedidas.map((unidade) {
+                  return DropdownMenuItem<SeparateItemUnidadeMedidaConsultationModel>(
+                    value: unidade,
+                    child: _buildDropdownItem(theme, colorScheme, unidade),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  // Por enquanto, não implementamos ação ao trocar o dropdown
+                  // Isso pode ser implementado posteriormente se necessário
+                },
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _buildSyncBadge(itemState),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdownItem(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    SeparateItemUnidadeMedidaConsultationModel unidade,
+  ) {
+    final isPadrao = unidade.unidadeMedidaPadrao == Situation.ativo;
+
+    return RichText(
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        style: theme.textTheme.bodySmall?.copyWith(
+          fontFamily: 'monospace',
+          fontWeight: isPadrao ? FontWeight.bold : FontWeight.normal,
+          color: colorScheme.onSurfaceVariant,
+          height: 1.2,
+        ),
+        children: [
+          TextSpan(text: '${unidade.codUnidadeMedida}/${unidade.fatorConversao.toStringAsFixed(0)} '),
+          TextSpan(
+            text: unidade.codigoBarras ?? '',
+            style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary),
+          ),
         ],
       ),
     );

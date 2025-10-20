@@ -343,7 +343,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       }
 
       // Obter a quantidade informada
-      final quantity = int.tryParse(_quantityController.text) ?? 1;
+      final inputQuantity = int.tryParse(_quantityController.text) ?? 1;
 
       // Validar código de barras usando o processador
       final validationResult = _scanProcessor.validateScannedBarcode(barcode);
@@ -374,7 +374,15 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       }
 
       if (validationResult.isValid && validationResult.expectedItem != null) {
-        await _addItemToSeparation(validationResult.expectedItem!, barcode, quantity);
+        // Converter quantidade usando o código de barras escaneado
+        final convertedQuantity = _convertQuantityWithBarcode(validationResult.expectedItem!, barcode, inputQuantity);
+
+        // Se houve conversão, atualizar o campo de quantidade visualmente
+        if (convertedQuantity != inputQuantity) {
+          _quantityController.text = convertedQuantity.toString();
+        }
+
+        await _addItemToSeparation(validationResult.expectedItem!, barcode, convertedQuantity);
       } else {
         _audioService.playError();
         _dialogManager.showWrongProductDialog(
@@ -386,6 +394,34 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       }
     } finally {
       _scanState.stopProcessing();
+    }
+  }
+
+  /// Converte a quantidade usando o código de barras escaneado
+  /// Utiliza o método converterQuantidadePorCodigoBarras do modelo para calcular
+  /// a quantidade correta baseada na unidade de medida do código de barras
+  int _convertQuantityWithBarcode(SeparateItemConsultationModel item, String barcode, int inputQuantity) {
+    try {
+      // Verifica se o item tem múltiplas unidades de medida
+      if (item.unidadeMedidas.length <= 1) {
+        // Se há apenas uma unidade, não há necessidade de conversão
+        return inputQuantity;
+      }
+
+      // Converte a quantidade usando o método do modelo
+      // O método converterQuantidadePorCodigoBarras já faz a busca internamente
+      final convertedQuantity = item.converterQuantidadePorCodigoBarras(barcode, inputQuantity.toDouble());
+
+      // Se a conversão foi bem-sucedida e o resultado é válido, retorna a quantidade convertida
+      if (convertedQuantity != null && convertedQuantity > 0) {
+        return convertedQuantity.round();
+      }
+
+      // Se não foi possível converter, retorna a quantidade original
+      return inputQuantity;
+    } catch (e) {
+      // Em caso de erro, retorna a quantidade original
+      return inputQuantity;
     }
   }
 

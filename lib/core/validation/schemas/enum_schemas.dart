@@ -3,6 +3,8 @@ import 'package:data7_expedicao/domain/models/situation/expedition_situation_mod
 import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_router_situation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/tipo_fator_conversao_model.dart';
 import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 
@@ -76,6 +78,24 @@ class EnumSchemas {
   static final optionalEntityTypeSchema = CommonSchemas.optionalEnumSchema(
     EntityType.getAllCodes(),
     'Tipo de entidade',
+  );
+
+  /// Schema para Situation (S/N)
+  static final situationSchema = CommonSchemas.enumSchema(Situation.getAllCodes(), 'Situação');
+
+  /// Schema opcional para Situation
+  static final optionalSituationSchema = CommonSchemas.optionalEnumSchema(Situation.getAllCodes(), 'Situação');
+
+  /// Schema para TipoFatorConversao (M/D)
+  static final tipoFatorConversaoSchema = CommonSchemas.enumSchema(
+    TipoFatorConversao.getAllCodes(),
+    'Tipo de fator de conversão',
+  );
+
+  /// Schema opcional para TipoFatorConversao
+  static final optionalTipoFatorConversaoSchema = CommonSchemas.optionalEnumSchema(
+    TipoFatorConversao.getAllCodes(),
+    'Tipo de fator de conversão',
   );
 
   /// Schema para status ativo (S/N)

@@ -863,7 +863,7 @@ class CardPickingViewModel extends ChangeNotifier {
     // Reverter quantidade local
     final currentQuantity = _pickingState.getPickedQuantity(itemId);
     final revertedQuantity = currentQuantity - quantity;
-    final errorMessage = error is AppFailure ? error.message : error.toString();
+    final errorMessage = error is AppFailure ? error.userMessage : error.toString();
 
     _pickingState = _pickingState
         .updateItemQuantity(itemId, revertedQuantity)

@@ -70,18 +70,23 @@ class PickingScreenLayout extends StatelessWidget {
         _defaultPadding,
         _defaultPadding + (hasKeyboard ? _keyboardPadding : 0),
       ),
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildNextItemCard(),
-            const SizedBox(height: _cardSpacing),
-            _buildQuantitySelector(),
-            const SizedBox(height: _cardSpacing),
-            _buildBarcodeScanner(),
-          ],
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await viewModel.refresh();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildNextItemCard(),
+              const SizedBox(height: _cardSpacing),
+              _buildQuantitySelector(),
+              const SizedBox(height: _cardSpacing),
+              _buildBarcodeScanner(),
+            ],
+          ),
         ),
       ),
     );

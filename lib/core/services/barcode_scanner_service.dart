@@ -16,7 +16,7 @@ class BarcodeScannerService {
   Timer? _debounceTimer;
 
   /// Tempo de debounce para detectar quando usuário parou de digitar
-  static const Duration _debounceTimeout = Duration(milliseconds: 40);
+  static const Duration _debounceTimeout = Duration(milliseconds: 80);
 
   /// Padrão regex para validar formato de código de barras (8-16 dígitos)
   static final RegExp _barcodePattern = RegExp(r'^\d{8,16}$');

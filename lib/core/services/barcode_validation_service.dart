@@ -55,14 +55,22 @@ class BarcodeValidationService {
   }
 
   /// Encontra um item pelo código de barras
+  /// Verifica tanto os códigos principais quanto os códigos das unidades de medida
   static SeparateItemConsultationModel? _findItemByBarcode(List<SeparateItemConsultationModel> items, String barcode) {
-    final trimmedBarcode = barcode.trim().toLowerCase();
+    final trimmedBarcode = barcode.trim();
 
     for (final item in items) {
-      final barcode1 = item.codigoBarras?.trim().toLowerCase();
-      final barcode2 = item.codigoBarras2?.trim().toLowerCase();
+      final barcode1 = item.codigoBarras?.trim();
+      final barcode2 = item.codigoBarras2?.trim();
 
+      // Verificar códigos principais
       if ((barcode1 != null && barcode1 == trimmedBarcode) || (barcode2 != null && barcode2 == trimmedBarcode)) {
+        return item;
+      }
+
+      // Verificar se o código está na lista de unidades de medida
+      final unidadeEncontrada = item.buscarUnidadeMedidaPorCodigoBarras(trimmedBarcode);
+      if (unidadeEncontrada != null) {
         return item;
       }
     }

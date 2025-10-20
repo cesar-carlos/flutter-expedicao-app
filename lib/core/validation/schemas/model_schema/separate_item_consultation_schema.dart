@@ -1,7 +1,7 @@
 import 'package:zard/zard.dart';
 
 import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
-import 'package:data7_expedicao/core/validation/schemas/enum_schemas.dart';
+import 'package:data7_expedicao/core/validation/schemas/model_schema/separate_item_unidade_medida_consultation_schema.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
 /// Schema para validação de SeparateItemConsultationModel
@@ -11,20 +11,39 @@ class SeparateItemConsultationSchema {
   /// Schema para SeparateItemConsultationModel
   static final schema = z.map({
     'CodEmpresa': CommonSchemas.integerSchema,
-    'CodSepararEstoqueItem': CommonSchemas.integerSchema,
     'CodSepararEstoque': CommonSchemas.integerSchema,
+    'Item': CommonSchemas.itemIdSchema,
+    'Origem': CommonSchemas.nonEmptyStringSchema,
+    'CodOrigem': CommonSchemas.integerSchema,
+    'ItemOrigem': CommonSchemas.optionalStringSchema,
     'CodProduto': CommonSchemas.integerSchema,
     'NomeProduto': CommonSchemas.nonEmptyStringSchema,
+    'Ativo': CommonSchemas.nonEmptyStringSchema,
+    'CodTipoProduto': CommonSchemas.nonEmptyStringSchema,
+    'CodUnidadeMedida': CommonSchemas.nonEmptyStringSchema,
+    'NomeUnidadeMedida': CommonSchemas.nonEmptyStringSchema,
+    'CodGrupoProduto': CommonSchemas.integerSchema,
+    'NomeGrupoProduto': CommonSchemas.nonEmptyStringSchema,
+    'CodMarca': CommonSchemas.optionalIntegerSchema,
+    'NomeMarca': CommonSchemas.optionalStringSchema,
+    'CodSetorEstoque': CommonSchemas.optionalIntegerSchema,
+    'NomeSetorEstoque': CommonSchemas.optionalStringSchema,
+    'NCM': CommonSchemas.optionalStringSchema,
     'CodigoBarras': CommonSchemas.optionalStringSchema,
-    'UnidadeMedida': CommonSchemas.nonEmptyStringSchema,
-    'QuantidadeSolicitada': CommonSchemas.quantitySchema,
-    'QuantidadeSeparada': CommonSchemas.quantitySchema,
-    'QuantidadePendente': CommonSchemas.quantitySchema,
-    'Situacao': EnumSchemas.expeditionItemSituationSchema,
-    'TipoEntidade': EnumSchemas.entityTypeSchema,
-    'CodLocal': CommonSchemas.optionalIntegerSchema,
-    'NomeLocal': CommonSchemas.optionalStringSchema,
-    'Observacao': CommonSchemas.optionalStringSchema,
+    'CodigoBarras2': CommonSchemas.optionalStringSchema,
+    'CodigoReferencia': CommonSchemas.optionalStringSchema,
+    'CodigoFornecedor': CommonSchemas.optionalStringSchema,
+    'CodigoFabricante': CommonSchemas.optionalStringSchema,
+    'CodigoOriginal': CommonSchemas.optionalStringSchema,
+    'Endereco': CommonSchemas.optionalStringSchema,
+    'EnderecoDescricao': CommonSchemas.optionalStringSchema,
+    'CodLocalArmazenagem': CommonSchemas.integerSchema,
+    'NomeLocaArmazenagem': CommonSchemas.nonEmptyStringSchema,
+    'Quantidade': CommonSchemas.quantitySchema,
+    'QuantidadeInterna': CommonSchemas.quantitySchema,
+    'QuantidadeExterna': CommonSchemas.quantitySchema,
+    'QuantidadeSeparacao': CommonSchemas.quantitySchema,
+    'UnidadeMedidas': z.list(SeparateItemUnidadeMedidaConsultationSchema.schema),
   });
 
   /// Valida dados de consulta do item de separação

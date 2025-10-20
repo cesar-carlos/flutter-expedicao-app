@@ -153,7 +153,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
             enabled: !widget.isLoading,
             autofocus: true,
             textInputAction: TextInputAction.done,
-            keyboardType: _keyboardEnabled ? TextInputType.number : TextInputType.none,
+            keyboardType: _keyboardEnabled ? TextInputType.numberWithOptions(decimal: false) : TextInputType.none,
             inputFormatters: _keyboardEnabled ? [FilteringTextInputFormatter.digitsOnly] : null,
             enableInteractiveSelection: _keyboardEnabled,
             showCursor: true,

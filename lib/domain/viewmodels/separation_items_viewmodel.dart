@@ -144,9 +144,17 @@ class SeparationItemsViewModel extends ChangeNotifier {
 
       if (_disposed) return;
 
-      // Ordenação natural dos endereços
+      // Ordenação natural dos endereços - prioriza produtos com endereço
       _items = items
         ..sort((a, b) {
+          final hasEnderecoA = a.enderecoDescricao?.isNotEmpty == true;
+          final hasEnderecoB = b.enderecoDescricao?.isNotEmpty == true;
+
+          // Priorizar produtos com endereço sobre os sem endereço
+          if (hasEnderecoA && !hasEnderecoB) return -1;
+          if (!hasEnderecoA && hasEnderecoB) return 1;
+
+          // Se ambos têm ou não têm endereço, ordenar por endereço
           final endA = a.enderecoDescricao?.toLowerCase() ?? '';
           final endB = b.enderecoDescricao?.toLowerCase() ?? '';
 
@@ -481,8 +489,16 @@ class SeparationItemsViewModel extends ChangeNotifier {
 
       if (_disposed) return;
 
-      // Ordenação natural dos endereços
+      // Ordenação natural dos endereços - prioriza produtos com endereço
       items.sort((a, b) {
+        final hasEnderecoA = a.enderecoDescricao?.isNotEmpty == true;
+        final hasEnderecoB = b.enderecoDescricao?.isNotEmpty == true;
+
+        // Priorizar produtos com endereço sobre os sem endereço
+        if (hasEnderecoA && !hasEnderecoB) return -1;
+        if (!hasEnderecoA && hasEnderecoB) return 1;
+
+        // Se ambos têm ou não têm endereço, ordenar por endereço
         final endA = a.enderecoDescricao?.toLowerCase() ?? '';
         final endB = b.enderecoDescricao?.toLowerCase() ?? '';
 

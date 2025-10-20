@@ -68,13 +68,21 @@ class PickingUtils {
   }
 
   /// Valida se o código de barras corresponde ao item esperado
+  /// Verifica tanto os códigos principais quanto os códigos das unidades de medida
   static bool validateBarcode(String scannedBarcode, SeparateItemConsultationModel expectedItem) {
-    final trimmedBarcode = scannedBarcode.trim().toLowerCase();
-    final expectedBarcode1 = expectedItem.codigoBarras?.trim().toLowerCase();
-    final expectedBarcode2 = expectedItem.codigoBarras2?.trim().toLowerCase();
+    final trimmedBarcode = scannedBarcode.trim();
+    final expectedBarcode1 = expectedItem.codigoBarras?.trim();
+    final expectedBarcode2 = expectedItem.codigoBarras2?.trim();
 
-    return (expectedBarcode1 != null && expectedBarcode1 == trimmedBarcode) ||
-        (expectedBarcode2 != null && expectedBarcode2 == trimmedBarcode);
+    // Verificar códigos principais
+    if ((expectedBarcode1 != null && expectedBarcode1 == trimmedBarcode) ||
+        (expectedBarcode2 != null && expectedBarcode2 == trimmedBarcode)) {
+      return true;
+    }
+
+    // Verificar se o código está na lista de unidades de medida
+    final unidadeEncontrada = expectedItem.buscarUnidadeMedidaPorCodigoBarras(trimmedBarcode);
+    return unidadeEncontrada != null;
   }
 
   /// Calcula o progresso de separação

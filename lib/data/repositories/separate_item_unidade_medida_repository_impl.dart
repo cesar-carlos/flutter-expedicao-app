@@ -6,18 +6,19 @@ import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
-import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
 import 'package:data7_expedicao/core/network/socket_config.dart';
 
-class SeparateItemConsultationRepositoryImpl implements BasicConsultationRepository<SeparateItemConsultationModel> {
+class SeparateItemUnidadeMedidaRepositoryImpl
+    implements BasicConsultationRepository<SeparateItemUnidadeMedidaConsultationModel> {
   final uuid = const Uuid();
   var socket = SocketConfig.instance;
-  final selectEvent = 'separar.item.consulta';
+  final selectEvent = 'separar.item.unidade.medida.consulta';
 
   @override
-  Future<List<SeparateItemConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
+  Future<List<SeparateItemUnidadeMedidaConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
     final event = '${socket.id} $selectEvent';
-    final completer = Completer<List<SeparateItemConsultationModel>>();
+    final completer = Completer<List<SeparateItemUnidadeMedidaConsultationModel>>();
     final responseId = uuid.v4();
 
     final send = SendQuerySocketDto(
@@ -41,14 +42,9 @@ class SeparateItemConsultationRepositoryImpl implements BasicConsultationReposit
             return;
           }
 
-          final list = <SeparateItemConsultationModel>[];
-          for (final json in data) {
-            final result = SeparateItemConsultationModel.fromJsonSafe(json);
-            result.fold(
-              (model) => list.add(model),
-              (failure) => throw DataError(message: 'Erro ao converter SeparateItemConsultationModel: $failure'),
-            );
-          }
+          final list = data.map<SeparateItemUnidadeMedidaConsultationModel>((json) {
+            return SeparateItemUnidadeMedidaConsultationModel.fromJson(json);
+          }).toList();
 
           completer.complete(list);
         } catch (e) {

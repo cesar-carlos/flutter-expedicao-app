@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class BarcodeScannerCard extends StatelessWidget {
   final TextEditingController controller;
@@ -31,7 +32,7 @@ class BarcodeScannerCard extends StatelessWidget {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: enabled ? colorScheme.primary.withValues(alpha:0.3) : Colors.grey.withValues(alpha:0.3),
+          color: enabled ? colorScheme.primary.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -76,7 +77,10 @@ class BarcodeScannerCard extends StatelessWidget {
       // Permitir entrada do scanner embutido sempre, mas controlar seleção interativa
       enableInteractiveSelection: isFieldEnabled && keyboardEnabled,
       // Permitir teclado no modo manual, suprimir apenas no modo scanner
-      keyboardType: isFieldEnabled && keyboardEnabled ? TextInputType.text : TextInputType.none,
+      keyboardType: isFieldEnabled && keyboardEnabled
+          ? TextInputType.numberWithOptions(decimal: false)
+          : TextInputType.none,
+      inputFormatters: isFieldEnabled && keyboardEnabled ? [FilteringTextInputFormatter.digitsOnly] : null,
       decoration: InputDecoration(
         hintText: isProcessing
             ? 'Processando...'
@@ -130,7 +134,7 @@ class BarcodeScannerCard extends StatelessWidget {
           borderSide: BorderSide(color: Colors.grey),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        fillColor: enabled ? null : Colors.grey.withValues(alpha:0.1),
+        fillColor: enabled ? null : Colors.grey.withValues(alpha: 0.1),
         filled: !enabled,
       ),
       style: TextStyle(color: enabled ? null : Colors.grey),
