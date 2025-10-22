@@ -3,6 +3,23 @@ import 'package:data7_expedicao/core/utils/picking_utils.dart';
 
 /// Serviço para validação e processamento de códigos de barras
 class BarcodeValidationService {
+  /// Cache de buscas por código de barras para melhorar performance
+  static final Map<String, SeparateItemConsultationModel?> _barcodeSearchCache = {};
+
+  /// Cache de validações para evitar reprocessamento
+  static final Map<String, BarcodeValidationResult> _validationCache = {};
+
+  /// Limpa todos os caches
+  static void clearCaches() {
+    _barcodeSearchCache.clear();
+    _validationCache.clear();
+  }
+
+  /// Limpa cache de validações específico
+  static void clearValidationCache() {
+    _validationCache.clear();
+  }
+
   /// Valida se o código escaneado corresponde ao próximo item esperado
   static BarcodeValidationResult validateScannedBarcode(
     String scannedBarcode,
@@ -56,8 +73,16 @@ class BarcodeValidationService {
 
   /// Encontra um item pelo código de barras
   /// Verifica tanto os códigos principais quanto os códigos das unidades de medida
+  /// Usa cache para melhorar performance em buscas repetidas
   static SeparateItemConsultationModel? _findItemByBarcode(List<SeparateItemConsultationModel> items, String barcode) {
     final trimmedBarcode = barcode.trim();
+
+    // Verificar cache primeiro
+    if (_barcodeSearchCache.containsKey(trimmedBarcode)) {
+      return _barcodeSearchCache[trimmedBarcode];
+    }
+
+    SeparateItemConsultationModel? foundItem;
 
     for (final item in items) {
       final barcode1 = item.codigoBarras?.trim();
@@ -65,17 +90,21 @@ class BarcodeValidationService {
 
       // Verificar códigos principais
       if ((barcode1 != null && barcode1 == trimmedBarcode) || (barcode2 != null && barcode2 == trimmedBarcode)) {
-        return item;
+        foundItem = item;
+        break;
       }
 
       // Verificar se o código está na lista de unidades de medida
       final unidadeEncontrada = item.buscarUnidadeMedidaPorCodigoBarras(trimmedBarcode);
       if (unidadeEncontrada != null) {
-        return item;
+        foundItem = item;
+        break;
       }
     }
 
-    return null;
+    // Cachear resultado
+    _barcodeSearchCache[trimmedBarcode] = foundItem;
+    return foundItem;
   }
 }
 

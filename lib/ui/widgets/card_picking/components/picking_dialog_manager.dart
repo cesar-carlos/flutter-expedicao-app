@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/ui/widgets/common/picking_dialog.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 /// Gerenciador de diálogos da tela de picking
@@ -68,6 +69,27 @@ class PickingDialogManager {
   /// Mostra diálogo de separação completa
   void showAllItemsCompletedDialog() {
     _showDialogWithFocusReturn(() => PickingDialogs.separationComplete());
+  }
+
+  /// Mostra diálogo de escaneamento de prateleira
+  void showShelfScanDialog({
+    required String expectedAddress,
+    required String expectedAddressDescription,
+    required Function(String) onShelfScanned,
+    Function()? onBack,
+  }) {
+    if (!context.mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Não pode fechar tocando fora
+      builder: (context) => ShelfScanningModal(
+        expectedAddress: expectedAddress,
+        expectedAddressDescription: expectedAddressDescription,
+        onShelfScanned: onShelfScanned,
+        onBack: onBack,
+      ),
+    );
   }
 
   /// Mostra diálogo após completar todos os itens do setor, oferecendo salvar o carrinho

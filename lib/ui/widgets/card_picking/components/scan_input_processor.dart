@@ -36,13 +36,16 @@ class ScanInputProcessor {
   /// Limpa recursos quando não precisar mais do processador
   void dispose() {
     _scannerService.dispose();
+    // Limpar caches quando o processador for descartado
+    BarcodeValidationService.clearCaches();
   }
 
-  /// Processa entrada do scanner com debounce
+  /// Processa entrada do scanner com detecção prioritária de Enter
   ///
-  /// Delega o processamento para o BarcodeScannerService centralizado.
+  /// Prioriza detecção de Enter para confirmação de leitura completa.
+  /// Usa debounce apenas como fallback para leitores que não enviam Enter.
   void processScannerInput(String input, void Function(String) onCompleteBarcode, void Function() onWaitForMore) {
-    _scannerService.processBarcodeInput(input, onCompleteBarcode, onWaitForMore);
+    _scannerService.processBarcodeInputWithControlDetection(input, onCompleteBarcode, onWaitForMore);
   }
 
   /// Valida código de barras escaneado
@@ -53,6 +56,13 @@ class ScanInputProcessor {
       viewModel.isItemCompleted,
       userSectorCode: viewModel.userModel?.codSetorEstoque,
     );
+  }
+
+  /// Limpa caches de validação
+  /// Útil quando há mudanças no contexto (novos itens, mudança de setor, etc.)
+  void clearValidationCaches() {
+    _scannerService.clearValidationCache();
+    BarcodeValidationService.clearValidationCache();
   }
 
   /// Processa adição bem-sucedida de item de forma otimizada

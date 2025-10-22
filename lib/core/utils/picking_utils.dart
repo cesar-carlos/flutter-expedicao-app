@@ -85,6 +85,13 @@ class PickingUtils {
     return unidadeEncontrada != null;
   }
 
+  /// Valida se o código de prateleira corresponde ao endereço esperado
+  static bool validateShelfBarcode(String scannedCode, SeparateItemConsultationModel item) {
+    final trimmedCode = scannedCode.trim();
+    final expectedCode = item.endereco?.trim();
+    return expectedCode != null && expectedCode == trimmedCode;
+  }
+
   /// Calcula o progresso de separação
   static double calculateProgress(int completedItems, int totalItems) {
     return totalItems > 0 ? completedItems / totalItems : 0.0;

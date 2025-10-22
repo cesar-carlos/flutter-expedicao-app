@@ -2,8 +2,10 @@ import 'dart:async' show Future, StreamController, Stream;
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/domain/models/picking_state.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
 import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
@@ -63,6 +65,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
   // Repository para eventos de carrinho
   final SeparateCartInternshipEventRepository _cartEventRepository;
+  final ShelfScanningService _shelfScanningService;
 
   // Estado do carrinho
   ExpeditionCartRouteInternshipConsultationModel? _cart;
@@ -96,6 +99,9 @@ class CardPickingViewModel extends ChangeNotifier {
 
   /// Rastreamento do último produto escaneado para detectar mudança
   int? _lastScannedCodProduto;
+
+  /// Rastreamento do último endereço escaneado para detectar mudança de prateleira
+  String? get lastScannedAddress => _shelfScanningService.lastScannedAddress;
 
   /// Fila de operações pendentes por item (itemId para List de Future)
   final Map<String, List<Future<void>>> _pendingOperations = {};
@@ -137,6 +143,9 @@ class CardPickingViewModel extends ChangeNotifier {
   /// Verifica se o status do carrinho mudou durante a sessão
   bool get hasCartStatusChanged => _cartStatusChanged;
 
+  /// Verifica se o usuário deve escanear prateleira
+  bool get requiresShelfScanning => _shelfScanningService.requiresShelfScanning(_userModel);
+
   // Flag para evitar dispose durante operações
   bool _disposed = false;
 
@@ -162,6 +171,24 @@ class CardPickingViewModel extends ChangeNotifier {
     SeparationItemStatus.cancelado,
   ];
 
+  // === VALIDAÇÃO DE PRATELEIRA ===
+
+  /// Verifica se deve escanear prateleira para o próximo item
+  bool shouldScanShelf(SeparateItemConsultationModel nextItem) {
+    return _shelfScanningService.shouldScanShelf(nextItem, _userModel);
+  }
+
+  /// Atualiza o endereço escaneado
+  void updateScannedAddress(String address) {
+    _shelfScanningService.updateScannedAddress(address);
+    _safeNotifyListeners();
+  }
+
+  /// Reseta o endereço escaneado
+  void resetScannedAddress() {
+    _shelfScanningService.resetScannedAddress();
+  }
+
   // Construtor
   CardPickingViewModel()
     : _repository = locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
@@ -169,7 +196,8 @@ class CardPickingViewModel extends ChangeNotifier {
       _filtersStorage = locator<FiltersStorageService>(),
       _addItemSeparationUseCase = locator<AddItemSeparationUseCase>(),
       _userSessionService = locator<UserSessionService>(),
-      _cartEventRepository = locator<SeparateCartInternshipEventRepository>();
+      _cartEventRepository = locator<SeparateCartInternshipEventRepository>(),
+      _shelfScanningService = locator<ShelfScanningService>();
 
   @override
   void dispose() {
@@ -202,6 +230,7 @@ class CardPickingViewModel extends ChangeNotifier {
       _cart = cart;
       _userModel = userModel;
       _cartStatusChanged = false;
+      _shelfScanningService.resetScannedAddress(); // Resetar endereço escaneado
       _safeNotifyListeners();
 
       // Carregar itens do carrinho através de use case
@@ -216,6 +245,17 @@ class CardPickingViewModel extends ChangeNotifier {
       _isLoading = false;
       _safeNotifyListeners();
     }
+  }
+
+  /// Verifica se deve mostrar o modal de escaneamento de prateleira na inicialização
+  ///
+  /// Retorna o próximo item se o usuário precisa escanear prateleira e há um item com endereço
+  SeparateItemConsultationModel? shouldShowInitialShelfScan() {
+    return _shelfScanningService.shouldShowInitialShelfScan(
+      _items,
+      _userModel,
+      () => PickingUtils.findNextItemToPick(_items, isItemCompleted, userSectorCode: _userModel?.codSetorEstoque),
+    );
   }
 
   /// Carrega os itens do carrinho para picking
@@ -444,6 +484,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
     // Resetar estado interno para garantir consistência
     _lastScannedCodProduto = null;
+    _shelfScanningService.resetScannedAddress(); // Resetar endereço escaneado
     _itemsByCodProduto = null;
 
     // Preservar o userModel atual durante o refresh

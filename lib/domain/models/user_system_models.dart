@@ -1,5 +1,5 @@
-import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 
 class UserSystemModel {
   final int codUsuario;
@@ -18,6 +18,7 @@ class UserSystemModel {
   final String? nomeSetorEstoque;
   final Situation permiteSepararForaSequencia;
   final Situation visualizaTodasSeparacoes;
+  final Situation expedicaoObrigaEscanearPrateleira;
   final int? codSetorConferencia;
   final String? nomeSetorConferencia;
   final Situation permiteConferirForaSequencia;
@@ -49,6 +50,7 @@ class UserSystemModel {
     this.nomeSetorEstoque,
     required this.permiteSepararForaSequencia,
     required this.visualizaTodasSeparacoes,
+    required this.expedicaoObrigaEscanearPrateleira,
     this.codSetorConferencia,
     this.nomeSetorConferencia,
     required this.permiteConferirForaSequencia,
@@ -82,6 +84,9 @@ class UserSystemModel {
       nomeSetorEstoque: map['NomeSetorEstoque'] as String?,
       permiteSepararForaSequencia: Situation.fromCodeWithFallback(map['PermiteSepararForaSequencia'] as String? ?? 'N'),
       visualizaTodasSeparacoes: Situation.fromCodeWithFallback(map['VisualizaTodasSeparacoes'] as String? ?? 'N'),
+      expedicaoObrigaEscanearPrateleira: Situation.fromCodeWithFallback(
+        map['ExpedicaoObrigaEscanearPrateleira'] as String? ?? 'N',
+      ),
       codSetorConferencia: map['CodSetorConferencia'] as int?,
       nomeSetorConferencia: map['NomeSetorConferencia'] as String?,
       permiteConferirForaSequencia: Situation.fromCodeWithFallback(
@@ -128,6 +133,7 @@ class UserSystemModel {
       'NomeSetorEstoque': nomeSetorEstoque,
       'PermiteSepararForaSequencia': permiteSepararForaSequencia.code,
       'VisualizaTodasSeparacoes': visualizaTodasSeparacoes.code,
+      'ExpedicaoObrigaEscanearPrateleira': expedicaoObrigaEscanearPrateleira.code,
       'CodSetorConferencia': codSetorConferencia,
       'NomeSetorConferencia': nomeSetorConferencia,
       'PermiteConferirForaSequencia': permiteConferirForaSequencia.code,

@@ -295,6 +295,12 @@ class UserInfoChips extends StatelessWidget {
         icon: Icons.shopping_cart,
         hasPermission: systemData.editaCarrinhoOutroUsuario == Situation.ativo,
       ),
+      PermissionData(
+        title: 'Escaneamento de Prateleira',
+        description: 'Obrigar escaneamento de prateleira na expedição',
+        icon: Icons.qr_code_scanner,
+        hasPermission: systemData.expedicaoObrigaEscanearPrateleira == Situation.ativo,
+      ),
     ];
 
     return TertiaryProfileSection(

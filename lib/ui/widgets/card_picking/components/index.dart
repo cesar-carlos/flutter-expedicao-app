@@ -5,3 +5,4 @@ export 'picking_dialog_manager.dart';
 export 'picking_screen_layout.dart';
 export 'picking_scan_state.dart';
 export 'scan_input_processor.dart';
+export 'shelf_scanning_modal.dart';

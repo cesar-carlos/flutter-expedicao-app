@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
+import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
@@ -125,6 +126,9 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   // Subscription para erros de operação
   StreamSubscription<OperationError>? _errorSubscription;
 
+  // Controle para evitar modal duplicado
+  bool _hasShownInitialShelfScan = false;
+
   /// Mantém o estado vivo para otimização de performance
   @override
   bool get wantKeepAlive => true;
@@ -148,6 +152,18 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     // Escutar erros de operações assíncronas
     _errorSubscription = widget.viewModel.operationErrors.listen(_handleOperationError);
+
+    // 🆕 Escutar mudanças no ViewModel para detectar quando os itens são carregados
+    widget.viewModel.addListener(_onViewModelChanged);
+
+    // 🆕 Verificação adicional após um delay maior para casos onde o listener não é chamado
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted && !_hasShownInitialShelfScan) {
+        if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
+          _checkInitialShelfScan();
+        }
+      }
+    });
   }
 
   /// Inicializa os componentes refatorados
@@ -287,6 +303,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   @override
   void dispose() {
     _errorSubscription?.cancel();
+    widget.viewModel.removeListener(_onViewModelChanged); // 🆕 Remover listener
     _scanController.removeListener(_onScannerInput);
     _scanFocusNode.removeListener(_onFocusChange);
     _scanController.dispose();
@@ -300,6 +317,21 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _scanState.dispose();
 
     super.dispose();
+  }
+
+  /// Listener para mudanças no ViewModel
+  void _onViewModelChanged() {
+    if (!mounted) return;
+
+    // Verificar se os itens foram carregados e se deve mostrar modal de prateleira
+    if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
+      // Aguardar um pouco para garantir que a UI esteja atualizada
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (mounted) {
+          _checkInitialShelfScan();
+        }
+      });
+    }
   }
 
   @override
@@ -330,6 +362,18 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     // Evitar múltiplos processamentos simultâneos
     if (_scanState.isProcessingScan) return;
+
+    // 🆕 VERIFICAR SE PRECISA ESCANEAR PRATELEIRA
+    final nextItem = PickingUtils.findNextItemToPick(
+      widget.viewModel.items,
+      widget.viewModel.isItemCompleted,
+      userSectorCode: widget.viewModel.userModel?.codSetorEstoque,
+    );
+
+    if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
+      _showShelfScanDialog(nextItem);
+      return;
+    }
 
     // Bloquear campo e limpar para próximo scan
     _scanState.startProcessing();
@@ -431,6 +475,11 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       final result = await widget.viewModel.addScannedItem(codProduto: item.codProduto, quantity: quantity);
 
       if (result.isSuccess) {
+        // Atualizar endereço escaneado ANTES de processar o sucesso
+        if (item.endereco != null) {
+          widget.viewModel.updateScannedAddress(item.endereco!);
+        }
+
         await _scanProcessor.handleSuccessfulItemAddition(
           item,
           quantity,
@@ -438,6 +487,10 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
           _invalidateCartStatusCache,
           _checkIfSectorItemsCompleted,
         );
+
+        // Verificar se o próximo item precisa de escaneamento de prateleira
+        _checkNextItemShelfScan();
+
         _keyboardController.returnFocusToScanner();
       } else {
         _scanProcessor.handleFailedItemAddition(item, result.message);
@@ -449,6 +502,69 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       _dialogManager.showErrorDialog(barcode, item.nomeProduto, 'Erro inesperado: ${e.toString()}');
       _keyboardController.returnFocusToScanner();
     }
+  }
+
+  /// Verifica se deve mostrar o modal de escaneamento de prateleira na inicialização
+  void _checkInitialShelfScan() {
+    if (!mounted || _hasShownInitialShelfScan) return;
+
+    final nextItem = widget.viewModel.shouldShowInitialShelfScan();
+    if (nextItem != null) {
+      _hasShownInitialShelfScan = true; // Marcar como já mostrado
+
+      // Aguardar um pouco para garantir que a UI esteja totalmente carregada
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          _showShelfScanDialog(nextItem);
+        }
+      });
+    }
+  }
+
+  /// Verifica se o próximo item precisa de escaneamento de prateleira
+  void _checkNextItemShelfScan() {
+    if (!mounted) return;
+
+    final nextItem = PickingUtils.findNextItemToPick(
+      widget.viewModel.items,
+      widget.viewModel.isItemCompleted,
+      userSectorCode: widget.viewModel.userModel?.codSetorEstoque,
+    );
+
+    if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
+      // Aguardar um pouco para garantir que a UI esteja atualizada
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (mounted) {
+          _showShelfScanDialog(nextItem);
+        }
+      });
+    }
+  }
+
+  /// Mostra diálogo de escaneamento de prateleira
+  void _showShelfScanDialog(SeparateItemConsultationModel nextItem) {
+    _dialogManager.showShelfScanDialog(
+      expectedAddress: nextItem.endereco!,
+      expectedAddressDescription: nextItem.enderecoDescricao ?? 'Endereço não definido',
+      onShelfScanned: (scannedAddress) {
+        print('🔍 DEBUG: onShelfScanned chamado com endereço: $scannedAddress');
+        // Atualizar endereço escaneado no ViewModel
+        widget.viewModel.updateScannedAddress(scannedAddress);
+
+        // Retornar foco para scanner
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scanFocusNode.requestFocus();
+        });
+
+        // Tocar som de sucesso
+        _audioService.playShelfScanSuccess();
+      },
+      onBack: () {
+        // Fechar modal e voltar para tela de separação
+        Navigator.of(context).pop(); // Fecha o modal
+        Navigator.of(context).pop(); // Volta para tela de separação
+      },
+    );
   }
 
   /// Resetar quantidade para o valor padrão se estiver maior que 1
@@ -491,6 +607,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   /// Finaliza o picking e volta para a tela anterior
   Future<void> _finishPicking() async {
     if (mounted) {
+      print('🔍 DEBUG: _finishPicking chamado - fazendo Navigator.pop(true)');
       Navigator.of(context).pop(true); // Pop com resultado true indicando finalização
     }
   }
