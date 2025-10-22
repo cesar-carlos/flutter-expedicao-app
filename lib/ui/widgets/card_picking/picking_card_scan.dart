@@ -4,12 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
-import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
-import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
-import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
+import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
+import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
 
 /// Tela de escaneamento de itens do carrinho durante a separação
 ///
@@ -491,6 +496,15 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         // Verificar se o próximo item precisa de escaneamento de prateleira
         _checkNextItemShelfScan();
 
+        // Verificar se deve mostrar modal de salvar carrinho ANTES da UI ser atualizada
+
+        // Aguardar um pouco para o sistema processar a separação
+        Future.delayed(const Duration(milliseconds: 500), () async {
+          if (mounted) {
+            await _checkAndShowSaveCartModal();
+          }
+        });
+
         _keyboardController.returnFocusToScanner();
       } else {
         _scanProcessor.handleFailedItemAddition(item, result.message);
@@ -547,7 +561,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       expectedAddress: nextItem.endereco!,
       expectedAddressDescription: nextItem.enderecoDescricao ?? 'Endereço não definido',
       onShelfScanned: (scannedAddress) {
-        print('🔍 DEBUG: onShelfScanned chamado com endereço: $scannedAddress');
         // Atualizar endereço escaneado no ViewModel
         widget.viewModel.updateScannedAddress(scannedAddress);
 
@@ -580,9 +593,9 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  /// Verifica se todos os itens do setor do usuário foram separados
-  /// Se sim, oferece opção de salvar o carrinho imediatamente
-  Future<void> _checkIfSectorItemsCompleted() async {
+  /// Verifica se deve mostrar o modal de salvar carrinho
+  /// Esta verificação acontece ANTES da UI ser atualizada para evitar conflitos
+  Future<void> _checkAndShowSaveCartModal() async {
     final userSectorCode = widget.viewModel.userModel?.codSetorEstoque;
 
     // Se usuário não tem setor definido, não fazer nada
@@ -590,8 +603,22 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       return;
     }
 
-    // Verificar se ainda há itens do setor para separar
-    if (!widget.viewModel.hasItemsForUserSector) {
+    // Verificar se todos os itens do setor foram completados
+    final sectorItems = widget.viewModel.items
+        .where((item) => item.codSetorEstoque == null || item.codSetorEstoque == userSectorCode)
+        .toList();
+
+    // Se não há itens para o setor, não fazer nada
+    if (sectorItems.isEmpty) {
+      return;
+    }
+
+    // Verificar se todos os itens do setor foram completados
+    final allSectorItemsCompleted = sectorItems.every(
+      (item) => widget.viewModel.isItemCompleted(item.item), // ✅ CORRIGIDO: Usar item.item
+    );
+
+    if (allSectorItemsCompleted) {
       // Reproduzir som de separação completa
       await _audioService.playAlertComplete();
 
@@ -604,11 +631,137 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
+  /// Verifica se todos os itens do setor do usuário foram separados
+  /// Este método é chamado pelo ScanInputProcessor após adição bem-sucedida
+  Future<void> _checkIfSectorItemsCompleted() async {
+    // A lógica principal foi movida para _checkAndShowSaveCartModal()
+    // Este método é mantido para compatibilidade com o ScanInputProcessor
+  }
+
+  /// Carrega o UserSystemModel da sessão atual
+  Future<UserSystemModel?> _getUserModel() async {
+    try {
+      final userSessionService = locator<UserSessionService>();
+      final currentUser = await userSessionService.loadUserSession();
+      return currentUser?.userSystemModel;
+    } catch (e) {
+      print('Erro ao carregar UserSystemModel: $e');
+      return null;
+    }
+  }
+
+  /// Mostra dialog de loading durante operações assíncronas
+  void _showLoadingDialog() {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Salvando carrinho...')],
+        ),
+      ),
+    );
+  }
+
+  /// Mostra dialog de erro com mensagem personalizada
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Erro'),
+        content: Text(message),
+        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
+      ),
+    );
+  }
+
   /// Finaliza o picking e volta para a tela anterior
   Future<void> _finishPicking() async {
-    if (mounted) {
-      print('🔍 DEBUG: _finishPicking chamado - fazendo Navigator.pop(true)');
-      Navigator.of(context).pop(true); // Pop com resultado true indicando finalização
+    if (!mounted) return;
+
+    // Carregar UserSystemModel para validação de permissões
+    final userModel = await _getUserModel();
+    if (userModel == null) {
+      _showErrorDialog('Erro ao carregar dados do usuário. Tente novamente.');
+      return;
+    }
+
+    // Validar permissões de acesso ao carrinho
+    final validationResult = CartValidationService.validateCartAccess(
+      currentUserCode: userModel.codUsuario,
+      cart: widget.viewModel.cart!,
+      userModel: userModel,
+      accessType: CartAccessType.save,
+    );
+
+    if (!validationResult.canAccess) {
+      String errorMessage = 'Você não tem permissão para salvar este carrinho.';
+      if (validationResult.reason == CartAccessDeniedReason.differentUser) {
+        errorMessage =
+            'Este carrinho pertence a ${validationResult.cartOwnerName}. Você não tem permissão para salvá-lo.';
+      }
+      _showErrorDialog(errorMessage);
+      return;
+    }
+
+    // Mostrar loading dialog
+    _showLoadingDialog();
+
+    try {
+      // Criar parâmetros para salvar o carrinho
+      final saveParams = SaveSeparationCartParams(
+        codEmpresa: widget.viewModel.cart!.codEmpresa,
+        codCarrinhoPercurso: widget.viewModel.cart!.codCarrinhoPercurso,
+        itemCarrinhoPercurso: widget.viewModel.cart!.item,
+        codSepararEstoque: widget.viewModel.cart!.codOrigem,
+      );
+
+      // Executar use case de salvar carrinho
+      final saveCartUseCase = locator<SaveSeparationCartUseCase>();
+      final result = await saveCartUseCase(saveParams);
+
+      // Fechar loading dialog
+      if (mounted) {
+        Navigator.of(context).pop(); // Fecha o loading dialog
+      }
+
+      // Processar resultado
+      result.fold(
+        (success) {
+          // Sucesso: reproduzir som e navegar para tela de separação
+          _audioService.playSuccess();
+          if (mounted) {
+            // Voltar duas telas: carrinho scan -> carrinhos da separação -> listagem de separações
+            Navigator.of(context).pop(); // Fecha a tela de carrinho scan
+            Navigator.of(context).pop(true); // Volta para listagem de separações com resultado true
+          }
+        },
+        (failure) {
+          // Erro: mostrar mensagem e manter na tela de scan
+          String errorMessage = 'Erro ao salvar carrinho';
+
+          // Verificar se a mensagem de erro contém sucesso (contradição)
+          if (failure.toString().toLowerCase().contains('sucesso') ||
+              failure.toString().toLowerCase().contains('finalizado')) {
+            errorMessage = 'Erro inesperado ao salvar carrinho. Tente novamente.';
+          } else {
+            errorMessage = 'Erro ao salvar carrinho: ${failure.toString()}';
+          }
+
+          _showErrorDialog(errorMessage);
+        },
+      );
+    } catch (e) {
+      // Fechar loading dialog em caso de exceção
+      if (mounted) {
+        Navigator.of(context).pop(); // Fecha o loading dialog
+      }
+      _showErrorDialog('Erro inesperado ao salvar carrinho: $e');
     }
   }
 }

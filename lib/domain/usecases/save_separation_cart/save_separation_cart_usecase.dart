@@ -41,11 +41,15 @@ class SaveSeparationCartUseCase {
   Future<Result<SaveSeparationCartSuccess>> call(SaveSeparationCartParams params) async {
     try {
       final appUser = await _userSessionService.loadUserSession();
-      if (appUser?.userSystemModel == null) return Failure(SaveSeparationCartFailure.userNotAuthenticated());
+      if (appUser?.userSystemModel == null) {
+        return Failure(SaveSeparationCartFailure.userNotAuthenticated());
+      }
 
       // Validar situação da separação
       final separateProgress = await _findSeparateProgress(params);
-      if (separateProgress == null) return Failure(SaveSeparationCartFailure.separationNotFound());
+      if (separateProgress == null) {
+        return Failure(SaveSeparationCartFailure.separationNotFound());
+      }
 
       if (separateProgress.situacao != ExpeditionSituation.separando) {
         return Failure(SaveSeparationCartFailure.invalidSeparationStatus(separateProgress.situacao.description));
@@ -57,9 +61,15 @@ class SaveSeparationCartUseCase {
         params.itemCarrinhoPercurso,
       );
 
-      if (itemsSeparation.isEmpty) return Failure(SaveSeparationCartFailure.noItems());
+      if (itemsSeparation.isEmpty) {
+        return Failure(SaveSeparationCartFailure.noItems());
+      }
+
       final hasSeparatedItems = itemsSeparation.any((item) => item.situacao == ExpeditionItemSituation.separado);
-      if (!hasSeparatedItems) return Failure(SaveSeparationCartFailure.noSeparatedItems());
+
+      if (!hasSeparatedItems) {
+        return Failure(SaveSeparationCartFailure.noSeparatedItems());
+      }
 
       final cartRouteInternship = await _findCartRouteInternship(
         params.codEmpresa,
@@ -67,13 +77,18 @@ class SaveSeparationCartUseCase {
         params.itemCarrinhoPercurso,
       );
 
-      if (cartRouteInternship == null) return Failure(SaveSeparationCartFailure.cartRouteInternshiptNotFound());
+      if (cartRouteInternship == null) {
+        return Failure(SaveSeparationCartFailure.cartRouteInternshiptNotFound());
+      }
+
       if (cartRouteInternship.situacao != ExpeditionSituation.separando) {
         return Failure(SaveSeparationCartFailure.invalidStatus(cartRouteInternship));
       }
 
       final cartModel = await _findCart(params.codEmpresa, cartRouteInternship.codCarrinho);
-      if (cartModel == null) return Failure(SaveSeparationCartFailure.cartNotFound());
+      if (cartModel == null) {
+        return Failure(SaveSeparationCartFailure.cartNotFound());
+      }
 
       final now = DateTime.now();
       final userModel = appUser!.userSystemModel!;
@@ -98,7 +113,6 @@ class SaveSeparationCartUseCase {
 
       await _cartRouteInternshipRepository.update(copyWithCartRouteInternship);
       await _cartRepository.update(copyWithCart);
-
       return Success(
         SaveSeparationCartSuccess(
           cart: copyWithCartRouteInternship,

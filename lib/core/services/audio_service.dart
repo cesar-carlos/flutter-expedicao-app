@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 /// Sons disponíveis no sistema
 enum SoundType {
   barcodeScan('som/BarcodeScan.wav'),
-  success('som/Notification.wav'),
+  success('som/finishi.mp3'),
   shelfScanSuccess('som/new-notification.mp3'), // Som para scan de prateleira
   itemCompleted('som/success.wav'), // Som para quando um item é completamente separado
   error('som/Error.wav'),

@@ -133,7 +133,6 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
       final input = _scanController.text.trim();
       if (input.isEmpty) return;
 
-      print('🔍 DEBUG: Iniciando validação para: $input');
       final isValid = _shelfScanningService.validateScannedAddress(
         scannedAddress: input,
         expectedAddress: widget.expectedAddress,
@@ -142,12 +141,10 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
       );
 
       if (isValid) {
-        print('🔍 DEBUG: Validação passou - fechando modal por sucesso');
         _isClosingFromSuccess = true; // Marcar que está fechando por sucesso
         Navigator.of(context).pop();
         widget.onShelfScanned(input);
       } else {
-        print('🔍 DEBUG: Validação falhou - mostrando erro');
         _showValidationError();
       }
     });
@@ -238,21 +235,17 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        print('🔍 DEBUG: WillPopScope chamado - _isClosingFromSuccess: $_isClosingFromSuccess');
         // Se está fechando por sucesso, não chamar onBack
         if (_isClosingFromSuccess) {
-          print('🔍 DEBUG: Fechando por sucesso - permitindo fechamento normal');
           return true; // Permitir fechamento normal
         }
 
         // Se tem callback onBack, chamá-lo
         if (widget.onBack != null) {
-          print('🔍 DEBUG: Chamando onBack callback');
           widget.onBack!();
           return false; // Não fazer pop automático, o callback já faz
         }
 
-        print('🔍 DEBUG: Não permitindo fechamento');
         return false; // Não permitir fechamento
       },
       child: SizedBox(
