@@ -330,9 +330,10 @@ void setupLocator() {
     () => SaveSeparationCartUseCase(
       cartRouteInternshipRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
       separationItemConsultationRepository: locator<BasicConsultationRepository<SeparationItemConsultationModel>>(),
-      cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
+      separateItemRepository: locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
       separateProgressRepository: locator<BasicConsultationRepository<SeparateProgressConsultationModel>>(),
       separationItemModelRepository: locator<BasicRepository<SeparationItemModel>>(),
+      cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
       userSessionService: locator<UserSessionService>(),
     ),
   );

@@ -71,6 +71,23 @@ class SaveSeparationCartFailure extends AppFailure {
     return SaveSeparationCartFailure(message: 'Erro inesperado ao salvar carrinho', details: error.toString());
   }
 
+  factory SaveSeparationCartFailure.excessSeparatedQuantity({
+    required String produtoNome,
+    required int codProduto,
+    required double quantidadeSolicitada,
+    required double quantidadeSeparada,
+  }) {
+    final excesso = quantidadeSeparada - quantidadeSolicitada;
+    return SaveSeparationCartFailure(
+      message: 'Quantidade separada excede a solicitada',
+      details:
+          'Produto: $produtoNome (Cód: $codProduto)\n'
+          'Solicitado: $quantidadeSolicitada\n'
+          'Separado: $quantidadeSeparada\n'
+          'Excesso: $excesso',
+    );
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

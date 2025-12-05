@@ -2,12 +2,13 @@ import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/utils/app_helper.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
-import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_success.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_failure.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_model.dart';
 import 'package:data7_expedicao/domain/models/separate_progress_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
@@ -19,6 +20,7 @@ import 'package:data7_expedicao/domain/models/separation_item_model.dart';
 class SaveSeparationCartUseCase {
   final BasicRepository<ExpeditionCartRouteInternshipModel> _cartRouteInternshipRepository;
   final BasicConsultationRepository<SeparationItemConsultationModel> _separationItemRepository;
+  final BasicConsultationRepository<SeparateItemConsultationModel> _separateItemRepository;
   final BasicConsultationRepository<SeparateProgressConsultationModel> _separateProgressRepository;
   final BasicRepository<ExpeditionCartModel> _cartRepository;
   final BasicRepository<SeparationItemModel> _separationItemModelRepository;
@@ -27,12 +29,14 @@ class SaveSeparationCartUseCase {
   SaveSeparationCartUseCase({
     required BasicRepository<ExpeditionCartRouteInternshipModel> cartRouteInternshipRepository,
     required BasicConsultationRepository<SeparationItemConsultationModel> separationItemConsultationRepository,
+    required BasicConsultationRepository<SeparateItemConsultationModel> separateItemRepository,
     required BasicConsultationRepository<SeparateProgressConsultationModel> separateProgressRepository,
     required BasicRepository<SeparationItemModel> separationItemModelRepository,
     required BasicRepository<ExpeditionCartModel> cartRepository,
     required UserSessionService userSessionService,
   }) : _cartRouteInternshipRepository = cartRouteInternshipRepository,
        _separationItemRepository = separationItemConsultationRepository,
+       _separateItemRepository = separateItemRepository,
        _separationItemModelRepository = separationItemModelRepository,
        _separateProgressRepository = separateProgressRepository,
        _userSessionService = userSessionService,
@@ -69,6 +73,12 @@ class SaveSeparationCartUseCase {
 
       if (!hasSeparatedItems) {
         return Failure(SaveSeparationCartFailure.noSeparatedItems());
+      }
+
+      // Validar se há excesso de quantidade separada
+      final validationResult = await _validateSeparatedQuantities(params);
+      if (validationResult != null) {
+        return Failure(validationResult);
       }
 
       final cartRouteInternship = await _findCartRouteInternship(
@@ -193,6 +203,71 @@ class SaveSeparationCartUseCase {
     for (final item in separationItems) {
       final updatedItem = item.copyWith(situacao: ExpeditionItemSituation.finalizado);
       await _separationItemModelRepository.update(updatedItem);
+    }
+  }
+
+  /// Valida se a quantidade separada não excede a solicitada para cada produto
+  Future<SaveSeparationCartFailure?> _validateSeparatedQuantities(SaveSeparationCartParams params) async {
+    try {
+      // 1. Buscar os itens do pedido de separação (quantidade solicitada)
+      final separateItemsQuery = QueryBuilder()
+        ..equals('CodEmpresa', params.codEmpresa.toString())
+        ..equals('CodSepararEstoque', params.codSepararEstoque.toString());
+
+      final separateItems = await _separateItemRepository.selectConsultation(separateItemsQuery);
+
+      if (separateItems.isEmpty) {
+        return null; // Se não houver itens do pedido, não há como validar
+      }
+
+      // 2. Buscar os itens já separados (quantidade separada)
+      final separationItems = await _findItemsSeparation(
+        params.codEmpresa,
+        params.codCarrinhoPercurso,
+        params.itemCarrinhoPercurso,
+      );
+
+      // Filtrar apenas itens separados (não cancelados)
+      final validSeparationItems = separationItems
+          .where((item) => item.situacao != ExpeditionItemSituation.cancelado)
+          .toList();
+
+      if (validSeparationItems.isEmpty) {
+        return null; // Se não houver itens separados válidos, não há excesso
+      }
+
+      // 3. Agrupar itens separados por produto e somar as quantidades
+      final Map<int, double> quantidadesSeparadasPorProduto = {};
+
+      for (final item in validSeparationItems) {
+        final codProduto = item.codProduto;
+        final quantidade = item.quantidade;
+
+        quantidadesSeparadasPorProduto[codProduto] = (quantidadesSeparadasPorProduto[codProduto] ?? 0.0) + quantidade;
+      }
+
+      // 4. Comparar com as quantidades solicitadas
+      for (final separateItem in separateItems) {
+        final codProduto = separateItem.codProduto;
+        final quantidadeSolicitada = separateItem.quantidade;
+        final quantidadeSeparada = quantidadesSeparadasPorProduto[codProduto] ?? 0.0;
+
+        // Se a quantidade separada excede a solicitada
+        if (quantidadeSeparada > quantidadeSolicitada) {
+          return SaveSeparationCartFailure.excessSeparatedQuantity(
+            produtoNome: separateItem.nomeProduto,
+            codProduto: codProduto,
+            quantidadeSolicitada: quantidadeSolicitada,
+            quantidadeSeparada: quantidadeSeparada,
+          );
+        }
+      }
+
+      return null; // Validação passou
+    } catch (e) {
+      // Em caso de erro na validação, não deve bloquear o salvamento
+      // A validação é preventiva, não crítica
+      return null;
     }
   }
 }
