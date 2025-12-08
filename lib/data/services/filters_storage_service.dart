@@ -16,7 +16,9 @@ class FiltersStorageService {
       final prefs = await SharedPreferences.getInstance();
       final filtersJson = jsonEncode(filters.toJson());
       await prefs.setString(_separationFiltersKey, filtersJson);
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<SeparationFiltersModel> loadSeparationFilters() async {
@@ -28,7 +30,9 @@ class FiltersStorageService {
         final filtersMap = jsonDecode(filtersJson) as Map<String, dynamic>;
         return SeparationFiltersModel.fromJson(filtersMap);
       }
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
 
     return const SeparationFiltersModel();
   }
@@ -37,7 +41,9 @@ class FiltersStorageService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_separationFiltersKey);
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<bool> hasSavedSeparationFilters() async {
@@ -54,7 +60,9 @@ class FiltersStorageService {
       final prefs = await SharedPreferences.getInstance();
       final filtersJson = jsonEncode(filters.toJson());
       await prefs.setString(_separateItemsFiltersKey, filtersJson);
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<SeparateItemsFiltersModel> loadSeparateItemsFilters() async {
@@ -66,7 +74,9 @@ class FiltersStorageService {
         final filtersMap = jsonDecode(filtersJson) as Map<String, dynamic>;
         return SeparateItemsFiltersModel.fromJson(filtersMap);
       }
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
 
     return const SeparateItemsFiltersModel();
   }
@@ -75,7 +85,9 @@ class FiltersStorageService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_separateItemsFiltersKey);
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<bool> hasSavedSeparateItemsFilters() async {
@@ -92,7 +104,9 @@ class FiltersStorageService {
       final prefs = await SharedPreferences.getInstance();
       final filtersJson = jsonEncode(filters.toJson());
       await prefs.setString(_cartsFiltersKey, filtersJson);
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<CartsFiltersModel> loadCartsFilters() async {
@@ -104,7 +118,9 @@ class FiltersStorageService {
         final filtersMap = jsonDecode(filtersJson) as Map<String, dynamic>;
         return CartsFiltersModel.fromJson(filtersMap);
       }
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
 
     return const CartsFiltersModel();
   }
@@ -113,7 +129,9 @@ class FiltersStorageService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_cartsFiltersKey);
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<bool> hasSavedCartsFilters() async {
@@ -130,7 +148,9 @@ class FiltersStorageService {
       final prefs = await SharedPreferences.getInstance();
       final filtersJson = jsonEncode(filters.toJson());
       await prefs.setString(_pendingProductsFiltersKey, filtersJson);
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<PendingProductsFiltersModel?> loadPendingProductsFilters() async {
@@ -142,7 +162,9 @@ class FiltersStorageService {
         final filtersMap = jsonDecode(filtersJson) as Map<String, dynamic>;
         return PendingProductsFiltersModel.fromJson(filtersMap);
       }
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
 
     return null;
   }
@@ -151,7 +173,9 @@ class FiltersStorageService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_pendingProductsFiltersKey);
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<bool> hasSavedPendingProductsFilters() async {

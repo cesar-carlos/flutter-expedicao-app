@@ -5,7 +5,6 @@ import 'package:data7_expedicao/domain/models/filter/pending_products_filters_mo
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 
-/// Modal para filtros da tela de produtos pendentes
 class PendingProductsFilterModal extends StatefulWidget {
   final CardPickingViewModel viewModel;
 
@@ -34,24 +33,19 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
     _selectedSituacao = widget.viewModel.filters.situacao;
     _selectedSetorEstoque = widget.viewModel.filters.setorEstoque;
 
-    // Carrega setores de estoque se ainda não foram carregados
     if (!widget.viewModel.sectorsLoaded) {
       widget.viewModel.loadAvailableSectors().then((_) {
-        // Após carregar os setores, atualiza o estado para garantir que o dropdown seja reconstruído
         if (mounted) {
           setState(() {
-            // Sincroniza o setor selecionado com a lista carregada
             _syncSelectedSector();
           });
         }
       });
     } else {
-      // Se os setores já foram carregados, sincroniza imediatamente
       _syncSelectedSector();
     }
   }
 
-  /// Sincroniza o setor selecionado com a lista de setores disponíveis
   void _syncSelectedSector() {
     if (_selectedSetorEstoque != null && widget.viewModel.availableSectors.isNotEmpty) {
       final matchingSector = widget.viewModel.availableSectors.cast<ExpeditionSectorStockModel?>().firstWhere(
@@ -90,7 +84,6 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             children: [
               Icon(Icons.filter_alt, color: colorScheme.primary),
@@ -105,7 +98,7 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha:0.1),
+                    color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -123,12 +116,10 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
 
           const SizedBox(height: 24),
 
-          // Campos de filtro - Usando Flexible para permitir scroll
           Flexible(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // Código do Produto
                   TextField(
                     controller: _codProdutoController,
                     decoration: const InputDecoration(
@@ -142,7 +133,6 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
 
                   const SizedBox(height: 16),
 
-                  // Código de Barras
                   TextField(
                     controller: _codigoBarrasController,
                     decoration: const InputDecoration(
@@ -155,7 +145,6 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
 
                   const SizedBox(height: 16),
 
-                  // Nome do Produto
                   TextField(
                     controller: _nomeProdutoController,
                     decoration: const InputDecoration(
@@ -168,7 +157,6 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
 
                   const SizedBox(height: 16),
 
-                  // Endereço/Descrição
                   TextField(
                     controller: _enderecoDescricaoController,
                     decoration: const InputDecoration(
@@ -181,7 +169,6 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
 
                   const SizedBox(height: 16),
 
-                  // Situação
                   DropdownButtonFormField<SeparationItemStatus?>(
                     decoration: const InputDecoration(labelText: 'Situação', border: OutlineInputBorder()),
                     initialValue: _selectedSituacao,
@@ -209,7 +196,6 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
 
                   const SizedBox(height: 16),
 
-                  // Setor de Estoque
                   DropdownButtonFormField<ExpeditionSectorStockModel?>(
                     decoration: const InputDecoration(
                       labelText: 'Setor de Estoque',
@@ -239,7 +225,6 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
 
           const SizedBox(height: 24),
 
-          // Botões
           Row(
             children: [
               Expanded(
@@ -260,34 +245,28 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
             ],
           ),
 
-          // Espaçamento para teclado
           SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
         ],
       ),
     );
   }
 
-  /// Retorna o setor selecionado se ele ainda existe na lista, senão retorna null
   ExpeditionSectorStockModel? _getValidSelectedSector() {
     if (_selectedSetorEstoque == null) return null;
 
-    // Se os setores ainda não foram carregados, retorna null e força o carregamento
     if (widget.viewModel.availableSectors.isEmpty) {
       return null;
     }
 
-    // Procura o setor na lista de setores disponíveis usando o operador == do modelo
     final matchingSector = widget.viewModel.availableSectors.cast<ExpeditionSectorStockModel?>().firstWhere(
       (sector) => sector != null && sector == _selectedSetorEstoque,
       orElse: () => null,
     );
 
     if (matchingSector != null) {
-      // Atualiza a referência para usar o objeto da lista
       _selectedSetorEstoque = matchingSector;
       return matchingSector;
     } else {
-      // Se o setor não existe mais, limpa a seleção
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {
           _selectedSetorEstoque = null;

@@ -50,7 +50,9 @@ class SocketService extends ChangeNotifier {
       _stopHeartbeat();
       SocketConfig.disconnect();
       _updateConnectionState(SocketConnectionState.disconnected);
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<void> reconnect() async {
@@ -71,7 +73,9 @@ class SocketService extends ChangeNotifier {
       final payload = {'userId': _userId, 'timestamp': DateTime.now().toIso8601String(), 'data': data};
 
       SocketConfig.instance.emit(eventName, payload);
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Stream<dynamic> on(String eventName) {
@@ -110,7 +114,9 @@ class SocketService extends ChangeNotifier {
       if (isConnected) {
         reconnect();
       }
-    } catch (e) {}
+    } catch (e) {
+      rethrow;
+    }
   }
 
   void _setupSocketListeners() {

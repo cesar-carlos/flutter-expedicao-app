@@ -85,7 +85,9 @@ class EventServiceImpl implements EventService {
 
       try {
         listener.callback(basicEvent);
-      } catch (e) {}
+      } catch (e) {
+        rethrow;
+      }
     }
   }
 

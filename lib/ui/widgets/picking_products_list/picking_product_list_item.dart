@@ -47,17 +47,14 @@ class PickingProductListItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header com endereço e status
             _buildHeader(context, theme, colorScheme, statusColor),
 
             const SizedBox(height: 12),
 
-            // Informações do produto
             _buildProductInfo(context, theme, colorScheme),
 
             const SizedBox(height: 12),
 
-            // Quantidades e ações
             _buildQuantityAndActions(context, theme, colorScheme, statusColor, pickedQuantity, totalQuantity),
           ],
         ),
@@ -68,7 +65,6 @@ class PickingProductListItem extends StatelessWidget {
   Widget _buildHeader(BuildContext context, ThemeData theme, ColorScheme colorScheme, Color statusColor) {
     return Row(
       children: [
-        // Ícone de status
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
@@ -77,7 +73,6 @@ class PickingProductListItem extends StatelessWidget {
 
         const SizedBox(width: 12),
 
-        // Endereço
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,7 +94,6 @@ class PickingProductListItem extends StatelessWidget {
           ),
         ),
 
-        // Status badge
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(12)),
@@ -116,7 +110,6 @@ class PickingProductListItem extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Nome do produto
         Text(
           'Produto',
           style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
@@ -131,10 +124,8 @@ class PickingProductListItem extends StatelessWidget {
 
         const SizedBox(height: 8),
 
-        // Informações adicionais
         Row(
           children: [
-            // Código do produto
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +142,6 @@ class PickingProductListItem extends StatelessWidget {
               ),
             ),
 
-            // Setor
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +163,6 @@ class PickingProductListItem extends StatelessWidget {
               ),
             ),
 
-            // Unidade
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,7 +201,6 @@ class PickingProductListItem extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Quantidades
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,7 +233,6 @@ class PickingProductListItem extends StatelessWidget {
             ),
           ),
 
-          // Ações (apenas para produtos separados)
           if (allowEdit && isCompleted) ...[
             const SizedBox(width: 12),
             Column(
