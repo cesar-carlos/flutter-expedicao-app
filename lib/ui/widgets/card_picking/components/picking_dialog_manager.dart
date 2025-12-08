@@ -4,21 +4,18 @@ import 'package:data7_expedicao/ui/widgets/common/picking_dialog.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
-/// Gerenciador de diálogos da tela de picking
 class PickingDialogManager {
   final BuildContext context;
   final FocusNode scanFocusNode;
 
   PickingDialogManager({required this.context, required this.scanFocusNode});
 
-  /// Mostra diálogo de erro genérico
   void showErrorDialog(String barcode, String productName, String errorMessage) {
     _showDialogWithFocusReturn(
       () => PickingDialogs.addItemError(barcode: barcode, productName: productName, errorMessage: errorMessage),
     );
   }
 
-  /// Mostra diálogo de produto errado
   void showWrongProductDialog(String barcode, String expectedAddress, String expectedProduct, String expectedBarcode) {
     _showDialogWithFocusReturn(
       () => PickingDialogs.wrongProduct(
@@ -30,7 +27,6 @@ class PickingDialogManager {
     );
   }
 
-  /// Mostra diálogo de setor errado
   void showWrongSectorDialog(String barcode, String productName, String productSector, int userSectorCode) {
     _showDialogWithFocusReturn(
       () => PickingDialogs.wrongSector(
@@ -42,7 +38,6 @@ class PickingDialogManager {
     );
   }
 
-  /// Mostra diálogo de não há itens para o setor
   void showNoItemsForSectorDialog(int userSectorCode, VoidCallback onFinish) {
     if (!context.mounted) return;
 
@@ -52,12 +47,12 @@ class PickingDialogManager {
       builder: (context) => PickingDialogs.noItemsForSector(
         userSectorCode: userSectorCode,
         onFinish: () async {
-          Navigator.of(context).pop(); // Fechar o diálogo
+          Navigator.of(context).pop();
           onFinish();
         },
         onCancel: () {
-          Navigator.of(context).pop(); // Fechar o diálogo
-          // Retornar foco para o scanner
+          Navigator.of(context).pop();
+
           WidgetsBinding.instance.addPostFrameCallback((_) {
             scanFocusNode.requestFocus();
           });
@@ -66,12 +61,10 @@ class PickingDialogManager {
     );
   }
 
-  /// Mostra diálogo de separação completa
   void showAllItemsCompletedDialog() {
     _showDialogWithFocusReturn(() => PickingDialogs.separationComplete());
   }
 
-  /// Mostra diálogo de escaneamento de prateleira
   void showShelfScanDialog({
     required String expectedAddress,
     required String expectedAddressDescription,
@@ -82,7 +75,7 @@ class PickingDialogManager {
 
     showDialog(
       context: context,
-      barrierDismissible: false, // Não pode fechar tocando fora
+      barrierDismissible: false,
       builder: (context) => ShelfScanningModal(
         expectedAddress: expectedAddress,
         expectedAddressDescription: expectedAddressDescription,
@@ -92,7 +85,6 @@ class PickingDialogManager {
     );
   }
 
-  /// Mostra diálogo após completar todos os itens do setor, oferecendo salvar o carrinho
   void showSaveCartAfterSectorCompletedDialog(int userSectorCode, VoidCallback onSaveCart, VoidCallback onContinue) {
     if (!context.mounted) return;
 
@@ -158,7 +150,6 @@ class PickingDialogManager {
     );
   }
 
-  /// Mostra diálogo e retorna foco para o scanner após fechar
   void _showDialogWithFocusReturn(Widget Function() dialogBuilder) {
     if (!context.mounted) return;
 
@@ -167,7 +158,6 @@ class PickingDialogManager {
     });
   }
 
-  /// Retorna foco para o campo de scanner
   void _returnFocusToScanner() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (context.mounted) {

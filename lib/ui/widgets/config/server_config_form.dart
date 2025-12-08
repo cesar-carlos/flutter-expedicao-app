@@ -60,6 +60,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
             content: Text(AppStrings.configSaved),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.all(16),
           ),
         );
 
@@ -101,6 +102,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
             ),
             backgroundColor: success ? Colors.green : Colors.red,
             behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
             duration: Duration(seconds: success ? 3 : 5),
           ),
         );

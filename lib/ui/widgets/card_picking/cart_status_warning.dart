@@ -3,11 +3,9 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 
-/// Widget que exibe um aviso quando o carrinho não está em situação de separação
 class CartStatusWarning extends StatelessWidget {
   const CartStatusWarning({super.key});
 
-  // === CONSTANTES ===
   static const _containerMargin = EdgeInsets.all(16);
   static const _containerPadding = EdgeInsets.all(16);
   static const _iconSpacing = EdgeInsets.only(right: 12);
@@ -31,7 +29,6 @@ class CartStatusWarning extends StatelessWidget {
     );
   }
 
-  /// Constrói o container de aviso
   Widget _buildWarningContainer(BuildContext context) {
     return Container(
       margin: _containerMargin,
@@ -41,7 +38,6 @@ class CartStatusWarning extends StatelessWidget {
     );
   }
 
-  /// Constrói a decoração do container de aviso
   BoxDecoration _buildWarningDecoration() {
     return BoxDecoration(
       color: Colors.red.shade50,
@@ -50,7 +46,6 @@ class CartStatusWarning extends StatelessWidget {
     );
   }
 
-  /// Constrói o conteúdo do aviso
   Widget _buildWarningContent() {
     return Row(
       children: [
@@ -60,7 +55,6 @@ class CartStatusWarning extends StatelessWidget {
     );
   }
 
-  /// Constrói o ícone de aviso
   Widget _buildWarningIcon() {
     return Padding(
       padding: _iconSpacing,
@@ -68,7 +62,6 @@ class CartStatusWarning extends StatelessWidget {
     );
   }
 
-  /// Constrói o texto do aviso
   Widget _buildWarningText() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +73,6 @@ class CartStatusWarning extends StatelessWidget {
     );
   }
 
-  /// Constrói o título do aviso
   Widget _buildWarningTitle() {
     return Text(
       'Carrinho não está em separação',
@@ -88,7 +80,6 @@ class CartStatusWarning extends StatelessWidget {
     );
   }
 
-  /// Constrói a descrição do aviso
   Widget _buildWarningDescription() {
     return Text(
       'Este carrinho não está mais em situação de separação. '

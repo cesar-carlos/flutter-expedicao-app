@@ -36,6 +36,7 @@ class ConfigScreen extends StatelessWidget {
             content: Text('Configuração resetada!'),
             backgroundColor: Colors.orange,
             behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.all(16),
           ),
         );
       }

@@ -16,26 +16,6 @@ import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 
-/// Tela de escaneamento de itens do carrinho durante a separação
-///
-/// Responsabilidades:
-/// - Gerenciar entrada de dados via scanner ou teclado manual
-/// - Validar códigos de barras escaneados em tempo real
-/// - Bloquear campo durante processamento para evitar scans duplicados
-/// - Fornecer feedback visual e sonoro para o usuário
-/// - Manter sincronização do status do carrinho via cache
-///
-/// Arquitetura:
-/// - Componentes modulares (KeyboardToggleController, ScanInputProcessor, etc.)
-/// - Estado gerenciado via ViewModel pattern
-/// - Cache inteligente para otimização de performance
-/// - Processamento assíncrono com bloqueio de UI
-///
-/// Performance:
-/// - AutomaticKeepAliveClientMixin para preservar estado
-/// - Cache de status do carrinho (200ms TTL)
-/// - Validações paralelas
-/// - Callbacks otimizados (delay de 10ms)
 class PickingCardScan extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
   final CardPickingViewModel viewModel;
@@ -46,10 +26,6 @@ class PickingCardScan extends StatefulWidget {
   State<PickingCardScan> createState() => _PickingCardScanState();
 }
 
-/// Widget intermediário que fornece o Provider mas não reconstrói
-///
-/// Este widget é necessário para separar a lógica do Provider da lógica
-/// de estado do PickingCardScan, evitando rebuilds desnecessários.
 class _PickingCardScanProvider extends StatelessWidget {
   final PickingScanState scanState;
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -75,7 +51,6 @@ class _PickingCardScanProvider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🚀 Provider fornece estado SEM forçar rebuild deste widget
     return ChangeNotifierProvider<PickingScanState>.value(
       value: scanState,
       child: PickingScreenLayout(
@@ -93,48 +68,30 @@ class _PickingCardScanProvider extends StatelessWidget {
 }
 
 class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAliveClientMixin {
-  // === CONSTANTES ===
-
-  /// Delay para limpar o campo após scan bem-sucedido
   static const Duration _displayDelay = Duration(milliseconds: 500);
 
-  /// Quantidade padrão para adição de itens
   static const String _defaultQuantity = '1';
 
-  // === CONTROLLERS ===
-
-  /// Controller para o campo de entrada do scanner
   final _scanController = TextEditingController();
 
-  /// Controller para o campo de quantidade com valor padrão
   final _quantityController = TextEditingController(text: _defaultQuantity);
-
-  // === FOCUS NODES ===
 
   final _scanFocusNode = FocusNode();
   final _quantityFocusNode = FocusNode();
 
-  // === ESTADO DA UI ===
-
-  /// Estado gerenciado via Provider para evitar problemas de setState após dispose
   late final PickingScanState _scanState;
 
-  // Componentes especializados (arquitetura modular)
   late final KeyboardToggleController _keyboardController;
   late final ScanInputProcessor _scanProcessor;
   late final CartStatusCache _statusCache;
   late final PickingDialogManager _dialogManager;
 
-  // Serviços
   final AudioService _audioService = locator<AudioService>();
 
-  // Subscription para erros de operação
   StreamSubscription<OperationError>? _errorSubscription;
 
-  // Controle para evitar modal duplicado
   bool _hasShownInitialShelfScan = false;
 
-  /// Mantém o estado vivo para otimização de performance
   @override
   bool get wantKeepAlive => true;
 
@@ -145,23 +102,19 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _setupListeners();
     _requestInitialFocus();
 
-    // 🚀 Forçar verificação de status na inicialização para evitar tela bloqueada
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _statusCache.forceCheckCartStatus();
         if (mounted) {
-          _scanState.forceUpdate(); // Usar Provider em vez de setState
+          _scanState.forceUpdate();
         }
       }
     });
 
-    // Escutar erros de operações assíncronas
     _errorSubscription = widget.viewModel.operationErrors.listen(_handleOperationError);
 
-    // 🆕 Escutar mudanças no ViewModel para detectar quando os itens são carregados
     widget.viewModel.addListener(_onViewModelChanged);
 
-    // 🆕 Verificação adicional após um delay maior para casos onde o listener não é chamado
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted && !_hasShownInitialShelfScan) {
         if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
@@ -171,9 +124,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     });
   }
 
-  /// Inicializa os componentes refatorados
   void _initializeComponents() {
-    // Inicializar estado gerenciado via Provider
     _scanState = PickingScanState();
     _keyboardController = KeyboardToggleController(scanFocusNode: _scanFocusNode, context: context);
     _scanProcessor = ScanInputProcessor(viewModel: widget.viewModel);
@@ -181,23 +132,19 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _dialogManager = PickingDialogManager(context: context, scanFocusNode: _scanFocusNode);
   }
 
-  /// Configura os listeners necessários
   void _setupListeners() {
     _scanController.addListener(_onScannerInput);
     _scanFocusNode.addListener(_onFocusChange);
   }
 
-  /// Solicita foco inicial no campo de scanner
   void _requestInitialFocus() {
     _keyboardController.requestInitialFocus();
   }
 
-  /// Obtém o status do carrinho com cache para otimização
   bool _isCartInSeparationStatus() {
     return _statusCache.isCartInSeparationStatus();
   }
 
-  /// Invalida o cache do status do carrinho
   void _invalidateCartStatusCache() {
     _statusCache.invalidateCache();
   }
@@ -206,39 +153,30 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Garantir foco quando as dependências mudarem (tela completamente carregada)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        // 🚀 Verificar status novamente quando dependências mudarem
         _statusCache.forceCheckCartStatus();
         _scanFocusNode.requestFocus();
       }
     });
   }
 
-  /// Processa entrada do scanner ou teclado
   void _onScannerInput() {
     if (_scanState.keyboardEnabled || _scanController.text.isEmpty) return;
 
     _processScannerInput();
   }
 
-  /// Processa entrada específica do scanner
   void _processScannerInput() {
     final text = _scanController.text.trim();
     _scanProcessor.processScannerInput(text, _handleCompleteBarcode, _waitForMoreInput);
   }
 
-  /// Processa código de barras completo detectado pelo scanner
   void _handleCompleteBarcode(String barcode) {
     _clearScannerFieldAfterDelay();
     _onBarcodeScanned(barcode);
   }
 
-  /// Aguarda mais entrada do scanner
-  ///
-  /// Este método é chamado quando o debounce detecta que o usuário parou de digitar.
-  /// Processa o código atual se houver conteúdo.
   void _waitForMoreInput() {
     if (!mounted || _scanController.text.isEmpty) return;
 
@@ -247,10 +185,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _onBarcodeScanned(barcode);
   }
 
-  /// Limpa o campo do scanner após um delay para o usuário visualizar
-  ///
-  /// O delay permite que o usuário veja o código escaneado antes
-  /// de ser limpo automaticamente para o próximo scan.
   void _clearScannerFieldAfterDelay() {
     Future.delayed(_displayDelay, () {
       if (mounted) {
@@ -259,17 +193,11 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     });
   }
 
-  /// Listener para mudanças de foco do campo de scanner
   void _onFocusChange() {
-    if (_scanFocusNode.hasFocus) {
-      // Campo ganhou foco no modo manual - teclado deveria aparecer automaticamente
-      // Não forçar aqui para evitar conflitos com o toggle
-    }
+    if (_scanFocusNode.hasFocus) {}
   }
 
-  /// Alterna entre modo scanner e teclado
   void _toggleKeyboard() {
-    // Usar Provider para gerenciar estado
     _scanState.toggleKeyboard();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -283,14 +211,11 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     });
   }
 
-  /// Trata erros de operação assíncrona
   void _handleOperationError(OperationError error) {
     if (!mounted) return;
 
-    // Tocar som de erro
     _audioService.playError();
 
-    // Buscar item para mostrar diálogo
     final item = widget.viewModel.items.cast<SeparateItemConsultationModel?>().firstWhere(
       (i) => i?.item == error.itemId,
       orElse: () => null,
@@ -308,7 +233,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   @override
   void dispose() {
     _errorSubscription?.cancel();
-    widget.viewModel.removeListener(_onViewModelChanged); // 🆕 Remover listener
+    widget.viewModel.removeListener(_onViewModelChanged);
     _scanController.removeListener(_onScannerInput);
     _scanFocusNode.removeListener(_onFocusChange);
     _scanController.dispose();
@@ -316,7 +241,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _quantityController.dispose();
     _quantityFocusNode.dispose();
 
-    // Limpar cache e estado
     _statusCache.clear();
     _scanProcessor.dispose();
     _scanState.dispose();
@@ -324,13 +248,10 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     super.dispose();
   }
 
-  /// Listener para mudanças no ViewModel
   void _onViewModelChanged() {
     if (!mounted) return;
 
-    // Verificar se os itens foram carregados e se deve mostrar modal de prateleira
     if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
-      // Aguardar um pouco para garantir que a UI esteja atualizada
       Future.delayed(const Duration(milliseconds: 50), () {
         if (mounted) {
           _checkInitialShelfScan();
@@ -341,14 +262,12 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Necessário para AutomaticKeepAliveClientMixin
+    super.build(context);
 
     final isEnabled = _isCartInSeparationStatus();
-    // Atualiza o estado habilitado do Provider sem rebuild do widget pai
+
     _scanState.setEnabled(isEnabled);
 
-    // 🚀 Widget intermediário que NÃO reconstrói quando o Provider notifica
-    // O Provider está dentro do _PickingCardScanProvider, isolado desta classe
     return _PickingCardScanProvider(
       scanState: _scanState,
       cart: widget.cart,
@@ -365,10 +284,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   Future<void> _onBarcodeScanned(String barcode) async {
     if (barcode.trim().isEmpty) return;
 
-    // Evitar múltiplos processamentos simultâneos
     if (_scanState.isProcessingScan) return;
 
-    // 🆕 VERIFICAR SE PRECISA ESCANEAR PRATELEIRA
     final nextItem = PickingUtils.findNextItemToPick(
       widget.viewModel.items,
       widget.viewModel.isItemCompleted,
@@ -380,21 +297,17 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       return;
     }
 
-    // Bloquear campo e limpar para próximo scan
     _scanState.startProcessing();
     _scanController.clear();
 
     try {
-      // Verificação rápida de status antes da validação pesada
       if (!_isCartInSeparationStatus()) {
         _audioService.playError();
         return;
       }
 
-      // Obter a quantidade informada
       final inputQuantity = int.tryParse(_quantityController.text) ?? 1;
 
-      // Validar código de barras usando o processador
       final validationResult = _scanProcessor.validateScannedBarcode(barcode);
 
       if (validationResult.isEmpty) return;
@@ -423,10 +336,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       }
 
       if (validationResult.isValid && validationResult.expectedItem != null) {
-        // Converter quantidade usando o código de barras escaneado
         final convertedQuantity = _convertQuantityWithBarcode(validationResult.expectedItem!, barcode, inputQuantity);
 
-        // Se houve conversão, atualizar o campo de quantidade visualmente
         if (convertedQuantity != inputQuantity) {
           _quantityController.text = convertedQuantity.toString();
         }
@@ -446,41 +357,29 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  /// Converte a quantidade usando o código de barras escaneado
-  /// Utiliza o método converterQuantidadePorCodigoBarras do modelo para calcular
-  /// a quantidade correta baseada na unidade de medida do código de barras
   int _convertQuantityWithBarcode(SeparateItemConsultationModel item, String barcode, int inputQuantity) {
     try {
-      // Verifica se o item tem múltiplas unidades de medida
       if (item.unidadeMedidas.length <= 1) {
-        // Se há apenas uma unidade, não há necessidade de conversão
         return inputQuantity;
       }
 
-      // Converte a quantidade usando o método do modelo
-      // O método converterQuantidadePorCodigoBarras já faz a busca internamente
       final convertedQuantity = item.converterQuantidadePorCodigoBarras(barcode, inputQuantity.toDouble());
 
-      // Se a conversão foi bem-sucedida e o resultado é válido, retorna a quantidade convertida
       if (convertedQuantity != null && convertedQuantity > 0) {
         return convertedQuantity.round();
       }
 
-      // Se não foi possível converter, retorna a quantidade original
       return inputQuantity;
     } catch (e) {
-      // Em caso de erro, retorna a quantidade original
       return inputQuantity;
     }
   }
 
-  /// Adiciona item escaneado na separação via use case
   Future<void> _addItemToSeparation(SeparateItemConsultationModel item, String barcode, int quantity) async {
     try {
       final result = await widget.viewModel.addScannedItem(codProduto: item.codProduto, quantity: quantity);
 
       if (result.isSuccess) {
-        // Atualizar endereço escaneado ANTES de processar o sucesso
         if (item.endereco != null) {
           widget.viewModel.updateScannedAddress(item.endereco!);
         }
@@ -493,12 +392,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
           _checkIfSectorItemsCompleted,
         );
 
-        // Verificar se o próximo item precisa de escaneamento de prateleira
         _checkNextItemShelfScan();
 
-        // Verificar se deve mostrar modal de salvar carrinho ANTES da UI ser atualizada
-
-        // Aguardar um pouco para o sistema processar a separação
         Future.delayed(const Duration(milliseconds: 500), () async {
           if (mounted) {
             await _checkAndShowSaveCartModal();
@@ -518,15 +413,13 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  /// Verifica se deve mostrar o modal de escaneamento de prateleira na inicialização
   void _checkInitialShelfScan() {
     if (!mounted || _hasShownInitialShelfScan) return;
 
     final nextItem = widget.viewModel.shouldShowInitialShelfScan();
     if (nextItem != null) {
-      _hasShownInitialShelfScan = true; // Marcar como já mostrado
+      _hasShownInitialShelfScan = true;
 
-      // Aguardar um pouco para garantir que a UI esteja totalmente carregada
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted) {
           _showShelfScanDialog(nextItem);
@@ -535,7 +428,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  /// Verifica se o próximo item precisa de escaneamento de prateleira
   void _checkNextItemShelfScan() {
     if (!mounted) return;
 
@@ -546,7 +438,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     );
 
     if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
-      // Aguardar um pouco para garantir que a UI esteja atualizada
       Future.delayed(const Duration(milliseconds: 50), () {
         if (mounted) {
           _showShelfScanDialog(nextItem);
@@ -555,35 +446,26 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  /// Mostra diálogo de escaneamento de prateleira
   void _showShelfScanDialog(SeparateItemConsultationModel nextItem) {
     _dialogManager.showShelfScanDialog(
       expectedAddress: nextItem.endereco!,
       expectedAddressDescription: nextItem.enderecoDescricao ?? 'Endereço não definido',
       onShelfScanned: (scannedAddress) {
-        // Atualizar endereço escaneado no ViewModel
         widget.viewModel.updateScannedAddress(scannedAddress);
 
-        // Retornar foco para scanner
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _scanFocusNode.requestFocus();
         });
 
-        // Tocar som de sucesso
         _audioService.playShelfScanSuccess();
       },
       onBack: () {
-        // Fechar modal e voltar para tela de separação
-        Navigator.of(context).pop(); // Fecha o modal
-        Navigator.of(context).pop(); // Volta para tela de separação
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
       },
     );
   }
 
-  /// Resetar quantidade para o valor padrão se estiver maior que 1
-  ///
-  /// Este método é chamado após cada adição bem-sucedida de item
-  /// para resetar o campo de quantidade para o valor padrão.
   void _resetQuantityIfNeeded() {
     if (_quantityController.text.isNotEmpty && int.tryParse(_quantityController.text) != null) {
       final currentQuantity = int.parse(_quantityController.text);
@@ -593,36 +475,26 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  /// Verifica se deve mostrar o modal de salvar carrinho
-  /// Esta verificação acontece ANTES da UI ser atualizada para evitar conflitos
   Future<void> _checkAndShowSaveCartModal() async {
     final userSectorCode = widget.viewModel.userModel?.codSetorEstoque;
 
-    // Se usuário não tem setor definido, não fazer nada
     if (userSectorCode == null) {
       return;
     }
 
-    // Verificar se todos os itens do setor foram completados
     final sectorItems = widget.viewModel.items
         .where((item) => item.codSetorEstoque == null || item.codSetorEstoque == userSectorCode)
         .toList();
 
-    // Se não há itens para o setor, não fazer nada
     if (sectorItems.isEmpty) {
       return;
     }
 
-    // Verificar se todos os itens do setor foram completados
-    final allSectorItemsCompleted = sectorItems.every(
-      (item) => widget.viewModel.isItemCompleted(item.item), // ✅ CORRIGIDO: Usar item.item
-    );
+    final allSectorItemsCompleted = sectorItems.every((item) => widget.viewModel.isItemCompleted(item.item));
 
     if (allSectorItemsCompleted) {
-      // Reproduzir som de separação completa
       await _audioService.playAlertComplete();
 
-      // Mostrar diálogo oferecendo salvar o carrinho
       _dialogManager.showSaveCartAfterSectorCompletedDialog(
         userSectorCode,
         _finishPicking,
@@ -631,14 +503,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  /// Verifica se todos os itens do setor do usuário foram separados
-  /// Este método é chamado pelo ScanInputProcessor após adição bem-sucedida
-  Future<void> _checkIfSectorItemsCompleted() async {
-    // A lógica principal foi movida para _checkAndShowSaveCartModal()
-    // Este método é mantido para compatibilidade com o ScanInputProcessor
-  }
+  Future<void> _checkIfSectorItemsCompleted() async {}
 
-  /// Carrega o UserSystemModel da sessão atual
   Future<UserSystemModel?> _getUserModel() async {
     try {
       final userSessionService = locator<UserSessionService>();
@@ -649,7 +515,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  /// Mostra dialog de loading durante operações assíncronas
   void _showLoadingDialog() {
     if (!mounted) return;
 
@@ -665,7 +530,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     );
   }
 
-  /// Mostra dialog de erro com mensagem personalizada
   void _showErrorDialog(String message) {
     if (!mounted) return;
 
@@ -679,18 +543,15 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     );
   }
 
-  /// Finaliza o picking e volta para a tela anterior
   Future<void> _finishPicking() async {
     if (!mounted) return;
 
-    // Carregar UserSystemModel para validação de permissões
     final userModel = await _getUserModel();
     if (userModel == null) {
       _showErrorDialog('Erro ao carregar dados do usuário. Tente novamente.');
       return;
     }
 
-    // Validar permissões de acesso ao carrinho
     final validationResult = CartValidationService.validateCartAccess(
       currentUserCode: userModel.codUsuario,
       cart: widget.viewModel.cart!,
@@ -708,11 +569,9 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       return;
     }
 
-    // Mostrar loading dialog
     _showLoadingDialog();
 
     try {
-      // Criar parâmetros para salvar o carrinho
       final saveParams = SaveSeparationCartParams(
         codEmpresa: widget.viewModel.cart!.codEmpresa,
         codCarrinhoPercurso: widget.viewModel.cart!.codCarrinhoPercurso,
@@ -720,31 +579,24 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         codSepararEstoque: widget.viewModel.cart!.codOrigem,
       );
 
-      // Executar use case de salvar carrinho
       final saveCartUseCase = locator<SaveSeparationCartUseCase>();
       final result = await saveCartUseCase(saveParams);
 
-      // Fechar loading dialog
       if (mounted) {
-        Navigator.of(context).pop(); // Fecha o loading dialog
+        Navigator.of(context).pop();
       }
 
-      // Processar resultado
       result.fold(
         (success) {
-          // Sucesso: reproduzir som e navegar para tela de separação
           _audioService.playSuccess();
           if (mounted) {
-            // Voltar duas telas: carrinho scan -> carrinhos da separação -> listagem de separações
-            Navigator.of(context).pop(); // Fecha a tela de carrinho scan
-            Navigator.of(context).pop(true); // Volta para listagem de separações com resultado true
+            Navigator.of(context).pop();
+            Navigator.of(context).pop(true);
           }
         },
         (failure) {
-          // Erro: mostrar mensagem e manter na tela de scan
           String errorMessage = 'Erro ao salvar carrinho';
 
-          // Verificar se a mensagem de erro contém sucesso (contradição)
           if (failure.toString().toLowerCase().contains('sucesso') ||
               failure.toString().toLowerCase().contains('finalizado')) {
             errorMessage = 'Erro inesperado ao salvar carrinho. Tente novamente.';
@@ -756,9 +608,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         },
       );
     } catch (e) {
-      // Fechar loading dialog em caso de exceção
       if (mounted) {
-        Navigator.of(context).pop(); // Fecha o loading dialog
+        Navigator.of(context).pop();
       }
       _showErrorDialog('Erro inesperado ao salvar carrinho: $e');
     }

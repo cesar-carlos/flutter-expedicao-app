@@ -24,7 +24,6 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   void initState() {
     super.initState();
-    // RegisterViewModel já é inicializado automaticamente pelo Service Locator
   }
 
   @override
@@ -52,10 +51,10 @@ class _RegisterFormState extends State<RegisterForm> {
             content: Text(AppStrings.registerSuccess),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.all(16),
           ),
         );
 
-        // Volta para a tela de login
         context.go('/login');
       }
     }
@@ -70,7 +69,6 @@ class _RegisterFormState extends State<RegisterForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Seletor de foto de perfil
               Center(
                 child: ProfilePhotoSelector(
                   initialImage: registerViewModel.profileImage,
@@ -84,7 +82,6 @@ class _RegisterFormState extends State<RegisterForm> {
 
               const SizedBox(height: 24),
 
-              // Campo Nome
               CustomTextFormField(
                 controller: _nameController,
                 enabled: !registerViewModel.isLoading,
@@ -97,7 +94,6 @@ class _RegisterFormState extends State<RegisterForm> {
 
               const SizedBox(height: 16),
 
-              // Campo Senha
               CustomTextFormField(
                 controller: _passwordController,
                 enabled: !registerViewModel.isLoading,
@@ -112,7 +108,6 @@ class _RegisterFormState extends State<RegisterForm> {
 
               const SizedBox(height: 16),
 
-              // Campo Confirmar Senha
               CustomTextFormField(
                 controller: _confirmPasswordController,
                 enabled: !registerViewModel.isLoading,
@@ -128,7 +123,6 @@ class _RegisterFormState extends State<RegisterForm> {
 
               const SizedBox(height: 24),
 
-              // Botão Criar Conta
               LoadingButton(
                 text: AppStrings.registerButton,
                 onPressed: _handleRegister,
@@ -137,13 +131,11 @@ class _RegisterFormState extends State<RegisterForm> {
 
               const SizedBox(height: 16),
 
-              // Mensagem de erro
               if (registerViewModel.errorMessage.isNotEmpty) ...[
                 ErrorMessage(message: registerViewModel.errorMessage),
                 const SizedBox(height: 16),
               ],
 
-              // Link para voltar ao login
               CustomFlatButton(
                 text: AppStrings.backToLogin,
                 onPressed: registerViewModel.isLoading ? null : () => context.go('/login'),

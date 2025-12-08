@@ -158,6 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               content: Text(successMsg),
               backgroundColor: AppColors.success,
               behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
               duration: const Duration(seconds: 3),
             ),
           );

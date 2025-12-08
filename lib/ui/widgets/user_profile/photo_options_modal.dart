@@ -113,6 +113,7 @@ class PhotoOptionsModal extends StatelessWidget {
             content: Text('Erro ao selecionar imagem: $e'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
