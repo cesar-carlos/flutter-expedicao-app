@@ -31,6 +31,32 @@ Rules are `.mdc` (Markdown Cursor) files that contain:
 
 These rules ensure that the AI assistant respects user control over version control and documentation decisions.
 
+## Rules Adoption and Migration
+
+### Important Note: Rules Are New and Evolving
+
+⚠️ **These rules are new and are being gradually adopted across the codebase.**
+
+- ✅ **New code** should **ALWAYS** follow all rules from the start
+- ⚠️ **Existing code** may not yet conform to all rules - this is expected
+- ✅ **Gradual migration**: When modifying existing code, update it to follow the new rules
+- ✅ **Incremental improvements**: Fix rule violations as you touch code areas
+- ✅ **Prioritize**: Focus on following rules when creating new features or refactoring existing ones
+
+**Migration Strategy:**
+
+- When working on existing code, update it to follow the new rules
+- Don't refactor everything at once - fix as you go
+- New features and components should strictly follow all rules
+- Over time, the codebase will gradually align with all rules
+
+This approach ensures:
+
+- ✅ New code maintains high quality standards
+- ✅ Existing functionality continues to work
+- ✅ Codebase improves incrementally without breaking changes
+- ✅ Team can adapt to new patterns gradually
+
 ## Component Creation and Reusability
 
 ### Priority: Always Create Reusable Components
