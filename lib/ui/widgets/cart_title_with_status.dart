@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 
-/// Widget que exibe o título do carrinho com sua situação em tempo real
 class CartTitleWithStatus extends StatelessWidget {
   final String cartName;
 

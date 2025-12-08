@@ -5,7 +5,6 @@ import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
-/// Widget que exibe o título "Scanner TC60" com status de conexão abaixo
 class ScannerTitleWithConnectionStatus extends StatelessWidget {
   const ScannerTitleWithConnectionStatus({super.key});
 
@@ -21,7 +20,6 @@ class ScannerTitleWithConnectionStatus extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Título "Scanner TC60"
             Text(
               'Scanner TC60',
               style: theme.textTheme.titleLarge?.copyWith(
@@ -30,7 +28,6 @@ class ScannerTitleWithConnectionStatus extends StatelessWidget {
               ),
             ),
 
-            // Status de conexão abaixo do título
             _buildConnectionStatus(theme, connectionState),
           ],
         );
@@ -38,9 +35,7 @@ class ScannerTitleWithConnectionStatus extends StatelessWidget {
     );
   }
 
-  /// Constrói o status de conexão
   Widget _buildConnectionStatus(ThemeData theme, SocketConnectionState connectionState) {
-    // Determinar cor e texto baseado no estado
     Color statusColor;
     String statusText;
     IconData statusIcon;

@@ -645,7 +645,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       final currentUser = await userSessionService.loadUserSession();
       return currentUser?.userSystemModel;
     } catch (e) {
-      print('Erro ao carregar UserSystemModel: $e');
       return null;
     }
   }

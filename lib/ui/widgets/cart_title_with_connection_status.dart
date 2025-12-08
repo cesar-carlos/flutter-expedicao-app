@@ -6,7 +6,6 @@ import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
-/// Widget que exibe o título do carrinho com status de conexão abaixo
 class CartTitleWithConnectionStatus extends StatelessWidget {
   final String cartName;
 
@@ -26,7 +25,6 @@ class CartTitleWithConnectionStatus extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Título do carrinho
             Text(
               displayName,
               style: theme.textTheme.titleLarge?.copyWith(
@@ -35,7 +33,6 @@ class CartTitleWithConnectionStatus extends StatelessWidget {
               ),
             ),
 
-            // Status de conexão abaixo do título
             _buildConnectionStatus(theme, connectionState),
           ],
         );
@@ -43,9 +40,7 @@ class CartTitleWithConnectionStatus extends StatelessWidget {
     );
   }
 
-  /// Constrói o status de conexão
   Widget _buildConnectionStatus(ThemeData theme, SocketConnectionState connectionState) {
-    // Determinar cor e texto baseado no estado
     Color statusColor;
     String statusText;
     IconData statusIcon;

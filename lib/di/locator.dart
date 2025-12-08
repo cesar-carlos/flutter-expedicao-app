@@ -103,6 +103,12 @@ import 'package:data7_expedicao/domain/repositories/barcode_scanner_repository.d
 import 'package:data7_expedicao/data/repositories/barcode_scanner_repository_mobile_impl.dart';
 import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/user/register_via_qrcode_usecase.dart';
+import 'package:data7_expedicao/domain/repositories/i_app_update_repository.dart';
+import 'package:data7_expedicao/data/repositories/app_update_repository_impl.dart';
+import 'package:data7_expedicao/domain/usecases/check_app_update/check_app_update_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/download_app_update/download_app_update_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/install_app_update/install_app_update_usecase.dart';
+import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
 
 final GetIt locator = GetIt.instance;
 
@@ -398,4 +404,29 @@ void setupLocator() {
   // Registro dos ViewModels após os repositórios de eventos
   locator.registerFactory(() => SeparationViewModel());
   locator.registerFactory(() => SeparationItemsViewModel());
+
+  // Registro do App Update
+  locator.registerLazySingleton<IAppUpdateRepository>(
+    () => AppUpdateRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<CheckAppUpdateUseCase>(
+    () => CheckAppUpdateUseCase(locator<IAppUpdateRepository>()),
+  );
+
+  locator.registerLazySingleton<DownloadAppUpdateUseCase>(
+    () => DownloadAppUpdateUseCase(locator<IAppUpdateRepository>()),
+  );
+
+  locator.registerLazySingleton<InstallAppUpdateUseCase>(
+    () => InstallAppUpdateUseCase(locator<IAppUpdateRepository>()),
+  );
+
+  locator.registerLazySingleton<AppUpdateViewModel>(
+    () => AppUpdateViewModel(
+      checkAppUpdateUseCase: locator<CheckAppUpdateUseCase>(),
+      downloadAppUpdateUseCase: locator<DownloadAppUpdateUseCase>(),
+      installAppUpdateUseCase: locator<InstallAppUpdateUseCase>(),
+    ),
+  );
 }

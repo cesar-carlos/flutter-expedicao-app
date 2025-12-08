@@ -2,6 +2,9 @@
     <!-- Permissão para acesso à internet -->
     <uses-permission android:name="android.permission.INTERNET" />
     
+    <!-- Permissão para instalar pacotes -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    
     <!-- Permissões para scanner de código de barras com câmera -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />

@@ -5,26 +5,19 @@ import 'package:data7_expedicao/domain/models/event_model/event_listener_model.d
 import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
 import 'package:data7_expedicao/core/network/socket_config.dart';
 
-/// Implementação do serviço de eventos
-///
-/// Gerencia listeners de eventos e comunica com o SocketConfig para receber
-/// eventos em tempo real do servidor.
 class EventServiceImpl implements EventService {
   final Map<String, List<EventListenerModel>> _eventListeners = {};
-  final Map<String, String> _listenerToEvent = {}; // listenerId -> eventName
+  final Map<String, String> _listenerToEvent = {};
 
   EventServiceImpl();
 
   @override
   void subscribe(String eventName, EventListenerModel listener) {
-    // Remove listener existente se houver
     unsubscribe(listener.id);
 
-    // Adiciona o listener
     _eventListeners.putIfAbsent(eventName, () => []).add(listener);
     _listenerToEvent[listener.id] = eventName;
 
-    // Configura o listener no socket se for o primeiro para este evento
     if (_eventListeners[eventName]!.length == 1) {
       SocketConfig.instance.on(eventName, (data) => _handleEvent(eventName, data));
     }
@@ -36,7 +29,6 @@ class EventServiceImpl implements EventService {
     if (eventName != null) {
       _eventListeners[eventName]?.removeWhere((listener) => listener.id == listenerId);
 
-      // Remove o listener do socket se não há mais listeners para este evento
       if (_eventListeners[eventName]!.isEmpty) {
         SocketConfig.instance.off(eventName);
         _eventListeners.remove(eventName);
@@ -79,10 +71,6 @@ class EventServiceImpl implements EventService {
     unsubscribeAllListeners();
   }
 
-  /// Manipula eventos recebidos do socket
-  ///
-  /// Converte os dados recebidos para BasicEventModel e executa os callbacks
-  /// dos listeners registrados, respeitando as configurações de sessão.
   void _handleEvent(String eventName, dynamic data) {
     final listeners = _eventListeners[eventName];
     if (listeners == null || listeners.isEmpty) return;
@@ -90,25 +78,17 @@ class EventServiceImpl implements EventService {
     final basicEvent = _convertToBasicEvent(data, eventName);
     final currentSocketId = SocketConfig.instance.id;
 
-    // Executa callbacks dos listeners
     for (final listener in listeners) {
-      // Se não é para escutar todos os eventos e o evento veio da mesma sessão, pula
       if (!listener.allEvent && basicEvent.session == currentSocketId && basicEvent.session != null) {
         continue;
       }
 
       try {
         listener.callback(basicEvent);
-      } catch (e) {
-        // Erro ao executar callback do listener - continuar com outros listeners
-      }
+      } catch (e) {}
     }
   }
 
-  /// Converte dados recebidos para BasicEventModel
-  ///
-  /// Suporta diferentes formatos de dados (String JSON, Map) e extrai
-  /// automaticamente o tipo de evento baseado no nome do evento.
   BasicEventModel _convertToBasicEvent(dynamic data, String eventName) {
     try {
       Map<String, dynamic>? eventData;
@@ -118,7 +98,6 @@ class EventServiceImpl implements EventService {
       } else if (data is Map<String, dynamic>) {
         eventData = data;
       } else {
-        // Dados não reconhecidos - criar evento vazio
         final eventType = _extractEventType(eventName);
         return BasicEventModel.empty(eventType: eventType);
       }
@@ -126,10 +105,9 @@ class EventServiceImpl implements EventService {
       if (eventData != null) {
         final eventType = _extractEventType(eventName);
 
-        // Criar BasicEventModel com os dados corretos
         return BasicEventModel(
           session: eventData['Session'] ?? eventData['session'],
-          data: eventData, // Passar os dados completos do evento
+          data: eventData,
           timestamp: DateTime.now(),
           eventType: eventType,
         );
@@ -138,17 +116,15 @@ class EventServiceImpl implements EventService {
         return BasicEventModel.empty(eventType: eventType);
       }
     } catch (e) {
-      // Erro ao converter dados do evento - criar evento vazio
       final eventType = _extractEventType(eventName);
       return BasicEventModel.empty(eventType: eventType);
     }
   }
 
-  /// Extrai o tipo de evento do nome do evento
   Event _extractEventType(String eventName) {
     if (eventName.contains('.insert.')) return Event.insert;
     if (eventName.contains('.update.')) return Event.update;
     if (eventName.contains('.delete.')) return Event.delete;
-    return Event.insert; // Fallback
+    return Event.insert;
   }
 }

@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 
-/// Widget que exibe a situação do carrinho em uma linha separada
 class CartStatusBar extends StatelessWidget {
   const CartStatusBar({super.key});
 
@@ -64,7 +63,6 @@ class CartStatusBar extends StatelessWidget {
     );
   }
 
-  /// Retorna o ícone apropriado para cada situação
   IconData _getSituationIcon(String situationCode) {
     switch (situationCode.toUpperCase()) {
       case 'LIBERADO':

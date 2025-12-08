@@ -1,7 +1,6 @@
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:result_dart/result_dart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:data7_expedicao/domain/repositories/barcode_scanner_repository.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';

@@ -11,19 +11,14 @@ class FiltersStorageService {
   static const String _cartsFiltersKey = 'carts_filters';
   static const String _pendingProductsFiltersKey = 'pending_products_filters';
 
-  /// Salva os filtros da tela de separação
   Future<void> saveSeparationFilters(SeparationFiltersModel filters) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final filtersJson = jsonEncode(filters.toJson());
       await prefs.setString(_separationFiltersKey, filtersJson);
-    } catch (e) {
-      // Log do erro, mas não quebra a aplicação
-      // Erro ao salvar filtros de separação
-    }
+    } catch (e) {}
   }
 
-  /// Carrega os filtros salvos da tela de separação
   Future<SeparationFiltersModel> loadSeparationFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -33,49 +28,35 @@ class FiltersStorageService {
         final filtersMap = jsonDecode(filtersJson) as Map<String, dynamic>;
         return SeparationFiltersModel.fromJson(filtersMap);
       }
-    } catch (e) {
-      // Log do erro, mas retorna filtros vazios
-      // Erro ao carregar filtros de separação
-    }
+    } catch (e) {}
 
     return const SeparationFiltersModel();
   }
 
-  /// Remove os filtros salvos da tela de separação
   Future<void> clearSeparationFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_separationFiltersKey);
-    } catch (e) {
-      // Erro ao limpar filtros de separação
-    }
+    } catch (e) {}
   }
 
-  /// Verifica se existem filtros salvos
   Future<bool> hasSavedSeparationFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       return prefs.containsKey(_separationFiltersKey);
     } catch (e) {
-      // Erro ao verificar filtros salvos
       return false;
     }
   }
 
-  // === FILTROS DE PRODUTOS (SEPARATE ITEMS) ===
-
-  /// Salva os filtros da tela de produtos
   Future<void> saveSeparateItemsFilters(SeparateItemsFiltersModel filters) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final filtersJson = jsonEncode(filters.toJson());
       await prefs.setString(_separateItemsFiltersKey, filtersJson);
-    } catch (e) {
-      // Erro ao salvar filtros de produtos
-    }
+    } catch (e) {}
   }
 
-  /// Carrega os filtros salvos da tela de produtos
   Future<SeparateItemsFiltersModel> loadSeparateItemsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -85,48 +66,35 @@ class FiltersStorageService {
         final filtersMap = jsonDecode(filtersJson) as Map<String, dynamic>;
         return SeparateItemsFiltersModel.fromJson(filtersMap);
       }
-    } catch (e) {
-      // Erro ao carregar filtros de produtos
-    }
+    } catch (e) {}
 
     return const SeparateItemsFiltersModel();
   }
 
-  /// Remove os filtros salvos da tela de produtos
   Future<void> clearSeparateItemsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_separateItemsFiltersKey);
-    } catch (e) {
-      // Erro ao limpar filtros de produtos
-    }
+    } catch (e) {}
   }
 
-  /// Verifica se existem filtros salvos de produtos
   Future<bool> hasSavedSeparateItemsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       return prefs.containsKey(_separateItemsFiltersKey);
     } catch (e) {
-      // Erro ao verificar filtros salvos de produtos
       return false;
     }
   }
 
-  // === FILTROS DE CARRINHOS ===
-
-  /// Salva os filtros da tela de carrinhos
   Future<void> saveCartsFilters(CartsFiltersModel filters) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final filtersJson = jsonEncode(filters.toJson());
       await prefs.setString(_cartsFiltersKey, filtersJson);
-    } catch (e) {
-      // Erro ao salvar filtros de carrinhos
-    }
+    } catch (e) {}
   }
 
-  /// Carrega os filtros salvos da tela de carrinhos
   Future<CartsFiltersModel> loadCartsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -136,48 +104,35 @@ class FiltersStorageService {
         final filtersMap = jsonDecode(filtersJson) as Map<String, dynamic>;
         return CartsFiltersModel.fromJson(filtersMap);
       }
-    } catch (e) {
-      // Erro ao carregar filtros de carrinhos
-    }
+    } catch (e) {}
 
     return const CartsFiltersModel();
   }
 
-  /// Remove os filtros salvos da tela de carrinhos
   Future<void> clearCartsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_cartsFiltersKey);
-    } catch (e) {
-      // Erro ao limpar filtros de carrinhos
-    }
+    } catch (e) {}
   }
 
-  /// Verifica se existem filtros salvos de carrinhos
   Future<bool> hasSavedCartsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       return prefs.containsKey(_cartsFiltersKey);
     } catch (e) {
-      // Erro ao verificar filtros salvos de carrinhos
       return false;
     }
   }
 
-  // === FILTROS DE PRODUTOS PENDENTES ===
-
-  /// Salva os filtros da tela de produtos pendentes
   Future<void> savePendingProductsFilters(PendingProductsFiltersModel filters) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final filtersJson = jsonEncode(filters.toJson());
       await prefs.setString(_pendingProductsFiltersKey, filtersJson);
-    } catch (e) {
-      // Erro ao salvar filtros de produtos pendentes
-    }
+    } catch (e) {}
   }
 
-  /// Carrega os filtros salvos da tela de produtos pendentes
   Future<PendingProductsFiltersModel?> loadPendingProductsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -187,30 +142,23 @@ class FiltersStorageService {
         final filtersMap = jsonDecode(filtersJson) as Map<String, dynamic>;
         return PendingProductsFiltersModel.fromJson(filtersMap);
       }
-    } catch (e) {
-      // Erro ao carregar filtros de produtos pendentes
-    }
+    } catch (e) {}
 
     return null;
   }
 
-  /// Remove os filtros salvos da tela de produtos pendentes
   Future<void> clearPendingProductsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_pendingProductsFiltersKey);
-    } catch (e) {
-      // Erro ao limpar filtros de produtos pendentes
-    }
+    } catch (e) {}
   }
 
-  /// Verifica se existem filtros salvos de produtos pendentes
   Future<bool> hasSavedPendingProductsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       return prefs.containsKey(_pendingProductsFiltersKey);
     } catch (e) {
-      // Erro ao verificar filtros salvos de produtos pendentes
       return false;
     }
   }

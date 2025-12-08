@@ -23,14 +23,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
     // Listener para mudanças de foco
     _focusNode.addListener(() {
-      print('ScannerScreen: Focus mudou - hasFocus: ${_focusNode.hasFocus}');
       setState(() {}); // Força rebuild para atualizar o indicador visual
     });
 
     // Garantir que o foco seja solicitado após a construção
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
-      print('ScannerScreen: Focus solicitado');
     });
   }
 
@@ -54,20 +52,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
             autofocus: true,
             focusNode: _focusNode,
             onKeyEvent: (KeyEvent event) {
-              print('ScannerScreen: KeyEvent recebido - ${event.runtimeType}');
               if (event is KeyDownEvent) {
-                print('ScannerScreen: KeyDownEvent - character: "${event.character}", logicalKey: ${event.logicalKey}');
-
                 // Se for Enter, processar imediatamente
                 if (event.logicalKey == LogicalKeyboardKey.enter) {
-                  print('ScannerScreen: Enter pressionado');
                   scannerViewModel.processScannedCode();
                   return; // Não processar caracteres após Enter
                 }
 
                 // Para outros caracteres, apenas adicionar (debounce será processado pelo timer)
                 if (event.character != null && event.character!.isNotEmpty) {
-                  print('ScannerScreen: Adicionando caractere: "${event.character}"');
                   scannerViewModel.addCharacter(event.character!);
                   // Não processar debounce aqui - deixar o serviço gerenciar
                 }
@@ -226,7 +219,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           elevation: isLatest ? 4 : 1,
-          color: isLatest ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3) : null,
+          color: isLatest ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
           child: ListTile(
             leading: Container(
               width: 40,

@@ -233,20 +233,15 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        // Se está fechando por sucesso, não chamar onBack
-        if (_isClosingFromSuccess) {
-          return true; // Permitir fechamento normal
-        }
+    return PopScope(
+      canPop: _isClosingFromSuccess,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) return;
 
         // Se tem callback onBack, chamá-lo
         if (widget.onBack != null) {
           widget.onBack!();
-          return false; // Não fazer pop automático, o callback já faz
         }
-
-        return false; // Não permitir fechamento
       },
       child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.9 + 13, // Largura padrão + 13px

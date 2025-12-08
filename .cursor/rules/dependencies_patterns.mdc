@@ -294,7 +294,7 @@ Future<Result<User>> getUser(String id) async {
   if (id.isEmpty) {
     return Failure(ValidationFailure('ID cannot be empty'));
   }
-  
+
   try {
     final user = await repository.getById(id);
     return Success(user);

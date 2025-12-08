@@ -9,6 +9,7 @@ alwaysApply: true
 ## Stateless vs Stateful
 
 ### StatelessWidget
+
 - ✅ Use `StatelessWidget` quando o widget não precisa gerenciar estado
 - ✅ Use `const` construtor quando possível para melhor performance
 - ✅ Prefira composição sobre herança
@@ -17,12 +18,12 @@ alwaysApply: true
 // ✅ Bom: StatelessWidget com const
 class UserCard extends StatelessWidget {
   final User user;
-  
+
   const UserCard({
     super.key,
     required this.user,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -36,6 +37,7 @@ class UserCard extends StatelessWidget {
 ```
 
 ### StatefulWidget
+
 - ✅ Use `StatefulWidget` apenas quando necessário gerenciar estado
 - ✅ Mantenha estado mínimo (apenas o necessário)
 - ✅ Separe lógica de negócio do estado da UI
@@ -44,20 +46,20 @@ class UserCard extends StatelessWidget {
 // ✅ Bom: StatefulWidget com estado mínimo
 class CounterWidget extends StatefulWidget {
   const CounterWidget({super.key});
-  
+
   @override
   State<CounterWidget> createState() => _CounterWidgetState();
 }
 
 class _CounterWidgetState extends State<CounterWidget> {
   int _counter = 0;
-  
+
   void _increment() {
     setState(() {
       _counter++;
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -76,6 +78,7 @@ class _CounterWidgetState extends State<CounterWidget> {
 ## Performance
 
 ### Const Widgets
+
 - ✅ Use `const` construtor para widgets imutáveis
 - ✅ Use `const` widgets filhos quando possível
 - ✅ Reduz reconstruções desnecessárias
@@ -84,7 +87,7 @@ class _CounterWidgetState extends State<CounterWidget> {
 // ✅ Bom: const widgets
 class MyWidget extends StatelessWidget {
   const MyWidget({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return const Column(
@@ -99,7 +102,7 @@ class MyWidget extends StatelessWidget {
 // ❌ Evite: sem const quando possível
 class MyWidget extends StatelessWidget {
   MyWidget({super.key}); // Deveria ser const
-  
+
   @override
   Widget build(BuildContext context) {
     return Column( // Deveria ser const
@@ -113,6 +116,7 @@ class MyWidget extends StatelessWidget {
 ```
 
 ### Rebuilds
+
 - ✅ Use `const` para evitar rebuilds desnecessários
 - ✅ Extraia widgets que mudam frequentemente
 - ✅ Use `RepaintBoundary` para widgets complexos
@@ -121,9 +125,9 @@ class MyWidget extends StatelessWidget {
 // ✅ Bom: extrair widget que muda
 class UserList extends StatelessWidget {
   final List<User> users;
-  
+
   const UserList({super.key, required this.users});
-  
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
@@ -138,9 +142,9 @@ class UserList extends StatelessWidget {
 
 class UserListItem extends StatelessWidget {
   final User user;
-  
+
   const UserListItem({super.key, required this.user});
-  
+
   @override
   Widget build(BuildContext context) {
     return ListTile(
@@ -152,6 +156,7 @@ class UserListItem extends StatelessWidget {
 ```
 
 ### Keys
+
 - ✅ Use `Key` apenas quando necessário (listas, animações)
 - ✅ Use `ValueKey` para valores únicos
 - ✅ Use `ObjectKey` para objetos complexos
@@ -172,6 +177,7 @@ ListView.builder(
 ## Widget Composition
 
 ### Extrair Widgets
+
 - ✅ Extraia widgets quando ficarem muito grandes (>100 linhas no build)
 - ✅ Extraia widgets reutilizáveis
 - ✅ Use widgets pequenos e focados
@@ -180,9 +186,9 @@ ListView.builder(
 // ✅ Bom: widget extraído e reutilizável
 class UserCard extends StatelessWidget {
   final User user;
-  
+
   const UserCard({super.key, required this.user});
-  
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -199,6 +205,7 @@ class UserCard extends StatelessWidget {
 ```
 
 ### Build Context
+
 - ✅ Evite passar `BuildContext` para métodos longos
 - ✅ Use `context` apenas dentro de `build()` ou callbacks
 - ✅ Não armazene `BuildContext` em campos
@@ -207,7 +214,7 @@ class UserCard extends StatelessWidget {
 // ✅ Bom: usar context no build
 class MyWidget extends StatelessWidget {
   const MyWidget({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
@@ -227,7 +234,7 @@ class MyWidget extends StatefulWidget {
 
 class _MyWidgetState extends State<MyWidget> {
   BuildContext? _context; // ❌ Não armazene context
-  
+
   @override
   Widget build(BuildContext context) {
     _context = context; // ❌ Errado
@@ -239,6 +246,7 @@ class _MyWidgetState extends State<MyWidget> {
 ## Layout
 
 ### Responsive Design
+
 - ✅ Use `MediaQuery` para dimensões responsivas
 - ✅ Use `LayoutBuilder` para layouts adaptativos
 - ✅ Evite valores hardcoded para dimensões
@@ -247,11 +255,11 @@ class _MyWidgetState extends State<MyWidget> {
 // ✅ Bom: layout responsivo
 class ResponsiveWidget extends StatelessWidget {
   const ResponsiveWidget({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return screenWidth > 600
         ? const DesktopLayout()
         : const MobileLayout();
@@ -261,7 +269,7 @@ class ResponsiveWidget extends StatelessWidget {
 // ✅ Bom: usar LayoutBuilder
 class AdaptiveLayout extends StatelessWidget {
   const AdaptiveLayout({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -277,6 +285,7 @@ class AdaptiveLayout extends StatelessWidget {
 ```
 
 ### Spacing
+
 - ✅ Use `SizedBox` para espaçamento explícito
 - ✅ Use `Padding` para padding
 - ✅ Evite valores mágicos (crie constantes)
@@ -307,6 +316,7 @@ const SizedBox(height: AppSpacing.medium),
 ## Theming
 
 ### ThemeData
+
 - ✅ Defina tema centralizado em `core/theme`
 - ✅ Use `Theme.of(context)` para acessar tema
 - ✅ Crie temas customizados quando necessário
@@ -321,7 +331,7 @@ class AppTheme {
       // ... outras configurações
     );
   }
-  
+
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,
@@ -342,6 +352,7 @@ MaterialApp(
 ```
 
 ### Text Styles
+
 - ✅ Use `Theme.of(context).textTheme` para estilos de texto
 - ✅ Crie text styles customizados quando necessário
 - ✅ Evite estilos hardcoded
@@ -365,6 +376,7 @@ ThemeData(
 ## Navigation
 
 ### Routes
+
 - ✅ Defina rotas centralizadas em `core/routes`
 - ✅ Use rotas nomeadas para navegação
 - ✅ Use `go_router` ou `auto_route` para rotas complexas
@@ -375,7 +387,7 @@ class AppRoutes {
   static const String home = '/';
   static const String login = '/login';
   static const String user = '/user/:id';
-  
+
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case home:
@@ -390,6 +402,7 @@ class AppRoutes {
 ```
 
 ### Navigation
+
 - ✅ Use `Navigator.push()` para navegação imperativa
 - ✅ Use rotas nomeadas para navegação declarativa
 - ✅ Passe dados via construtor, não via arguments
@@ -414,6 +427,7 @@ Navigator.pushNamed(
 ## State Management
 
 ### Local State
+
 - ✅ Use `StatefulWidget` para estado local simples
 - ✅ Use `setState()` apenas para estado da UI
 - ✅ Mantenha estado mínimo
@@ -422,20 +436,20 @@ Navigator.pushNamed(
 // ✅ Bom: estado local simples
 class CounterWidget extends StatefulWidget {
   const CounterWidget({super.key});
-  
+
   @override
   State<CounterWidget> createState() => _CounterWidgetState();
 }
 
 class _CounterWidgetState extends State<CounterWidget> {
   int _counter = 0;
-  
+
   void _increment() {
     setState(() {
       _counter++;
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Text('Counter: $_counter');
@@ -444,6 +458,7 @@ class _CounterWidgetState extends State<CounterWidget> {
 ```
 
 ### Global State
+
 - ✅ Use `Provider` para estado global (padrão do projeto)
 - ✅ Separe lógica de negócio do estado da UI
 - ✅ Use `ChangeNotifierProvider` para providers que estendem `ChangeNotifier`
@@ -452,22 +467,22 @@ class _CounterWidgetState extends State<CounterWidget> {
 // ✅ Bom: usar Provider para estado global
 class UserProvider extends ChangeNotifier {
   final UserService userService;
-  
+
   UserProvider(this.userService);
-  
+
   User? _user;
   bool _isLoading = false;
   String? _error;
-  
+
   User? get user => _user;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  
+
   Future<void> loadUser(String id) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     try {
       final result = await userService.getUser(id);
       result.fold(
@@ -484,7 +499,7 @@ class UserProvider extends ChangeNotifier {
       _error = e.toString();
       _isLoading = false;
     }
-    
+
     notifyListeners();
   }
 }
@@ -493,21 +508,25 @@ class UserProvider extends ChangeNotifier {
 ## Boas Práticas Gerais
 
 ### Widgets Pequenos
+
 - ✅ Mantenha widgets pequenos e focados
 - ✅ Extraia widgets quando `build()` ficar grande
 - ✅ Use composição sobre herança
 
 ### Evitar Rebuilds
+
 - ✅ Use `const` widgets quando possível
 - ✅ Extraia widgets que mudam frequentemente
 - ✅ Use `RepaintBoundary` para widgets complexos
 
 ### Acessibilidade
+
 - ✅ Use `Semantics` para widgets importantes
 - ✅ Forneça labels para widgets interativos
 - ✅ Teste com screen readers
 
 ### Internacionalização
+
 - ✅ Use `intl` package para i18n
 - ✅ Evite strings hardcoded
 - ✅ Prepare strings para tradução desde o início
