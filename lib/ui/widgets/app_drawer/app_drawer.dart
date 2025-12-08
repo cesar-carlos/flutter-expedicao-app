@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:data7_expedicao/core/utils/string_utils.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
@@ -205,8 +206,38 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
           ),
+          _buildVersionInfo(context, theme),
         ],
       ),
+    );
+  }
+
+  Widget _buildVersionInfo(BuildContext context, ThemeData theme) {
+    return FutureBuilder<PackageInfo>(
+      future: PackageInfo.fromPlatform(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const SizedBox.shrink();
+        }
+
+        final packageInfo = snapshot.data!;
+        final version = packageInfo.version;
+        final buildNumber = packageInfo.buildNumber;
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            border: Border(top: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.12), width: 1)),
+          ),
+          child: Text(
+            'Versão $version+$buildNumber',
+            style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+            textAlign: TextAlign.center,
+          ),
+        );
+      },
     );
   }
 
