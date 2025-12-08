@@ -21,11 +21,8 @@ class AppUpdateRepositoryImpl implements IAppUpdateRepository {
   Future<Result<AppVersion>> getCurrentVersion() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
-      final versionParts = packageInfo.version.split('+');
-      final version = versionParts[0];
-      final buildNumber = versionParts.length > 1
-          ? int.tryParse(versionParts[1]) ?? 0
-          : int.tryParse(packageInfo.buildNumber) ?? 0;
+      final version = packageInfo.version;
+      final buildNumber = int.tryParse(packageInfo.buildNumber) ?? 0;
 
       return success(AppVersion(version: version, buildNumber: buildNumber));
     } catch (e) {
