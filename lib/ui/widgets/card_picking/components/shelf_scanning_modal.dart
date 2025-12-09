@@ -216,62 +216,67 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
           widget.onBack!();
         }
       },
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.9 + 13,
-        child: AlertDialog(
-          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-          contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          title: Row(
-            children: [
-              Icon(Icons.qr_code_scanner, color: Colors.orange, size: UIConstants.largeIconSize),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Prateleira',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = MediaQuery.of(context).size.width;
+          return SizedBox(
+            width: screenWidth * 0.9 + 13,
+            child: AlertDialog(
+              titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+              contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+              actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              title: Row(
                 children: [
-                  Icon(Icons.location_on, color: Colors.blue, size: UIConstants.mediumIconSize),
+                  Icon(Icons.qr_code_scanner, color: Colors.orange, size: UIConstants.largeIconSize),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      widget.expectedAddressDescription,
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      'Prateleira',
+                      style: Theme.of(context).textTheme.headlineSmall,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: UIConstants.smallPadding),
-              TextField(
-                controller: _scanController,
-                focusNode: _focusNode,
-                autofocus: false,
-                enableInteractiveSelection: _isManualMode,
-                keyboardType: _isManualMode ? TextInputType.text : TextInputType.numberWithOptions(decimal: false),
-                decoration: InputDecoration(
-                  labelText: 'Código da Prateleira',
-                  border: OutlineInputBorder(),
-                  prefixIcon: GestureDetector(
-                    onTap: _toggleInputMode,
-                    child: Icon(_isManualMode ? Icons.keyboard : Icons.qr_code_scanner, color: Colors.orange),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, color: Colors.blue, size: UIConstants.mediumIconSize),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          widget.expectedAddressDescription,
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                onSubmitted: (_) => _validateShelfInput(),
+                  const SizedBox(height: UIConstants.smallPadding),
+                  TextField(
+                    controller: _scanController,
+                    focusNode: _focusNode,
+                    autofocus: false,
+                    enableInteractiveSelection: _isManualMode,
+                    keyboardType: _isManualMode ? TextInputType.text : TextInputType.numberWithOptions(decimal: false),
+                    decoration: InputDecoration(
+                      labelText: 'Código da Prateleira',
+                      border: OutlineInputBorder(),
+                      prefixIcon: GestureDetector(
+                        onTap: _toggleInputMode,
+                        child: Icon(_isManualMode ? Icons.keyboard : Icons.qr_code_scanner, color: Colors.orange),
+                      ),
+                    ),
+                    onSubmitted: (_) => _validateShelfInput(),
+                  ),
+                ],
               ),
-            ],
-          ),
-          actions: [if (widget.onBack != null) TextButton(onPressed: widget.onBack, child: const Text('Voltar'))],
-        ),
+              actions: [if (widget.onBack != null) TextButton(onPressed: widget.onBack, child: const Text('Voltar'))],
+            ),
+          );
+        },
       ),
     );
   }

@@ -32,7 +32,7 @@ class UserValidators {
       );
 
   /// Schema para confirmação de senha
-  static confirmPasswordSchema(String originalPassword) {
+  static dynamic confirmPasswordSchema(String originalPassword) {
     return z
         .map({
           'password': z.string(),

@@ -101,7 +101,7 @@ class PickingScreenLayout extends StatelessWidget {
   Widget _buildQuantitySelector() {
     return Selector<PickingScanState, bool>(
       selector: (_, s) => s.enabled,
-      builder: (context, isEnabled, __) {
+      builder: (context, isEnabled, _) {
         return QuantitySelectorCard(
           controller: quantityController,
           focusNode: quantityFocusNode,

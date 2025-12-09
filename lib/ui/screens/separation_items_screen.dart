@@ -196,44 +196,49 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         onRefresh: () async {
           await viewModel.refresh();
         },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.7,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(UIConstants.extraLargePadding),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.inventory_2_outlined,
-                      size: UIConstants.extraLargeIconSize,
-                      color: Theme.of(context).colorScheme.outline,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final screenHeight = MediaQuery.of(context).size.height;
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: screenHeight * 0.7,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(UIConstants.extraLargePadding),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: UIConstants.extraLargeIconSize,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                        const SizedBox(height: UIConstants.defaultPadding),
+                        Text(
+                          'Nenhum item encontrado',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: UIConstants.smallPadding),
+                        Text(
+                          'Não há itens para separar nesta separação.',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: UIConstants.defaultPadding),
+                        Text(
+                          'Puxe para atualizar',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: UIConstants.defaultPadding),
-                    Text(
-                      'Nenhum item encontrado',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: UIConstants.smallPadding),
-                    Text(
-                      'Não há itens para separar nesta separação.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: UIConstants.defaultPadding),
-                    Text(
-                      'Puxe para atualizar',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       );
     }

@@ -142,7 +142,13 @@ class CustomDialog extends StatelessWidget {
       );
     } else {
       // Largura responsiva (80% da tela) quando width não especificado
-      contentWidget = SizedBox(width: MediaQuery.of(context).size.width * 0.9, height: height, child: contentWidget);
+      // Usa LayoutBuilder para garantir que o contexto está pronto
+      contentWidget = LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = MediaQuery.of(context).size.width;
+          return SizedBox(width: screenWidth * 0.9, height: height, child: contentWidget);
+        },
+      );
     }
 
     return contentWidget;

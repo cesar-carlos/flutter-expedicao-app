@@ -146,11 +146,11 @@ class AppHelper {
     }
   }
 
-  static qtdDisplayToDouble(String value) {
+  static double qtdDisplayToDouble(String value) {
     return double.parse(value.replaceAll('.', '').replaceAll(',', '.'));
   }
 
-  static isBarCode(String value) {
+  static bool isBarCode(String value) {
     if (value.trim().length > 6) return true;
     if (!AppHelper.isNumeric(value.trim())) return true;
     return false;

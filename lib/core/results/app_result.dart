@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:result_dart/result_dart.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 
@@ -57,4 +58,82 @@ Result<T> safeCallSync<T extends Object>(T Function() operation) {
   } catch (e) {
     return unknownFailure(e);
   }
+}
+
+/// Função helper para converter DioException em NetworkFailure
+Result<T> handleDioException<T extends Object>(DioException e) {
+  final statusCode = e.response?.statusCode;
+
+  if (statusCode == 401) {
+    return authFailure<T>('Credenciais inválidas');
+  }
+
+  if (statusCode == 403) {
+    return authFailure<T>('Acesso negado');
+  }
+
+  String errorMessage;
+  switch (e.type) {
+    case DioExceptionType.connectionTimeout:
+      errorMessage = 'Tempo limite de conexão excedido';
+      break;
+    case DioExceptionType.sendTimeout:
+      errorMessage = 'Tempo limite de envio excedido';
+      break;
+    case DioExceptionType.receiveTimeout:
+      errorMessage = 'Tempo limite de resposta excedido';
+      break;
+    case DioExceptionType.connectionError:
+      errorMessage = 'Erro de conexão - Verifique URL e porta';
+      break;
+    case DioExceptionType.cancel:
+      errorMessage = 'Operação cancelada';
+      break;
+    case DioExceptionType.badResponse:
+      errorMessage = 'Resposta inválida do servidor';
+      break;
+    case DioExceptionType.badCertificate:
+      errorMessage = 'Erro de certificado SSL';
+      break;
+    case DioExceptionType.unknown:
+      errorMessage = 'Erro de comunicação: ${e.message ?? 'Erro desconhecido'}';
+      break;
+  }
+
+  return networkFailure<T>(errorMessage, statusCode: statusCode);
+}
+
+/// Função helper para executar operações HTTP com tratamento de erros
+Future<Result<T>> safeHttpCall<T extends Object>(Future<T> Function() operation) async {
+  try {
+    final result = await operation();
+    return success(result);
+  } on DioException catch (e) {
+    return handleDioException<T>(e);
+  } catch (e) {
+    return unknownFailure<T>(e);
+  }
+}
+
+/// Função helper para converter UserApiException em AppFailure
+Result<T> handleUserApiException<T extends Object>(dynamic exception) {
+  if (exception is! Exception) {
+    return unknownFailure<T>(exception);
+  }
+
+  final message = exception.toString().replaceAll('UserApiException: ', '').split(' (Status:').first;
+
+  if (message.contains('Credenciais inválidas') || message.contains('401')) {
+    return authFailure<T>('Credenciais inválidas');
+  }
+
+  if (message.contains('não encontrado') || message.contains('404')) {
+    return dataFailure<T>('Recurso não encontrado');
+  }
+
+  if (message.contains('validação') || message.contains('Dados inválidos')) {
+    return validationFailure<T>([message]);
+  }
+
+  return networkFailure<T>(message);
 }

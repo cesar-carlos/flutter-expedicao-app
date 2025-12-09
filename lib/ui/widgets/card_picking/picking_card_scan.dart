@@ -13,8 +13,6 @@ import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separa
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
 import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
-import 'package:data7_expedicao/domain/models/user_system_models.dart';
 
 class PickingCardScan extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -134,7 +132,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   void _setupListeners() {
     _scanController.addListener(_onScannerInput);
-    _scanFocusNode.addListener(_onFocusChange);
   }
 
   void _requestInitialFocus() {
@@ -193,10 +190,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     });
   }
 
-  void _onFocusChange() {
-    if (_scanFocusNode.hasFocus) {}
-  }
-
   void _toggleKeyboard() {
     _scanState.toggleKeyboard();
 
@@ -235,7 +228,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _errorSubscription?.cancel();
     widget.viewModel.removeListener(_onViewModelChanged);
     _scanController.removeListener(_onScannerInput);
-    _scanFocusNode.removeListener(_onFocusChange);
     _scanController.dispose();
     _scanFocusNode.dispose();
     _quantityController.dispose();
@@ -389,7 +381,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
           quantity,
           _resetQuantityIfNeeded,
           _invalidateCartStatusCache,
-          _checkIfSectorItemsCompleted,
+          () async {},
         );
 
         _checkNextItemShelfScan();
@@ -503,18 +495,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  Future<void> _checkIfSectorItemsCompleted() async {}
-
-  Future<UserSystemModel?> _getUserModel() async {
-    try {
-      final userSessionService = locator<UserSessionService>();
-      final currentUser = await userSessionService.loadUserSession();
-      return currentUser?.userSystemModel;
-    } catch (e) {
-      return null;
-    }
-  }
-
   void _showLoadingDialog() {
     if (!mounted) return;
 
@@ -546,7 +526,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   Future<void> _finishPicking() async {
     if (!mounted) return;
 
-    final userModel = await _getUserModel();
+    final userModel = widget.viewModel.userModel;
     if (userModel == null) {
       _showErrorDialog('Erro ao carregar dados do usuário. Tente novamente.');
       return;
