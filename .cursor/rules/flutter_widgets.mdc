@@ -4,6 +4,8 @@ globs: ["lib/presentation/**/*.dart", "lib/shared/**/*.dart"]
 alwaysApply: true
 ---
 
+#
+
 # Flutter Widgets - Boas Práticas
 
 ## Stateless vs Stateful

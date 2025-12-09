@@ -3,6 +3,8 @@ description: Padrões de testes - Estrutura, organização e boas práticas
 alwaysApply: false
 ---
 
+#
+
 # Padrões de Testes
 
 ## Estrutura de Testes

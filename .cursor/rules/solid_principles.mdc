@@ -4,6 +4,8 @@ globs: ["lib/**/*.dart"]
 alwaysApply: true
 ---
 
+#
+
 # Princípios SOLID
 
 ## Single Responsibility Principle (SRP)

@@ -2,6 +2,8 @@
 alwaysApply: true
 ---
 
+#
+
 # Cursor Rules
 
 This folder contains the **Project Rules** for Cursor, which are automatically applied when working on project files. The rules provide persistent context for the AI, ensuring code consistency and quality.

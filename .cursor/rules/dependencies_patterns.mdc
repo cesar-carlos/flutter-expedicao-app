@@ -4,6 +4,8 @@ globs: ["lib/**/*.dart", "pubspec.yaml"]
 alwaysApply: true
 ---
 
+#
+
 # Padrões de Dependências e Bibliotecas
 
 Este projeto utiliza as seguintes bibliotecas como padrão. **SEMPRE** use essas bibliotecas específicas, não alternativas.

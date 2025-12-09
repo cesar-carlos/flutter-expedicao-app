@@ -4,6 +4,8 @@ globs: ["lib/**/*.dart", "test/**/*.dart"]
 alwaysApply: true
 ---
 
+#
+
 # Regras Gerais do Projeto
 
 ## Documentação e Comentários

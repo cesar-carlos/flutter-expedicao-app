@@ -4,6 +4,8 @@ globs: ["lib/**/*.dart"]
 alwaysApply: true
 ---
 
+#
+
 # Convenções de Codificação
 
 ## Nomenclatura

@@ -4,11 +4,14 @@ globs: ["lib/**/*.dart"]
 alwaysApply: true
 ---
 
+#
+
 # Clean Architecture - Regras de Dependência
 
 ## Estrutura de Camadas
 
 O projeto segue Clean Architecture com as seguintes camadas:
+
 - **Domain**: Núcleo (lógica de negócio pura)
 - **Application**: Orquestração (casos de uso)
 - **Infrastructure**: Implementações (dados, APIs)
@@ -19,6 +22,7 @@ O projeto segue Clean Architecture com as seguintes camadas:
 ## Regras de Dependência
 
 ### Domain Layer
+
 - ✅ PODE importar apenas de `core` e `shared`
 - ❌ NUNCA importar de `application`, `infrastructure` ou `presentation`
 - ❌ NUNCA importar Flutter, HTTP, ou qualquer framework externo
@@ -27,6 +31,7 @@ O projeto segue Clean Architecture com as seguintes camadas:
 - ✅ Contém apenas lógica de negócio pura
 
 **Exemplo Correto:**
+
 ```dart
 // domain/entities/user.dart
 import 'package:core/core.dart'; // ✅ OK
@@ -41,6 +46,7 @@ class User {
 ```
 
 **Exemplo Incorreto:**
+
 ```dart
 // domain/entities/user.dart
 import 'package:flutter/material.dart'; // ❌ ERRADO
@@ -48,12 +54,14 @@ import 'package:infrastructure/infrastructure.dart'; // ❌ ERRADO
 ```
 
 ### Application Layer
+
 - ✅ PODE importar de `domain` e `core`
 - ❌ NUNCA importar de `infrastructure` ou `presentation`
 - ✅ Usa interfaces do Domain, não implementações concretas
 - ✅ Orquestra use cases e coordena fluxos
 
 **Exemplo Correto:**
+
 ```dart
 // application/services/user_service.dart
 import 'package:domain/domain.dart'; // ✅ OK
@@ -61,18 +69,20 @@ import 'package:core/core.dart'; // ✅ OK
 
 class UserService {
   final IUserRepository repository; // Interface do Domain ✅
-  
+
   UserService(this.repository);
 }
 ```
 
 ### Infrastructure Layer
+
 - ✅ PODE importar de `domain` e `core`
 - ❌ NUNCA importar de `application` ou `presentation`
 - ✅ Implementa interfaces definidas no Domain
 - ✅ Lida com detalhes técnicos (API, DB, Cache)
 
 **Exemplo Correto:**
+
 ```dart
 // infrastructure/repositories/user_repository.dart
 import 'package:domain/domain.dart'; // ✅ OK
@@ -86,12 +96,14 @@ class UserRepository implements IUserRepository {
 ```
 
 ### Presentation Layer
+
 - ✅ PODE importar de `domain`, `application` e `core`
 - ❌ NUNCA importar de `infrastructure`
 - ✅ Usa services da Application ou use cases do Domain
 - ✅ Apenas gerencia estado da UI, não lógica de negócio
 
 **Exemplo Correto:**
+
 ```dart
 // presentation/pages/user_page.dart
 import 'package:domain/domain.dart'; // ✅ OK
@@ -100,7 +112,7 @@ import 'package:core/core.dart'; // ✅ OK
 
 class UserPage extends StatelessWidget {
   final UserService userService; // Service da Application ✅
-  
+
   @override
   Widget build(BuildContext context) {
     // UI apenas

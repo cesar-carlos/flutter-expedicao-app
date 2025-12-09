@@ -1,6 +1,5 @@
 ---
-description: Clean Architecture + Domain Driven Design (DDD) - Architecture overview and principles
-alwaysApply: false
+alwaysApply: true
 ---
 
 # Clean Architecture + Domain Driven Design (DDD)

@@ -4,6 +4,8 @@ globs: ["lib/**/*.dart"]
 alwaysApply: true
 ---
 
+#
+
 # Null Safety - Boas Práticas
 
 ## Princípios Fundamentais

@@ -5,11 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/domain/repositories/barcode_scanner_repository.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 
-/// Implementação do repository de scanner usando mobile_scanner
 class BarcodeScannerRepositoryMobileImpl implements BarcodeScannerRepository {
   BuildContext? _context;
 
-  /// Define o contexto para navegação
   void setContext(BuildContext context) {
     _context = context;
   }
@@ -27,17 +25,14 @@ class BarcodeScannerRepositoryMobileImpl implements BarcodeScannerRepository {
         _context!,
       ).push<String>(MaterialPageRoute(builder: (context) => const BarcodeScannerScreen()));
 
-      // Se o usuário cancelou, retorna erro
       if (result == null) {
         return Failure(DataFailure(message: 'Scan cancelado pelo usuário', code: 'SCAN_CANCELLED'));
       }
 
-      // Se o código está vazio, retorna erro
       if (result.trim().isEmpty) {
         return Failure(DataFailure(message: 'Código de barras vazio', code: 'EMPTY_BARCODE'));
       }
 
-      // Retorna o código escaneado
       return Success(result);
     } catch (e) {
       return Failure(
@@ -47,7 +42,6 @@ class BarcodeScannerRepositoryMobileImpl implements BarcodeScannerRepository {
   }
 }
 
-/// Tela de scanner de código de barras
 class BarcodeScannerScreen extends StatefulWidget {
   const BarcodeScannerScreen({super.key});
 
@@ -67,19 +61,14 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     _initializeController();
   }
 
-  /// Desabilita sons do sistema durante o scan
-  void _disableSystemSounds() {
-    // Não há API direta para desabilitar o beep do mobile_scanner
-    // O beep é controlado pelo sistema operacional Android/iOS
-  }
+  void _disableSystemSounds() {}
 
   void _initializeController() {
     try {
       _controller = MobileScannerController(
-        detectionSpeed: DetectionSpeed.noDuplicates, // Evita múltiplos beeps
+        detectionSpeed: DetectionSpeed.noDuplicates,
         facing: CameraFacing.back,
         torchEnabled: false,
-        useNewCameraSelector: true,
         returnImage: false,
       );
     } catch (e) {
@@ -104,7 +93,6 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         _isProcessing = true;
       });
 
-      // Pequeno delay para garantir que o scan foi bem sucedido
       Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) {
           Navigator.of(context).pop(barcode.rawValue);
@@ -154,9 +142,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             onPressed: () {
               try {
                 _controller?.toggleTorch();
-              } catch (e) {
-                // Ignora erros ao alternar flash
-              }
+              } catch (e) {}
             },
           ),
         ],
@@ -166,8 +152,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
           MobileScanner(
             controller: _controller!,
             onDetect: _onDetect,
-            scanWindow: null, // Escanear toda a área
-            errorBuilder: (context, error, child) {
+            scanWindow: null,
+            errorBuilder: (context, error) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

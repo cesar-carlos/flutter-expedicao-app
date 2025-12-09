@@ -4,6 +4,8 @@ globs: ["lib/domain/**/*.dart"]
 alwaysApply: true
 ---
 
+#
+
 # Domain Layer - Regras e Padrões
 
 ## Entidades (Entities)
