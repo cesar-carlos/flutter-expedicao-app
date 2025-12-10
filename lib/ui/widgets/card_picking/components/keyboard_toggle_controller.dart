@@ -42,6 +42,12 @@ class KeyboardToggleController {
     Future.delayed(_focusDelay, () {
       if (context.mounted) {
         scanFocusNode.requestFocus();
+        // Garantir que o teclado virtual permaneça fechado após o foco.
+        Future.delayed(_focusDelay, () {
+          if (context.mounted) {
+            _hideKeyboard();
+          }
+        });
       }
     });
   }

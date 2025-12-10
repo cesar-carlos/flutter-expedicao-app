@@ -89,6 +89,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   StreamSubscription<OperationError>? _errorSubscription;
 
   bool _hasShownInitialShelfScan = false;
+  bool _scannerModeInitialized = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -102,6 +103,13 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        // Dispara o prime manual->scanner após a tela estar montada,
+        // evitando rodar antes dos componentes carregarem.
+        Future.delayed(const Duration(milliseconds: 150), () {
+          if (mounted) {
+            _ensureScannerModeActivated();
+          }
+        });
         _statusCache.forceCheckCartStatus();
         if (mounted) {
           _scanState.forceUpdate();
@@ -150,6 +158,20 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   void _requestInitialFocus() {
     _keyboardController.requestInitialFocus();
+  }
+
+  void _ensureScannerModeActivated() {
+    if (_scannerModeInitialized) return;
+    _scannerModeInitialized = true;
+    // Forçamos um ciclo manual -> scanner para inicializar corretamente o canal de input
+    // em devices que só respondem após o teclado virtual ser carregado ao menos uma vez.
+    _scanState.setKeyboardEnabled(true);
+    _keyboardController.enableKeyboardMode();
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (!mounted) return;
+      _scanState.setKeyboardEnabled(false);
+      _keyboardController.enableScannerMode();
+    });
   }
 
   bool _isCartInSeparationStatus() {

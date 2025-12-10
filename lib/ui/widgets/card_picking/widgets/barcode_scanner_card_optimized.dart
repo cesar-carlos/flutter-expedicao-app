@@ -107,12 +107,16 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
       enabled: isFieldEnabled,
       onSubmitted: isFieldEnabled ? onSubmitted : null,
       // Permitir entrada do scanner embutido sempre, mas controlar seleção interativa
+      // No modo scanner ocultamos o teclado virtual (TextInputType.none),
+      // mas mantemos o campo focado e com cursor visível para receber entrada do leitor (wedge).
       enableInteractiveSelection: isFieldEnabled && keyboardEnabled,
-      // Permitir teclado no modo manual, suprimir apenas no modo scanner
-      keyboardType: isFieldEnabled && keyboardEnabled
-          ? TextInputType.numberWithOptions(decimal: false)
-          : TextInputType.none,
-      inputFormatters: isFieldEnabled && keyboardEnabled ? [FilteringTextInputFormatter.digitsOnly] : null,
+      showCursor: true,
+      keyboardType: keyboardEnabled ? const TextInputType.numberWithOptions(decimal: false) : TextInputType.none,
+      smartDashesType: SmartDashesType.disabled,
+      smartQuotesType: SmartQuotesType.disabled,
+      autocorrect: false,
+      enableSuggestions: false,
+      inputFormatters: isFieldEnabled ? [FilteringTextInputFormatter.digitsOnly] : null,
       decoration: InputDecoration(
         hintText: isProcessing
             ? 'Processando...'

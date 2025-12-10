@@ -24,7 +24,12 @@ class AudioService {
   factory AudioService() => _instance;
   AudioService._internal();
 
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  /// Player otimizado para efeitos curtos (baixa latência).
+  /// Mantemos uma única instância para evitar re-criação e atrasos de init.
+  final AudioPlayer _fxPlayer = AudioPlayer(playerId: 'fx_player')
+    ..setPlayerMode(PlayerMode.lowLatency)
+    ..setReleaseMode(ReleaseMode.stop);
+
   bool _isEnabled = true;
 
   /// Habilita ou desabilita os sons do sistema
@@ -40,7 +45,9 @@ class AudioService {
     if (!_isEnabled) return;
 
     try {
-      await _audioPlayer.play(AssetSource(soundType.path));
+      // Paramos o player para evitar fila/atraso quando o usuário faz leituras em sequência.
+      await _fxPlayer.stop();
+      await _fxPlayer.play(AssetSource(soundType.path));
     } catch (e) {
       if (kDebugMode) {
         // Erro ao reproduzir som
@@ -96,7 +103,7 @@ class AudioService {
   /// Para a reprodução atual
   Future<void> stop() async {
     try {
-      await _audioPlayer.stop();
+      await _fxPlayer.stop();
     } catch (e) {
       if (kDebugMode) {
         // Erro ao parar reprodução
@@ -107,7 +114,7 @@ class AudioService {
   /// Libera recursos do player
   Future<void> dispose() async {
     try {
-      await _audioPlayer.dispose();
+      await _fxPlayer.dispose();
     } catch (e) {
       if (kDebugMode) {
         // Erro ao liberar recursos do AudioPlayer
@@ -118,7 +125,7 @@ class AudioService {
   /// Define o volume (0.0 a 1.0)
   Future<void> setVolume(double volume) async {
     try {
-      await _audioPlayer.setVolume(volume.clamp(0.0, 1.0));
+      await _fxPlayer.setVolume(volume.clamp(0.0, 1.0));
     } catch (e) {
       if (kDebugMode) {
         // Erro ao definir volume
