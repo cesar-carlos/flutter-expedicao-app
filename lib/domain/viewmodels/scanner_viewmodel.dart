@@ -30,7 +30,7 @@ class ScannerViewModel extends ChangeNotifier {
   void _processDebouncedInput() {
     if (_scannedCode.isEmpty || _isProcessing) return;
 
-    final cleanCode = _scannedCode.replaceAll(RegExp(r'[^\d]'), '');
+    final cleanCode = _scannedCode.trim();
 
     if (cleanCode.isNotEmpty) {
       _addToHistory(cleanCode);
@@ -75,12 +75,19 @@ class ScannerViewModel extends ChangeNotifier {
     if (_scannedCode.isNotEmpty) {
       _debounceTimer?.cancel();
 
-      final cleanCode = _scannedCode.replaceAll(RegExp(r'[^\d]'), '');
+      final cleanCode = _scannedCode.trim();
 
       if (cleanCode.isNotEmpty) {
         _addToHistory(cleanCode);
       }
     }
+  }
+
+  /// Adiciona um código completo (modo broadcast)
+  void addFullCode(String code) {
+    final cleanCode = code.trim();
+    if (cleanCode.isEmpty) return;
+    _addToHistory(cleanCode);
   }
 
   void clearCurrentCode() {

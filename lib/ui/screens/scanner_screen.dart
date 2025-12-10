@@ -1,11 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/domain/viewmodels/scanner_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/scanner_title_with_connection_status.dart';
-import 'package:go_router/go_router.dart';
+import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
+import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
+import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -16,6 +21,12 @@ class ScannerScreen extends StatefulWidget {
 
 class _ScannerScreenState extends State<ScannerScreen> {
   final FocusNode _focusNode = FocusNode();
+  final BarcodeBroadcastService _broadcastService = locator<BarcodeBroadcastService>();
+  final ConfigViewModel _configViewModel = locator<ConfigViewModel>();
+  StreamSubscription<String>? _broadcastSub;
+  bool _isBroadcastMode = false;
+  String _action = '';
+  String _extraKey = '';
 
   @override
   void initState() {
@@ -28,12 +39,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
     // Garantir que o foco seja solicitado após a construção
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
+      _loadScannerPreferences();
+      if (!_isBroadcastMode) {
+        _focusNode.requestFocus();
+      } else {
+        _startBroadcast();
+      }
     });
   }
 
   @override
   void dispose() {
+    _broadcastSub?.cancel();
     _focusNode.dispose();
     super.dispose();
   }
@@ -52,6 +69,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             autofocus: true,
             focusNode: _focusNode,
             onKeyEvent: (KeyEvent event) {
+              if (_isBroadcastMode) return;
               if (event is KeyDownEvent) {
                 // Se for Enter, processar imediatamente
                 if (event.logicalKey == LogicalKeyboardKey.enter) {
@@ -184,6 +202,32 @@ class _ScannerScreenState extends State<ScannerScreen> {
         },
       ),
     );
+  }
+
+  void _loadScannerPreferences() {
+    try {
+      _configViewModel.loadConfigSilent();
+      final cfg = _configViewModel.currentConfig;
+      _isBroadcastMode = cfg.scannerInputMode == ScannerInputMode.broadcast;
+      _action = (cfg.broadcastAction ?? '').trim();
+      _extraKey = (cfg.broadcastExtraKey ?? '').trim();
+    } catch (_) {
+      _isBroadcastMode = false;
+      _action = '';
+      _extraKey = '';
+    }
+  }
+
+  void _startBroadcast() {
+    if (!_isBroadcastMode || _action.isEmpty || _extraKey.isEmpty) return;
+    _broadcastSub?.cancel();
+    _broadcastSub = _broadcastService.listen(action: _action, extraKey: _extraKey).listen((code) {
+      if (!mounted) return;
+      final trimmed = code.trim();
+      if (trimmed.isEmpty) return;
+      final vm = context.read<ScannerViewModel>();
+      vm.addFullCode(trimmed);
+    });
   }
 
   /// Constrói a lista de leituras

@@ -29,8 +29,8 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
     final vm = context.read<ConfigViewModel>();
     vm.loadConfigSilent();
     _mode = vm.scannerInputMode;
-    _actionController.text = vm.broadcastAction;
-    _extraController.text = vm.broadcastExtraKey;
+    _actionController.text = vm.broadcastAction.isNotEmpty ? vm.broadcastAction : 'com.scanner.BARCODE';
+    _extraController.text = vm.broadcastExtraKey.isNotEmpty ? vm.broadcastExtraKey : 'data';
   }
 
   @override

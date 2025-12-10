@@ -29,9 +29,9 @@ class ApiConfig {
         apiUrl: 'localhost',
         apiPort: 3001,
         useHttps: false,
-        scannerInputMode: ScannerInputMode.focus,
-        broadcastAction: '',
-        broadcastExtraKey: '',
+        scannerInputMode: ScannerInputMode.broadcast,
+        broadcastAction: 'com.scanner.BARCODE',
+        broadcastExtraKey: 'data',
         lastUpdated: DateTime.now(),
       );
 
