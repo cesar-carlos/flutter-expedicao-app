@@ -27,6 +27,7 @@ import 'package:data7_expedicao/ui/screens/packaging_screen.dart';
 import 'package:data7_expedicao/ui/screens/storage_screen.dart';
 import 'package:data7_expedicao/ui/screens/scanner_screen.dart';
 import 'package:data7_expedicao/ui/screens/config_screen.dart';
+import 'package:data7_expedicao/ui/screens/scanner_config_screen.dart';
 import 'package:data7_expedicao/ui/screens/home_screen.dart';
 
 /// Configuração das rotas da aplicação usando GoRouter
@@ -36,6 +37,7 @@ class AppRouter {
   static const String register = '/register';
   static const String qrcodeLogin = '/qrcode-login';
   static const String config = '/config';
+  static const String scannerConfig = '/scanner-config';
   static const String home = '/home';
   static const String scanner = '/home/scanner';
   static const String userSelection = '/user-selection';
@@ -117,6 +119,9 @@ class AppRouter {
 
         // Rota de Configurações
         GoRoute(path: config, name: 'config', builder: (context, state) => const ConfigScreen()),
+
+        // Rota de Configuração do Scanner
+        GoRoute(path: scannerConfig, name: 'scanner-config', builder: (context, state) => const ScannerConfigScreen()),
 
         // Rota de Seleção de Usuário
         GoRoute(

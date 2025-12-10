@@ -21,7 +21,7 @@ class ScannerTitleWithConnectionStatus extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Scanner TC60',
+              'Scanner Test',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onSurface,

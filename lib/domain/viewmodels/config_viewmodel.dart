@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/domain/models/api_config.dart';
+import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/data/datasources/config_service.dart';
 import 'package:data7_expedicao/core/constants/app_strings.dart';
 
@@ -27,6 +28,9 @@ class ConfigViewModel extends ChangeNotifier {
   bool get connectionTested => _connectionTested;
   String get errorMessage => _errorMessage;
   bool get hasConfig => _configService.hasApiConfig();
+  ScannerInputMode get scannerInputMode => _currentConfig.scannerInputMode;
+  String get broadcastAction => _currentConfig.broadcastAction ?? '';
+  String get broadcastExtraKey => _currentConfig.broadcastExtraKey ?? '';
 
   /// Verifica se o servidor está configurado e testado
   bool get isServerReady => hasConfig && _connectionTested;
@@ -94,6 +98,9 @@ class ConfigViewModel extends ChangeNotifier {
         apiPort: port,
         useHttps: useHttps,
         lastUpdated: DateTime.now(),
+        scannerInputMode: _currentConfig.scannerInputMode,
+        broadcastAction: _currentConfig.broadcastAction,
+        broadcastExtraKey: _currentConfig.broadcastExtraKey,
       );
 
       // Verifica se a configuração mudou
@@ -133,6 +140,32 @@ class ConfigViewModel extends ChangeNotifier {
       _errorMessage = '${AppStrings.resetConfigError}: $e';
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// Salva preferências do scanner (modo e dados de broadcast)
+  Future<void> saveScannerPreferences({
+    required ScannerInputMode mode,
+    String? action,
+    String? extraKey,
+  }) async {
+    _setSaving(true);
+
+    try {
+      _errorMessage = '';
+      final updated = _currentConfig.copyWith(
+        scannerInputMode: mode,
+        broadcastAction: action?.trim(),
+        broadcastExtraKey: extraKey?.trim(),
+        lastUpdated: DateTime.now(),
+      );
+
+      await _configService.saveApiConfig(updated);
+      _currentConfig = updated;
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _setSaving(false);
     }
   }
 

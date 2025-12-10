@@ -56,6 +56,14 @@ class AppStrings {
   static const String configTitle = 'Configurações';
   static const String configSubtitle = 'Configure a URL e porta da API';
   static const String serverConfigTitle = 'Configuração do Servidor';
+  static const String scannerConfigTitle = 'Configuração do Scanner';
+  static const String scannerModeLabel = 'Modo de Leitura';
+  static const String scannerModeFocus = 'Focus/Teclado (campo focado)';
+  static const String scannerModeBroadcast = 'Broadcast (intent)';
+  static const String broadcastActionLabel = 'Ação do Broadcast';
+  static const String broadcastExtraLabel = 'Chave do Extra (código de barras)';
+  static const String scannerConfigSaved = 'Preferências do scanner salvas!';
+  static const String scannerConfigMenu = 'Configuração do Scanner';
   static const String apiUrl = 'URL da API';
   static const String apiPort = 'Porta';
   static const String apiUrlHint = 'Ex: 192.168.1.100';

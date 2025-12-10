@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
+import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 
 part 'api_config_entity.g.dart';
 
@@ -18,11 +19,36 @@ class ApiConfigEntity extends HiveObject {
   @HiveField(3)
   DateTime? lastUpdated;
 
-  ApiConfigEntity({required this.apiUrl, required this.apiPort, this.useHttps = false, this.lastUpdated});
+  @HiveField(4)
+  int scannerModeIndex;
+
+  @HiveField(5)
+  String? broadcastAction;
+
+  @HiveField(6)
+  String? broadcastExtraKey;
+
+  ApiConfigEntity({
+    required this.apiUrl,
+    required this.apiPort,
+    this.useHttps = false,
+    this.lastUpdated,
+    this.scannerModeIndex = 0,
+    this.broadcastAction,
+    this.broadcastExtraKey,
+  });
 
   /// Converte a entidade para o modelo de domínio
   ApiConfig toDomain() {
-    return ApiConfig(apiUrl: apiUrl, apiPort: apiPort, useHttps: useHttps, lastUpdated: lastUpdated);
+    return ApiConfig(
+      apiUrl: apiUrl,
+      apiPort: apiPort,
+      useHttps: useHttps,
+      lastUpdated: lastUpdated,
+      scannerInputMode: ScannerInputMode.values[scannerModeIndex],
+      broadcastAction: broadcastAction,
+      broadcastExtraKey: broadcastExtraKey,
+    );
   }
 
   /// Cria uma entidade a partir do modelo de domínio
@@ -32,6 +58,9 @@ class ApiConfigEntity extends HiveObject {
       apiPort: config.apiPort,
       useHttps: config.useHttps,
       lastUpdated: config.lastUpdated,
+      scannerModeIndex: config.scannerInputMode.index,
+      broadcastAction: config.broadcastAction,
+      broadcastExtraKey: config.broadcastExtraKey,
     );
   }
 

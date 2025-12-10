@@ -22,6 +22,7 @@ import 'package:data7_expedicao/data/services/socket_service.dart';
 import 'package:data7_expedicao/data/services/filters_storage_service.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
+import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
 import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
 import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
 import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_usecase.dart';
@@ -117,6 +118,7 @@ void setupLocator() {
   locator.registerLazySingleton(() => UserPreferencesService());
   locator.registerLazySingleton(() => SocketService());
   locator.registerLazySingleton(() => AudioService());
+  locator.registerLazySingleton(() => BarcodeBroadcastService());
   // Serviços de escaneamento
   locator.registerLazySingleton(() => BarcodeScannerService());
   locator.registerLazySingleton(() => ShelfScanningService());

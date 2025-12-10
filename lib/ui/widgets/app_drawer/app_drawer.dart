@@ -10,6 +10,7 @@ import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/app_drawer/drawer_menu_tile.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
+import 'package:data7_expedicao/core/constants/app_strings.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -165,6 +166,15 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     context.go(AppRouter.collection);
+                  },
+                ),
+
+                DrawerMenuTile(
+                  icon: Icons.qr_code_2_outlined,
+                  title: AppStrings.scannerConfigMenu,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(AppRouter.scannerConfig);
                   },
                 ),
 

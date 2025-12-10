@@ -21,13 +21,16 @@ class ApiConfigEntityAdapter extends TypeAdapter<ApiConfigEntity> {
       apiPort: fields[1] as int,
       useHttps: fields[2] as bool,
       lastUpdated: fields[3] as DateTime?,
+      scannerModeIndex: fields[4] as int? ?? 0,
+      broadcastAction: fields[5] as String?,
+      broadcastExtraKey: fields[6] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ApiConfigEntity obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.apiUrl)
       ..writeByte(1)
@@ -35,7 +38,13 @@ class ApiConfigEntityAdapter extends TypeAdapter<ApiConfigEntity> {
       ..writeByte(2)
       ..write(obj.useHttps)
       ..writeByte(3)
-      ..write(obj.lastUpdated);
+      ..write(obj.lastUpdated)
+      ..writeByte(4)
+      ..write(obj.scannerModeIndex)
+      ..writeByte(5)
+      ..write(obj.broadcastAction)
+      ..writeByte(6)
+      ..write(obj.broadcastExtraKey);
   }
 
   @override

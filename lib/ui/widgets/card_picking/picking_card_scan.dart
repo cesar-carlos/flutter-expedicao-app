@@ -6,7 +6,10 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
+import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
@@ -85,6 +88,12 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   late final PickingFlowController _flowController;
 
   final AudioService _audioService = locator<AudioService>();
+  final BarcodeBroadcastService _broadcastService = locator<BarcodeBroadcastService>();
+  final ConfigViewModel _configViewModel = locator<ConfigViewModel>();
+  StreamSubscription<String>? _broadcastSubscription;
+  ScannerInputMode _scannerMode = ScannerInputMode.focus;
+  String _broadcastAction = '';
+  String _broadcastExtraKey = '';
 
   StreamSubscription<OperationError>? _errorSubscription;
 
@@ -103,6 +112,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        _loadScannerPreferences();
         // Dispara o prime manual->scanner após a tela estar montada,
         // evitando rodar antes dos componentes carregarem.
         Future.delayed(const Duration(milliseconds: 150), () {
@@ -160,9 +170,50 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _keyboardController.requestInitialFocus();
   }
 
+  bool get _isBroadcastMode =>
+      _scannerMode == ScannerInputMode.broadcast && _broadcastAction.isNotEmpty && _broadcastExtraKey.isNotEmpty;
+
+  void _loadScannerPreferences() {
+    try {
+      _configViewModel.loadConfigSilent();
+      final config = _configViewModel.currentConfig;
+      _scannerMode = config.scannerInputMode;
+      _broadcastAction = (config.broadcastAction ?? '').trim();
+      _broadcastExtraKey = (config.broadcastExtraKey ?? '').trim();
+    } catch (_) {
+      _scannerMode = ScannerInputMode.focus;
+      _broadcastAction = '';
+      _broadcastExtraKey = '';
+    }
+  }
+
+  void _startBroadcastListener() {
+    if (!_isBroadcastMode) return;
+    _broadcastSubscription?.cancel();
+    _broadcastSubscription = _broadcastService.listen(action: _broadcastAction, extraKey: _broadcastExtraKey).listen((
+      code,
+    ) {
+      if (!mounted) return;
+      final trimmed = code.trim();
+      debugPrint('[Scan][Broadcast] action=$_broadcastAction extra=$_broadcastExtraKey code="$trimmed"');
+      if (trimmed.isEmpty) return;
+      _onBarcodeScanned(trimmed);
+    });
+  }
+
+  void _stopBroadcastListener() {
+    _broadcastSubscription?.cancel();
+    _broadcastSubscription = null;
+  }
+
   void _ensureScannerModeActivated() {
     if (_scannerModeInitialized) return;
     _scannerModeInitialized = true;
+    if (_isBroadcastMode) {
+      _stopBroadcastListener();
+      _startBroadcastListener();
+      return;
+    }
     // Forçamos um ciclo manual -> scanner para inicializar corretamente o canal de input
     // em devices que só respondem após o teclado virtual ser carregado ao menos uma vez.
     _scanState.setKeyboardEnabled(true);
@@ -195,6 +246,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   void _onScannerInput() {
+    if (_isBroadcastMode) return;
     if (_scanState.keyboardEnabled || _scanController.text.isEmpty) return;
 
     _processScannerInput();
@@ -202,10 +254,12 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   void _processScannerInput() {
     final text = _scanController.text.trim();
+    debugPrint('[Scan][Focus] raw="$text"');
     _scanProcessor.processScannerInput(text, _handleCompleteBarcode, _waitForMoreInput);
   }
 
   void _handleCompleteBarcode(String barcode) {
+    debugPrint('[Scan][Focus] complete="$barcode"');
     _clearScannerFieldAfterDelay();
     _onBarcodeScanned(barcode);
   }
@@ -214,6 +268,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     if (!mounted || _scanController.text.isEmpty) return;
 
     final barcode = _scanController.text.trim();
+    debugPrint('[Scan][Focus] timeout/partial="$barcode"');
     _clearScannerFieldAfterDelay();
     _onBarcodeScanned(barcode);
   }
@@ -261,6 +316,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   @override
   void dispose() {
+    _stopBroadcastListener();
     _errorSubscription?.cancel();
     widget.viewModel.removeListener(_onViewModelChanged);
     _scanController.removeListener(_onScannerInput);
@@ -310,6 +366,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   Future<void> _onBarcodeScanned(String barcode) async {
+    debugPrint('[Scan] onBarcodeScanned mode=$_scannerMode code="$barcode"');
     if (barcode.trim().isEmpty) return;
 
     if (_scanState.isProcessingScan) return;
