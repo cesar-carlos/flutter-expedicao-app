@@ -115,7 +115,9 @@ class AuthViewModel extends ChangeNotifier {
 
     try {
       await _userSessionService.clearUserSession();
-    } catch (e) {}
+    } catch (e) {
+      _setError('Erro ao sair: $e');
+    }
 
     await Future.delayed(const Duration(milliseconds: 500));
 
@@ -169,6 +171,8 @@ class AuthViewModel extends ChangeNotifier {
 
         await _userSessionService.saveUserSession(_currentUser!);
       } else {}
-    } catch (e) {}
+    } catch (e) {
+      _setError('Erro ao carregar UserSystemModel: $e');
+    }
   }
 }

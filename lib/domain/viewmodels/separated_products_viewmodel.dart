@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
@@ -259,7 +260,11 @@ class SeparatedProductsViewModel extends ChangeNotifier {
       );
 
       _cartEventListenersRegistered = true;
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao registrar evento de carrinho', tag: 'SeparatedProductsVM', error: e);
+      }
+    }
   }
 
   void _unregisterCartEventListener() {
@@ -268,7 +273,11 @@ class SeparatedProductsViewModel extends ChangeNotifier {
     try {
       _cartEventRepository.removeListener(_cartUpdateListenerId);
       _cartEventListenersRegistered = false;
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao desregistrar evento de carrinho', tag: 'SeparatedProductsVM', error: e);
+      }
+    }
   }
 
   void _onCartEvent(BasicEventModel event) {
@@ -276,7 +285,11 @@ class SeparatedProductsViewModel extends ChangeNotifier {
 
     try {
       _processCartEventData(event);
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao processar evento de carrinho', tag: 'SeparatedProductsVM', error: e);
+      }
+    }
   }
 
   void _processCartEventData(BasicEventModel event) {
@@ -300,7 +313,11 @@ class SeparatedProductsViewModel extends ChangeNotifier {
           _handleCartUpdate(cartData);
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao processar evento de carrinho', tag: 'SeparatedProductsVM', error: e);
+      }
+    }
   }
 
   void _handleCartUpdate(ExpeditionCartRouteInternshipConsultationModel cartData) {

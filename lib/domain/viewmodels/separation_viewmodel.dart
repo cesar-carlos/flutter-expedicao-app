@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/filter/separation_filters_model.dart';
@@ -355,7 +356,11 @@ class SeparationViewModel extends ChangeNotifier {
 
         notifyListeners();
       }
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao carregar filtros salvos', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   Future<void> _saveCurrentFilters() async {
@@ -370,13 +375,21 @@ class SeparationViewModel extends ChangeNotifier {
       );
 
       await _filtersStorage.saveSeparationFilters(currentFilters);
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao salvar filtros salvos', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   Future<void> _clearSavedFilters() async {
     try {
       await _filtersStorage.clearSeparationFilters();
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao limpar filtros salvos', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   SeparationFiltersModel get currentFilters => SeparationFiltersModel(
@@ -419,7 +432,11 @@ class SeparationViewModel extends ChangeNotifier {
       );
 
       _eventListenersRegistered = true;
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao registrar evento de separação', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   void _registerConsultationEventListener() {
@@ -435,7 +452,11 @@ class SeparationViewModel extends ChangeNotifier {
         ),
       );
       _consultationListenerRegistered = true;
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao registrar evento de consulta de separação', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   void _unregisterEventListener() {
@@ -444,7 +465,11 @@ class SeparationViewModel extends ChangeNotifier {
     try {
       _eventRepository.removeListeners([_insertListenerId, _updateListenerId, _deleteListenerId]);
       _eventListenersRegistered = false;
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao desregistrar evento de separação', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   void _unregisterConsultationEventListener() {
@@ -453,7 +478,11 @@ class SeparationViewModel extends ChangeNotifier {
     try {
       _eventRepository.removeConsultationListener(_consultationListenerId);
       _consultationListenerRegistered = false;
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao desregistrar evento de consulta de separação', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   void _registerUpdateListEventListener() {
@@ -469,7 +498,11 @@ class SeparationViewModel extends ChangeNotifier {
         ),
       );
       _updateListListenerRegistered = true;
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao registrar evento de atualização de lista', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   void _unregisterUpdateListEventListener() {
@@ -478,7 +511,11 @@ class SeparationViewModel extends ChangeNotifier {
     try {
       _eventRepository.removeUpdateListener(_updateListListenerId);
       _updateListListenerRegistered = false;
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao desregistrar evento de atualização de lista', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   void _onSeparationEvent(BasicEventModel event) {
@@ -486,7 +523,11 @@ class SeparationViewModel extends ChangeNotifier {
 
     try {
       _processEventData(event);
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao processar evento de separação', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   void _processEventData(BasicEventModel event) {
@@ -510,7 +551,11 @@ class SeparationViewModel extends ChangeNotifier {
           _handleSeparationEvent(event.eventType, separationData);
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao processar evento de separação', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   void _handleSeparationEvent(Event eventType, SeparateConsultationModel separationData) {
@@ -593,7 +638,11 @@ class SeparationViewModel extends ChangeNotifier {
 
     try {
       _processConsultationEventData(event);
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao processar evento de consulta de separação', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   void _onUpdateListEvent(BasicEventModel event) {
@@ -601,7 +650,11 @@ class SeparationViewModel extends ChangeNotifier {
 
     try {
       _processUpdateListEventData(event);
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao processar evento de atualização de lista', tag: 'SeparationVM', error: e);
+      }
+    }
   }
 
   void _processConsultationEventData(BasicEventModel event) {
@@ -627,7 +680,11 @@ class SeparationViewModel extends ChangeNotifier {
           if (_handleSeparationUpdate(separationData)) {
             hasAnyUpdate = true;
           }
-        } catch (e) {}
+        } catch (e) {
+          if (kDebugMode) {
+            AppLogger.error('Erro ao processar evento de separação', tag: 'SeparationVM', error: e);
+          }
+        }
       }
     }
 

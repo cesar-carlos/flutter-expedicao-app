@@ -6,6 +6,11 @@ abstract class IAppUpdateRepository {
   Future<Result<AppVersion>> getCurrentVersion();
   Future<Result<List<GitHubRelease>>> getReleases(String owner, String repo);
   Future<Result<GitHubRelease>> getLatestRelease(String owner, String repo);
-  Future<Result<String>> downloadApk(String downloadUrl, String savePath);
+  Future<Result<String>> downloadApk(
+    String downloadUrl, {
+    required String fileName,
+    void Function(int received, int total)? onProgress,
+    bool Function()? isCancelled,
+  });
   Future<Result<void>> installApk(String apkPath);
 }

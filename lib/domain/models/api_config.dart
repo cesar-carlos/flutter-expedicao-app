@@ -1,4 +1,3 @@
-/// Modelo de domínio para configuração da API
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 
 class ApiConfig {
@@ -26,14 +25,14 @@ class ApiConfig {
   }
 
   static ApiConfig get defaultConfig => ApiConfig(
-        apiUrl: 'localhost',
-        apiPort: 3001,
-        useHttps: false,
-        scannerInputMode: ScannerInputMode.broadcast,
-        broadcastAction: 'com.scanner.BARCODE',
-        broadcastExtraKey: 'data',
-        lastUpdated: DateTime.now(),
-      );
+    apiUrl: 'localhost',
+    apiPort: 3001,
+    useHttps: false,
+    scannerInputMode: ScannerInputMode.broadcast,
+    broadcastAction: 'com.scanner.BARCODE',
+    broadcastExtraKey: 'data',
+    lastUpdated: DateTime.now(),
+  );
 
   ApiConfig copyWith({
     String? apiUrl,

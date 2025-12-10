@@ -690,7 +690,11 @@ class SeparationItemsViewModel extends ChangeNotifier {
       );
 
       _cartEventListenersRegistered = true;
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao registrar evento de carrinho', tag: 'SeparationItemsVM', error: e);
+      }
+    }
   }
 
   void _unregisterCartEventListener() {
@@ -699,7 +703,11 @@ class SeparationItemsViewModel extends ChangeNotifier {
     try {
       _cartEventRepository.removeListeners([_cartInsertListenerId, _cartUpdateListenerId, _cartDeleteListenerId]);
       _cartEventListenersRegistered = false;
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao desregistrar evento de carrinho', tag: 'SeparationItemsVM', error: e);
+      }
+    }
   }
 
   void _onCartEvent(BasicEventModel event) {
@@ -707,7 +715,11 @@ class SeparationItemsViewModel extends ChangeNotifier {
 
     try {
       _processCartEventData(event);
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao processar evento de carrinho', tag: 'SeparationItemsVM', error: e);
+      }
+    }
   }
 
   void _processCartEventData(BasicEventModel event) {
@@ -731,7 +743,11 @@ class SeparationItemsViewModel extends ChangeNotifier {
           _handleCartEvent(event.eventType, cartData);
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao processar evento de carrinho', tag: 'SeparationItemsVM', error: e);
+      }
+    }
   }
 
   void _handleCartEvent(Event eventType, ExpeditionCartRouteInternshipConsultationModel cartData) {

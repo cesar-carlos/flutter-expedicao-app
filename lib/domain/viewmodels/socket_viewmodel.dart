@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
 import 'package:data7_expedicao/di/locator.dart';
 
@@ -36,19 +37,31 @@ class SocketViewModel extends ChangeNotifier {
   Future<void> connect() async {
     try {
       await socketService.connect();
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao conectar ao socket', tag: 'SocketViewModel', error: e);
+      }
+    }
   }
 
   void disconnect() {
     try {
       socketService.disconnect();
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao desconectar do socket', tag: 'SocketViewModel', error: e);
+      }
+    }
   }
 
   Future<void> reconnect() async {
     try {
       await socketService.reconnect();
-    } catch (e) {}
+    } catch (e) {
+      if (kDebugMode) {
+        AppLogger.error('Erro ao reconectar ao socket', tag: 'SocketViewModel', error: e);
+      }
+    }
   }
 
   void sendLocationUpdate(double latitude, double longitude) {

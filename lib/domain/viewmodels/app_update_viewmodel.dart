@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:data7_expedicao/domain/models/github_release.dart';
@@ -13,6 +15,8 @@ class AppUpdateViewModel extends ChangeNotifier {
   final CheckAppUpdateUseCase checkAppUpdateUseCase;
   final DownloadAppUpdateUseCase downloadAppUpdateUseCase;
   final InstallAppUpdateUseCase installAppUpdateUseCase;
+
+  bool _cancelDownloadFlag = false;
 
   bool _isChecking = false;
   bool _isDownloading = false;
@@ -30,6 +34,15 @@ class AppUpdateViewModel extends ChangeNotifier {
   double get downloadProgress => _downloadProgress;
   bool get isProcessing => _isChecking || _isDownloading || _isInstalling;
 
+  Future<bool> _hasNetwork() async {
+    try {
+      final lookup = await InternetAddress.lookup('github.com').timeout(const Duration(seconds: 3));
+      return lookup.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
   AppUpdateViewModel({
     required this.checkAppUpdateUseCase,
     required this.downloadAppUpdateUseCase,
@@ -42,6 +55,13 @@ class AppUpdateViewModel extends ChangeNotifier {
 
     if (owner == null || repo == null) {
       _error = AppUpdateFailure.versionCheckFailed('GITHUB_OWNER ou GITHUB_REPO não configurados no .env');
+      notifyListeners();
+      return;
+    }
+
+    final hasNetwork = await _hasNetwork();
+    if (!hasNetwork) {
+      _error = AppUpdateFailure.networkError('Sem conexão');
       notifyListeners();
       return;
     }
@@ -84,10 +104,19 @@ class AppUpdateViewModel extends ChangeNotifier {
     _isDownloading = true;
     _error = null;
     _downloadProgress = 0.0;
+    _cancelDownloadFlag = false;
     notifyListeners();
 
     final downloadResult = await downloadAppUpdateUseCase(
-      DownloadAppUpdateParams(downloadUrl: apkAsset.downloadUrl, fileName: apkAsset.name),
+      DownloadAppUpdateParams(
+        downloadUrl: apkAsset.downloadUrl,
+        fileName: apkAsset.name,
+        onProgress: (received, total) {
+          _downloadProgress = total > 0 ? received / total : 0;
+          notifyListeners();
+        },
+        isCancelled: () => _cancelDownloadFlag,
+      ),
     );
 
     _isDownloading = false;
@@ -126,9 +155,12 @@ class AppUpdateViewModel extends ChangeNotifier {
   }
 
   void cancelDownload() {
-    _isDownloading = false;
-    _downloadProgress = 0.0;
-    notifyListeners();
+    _cancelDownloadFlag = true;
+    if (_isDownloading) {
+      _isDownloading = false;
+      _downloadProgress = 0.0;
+      notifyListeners();
+    }
   }
 
   void clearError() {

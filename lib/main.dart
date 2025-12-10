@@ -52,6 +52,8 @@ class MyApp extends StatelessWidget {
   final ThemeViewModel themeViewModel;
   final SocketViewModel socketViewModel;
 
+  static bool _hasScheduledUpdateCheck = false;
+
   const MyApp({super.key, required this.configViewModel, required this.themeViewModel, required this.socketViewModel});
 
   @override
@@ -72,11 +74,17 @@ class MyApp extends StatelessWidget {
         builder: (context, authViewModel, themeViewModel, appUpdateViewModel, child) {
           final router = AppRouter.createRouter(authViewModel);
 
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (kReleaseMode) {
-              appUpdateViewModel.checkForUpdate();
-            }
-          });
+          if (!_hasScheduledUpdateCheck) {
+            _hasScheduledUpdateCheck = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (kReleaseMode) {
+                // Executa após um pequeno atraso para não disputar com a renderização inicial
+                Future.delayed(const Duration(seconds: 2), () async {
+                  await appUpdateViewModel.checkForUpdate();
+                });
+              }
+            });
+          }
 
           if (appUpdateViewModel.hasUpdate && appUpdateViewModel.updateAvailable != null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {

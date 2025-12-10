@@ -57,11 +57,7 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(vm.errorMessage),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.fixed,
-        ),
+        SnackBar(content: Text(vm.errorMessage), backgroundColor: Colors.red, behavior: SnackBarBehavior.fixed),
       );
     }
   }
@@ -127,24 +123,24 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
   }
 
   Widget _buildModeSelector(ThemeData theme, ColorScheme colorScheme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(AppStrings.scannerModeLabel, style: theme.textTheme.bodyMedium),
-        const SizedBox(height: 8),
-        RadioListTile<ScannerInputMode>(
-          value: ScannerInputMode.focus,
-          groupValue: _mode,
-          onChanged: (mode) => setState(() => _mode = mode ?? ScannerInputMode.focus),
-          title: const Text(AppStrings.scannerModeFocus),
-        ),
-        RadioListTile<ScannerInputMode>(
-          value: ScannerInputMode.broadcast,
-          groupValue: _mode,
-          onChanged: (mode) => setState(() => _mode = mode ?? ScannerInputMode.broadcast),
-          title: const Text(AppStrings.scannerModeBroadcast),
-        ),
-      ],
+    return RadioGroup<ScannerInputMode>(
+      groupValue: _mode,
+      onChanged: (mode) => setState(() => _mode = mode ?? ScannerInputMode.focus),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(AppStrings.scannerModeLabel, style: theme.textTheme.bodyMedium),
+          const SizedBox(height: 8),
+          RadioListTile<ScannerInputMode>(
+            value: ScannerInputMode.focus,
+            title: const Text(AppStrings.scannerModeFocus),
+          ),
+          RadioListTile<ScannerInputMode>(
+            value: ScannerInputMode.broadcast,
+            title: const Text(AppStrings.scannerModeBroadcast),
+          ),
+        ],
+      ),
     );
   }
 

@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:result_dart/result_dart.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import 'package:data7_expedicao/domain/models/app_version.dart';
 import 'package:data7_expedicao/domain/models/github_release.dart';
 import 'package:data7_expedicao/domain/repositories/i_app_update_repository.dart';
@@ -52,12 +54,33 @@ class AppUpdateRepositoryImpl implements IAppUpdateRepository {
   }
 
   @override
-  Future<Result<String>> downloadApk(String downloadUrl, String savePath) async {
+  Future<Result<String>> downloadApk(
+    String downloadUrl, {
+    required String fileName,
+    void Function(int received, int total)? onProgress,
+    bool Function()? isCancelled,
+  }) async {
     try {
+      final directory = await getApplicationDocumentsDirectory();
+      final savePath = path.join(directory.path, fileName);
       final dio = Dio();
       final file = File(savePath);
+      final cancelToken = CancelToken();
 
-      final response = await dio.download(downloadUrl, savePath);
+      final response = await dio.download(
+        downloadUrl,
+        savePath,
+        cancelToken: cancelToken,
+        onReceiveProgress: (received, total) {
+          if (isCancelled != null && isCancelled()) {
+            cancelToken.cancel('Download cancelado pelo usuário');
+            return;
+          }
+          if (onProgress != null && total > 0) {
+            onProgress(received, total);
+          }
+        },
+      );
 
       if (response.statusCode == 200 && await file.exists()) {
         return success(savePath);
