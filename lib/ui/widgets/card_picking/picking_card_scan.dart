@@ -8,11 +8,9 @@ import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
-import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
-import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/components/scan_ui_controller.dart';
 
 class PickingCardScan extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -83,6 +81,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   late final ScanInputProcessor _scanProcessor;
   late final CartStatusCache _statusCache;
   late final PickingDialogManager _dialogManager;
+  late final ScanUiController _scanUiController;
+  late final PickingFlowController _flowController;
 
   final AudioService _audioService = locator<AudioService>();
 
@@ -128,6 +128,20 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _scanProcessor = ScanInputProcessor(viewModel: widget.viewModel);
     _statusCache = CartStatusCache(viewModel: widget.viewModel);
     _dialogManager = PickingDialogManager(context: context, scanFocusNode: _scanFocusNode);
+    _scanUiController = ScanUiController(
+      dialogManager: _dialogManager,
+      audioService: _audioService,
+      keyboardController: _keyboardController,
+      quantityController: _quantityController,
+      onFinishPicking: _finishPicking,
+      onAddItem: _addItemToSeparation,
+    );
+    _flowController = PickingFlowController(
+      viewModel: widget.viewModel,
+      dialogManager: _dialogManager,
+      audioService: _audioService,
+      keyboardController: _keyboardController,
+    );
   }
 
   void _setupListeners() {
@@ -285,7 +299,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     );
 
     if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
-      _showShelfScanDialog(nextItem);
+      _flowController.showShelfScanDialog(context, nextItem, _scanFocusNode);
       return;
     }
 
@@ -293,77 +307,17 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _scanController.clear();
 
     try {
-      if (!_isCartInSeparationStatus()) {
-        _audioService.playError();
-        return;
-      }
-
       final inputQuantity = int.tryParse(_quantityController.text) ?? 1;
 
-      final validationResult = _scanProcessor.validateScannedBarcode(barcode);
+      final scanResult = widget.viewModel.processScan(
+        barcode: barcode,
+        inputQuantity: inputQuantity,
+        isCartInSeparation: _isCartInSeparationStatus(),
+      );
 
-      if (validationResult.isEmpty) return;
-
-      if (validationResult.noItemsForSector) {
-        _audioService.playAlert();
-        _dialogManager.showNoItemsForSectorDialog(validationResult.userSectorCode!, _finishPicking);
-        return;
-      }
-
-      if (validationResult.allItemsCompleted) {
-        _audioService.playAlert();
-        _dialogManager.showAllItemsCompletedDialog();
-        return;
-      }
-
-      if (validationResult.isWrongSector) {
-        _audioService.playError();
-        _dialogManager.showWrongSectorDialog(
-          barcode,
-          validationResult.scannedItem!.nomeProduto,
-          validationResult.scannedItem!.nomeSetorEstoque ?? 'Setor ${validationResult.scannedItem!.codSetorEstoque}',
-          validationResult.userSectorCode!,
-        );
-        return;
-      }
-
-      if (validationResult.isValid && validationResult.expectedItem != null) {
-        final convertedQuantity = _convertQuantityWithBarcode(validationResult.expectedItem!, barcode, inputQuantity);
-
-        if (convertedQuantity != inputQuantity) {
-          _quantityController.text = convertedQuantity.toString();
-        }
-
-        await _addItemToSeparation(validationResult.expectedItem!, barcode, convertedQuantity);
-      } else {
-        _audioService.playError();
-        _dialogManager.showWrongProductDialog(
-          barcode,
-          validationResult.expectedItem!.enderecoDescricao ?? 'Endereço não definido',
-          validationResult.expectedItem!.nomeProduto,
-          validationResult.expectedItem!.codigoBarras ?? 'Código não definido',
-        );
-      }
+      await _scanUiController.handleScanResult(barcode, scanResult, inputQuantity);
     } finally {
       _scanState.stopProcessing();
-    }
-  }
-
-  int _convertQuantityWithBarcode(SeparateItemConsultationModel item, String barcode, int inputQuantity) {
-    try {
-      if (item.unidadeMedidas.length <= 1) {
-        return inputQuantity;
-      }
-
-      final convertedQuantity = item.converterQuantidadePorCodigoBarras(barcode, inputQuantity.toDouble());
-
-      if (convertedQuantity != null && convertedQuantity > 0) {
-        return convertedQuantity.round();
-      }
-
-      return inputQuantity;
-    } catch (e) {
-      return inputQuantity;
     }
   }
 
@@ -414,7 +368,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted) {
-          _showShelfScanDialog(nextItem);
+          _flowController.showShelfScanDialog(context, nextItem, _scanFocusNode);
         }
       });
     }
@@ -432,30 +386,10 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
       Future.delayed(const Duration(milliseconds: 50), () {
         if (mounted) {
-          _showShelfScanDialog(nextItem);
+          _flowController.showShelfScanDialog(context, nextItem, _scanFocusNode);
         }
       });
     }
-  }
-
-  void _showShelfScanDialog(SeparateItemConsultationModel nextItem) {
-    _dialogManager.showShelfScanDialog(
-      expectedAddress: nextItem.endereco!,
-      expectedAddressDescription: nextItem.enderecoDescricao ?? 'Endereço não definido',
-      onShelfScanned: (scannedAddress) {
-        widget.viewModel.updateScannedAddress(scannedAddress);
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scanFocusNode.requestFocus();
-        });
-
-        _audioService.playShelfScanSuccess();
-      },
-      onBack: () {
-        Navigator.of(context).pop();
-        Navigator.of(context).pop();
-      },
-    );
   }
 
   void _resetQuantityIfNeeded() {
@@ -467,131 +401,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  Future<void> _checkAndShowSaveCartModal() async {
-    final userSectorCode = widget.viewModel.userModel?.codSetorEstoque;
+  Future<void> _checkAndShowSaveCartModal() => _flowController.checkAndShowSaveCartModal();
 
-    if (userSectorCode == null) {
-      return;
-    }
-
-    final sectorItems = widget.viewModel.items
-        .where((item) => item.codSetorEstoque == null || item.codSetorEstoque == userSectorCode)
-        .toList();
-
-    if (sectorItems.isEmpty) {
-      return;
-    }
-
-    final allSectorItemsCompleted = sectorItems.every((item) => widget.viewModel.isItemCompleted(item.item));
-
-    if (allSectorItemsCompleted) {
-      await _audioService.playAlertComplete();
-
-      _dialogManager.showSaveCartAfterSectorCompletedDialog(
-        userSectorCode,
-        _finishPicking,
-        _keyboardController.returnFocusToScanner,
-      );
-    }
-  }
-
-  void _showLoadingDialog() {
-    if (!mounted) return;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Salvando carrinho...')],
-        ),
-      ),
-    );
-  }
-
-  void _showErrorDialog(String message) {
-    if (!mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Erro'),
-        content: Text(message),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
-      ),
-    );
-  }
-
-  Future<void> _finishPicking() async {
-    if (!mounted) return;
-
-    final userModel = widget.viewModel.userModel;
-    if (userModel == null) {
-      _showErrorDialog('Erro ao carregar dados do usuário. Tente novamente.');
-      return;
-    }
-
-    final validationResult = CartValidationService.validateCartAccess(
-      currentUserCode: userModel.codUsuario,
-      cart: widget.viewModel.cart!,
-      userModel: userModel,
-      accessType: CartAccessType.save,
-    );
-
-    if (!validationResult.canAccess) {
-      String errorMessage = 'Você não tem permissão para salvar este carrinho.';
-      if (validationResult.reason == CartAccessDeniedReason.differentUser) {
-        errorMessage =
-            'Este carrinho pertence a ${validationResult.cartOwnerName}. Você não tem permissão para salvá-lo.';
-      }
-      _showErrorDialog(errorMessage);
-      return;
-    }
-
-    _showLoadingDialog();
-
-    try {
-      final saveParams = SaveSeparationCartParams(
-        codEmpresa: widget.viewModel.cart!.codEmpresa,
-        codCarrinhoPercurso: widget.viewModel.cart!.codCarrinhoPercurso,
-        itemCarrinhoPercurso: widget.viewModel.cart!.item,
-        codSepararEstoque: widget.viewModel.cart!.codOrigem,
-      );
-
-      final saveCartUseCase = locator<SaveSeparationCartUseCase>();
-      final result = await saveCartUseCase(saveParams);
-
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-
-      result.fold(
-        (success) {
-          _audioService.playSuccess();
-          if (mounted) {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop(true);
-          }
-        },
-        (failure) {
-          String errorMessage = 'Erro ao salvar carrinho';
-
-          if (failure.toString().toLowerCase().contains('sucesso') ||
-              failure.toString().toLowerCase().contains('finalizado')) {
-            errorMessage = 'Erro inesperado ao salvar carrinho. Tente novamente.';
-          } else {
-            errorMessage = 'Erro ao salvar carrinho: ${failure.toString()}';
-          }
-
-          _showErrorDialog(errorMessage);
-        },
-      );
-    } catch (e) {
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-      _showErrorDialog('Erro inesperado ao salvar carrinho: $e');
-    }
-  }
+  Future<void> _finishPicking() => _flowController.finishPicking();
 }

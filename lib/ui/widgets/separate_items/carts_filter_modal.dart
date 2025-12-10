@@ -6,7 +6,6 @@ import 'package:data7_expedicao/domain/models/situation/expedition_situation_mod
 import 'package:data7_expedicao/domain/models/filter/carts_filters_model.dart';
 import 'package:data7_expedicao/core/utils/date_helper.dart';
 
-/// Modal para filtros da aba de carrinhos
 class CartsFilterModal extends StatefulWidget {
   final SeparationItemsViewModel viewModel;
 
@@ -68,7 +67,6 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             children: [
               Icon(Icons.filter_alt, color: colorScheme.primary),
@@ -101,12 +99,10 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
 
           const SizedBox(height: 16),
 
-          // Campos de filtro - usando Expanded para ocupar espaço disponível
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // Código do Carrinho
                   TextField(
                     controller: _codCarrinhoController,
                     decoration: const InputDecoration(
@@ -120,7 +116,6 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
 
                   const SizedBox(height: 16),
 
-                  // Nome do Carrinho
                   TextField(
                     controller: _nomeCarrinhoController,
                     decoration: const InputDecoration(
@@ -133,7 +128,6 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
 
                   const SizedBox(height: 16),
 
-                  // Código de Barras do Carrinho
                   TextField(
                     controller: _codigoBarrasCarrinhoController,
                     decoration: const InputDecoration(
@@ -146,7 +140,6 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
 
                   const SizedBox(height: 16),
 
-                  // Situação
                   InkWell(
                     onTap: () => _showSituacoesDialog(context),
                     child: InputDecorator(
@@ -167,7 +160,6 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
 
                   const SizedBox(height: 16),
 
-                  // Nome do Usuário de Início
                   TextField(
                     controller: _nomeUsuarioInicioController,
                     decoration: const InputDecoration(
@@ -180,7 +172,6 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
 
                   const SizedBox(height: 16),
 
-                  // Carrinho Agrupador
                   DropdownButtonFormField<Situation>(
                     initialValue: _selectedCarrinhoAgrupador,
                     decoration: const InputDecoration(
@@ -204,7 +195,6 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
 
                   const SizedBox(height: 16),
 
-                  // Data de Início Inicial
                   InkWell(
                     onTap: () => _selectDataInicioInicial(context),
                     child: InputDecorator(
@@ -225,7 +215,6 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
 
                   const SizedBox(height: 16),
 
-                  // Data de Início Final
                   InkWell(
                     onTap: () => _selectDataInicioFinal(context),
                     child: InputDecorator(
@@ -244,11 +233,10 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
                 ],
               ),
             ),
-          ), // Fechar SingleChildScrollView e Expanded
+          ),
 
           const SizedBox(height: 16),
 
-          // Botões
           Row(
             children: [
               Expanded(
@@ -269,7 +257,6 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
             ],
           ),
 
-          // Espaçamento para teclado
           SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
         ],
       ),
@@ -342,7 +329,6 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
     widget.viewModel.applyCartsFilters(filters);
   }
 
-  /// Mostra diálogo para seleção múltipla de situações
   Future<void> _showSituacoesDialog(BuildContext context) async {
     final situacoes = _getFilteredSituations();
 
@@ -360,7 +346,6 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
     }
   }
 
-  /// Retorna apenas as situações que devem aparecer no filtro
   List<ExpeditionSituation> _getFilteredSituations() {
     return [
       ExpeditionSituation.aguardando,
@@ -380,7 +365,6 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
   }
 }
 
-/// Widget de diálogo para seleção múltipla de situações
 class _MultiSelectSituacoesDialog extends StatefulWidget {
   final List<ExpeditionSituation> situacoes;
   final List<String> selectedSituacoes;

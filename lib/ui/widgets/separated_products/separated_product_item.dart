@@ -12,7 +12,6 @@ class SeparatedProductItem extends StatelessWidget {
 
   const SeparatedProductItem({super.key, required this.item, this.viewModel});
 
-  // === CONSTANTES ===
   static const EdgeInsets _dialogSpacing = EdgeInsets.only(top: 8);
   static const double _warningIconSize = 20;
 
@@ -27,7 +26,6 @@ class SeparatedProductItem extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(
         children: [
-          // Header com endereço
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -68,24 +66,20 @@ class SeparatedProductItem extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Removido o botão pequeno - agora temos o botão principal na parte inferior
                   ],
                 ),
               ],
             ),
           ),
 
-          // Conteúdo do produto
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Nome do produto
                 Text(item.nomeProduto, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
 
-                // Informações do produto
                 Row(
                   children: [
                     Expanded(
@@ -112,7 +106,6 @@ class SeparatedProductItem extends StatelessWidget {
 
                 const SizedBox(height: 8),
 
-                // Informações de separação
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -152,7 +145,6 @@ class SeparatedProductItem extends StatelessWidget {
                   ),
                 ),
 
-                // Códigos de barras (se existirem)
                 if (item.codigoBarras != null && item.codigoBarras!.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Container(
@@ -183,7 +175,6 @@ class SeparatedProductItem extends StatelessWidget {
             ),
           ),
 
-          // Botão de cancelamento na parte inferior
           if (item.situacao == ExpeditionItemSituation.separado && viewModel != null && viewModel!.canCancelItems)
             Container(
               width: double.infinity,
@@ -291,14 +282,12 @@ class SeparatedProductItem extends StatelessWidget {
     }
   }
 
-  /// Mostra diálogo de confirmação de exclusão
   void _showDeleteDialog(BuildContext context) {
     if (viewModel == null) return;
 
     showDialog(context: context, builder: (context) => _buildDeleteDialog(context));
   }
 
-  /// Constrói o diálogo de exclusão
   Widget _buildDeleteDialog(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -310,7 +299,6 @@ class SeparatedProductItem extends StatelessWidget {
     );
   }
 
-  /// Constrói o título do diálogo
   Widget _buildDialogTitle(BuildContext context, ColorScheme colorScheme) {
     return Row(
       children: [
@@ -321,7 +309,6 @@ class SeparatedProductItem extends StatelessWidget {
     );
   }
 
-  /// Constrói o conteúdo do diálogo
   Widget _buildDialogContent(BuildContext context, ThemeData theme) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -350,7 +337,6 @@ class SeparatedProductItem extends StatelessWidget {
     );
   }
 
-  /// Constrói as ações do diálogo
   List<Widget> _buildDialogActions(BuildContext context, ColorScheme colorScheme) {
     return [
       TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Não')),
@@ -362,7 +348,6 @@ class SeparatedProductItem extends StatelessWidget {
     ];
   }
 
-  /// Manipula a confirmação de exclusão
   Future<void> _handleDeleteConfirmation(BuildContext context) async {
     Navigator.of(context).pop();
 
@@ -377,14 +362,12 @@ class SeparatedProductItem extends StatelessWidget {
     }
   }
 
-  /// Mostra mensagem de sucesso
   void _showSuccessMessage(BuildContext context) {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Item excluído com sucesso!'), backgroundColor: Colors.green));
   }
 
-  /// Mostra mensagem de erro
   void _showErrorMessage(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

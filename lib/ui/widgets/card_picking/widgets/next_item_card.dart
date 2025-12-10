@@ -1,33 +1,35 @@
 import 'package:flutter/material.dart';
 
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/picking_state.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/widgets/product_detail_item.dart';
-import 'package:data7_expedicao/core/utils/picking_utils.dart';
 
 class NextItemCard extends StatelessWidget {
-  final CardPickingViewModel viewModel;
+  final SeparateItemConsultationModel? nextItem;
+  final int completedCount;
+  final int totalCount;
+  final int? userSectorCode;
+  final int pickedQuantity;
+  final PickingItemState? itemState;
+  final bool hasItemsForUserSector;
 
-  const NextItemCard({super.key, required this.viewModel});
+  const NextItemCard({
+    super.key,
+    required this.nextItem,
+    required this.completedCount,
+    required this.totalCount,
+    required this.userSectorCode,
+    required this.pickedQuantity,
+    required this.itemState,
+    required this.hasItemsForUserSector,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
-    // Encontrar o próximo item a ser separado usando utilitário
-    final nextItem = PickingUtils.findNextItemToPick(
-      viewModel.items,
-      viewModel.isItemCompleted,
-      userSectorCode: viewModel.userModel?.codSetorEstoque,
-    );
-
-    // Contar itens completos e totais usando PickingState
-    final completedCount = viewModel.completedItems;
-    final totalCount = viewModel.totalItems;
 
     return Container(
       padding: const EdgeInsets.all(10),
@@ -42,7 +44,7 @@ class NextItemCard extends StatelessWidget {
           _buildHeader(theme, colorScheme, completedCount, totalCount),
           const SizedBox(height: 4),
           if (nextItem != null) ...[
-            _buildNextItemContent(theme, colorScheme, nextItem),
+            _buildNextItemContent(theme, colorScheme, nextItem!),
           ] else ...[
             _buildCompletionMessage(theme),
           ],
@@ -160,7 +162,7 @@ class NextItemCard extends StatelessWidget {
               theme: theme,
               colorScheme: colorScheme,
               label: 'Quantidade',
-              value: '${viewModel.getPickedQuantity(nextItem.item)}/${nextItem.quantidade}',
+              value: '$pickedQuantity/${nextItem.quantidade}',
               icon: Icons.inventory_2,
             ),
           ),
@@ -214,8 +216,6 @@ class NextItemCard extends StatelessWidget {
   }
 
   Widget _buildBarcodeInfo(ThemeData theme, ColorScheme colorScheme, SeparateItemConsultationModel nextItem) {
-    final itemState = viewModel.pickingState.getItemState(nextItem.item);
-
     // Se tem múltiplas unidades de medida, mostrar dropdown
     if (nextItem.unidadeMedidas.length > 1) {
       return _buildBarcodeDropdown(theme, colorScheme, nextItem, itemState);
@@ -324,11 +324,7 @@ class NextItemCard extends StatelessWidget {
   }
 
   Widget _buildCompletionMessage(ThemeData theme) {
-    // Verificar se não há itens para o setor do usuário
-    final hasItemsForSector = viewModel.hasItemsForUserSector;
-    final userSectorCode = viewModel.userModel?.codSetorEstoque;
-
-    if (!hasItemsForSector && userSectorCode != null) {
+    if (!hasItemsForUserSector && userSectorCode != null) {
       // Usuário tem setor definido mas não há itens para ele
       return Container(
         padding: const EdgeInsets.all(20),

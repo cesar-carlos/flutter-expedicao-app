@@ -11,7 +11,6 @@ import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 
 enum ProfileState { idle, loading, success, error }
 
-/// ViewModel para gerenciar o estado da tela de perfil do usuário
 class ProfileViewModel extends ChangeNotifier {
   final UserRepository _userRepository;
   final AuthViewModel _authViewModel;
@@ -23,13 +22,12 @@ class ProfileViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? _successMessage;
   File? _selectedPhoto;
-  bool _photoWasRemoved = false; // Rastreia se a foto foi removida explicitamente
+  bool _photoWasRemoved = false;
   String? _currentPassword;
   String? _newPassword;
   String? _confirmPassword;
   bool _disposed = false;
 
-  // Getters
   ProfileState get state => _state;
   String? get errorMessage => _errorMessage;
   String? get successMessage => _successMessage;
@@ -40,10 +38,9 @@ class ProfileViewModel extends ChangeNotifier {
   String? get newPassword => _newPassword;
   String? get confirmPassword => _confirmPassword;
 
-  // Setters
   void setSelectedPhoto(File? photo) {
     _selectedPhoto = photo;
-    // Se photo é null e o usuário tinha foto, marca como removida
+
     if (photo == null && currentUser?.hasPhoto == true) {
       _photoWasRemoved = true;
     } else {
@@ -54,7 +51,7 @@ class ProfileViewModel extends ChangeNotifier {
 
   void setCurrentPassword(String? password) {
     _currentPassword = password;
-    // Limpar erro relacionado à senha quando usuário começar a digitar novamente
+
     if (_state == ProfileState.error &&
         (_errorMessage?.contains('Senha atual incorreta') == true ||
             _errorMessage?.contains('Por favor, informe a senha atual') == true)) {
@@ -65,7 +62,7 @@ class ProfileViewModel extends ChangeNotifier {
 
   void setNewPassword(String? password) {
     _newPassword = password;
-    // Limpar erros relacionados à nova senha
+
     if (_state == ProfileState.error &&
         (_errorMessage?.contains('A nova senha deve ter pelo menos 4 caracteres') == true ||
             _errorMessage?.contains('Nova senha é obrigatória') == true)) {
@@ -76,7 +73,7 @@ class ProfileViewModel extends ChangeNotifier {
 
   void setConfirmPassword(String? password) {
     _confirmPassword = password;
-    // Limpar erros relacionados à confirmação de senha
+
     if (_state == ProfileState.error &&
         (_errorMessage?.contains('A confirmação da senha não confere') == true ||
             _errorMessage?.contains('Confirmação da nova senha é obrigatória') == true)) {
@@ -90,7 +87,6 @@ class ProfileViewModel extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  /// Chama notifyListeners apenas se o viewModel não foi disposed
   void _safeNotifyListeners() {
     if (!_disposed) {
       notifyListeners();
@@ -109,31 +105,25 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Verifica se a foto foi removida explicitamente
   bool _hasPhotoBeenRemoved() {
     return _photoWasRemoved;
   }
 
-  /// Valida se as senhas estão corretas (validação local)
   bool _validatePasswordsLocally() {
-    // Se não há senha nova, não precisa validar
     if (_newPassword == null || _newPassword!.isEmpty) {
       return true;
     }
 
-    // Se há senha nova, precisa da atual
     if (_currentPassword == null || _currentPassword!.isEmpty) {
       _setError('Por favor, informe a senha atual');
       return false;
     }
 
-    // Validar tamanho da nova senha
     if (_newPassword!.length < 4) {
       _setError('A nova senha deve ter pelo menos 4 caracteres');
       return false;
     }
 
-    // Validar confirmação da senha
     if (_confirmPassword != _newPassword) {
       _setError('A confirmação da senha não confere');
       return false;
@@ -142,7 +132,6 @@ class ProfileViewModel extends ChangeNotifier {
     return true;
   }
 
-  /// Valida a senha atual com o servidor
   Future<bool> _validateCurrentPasswordWithServer() async {
     if (currentUser == null || _currentPassword == null || _currentPassword!.isEmpty) {
       return false;
@@ -151,26 +140,22 @@ class ProfileViewModel extends ChangeNotifier {
     try {
       return await _userRepository.validateCurrentPassword(nome: currentUser!.nome, currentPassword: _currentPassword!);
     } catch (e) {
-      // Erro ao validar senha atual
       return false;
     }
   }
 
-  /// Salva as alterações do perfil
   Future<bool> saveProfile() async {
     if (currentUser == null) {
       _setError('Usuário não encontrado');
       return false;
     }
 
-    // Validação local das senhas
     if (!_validatePasswordsLocally()) {
       return false;
     }
 
     _setState(ProfileState.loading);
 
-    // Se há mudança de senha, validar a senha atual com o servidor
     final hasPasswordChange = _newPassword != null && _newPassword!.isNotEmpty;
 
     if (hasPasswordChange) {
@@ -182,10 +167,8 @@ class ProfileViewModel extends ChangeNotifier {
     }
 
     try {
-      // Preparar os dados do usuário atualizado
       String? photoBase64;
 
-      // Se há uma nova foto selecionada, converte para base64
       if (_selectedPhoto != null) {
         photoBase64 = await AvatarUtils.convertImageToBase64(_selectedPhoto!);
         if (photoBase64 == null) {
@@ -193,39 +176,32 @@ class ProfileViewModel extends ChangeNotifier {
           return false;
         }
       } else {
-        // Se selectedPhoto foi definido como null explicitamente, remove a foto
-        // Caso contrário, mantém a foto atual
         if (_hasPhotoBeenRemoved()) {
-          photoBase64 = null; // Remove a foto
+          photoBase64 = null;
         } else {
-          photoBase64 = currentUser!.fotoUsuario; // Mantém foto atual
+          photoBase64 = currentUser!.fotoUsuario;
         }
       }
 
-      // Criar o usuário atualizado mantendo os dados do sistema
       final updatedUser = currentUser!.copyWith(
         fotoUsuario: photoBase64,
         senha: hasPasswordChange ? _newPassword : null,
       );
 
-      // Chamar o repositório para atualizar
       final result = await _userRepository.putAppUser(updatedUser);
 
-      // Criar usuário final sem senha para segurança
       final finalUser = currentUser!.copyWith(
         codLoginApp: result.codLoginApp,
         nome: result.nome,
         ativo: result.ativo,
         codUsuario: result.codUsuario,
         fotoUsuario: photoBase64,
-        senha: null, // Remove senha por segurança
+        senha: null,
       );
 
-      // Atualizar no AuthViewModel e persistir na sessão
       await _authViewModel.updateUserAfterSelection(finalUser);
       await _userSessionService.saveUserSession(finalUser);
 
-      // Definir mensagem de sucesso baseada nas alterações feitas
       if (hasPasswordChange) {
         _successMessage = 'Perfil e senha atualizados com sucesso!';
       } else {
@@ -241,7 +217,6 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  /// Limpa o formulário após sucesso
   void _clearForm() {
     _selectedPhoto = null;
     _photoWasRemoved = false;
@@ -252,7 +227,6 @@ class ProfileViewModel extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  /// Reset do estado para idle
   void resetState() {
     _setState(ProfileState.idle);
     _errorMessage = null;

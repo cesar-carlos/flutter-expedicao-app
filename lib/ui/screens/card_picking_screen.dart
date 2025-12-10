@@ -23,6 +23,26 @@ class CardPickingScreen extends StatefulWidget {
   State<CardPickingScreen> createState() => _CardPickingScreenState();
 }
 
+class _CardPickingBodyState {
+  final bool isLoading;
+  final bool hasError;
+  final String? errorMessage;
+
+  const _CardPickingBodyState({
+    required this.isLoading,
+    required this.hasError,
+    required this.errorMessage,
+  });
+
+  factory _CardPickingBodyState.fromViewModel(CardPickingViewModel vm) {
+    return _CardPickingBodyState(
+      isLoading: vm.isLoading,
+      hasError: vm.hasError,
+      errorMessage: vm.errorMessage,
+    );
+  }
+}
+
 class _CardPickingScreenState extends State<CardPickingScreen> {
   @override
   void initState() {
@@ -128,17 +148,14 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
       ),
       body: Column(
         children: [
-          // Barra de status do carrinho
           const CartStatusBar(),
-
-          // Aviso de status do carrinho
           const CartStatusWarning(),
-
-          // Conteúdo principal
           Expanded(
-            child: Consumer<CardPickingViewModel>(
-              builder: (context, viewModel, child) {
-                return _buildBody(context, viewModel);
+            child: Selector<CardPickingViewModel, _CardPickingBodyState>(
+              selector: (_, vm) => _CardPickingBodyState.fromViewModel(vm),
+              builder: (context, state, _) {
+                final viewModel = context.read<CardPickingViewModel>();
+                return _buildBody(context, viewModel, state);
               },
             ),
           ),
@@ -152,8 +169,8 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
     );
   }
 
-  Widget _buildBody(BuildContext context, CardPickingViewModel viewModel) {
-    if (viewModel.isLoading) {
+  Widget _buildBody(BuildContext context, CardPickingViewModel viewModel, _CardPickingBodyState state) {
+    if (state.isLoading) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -162,7 +179,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
       );
     }
 
-    if (viewModel.hasError) {
+    if (state.hasError) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -177,7 +194,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                viewModel.errorMessage ?? 'Erro desconhecido',
+              state.errorMessage ?? 'Erro desconhecido',
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),

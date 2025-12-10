@@ -27,7 +27,6 @@ import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart
 
 enum SeparateItemsState { initial, loading, loaded, error }
 
-/// ViewModel para separação de itens específicos
 class SeparationItemsViewModel extends ChangeNotifier {
   late final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
   late final BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel> _cartRepository;
@@ -50,39 +49,31 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  // === ESTADO ===
   SeparateItemsState _state = SeparateItemsState.initial;
   String? _errorMessage;
   bool _disposed = false;
 
-  // === DADOS DA SEPARAÇÃO ===
   SeparateConsultationModel? _separation;
   List<SeparateItemConsultationModel> _items = [];
 
-  // === DADOS DOS CARRINHOS ===
   List<ExpeditionCartRouteInternshipConsultationModel> _carts = [];
   bool _cartsLoaded = false;
 
-  // === DADOS DOS SETORES DE ESTOQUE ===
   List<ExpeditionSectorStockModel> _availableSectors = [];
   bool _sectorsLoaded = false;
 
-  // === CANCELAMENTO ===
   bool _isCancelling = false;
   int? _cancellingCartId;
   String? _lastCancelError;
 
-  // === FILTROS ===
   SeparateItemsFiltersModel _itemsFilters = const SeparateItemsFiltersModel();
   CartsFiltersModel _cartsFilters = const CartsFiltersModel();
 
-  // === CAMPOS DE EVENTOS DE CARRINHO ===
   static const String _cartInsertListenerId = 'separation_items_viewmodel_cart_insert';
   static const String _cartUpdateListenerId = 'separation_items_viewmodel_cart_update';
   static const String _cartDeleteListenerId = 'separation_items_viewmodel_cart_delete';
   bool _cartEventListenersRegistered = false;
 
-  // === GETTERS ===
   SeparateItemsState get state => _state;
   String? get errorMessage => _errorMessage;
   bool get isLoading => _state == SeparateItemsState.loading;
@@ -93,13 +84,11 @@ class SeparationItemsViewModel extends ChangeNotifier {
   List<SeparateItemConsultationModel> get items => List.unmodifiable(_items);
   List<ExpeditionCartRouteInternshipConsultationModel> get carts => List.unmodifiable(_carts);
 
-  // === ESTATÍSTICAS ===
   int get totalItems => _items.length;
   int get totalCarts => _carts.length;
   bool get hasCartsData => _carts.isNotEmpty;
   bool get cartsLoaded => _cartsLoaded;
 
-  // === CANCELAMENTO GETTERS ===
   bool get isCancelling => _isCancelling;
   bool isCartBeingCancelled(int cartId) => _isCancelling && _cancellingCartId == cartId;
   String? get lastCancelError => _lastCancelError;
@@ -107,22 +96,16 @@ class SeparationItemsViewModel extends ChangeNotifier {
   int get itemsPendentes => totalItems - itemsSeparados;
   double get percentualConcluido => totalItems > 0 ? (itemsSeparados / totalItems) * 100 : 0;
 
-  // === FILTROS ===
   SeparateItemsFiltersModel get itemsFilters => _itemsFilters;
   CartsFiltersModel get cartsFilters => _cartsFilters;
   bool get hasActiveItemsFilters => _itemsFilters.isNotEmpty;
   bool get hasActiveCartsFilters => _cartsFilters.isNotEmpty;
 
-  /// Retorna as opções de situação disponíveis para filtro
   List<SeparationItemStatus> get situacaoFilterOptions => SeparationItemStatus.availableForFilter;
 
-  /// Retorna os setores de estoque disponíveis para filtro
   List<ExpeditionSectorStockModel> get availableSectors => List.unmodifiable(_availableSectors);
   bool get sectorsLoaded => _sectorsLoaded;
 
-  // === MÉTODOS PÚBLICOS ===
-
-  /// Carrega os itens de uma separação específica
   Future<void> loadSeparationItems(SeparateConsultationModel separation) async {
     if (_disposed) return;
 
@@ -136,51 +119,41 @@ class SeparationItemsViewModel extends ChangeNotifier {
         ..equals('CodEmpresa', separation.codEmpresa.toString())
         ..equals('CodSepararEstoque', separation.codSepararEstoque.toString());
 
-      // Aplica filtros salvos do usuário se existirem
       await _applySavedFiltersToQuery(queryBuilder);
 
-      // Buscar itens sem ordenação para ordenar localmente
       final items = await _repository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
 
-      // Ordenação natural dos endereços - prioriza produtos com endereço
       _items = items
         ..sort((a, b) {
           final hasEnderecoA = a.enderecoDescricao?.isNotEmpty == true;
           final hasEnderecoB = b.enderecoDescricao?.isNotEmpty == true;
 
-          // Priorizar produtos com endereço sobre os sem endereço
           if (hasEnderecoA && !hasEnderecoB) return -1;
           if (!hasEnderecoA && hasEnderecoB) return 1;
 
-          // Se ambos têm ou não têm endereço, ordenar por endereço
           final endA = a.enderecoDescricao?.toLowerCase() ?? '';
           final endB = b.enderecoDescricao?.toLowerCase() ?? '';
 
-          // Extrair números do início do endereço (01, 02, etc)
           final regExp = RegExp(r'^(\d+)');
           final matchA = regExp.firstMatch(endA);
           final matchB = regExp.firstMatch(endB);
 
-          // Se ambos começam com números, comparar numericamente
           if (matchA != null && matchB != null) {
             final numA = int.parse(matchA.group(1)!);
             final numB = int.parse(matchB.group(1)!);
             if (numA != numB) return numA.compareTo(numB);
           }
 
-          // Se um começa com número e outro não, priorizar o que começa com número
           if (matchA != null && matchB == null) return -1;
           if (matchA == null && matchB != null) return 1;
 
-          // Caso contrário, ordenar alfabeticamente
           return endA.compareTo(endB);
         });
 
       if (_disposed) return;
 
-      // Aplica filtro de situação localmente
       _items = _applySituacaoFilter(items);
       _setState(SeparateItemsState.loaded);
     } catch (e) {
@@ -189,7 +162,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  /// Carrega os carrinhos de uma separação específica
   Future<void> loadSeparationCarts(SeparateConsultationModel separation) async {
     if (_disposed) return;
 
@@ -199,17 +171,14 @@ class SeparationItemsViewModel extends ChangeNotifier {
         ..equals('Origem', ExpeditionOrigem.separacaoEstoque.code)
         ..orderByDesc('Item');
 
-      // Aplica filtros salvos de carrinhos se existirem
       await _applySavedCartsFiltersToQuery(queryBuilder);
 
       final carts = await _cartRepository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
 
-      // Aplica filtro de situação localmente se houver filtros salvos
       final filteredCarts = _applySituacaoFilterToCarts(carts);
 
-      // Ordena os carrinhos por item em ordem decrescente (mais recentes primeiro)
       _carts = filteredCarts..sort((a, b) => b.item.compareTo(a.item));
       _cartsLoaded = true;
       notifyListeners();
@@ -220,19 +189,17 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  /// Atualiza os dados
   Future<void> refresh() async {
     if (_separation != null) {
       await loadSeparationItems(_separation!);
       await loadSeparationCarts(_separation!);
     }
-    // Carrega setores apenas uma vez
+
     if (!_sectorsLoaded) {
       await loadAvailableSectors();
     }
   }
 
-  /// Carrega os setores de estoque disponíveis
   Future<void> loadAvailableSectors() async {
     if (_disposed || _sectorsLoaded) return;
 
@@ -249,7 +216,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       if (_disposed) return;
-      // Log do erro para debug, mas não quebra a aplicação
+
       if (kDebugMode) {
         AppLogger.error('Erro ao carregar setores de estoque', tag: 'SeparationItemsVM', error: e);
       }
@@ -258,7 +225,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  /// Busca um item específico por código ou código de barras
   SeparateItemConsultationModel? findItem(String searchTerm) {
     final term = searchTerm.trim().toLowerCase();
 
@@ -270,33 +236,26 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }, orElse: () => null);
   }
 
-  /// Separa um item com validações de negócio
   Future<void> separateItem(SeparateItemConsultationModel item, double quantidade) async {
     if (_disposed) return;
 
     try {
-      // 1. Validação de quantidade
       if (quantidade <= 0) throw 'Quantidade deve ser maior que zero';
 
       if (quantidade > item.quantidade) {
         throw 'Quantidade não pode exceder a quantidade disponível (${item.quantidade})';
       }
 
-      // 2. Validação de produto na lista
       if (!_items.any((i) => i.codProduto == item.codProduto)) {
         throw 'Produto não encontrado na lista de separação';
       }
 
-      //await Future.delayed(const Duration(milliseconds: 100));
-
-      // Simula atualização local (em produção seria via API)
       _safeNotifyListeners();
     } catch (e) {
       _setError('Erro ao separar item: ${_getErrorMessage(e)}');
     }
   }
 
-  /// Valida se produto existe na lista de separação por código ou código de barras
   bool validateProductInSeparation(String searchValue) {
     final trimmedValue = searchValue.trim();
 
@@ -305,18 +264,15 @@ class SeparationItemsViewModel extends ChangeNotifier {
     );
   }
 
-  /// Verifica se separação está completa
   bool get isSeparationComplete {
     return _items.every((item) => item.quantidadeSeparacao > 0);
   }
 
-  /// Separa todos os itens pendentes (equivalente ao F7 do desktop)
   Future<void> separateAllItems() async {
     if (_disposed) return;
 
     try {
       for (final _ in _items.where((i) => i.quantidadeSeparacao == 0)) {
-        // TODO: Implementar separação automática de todos os itens
         await Future.delayed(const Duration(milliseconds: 100));
       }
 
@@ -326,9 +282,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  // === MÉTODOS DE FILTROS ===
-
-  /// Aplica filtros aos itens
   Future<void> applyItemsFilters(SeparateItemsFiltersModel filters) async {
     if (_disposed) return;
 
@@ -342,7 +295,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  /// Aplica filtros aos carrinhos
   Future<void> applyCartsFilters(CartsFiltersModel filters) async {
     if (_disposed) return;
 
@@ -356,7 +308,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  /// Limpa filtros de itens
   Future<void> clearItemsFilters() async {
     if (_disposed) return;
 
@@ -370,7 +321,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  /// Limpa filtros de carrinhos
   Future<void> clearCartsFilters() async {
     if (_disposed) return;
 
@@ -383,8 +333,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
       _setError('Erro ao limpar filtros de carrinhos: ${_getErrorMessage(e)}');
     }
   }
-
-  // === MÉTODOS PRIVADOS ===
 
   void _setState(SeparateItemsState newState) {
     if (_disposed) return;
@@ -438,42 +386,35 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  /// Aplica filtros salvos do usuário à query (se existirem)
   Future<void> _applySavedFiltersToQuery(QueryBuilder queryBuilder) async {
     try {
-      // Carrega filtros salvos de itens
       final savedItemsFilters = await _filtersStorage.loadSeparateItemsFilters();
       if (savedItemsFilters.isNotEmpty) {
         _itemsFilters = savedItemsFilters;
         _applyItemsFiltersToQuery(queryBuilder);
       }
     } catch (e) {
-      // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
         AppLogger.error('Erro ao aplicar filtros salvos de itens', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
 
-  /// Aplica filtros salvos de carrinhos à query (se existirem)
   Future<void> _applySavedCartsFiltersToQuery(QueryBuilder queryBuilder) async {
     try {
-      // Carrega filtros salvos de carrinhos
       final savedCartsFilters = await _filtersStorage.loadCartsFilters();
       if (savedCartsFilters.isNotEmpty) {
         _cartsFilters = savedCartsFilters;
-        // Aplica apenas filtros que devem ir para o servidor (sem situação)
+
         _applyCartsFiltersToQueryWithoutSituacao(queryBuilder);
       }
     } catch (e) {
-      // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
         AppLogger.error('Erro ao aplicar filtros salvos de carrinhos', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
 
-  /// Carrega itens com filtros aplicados
   Future<void> _loadFilteredItems() async {
     if (_separation == null) return;
 
@@ -482,58 +423,48 @@ class SeparationItemsViewModel extends ChangeNotifier {
         ..equals('CodEmpresa', _separation!.codEmpresa.toString())
         ..equals('CodSepararEstoque', _separation!.codSepararEstoque.toString());
 
-      // Aplica filtros de itens
       _applyItemsFiltersToQuery(queryBuilder);
 
       final items = await _repository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
 
-      // Ordenação natural dos endereços - prioriza produtos com endereço
       items.sort((a, b) {
         final hasEnderecoA = a.enderecoDescricao?.isNotEmpty == true;
         final hasEnderecoB = b.enderecoDescricao?.isNotEmpty == true;
 
-        // Priorizar produtos com endereço sobre os sem endereço
         if (hasEnderecoA && !hasEnderecoB) return -1;
         if (!hasEnderecoA && hasEnderecoB) return 1;
 
-        // Se ambos têm ou não têm endereço, ordenar por endereço
         final endA = a.enderecoDescricao?.toLowerCase() ?? '';
         final endB = b.enderecoDescricao?.toLowerCase() ?? '';
 
-        // Extrair números do início do endereço (01, 02, etc)
         final regExp = RegExp(r'^(\d+)');
         final matchA = regExp.firstMatch(endA);
         final matchB = regExp.firstMatch(endB);
 
-        // Se ambos começam com números, comparar numericamente
         if (matchA != null && matchB != null) {
           final numA = int.parse(matchA.group(1)!);
           final numB = int.parse(matchB.group(1)!);
           if (numA != numB) return numA.compareTo(numB);
         }
 
-        // Se um começa com número e outro não, priorizar o que começa com número
         if (matchA != null && matchB == null) return -1;
         if (matchA == null && matchB != null) return 1;
 
-        // Caso contrário, ordenar alfabeticamente
         return endA.compareTo(endB);
       });
 
-      // Aplica filtro de situação localmente
       _items = _applySituacaoFilter(items);
     } catch (e) {
       if (_disposed) return;
-      // Log do erro para debug, mas não quebra a aplicação
+
       if (kDebugMode) {
         AppLogger.error('Erro ao carregar itens filtrados', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
 
-  /// Carrega carrinhos com filtros aplicados
   Future<void> _loadFilteredCarts() async {
     if (_separation == null) return;
 
@@ -543,28 +474,24 @@ class SeparationItemsViewModel extends ChangeNotifier {
         ..equals('Origem', ExpeditionOrigem.separacaoEstoque.code)
         ..orderByDesc('Item');
 
-      // Aplica filtros de carrinhos (exceto situação que será filtrada localmente)
       _applyCartsFiltersToQueryWithoutSituacao(queryBuilder);
 
       final carts = await _cartRepository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
 
-      // Aplica filtro de situação localmente
       final filteredCarts = _applySituacaoFilterToCarts(carts);
 
-      // Ordena os carrinhos por item em ordem decrescente (mais recentes primeiro)
       _carts = filteredCarts..sort((a, b) => b.item.compareTo(a.item));
     } catch (e) {
       if (_disposed) return;
-      // Log do erro para debug, mas não quebra a aplicação
+
       if (kDebugMode) {
         AppLogger.error('Erro ao carregar carrinhos filtrados', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
 
-  /// Aplica filtros de itens à query
   void _applyItemsFiltersToQuery(QueryBuilder queryBuilder) {
     if (_itemsFilters.codProduto != null) {
       queryBuilder.like('CodProduto', _itemsFilters.codProduto!);
@@ -581,10 +508,8 @@ class SeparationItemsViewModel extends ChangeNotifier {
     if (_itemsFilters.setorEstoque != null) {
       queryBuilder.equals('CodSetorEstoque', _itemsFilters.setorEstoque!.codSetorEstoque.toString());
     }
-    // Filtro de situação será aplicado após buscar os dados (filtro local)
   }
 
-  /// Aplica filtro de situação localmente aos itens
   List<SeparateItemConsultationModel> _applySituacaoFilter(List<SeparateItemConsultationModel> items) {
     if (_itemsFilters.situacao == null) {
       return items;
@@ -596,7 +521,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }).toList();
   }
 
-  /// Aplica filtros de carrinhos à query (sem situação)
   void _applyCartsFiltersToQueryWithoutSituacao(QueryBuilder queryBuilder) {
     if (_cartsFilters.codCarrinho != null) {
       queryBuilder.like('CodCarrinho', _cartsFilters.codCarrinho!);
@@ -619,7 +543,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
     queryBuilder.equals('CarrinhoAgrupador', _cartsFilters.carrinhoAgrupador.code);
   }
 
-  /// Aplica filtro de situação localmente aos carrinhos
   List<ExpeditionCartRouteInternshipConsultationModel> _applySituacaoFilterToCarts(
     List<ExpeditionCartRouteInternshipConsultationModel> carts,
   ) {
@@ -633,55 +556,46 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }).toList();
   }
 
-  /// Salva filtros de itens
   Future<void> _saveItemsFilters() async {
     try {
       await _filtersStorage.saveSeparateItemsFilters(_itemsFilters);
     } catch (e) {
-      // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
         AppLogger.error('Erro ao salvar filtros de itens', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
 
-  /// Salva filtros de carrinhos
   Future<void> _saveCartsFilters() async {
     try {
       await _filtersStorage.saveCartsFilters(_cartsFilters);
     } catch (e) {
-      // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
         AppLogger.error('Erro ao salvar filtros de carrinhos', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
 
-  /// Limpa filtros de itens salvos
   Future<void> _clearItemsFilters() async {
     try {
       await _filtersStorage.clearSeparateItemsFilters();
     } catch (e) {
-      // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
         AppLogger.error('Erro ao limpar filtros de itens', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
 
-  /// Limpa filtros de carrinhos salvos
   Future<void> _clearCartsFilters() async {
     try {
       await _filtersStorage.clearCartsFilters();
     } catch (e) {
-      // Log do erro para debug, mas não quebra a aplicação
       if (kDebugMode) {
         AppLogger.error('Erro ao limpar filtros de carrinhos', tag: 'SeparationItemsVM', error: e);
       }
     }
   }
 
-  /// Cancela um carrinho
   Future<bool> cancelCart(int codCarrinho) async {
     if (_disposed || _isCancelling) return false;
 
@@ -690,14 +604,11 @@ class SeparationItemsViewModel extends ChangeNotifier {
       _cancellingCartId = codCarrinho;
       _safeNotifyListeners();
 
-      // Buscar o carrinho
       final cartConsultation = _carts.firstWhere((c) => c.codCarrinho == codCarrinho);
 
-      // Obter use case
       final cancelCartUseCase = locator<CancelCartUseCase>();
       final cancelItemSeparationUseCase = locator<CancelCardItemSeparationUseCase>();
 
-      // Criar parâmetros
       final paramsCartUseCase = CancelCartParams(
         codEmpresa: cartConsultation.codEmpresa,
         codCarrinhoPercurso: cartConsultation.codCarrinhoPercurso,
@@ -711,41 +622,34 @@ class SeparationItemsViewModel extends ChangeNotifier {
         itemCarrinhoPercurso: cartConsultation.item,
       );
 
-      // Executar cancelamentos em sequência
-      // 1. Verificar se há itens para cancelar primeiro
       final hasItemsToCancel = await cancelItemSeparationUseCase.canCancelItems(paramsItemSeparationUseCase);
 
       CancelCardItemSeparationSuccess? itemSeparationSuccess;
 
       if (hasItemsToCancel) {
-        // Há itens para cancelar - executa o cancelamento
         final resultItemSeparation = await cancelItemSeparationUseCase.call(paramsItemSeparationUseCase);
 
         itemSeparationSuccess = resultItemSeparation.fold((success) => success, (failure) {
           return null;
         });
 
-        // Se falhou ao cancelar itens existentes, retorna false
         if (itemSeparationSuccess == null) {
           return false;
         }
       }
 
-      // 2. Depois cancela o carrinho percurso
       final resultCancelCart = await cancelCartUseCase.call(paramsCartUseCase);
 
       return resultCancelCart.fold(
         (success) async {
-          // Limpar erro anterior
           _lastCancelError = null;
-          // Recarregar dados após sucesso
+
           if (_separation != null) {
             await loadSeparationCarts(_separation!);
           }
           return true;
         },
         (failure) {
-          // Capturar mensagem específica do erro
           _lastCancelError = failure.toString();
           return false;
         },
@@ -759,21 +663,16 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  // === MÉTODOS DE EVENTOS DE CARRINHO ===
-
-  /// Inicia o monitoramento de eventos de carrinho
   void startCartEventMonitoring() {
     if (_disposed) return;
     _registerCartEventListener();
   }
 
-  /// Para o monitoramento de eventos de carrinho
   void stopCartEventMonitoring() {
     if (_disposed) return;
     _unregisterCartEventListener();
   }
 
-  /// Registra os listeners para todos os eventos de carrinho
   void _registerCartEventListener() {
     if (_disposed || _cartEventListenersRegistered) return;
 
@@ -791,35 +690,26 @@ class SeparationItemsViewModel extends ChangeNotifier {
       );
 
       _cartEventListenersRegistered = true;
-    } catch (e) {
-      // Erro ao registrar listeners - continuar sem eventos
-    }
+    } catch (e) {}
   }
 
-  /// Remove os listeners de eventos de carrinho
   void _unregisterCartEventListener() {
     if (!_cartEventListenersRegistered) return;
 
     try {
       _cartEventRepository.removeListeners([_cartInsertListenerId, _cartUpdateListenerId, _cartDeleteListenerId]);
       _cartEventListenersRegistered = false;
-    } catch (e) {
-      // Erro ao remover listeners - continuar
-    }
+    } catch (e) {}
   }
 
-  /// Callback chamado quando há qualquer evento de carrinho
   void _onCartEvent(BasicEventModel event) {
     if (_disposed) return;
 
     try {
       _processCartEventData(event);
-    } catch (e) {
-      // Erro ao processar evento - continuar
-    }
+    } catch (e) {}
   }
 
-  /// Processa os dados do evento de carrinho baseado na estrutura recebida
   void _processCartEventData(BasicEventModel event) {
     if (event.data == null) return;
 
@@ -841,16 +731,12 @@ class SeparationItemsViewModel extends ChangeNotifier {
           _handleCartEvent(event.eventType, cartData);
         }
       }
-    } catch (e) {
-      // Erro ao processar dados - continuar
-    }
+    } catch (e) {}
   }
 
-  /// Processa eventos de carrinho baseado no tipo
   void _handleCartEvent(Event eventType, ExpeditionCartRouteInternshipConsultationModel cartData) {
     if (_disposed) return;
 
-    // Verificar se o carrinho pertence à separação atual
     if (!_isCartValidForCurrentSeparation(cartData)) {
       return;
     }
@@ -872,15 +758,12 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  /// Verifica se o carrinho é válido para a separação atual
   bool _isCartValidForCurrentSeparation(ExpeditionCartRouteInternshipConsultationModel cartData) {
-    // Se o carrinho já existe na lista atual, é válido para atualização/exclusão
     final existingCartIndex = _findCartIndex(cartData);
     if (existingCartIndex != -1) {
       return true;
     }
 
-    // Para novos carrinhos, verificar se pertence à separação atual
     if (_separation != null && cartData.codOrigem != _separation!.codSepararEstoque) {
       return false;
     }
@@ -888,7 +771,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
     return true;
   }
 
-  /// Encontra o índice do carrinho na lista usando a chave única
   int _findCartIndex(ExpeditionCartRouteInternshipConsultationModel cartData) {
     return _carts.indexWhere(
       (c) =>
@@ -898,25 +780,20 @@ class SeparationItemsViewModel extends ChangeNotifier {
     );
   }
 
-  /// Processa evento de inserção de carrinho
   void _handleCartInsert(ExpeditionCartRouteInternshipConsultationModel cartData) {
     _carts.insert(0, cartData);
   }
 
-  /// Processa evento de atualização de carrinho
   void _handleCartUpdate(ExpeditionCartRouteInternshipConsultationModel cartData) {
     final index = _findCartIndex(cartData);
 
     if (index != -1) {
-      // Carrinho encontrado na lista - atualizar
       _carts[index] = cartData;
     } else {
-      // Carrinho não encontrado na lista atual - adicionar se pertence à separação
       _carts.insert(0, cartData);
     }
   }
 
-  /// Processa evento de exclusão de carrinho
   void _handleCartDelete(ExpeditionCartRouteInternshipConsultationModel cartData) {
     _carts.removeWhere(
       (c) =>

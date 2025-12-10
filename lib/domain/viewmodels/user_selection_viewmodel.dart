@@ -52,14 +52,12 @@ class UserSelectionViewModel extends ChangeNotifier {
   int get currentPage => _currentPage;
 
   List<UserSystemModel> get filteredUsers {
-    // Agora mostra todos os usuários (disponíveis e vinculados)
     if (_searchQuery.isEmpty) {
       return _users;
     }
     return _users.where((user) => user.nomeUsuario.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
   }
 
-  // Getter para verificar se usuário está disponível para seleção
   bool isUserAvailable(UserSystemModel user) {
     return user.codLoginApp == null;
   }
@@ -203,7 +201,6 @@ class UserSelectionViewModel extends ChangeNotifier {
 
   void selectUser(UserSystemModel user) {
     if (!isUserAvailable(user)) {
-      // Usuário já vinculado - mostra aviso
       if (_context != null) {
         _context!.showValidationError(
           'Usuário não disponível',

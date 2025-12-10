@@ -40,22 +40,18 @@ class PickingItemCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header com localização
             _buildLocationHeader(context, theme, colorScheme),
 
             const SizedBox(height: 16),
 
-            // Informações do produto
             _buildProductInfo(context, theme, colorScheme),
 
             const SizedBox(height: 16),
 
-            // Código de barras e lote
             _buildBarcodeAndBatch(context, theme, colorScheme),
 
             const SizedBox(height: 16),
 
-            // Quantidade e ações
             _buildQuantityAndActions(context, theme, colorScheme, statusColor),
           ],
         ),
@@ -173,7 +169,6 @@ class PickingItemCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Informações de quantidade
           Row(
             children: [
               Expanded(
@@ -219,7 +214,6 @@ class PickingItemCard extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Botões de ação
           Row(
             children: [
               if (!isCompleted) ...[

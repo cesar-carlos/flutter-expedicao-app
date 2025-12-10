@@ -30,7 +30,6 @@ class SeparationViewModel extends ChangeNotifier {
       _eventRepository = locator<SeparateEventRepository>(),
       _audioService = locator<AudioService>();
 
-  // Construtor para testes - permite injeção de dependências
   SeparationViewModel.withDependencies(
     this._repository,
     this._filtersStorage,
@@ -44,7 +43,6 @@ class SeparationViewModel extends ChangeNotifier {
   String? _errorMessage;
   bool _disposed = false;
 
-  // Lista de setores disponíveis
   List<ExpeditionSectorStockModel> _availableSectors = [];
   bool _sectorsLoaded = false;
 
@@ -56,11 +54,10 @@ class SeparationViewModel extends ChangeNotifier {
   String? _codSepararEstoqueFilter;
   String? _origemFilter;
   String? _codOrigemFilter;
-  List<String>? _situacoesFilter; // Mudado de String? para List<String>?
+  List<String>? _situacoesFilter;
   DateTime? _dataEmissaoFilter;
   ExpeditionSectorStockModel? _setorEstoqueFilter;
 
-  // === CAMPOS DE EVENTOS ===
   final String _insertListenerId = 'separation_viewmodel_insert';
   final String _updateListenerId = 'separation_viewmodel_update';
   final String _deleteListenerId = 'separation_viewmodel_delete';
@@ -70,7 +67,6 @@ class SeparationViewModel extends ChangeNotifier {
   bool _consultationListenerRegistered = false;
   bool _updateListListenerRegistered = false;
 
-  // === CONTROLE DE VISIBILIDADE DA TELA ===
   bool _isScreenVisible = false;
 
   bool get isScreenVisible => _isScreenVisible;
@@ -78,7 +74,6 @@ class SeparationViewModel extends ChangeNotifier {
   void setScreenVisible(bool visible) {
     if (_disposed) return;
     _isScreenVisible = visible;
-    // Não precisa notifyListeners pois não afeta a UI
   }
 
   SeparationState get state => _state;
@@ -126,7 +121,6 @@ class SeparationViewModel extends ChangeNotifier {
       _setState(SeparationState.loading);
       _clearError();
 
-      // Carrega filtros salvos antes de fazer a consulta
       await _loadSavedFilters();
 
       _currentPage = 0;
@@ -158,7 +152,6 @@ class SeparationViewModel extends ChangeNotifier {
     _dataEmissaoFilter = null;
     _setorEstoqueFilter = null;
 
-    // Limpa os filtros salvos também
     await _clearSavedFilters();
     await loadSeparations();
   }
@@ -205,7 +198,6 @@ class SeparationViewModel extends ChangeNotifier {
     }
   }
 
-  /// Carrega os setores de estoque disponíveis
   Future<void> loadAvailableSectors() async {
     if (_sectorsLoaded || _disposed) return;
 
@@ -226,7 +218,6 @@ class SeparationViewModel extends ChangeNotifier {
   }
 
   Future<void> applyFilters() async {
-    // Salva os filtros atuais antes de aplicar
     await _saveCurrentFilters();
     await loadSeparations();
   }
@@ -313,7 +304,6 @@ class SeparationViewModel extends ChangeNotifier {
     }
 
     if (_dataEmissaoFilter != null) {
-      // Formatar data como string no formato que o banco espera
       final dateString =
           '${_dataEmissaoFilter!.year}-'
           '${_dataEmissaoFilter!.month.toString().padLeft(2, '0')}-'
@@ -322,8 +312,6 @@ class SeparationViewModel extends ChangeNotifier {
     }
 
     if (_setorEstoqueFilter != null) {
-      // Usar LIKE para buscar o setor na lista CSV de setores
-      // Ex: CodSetoresEstoque = "1,4" deve encontrar setor 1 ou setor 4
       queryBuilder.like('CodSetoresEstoque', '%${_setorEstoqueFilter!.codSetorEstoque}%');
     }
 
@@ -353,7 +341,6 @@ class SeparationViewModel extends ChangeNotifier {
     }
   }
 
-  /// Carrega filtros salvos do armazenamento local
   Future<void> _loadSavedFilters() async {
     try {
       final savedFilters = await _filtersStorage.loadSeparationFilters();
@@ -366,15 +353,11 @@ class SeparationViewModel extends ChangeNotifier {
         _dataEmissaoFilter = savedFilters.dataEmissao;
         _setorEstoqueFilter = savedFilters.setorEstoque;
 
-        // Notifica os listeners que os filtros foram carregados
         notifyListeners();
       }
-    } catch (e) {
-      // Log do erro, mas não quebra a aplicação
-    }
+    } catch (e) {}
   }
 
-  /// Salva os filtros atuais no armazenamento local
   Future<void> _saveCurrentFilters() async {
     try {
       final currentFilters = SeparationFiltersModel(
@@ -387,21 +370,15 @@ class SeparationViewModel extends ChangeNotifier {
       );
 
       await _filtersStorage.saveSeparationFilters(currentFilters);
-    } catch (e) {
-      // Erro ao salvar filtros - não quebra a aplicação
-    }
+    } catch (e) {}
   }
 
-  /// Limpa filtros salvos do armazenamento local
   Future<void> _clearSavedFilters() async {
     try {
       await _filtersStorage.clearSeparationFilters();
-    } catch (e) {
-      // Erro ao limpar filtros - não quebra a aplicação
-    }
+    } catch (e) {}
   }
 
-  /// Obtém os filtros atuais como modelo
   SeparationFiltersModel get currentFilters => SeparationFiltersModel(
     codSepararEstoque: _codSepararEstoqueFilter,
     origem: _origemFilter,
@@ -411,9 +388,6 @@ class SeparationViewModel extends ChangeNotifier {
     setorEstoque: _setorEstoqueFilter,
   );
 
-  // === MÉTODOS DE EVENTOS ===
-
-  /// Inicia o monitoramento de eventos
   void startEventMonitoring() {
     if (_disposed) return;
     _registerEventListener();
@@ -421,7 +395,6 @@ class SeparationViewModel extends ChangeNotifier {
     _registerUpdateListEventListener();
   }
 
-  /// Para o monitoramento de eventos
   void stopEventMonitoring() {
     if (_disposed) return;
     _unregisterEventListener();
@@ -429,7 +402,6 @@ class SeparationViewModel extends ChangeNotifier {
     _unregisterUpdateListEventListener();
   }
 
-  /// Registra os listeners para todos os eventos de separação
   void _registerEventListener() {
     if (_disposed || _eventListenersRegistered) return;
 
@@ -447,12 +419,9 @@ class SeparationViewModel extends ChangeNotifier {
       );
 
       _eventListenersRegistered = true;
-    } catch (e) {
-      // Erro ao registrar listeners - continuar sem eventos
-    }
+    } catch (e) {}
   }
 
-  /// Registra o listener para eventos de consulta
   void _registerConsultationEventListener() {
     if (_disposed || _consultationListenerRegistered) return;
 
@@ -460,42 +429,33 @@ class SeparationViewModel extends ChangeNotifier {
       _eventRepository.addConsultationListener(
         EventListenerModel(
           id: _consultationListenerId,
-          event: Event.insert, // Tipo não importa para este listener
+          event: Event.insert,
           callback: _onConsultationEvent,
-          allEvent: true, // Escutar eventos de todas as sessões
+          allEvent: true,
         ),
       );
       _consultationListenerRegistered = true;
-    } catch (e) {
-      // Erro ao registrar listener de consulta - continuar sem eventos
-    }
+    } catch (e) {}
   }
 
-  /// Remove os listeners de eventos
   void _unregisterEventListener() {
     if (!_eventListenersRegistered) return;
 
     try {
       _eventRepository.removeListeners([_insertListenerId, _updateListenerId, _deleteListenerId]);
       _eventListenersRegistered = false;
-    } catch (e) {
-      // Erro ao remover listeners - continuar
-    }
+    } catch (e) {}
   }
 
-  /// Remove o listener de eventos de consulta
   void _unregisterConsultationEventListener() {
     if (!_consultationListenerRegistered) return;
 
     try {
       _eventRepository.removeConsultationListener(_consultationListenerId);
       _consultationListenerRegistered = false;
-    } catch (e) {
-      // Erro ao remover listener de consulta - continuar
-    }
+    } catch (e) {}
   }
 
-  /// Registra o listener para eventos de atualização de lista (separar.update.listen)
   void _registerUpdateListEventListener() {
     if (_disposed || _updateListListenerRegistered) return;
 
@@ -509,35 +469,26 @@ class SeparationViewModel extends ChangeNotifier {
         ),
       );
       _updateListListenerRegistered = true;
-    } catch (e) {
-      // Erro ao registrar listener de atualização - continuar sem eventos
-    }
+    } catch (e) {}
   }
 
-  /// Remove o listener de eventos de atualização de lista
   void _unregisterUpdateListEventListener() {
     if (!_updateListListenerRegistered) return;
 
     try {
       _eventRepository.removeUpdateListener(_updateListListenerId);
       _updateListListenerRegistered = false;
-    } catch (e) {
-      // Erro ao remover listener de atualização - continuar
-    }
+    } catch (e) {}
   }
 
-  /// Callback chamado quando há qualquer evento de separação
   void _onSeparationEvent(BasicEventModel event) {
     if (_disposed) return;
 
     try {
       _processEventData(event);
-    } catch (e) {
-      // Erro ao processar evento - continuar
-    }
+    } catch (e) {}
   }
 
-  /// Processa os dados do evento baseado na estrutura recebida
   void _processEventData(BasicEventModel event) {
     if (event.data == null) return;
 
@@ -559,12 +510,9 @@ class SeparationViewModel extends ChangeNotifier {
           _handleSeparationEvent(event.eventType, separationData);
         }
       }
-    } catch (e) {
-      // Erro ao processar dados - continuar
-    }
+    } catch (e) {}
   }
 
-  /// Processa eventos de separação baseado no tipo
   void _handleSeparationEvent(Event eventType, SeparateConsultationModel separationData) {
     if (_disposed) return;
 
@@ -594,16 +542,13 @@ class SeparationViewModel extends ChangeNotifier {
     }
   }
 
-  /// Processa uma nova separação (Event.insert) com notificação sonora
   void _handleNewSeparation(SeparateConsultationModel separationData) {
-    // Toca notificação sonora se necessário
     if (!_isScreenVisible) {
       _playNotificationIfNeeded(separationData);
     }
     _separations.insert(0, separationData);
   }
 
-  /// Verifica se uma separação deve ser adicionada à lista atual baseada nos filtros aplicados
   bool _shouldAddToCurrentList(SeparateConsultationModel separationData) {
     if (!hasActiveFilters) return true;
 
@@ -635,7 +580,6 @@ class SeparationViewModel extends ChangeNotifier {
     }
 
     if (_setorEstoqueFilter != null) {
-      // Verificar se o setor selecionado está na lista de setores da separação
       if (!separationData.codSetoresEstoque.contains(_setorEstoqueFilter!.codSetorEstoque)) {
         return false;
       }
@@ -644,52 +588,38 @@ class SeparationViewModel extends ChangeNotifier {
     return true;
   }
 
-  /// Callback chamado quando há evento de consulta
   void _onConsultationEvent(BasicEventModel event) {
     if (_disposed || event.data == null) return;
 
     try {
       _processConsultationEventData(event);
-    } catch (e) {
-      // Erro ao processar evento de consulta
-    }
+    } catch (e) {}
   }
 
-  /// Callback chamado quando há evento de atualização de lista (separar.update.listen)
   void _onUpdateListEvent(BasicEventModel event) {
     if (_disposed || event.data == null) return;
 
     try {
       _processUpdateListEventData(event);
-    } catch (e) {
-      // Erro ao processar evento de atualização
-    }
+    } catch (e) {}
   }
 
-  /// Processa os dados do evento de consulta
   void _processConsultationEventData(BasicEventModel event) {
     _processListEventData(event);
   }
 
-  /// Processa os dados do evento de atualização de lista (separar.update.listen)
   void _processUpdateListEventData(BasicEventModel event) {
     _processListEventData(event);
   }
 
-  /// Processa eventos de lista (consulta e update) de forma genérica
-  ///
-  /// Este método centraliza o processamento de eventos que contêm arrays de separações,
-  /// evitando duplicação de código e melhorando a manutenibilidade.
   void _processListEventData(BasicEventModel event) {
     final dataMap = event.data as Map<String, dynamic>;
 
-    // Verificar se tem array 'Data'
     if (!dataMap.containsKey('Data') || dataMap['Data'] is! List) return;
 
     final dataList = dataMap['Data'] as List;
     bool hasAnyUpdate = false;
 
-    // Processar cada item do array
     for (final item in dataList) {
       if (item is Map<String, dynamic>) {
         try {
@@ -697,46 +627,33 @@ class SeparationViewModel extends ChangeNotifier {
           if (_handleSeparationUpdate(separationData)) {
             hasAnyUpdate = true;
           }
-        } catch (e) {
-          // Erro ao parsear separação individual - continuar com próximo item
-        }
+        } catch (e) {}
       }
     }
 
-    // Notificar listeners apenas uma vez se houve alguma mudança
     if (hasAnyUpdate && !_disposed) {
       notifyListeners();
     }
   }
 
-  /// Processa uma separação recebida via evento de lista
-  ///
-  /// Retorna true se houve mudança na lista (adição ou atualização)
   bool _handleSeparationUpdate(SeparateConsultationModel separationData) {
     if (_disposed) return false;
 
-    // Buscar índice da separação existente
     final index = _findSeparationIndex(separationData);
 
     if (index != -1) {
-      // Separação já existe - verificar se há mudanças relevantes
       return _updateExistingSeparation(index, separationData);
     } else {
-      // Separação não existe - verificar se deve adicionar
       return _addNewSeparation(separationData);
     }
   }
 
-  /// Busca o índice de uma separação na lista
   int _findSeparationIndex(SeparateConsultationModel separationData) {
     return _separations.indexWhere(
       (s) => s.codEmpresa == separationData.codEmpresa && s.codSepararEstoque == separationData.codSepararEstoque,
     );
   }
 
-  /// Atualiza uma separação existente se houver mudanças relevantes
-  ///
-  /// Retorna true se houve atualização
   bool _updateExistingSeparation(int index, SeparateConsultationModel newData) {
     final currentData = _separations[index];
 
@@ -748,12 +665,8 @@ class SeparationViewModel extends ChangeNotifier {
     return false;
   }
 
-  /// Adiciona uma nova separação se passar pelos filtros ativos
-  ///
-  /// Retorna true se houve adição
   bool _addNewSeparation(SeparateConsultationModel separationData) {
     if (_shouldAddToCurrentList(separationData)) {
-      // Toca notificação sonora se necessário
       if (!_isScreenVisible) {
         _playNotificationIfNeeded(separationData);
       }
@@ -764,17 +677,12 @@ class SeparationViewModel extends ChangeNotifier {
     return false;
   }
 
-  /// Toca notificação sonora se a separação passa pelos filtros
   void _playNotificationIfNeeded(SeparateConsultationModel separationData) {
     if (_shouldAddToCurrentList(separationData)) {
-      _audioService.playSuccess(); // Toca Notification.wav
+      _audioService.playSuccess();
     }
   }
 
-  /// Verifica se há mudanças relevantes entre duas separações
-  ///
-  /// Compara apenas os campos que impactam a visualização na UI,
-  /// evitando atualizações desnecessárias quando dados irrelevantes mudam.
   bool _hasRelevantChanges(SeparateConsultationModel current, SeparateConsultationModel updated) {
     return current.situacao != updated.situacao ||
         current.nomeEntidade != updated.nomeEntidade ||

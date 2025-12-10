@@ -7,6 +7,9 @@ import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_c
 import 'package:data7_expedicao/ui/widgets/card_picking/widgets/barcode_scanner_card_optimized.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_scan_state.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/core/utils/picking_utils.dart';
+import 'package:data7_expedicao/domain/models/picking_state.dart';
 
 /// Layout principal da tela de picking com otimizações de performance
 ///
@@ -94,7 +97,22 @@ class PickingScreenLayout extends StatelessWidget {
 
   /// Constrói o card do próximo item com RepaintBoundary para otimização
   Widget _buildNextItemCard() {
-    return RepaintBoundary(child: NextItemCard(viewModel: viewModel));
+    return Selector<CardPickingViewModel, _NextItemViewData>(
+      selector: (_, vm) => _NextItemViewData.fromViewModel(vm),
+      builder: (context, data, _) {
+        return RepaintBoundary(
+          child: NextItemCard(
+            nextItem: data.nextItem,
+            completedCount: data.completedCount,
+            totalCount: data.totalCount,
+            userSectorCode: data.userSectorCode,
+            pickedQuantity: data.pickedQuantity,
+            itemState: data.itemState,
+            hasItemsForUserSector: data.hasItemsForUserSector,
+          ),
+        );
+      },
+    );
   }
 
   /// Constrói o card de seleção de quantidade
@@ -124,6 +142,44 @@ class PickingScreenLayout extends StatelessWidget {
         onToggleKeyboard: onToggleKeyboard,
         onSubmitted: onBarcodeScanned,
       ),
+    );
+  }
+}
+
+class _NextItemViewData {
+  final SeparateItemConsultationModel? nextItem;
+  final int completedCount;
+  final int totalCount;
+  final int? userSectorCode;
+  final int pickedQuantity;
+  final PickingItemState? itemState;
+  final bool hasItemsForUserSector;
+
+  _NextItemViewData({
+    required this.nextItem,
+    required this.completedCount,
+    required this.totalCount,
+    required this.userSectorCode,
+    required this.pickedQuantity,
+    required this.itemState,
+    required this.hasItemsForUserSector,
+  });
+
+  factory _NextItemViewData.fromViewModel(CardPickingViewModel vm) {
+    final nextItem = PickingUtils.findNextItemToPick(
+      vm.items,
+      vm.isItemCompleted,
+      userSectorCode: vm.userModel?.codSetorEstoque,
+    );
+
+    return _NextItemViewData(
+      nextItem: nextItem,
+      completedCount: vm.completedItems,
+      totalCount: vm.totalItems,
+      userSectorCode: vm.userModel?.codSetorEstoque,
+      pickedQuantity: nextItem != null ? vm.getPickedQuantity(nextItem.item) : 0,
+      itemState: nextItem != null ? vm.pickingState.getItemState(nextItem.item) : null,
+      hasItemsForUserSector: vm.hasItemsForUserSector,
     );
   }
 }

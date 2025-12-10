@@ -21,7 +21,6 @@ class ThemeViewModel extends ChangeNotifier {
     }
   }
 
-  /// Inicializa o tema carregando das preferências salvas
   Future<void> initialize() async {
     await _preferencesService.initialize();
     final preferences = _preferencesService.getCurrentPreferences();
@@ -29,7 +28,6 @@ class ThemeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Alterna entre os modos de tema e salva a preferência
   Future<void> toggleTheme() async {
     switch (_themeMode) {
       case ThemeMode.light:
@@ -43,12 +41,10 @@ class ThemeViewModel extends ChangeNotifier {
         break;
     }
 
-    // Salva a preferência no Hive
     await _preferencesService.updateThemeMode(_themeMode);
     notifyListeners();
   }
 
-  /// Define um modo de tema específico e salva
   Future<void> setThemeMode(ThemeMode mode) async {
     if (_themeMode != mode) {
       _themeMode = mode;

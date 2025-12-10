@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/separated_products_viewmodel.dart';
 
-/// Widget que exibe um aviso quando o carrinho não está em situação de separação
 class SeparatedProductsCartStatusWarning extends StatelessWidget {
   const SeparatedProductsCartStatusWarning({super.key});
 
@@ -11,7 +10,6 @@ class SeparatedProductsCartStatusWarning extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<SeparatedProductsViewModel>(
       builder: (context, viewModel, child) {
-        // Só mostra o aviso se o carrinho não estiver em situação de separação
         if (viewModel.isCartInSeparationStatus) {
           return const SizedBox.shrink();
         }

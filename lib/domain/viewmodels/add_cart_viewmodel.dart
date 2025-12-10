@@ -19,12 +19,11 @@ class AddCartViewModel extends ChangeNotifier {
   final int codEmpresa;
   final int codSepararEstoque;
 
-  // Repositórios e UseCases
   final AddCartUseCase _addCartUseCase;
   final BasicConsultationRepository<ExpeditionCartConsultationModel> _cartConsultationRepository;
   final BasicRepository<ExpeditionCartRouteModel> _cartRouteRepository;
   final StartSeparationUseCase _startSeparationUseCase;
-  // Estado
+
   bool _isScanning = false;
   bool _isAdding = false;
   ExpeditionCartConsultationModel? _scannedCart;
@@ -36,7 +35,6 @@ class AddCartViewModel extends ChangeNotifier {
       _cartRouteRepository = locator<BasicRepository<ExpeditionCartRouteModel>>(),
       _startSeparationUseCase = locator<StartSeparationUseCase>();
 
-  // Getters
   bool get isScanning => _isScanning;
   bool get isAdding => _isAdding;
   bool get hasCartData => _scannedCart != null;
@@ -46,7 +44,6 @@ class AddCartViewModel extends ChangeNotifier {
   ExpeditionCartConsultationModel? get scannedCart => _scannedCart;
   String? get errorMessage => _errorMessage;
 
-  /// Escaneia código de barras e busca informações do carrinho
   Future<void> scanBarcode(String barcode) async {
     if (barcode.isEmpty) return;
 
@@ -60,7 +57,6 @@ class AddCartViewModel extends ChangeNotifier {
 
       if (carts.isNotEmpty) {
         _scannedCart = carts.first;
-        // Não define erro aqui - deixa o CartActionsWidget mostrar o status
       } else {
         _setError('Carrinho não encontrado com o código de barras informado.');
       }
@@ -71,7 +67,6 @@ class AddCartViewModel extends ChangeNotifier {
     }
   }
 
-  /// Adiciona o carrinho à separação usando o UseCase
   Future<bool> addCartToSeparation() async {
     if (_scannedCart == null) {
       _setError('Nenhum carrinho foi escaneado.');
@@ -82,7 +77,6 @@ class AddCartViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      // 1. Verificar se já existe um carrinho percurso iniciado (apenas para origem 'SE')
       if (ExpeditionOrigem.separacaoEstoque.code == ExpeditionOrigem.separacaoEstoque.code) {
         final existingCartRoute = await _checkExistingCartRoute();
         if (existingCartRoute == null) {
@@ -93,7 +87,6 @@ class AddCartViewModel extends ChangeNotifier {
         }
       }
 
-      // 3. Adicionar o carrinho à separação
       final params = AddCartParams(
         codEmpresa: codEmpresa,
         origem: ExpeditionOrigem.separacaoEstoque,
@@ -115,7 +108,6 @@ class AddCartViewModel extends ChangeNotifier {
     }
   }
 
-  /// Verifica se já existe um carrinho percurso iniciado para esta separação
   Future<ExpeditionCartRouteModel?> _checkExistingCartRoute() async {
     try {
       final cartRoutes = await _cartRouteRepository.select(
@@ -133,7 +125,6 @@ class AddCartViewModel extends ChangeNotifier {
     }
   }
 
-  /// Inicia uma nova separação
   Future<bool> _startSeparation() async {
     try {
       final params = StartSeparationParams(
@@ -154,7 +145,6 @@ class AddCartViewModel extends ChangeNotifier {
     }
   }
 
-  /// Limpa os dados escaneados
   void clearScannedData() {
     _scannedCart = null;
     _clearError();

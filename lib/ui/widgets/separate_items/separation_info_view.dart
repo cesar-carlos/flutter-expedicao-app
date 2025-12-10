@@ -19,25 +19,20 @@ class SeparationInfoView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Status da separação
           _buildStatusCard(context, theme, colorScheme),
 
           const SizedBox(height: 16),
 
-          // Informações da entidade
           _buildEntityCard(context, theme, colorScheme),
 
           const SizedBox(height: 16),
 
-          // Informações da operação
           _buildOperationCard(context, theme, colorScheme),
 
           const SizedBox(height: 16),
 
-          // Estatísticas da separação
           if (viewModel.hasData) ...[_buildStatsCard(context, theme, colorScheme), const SizedBox(height: 16)],
 
-          // Informações adicionais
           _buildAdditionalInfoCard(context, theme, colorScheme),
         ],
       ),
@@ -47,10 +42,10 @@ class SeparationInfoView extends StatelessWidget {
   Widget _buildStatusCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
-      color: separation.situacao.color.withValues(alpha:0.1),
+      color: separation.situacao.color.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: separation.situacao.color.withValues(alpha:0.3), width: 2),
+        side: BorderSide(color: separation.situacao.color.withValues(alpha: 0.3), width: 2),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -93,7 +88,7 @@ class SeparationInfoView extends StatelessWidget {
   Widget _buildEntityCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
-      color: colorScheme.surfaceContainerHighest.withValues(alpha:0.3),
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -125,7 +120,7 @@ class SeparationInfoView extends StatelessWidget {
   Widget _buildOperationCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
-      color: colorScheme.tertiaryContainer.withValues(alpha:0.3),
+      color: colorScheme.tertiaryContainer.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -168,7 +163,7 @@ class SeparationInfoView extends StatelessWidget {
   Widget _buildStatsCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
-      color: colorScheme.secondaryContainer.withValues(alpha:0.3),
+      color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -230,7 +225,7 @@ class SeparationInfoView extends StatelessWidget {
                     viewModel.isSeparationComplete ? 'Completa' : 'Em Andamento',
                     viewModel.isSeparationComplete ? Icons.done_all : Icons.hourglass_empty,
                     viewModel.isSeparationComplete ? Colors.green : colorScheme.error,
-                    fontSize: theme.textTheme.titleMedium?.fontSize, // ✅ Fonte menor para o status
+                    fontSize: theme.textTheme.titleMedium?.fontSize,
                   ),
                 ),
               ],
@@ -244,7 +239,7 @@ class SeparationInfoView extends StatelessWidget {
   Widget _buildAdditionalInfoCard(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       elevation: 0,
-      color: colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),

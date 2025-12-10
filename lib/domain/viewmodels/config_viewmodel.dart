@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/domain/models/api_config.dart';
 import 'package:data7_expedicao/data/datasources/config_service.dart';
@@ -160,6 +161,7 @@ class ConfigViewModel extends ChangeNotifier {
       // Monta URL de teste
       final protocol = testHttps ? AppStrings.httpsProtocol : AppStrings.httpProtocol;
       final fullUrl = '$protocol://$testUrl:$testPort${AppStrings.apiEndpoint}';
+      debugPrint('[Config] Testing connection to $fullUrl (https=$testHttps)');
 
       // Cria instância do Dio
       final dio = Dio();
@@ -170,6 +172,7 @@ class ConfigViewModel extends ChangeNotifier {
 
       // Faz a requisição GET
       final response = await dio.get(fullUrl);
+      debugPrint('[Config] Response status: ${response.statusCode}, data: ${response.data}');
 
       // Verifica se o status é 200 e se a resposta contém a mensagem esperada
       if (response.statusCode == 200) {
@@ -208,10 +211,12 @@ class ConfigViewModel extends ChangeNotifier {
         default:
           _errorMessage = '${AppStrings.connectionFailurePrefix}: ${e.message}';
       }
+      debugPrint('[Config] DioException type=${e.type} code=${e.response?.statusCode} message=${e.message}');
       return false;
     } catch (e) {
       _connectionTested = false;
       _errorMessage = '${AppStrings.unexpectedError}: $e';
+      debugPrint('[Config] Unexpected error while testing connection: $e');
       return false;
     } finally {
       _setTesting(false);
