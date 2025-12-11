@@ -21,6 +21,13 @@ class GitHubApiService {
       final response = await _dio.get('/repos/$owner/$repo/releases');
       final List<dynamic> data = response.data as List<dynamic>;
       return data.map((json) => GitHubReleaseDto.fromJson(json as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        throw Exception('Repositório não encontrado: $owner/$repo');
+      } else if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
+        throw Exception('Acesso negado. Verifique se o repositório é público ou se o token está configurado corretamente');
+      }
+      throw Exception('Erro ao buscar releases: ${e.message}');
     } catch (e) {
       throw Exception('Erro ao buscar releases: $e');
     }
@@ -30,6 +37,13 @@ class GitHubApiService {
     try {
       final response = await _dio.get('/repos/$owner/$repo/releases/latest');
       return GitHubReleaseDto.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        throw Exception('Nenhum release encontrado para $owner/$repo');
+      } else if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
+        throw Exception('Acesso negado. Verifique se o repositório é público ou se o token está configurado corretamente');
+      }
+      throw Exception('Erro ao buscar latest release: ${e.message}');
     } catch (e) {
       throw Exception('Erro ao buscar latest release: $e');
     }

@@ -50,10 +50,10 @@ class AppUpdateViewModel extends ChangeNotifier {
   });
 
   Future<void> checkForUpdate() async {
-    final owner = dotenv.env['GITHUB_OWNER'];
-    final repo = dotenv.env['GITHUB_REPO'];
+    final owner = dotenv.env['GITHUB_OWNER']?.trim();
+    final repo = dotenv.env['GITHUB_REPO']?.trim();
 
-    if (owner == null || repo == null) {
+    if (owner == null || owner.isEmpty || repo == null || repo.isEmpty) {
       _error = AppUpdateFailure.versionCheckFailed('GITHUB_OWNER ou GITHUB_REPO não configurados no .env');
       notifyListeners();
       return;
@@ -61,7 +61,7 @@ class AppUpdateViewModel extends ChangeNotifier {
 
     final hasNetwork = await _hasNetwork();
     if (!hasNetwork) {
-      _error = AppUpdateFailure.networkError('Sem conexão');
+      _error = AppUpdateFailure.networkError('Sem conexão com a internet');
       notifyListeners();
       return;
     }

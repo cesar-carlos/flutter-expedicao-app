@@ -26,11 +26,12 @@ class GitHubRelease {
 
   AppVersion? getVersion() {
     try {
-      final versionMatch = RegExp(r'(\d+\.\d+\.\d+)').firstMatch(tagName);
+      final cleanTag = tagName.replaceFirst(RegExp(r'^v'), '');
+      final versionMatch = RegExp(r'(\d+\.\d+\.\d+)').firstMatch(cleanTag);
       if (versionMatch == null) return null;
 
       final version = versionMatch.group(1)!;
-      final buildMatch = RegExp(r'\+(\d+)').firstMatch(tagName);
+      final buildMatch = RegExp(r'\+(\d+)').firstMatch(cleanTag);
       final buildNumber = buildMatch != null ? int.tryParse(buildMatch.group(1)!) ?? 0 : 0;
 
       return AppVersion(version: version, buildNumber: buildNumber, releaseDate: publishedAt);

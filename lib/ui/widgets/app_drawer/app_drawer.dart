@@ -238,7 +238,7 @@ class AppDrawer extends StatelessWidget {
 
         return Consumer<AppUpdateViewModel>(
           builder: (context, appUpdateViewModel, child) {
-            return InkWell(
+            return GestureDetector(
               onTap: () => _handleVersionTap(context, appUpdateViewModel),
               child: Container(
                 width: double.infinity,
@@ -275,33 +275,65 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  void _handleVersionTap(BuildContext context, AppUpdateViewModel appUpdateViewModel) {
+  Future<void> _handleVersionTap(BuildContext context, AppUpdateViewModel appUpdateViewModel) async {
     if (appUpdateViewModel.isChecking) return;
 
     appUpdateViewModel.clearError();
-    appUpdateViewModel.checkForUpdate().then((_) {
-      if (!context.mounted) return;
 
-      if (appUpdateViewModel.hasUpdate && appUpdateViewModel.updateAvailable != null) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
-        );
-      } else if (appUpdateViewModel.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(appUpdateViewModel.error!.message),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Você está usando a versão mais recente'), duration: Duration(seconds: 2)),
-        );
-      }
-    });
+    try {
+      await appUpdateViewModel.checkForUpdate();
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao verificar atualização: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    if (!context.mounted) return;
+
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    if (!context.mounted) return;
+
+    if (appUpdateViewModel.hasUpdate && appUpdateViewModel.updateAvailable != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
+          );
+        }
+      });
+    } else if (appUpdateViewModel.error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(appUpdateViewModel.error!.message),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      });
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Você está usando a versão mais recente'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      });
+    }
   }
 
   void _showLogoutDialog(BuildContext context) {

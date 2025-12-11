@@ -47,14 +47,21 @@ void main() async {
   runApp(MyApp(configViewModel: configViewModel, themeViewModel: themeViewModel, socketViewModel: socketViewModel));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final ConfigViewModel configViewModel;
   final ThemeViewModel themeViewModel;
   final SocketViewModel socketViewModel;
 
-  static bool _hasScheduledUpdateCheck = false;
-
   const MyApp({super.key, required this.configViewModel, required this.themeViewModel, required this.socketViewModel});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  static bool _hasScheduledUpdateCheck = false;
+  bool _updateDialogShown = false;
+  bool _progressDialogShown = false;
 
   @override
   Widget build(BuildContext context) {
@@ -65,9 +72,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ScannerViewModel()),
         ChangeNotifierProvider(create: (_) => locator<AuthViewModel>()),
         ChangeNotifierProvider(create: (_) => locator<RegisterViewModel>()),
-        ChangeNotifierProvider.value(value: configViewModel),
-        ChangeNotifierProvider.value(value: themeViewModel),
-        ChangeNotifierProvider.value(value: socketViewModel),
+        ChangeNotifierProvider.value(value: widget.configViewModel),
+        ChangeNotifierProvider.value(value: widget.themeViewModel),
+        ChangeNotifierProvider.value(value: widget.socketViewModel),
         ChangeNotifierProvider.value(value: appUpdateViewModel),
       ],
       child: Consumer3<AuthViewModel, ThemeViewModel, AppUpdateViewModel>(
@@ -78,7 +85,6 @@ class MyApp extends StatelessWidget {
             _hasScheduledUpdateCheck = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (kReleaseMode) {
-                // Executa após um pequeno atraso para não disputar com a renderização inicial
                 Future.delayed(const Duration(seconds: 2), () async {
                   await appUpdateViewModel.checkForUpdate();
                 });
@@ -86,20 +92,38 @@ class MyApp extends StatelessWidget {
             });
           }
 
-          if (appUpdateViewModel.hasUpdate && appUpdateViewModel.updateAvailable != null) {
+          if (appUpdateViewModel.hasUpdate && appUpdateViewModel.updateAvailable != null && !_updateDialogShown) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (_) => AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
-              );
+              if (mounted && !_updateDialogShown) {
+                _updateDialogShown = true;
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
+                ).then((_) {
+                  _updateDialogShown = false;
+                });
+              }
             });
+          } else if (!appUpdateViewModel.hasUpdate && _updateDialogShown) {
+            _updateDialogShown = false;
           }
 
-          if (appUpdateViewModel.isDownloading || appUpdateViewModel.isInstalling) {
+          if ((appUpdateViewModel.isDownloading || appUpdateViewModel.isInstalling) && !_progressDialogShown) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              showDialog(context: context, barrierDismissible: false, builder: (_) => const AppUpdateProgressDialog());
+              if (mounted && !_progressDialogShown) {
+                _progressDialogShown = true;
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => const AppUpdateProgressDialog(),
+                ).then((_) {
+                  _progressDialogShown = false;
+                });
+              }
             });
+          } else if (!appUpdateViewModel.isDownloading && !appUpdateViewModel.isInstalling && _progressDialogShown) {
+            _progressDialogShown = false;
           }
 
           return MaterialApp.router(
