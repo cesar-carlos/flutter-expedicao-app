@@ -1,6 +1,5 @@
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Tipos de falha ao cancelar itens de separação
 enum CancelCardItemSeparationFailureType {
   invalidParams('Parâmetros inválidos'),
   separationNotFound('Separação não encontrada'),
@@ -16,7 +15,6 @@ enum CancelCardItemSeparationFailureType {
   final String description;
 }
 
-/// Falha específica ao cancelar itens de separação
 class CancelCardItemSeparationFailure extends AppFailure {
   final CancelCardItemSeparationFailureType type;
   final String? details;
@@ -29,7 +27,6 @@ class CancelCardItemSeparationFailure extends AppFailure {
     super.exception,
   });
 
-  /// Cria uma falha de parâmetros inválidos
   factory CancelCardItemSeparationFailure.invalidParams(String details) {
     return CancelCardItemSeparationFailure(
       type: CancelCardItemSeparationFailureType.invalidParams,
@@ -39,7 +36,6 @@ class CancelCardItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de separação não encontrada
   factory CancelCardItemSeparationFailure.separationNotFound() {
     return CancelCardItemSeparationFailure(
       type: CancelCardItemSeparationFailureType.separationNotFound,
@@ -48,7 +44,6 @@ class CancelCardItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de itens não encontrados
   factory CancelCardItemSeparationFailure.itemsNotFound() {
     return CancelCardItemSeparationFailure(
       type: CancelCardItemSeparationFailureType.itemsNotFound,
@@ -57,7 +52,6 @@ class CancelCardItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de usuário não encontrado
   factory CancelCardItemSeparationFailure.userNotFound() {
     return CancelCardItemSeparationFailure(
       type: CancelCardItemSeparationFailureType.userNotFound,
@@ -66,7 +60,6 @@ class CancelCardItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de atualização do separate_item
   factory CancelCardItemSeparationFailure.updateSeparateItemFailed(String details, [Exception? originalException]) {
     return CancelCardItemSeparationFailure(
       type: CancelCardItemSeparationFailureType.updateSeparateItemFailed,
@@ -77,7 +70,6 @@ class CancelCardItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de atualização do separation_item
   factory CancelCardItemSeparationFailure.updateSeparationItemFailed(String details, [Exception? originalException]) {
     return CancelCardItemSeparationFailure(
       type: CancelCardItemSeparationFailureType.updateSeparationItemFailed,
@@ -88,7 +80,6 @@ class CancelCardItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de rede
   factory CancelCardItemSeparationFailure.networkError(String details, [Exception? originalException]) {
     return CancelCardItemSeparationFailure(
       type: CancelCardItemSeparationFailureType.networkError,
@@ -99,7 +90,6 @@ class CancelCardItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha desconhecida
   factory CancelCardItemSeparationFailure.unknown(String details, [Exception? originalException]) {
     return CancelCardItemSeparationFailure(
       type: CancelCardItemSeparationFailureType.unknownError,
@@ -110,13 +100,10 @@ class CancelCardItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Verifica se é um erro de rede
   bool get isNetworkError => type == CancelCardItemSeparationFailureType.networkError;
 
-  /// Verifica se é um erro de validação
   bool get isValidationError => type == CancelCardItemSeparationFailureType.invalidParams;
 
-  /// Verifica se é um erro de negócio
   bool get isBusinessError => [
     CancelCardItemSeparationFailureType.separationNotFound,
     CancelCardItemSeparationFailureType.itemsNotFound,

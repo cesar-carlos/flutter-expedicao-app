@@ -1,4 +1,3 @@
-/// Parâmetros para exclusão de item de separação
 class DeleteItemSeparationParams {
   final int codEmpresa;
   final int codSepararEstoque;
@@ -6,12 +5,10 @@ class DeleteItemSeparationParams {
 
   const DeleteItemSeparationParams({required this.codEmpresa, required this.codSepararEstoque, required this.item});
 
-  /// Valida se os parâmetros são válidos
   bool get isValid {
     return codEmpresa > 0 && codSepararEstoque > 0 && item.isNotEmpty;
   }
 
-  /// Retorna lista de erros de validação
   List<String> get validationErrors {
     final List<String> errors = [];
     if (codEmpresa <= 0) errors.add('Código da empresa deve ser maior que zero');

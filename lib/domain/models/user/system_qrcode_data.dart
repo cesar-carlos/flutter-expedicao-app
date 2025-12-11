@@ -4,11 +4,6 @@ import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:result_dart/result_dart.dart';
 
-/// Modelo para dados do QR Code do Login System.
-///
-/// Contém todas as informações necessárias para criar um cadastro de usuário
-/// e vincular com os dados do sistema. Este modelo representa os dados que
-/// vêm no QR Code gerado pelo sistema administrativo.
 class SystemQRCodeData {
   final int codUsuario;
   final String nomeUsuario;
@@ -72,7 +67,6 @@ class SystemQRCodeData {
     required this.expedicaoEntregaBalcaoPreVenda,
   });
 
-  /// Cria instância a partir de JSON
   factory SystemQRCodeData.fromJson(Map<String, dynamic> json) {
     return SystemQRCodeData(
       codUsuario: json['CodUsuario'] as int,
@@ -107,15 +101,10 @@ class SystemQRCodeData {
     );
   }
 
-  /// Parse seguro a partir de string JSON do QR Code.
-  ///
-  /// Valida os campos obrigatórios e retorna um Result com sucesso ou falha.
-  /// Campos obrigatórios: CodUsuario, NomeUsuario, SenhaUsuario
   static Result<SystemQRCodeData> fromQRCodeString(String qrCodeContent) {
     try {
       final Map<String, dynamic> json = jsonDecode(qrCodeContent);
 
-      // Validar campos obrigatórios
       final missingFields = <String>[];
       const requiredFields = ['CodUsuario', 'NomeUsuario', 'SenhaUsuario'];
 
@@ -140,9 +129,6 @@ class SystemQRCodeData {
     }
   }
 
-  /// Converte para UserSystemModel.
-  ///
-  /// Mapeia todos os campos do QR Code para o modelo do sistema.
   UserSystemModel toUserSystemModel() {
     return UserSystemModel.fromJson({
       'CodUsuario': codUsuario,

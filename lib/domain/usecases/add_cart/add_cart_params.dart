@@ -1,6 +1,5 @@
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 
-/// Parâmetros para adicionar um carrinho à separação
 class AddCartParams {
   final int codEmpresa;
   final ExpeditionOrigem origem;
@@ -39,12 +38,10 @@ class AddCartParams {
     return Object.hash(codEmpresa, origem, codOrigem, codCarrinho);
   }
 
-  /// Valida se os parâmetros são válidos
   bool get isValid {
     return codEmpresa > 0 && codOrigem > 0 && codCarrinho > 0;
   }
 
-  /// Retorna uma lista de erros de validação
   List<String> get validationErrors {
     final errors = <String>[];
 

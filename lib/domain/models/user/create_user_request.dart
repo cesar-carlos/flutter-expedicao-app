@@ -1,4 +1,3 @@
-/// Modelo para requisição de criação de usuário
 class CreateUserRequest {
   final String nome;
   final String senha;

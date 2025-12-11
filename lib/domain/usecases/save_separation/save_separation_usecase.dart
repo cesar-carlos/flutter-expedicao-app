@@ -13,16 +13,6 @@ import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/models/separate_model.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 
-/// Use case para salvar separação
-///
-/// Este use case é responsável por:
-/// - Validar parâmetros de entrada
-/// - Consultar SeparateModel para validar se a separação está com situacao = 'SEPARANDO'
-/// - Consultar SeparateProgressConsultationModel para validar processoSeparacao = 'N' e situacao = 'SEPARANDO'
-/// - Consultar ExpeditionCartRouteModel por CodEmpresa, CodOrigem, Origem
-/// - Validar se o resultado não é vazio
-/// - Atualizar situacao do ExpeditionCartRouteModel para SEPARADO
-/// - Atualizar situacao do SeparateModel para SEPARADO
 class SaveSeparationUseCase {
   final BasicConsultationRepository<SeparateProgressConsultationModel> _separateProgressRepository;
   final BasicRepository<ExpeditionCartRouteModel> _cartRouteRepository;
@@ -36,20 +26,13 @@ class SaveSeparationUseCase {
        _cartRouteRepository = cartRouteRepository,
        _separateRepository = separateRepository;
 
-  /// Salva uma separação
-  ///
-  /// [params] - Parâmetros para salvar a separação
-  ///
-  /// Retorna [Result<SaveSeparationSuccess>] com sucesso ou falha
   Future<Result<SaveSeparationSuccess>> call(SaveSeparationParams params) async {
     try {
-      // 1. Validar parâmetros
       if (!params.isValid) {
         final errors = params.validationErrors;
         return failure(ValidationFailure.fromErrors(errors));
       }
 
-      // 2. Consultar SeparateModel para validar se a separação está com situacao = 'SEPARANDO'
       final separateModel = await _findSeparateModel(params);
       if (separateModel == null) {
         return failure(
@@ -59,7 +42,6 @@ class SaveSeparationUseCase {
         );
       }
 
-      // 3. Validar se a separação está com situacao = 'SEPARANDO'
       if (separateModel.situacao.code != ExpeditionSituation.separando.code) {
         return failure(
           BusinessFailure.invalidState(
@@ -68,7 +50,6 @@ class SaveSeparationUseCase {
         );
       }
 
-      // 4. Consultar SeparateProgressConsultationModel
       final separateProgress = await _findSeparateProgress(params);
       if (separateProgress == null) {
         return failure(
@@ -78,13 +59,11 @@ class SaveSeparationUseCase {
         );
       }
 
-      // 5. Validar processoSeparacao = 'N' e situacao = 'SEPARANDO'
       final validationResult = _validateSeparationProgress(separateProgress);
       if (validationResult != null) {
         return failure(BusinessFailure.invalidState(validationResult.message));
       }
 
-      // 6. Consultar ExpeditionCartRouteModel
       final cartRoute = await _findCartRoute(params);
       if (cartRoute == null) {
         return failure(
@@ -94,7 +73,6 @@ class SaveSeparationUseCase {
         );
       }
 
-      // 7. Executar operação transacional: UPDATE carrinho percurso + UPDATE separação
       return await _executeTransactionalOperation(separateModel, cartRoute);
     } on DataError catch (e) {
       return failure(NetworkFailure(message: 'Erro de rede: ${e.message}'));
@@ -103,7 +81,6 @@ class SaveSeparationUseCase {
     }
   }
 
-  /// Busca a separação
   Future<SeparateModel?> _findSeparateModel(SaveSeparationParams params) async {
     try {
       final query = QueryBuilder()
@@ -117,7 +94,6 @@ class SaveSeparationUseCase {
     }
   }
 
-  /// Busca o progresso da separação
   Future<SeparateProgressConsultationModel?> _findSeparateProgress(SaveSeparationParams params) async {
     try {
       final query = QueryBuilder()
@@ -131,22 +107,18 @@ class SaveSeparationUseCase {
     }
   }
 
-  /// Valida o progresso da separação
   SaveSeparationFailure? _validateSeparationProgress(SeparateProgressConsultationModel separateProgress) {
-    // Validar processoSeparacao = 'N'
     if (separateProgress.processoSeparacao.code != 'N') {
       return SaveSeparationFailure.processoSeparacaoNotN(separateProgress.processoSeparacao.code);
     }
 
-    // Validar situacao = 'SEPARANDO'
     if (separateProgress.situacao != ExpeditionSituation.separando) {
       return SaveSeparationFailure.situacaoNotSeparando(separateProgress.situacao.description);
     }
 
-    return null; // Validação passou
+    return null;
   }
 
-  /// Busca o carrinho percurso
   Future<ExpeditionCartRouteModel?> _findCartRoute(SaveSeparationParams params) async {
     try {
       final query = QueryBuilder()
@@ -161,13 +133,11 @@ class SaveSeparationUseCase {
     }
   }
 
-  /// Executa a operação transacional de UPDATE + UPDATE
   Future<Result<SaveSeparationSuccess>> _executeTransactionalOperation(
     SeparateModel separateModel,
     ExpeditionCartRouteModel cartRoute,
   ) async {
     try {
-      // UPDATE 1: Atualizar situação do carrinho percurso para SEPARADO
       final updatedCartRoute = cartRoute.copyWith(situacao: ExpeditionCartSituation.separado);
       final updatedCartRoutes = await _cartRouteRepository.update(updatedCartRoute);
 
@@ -175,13 +145,10 @@ class SaveSeparationUseCase {
         return failure(DataFailure(message: 'Falha ao atualizar situação do carrinho percurso'));
       }
 
-      // UPDATE 2: Atualizar situação da separação para SEPARADO
       final updatedSeparateModel = separateModel.copyWith(situacao: ExpeditionSituation.separado);
       final updatedSeparateModels = await _separateRepository.update(updatedSeparateModel);
 
       if (updatedSeparateModels.isEmpty) {
-        // ROLLBACK: Em caso de falha no UPDATE da separação, idealmente deveríamos desfazer o UPDATE do carrinho
-        // Por limitação da arquitetura atual, apenas retornamos erro
         return failure(DataFailure(message: 'Falha ao atualizar situação da separação'));
       }
 

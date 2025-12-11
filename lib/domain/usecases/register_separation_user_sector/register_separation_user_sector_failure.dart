@@ -1,6 +1,5 @@
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Tipos de falha no registro de atribuição usuário/setor
 enum RegisterSeparationUserSectorFailureType {
   invalidParams('Parâmetros inválidos'),
   insertError('Erro ao inserir'),
@@ -11,7 +10,6 @@ enum RegisterSeparationUserSectorFailureType {
   final String description;
 }
 
-/// Resposta de falha para registro de atribuição usuário/setor
 class RegisterSeparationUserSectorFailure extends AppFailure {
   final RegisterSeparationUserSectorFailureType type;
   final String? details;
@@ -24,7 +22,6 @@ class RegisterSeparationUserSectorFailure extends AppFailure {
     super.exception,
   });
 
-  /// Factory: Parâmetros inválidos
   factory RegisterSeparationUserSectorFailure.invalidParams(String details) {
     return RegisterSeparationUserSectorFailure(
       type: RegisterSeparationUserSectorFailureType.invalidParams,
@@ -34,7 +31,6 @@ class RegisterSeparationUserSectorFailure extends AppFailure {
     );
   }
 
-  /// Factory: Erro ao inserir registro
   factory RegisterSeparationUserSectorFailure.insertError(String details, Exception exception) {
     return RegisterSeparationUserSectorFailure(
       type: RegisterSeparationUserSectorFailureType.insertError,
@@ -45,7 +41,6 @@ class RegisterSeparationUserSectorFailure extends AppFailure {
     );
   }
 
-  /// Factory: Erro de rede
   factory RegisterSeparationUserSectorFailure.networkError(String details, Exception exception) {
     return RegisterSeparationUserSectorFailure(
       type: RegisterSeparationUserSectorFailureType.networkError,
@@ -56,7 +51,6 @@ class RegisterSeparationUserSectorFailure extends AppFailure {
     );
   }
 
-  /// Factory: Erro desconhecido
   factory RegisterSeparationUserSectorFailure.unknown(String details, Exception exception) {
     return RegisterSeparationUserSectorFailure(
       type: RegisterSeparationUserSectorFailureType.unknown,

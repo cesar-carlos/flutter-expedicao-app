@@ -1,4 +1,3 @@
-/// Modelo para requisição de login
 class LoginRequest {
   final String nome;
   final String senha;

@@ -1,4 +1,3 @@
-/// Parâmetros para registro de atribuição de separação ao usuário/setor
 class RegisterSeparationUserSectorParams {
   final int codEmpresa;
   final int codSepararEstoque;
@@ -14,12 +13,10 @@ class RegisterSeparationUserSectorParams {
     required this.nomeUsuario,
   });
 
-  /// Valida se os parâmetros estão corretos
   bool get isValid {
     return codEmpresa > 0 && codSepararEstoque > 0 && codSetorEstoque > 0 && codUsuario > 0 && nomeUsuario.isNotEmpty;
   }
 
-  /// Lista de erros de validação
   List<String> get validationErrors {
     final errors = <String>[];
 

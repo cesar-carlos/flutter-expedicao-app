@@ -1,6 +1,5 @@
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 
-/// Parâmetros para buscar a próxima separação disponível para um usuário
 class NextSeparationUserParams {
   final int codEmpresa;
   final int codUsuario;
@@ -14,10 +13,8 @@ class NextSeparationUserParams {
     this.userSystemModel,
   });
 
-  /// Valida se os parâmetros são válidos
   bool get isValid => validationErrors.isEmpty;
 
-  /// Retorna uma lista de erros de validação
   List<String> get validationErrors {
     final errors = <String>[];
 
@@ -27,10 +24,8 @@ class NextSeparationUserParams {
     return errors;
   }
 
-  /// Verifica se o usuário possui setor estoque
   bool get hasValidSector => codSetorEstoque != null && codSetorEstoque! > 0;
 
-  /// Retorna uma descrição dos parâmetros para logging
   String get description {
     return 'NextSeparationUserParams('
         'codUsuario: $codUsuario, '

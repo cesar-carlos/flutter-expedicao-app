@@ -13,15 +13,6 @@ import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Use case para iniciar uma separação de estoque
-///
-/// Este use case é responsável por:
-/// - Validar parâmetros de entrada
-/// - Buscar separação existente
-/// - Verificar se não existe separação já em andamento
-/// - Validar se a separação está aguardando
-/// - Criar registro de carrinho percurso com situação EM SEPARACAO
-/// - Atualizar situação da separação para SEPARANDO
 class StartSeparationUseCase {
   final BasicRepository<SeparateModel> _separateRepository;
   final BasicRepository<ExpeditionCartRouteModel> _cartRouteRepository;
@@ -35,23 +26,15 @@ class StartSeparationUseCase {
        _cartRouteRepository = cartRouteRepository,
        _userSessionService = userSessionService;
 
-  /// Inicia uma separação
-  ///
-  /// [params] - Parâmetros para iniciar a separação
-  ///
-  /// Retorna [Result<StartSeparationSuccess>] com sucesso ou falha
   Future<Result<StartSeparationSuccess>> call(StartSeparationParams params) async {
     try {
-      // 1. Validar parâmetros
       if (!params.isValid) {
         final errors = params.validationErrors;
         return failure(StartSeparationFailure.invalidParams('Parâmetros inválidos: ${errors.join(', ')}'));
       }
 
-      // 2. Verificar usuário autenticado
       await _verifyUserSession();
 
-      // 3. Buscar separação
       final separation = await _findSeparation(params);
       if (separation == null) {
         return failure(
@@ -59,18 +42,15 @@ class StartSeparationUseCase {
         );
       }
 
-      // 4. Validar se a separação está com situação AGUARDANDO
       if (separation.situacao != ExpeditionSituation.aguardando) {
         return failure(StartSeparationFailure.separationNotInAwaitingStatus(separation.situacaoDescription));
       }
 
-      // 5. Verificar se não existe separação já iniciada (não cancelada)
       final existingCartRoute = await _findExistingCartRoute(params);
       if (existingCartRoute != null) {
         return failure(StartSeparationFailure.separationAlreadyStarted(existingCartRoute.codCarrinhoPercurso));
       }
 
-      // 6. Executar operação transacional: INSERT carrinho percurso + UPDATE separação
       return await _executeTransactionalOperation(params, separation);
     } on DataError catch (e) {
       return failure(StartSeparationFailure.networkError(e.message, Exception(e.message)));
@@ -79,7 +59,6 @@ class StartSeparationUseCase {
     }
   }
 
-  /// Verifica se o usuário está autenticado
   Future<void> _verifyUserSession() async {
     final appUser = await _userSessionService.loadUserSession();
     if (appUser?.userSystemModel == null) {
@@ -87,7 +66,6 @@ class StartSeparationUseCase {
     }
   }
 
-  /// Busca a separação correspondente aos parâmetros
   Future<SeparateModel?> _findSeparation(StartSeparationParams params) async {
     try {
       final separations = await _separateRepository.select(
@@ -100,7 +78,6 @@ class StartSeparationUseCase {
     }
   }
 
-  /// Busca um carrinho percurso existente para a origem (que não esteja cancelado)
   Future<ExpeditionCartRouteModel?> _findExistingCartRoute(StartSeparationParams params) async {
     try {
       final cartRoutes = await _cartRouteRepository.select(
@@ -111,21 +88,17 @@ class StartSeparationUseCase {
             .notEquals('Situacao', ExpeditionCartRouterSituation.cancelada.code),
       );
 
-      // Retorna apenas se existir um carrinho não cancelado
-      // (assumindo que não há situação "CANCELADO" no ExpeditionCartSituation)
       return cartRoutes.isNotEmpty ? cartRoutes.first : null;
     } catch (e) {
       rethrow;
     }
   }
 
-  /// Executa a operação transacional de INSERT + UPDATE
   Future<Result<StartSeparationSuccess>> _executeTransactionalOperation(
     StartSeparationParams params,
     SeparateModel separation,
   ) async {
     try {
-      // INSERT: Criar e inserir novo carrinho percurso
       final newCartRoute = _createCartRoute(params);
       final createdCartRoutes = await _cartRouteRepository.insert(newCartRoute);
 
@@ -133,13 +106,10 @@ class StartSeparationUseCase {
         return failure(StartSeparationFailure.insertCartRouteFailed('Falha ao inserir carrinho percurso'));
       }
 
-      // UPDATE: Atualizar situação da separação para SEPARANDO
       final updatedSeparation = separation.copyWith(situacao: ExpeditionSituation.separando);
       final updatedSeparations = await _separateRepository.update(updatedSeparation);
 
       if (updatedSeparations.isEmpty) {
-        // ROLLBACK: Em caso de falha no UPDATE, idealmente deveríamos desfazer o INSERT
-        // Por limitação da arquitetura atual, apenas retornamos erro
         return failure(StartSeparationFailure.updateSeparateFailed('Falha ao atualizar situação da separação'));
       }
 
@@ -150,17 +120,16 @@ class StartSeparationUseCase {
         ),
       );
     } catch (e) {
-      rethrow; // Permitir que o catch externo trate a exceção
+      rethrow;
     }
   }
 
-  /// Cria um novo carrinho percurso
   ExpeditionCartRouteModel _createCartRoute(StartSeparationParams params) {
     final now = DateTime.now();
 
     return ExpeditionCartRouteModel(
       codEmpresa: params.codEmpresa,
-      codCarrinhoPercurso: 0, // Será gerado pelo banco
+      codCarrinhoPercurso: 0,
       origem: params.origem,
       codOrigem: params.codOrigem,
       situacao: ExpeditionCartSituation.emSeparacao,

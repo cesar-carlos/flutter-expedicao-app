@@ -1,4 +1,3 @@
-/// Parâmetros para cancelar um item específico da separação
 class CancelItemSeparationParams {
   final int codEmpresa;
   final int codSepararEstoque;
@@ -6,10 +5,8 @@ class CancelItemSeparationParams {
 
   const CancelItemSeparationParams({required this.codEmpresa, required this.codSepararEstoque, required this.item});
 
-  /// Valida se os parâmetros são válidos
   bool get isValid => validationErrors.isEmpty;
 
-  /// Retorna uma lista de erros de validação
   List<String> get validationErrors {
     final errors = <String>[];
 
@@ -30,7 +27,6 @@ class CancelItemSeparationParams {
     return errors;
   }
 
-  /// Retorna uma descrição dos parâmetros para logging
   String get description {
     return 'CancelItemSeparationParams('
         'codEmpresa: $codEmpresa, '

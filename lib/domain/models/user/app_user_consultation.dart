@@ -1,6 +1,5 @@
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 
-/// Modelo para dados detalhados do AppUser na consulta (com permissões)
 class AppUserConsultation {
   final int codLoginApp;
   final Situation ativo;
@@ -70,40 +69,28 @@ class AppUserConsultation {
     );
   }
 
-  /// Verifica se o usuário está ativo
   bool get isActive => ativo == Situation.ativo;
 
-  /// Verifica se o usuário tem código de usuário do sistema
   bool get hasSystemUser => codUsuario != null;
 
-  /// Verifica se pode separar fora de sequência
   bool get canSeparateOutOfSequence => permiteSepararForaSequencia == Situation.ativo;
 
-  /// Verifica se pode conferir fora de sequência
   bool get canCheckOutOfSequence => permiteConferirForaSequencia == Situation.ativo;
 
-  /// Verifica se visualiza todas as separações
   bool get canViewAllSeparations => visualizaTodasSeparacoes == Situation.ativo;
 
-  /// Verifica se visualiza todas as conferências
   bool get canViewAllConferences => visualizaTodasConferencias == Situation.ativo;
 
-  /// Verifica se visualiza todas as armazenagens
   bool get canViewAllStorage => visualizaTodasArmazenagem == Situation.ativo;
 
-  /// Verifica se pode salvar carrinho de outro usuário
   bool get canSaveOtherUserCart => salvaCarrinhoOutroUsuario == Situation.ativo;
 
-  /// Verifica se pode editar carrinho de outro usuário
   bool get canEditOtherUserCart => editaCarrinhoOutroUsuario == Situation.ativo;
 
-  /// Verifica se pode excluir carrinho de outro usuário
   bool get canDeleteOtherUserCart => excluiCarrinhoOutroUsuario == Situation.ativo;
 
-  /// Verifica se pode devolver item entrega balcão
   bool get canReturnCounterDeliveryItem => permiteDevolverItemEntregaBalcao == Situation.ativo;
 
-  /// Verifica se pode devolver item embalagem
   bool get canReturnPackagingItem => permiteDevolverItemEmbalagem == Situation.ativo;
 
   Map<String, dynamic> toJson() {

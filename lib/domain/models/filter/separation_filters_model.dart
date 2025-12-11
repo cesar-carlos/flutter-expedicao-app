@@ -5,7 +5,7 @@ class SeparationFiltersModel {
   final String? codSepararEstoque;
   final String? origem;
   final String? codOrigem;
-  final List<String>? situacoes; // Mudado de String? para List<String>?
+  final List<String>? situacoes;
   final DateTime? dataEmissao;
   final ExpeditionSectorStockModel? setorEstoque;
 
@@ -29,8 +29,6 @@ class SeparationFiltersModel {
     );
   }
 
-  /// Factory method para criação segura com validação de schema
-  /// Retorna um Result que pode ser sucesso ou falha
   static Result<SeparationFiltersModel> fromJsonSafe(Map<String, dynamic> json) {
     return safeCallSync(() => SeparationFiltersModel.fromJson(json));
   }
@@ -107,7 +105,6 @@ class SeparationFiltersModel {
     return Object.hash(codSepararEstoque, origem, codOrigem, situacoes, dataEmissao, setorEstoque);
   }
 
-  /// Compara duas listas para igualdade
   bool _listEquals(List<String>? a, List<String>? b) {
     if (a == null) return b == null;
     if (b == null || a.length != b.length) return false;

@@ -1,4 +1,3 @@
-/// Exceção personalizada para erros da API de usuário
 class UserApiException implements Exception {
   final String message;
   final int? statusCode;

@@ -1,7 +1,6 @@
 import 'package:data7_expedicao/domain/models/separation_item_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_model.dart';
 
-/// Resultado de sucesso da exclusão de item de separação
 class DeleteItemSeparationSuccess {
   final SeparationItemModel deletedSeparationItem;
   final SeparateItemModel? updatedSeparateItem;
@@ -13,7 +12,6 @@ class DeleteItemSeparationSuccess {
     required this.deletedQuantity,
   });
 
-  /// Factory para criar sucesso com item de separação excluído
   factory DeleteItemSeparationSuccess.create({
     required SeparationItemModel deletedSeparationItem,
     SeparateItemModel? updatedSeparateItem,
@@ -26,7 +24,6 @@ class DeleteItemSeparationSuccess {
     );
   }
 
-  /// Verifica se houve atualização no separate_item
   bool get hasUpdatedSeparateItem => updatedSeparateItem != null;
 
   @override

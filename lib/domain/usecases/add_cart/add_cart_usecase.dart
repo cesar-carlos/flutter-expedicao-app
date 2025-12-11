@@ -20,7 +20,6 @@ import 'package:data7_expedicao/domain/models/user/app_user.dart';
 import 'package:data7_expedicao/core/utils/app_helper.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// UseCase para adicionar um carrinho à separação
 class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
   late int codCarrinhoPercurso;
   final BasicRepository<ExpeditionCartModel> _cartRepository;
@@ -50,19 +49,16 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
   @override
   Future<Result<AddCartSuccess>> call(AddCartParams params) async {
     try {
-      // 1. Validar parâmetros
       if (!params.isValid) {
         final errors = params.validationErrors.join(', ');
         return failure(AddCartFailure.invalidParameters(errors));
       }
 
-      // 2. Verificar usuário autenticado e carregar UserSystemModel se necessário
       final user = await _loadAndEnsureUserSystemModel();
       if (user?.userSystemModel == null) {
         return failure(AddCartFailure.userNotAuthenticated());
       }
 
-      // 3. Buscar carrinho pelo código
       final cartsResult = await _findCartByCode(params.codCarrinho);
       final cart = cartsResult.fold((success) => success, (failure) => null);
       if (cart == null) {
@@ -72,7 +68,6 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
         );
       }
 
-      // 4. Validar situação do carrinho
       final situationResult = _validateCartSituation(cart);
       final isValidSituation = situationResult.fold((success) => true, (failure) => false);
       if (!isValidSituation) {
@@ -82,7 +77,6 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
         );
       }
 
-      // 5. Buscar percurso baseado na origem
       final routeResult = await _findRoute(params);
       final routeCode = routeResult.fold((success) => success, (failure) => null);
       if (routeCode == null) {
@@ -102,12 +96,10 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
         );
       }
 
-      // 6. Executar operações de banco de dados
       await _updateCartSituation(cart);
       final cartRouteInternshipModel = await _createCartRoute(params, cart, user!.userSystemModel!, internshipCode);
       await _cartRouteInternshipRepository.insert(cartRouteInternshipModel);
 
-      // 7. Retornar sucesso
       return success(
         AddCartSuccess(
           addedCart: cart,
@@ -120,7 +112,6 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     }
   }
 
-  /// Carrega o usuário atual e garante que tenha UserSystemModel
   Future<AppUser?> _loadAndEnsureUserSystemModel() async {
     try {
       var user = await _userSessionService.loadUserSession();
@@ -129,31 +120,23 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
         return null;
       }
 
-      // Se já tem UserSystemModel, retorna o usuário
       if (user.userSystemModel != null) {
         return user;
       }
 
-      // Se não tem codUsuario, não pode carregar UserSystemModel
       if (user.codUsuario == null) {
         return user;
       }
 
-      // Tentar carregar UserSystemModel do servidor
       try {
         final userSystemModel = await _userSystemRepository.getUserById(user.codUsuario!);
 
         if (userSystemModel != null) {
-          // Atualizar o usuário com o UserSystemModel
           user = user.copyWith(userSystemModel: userSystemModel);
 
-          // Salvar a sessão atualizada
           await _userSessionService.saveUserSession(user);
         }
-      } catch (e) {
-        // Se falhar ao carregar UserSystemModel, continua com o usuário sem ele
-        // Isso não deve impedir o funcionamento do app
-      }
+      } catch (e) {}
 
       return user;
     } catch (e) {
@@ -161,7 +144,6 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     }
   }
 
-  /// Busca carrinho pelo código
   Future<Result<ExpeditionCartConsultationModel>> _findCartByCode(int codCarrinho) async {
     try {
       final carts = await _cartConsultationRepository.selectConsultation(
@@ -178,7 +160,6 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     }
   }
 
-  /// Valida se o carrinho pode ser adicionado
   Result<bool> _validateCartSituation(ExpeditionCartConsultationModel cart) {
     if (cart.situacao != ExpeditionCartSituation.liberado) {
       return failure(AddCartFailure.invalidSituation(cart.situacaoDescription));
@@ -186,7 +167,6 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     return success(true);
   }
 
-  /// Busca o percurso baseado na origem
   Future<Result<int>> _findRoute(AddCartParams params) async {
     try {
       if (params.origem.code == ExpeditionOrigem.separacaoEstoque.code) {
@@ -238,7 +218,6 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     await _cartRepository.update(cartModel);
   }
 
-  /// Busca o percurso baseado na origem
   Future<Result<int>> _findInternship(ExpeditionOrigem origem) async {
     try {
       final internshipModels = await _expeditionInternshipRepository.select(
@@ -255,7 +234,6 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     }
   }
 
-  /// Cria o vínculo do carrinho com a separação
   Future<ExpeditionCartRouteInternshipModel> _createCartRoute(
     AddCartParams params,
     ExpeditionCartConsultationModel cart,
@@ -266,7 +244,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
 
     return ExpeditionCartRouteInternshipModel(
       codEmpresa: params.codEmpresa,
-      codCarrinhoPercurso: codCarrinhoPercurso, // Será gerado pelo backend
+      codCarrinhoPercurso: codCarrinhoPercurso,
       item: '00000',
       origem: params.origem,
       codOrigem: params.codOrigem,

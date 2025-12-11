@@ -1,6 +1,5 @@
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Tipos de falha ao cancelar um carrinho
 enum CancelCartFailureType {
   invalidParams('Parâmetros inválidos'),
   cartNotFound('Carrinho não encontrado'),
@@ -15,14 +14,12 @@ enum CancelCartFailureType {
   final String description;
 }
 
-/// Falha específica ao cancelar um carrinho
 class CancelCartFailure extends AppFailure {
   final CancelCartFailureType type;
   final String? details;
 
   const CancelCartFailure({required this.type, required super.message, this.details, super.code, super.exception});
 
-  /// Cria uma falha de parâmetros inválidos
   factory CancelCartFailure.invalidParams(String details) {
     return CancelCartFailure(
       type: CancelCartFailureType.invalidParams,
@@ -32,7 +29,6 @@ class CancelCartFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de carrinho não encontrado
   factory CancelCartFailure.cartNotFound() {
     return CancelCartFailure(
       type: CancelCartFailureType.cartNotFound,
@@ -41,7 +37,6 @@ class CancelCartFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de status inválido
   factory CancelCartFailure.cartNotInSeparatingStatus(String currentStatus) {
     return CancelCartFailure(
       type: CancelCartFailureType.cartNotInSeparatingStatus,
@@ -51,7 +46,6 @@ class CancelCartFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de usuário não encontrado
   factory CancelCartFailure.userNotFound() {
     return CancelCartFailure(
       type: CancelCartFailureType.userNotFound,
@@ -60,7 +54,6 @@ class CancelCartFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de cancelamento
   factory CancelCartFailure.cancellationFailed(String details, [Exception? originalException]) {
     return CancelCartFailure(
       type: CancelCartFailureType.cancellationFailed,
@@ -71,7 +64,6 @@ class CancelCartFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de atualização
   factory CancelCartFailure.updateFailed(String details, [Exception? originalException]) {
     return CancelCartFailure(
       type: CancelCartFailureType.updateFailed,
@@ -82,7 +74,6 @@ class CancelCartFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de rede
   factory CancelCartFailure.networkError(String details, [Exception? originalException]) {
     return CancelCartFailure(
       type: CancelCartFailureType.networkError,
@@ -93,7 +84,6 @@ class CancelCartFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha desconhecida
   factory CancelCartFailure.unknown(String details, [Exception? originalException]) {
     return CancelCartFailure(
       type: CancelCartFailureType.unknownError,
@@ -104,13 +94,10 @@ class CancelCartFailure extends AppFailure {
     );
   }
 
-  /// Verifica se é um erro de rede
   bool get isNetworkError => type == CancelCartFailureType.networkError;
 
-  /// Verifica se é um erro de validação
   bool get isValidationError => type == CancelCartFailureType.invalidParams;
 
-  /// Verifica se é um erro de negócio
   bool get isBusinessError => [
     CancelCartFailureType.cartNotFound,
     CancelCartFailureType.cartNotInSeparatingStatus,

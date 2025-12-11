@@ -1,13 +1,11 @@
 import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
 
-/// Resultado de sucesso ao salvar separação
 class SaveSeparationSuccess {
   final ExpeditionCartRouteModel updatedCartRoute;
   final String message;
 
   const SaveSeparationSuccess({required this.updatedCartRoute, required this.message});
 
-  /// Factory method para criar sucesso
   static SaveSeparationSuccess create({required ExpeditionCartRouteModel updatedCartRoute, String? message}) {
     return SaveSeparationSuccess(updatedCartRoute: updatedCartRoute, message: message ?? 'Separação salva com sucesso');
   }

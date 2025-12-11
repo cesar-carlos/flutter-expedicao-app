@@ -1,6 +1,5 @@
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Tipos de falha ao adicionar itens na separação
 enum AddItemSeparationFailureType {
   invalidParams('Parâmetros inválidos'),
   userNotFound('Usuário não encontrado'),
@@ -15,7 +14,6 @@ enum AddItemSeparationFailureType {
   final String description;
 }
 
-/// Falha específica ao adicionar itens na separação
 class AddItemSeparationFailure extends AppFailure {
   final AddItemSeparationFailureType type;
   final String? details;
@@ -28,7 +26,6 @@ class AddItemSeparationFailure extends AppFailure {
     super.exception,
   });
 
-  /// Cria uma falha de parâmetros inválidos
   factory AddItemSeparationFailure.invalidParams(String details) {
     return AddItemSeparationFailure(
       type: AddItemSeparationFailureType.invalidParams,
@@ -38,7 +35,6 @@ class AddItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de usuário não encontrado
   factory AddItemSeparationFailure.userNotFound() {
     return AddItemSeparationFailure(
       type: AddItemSeparationFailureType.userNotFound,
@@ -47,7 +43,6 @@ class AddItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de item de separação não encontrado
   factory AddItemSeparationFailure.separateItemNotFound(int codProduto) {
     return AddItemSeparationFailure(
       type: AddItemSeparationFailureType.separateItemNotFound,
@@ -57,7 +52,6 @@ class AddItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de quantidade insuficiente
   factory AddItemSeparationFailure.insufficientQuantity({
     required double requested,
     required double available,
@@ -72,7 +66,6 @@ class AddItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de inserção do separation_item
   factory AddItemSeparationFailure.insertSeparationItemFailed(String details, [Exception? originalException]) {
     return AddItemSeparationFailure(
       type: AddItemSeparationFailureType.insertSeparationItemFailed,
@@ -83,7 +76,6 @@ class AddItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de atualização do separate_item
   factory AddItemSeparationFailure.updateSeparateItemFailed(String details, [Exception? originalException]) {
     return AddItemSeparationFailure(
       type: AddItemSeparationFailureType.updateSeparateItemFailed,
@@ -94,7 +86,6 @@ class AddItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de rede
   factory AddItemSeparationFailure.networkError(String details, [Exception? originalException]) {
     return AddItemSeparationFailure(
       type: AddItemSeparationFailureType.networkError,
@@ -105,7 +96,6 @@ class AddItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha desconhecida
   factory AddItemSeparationFailure.unknown(String details, [Exception? originalException]) {
     return AddItemSeparationFailure(
       type: AddItemSeparationFailureType.unknownError,
@@ -116,20 +106,16 @@ class AddItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Verifica se é um erro de rede
   bool get isNetworkError => type == AddItemSeparationFailureType.networkError;
 
-  /// Verifica se é um erro de validação
   bool get isValidationError => type == AddItemSeparationFailureType.invalidParams;
 
-  /// Verifica se é um erro de negócio
   bool get isBusinessError => [
     AddItemSeparationFailureType.separateItemNotFound,
     AddItemSeparationFailureType.insufficientQuantity,
     AddItemSeparationFailureType.userNotFound,
   ].contains(type);
 
-  /// Verifica se é um erro de operação
   bool get isOperationError => [
     AddItemSeparationFailureType.insertSeparationItemFailed,
     AddItemSeparationFailureType.updateSeparateItemFailed,

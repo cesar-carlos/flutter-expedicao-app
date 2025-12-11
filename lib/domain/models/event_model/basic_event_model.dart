@@ -1,6 +1,5 @@
 import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
 
-/// Modelo básico para eventos de repositório
 class BasicEventModel {
   final String? session;
   final Map<String, dynamic>? data;
@@ -18,17 +17,14 @@ class BasicEventModel {
     );
   }
 
-  /// Cria um evento vazio com tipo padrão
   factory BasicEventModel.empty({Event eventType = Event.insert}) {
     return BasicEventModel(session: null, data: null, timestamp: DateTime.now(), eventType: eventType);
   }
 
-  /// Cria um evento específico
   factory BasicEventModel.create({String? session, Map<String, dynamic>? data, Event eventType = Event.insert}) {
     return BasicEventModel(session: session, data: data, timestamp: DateTime.now(), eventType: eventType);
   }
 
-  /// Converte o tipo de evento de string para enum
   static Event _parseEventType(dynamic eventType) {
     if (eventType == null) return Event.insert;
 
@@ -47,7 +43,7 @@ class BasicEventModel {
       case 'deleted':
         return Event.delete;
       default:
-        return Event.insert; // Fallback
+        return Event.insert;
     }
   }
 

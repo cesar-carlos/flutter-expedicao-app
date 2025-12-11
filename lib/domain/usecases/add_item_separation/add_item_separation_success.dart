@@ -1,7 +1,6 @@
 import 'package:data7_expedicao/domain/models/separate_item_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_model.dart';
 
-/// Resultado de sucesso ao adicionar itens na separação
 class AddItemSeparationSuccess {
   final SeparationItemModel createdSeparationItem;
   final SeparateItemModel updatedSeparateItem;
@@ -13,7 +12,6 @@ class AddItemSeparationSuccess {
     required this.addedQuantity,
   });
 
-  /// Cria um resultado de sucesso
   factory AddItemSeparationSuccess.create({
     required SeparationItemModel createdSeparationItem,
     required SeparateItemModel updatedSeparateItem,
@@ -26,61 +24,46 @@ class AddItemSeparationSuccess {
     );
   }
 
-  /// Retorna uma mensagem de sucesso
   String get message => 'Item adicionado à separação com sucesso';
 
-  /// Retorna o código do produto adicionado
   int get codProduto => createdSeparationItem.codProduto;
 
-  /// Retorna a descrição da situação do item criado
   String get situacaoDescription => createdSeparationItem.situacaoDescription;
 
-  /// Retorna o código da situação do item criado
   String get situacaoCode => createdSeparationItem.situacaoCode;
 
-  /// Retorna a nova quantidade de separação total
   double get newTotalSeparationQuantity => updatedSeparateItem.quantidadeSeparacao;
 
-  /// Retorna a quantidade disponível restante
   double get remainingAvailableQuantity {
     return updatedSeparateItem.quantidade - updatedSeparateItem.quantidadeSeparacao;
   }
 
-  /// Retorna informações sobre o item criado
   String get createdItemInfo {
     return 'Item ${createdSeparationItem.item} - ${createdSeparationItem.quantidade.toStringAsFixed(4)} ${createdSeparationItem.codUnidadeMedida}';
   }
 
-  /// Retorna informações sobre a atualização
   String get updateInfo {
     return 'Quantidade de separação atualizada: ${updatedSeparateItem.quantidadeSeparacao.toStringAsFixed(4)}';
   }
 
-  /// Verifica se há quantidade ainda disponível para separação
   bool get hasRemainingQuantity => remainingAvailableQuantity > 0;
 
-  /// Retorna o percentual de separação realizado
   double get separationPercentage {
     if (updatedSeparateItem.quantidade == 0) return 0.0;
     return (updatedSeparateItem.quantidadeSeparacao / updatedSeparateItem.quantidade) * 100;
   }
 
-  /// Verifica se o item foi completamente separado
   bool get isFullySeparated => remainingAvailableQuantity <= 0;
 
-  /// Retorna o nome do separador que realizou a operação
   String get separatorName => createdSeparationItem.nomeSeparador;
 
-  /// Retorna a data da separação
   DateTime get separationDate => createdSeparationItem.dataSeparacao;
 
-  /// Retorna um resumo da operação
   String get operationSummary {
     return 'Produto $codProduto: +${addedQuantity.toStringAsFixed(4)} '
         '(Total: ${newTotalSeparationQuantity.toStringAsFixed(4)}/${updatedSeparateItem.quantidade.toStringAsFixed(4)})';
   }
 
-  /// Retorna informações detalhadas para auditoria
   Map<String, dynamic> get auditInfo {
     return {
       'operation': 'ADD_ITEM_SEPARATION',
@@ -98,7 +81,6 @@ class AddItemSeparationSuccess {
     };
   }
 
-  /// Retorna alertas baseados no estado da separação
   List<String> get warnings {
     final warnings = <String>[];
 

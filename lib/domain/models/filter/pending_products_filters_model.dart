@@ -35,8 +35,6 @@ class PendingProductsFiltersModel {
     );
   }
 
-  /// Factory method para criação segura com validação de schema
-  /// Retorna um Result que pode ser sucesso ou falha
   static Result<PendingProductsFiltersModel> fromJsonSafe(Map<String, dynamic> json) {
     return safeCallSync(() => PendingProductsFiltersModel.fromJson(json));
   }

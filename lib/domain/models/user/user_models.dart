@@ -1,4 +1,3 @@
-// Barrel file para exportar todos os models de usuário
 export 'app_user.dart';
 export 'api_error_response.dart';
 export 'app_user_consultation.dart';

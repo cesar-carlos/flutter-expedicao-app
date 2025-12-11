@@ -1,6 +1,5 @@
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Tipos de falha ao cancelar um item específico da separação
 enum CancelItemSeparationFailureType {
   invalidParams('Parâmetros inválidos'),
   userNotFound('Usuário não encontrado'),
@@ -18,7 +17,6 @@ enum CancelItemSeparationFailureType {
   final String description;
 }
 
-/// Falha específica ao cancelar um item da separação
 class CancelItemSeparationFailure extends AppFailure {
   final CancelItemSeparationFailureType type;
   final String? details;
@@ -31,7 +29,6 @@ class CancelItemSeparationFailure extends AppFailure {
     super.exception,
   });
 
-  /// Cria uma falha de parâmetros inválidos
   factory CancelItemSeparationFailure.invalidParams(String details) {
     return CancelItemSeparationFailure(
       type: CancelItemSeparationFailureType.invalidParams,
@@ -41,7 +38,6 @@ class CancelItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de usuário não encontrado
   factory CancelItemSeparationFailure.userNotFound() {
     return CancelItemSeparationFailure(
       type: CancelItemSeparationFailureType.userNotFound,
@@ -50,7 +46,6 @@ class CancelItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de item de separação não encontrado
   factory CancelItemSeparationFailure.separationItemNotFound() {
     return CancelItemSeparationFailure(
       type: CancelItemSeparationFailureType.separationItemNotFound,
@@ -59,7 +54,6 @@ class CancelItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de item base não encontrado
   factory CancelItemSeparationFailure.separateItemNotFound(int codProduto) {
     return CancelItemSeparationFailure(
       type: CancelItemSeparationFailureType.separateItemNotFound,
@@ -69,7 +63,6 @@ class CancelItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de item já cancelado
   factory CancelItemSeparationFailure.itemAlreadyCancelled() {
     return CancelItemSeparationFailure(
       type: CancelItemSeparationFailureType.itemAlreadyCancelled,
@@ -78,7 +71,6 @@ class CancelItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de separação não encontrada
   factory CancelItemSeparationFailure.separateNotFound() {
     return CancelItemSeparationFailure(
       type: CancelItemSeparationFailureType.separateNotFound,
@@ -87,7 +79,6 @@ class CancelItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de separação não está em situação de separando
   factory CancelItemSeparationFailure.separateNotInSeparatingState() {
     return CancelItemSeparationFailure(
       type: CancelItemSeparationFailureType.separateNotInSeparatingState,
@@ -96,7 +87,6 @@ class CancelItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de atualização do separate_item
   factory CancelItemSeparationFailure.updateSeparateItemFailed(String details, [Exception? originalException]) {
     return CancelItemSeparationFailure(
       type: CancelItemSeparationFailureType.updateSeparateItemFailed,
@@ -107,7 +97,6 @@ class CancelItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de atualização do separation_item
   factory CancelItemSeparationFailure.updateSeparationItemFailed(String details, [Exception? originalException]) {
     return CancelItemSeparationFailure(
       type: CancelItemSeparationFailureType.updateSeparationItemFailed,
@@ -118,7 +107,6 @@ class CancelItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha de rede
   factory CancelItemSeparationFailure.networkError(String details, [Exception? originalException]) {
     return CancelItemSeparationFailure(
       type: CancelItemSeparationFailureType.networkError,
@@ -129,7 +117,6 @@ class CancelItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Cria uma falha desconhecida
   factory CancelItemSeparationFailure.unknown(String details, [Exception? originalException]) {
     return CancelItemSeparationFailure(
       type: CancelItemSeparationFailureType.unknownError,
@@ -140,13 +127,10 @@ class CancelItemSeparationFailure extends AppFailure {
     );
   }
 
-  /// Verifica se é um erro de rede
   bool get isNetworkError => type == CancelItemSeparationFailureType.networkError;
 
-  /// Verifica se é um erro de validação
   bool get isValidationError => type == CancelItemSeparationFailureType.invalidParams;
 
-  /// Verifica se é um erro de negócio
   bool get isBusinessError => [
     CancelItemSeparationFailureType.separationItemNotFound,
     CancelItemSeparationFailureType.separateItemNotFound,
@@ -156,7 +140,6 @@ class CancelItemSeparationFailure extends AppFailure {
     CancelItemSeparationFailureType.userNotFound,
   ].contains(type);
 
-  /// Verifica se é um erro de operação
   bool get isOperationError => [
     CancelItemSeparationFailureType.updateSeparateItemFailed,
     CancelItemSeparationFailureType.updateSeparationItemFailed,

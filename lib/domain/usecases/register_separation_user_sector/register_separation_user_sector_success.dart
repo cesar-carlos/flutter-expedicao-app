@@ -1,11 +1,9 @@
-/// Resposta de sucesso para registro de atribuição usuário/setor
 class RegisterSeparationUserSectorSuccess {
   final String message;
   final String deviceIdentifier;
 
   const RegisterSeparationUserSectorSuccess({required this.message, required this.deviceIdentifier});
 
-  /// Factory para sucesso com mensagem padrão
   factory RegisterSeparationUserSectorSuccess.registered({
     required int codUsuario,
     required String nomeUsuario,

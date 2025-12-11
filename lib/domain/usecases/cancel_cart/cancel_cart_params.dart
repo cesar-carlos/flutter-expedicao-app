@@ -1,4 +1,3 @@
-/// Parâmetros para cancelar um carrinho
 class CancelCartParams {
   final int codEmpresa;
   final int codCarrinhoPercurso;
@@ -6,12 +5,10 @@ class CancelCartParams {
 
   const CancelCartParams({required this.codEmpresa, required this.codCarrinhoPercurso, required this.item});
 
-  /// Valida se os parâmetros são válidos
   bool get isValid {
     return codEmpresa > 0 && codCarrinhoPercurso > 0 && item.isNotEmpty;
   }
 
-  /// Retorna uma lista de erros de validação
   List<String> get validationErrors {
     final errors = <String>[];
 
@@ -21,7 +18,6 @@ class CancelCartParams {
     return errors;
   }
 
-  /// Retorna uma descrição dos parâmetros para logging
   String get description {
     return 'CancelCartParams('
         'codEmpresa: $codEmpresa, '

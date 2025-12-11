@@ -35,8 +35,6 @@ class SeparateItemsFiltersModel {
     );
   }
 
-  /// Factory method para criação segura com validação de schema
-  /// Retorna um Result que pode ser sucesso ou falha
   static Result<SeparateItemsFiltersModel> fromJsonSafe(Map<String, dynamic> json) {
     return safeCallSync(() => SeparateItemsFiltersModel.fromJson(json));
   }

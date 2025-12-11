@@ -1,4 +1,3 @@
-/// Parâmetros para cancelar itens de separação
 class CancelCardItemSeparationParams {
   final int codEmpresa;
   final int codSepararEstoque;
@@ -12,12 +11,10 @@ class CancelCardItemSeparationParams {
     required this.itemCarrinhoPercurso,
   });
 
-  /// Valida se os parâmetros são válidos
   bool get isValid {
     return codEmpresa > 0 && codSepararEstoque > 0 && codCarrinhoPercurso > 0 && itemCarrinhoPercurso.isNotEmpty;
   }
 
-  /// Retorna uma lista de erros de validação
   List<String> get validationErrors {
     final errors = <String>[];
 
@@ -40,7 +37,6 @@ class CancelCardItemSeparationParams {
     return errors;
   }
 
-  /// Retorna uma descrição dos parâmetros para logging
   String get description {
     return 'CancelCardItemSeparationParams('
         'codEmpresa: $codEmpresa, '

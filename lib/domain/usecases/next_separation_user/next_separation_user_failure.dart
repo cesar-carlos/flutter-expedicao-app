@@ -1,6 +1,5 @@
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Tipos de falha ao buscar a próxima separação para o usuário
 enum NextSeparationUserFailureType {
   userWithoutSector('Usuário sem setor estoque'),
   invalidParams('Parâmetros inválidos'),
@@ -11,7 +10,6 @@ enum NextSeparationUserFailureType {
   final String description;
 }
 
-/// Falha ao buscar a próxima separação para o usuário
 class NextSeparationUserFailure extends AppFailure {
   final NextSeparationUserFailureType type;
   final String? details;
@@ -24,7 +22,6 @@ class NextSeparationUserFailure extends AppFailure {
     super.exception,
   });
 
-  /// Falha quando o usuário não possui setor estoque configurado
   factory NextSeparationUserFailure.userWithoutSector() {
     return const NextSeparationUserFailure(
       type: NextSeparationUserFailureType.userWithoutSector,
@@ -33,7 +30,6 @@ class NextSeparationUserFailure extends AppFailure {
     );
   }
 
-  /// Falha por parâmetros inválidos
   factory NextSeparationUserFailure.invalidParams(String details) {
     return NextSeparationUserFailure(
       type: NextSeparationUserFailureType.invalidParams,
@@ -43,7 +39,6 @@ class NextSeparationUserFailure extends AppFailure {
     );
   }
 
-  /// Falha por erro de rede/comunicação
   factory NextSeparationUserFailure.networkError(String details, Exception? exception) {
     return NextSeparationUserFailure(
       type: NextSeparationUserFailureType.networkError,
@@ -54,7 +49,6 @@ class NextSeparationUserFailure extends AppFailure {
     );
   }
 
-  /// Falha desconhecida
   factory NextSeparationUserFailure.unknown(String details, Exception? exception) {
     return NextSeparationUserFailure(
       type: NextSeparationUserFailureType.unknownError,
@@ -65,11 +59,9 @@ class NextSeparationUserFailure extends AppFailure {
     );
   }
 
-  /// Verifica se é um erro de validação
   bool get isValidationError =>
       type == NextSeparationUserFailureType.invalidParams || type == NextSeparationUserFailureType.userWithoutSector;
 
-  /// Verifica se é um erro de rede
   bool get isNetworkError => type == NextSeparationUserFailureType.networkError;
 
   @override

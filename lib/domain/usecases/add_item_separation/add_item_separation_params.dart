@@ -1,6 +1,5 @@
 import 'package:data7_expedicao/core/validation/common/socket_validation_helper.dart';
 
-/// Parâmetros para adicionar itens na separação
 class AddItemSeparationParams {
   final int codEmpresa;
   final int codSepararEstoque;
@@ -26,10 +25,8 @@ class AddItemSeparationParams {
     required this.quantidade,
   });
 
-  /// Valida se os parâmetros são válidos
   bool get isValid => validationErrors.isEmpty;
 
-  /// Retorna uma lista de erros de validação
   List<String> get validationErrors {
     final errors = <String>[];
 
@@ -41,11 +38,9 @@ class AddItemSeparationParams {
       errors.add('Código de separar estoque deve ser maior que zero');
     }
 
-    // Validação robusta do sessionId
     if (sessionId.isEmpty) {
       errors.add('Session ID não pode estar vazio');
     } else {
-      // Validação de formato do sessionId do Socket.IO
       if (!SocketValidationHelper.isValidSocketSessionId(sessionId)) {
         errors.add('Session ID não possui formato válido do Socket.IO');
       }
@@ -85,12 +80,10 @@ class AddItemSeparationParams {
       errors.add('Quantidade deve ser maior que zero');
     }
 
-    // Validações de regras de negócio específicas
     if (quantidade > 9999.9999) {
       errors.add('Quantidade não pode exceder 9999.9999');
     }
 
-    // Validação de precisão (máximo 4 casas decimais)
     final quantidadeStr = quantidade.toStringAsFixed(4);
     final quantidadeParsed = double.parse(quantidadeStr);
     if ((quantidade - quantidadeParsed).abs() > 0.0001) {
@@ -100,7 +93,6 @@ class AddItemSeparationParams {
     return errors;
   }
 
-  /// Retorna uma descrição dos parâmetros para logging
   String get description {
     return 'AddItemSeparationParams('
         'codEmpresa: $codEmpresa, '

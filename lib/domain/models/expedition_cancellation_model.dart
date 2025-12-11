@@ -64,7 +64,7 @@ class ExpeditionCancellationModel {
         origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
         codOrigem: json['CodOrigem'],
         itemOrigem: json['ItemOrigem'],
-        codMotivoCancelamento: json['CodMotivoCancelamento'], // Agora volta pelo schema
+        codMotivoCancelamento: json['CodMotivoCancelamento'],
         dataCancelamento: DateTime.parse(json['DataCancelamento']),
         horaCancelamento: json['HoraCancelamento'],
         codUsuarioCancelamento: json['CodUsuarioCancelamento'],
@@ -76,8 +76,6 @@ class ExpeditionCancellationModel {
     }
   }
 
-  /// Factory method para criação segura com validação de schema
-  /// Retorna um Result que pode ser sucesso ou falha
   static Result<ExpeditionCancellationModel> fromJsonSafe(Map<String, dynamic> json) {
     return safeCallSync(() => ExpeditionCancellationModel.fromJson(json));
   }
@@ -109,10 +107,8 @@ class ExpeditionCancellationModel {
   @override
   int get hashCode => codEmpresa.hashCode ^ codCancelamento.hashCode;
 
-  /// Retorna o código da origem
   String get origemCode => origem.code;
 
-  /// Retorna a descrição da origem
   String get origemDescription => origem.description;
 
   @override

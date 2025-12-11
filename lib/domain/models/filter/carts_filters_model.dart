@@ -129,7 +129,6 @@ class CartsFiltersModel {
     );
   }
 
-  /// Helper method to compare lists
   bool _listEquals<T>(List<T>? a, List<T>? b) {
     if (a == null) return b == null;
     if (b == null || a.length != b.length) return false;
