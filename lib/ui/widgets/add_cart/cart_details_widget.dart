@@ -42,7 +42,6 @@ class CartDetailsWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header com ícone e status
             Row(
               children: [
                 Container(
@@ -89,7 +88,6 @@ class CartDetailsWidget extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Informações do carrinho
             _buildInfoSection(context, 'Informações Básicas', [
               _buildInfoRow(context, 'Código', '${cart.codCarrinho}', Icons.tag),
               _buildInfoRow(context, 'Descrição', cart.descricaoCarrinho, Icons.description),
@@ -98,7 +96,6 @@ class CartDetailsWidget extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Status e origem
             _buildInfoSection(context, 'Status e Origem', [
               _buildInfoRow(context, 'Situação', cart.situacaoDescription, Icons.info),
               _buildInfoRow(context, 'Ativo', cart.ativoDescription, Icons.check_circle),
@@ -106,7 +103,6 @@ class CartDetailsWidget extends StatelessWidget {
               if (cart.codOrigem != null) _buildInfoRow(context, 'Cód. Origem', '${cart.codOrigem}', Icons.numbers),
             ]),
 
-            // Informações de percurso (se disponível)
             if (cart.codCarrinhoPercurso != null || cart.descricaoPercursoEstagio != null) ...[
               const SizedBox(height: 12),
               _buildInfoSection(context, 'Percurso', [
@@ -119,7 +115,6 @@ class CartDetailsWidget extends StatelessWidget {
               ]),
             ],
 
-            // Informações de usuário (se disponível)
             if (cart.nomeUsuarioInicio != null || cart.nomeSetorEstoque != null) ...[
               const SizedBox(height: 12),
               _buildInfoSection(context, 'Informações Adicionais', [

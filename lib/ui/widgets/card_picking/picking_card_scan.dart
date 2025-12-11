@@ -113,8 +113,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _loadScannerPreferences();
-        // Dispara o prime manual->scanner após a tela estar montada,
-        // evitando rodar antes dos componentes carregarem.
+
         Future.delayed(const Duration(milliseconds: 150), () {
           if (mounted) {
             _ensureScannerModeActivated();
@@ -201,9 +200,13 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     });
   }
 
-  void _stopBroadcastListener() {
-    _broadcastSubscription?.cancel();
-    _broadcastSubscription = null;
+  Future<void> _stopBroadcastListener() async {
+    try {
+      await _broadcastSubscription?.cancel();
+    } catch (_) {
+    } finally {
+      _broadcastSubscription = null;
+    }
   }
 
   void _ensureScannerModeActivated() {
@@ -214,8 +217,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       _startBroadcastListener();
       return;
     }
-    // Forçamos um ciclo manual -> scanner para inicializar corretamente o canal de input
-    // em devices que só respondem após o teclado virtual ser carregado ao menos uma vez.
+
     _scanState.setKeyboardEnabled(true);
     _keyboardController.enableKeyboardMode();
     Future.delayed(const Duration(milliseconds: 150), () {
@@ -231,6 +233,30 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   void _invalidateCartStatusCache() {
     _statusCache.invalidateCache();
+  }
+
+  Future<void> _pauseScannerForShelf() async {
+    if (_isBroadcastMode) {
+      await _stopBroadcastListener();
+    }
+  }
+
+  void _reactivateScanner() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      _loadScannerPreferences();
+      _scannerModeInitialized = false;
+      _ensureScannerModeActivated();
+
+      _scanState.setKeyboardEnabled(false);
+      _scanState.setEnabled(true);
+      _keyboardController.enableScannerMode();
+
+      _scanState.stopProcessing();
+      _scanController.clear();
+      _scanFocusNode.requestFocus();
+    });
   }
 
   @override
@@ -378,7 +404,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     );
 
     if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
-      _flowController.showShelfScanDialog(context, nextItem, _scanFocusNode);
+      await _pauseScannerForShelf();
+      _flowController.showShelfScanDialog(context, nextItem, _scanFocusNode, onShelfScanCompleted: _reactivateScanner);
       return;
     }
 
@@ -447,7 +474,15 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted) {
-          _flowController.showShelfScanDialog(context, nextItem, _scanFocusNode);
+          _pauseScannerForShelf().then((_) {
+            if (!mounted) return;
+            _flowController.showShelfScanDialog(
+              context,
+              nextItem,
+              _scanFocusNode,
+              onShelfScanCompleted: _reactivateScanner,
+            );
+          });
         }
       });
     }
@@ -465,7 +500,15 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
       Future.delayed(const Duration(milliseconds: 50), () {
         if (mounted) {
-          _flowController.showShelfScanDialog(context, nextItem, _scanFocusNode);
+          _pauseScannerForShelf().then((_) {
+            if (!mounted) return;
+            _flowController.showShelfScanDialog(
+              context,
+              nextItem,
+              _scanFocusNode,
+              onShelfScanCompleted: _reactivateScanner,
+            );
+          });
         }
       });
     }
@@ -481,6 +524,5 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   Future<void> _checkAndShowSaveCartModal() => _flowController.checkAndShowSaveCartModal();
-
   Future<void> _finishPicking() => _flowController.finishPicking();
 }

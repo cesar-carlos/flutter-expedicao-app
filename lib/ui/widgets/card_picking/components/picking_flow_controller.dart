@@ -20,7 +20,12 @@ class PickingFlowController {
     required this.keyboardController,
   });
 
-  void showShelfScanDialog(BuildContext context, SeparateItemConsultationModel nextItem, FocusNode scanFocusNode) {
+  void showShelfScanDialog(
+    BuildContext context,
+    SeparateItemConsultationModel nextItem,
+    FocusNode scanFocusNode, {
+    VoidCallback? onShelfScanCompleted,
+  }) {
     dialogManager.showShelfScanDialog(
       expectedAddress: nextItem.endereco!,
       expectedAddressDescription: nextItem.enderecoDescricao ?? 'Endereço não definido',
@@ -28,14 +33,16 @@ class PickingFlowController {
         viewModel.updateScannedAddress(scannedAddress);
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          scanFocusNode.requestFocus();
+          keyboardController.enableScannerMode();
         });
 
         audioService.playShelfScanSuccess();
+        onShelfScanCompleted?.call();
       },
       onBack: () {
         Navigator.of(context).pop();
         Navigator.of(context).pop();
+        onShelfScanCompleted?.call();
       },
     );
   }

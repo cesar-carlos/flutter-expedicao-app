@@ -23,11 +23,7 @@ class ScanUiController {
     required this.onAddItem,
   });
 
-  Future<void> handleScanResult(
-    String barcode,
-    ScanProcessResult scanResult,
-    int inputQuantity,
-  ) async {
+  Future<void> handleScanResult(String barcode, ScanProcessResult scanResult, int inputQuantity) async {
     switch (scanResult.status) {
       case ScanProcessStatus.cartNotInSeparation:
         audioService.playError();
@@ -50,12 +46,7 @@ class ScanUiController {
           final scannedItem = scanResult.scannedItem!;
           final sectorName = scannedItem.nomeSetorEstoque ?? 'Setor ${scannedItem.codSetorEstoque}';
           final sectorCode = scanResult.userSectorCode ?? scannedItem.codSetorEstoque ?? 0;
-          dialogManager.showWrongSectorDialog(
-            barcode,
-            scannedItem.nomeProduto,
-            sectorName,
-            sectorCode,
-          );
+          dialogManager.showWrongSectorDialog(barcode, scannedItem.nomeProduto, sectorName, sectorCode);
         }
         return;
       case ScanProcessStatus.wrongProduct:
@@ -85,4 +76,3 @@ class ScanUiController {
     }
   }
 }
-

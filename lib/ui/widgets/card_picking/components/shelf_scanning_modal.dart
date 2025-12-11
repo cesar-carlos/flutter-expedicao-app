@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:async';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
+import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
+import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
 import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
+import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 
 class ShelfScanningModal extends StatefulWidget {
   final String expectedAddress;
@@ -29,9 +33,23 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   late final FocusNode _focusNode;
   late final ShelfScanningService _shelfScanningService;
   late final AudioService _audioService;
+  late final BarcodeScannerService _scannerService;
+  late final BarcodeBroadcastService _broadcastService;
+  late final ConfigViewModel _configViewModel;
+
+  StreamSubscription<String>? _broadcastSub;
+  ScannerInputMode _scannerMode = ScannerInputMode.focus;
+  String _broadcastAction = '';
+  String _broadcastExtraKey = '';
+  bool _manualOverrideBroadcast = false;
   bool _isManualMode = false;
   bool _isClosingFromSuccess = false;
   Timer? _validationTimer;
+
+  bool get _isBroadcastConfigured =>
+      _scannerMode == ScannerInputMode.broadcast && _broadcastAction.isNotEmpty && _broadcastExtraKey.isNotEmpty;
+
+  bool get _isBroadcastActive => _isBroadcastConfigured && !_manualOverrideBroadcast;
 
   @override
   void initState() {
@@ -40,12 +58,22 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
     _focusNode = FocusNode();
     _shelfScanningService = locator<ShelfScanningService>();
     _audioService = locator<AudioService>();
+    _scannerService = locator<BarcodeScannerService>();
+    _broadcastService = locator<BarcodeBroadcastService>();
+    _configViewModel = locator<ConfigViewModel>();
 
     _scanController.addListener(_onScannerInput);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        _loadScannerPreferences();
+        if (_isBroadcastActive) {
+          _startBroadcastListener();
+        }
         _enableScannerMode();
+        if (_isBroadcastActive) {
+          _hideKeyboard();
+        }
       }
     });
   }
@@ -55,11 +83,49 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
     _scanController.removeListener(_onScannerInput);
     _scanController.dispose();
     _focusNode.dispose();
+    _stopBroadcastListener();
     _validationTimer?.cancel();
     super.dispose();
   }
 
+  void _loadScannerPreferences() {
+    try {
+      _configViewModel.loadConfigSilent();
+      final config = _configViewModel.currentConfig;
+      _scannerMode = config.scannerInputMode;
+      _broadcastAction = (config.broadcastAction ?? '').trim();
+      _broadcastExtraKey = (config.broadcastExtraKey ?? '').trim();
+    } catch (_) {
+      _scannerMode = ScannerInputMode.focus;
+      _broadcastAction = '';
+      _broadcastExtraKey = '';
+    }
+  }
+
+  void _startBroadcastListener() {
+    if (!_isBroadcastConfigured) return;
+    if (_manualOverrideBroadcast) return;
+    _broadcastSub?.cancel();
+    _broadcastSub = _broadcastService.listen(action: _broadcastAction, extraKey: _broadcastExtraKey).listen((code) {
+      if (!mounted) return;
+      final trimmed = _scannerService.cleanBarcodeText(code.trim());
+      if (trimmed.isEmpty) return;
+      _handleCompleteBarcode(trimmed);
+    });
+  }
+
+  Future<void> _stopBroadcastListener() async {
+    try {
+      await _broadcastSub?.cancel();
+    } catch (_) {
+      // Ignorar erro de cancelamento quando não há stream ativa
+    } finally {
+      _broadcastSub = null;
+    }
+  }
+
   void _onScannerInput() {
+    if (_isBroadcastActive) return;
     if (_isManualMode || _scanController.text.isEmpty) return;
 
     _processScannerInput();
@@ -85,7 +151,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
 
   void _handleCompleteBarcode(String barcode) {
     _clearScannerFieldAfterDelay();
-    _validateShelfInput();
+    _validateShelfInput(barcode);
   }
 
   void _clearScannerFieldAfterDelay() {
@@ -101,16 +167,16 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   }
 
   String _cleanBarcodeText(String text) {
-    return text.replaceAll(RegExp(r'[^\d]'), '');
+    return text.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
   }
 
-  void _validateShelfInput() {
+  void _validateShelfInput([String? scannedValue]) {
     _validationTimer?.cancel();
 
     _validationTimer = Timer(const Duration(milliseconds: 100), () {
       if (!mounted) return;
 
-      final input = _scanController.text.trim();
+      final input = (scannedValue ?? _scanController.text).trim();
       if (input.isEmpty) return;
 
       final isValid = _shelfScanningService.validateScannedAddress(
@@ -148,6 +214,13 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   void _toggleInputMode() {
     setState(() {
       _isManualMode = !_isManualMode;
+      if (_isManualMode && _isBroadcastConfigured) {
+        _manualOverrideBroadcast = true;
+        _stopBroadcastListener();
+      } else if (!_isManualMode && _isBroadcastConfigured) {
+        _manualOverrideBroadcast = false;
+        _startBroadcastListener();
+      }
       _handleKeyboardControl();
     });
   }
@@ -260,7 +333,13 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
                     focusNode: _focusNode,
                     autofocus: false,
                     enableInteractiveSelection: _isManualMode,
-                    keyboardType: _isManualMode ? TextInputType.text : TextInputType.numberWithOptions(decimal: false),
+                    readOnly: !_isManualMode && _isBroadcastActive,
+                    keyboardType: _isManualMode
+                        ? TextInputType.text
+                        : (_isBroadcastActive
+                              ? TextInputType.none
+                              : const TextInputType.numberWithOptions(decimal: false)),
+                    showCursor: !_isManualMode ? true : null,
                     decoration: InputDecoration(
                       labelText: 'Código da Prateleira',
                       border: OutlineInputBorder(),
