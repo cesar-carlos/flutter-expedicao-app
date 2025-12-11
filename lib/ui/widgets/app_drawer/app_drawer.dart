@@ -7,10 +7,12 @@ import 'package:data7_expedicao/core/utils/string_utils.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/theme_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/app_drawer/drawer_menu_tile.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -234,21 +236,72 @@ class AppDrawer extends StatelessWidget {
         final version = packageInfo.version;
         final buildNumber = packageInfo.buildNumber;
 
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            border: Border(top: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.12), width: 1)),
-          ),
-          child: Text(
-            'Versão $version+$buildNumber',
-            style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-            textAlign: TextAlign.center,
-          ),
+        return Consumer<AppUpdateViewModel>(
+          builder: (context, appUpdateViewModel, child) {
+            return InkWell(
+              onTap: () => _handleVersionTap(context, appUpdateViewModel),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  border: Border(top: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.12), width: 1)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Versão $version+$buildNumber',
+                      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                    ),
+                    if (appUpdateViewModel.isChecking) ...[
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
+  }
+
+  void _handleVersionTap(BuildContext context, AppUpdateViewModel appUpdateViewModel) {
+    if (appUpdateViewModel.isChecking) return;
+
+    appUpdateViewModel.clearError();
+    appUpdateViewModel.checkForUpdate().then((_) {
+      if (!context.mounted) return;
+
+      if (appUpdateViewModel.hasUpdate && appUpdateViewModel.updateAvailable != null) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
+        );
+      } else if (appUpdateViewModel.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(appUpdateViewModel.error!.message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Você está usando a versão mais recente'), duration: Duration(seconds: 2)),
+        );
+      }
+    });
   }
 
   void _showLogoutDialog(BuildContext context) {
