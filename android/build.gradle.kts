@@ -1,5 +1,6 @@
 import org.gradle.api.tasks.compile.JavaCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.android.build.gradle.BaseExtension
 
 allprojects {
     repositories {
@@ -19,11 +20,21 @@ subprojects {
     project.layout.buildDirectory.value(newSubprojectBuildDir)
     
     afterEvaluate {
+        // Configurar compileOptions do Android para todos os subprojetos Android
+        extensions.findByType<BaseExtension>()?.apply {
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+        }
+        
+        // Configurar tarefas Java
         tasks.withType<JavaCompile>().configureEach {
             sourceCompatibility = JavaVersion.VERSION_17.toString()
             targetCompatibility = JavaVersion.VERSION_17.toString()
         }
         
+        // Configurar tarefas Kotlin
         tasks.withType<KotlinCompile>().configureEach {
             kotlinOptions {
                 jvmTarget = "17"
