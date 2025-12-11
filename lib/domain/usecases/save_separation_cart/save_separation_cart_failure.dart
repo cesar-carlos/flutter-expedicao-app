@@ -88,6 +88,23 @@ class SaveSeparationCartFailure extends AppFailure {
     );
   }
 
+  factory SaveSeparationCartFailure.insufficientSeparatedQuantity({
+    required String produtoNome,
+    required int codProduto,
+    required double quantidadeSolicitada,
+    required double quantidadeSeparada,
+  }) {
+    final falta = quantidadeSolicitada - quantidadeSeparada;
+    return SaveSeparationCartFailure(
+      message: 'Quantidade separada é menor que a solicitada',
+      details:
+          'Produto: $produtoNome (Cód: $codProduto)\n'
+          'Solicitado: $quantidadeSolicitada\n'
+          'Separado: $quantidadeSeparada\n'
+          'Falta: $falta',
+    );
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

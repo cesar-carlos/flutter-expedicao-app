@@ -49,7 +49,6 @@ class SaveSeparationCartUseCase {
         return Failure(SaveSeparationCartFailure.userNotAuthenticated());
       }
 
-      // Validar situação da separação
       final separateProgress = await _findSeparateProgress(params);
       if (separateProgress == null) {
         return Failure(SaveSeparationCartFailure.separationNotFound());
@@ -75,7 +74,6 @@ class SaveSeparationCartUseCase {
         return Failure(SaveSeparationCartFailure.noSeparatedItems());
       }
 
-      // Validar se há excesso de quantidade separada
       final validationResult = await _validateSeparatedQuantities(params);
       if (validationResult != null) {
         return Failure(validationResult);
@@ -114,7 +112,6 @@ class SaveSeparationCartUseCase {
         nomeUsuarioFinalizacao: userModel.nomeUsuario,
       );
 
-      // Atualizar situação dos itens de separação para finalizado
       await _updateSeparationItemsToFinalized(
         params.codEmpresa,
         params.codCarrinhoPercurso,
@@ -137,7 +134,6 @@ class SaveSeparationCartUseCase {
     }
   }
 
-  //internal methods
   Future<ExpeditionCartModel?> _findCart(int codEmpresa, int codCarrinho) async {
     final query = QueryBuilder()
       ..equals('CodEmpresa', codEmpresa.toString())
@@ -206,10 +202,8 @@ class SaveSeparationCartUseCase {
     }
   }
 
-  /// Valida se a quantidade separada não excede a solicitada para cada produto
   Future<SaveSeparationCartFailure?> _validateSeparatedQuantities(SaveSeparationCartParams params) async {
     try {
-      // 1. Buscar os itens do pedido de separação (quantidade solicitada)
       final separateItemsQuery = QueryBuilder()
         ..equals('CodEmpresa', params.codEmpresa.toString())
         ..equals('CodSepararEstoque', params.codSepararEstoque.toString());
@@ -217,26 +211,23 @@ class SaveSeparationCartUseCase {
       final separateItems = await _separateItemRepository.selectConsultation(separateItemsQuery);
 
       if (separateItems.isEmpty) {
-        return null; // Se não houver itens do pedido, não há como validar
+        return null;
       }
 
-      // 2. Buscar os itens já separados (quantidade separada)
       final separationItems = await _findItemsSeparation(
         params.codEmpresa,
         params.codCarrinhoPercurso,
         params.itemCarrinhoPercurso,
       );
 
-      // Filtrar apenas itens separados (não cancelados)
       final validSeparationItems = separationItems
           .where((item) => item.situacao != ExpeditionItemSituation.cancelado)
           .toList();
 
       if (validSeparationItems.isEmpty) {
-        return null; // Se não houver itens separados válidos, não há excesso
+        return null;
       }
 
-      // 3. Agrupar itens separados por produto e somar as quantidades
       final Map<int, double> quantidadesSeparadasPorProduto = {};
 
       for (final item in validSeparationItems) {
@@ -246,13 +237,11 @@ class SaveSeparationCartUseCase {
         quantidadesSeparadasPorProduto[codProduto] = (quantidadesSeparadasPorProduto[codProduto] ?? 0.0) + quantidade;
       }
 
-      // 4. Comparar com as quantidades solicitadas
       for (final separateItem in separateItems) {
         final codProduto = separateItem.codProduto;
         final quantidadeSolicitada = separateItem.quantidade;
         final quantidadeSeparada = quantidadesSeparadasPorProduto[codProduto] ?? 0.0;
 
-        // Se a quantidade separada excede a solicitada
         if (quantidadeSeparada > quantidadeSolicitada) {
           return SaveSeparationCartFailure.excessSeparatedQuantity(
             produtoNome: separateItem.nomeProduto,
@@ -263,10 +252,8 @@ class SaveSeparationCartUseCase {
         }
       }
 
-      return null; // Validação passou
+      return null;
     } catch (e) {
-      // Em caso de erro na validação, não deve bloquear o salvamento
-      // A validação é preventiva, não crítica
       return null;
     }
   }

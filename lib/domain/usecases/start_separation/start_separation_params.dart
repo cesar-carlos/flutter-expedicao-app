@@ -1,6 +1,5 @@
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 
-/// Parâmetros para iniciar uma separação
 class StartSeparationParams {
   final int codEmpresa;
   final ExpeditionOrigem origem;
@@ -8,10 +7,8 @@ class StartSeparationParams {
 
   const StartSeparationParams({required this.codEmpresa, required this.origem, required this.codOrigem});
 
-  /// Valida se os parâmetros são válidos
   bool get isValid => validationErrors.isEmpty;
 
-  /// Retorna uma lista de erros de validação
   List<String> get validationErrors {
     final errors = <String>[];
     if (codEmpresa <= 0) errors.add('Código da empresa deve ser maior que zero');
@@ -20,7 +17,6 @@ class StartSeparationParams {
     return errors;
   }
 
-  /// Retorna uma descrição dos parâmetros para logging
   String get description {
     return 'StartSeparationParams('
         'codEmpresa: $codEmpresa, '

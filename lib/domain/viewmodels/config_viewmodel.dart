@@ -144,11 +144,7 @@ class ConfigViewModel extends ChangeNotifier {
   }
 
   /// Salva preferências do scanner (modo e dados de broadcast)
-  Future<void> saveScannerPreferences({
-    required ScannerInputMode mode,
-    String? action,
-    String? extraKey,
-  }) async {
+  Future<void> saveScannerPreferences({required ScannerInputMode mode, String? action, String? extraKey}) async {
     _setSaving(true);
 
     try {

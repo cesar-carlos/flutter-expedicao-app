@@ -1,14 +1,12 @@
 import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
 import 'package:data7_expedicao/domain/models/separate_model.dart';
 
-/// Resultado de sucesso ao iniciar uma separação
 class StartSeparationSuccess {
   final ExpeditionCartRouteModel createdCartRoute;
   final SeparateModel updatedSeparation;
 
   const StartSeparationSuccess({required this.createdCartRoute, required this.updatedSeparation});
 
-  /// Cria um resultado de sucesso
   factory StartSeparationSuccess.create({
     required ExpeditionCartRouteModel createdCartRoute,
     required SeparateModel updatedSeparation,
@@ -16,54 +14,40 @@ class StartSeparationSuccess {
     return StartSeparationSuccess(createdCartRoute: createdCartRoute, updatedSeparation: updatedSeparation);
   }
 
-  /// Retorna uma mensagem de sucesso
   String get message => 'Separação iniciada com sucesso';
 
-  /// Retorna o código do carrinho percurso criado
   int get codCarrinhoPercurso => createdCartRoute.codCarrinhoPercurso;
 
-  /// Retorna o código da separação
   int get codSepararEstoque => updatedSeparation.codSepararEstoque;
 
-  /// Retorna a descrição da situação da separação
   String get situacaoDescription => updatedSeparation.situacaoDescription;
 
-  /// Retorna o código da situação da separação
   String get situacaoCode => updatedSeparation.situacaoCode;
 
-  /// Retorna a origem da separação
   String get origemCode => updatedSeparation.origem.code;
 
-  /// Retorna a descrição da origem
   String get origemDescription => updatedSeparation.origem.description;
 
-  /// Retorna o nome da entidade
   String get nomeEntidade => updatedSeparation.nomeEntidade;
 
-  /// Retorna a data de início da separação
   DateTime get dataInicio => createdCartRoute.dataInicio;
 
-  /// Retorna a hora de início da separação
   String get horaInicio => createdCartRoute.horaInicio;
 
-  /// Retorna informações sobre o carrinho criado
   String get cartRouteInfo {
     return 'Carrinho Percurso ${createdCartRoute.codCarrinhoPercurso} - ${createdCartRoute.situacao.description}';
   }
 
-  /// Retorna informações sobre a separação atualizada
   String get separationInfo {
     return 'Separação ${updatedSeparation.codSepararEstoque} - $nomeEntidade - ${updatedSeparation.situacaoDescription}';
   }
 
-  /// Retorna um resumo da operação
   String get operationSummary {
     return 'Separação $codSepararEstoque iniciada. '
         'Carrinho Percurso: $codCarrinhoPercurso. '
         'Situação: ${updatedSeparation.situacaoDescription}';
   }
 
-  /// Retorna informações detalhadas para auditoria
   Map<String, dynamic> get auditInfo {
     return {
       'operation': 'START_SEPARATION',
@@ -82,7 +66,6 @@ class StartSeparationSuccess {
     };
   }
 
-  /// Retorna alertas ou informações relevantes
   List<String> get notifications {
     final notifications = <String>[];
 

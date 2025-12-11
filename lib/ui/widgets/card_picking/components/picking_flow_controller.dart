@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_failure.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/keyboard_toggle_controller.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_dialog_manager.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal_v2.dart';
@@ -91,8 +92,9 @@ class PickingFlowController {
         },
         (failure) {
           final message = failure is AppFailure ? failure.userMessage : 'Erro ao salvar carrinho: $failure';
+          final details = failure is SaveSeparationCartFailure ? failure.details : null;
           if (navigator.mounted) {
-            _showErrorDialog(navigator, message);
+            _showErrorDialog(navigator, message, details: details);
           }
         },
       );
@@ -117,12 +119,22 @@ class PickingFlowController {
     );
   }
 
-  void _showErrorDialog(BuildContext context, String message) {
+  void _showErrorDialog(BuildContext context, String message, {String? details}) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Erro'),
-        content: Text(message),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(message),
+            if (details != null) ...[
+              const SizedBox(height: 8),
+              Text(details, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ],
+        ),
         actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
       ),
     );

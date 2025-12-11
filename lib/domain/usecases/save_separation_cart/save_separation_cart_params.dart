@@ -1,4 +1,3 @@
-/// Parâmetros para salvar carrinho na separação
 class SaveSeparationCartParams {
   final int codEmpresa;
   final int codCarrinhoPercurso;
