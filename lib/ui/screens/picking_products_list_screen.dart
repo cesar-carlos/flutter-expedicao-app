@@ -15,17 +15,17 @@ import 'package:data7_expedicao/ui/widgets/separated_products_title_with_connect
 import 'package:data7_expedicao/ui/widgets/pending_products_title_with_connection_status.dart';
 
 class PickingProductsListScreen extends StatefulWidget {
-  final String filterType; // 'pending' ou 'completed'
+  final String filterType;
   final CardPickingViewModel viewModel;
   final ExpeditionCartRouteInternshipConsultationModel cart;
-  final bool isReadOnly; // Novo parâmetro para modo somente leitura
+  final bool isReadOnly;
 
   const PickingProductsListScreen({
     super.key,
     required this.filterType,
     required this.viewModel,
     required this.cart,
-    this.isReadOnly = false, // Padrão é false (permite edição)
+    this.isReadOnly = false,
   });
 
   @override
@@ -40,14 +40,11 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
   void initState() {
     super.initState();
 
-    // Se for a tela de produtos separados, criar e inicializar o ViewModel
     if (widget.filterType == 'completed') {
       _separatedProductsViewModel = SeparatedProductsViewModel();
 
-      // Adicionar listener para detectar quando um item é cancelado
       _separatedProductsViewModel.addListener(_onSeparatedProductsChanged);
 
-      // Carregar produtos separados após o frame atual
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _separatedProductsViewModel.loadSeparatedProducts(widget.cart, isReadOnly: widget.isReadOnly);
       });
@@ -55,7 +52,6 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
   }
 
   void _onSeparatedProductsChanged() {
-    // Marcar que precisa atualizar quando voltar para a tela anterior
     if (!_separatedProductsViewModel.isLoading && !_separatedProductsViewModel.isCancelling) {
       _needsRefresh = true;
     }
@@ -81,7 +77,6 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
 
     final scaffold = _buildScaffold(context, theme, colorScheme, icon, iconColor);
 
-    // Para produtos separados, envolver toda a tela com o Provider
     if (widget.filterType == 'completed') {
       return ChangeNotifierProvider<SeparatedProductsViewModel>.value(
         value: _separatedProductsViewModel,
@@ -89,11 +84,9 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
       );
     }
 
-    // Para produtos pendentes, usar o Scaffold normal
     return _buildPopScope(scaffold);
   }
 
-  /// Constrói o PopScope com lógica de refresh
   Widget _buildPopScope(Widget child) {
     return PopScope(
       onPopInvokedWithResult: (didPop, result) async {
@@ -105,7 +98,6 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     );
   }
 
-  /// Constrói o título da AppBar baseado no tipo de filtro
   Widget _buildAppBarTitle() {
     switch (widget.filterType) {
       case 'completed':
@@ -117,22 +109,18 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     }
   }
 
-  /// Constrói os botões de ação da AppBar
   List<Widget> _buildAppBarActions(BuildContext context) {
     final actions = <Widget>[];
 
-    // Botão de filtro apenas para produtos pendentes
     if (widget.filterType == 'pending') {
       actions.add(_buildFilterButton(context));
     }
 
-    // Botão de atualização
     actions.add(_buildRefreshButton(context));
 
     return actions;
   }
 
-  /// Constrói o botão de filtro para produtos pendentes
   Widget _buildFilterButton(BuildContext context) {
     return Consumer<CardPickingViewModel>(
       builder: (context, viewModel, child) {
@@ -159,7 +147,6 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     );
   }
 
-  /// Constrói o botão de atualização baseado no tipo de filtro
   Widget _buildRefreshButton(BuildContext context) {
     if (widget.filterType == 'completed') {
       return _buildSeparatedProductsRefreshButton(context);
@@ -168,7 +155,6 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     }
   }
 
-  /// Constrói o botão de atualização para produtos separados
   Widget _buildSeparatedProductsRefreshButton(BuildContext context) {
     return Consumer<SeparatedProductsViewModel>(
       builder: (context, separatedViewModel, child) {
@@ -194,7 +180,6 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     );
   }
 
-  /// Constrói o botão de atualização para produtos pendentes
   Widget _buildPendingProductsRefreshButton(BuildContext context) {
     return Consumer<CardPickingViewModel>(
       builder: (context, viewModel, child) {
@@ -259,7 +244,6 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     );
   }
 
-  // Método para produtos pendentes (usando CardPickingViewModel)
   Widget _buildPendingProductsBody(
     BuildContext context,
     ThemeData theme,
@@ -307,7 +291,6 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
       );
     }
 
-    // Filtrar produtos pendentes
     final pendingItems = widget.viewModel.items.where((item) => !widget.viewModel.isItemCompleted(item.item)).toList();
 
     if (pendingItems.isEmpty) {
@@ -334,10 +317,8 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
 
     return Column(
       children: [
-        // Header com estatísticas
         _buildHeader(context, theme, colorScheme, icon, iconColor, pendingItems.length),
 
-        // Lista de produtos pendentes
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.all(UIConstants.defaultPadding),
@@ -357,7 +338,6 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     );
   }
 
-  // Método para produtos separados (usando SeparatedProductsViewModel)
   Widget _buildSeparatedProductsBody(
     BuildContext context,
     ThemeData theme,
@@ -430,13 +410,10 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
 
     return Column(
       children: [
-        // Aviso de status do carrinho
         const SeparatedProductsCartStatusWarning(),
 
-        // Header com estatísticas
         _buildHeader(context, theme, colorScheme, icon, iconColor, viewModel.items.length),
 
-        // Lista de produtos separados
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {

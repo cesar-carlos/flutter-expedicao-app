@@ -25,19 +25,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Adicionar listeners para forçar rebuild quando os campos mudarem
+
     _currentPasswordController.addListener(_onFieldChanged);
     _newPasswordController.addListener(_onFieldChanged);
     _confirmPasswordController.addListener(_onFieldChanged);
   }
 
   void _onFieldChanged() {
-    // Usar addPostFrameCallback para garantir que o viewModel já foi atualizado
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        setState(() {
-          // Força rebuild para sincronizar com mudanças do ViewModel
-        });
+        setState(() {});
       }
     });
   }
@@ -56,7 +53,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Consumer<ProfileViewModel>(
       builder: (context, viewModel, child) {
-        // Só processar mudanças de estado se o widget ainda estiver montado e não navegando
         if (mounted && !_isNavigatingAway) {
           _handleViewModelState(context, viewModel);
         }
@@ -122,7 +118,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final hasPhotoChange = viewModel.selectedPhoto != null;
     final hasPhotoRemoval = viewModel.photoWasRemoved;
 
-    // Verificar mudanças de senha usando controllers (mais confiável)
     final hasCurrentPassword = _currentPasswordController.text.trim().isNotEmpty;
     final hasNewPassword = _newPasswordController.text.trim().isNotEmpty;
     final hasConfirmPassword = _confirmPasswordController.text.trim().isNotEmpty;
@@ -133,26 +128,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _handleViewModelState(BuildContext context, ProfileViewModel viewModel) {
-    // Verificar se o widget ainda está montado e não está navegando
     if (!mounted || _isNavigatingAway) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Verificar novamente se o widget ainda está montado
       if (!mounted || _isNavigatingAway) return;
 
       switch (viewModel.state) {
         case ProfileState.success:
-          if (_isNavigatingAway) return; // Evita processar múltiplas vezes
+          if (_isNavigatingAway) return;
           _isNavigatingAway = true;
 
-          // Armazenar a mensagem antes de resetar o viewModel
           final successMsg = viewModel.successMessage ?? AppStrings.profileSaved;
 
-          // Resetar o estado do viewModel imediatamente
           viewModel.resetState();
           _clearPasswordFields();
 
-          // Mostrar mensagem de sucesso e navegar imediatamente
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(successMsg),
@@ -163,7 +153,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           );
 
-          // Navegar imediatamente para evitar uso após dispose
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               context.go('/home');

@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
@@ -8,27 +10,28 @@ import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
 import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 
-class ShelfScanningModal extends StatefulWidget {
+class ShelfScanningModalV2 extends StatefulWidget {
   final String expectedAddress;
   final String expectedAddressDescription;
-  final Function(String) onShelfScanned;
-  final Function()? onBack;
+  final CardPickingViewModel viewModel;
+  final VoidCallback? onBack;
 
-  const ShelfScanningModal({
+  const ShelfScanningModalV2({
     super.key,
     required this.expectedAddress,
     required this.expectedAddressDescription,
-    required this.onShelfScanned,
+    required this.viewModel,
     this.onBack,
   });
 
   @override
-  State<ShelfScanningModal> createState() => _ShelfScanningModalState();
+  State<ShelfScanningModalV2> createState() => _ShelfScanningModalV2State();
 }
 
-class _ShelfScanningModalState extends State<ShelfScanningModal> {
+class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
   late final TextEditingController _scanController;
   late final FocusNode _focusNode;
   late final ShelfScanningService _shelfScanningService;
@@ -44,6 +47,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   bool _manualOverrideBroadcast = false;
   bool _isManualMode = false;
   bool _isClosingFromSuccess = false;
+  bool _hasFocus = false;
   Timer? _validationTimer;
 
   bool get _isBroadcastConfigured =>
@@ -63,17 +67,26 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
     _configViewModel = locator<ConfigViewModel>();
 
     _scanController.addListener(_onScannerInput);
+    _focusNode.addListener(_onFocusChange);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _loadScannerPreferences();
-        if (_isBroadcastActive) {
-          _startBroadcastListener();
-        }
-        _enableScannerMode();
-        if (_isBroadcastActive) {
-          _hideKeyboard();
-        }
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (!mounted) return;
+          if (_isBroadcastActive) {
+            _startBroadcastListener();
+            _hideKeyboard();
+            _focusNode.unfocus();
+          } else {
+            _enableScannerMode();
+            Future.delayed(UIConstants.shortDelay, () {
+              if (mounted) {
+                _focusNode.requestFocus();
+              }
+            });
+          }
+        });
       }
     });
   }
@@ -81,11 +94,20 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   @override
   void dispose() {
     _scanController.removeListener(_onScannerInput);
+    _focusNode.removeListener(_onFocusChange);
     _scanController.dispose();
     _focusNode.dispose();
     _stopBroadcastListener();
     _validationTimer?.cancel();
     super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (_focusNode.hasFocus != _hasFocus) {
+      setState(() {
+        _hasFocus = _focusNode.hasFocus;
+      });
+    }
   }
 
   void _loadScannerPreferences() {
@@ -192,10 +214,13 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
 
       if (isValid) {
         _isClosingFromSuccess = true;
-      Navigator.of(context).pop();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.onShelfScanned(input);
-      });
+        widget.viewModel.updateScannedAddress(input);
+        _audioService.playShelfScanSuccess();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+        });
       } else {
         _showValidationError();
       }
@@ -244,11 +269,15 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
     debugPrint('[ShelfModal] enable scanner mode');
     _hideKeyboard();
 
-    Future.delayed(UIConstants.shortDelay, () {
-      if (mounted) {
-        _focusNode.requestFocus();
-      }
-    });
+    if (!_isBroadcastActive) {
+      Future.delayed(UIConstants.shortDelay, () {
+        if (mounted) {
+          _focusNode.requestFocus();
+        }
+      });
+    } else {
+      _focusNode.unfocus();
+    }
   }
 
   void _enableKeyboardMode() {
@@ -293,13 +322,14 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
       canPop: _isClosingFromSuccess,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
         if (didPop) return;
-
         if (widget.onBack != null) {
           widget.onBack!();
+        } else {
+          Navigator.of(context).pop();
         }
       },
-      child: LayoutBuilder(
-        builder: (context, constraints) {
+      child: Builder(
+        builder: (context) {
           final screenWidth = MediaQuery.of(context).size.width;
           return SizedBox(
             width: screenWidth * 0.9 + 13,
@@ -309,12 +339,11 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
               actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
               title: Row(
                 children: [
-                  Icon(Icons.qr_code_scanner, color: Colors.orange, size: UIConstants.largeIconSize),
+                  const Icon(Icons.qr_code_scanner, color: Colors.orange, size: UIConstants.largeIconSize),
                   const SizedBox(width: 8),
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'Prateleira',
-                      style: Theme.of(context).textTheme.headlineSmall,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -325,12 +354,12 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.location_on, color: Colors.blue, size: UIConstants.mediumIconSize),
+                      const Icon(Icons.location_on, color: Colors.blue, size: UIConstants.mediumIconSize),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           widget.expectedAddressDescription,
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -345,23 +374,41 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
                     readOnly: !_isManualMode && _isBroadcastActive,
                     keyboardType: _isManualMode
                         ? TextInputType.text
-                        : (_isBroadcastActive
-                              ? TextInputType.none
-                              : const TextInputType.numberWithOptions(decimal: false)),
-                    showCursor: !_isManualMode ? true : null,
+                        : (_isBroadcastActive ? TextInputType.none : const TextInputType.numberWithOptions(decimal: false)),
+                    showCursor: !_isManualMode && !_isBroadcastActive && _hasFocus,
                     decoration: InputDecoration(
                       labelText: 'Código da Prateleira',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       prefixIcon: GestureDetector(
                         onTap: _toggleInputMode,
-                        child: Icon(_isManualMode ? Icons.keyboard : Icons.qr_code_scanner, color: Colors.orange),
+                        child: Icon(
+                          _isManualMode ? Icons.keyboard : Icons.qr_code_scanner,
+                          color: Colors.orange,
+                        ),
                       ),
                     ),
                     onSubmitted: (_) => _validateShelfInput(),
+                    onTap: () {
+                      if (_isBroadcastActive) {
+                        _focusNode.unfocus();
+                        _hideKeyboard();
+                      } else if (!_isManualMode) {
+                        _focusNode.requestFocus();
+                      }
+                    },
                   ),
                 ],
               ),
-              actions: [if (widget.onBack != null) TextButton(onPressed: widget.onBack, child: const Text('Voltar'))],
+              actions: [
+                if (widget.onBack != null)
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      widget.onBack!();
+                    },
+                    child: const Text('Voltar'),
+                  ),
+              ],
             ),
           );
         },
@@ -369,3 +416,4 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
     );
   }
 }
+

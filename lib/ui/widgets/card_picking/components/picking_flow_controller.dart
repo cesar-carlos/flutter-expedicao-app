@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/keyboard_toggle_controller.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_dialog_manager.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal_v2.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 
 class PickingFlowController {
   final CardPickingViewModel viewModel;
@@ -22,29 +23,26 @@ class PickingFlowController {
 
   void showShelfScanDialog(
     BuildContext context,
-    SeparateItemConsultationModel nextItem,
-    FocusNode scanFocusNode, {
+    SeparateItemConsultationModel nextItem, {
     VoidCallback? onShelfScanCompleted,
   }) {
-    dialogManager.showShelfScanDialog(
-      expectedAddress: nextItem.endereco!,
-      expectedAddressDescription: nextItem.enderecoDescricao ?? 'Endereço não definido',
-      onShelfScanned: (scannedAddress) {
-        viewModel.updateScannedAddress(scannedAddress);
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          keyboardController.enableScannerMode();
-        });
-
-        audioService.playShelfScanSuccess();
-        onShelfScanCompleted?.call();
-      },
-      onBack: () {
-        Navigator.of(context).pop();
-        Navigator.of(context).pop();
-        onShelfScanCompleted?.call();
-      },
-    );
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => ShelfScanningModalV2(
+        expectedAddress: nextItem.endereco!,
+        expectedAddressDescription: nextItem.enderecoDescricao ?? 'Endereço não definido',
+        viewModel: viewModel,
+        onBack: () {
+          Navigator.of(context).pop();
+        },
+      ),
+    ).then((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        keyboardController.enableScannerMode();
+      });
+      onShelfScanCompleted?.call();
+    });
   }
 
   Future<void> checkAndShowSaveCartModal() async {

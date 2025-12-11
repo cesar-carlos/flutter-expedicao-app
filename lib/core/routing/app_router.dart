@@ -29,6 +29,8 @@ import 'package:data7_expedicao/ui/screens/scanner_screen.dart';
 import 'package:data7_expedicao/ui/screens/config_screen.dart';
 import 'package:data7_expedicao/ui/screens/scanner_config_screen.dart';
 import 'package:data7_expedicao/ui/screens/home_screen.dart';
+import 'package:data7_expedicao/ui/screens/shelf_scanning_screen.dart';
+import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 
 /// Configuração das rotas da aplicação usando GoRouter
 class AppRouter {
@@ -50,6 +52,7 @@ class AppRouter {
   static const String packaging = '/home/packaging';
   static const String storage = '/home/storage';
   static const String collection = '/home/collection';
+  static const String shelfScanning = '/shelf-scanning';
 
   /// Configuração do GoRouter
   static GoRouter createRouter(AuthViewModel authViewModel) {
@@ -190,6 +193,24 @@ class AppRouter {
             // Coleta como subrota
             GoRoute(path: 'collection', name: 'collection', builder: (context, state) => const CollectionScreen()),
           ],
+        ),
+
+        // Rota de Scan de Prateleira
+        GoRoute(
+          path: shelfScanning,
+          name: 'shelf-scanning',
+          builder: (context, state) {
+            final args = state.extra as Map<String, dynamic>?;
+            if (args == null) {
+              return const Scaffold(body: Center(child: Text('Dados não encontrados')));
+            }
+            return ShelfScanningScreen(
+              expectedAddress: args['expectedAddress'] as String,
+              expectedAddressDescription: args['expectedAddressDescription'] as String,
+              viewModel: args['viewModel'] as CardPickingViewModel,
+              returnRoute: args['returnRoute'] as String?,
+            );
+          },
         ),
 
         // Rota do Perfil

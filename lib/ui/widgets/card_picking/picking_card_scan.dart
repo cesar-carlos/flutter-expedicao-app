@@ -179,6 +179,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       _scannerMode = config.scannerInputMode;
       _broadcastAction = (config.broadcastAction ?? '').trim();
       _broadcastExtraKey = (config.broadcastExtraKey ?? '').trim();
+      debugPrint('[Scan] prefs mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey');
     } catch (_) {
       _scannerMode = ScannerInputMode.focus;
       _broadcastAction = '';
@@ -187,20 +188,41 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   void _startBroadcastListener() {
-    if (!_isBroadcastMode) return;
+    if (!_isBroadcastMode) {
+      debugPrint('[Scan][Broadcast] start skipped - not broadcast mode');
+      return;
+    }
+    debugPrint('[Scan][Broadcast] start action=$_broadcastAction extra=$_broadcastExtraKey');
+
     _broadcastSubscription?.cancel();
-    _broadcastSubscription = _broadcastService.listen(action: _broadcastAction, extraKey: _broadcastExtraKey).listen((
-      code,
-    ) {
-      if (!mounted) return;
-      final trimmed = code.trim();
-      debugPrint('[Scan][Broadcast] action=$_broadcastAction extra=$_broadcastExtraKey code="$trimmed"');
-      if (trimmed.isEmpty) return;
-      _onBarcodeScanned(trimmed);
-    });
+    _broadcastSubscription = null;
+
+    try {
+      _broadcastSubscription = _broadcastService
+          .listen(action: _broadcastAction, extraKey: _broadcastExtraKey)
+          .listen(
+            (code) {
+              if (!mounted) return;
+              final trimmed = code.trim();
+              debugPrint('[Scan][Broadcast] received code="$trimmed"');
+              if (trimmed.isEmpty) return;
+              _onBarcodeScanned(trimmed);
+            },
+            onError: (error) {
+              debugPrint('[Scan][Broadcast] error: $error');
+            },
+            onDone: () {
+              debugPrint('[Scan][Broadcast] stream done');
+            },
+          );
+      debugPrint('[Scan][Broadcast] listener created successfully');
+    } catch (e) {
+      debugPrint('[Scan][Broadcast] error creating listener: $e');
+    }
   }
 
   Future<void> _stopBroadcastListener() async {
+    debugPrint('[Scan][Broadcast] stop');
     try {
       await _broadcastSubscription?.cancel();
     } catch (_) {
@@ -236,26 +258,65 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   Future<void> _pauseScannerForShelf() async {
+    debugPrint('[Scan] pause for shelf');
+    _scanState.setEnabled(false);
     if (_isBroadcastMode) {
       await _stopBroadcastListener();
     }
+    _scanFocusNode.unfocus();
   }
 
   void _reactivateScanner() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+    debugPrint('[Scan] reactivate after shelf - mode=$_scannerMode');
+
+    if (_isBroadcastMode) {
+      debugPrint('[Scan] stopping broadcast listener before reactivation');
+      _stopBroadcastListener();
+    }
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted) {
+        debugPrint('[Scan] reactivate cancelled - not mounted');
+        return;
+      }
 
       _loadScannerPreferences();
+      debugPrint(
+        '[Scan] reactivate - loaded prefs mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey',
+      );
       _scannerModeInitialized = false;
-      _ensureScannerModeActivated();
 
-      _scanState.setKeyboardEnabled(false);
-      _scanState.setEnabled(true);
-      _keyboardController.enableScannerMode();
-
-      _scanState.stopProcessing();
-      _scanController.clear();
-      _scanFocusNode.requestFocus();
+      if (_isBroadcastMode) {
+        debugPrint('[Scan] reactivate - waiting to recreate broadcast listener');
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (!mounted) {
+            debugPrint('[Scan] reactivate cancelled - not mounted (broadcast)');
+            return;
+          }
+          debugPrint('[Scan] reactivate - recreating broadcast listener');
+          _startBroadcastListener();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            _scanState.setEnabled(true);
+            _scanState.stopProcessing();
+            _scanController.clear();
+            _scanFocusNode.requestFocus();
+            debugPrint('[Scan] reactivate - broadcast listener recreated and ready');
+          });
+        });
+      } else {
+        debugPrint('[Scan] reactivate - focus mode');
+        _ensureScannerModeActivated();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _scanState.setKeyboardEnabled(false);
+          _scanState.setEnabled(true);
+          _keyboardController.enableScannerMode();
+          _scanState.stopProcessing();
+          _scanController.clear();
+          _scanFocusNode.requestFocus();
+        });
+      }
     });
   }
 
@@ -405,7 +466,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
       await _pauseScannerForShelf();
-      _flowController.showShelfScanDialog(context, nextItem, _scanFocusNode, onShelfScanCompleted: _reactivateScanner);
+      _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
       return;
     }
 
@@ -476,12 +537,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         if (mounted) {
           _pauseScannerForShelf().then((_) {
             if (!mounted) return;
-            _flowController.showShelfScanDialog(
-              context,
-              nextItem,
-              _scanFocusNode,
-              onShelfScanCompleted: _reactivateScanner,
-            );
+            _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
           });
         }
       });
@@ -502,12 +558,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         if (mounted) {
           _pauseScannerForShelf().then((_) {
             if (!mounted) return;
-            _flowController.showShelfScanDialog(
-              context,
-              nextItem,
-              _scanFocusNode,
-              onShelfScanCompleted: _reactivateScanner,
-            );
+            _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
           });
         }
       });

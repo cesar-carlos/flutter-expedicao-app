@@ -11,7 +11,6 @@ import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 
-/// Tela para login/cadastro via QR Code do Sistema
 class QRCodeLoginScreen extends StatefulWidget {
   const QRCodeLoginScreen({super.key});
 
@@ -20,7 +19,6 @@ class QRCodeLoginScreen extends StatefulWidget {
 }
 
 class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
-  // Estados da UI
   bool _isProcessing = false;
   String? _errorMessage;
 
@@ -39,12 +37,10 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Ícone
             Icon(Icons.qr_code_scanner, size: 120, color: colorScheme.primary),
 
             const SizedBox(height: 32),
 
-            // Título
             Text(
               'Cadastro via QR Code',
               style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
@@ -53,7 +49,6 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
 
             const SizedBox(height: 16),
 
-            // Descrição
             Text(
               'Escaneie o QR Code fornecido pelo sistema para criar seu cadastro automaticamente.',
               style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -62,7 +57,6 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
 
             const SizedBox(height: 48),
 
-            // Botão de Escanear
             FilledButton.icon(
               icon: const Icon(Icons.qr_code_scanner),
               label: const Text('Escanear QR Code'),
@@ -72,15 +66,12 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
 
             const SizedBox(height: 16),
 
-            // Loading indicator
             if (_isProcessing) const Center(child: CircularProgressIndicator()),
 
-            // Mensagem de erro
             if (_errorMessage != null) ...[const SizedBox(height: 16), ErrorMessage(message: _errorMessage!)],
 
             const SizedBox(height: 48),
 
-            // Informações adicionais
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -114,7 +105,6 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
     );
   }
 
-  /// Inicia o processo de escaneamento do QR Code.
   Future<void> _scanQRCode() async {
     _setProcessingState(true);
 
@@ -131,7 +121,6 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
     }
   }
 
-  /// Processa os dados do QR Code escaneado.
   Future<void> _processQRCodeData(String qrCodeContent) async {
     if (!mounted) return;
 
@@ -147,7 +136,6 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
     }
   }
 
-  /// Processa sucesso no parse do QR Code.
   Future<void> _handleQRCodeParseSuccess(SystemQRCodeData qrCodeData) async {
     if (!mounted) return;
 
@@ -167,19 +155,17 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
     }
   }
 
-  /// Processa falha no parse do QR Code.
   void _handleQRCodeParseFailure(AppFailure failure) {
     _setErrorState(failure.toString());
   }
 
-  /// Processa sucesso no registro.
   Future<void> _handleRegistrationSuccess(RegisterViaQRCodeSuccess success) async {
     if (!mounted) return;
 
     try {
       await _updateAuthStatus();
     } catch (e) {
-      return; // _updateAuthStatus já chama _setErrorState
+      return;
     }
 
     if (!mounted) return;
@@ -192,23 +178,19 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
     }
   }
 
-  /// Processa falha no registro.
   void _handleRegistrationFailure(AppFailure failure) {
     final errorMessage = failure is RegisterViaQRCodeFailure ? failure.userMessage : failure.userMessage;
 
     _setErrorState(errorMessage);
   }
 
-  /// Processa erro crítico.
   void _handleCriticalError(dynamic error, StackTrace stackTrace) {
     _setErrorState('Erro crítico ao processar QR Code: ${error.toString()}');
 
-    // Log do erro para debug
     debugPrint('Erro ao processar QR Code: $error');
     debugPrint('StackTrace: $stackTrace');
   }
 
-  /// Atualiza o estado de processamento.
   void _setProcessingState(bool isProcessing) {
     if (mounted) {
       setState(() {
@@ -218,7 +200,6 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
     }
   }
 
-  /// Define uma mensagem de erro e para o processamento.
   void _setErrorState(String errorMessage) {
     if (mounted) {
       setState(() {
@@ -228,18 +209,14 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
     }
   }
 
-  /// Mostra mensagem de sucesso.
   void _showSuccessMessage(String message) {
     try {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: Colors.green, duration: const Duration(seconds: 2)),
       );
-    } catch (e) {
-      // Ignora erro ao mostrar snackbar
-    }
+    } catch (e) {}
   }
 
-  /// Atualiza o status de autenticação.
   Future<void> _updateAuthStatus() async {
     try {
       final authViewModel = context.read<AuthViewModel>();
