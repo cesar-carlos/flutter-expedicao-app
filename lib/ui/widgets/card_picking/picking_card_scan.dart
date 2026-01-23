@@ -6,14 +6,14 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
-import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
-import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/scan_ui_controller.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/components/scanner_preferences_controller.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/components/scanner_broadcast_controller.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/components/scanner_activation_controller.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
@@ -86,19 +86,15 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   late final PickingDialogManager _dialogManager;
   late final ScanUiController _scanUiController;
   late final PickingFlowController _flowController;
+  late final ScannerPreferencesController _scannerPreferencesController;
+  late final ScannerBroadcastController _scannerBroadcastController;
+  late final ScannerActivationController _scannerActivationController;
 
   final AudioService _audioService = locator<AudioService>();
-  final BarcodeBroadcastService _broadcastService = locator<BarcodeBroadcastService>();
-  final ConfigViewModel _configViewModel = locator<ConfigViewModel>();
-  StreamSubscription<String>? _broadcastSubscription;
-  ScannerInputMode _scannerMode = ScannerInputMode.focus;
-  String _broadcastAction = '';
-  String _broadcastExtraKey = '';
 
   StreamSubscription<OperationError>? _errorSubscription;
 
   bool _hasShownInitialShelfScan = false;
-  bool _scannerModeInitialized = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -112,11 +108,18 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        _loadScannerPreferences();
+        _scannerPreferencesController.loadPreferences();
 
         Future.delayed(UIConstants.scannerInitDelay, () {
           if (mounted) {
-            _ensureScannerModeActivated();
+            _scannerActivationController.activate(
+              scanState: _scanState,
+              keyboardController: _keyboardController,
+              scanFocusNode: _scanFocusNode,
+              scanController: _scanController,
+              onBarcodeScanned: _onBarcodeScanned,
+              mounted: () => mounted,
+            );
           }
         });
         _statusCache.forceCheckCartStatus();
@@ -145,6 +148,12 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _scanProcessor = ScanInputProcessor(viewModel: widget.viewModel);
     _statusCache = CartStatusCache(viewModel: widget.viewModel);
     _dialogManager = PickingDialogManager(context: context, scanFocusNode: _scanFocusNode);
+    _scannerPreferencesController = ScannerPreferencesController();
+    _scannerBroadcastController = ScannerBroadcastController();
+    _scannerActivationController = ScannerActivationController(
+      preferencesController: _scannerPreferencesController,
+      broadcastController: _scannerBroadcastController,
+    );
     _scanUiController = ScanUiController(
       dialogManager: _dialogManager,
       audioService: _audioService,
@@ -169,113 +178,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _keyboardController.requestInitialFocus();
   }
 
-  bool get _isBroadcastMode =>
-      _scannerMode == ScannerInputMode.broadcast && _broadcastAction.isNotEmpty && _broadcastExtraKey.isNotEmpty;
-
-  void _loadScannerPreferences() {
-    try {
-      _configViewModel.loadConfigSilent();
-      final config = _configViewModel.currentConfig;
-      _scannerMode = config.scannerInputMode;
-      _broadcastAction = (config.broadcastAction ?? '').trim();
-      _broadcastExtraKey = (config.broadcastExtraKey ?? '').trim();
-      AppLogger.debug(
-        'Scanner preferences loaded: mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey',
-        tag: 'PickingCardScan',
-      );
-    } catch (e, stackTrace) {
-      _scannerMode = ScannerInputMode.focus;
-      _broadcastAction = '';
-      _broadcastExtraKey = '';
-      AppLogger.warning(
-        'Failed to load scanner preferences, using defaults',
-        tag: 'PickingCardScan',
-        error: e,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  void _startBroadcastListener() {
-    if (!_isBroadcastMode) {
-      AppLogger.debug('Broadcast listener start skipped - not broadcast mode', tag: 'PickingCardScan');
-      return;
-    }
-    AppLogger.debug(
-      'Starting broadcast listener: action=$_broadcastAction extra=$_broadcastExtraKey',
-      tag: 'PickingCardScan',
-    );
-
-    _broadcastSubscription?.cancel();
-    _broadcastSubscription = null;
-
-    try {
-      _broadcastSubscription = _broadcastService
-          .listen(action: _broadcastAction, extraKey: _broadcastExtraKey)
-          .listen(
-            (code) {
-              if (!mounted) return;
-              final trimmed = code.trim();
-              AppLogger.debug('Broadcast received code: $trimmed', tag: 'PickingCardScan');
-              if (trimmed.isEmpty) return;
-              _onBarcodeScanned(trimmed);
-            },
-            onError: (error, stackTrace) {
-              AppLogger.error(
-                'Broadcast listener error',
-                tag: 'PickingCardScan',
-                error: error,
-                stackTrace: stackTrace,
-              );
-            },
-            onDone: () {
-              AppLogger.debug('Broadcast listener stream done', tag: 'PickingCardScan');
-            },
-          );
-      AppLogger.debug('Broadcast listener created successfully', tag: 'PickingCardScan');
-    } catch (e, stackTrace) {
-      AppLogger.error(
-        'Error creating broadcast listener',
-        tag: 'PickingCardScan',
-        error: e,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  Future<void> _stopBroadcastListener() async {
-    AppLogger.debug('Stopping broadcast listener', tag: 'PickingCardScan');
-    try {
-      await _broadcastSubscription?.cancel();
-    } catch (e, stackTrace) {
-      AppLogger.warning(
-        'Error canceling broadcast subscription',
-        tag: 'PickingCardScan',
-        error: e,
-        stackTrace: stackTrace,
-      );
-    } finally {
-      _broadcastSubscription = null;
-    }
-  }
-
-  void _ensureScannerModeActivated() {
-    if (_scannerModeInitialized) return;
-    _scannerModeInitialized = true;
-    if (_isBroadcastMode) {
-      _stopBroadcastListener();
-      _startBroadcastListener();
-      return;
-    }
-
-    _scanState.setKeyboardEnabled(true);
-    _keyboardController.enableKeyboardMode();
-    Future.delayed(UIConstants.scannerInitDelay, () {
-      if (!mounted) return;
-      _scanState.setKeyboardEnabled(false);
-      _keyboardController.enableScannerMode();
-    });
-  }
+  bool get _isBroadcastMode => _scannerPreferencesController.isBroadcastConfigured;
 
   bool _isCartInSeparationStatus() {
     return _statusCache.isCartInSeparationStatus();
@@ -286,67 +189,22 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   Future<void> _pauseScannerForShelf() async {
-    AppLogger.debug('Pausing scanner for shelf scan', tag: 'PickingCardScan');
-    _scanState.setEnabled(false);
-    if (_isBroadcastMode) {
-      await _stopBroadcastListener();
-    }
-    _scanFocusNode.unfocus();
+    await _scannerActivationController.pause(
+      scanState: _scanState,
+      scanFocusNode: _scanFocusNode,
+      mounted: () => mounted,
+    );
   }
 
   void _reactivateScanner() {
-    AppLogger.debug('Reactivating scanner after shelf scan - mode=$_scannerMode', tag: 'PickingCardScan');
-
-    if (_isBroadcastMode) {
-      AppLogger.debug('Stopping broadcast listener before reactivation', tag: 'PickingCardScan');
-      _stopBroadcastListener();
-    }
-
-    Future.delayed(UIConstants.mediumDelay, () {
-      if (!mounted) {
-        AppLogger.debug('Scanner reactivation cancelled - not mounted', tag: 'PickingCardScan');
-        return;
-      }
-
-      _loadScannerPreferences();
-      AppLogger.debug(
-        'Scanner reactivation - loaded prefs: mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey',
-        tag: 'PickingCardScan',
-      );
-      _scannerModeInitialized = false;
-
-      if (_isBroadcastMode) {
-        AppLogger.debug('Waiting to recreate broadcast listener', tag: 'PickingCardScan');
-        Future.delayed(UIConstants.scannerBroadcastRecreateDelay, () {
-          if (!mounted) {
-            AppLogger.debug('Scanner reactivation cancelled - not mounted (broadcast)', tag: 'PickingCardScan');
-            return;
-          }
-          AppLogger.debug('Recreating broadcast listener', tag: 'PickingCardScan');
-          _startBroadcastListener();
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            _scanState.setEnabled(true);
-            _scanState.stopProcessing();
-            _scanController.clear();
-            _scanFocusNode.requestFocus();
-            AppLogger.debug('Broadcast listener recreated and ready', tag: 'PickingCardScan');
-          });
-        });
-      } else {
-        AppLogger.debug('Reactivating scanner in focus mode', tag: 'PickingCardScan');
-        _ensureScannerModeActivated();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          _scanState.setKeyboardEnabled(false);
-          _scanState.setEnabled(true);
-          _keyboardController.enableScannerMode();
-          _scanState.stopProcessing();
-          _scanController.clear();
-          _scanFocusNode.requestFocus();
-        });
-      }
-    });
+    _scannerActivationController.reactivate(
+      scanState: _scanState,
+      keyboardController: _keyboardController,
+      scanFocusNode: _scanFocusNode,
+      scanController: _scanController,
+      onBarcodeScanned: _onBarcodeScanned,
+      mounted: () => mounted,
+    );
   }
 
   @override
@@ -361,7 +219,16 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
           Future.delayed(UIConstants.scannerActivationDelay, () {
             if (mounted) {
-              _ensureScannerModeActivated();
+              if (!_scannerActivationController.isInitialized) {
+                _scannerActivationController.activate(
+                  scanState: _scanState,
+                  keyboardController: _keyboardController,
+                  scanFocusNode: _scanFocusNode,
+                  scanController: _scanController,
+                  onBarcodeScanned: _onBarcodeScanned,
+                  mounted: () => mounted,
+                );
+              }
               _scanState.setEnabled(_isCartInSeparationStatus());
               _scanFocusNode.requestFocus();
             }
@@ -445,7 +312,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   @override
   void dispose() {
-    _stopBroadcastListener();
+    _scannerActivationController.dispose();
     _errorSubscription?.cancel();
     widget.viewModel.removeListener(_onViewModelChanged);
     _scanController.removeListener(_onScannerInput);
@@ -479,7 +346,16 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         
         // Sempre garantir que o scanner está ativado quando os dados estão prontos
         if (!_scanState.enabled && isCartInSeparation) {
-          _ensureScannerModeActivated();
+          if (!_scannerActivationController.isInitialized) {
+            _scannerActivationController.activate(
+              scanState: _scanState,
+              keyboardController: _keyboardController,
+              scanFocusNode: _scanFocusNode,
+              scanController: _scanController,
+              onBarcodeScanned: _onBarcodeScanned,
+              mounted: () => mounted,
+            );
+          }
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               _scanState.setEnabled(true);
@@ -520,7 +396,10 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   Future<void> _onBarcodeScanned(String barcode) async {
-    AppLogger.debug('Barcode scanned: mode=$_scannerMode code="$barcode"', tag: 'PickingCardScan');
+    AppLogger.debug(
+      'Barcode scanned: mode=${_scannerPreferencesController.mode} code="$barcode"',
+      tag: 'PickingCardScan',
+    );
     if (barcode.trim().isEmpty) return;
 
     if (_scanState.isProcessingScan) return;

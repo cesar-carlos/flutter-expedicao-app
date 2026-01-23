@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
@@ -11,7 +12,6 @@ import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
-import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class ShelfScanningScreen extends StatefulWidget {
@@ -118,7 +118,10 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
       _scannerMode = config.scannerInputMode;
       _broadcastAction = (config.broadcastAction ?? '').trim();
       _broadcastExtraKey = (config.broadcastExtraKey ?? '').trim();
-      AppLogger.debug('prefs mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey', tag: 'ShelfScreen');
+      AppLogger.debug(
+        'prefs mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey',
+        tag: 'ShelfScreen',
+      );
     } catch (_) {
       _scannerMode = ScannerInputMode.focus;
       _broadcastAction = '';

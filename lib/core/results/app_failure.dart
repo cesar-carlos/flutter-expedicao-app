@@ -1,20 +1,12 @@
-/// Classe base para representar falhas no aplicativo
-///
-/// Todas as falhas do app devem estender esta classe
-/// para garantir consistência no tratamento de erros
 abstract class AppFailure implements Exception {
-  /// Mensagem de erro técnica (para logs)
   final String message;
 
-  /// Código de erro (opcional)
   final String? code;
 
-  /// Exceção original (opcional, para debugging)
   final dynamic exception;
 
   const AppFailure({required this.message, this.code, this.exception});
 
-  /// Mensagem amigável para o usuário
   String get userMessage => message;
 
   @override
@@ -30,7 +22,6 @@ abstract class AppFailure implements Exception {
   int get hashCode => message.hashCode ^ code.hashCode;
 }
 
-/// Falha de validação de dados
 class ValidationFailure extends AppFailure {
   final List<String> validationErrors;
 
@@ -48,7 +39,6 @@ class ValidationFailure extends AppFailure {
   }
 }
 
-/// Falha de rede/conectividade
 class NetworkFailure extends AppFailure {
   final int? statusCode;
 
@@ -70,7 +60,6 @@ class NetworkFailure extends AppFailure {
   }
 }
 
-/// Falha de autenticação/autorização
 class AuthFailure extends AppFailure {
   const AuthFailure({required super.message, super.code, super.exception});
 
@@ -90,7 +79,6 @@ class AuthFailure extends AppFailure {
   }
 }
 
-/// Falha de dados/repositório
 class DataFailure extends AppFailure {
   const DataFailure({required super.message, super.code, super.exception});
 
@@ -114,7 +102,6 @@ class DataFailure extends AppFailure {
   }
 }
 
-/// Falha de regra de negócio
 class BusinessFailure extends AppFailure {
   const BusinessFailure({required super.message, super.code, super.exception});
 
@@ -130,7 +117,6 @@ class BusinessFailure extends AppFailure {
   }
 }
 
-/// Falha genérica/desconhecida
 class UnknownFailure extends AppFailure {
   const UnknownFailure({required super.message, super.code, super.exception});
 

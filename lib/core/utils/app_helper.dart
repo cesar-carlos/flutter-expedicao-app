@@ -1,8 +1,6 @@
 import 'package:date_format/date_format.dart';
 
-/// Utilitário geral da aplicação
 class AppHelper {
-  /// Converte string para double de forma segura
   static double stringToDouble(dynamic value) {
     if (value == null) return 0.0;
 
@@ -10,7 +8,6 @@ class AppHelper {
     if (value is int) return value.toDouble();
     if (value is String) {
       try {
-        // Remove formatação se houver (vírgulas, pontos, espaços)
         final cleanValue = value.replaceAll(',', '.').replaceAll(' ', '').replaceAll(RegExp(r'[^\d.-]'), '');
 
         return double.parse(cleanValue);
@@ -22,7 +19,6 @@ class AppHelper {
     return 0.0;
   }
 
-  /// Converte string para int de forma segura
   static int stringToInt(dynamic value) {
     if (value == null) return 0;
 
@@ -30,7 +26,6 @@ class AppHelper {
     if (value is double) return value.toInt();
     if (value is String) {
       try {
-        // Remove formatação se houver
         final cleanValue = value.replaceAll(RegExp(r'[^\d]'), '');
         return int.parse(cleanValue);
       } catch (e) {
@@ -41,7 +36,6 @@ class AppHelper {
     return 0;
   }
 
-  /// Converte string para bool de forma segura
   static bool stringToBool(dynamic value) {
     if (value == null) return false;
 
@@ -61,38 +55,31 @@ class AppHelper {
     return false;
   }
 
-  /// Verifica se uma string é nula ou vazia
   static bool isNullOrEmpty(String? value) {
     return value == null || value.trim().isEmpty;
   }
 
-  /// Verifica se uma string não é nula nem vazia
   static bool isNotNullOrEmpty(String? value) {
     return !isNullOrEmpty(value);
   }
 
-  /// Retorna string vazia se nula
   static String nullToEmpty(String? value) {
     return value ?? '';
   }
 
-  /// Retorna string padrão se nula ou vazia
   static String nullToDefault(String? value, String defaultValue) {
     return isNullOrEmpty(value) ? defaultValue : value!;
   }
 
-  /// Formata número com casas decimais
   static String formatNumber(double value, {int decimals = 2}) {
     return value.toStringAsFixed(decimals);
   }
 
-  /// Formata número com separador de milhares
   static String formatNumberWithSeparator(double value, {int decimals = 2}) {
     final parts = value.toStringAsFixed(decimals).split('.');
     final integerPart = parts[0];
     final decimalPart = parts.length > 1 ? parts[1] : '';
 
-    // Adiciona separador de milhares
     final formattedInteger = integerPart.replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match match) => '${match[1]}.',
@@ -101,7 +88,6 @@ class AppHelper {
     return decimalPart.isNotEmpty ? '$formattedInteger,$decimalPart' : formattedInteger;
   }
 
-  /// Converte string para DateTime de forma segura
   static DateTime? stringToDateTime(dynamic value) {
     if (value == null) return null;
 
@@ -110,7 +96,6 @@ class AppHelper {
       try {
         return DateTime.parse(value);
       } catch (e) {
-        // Tenta formatos brasileiros
         try {
           if (value.contains('/')) {
             final parts = value.split('/');
@@ -130,7 +115,6 @@ class AppHelper {
     return null;
   }
 
-  /// Converte string para DateTime ou retorna DateTime.now() se falhar
   static DateTime stringToDateTimeOrDefault(dynamic value) {
     return stringToDateTime(value) ?? DateTime.now();
   }
@@ -161,14 +145,12 @@ class AppHelper {
     return formatDate(value, [dd, '/', mm, '/', yyyy]);
   }
 
-  /// Formata a hora no formato HH:mm:ss
   static String formatTime(DateTime dateTime) {
     return '${dateTime.hour.toString().padLeft(2, '0')}:'
         '${dateTime.minute.toString().padLeft(2, '0')}:'
         '${dateTime.second.toString().padLeft(2, '0')}';
   }
 
-  /// Formata a hora no formato HH:mm (sem segundos)
   static String formatTimeShort(DateTime dateTime) {
     return '${dateTime.hour.toString().padLeft(2, '0')}:'
         '${dateTime.minute.toString().padLeft(2, '0')}';
