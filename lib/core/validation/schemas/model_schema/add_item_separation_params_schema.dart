@@ -3,11 +3,9 @@ import 'package:zard/zard.dart';
 import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Schema para validação de AddItemSeparationParams
 class AddItemSeparationParamsSchema {
   AddItemSeparationParamsSchema._();
 
-  /// Schema para AddItemSeparationParams
   static final schema = z
       .map({
         'CodEmpresa': CommonSchemas.integerSchema,
@@ -25,14 +23,12 @@ class AddItemSeparationParamsSchema {
         'Observacao': CommonSchemas.optionalStringSchema,
       })
       .refine((value) {
-        // Validação de precisão decimal (máximo 4 casas)
         final quantidade = value['Quantidade'] as double;
         final quantidadeStr = quantidade.toStringAsFixed(4);
         final quantidadeParsed = double.parse(quantidadeStr);
         return (quantidade - quantidadeParsed).abs() <= 0.0001;
       }, message: 'Quantidade deve ter no máximo 4 casas decimais');
 
-  /// Valida dados de AddItemSeparationParams
   static Map<String, dynamic> validate(Map<String, dynamic> data) {
     try {
       return schema.parse(data);
@@ -41,7 +37,6 @@ class AddItemSeparationParamsSchema {
     }
   }
 
-  /// Validação segura para AddItemSeparationParams
   static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> data) {
     return safeCallSync(() => validate(data));
   }

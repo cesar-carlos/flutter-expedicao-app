@@ -4,11 +4,9 @@ import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
 import 'package:data7_expedicao/core/validation/schemas/enum_schemas.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Schema para validação de SeparationItemConsultationModel
 class SeparationItemConsultationSchema {
   SeparationItemConsultationSchema._();
 
-  /// Schema para SeparationItemConsultationModel
   static final schema = z.map({
     'CodEmpresa': CommonSchemas.integerSchema,
     'CodSeparacaoItem': CommonSchemas.integerSchema,
@@ -30,7 +28,6 @@ class SeparationItemConsultationSchema {
     'Observacao': CommonSchemas.optionalStringSchema,
   });
 
-  /// Valida dados de consulta do item de separação
   static Map<String, dynamic> validate(Map<String, dynamic> data) {
     try {
       return schema.parse(data);
@@ -39,7 +36,6 @@ class SeparationItemConsultationSchema {
     }
   }
 
-  /// Validação segura para consulta do item de separação
   static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> data) {
     return safeCallSync(() => validate(data));
   }

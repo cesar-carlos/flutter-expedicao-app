@@ -3,12 +3,9 @@ import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
 import 'package:data7_expedicao/core/validation/schemas/enum_schemas.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Schema para validação de ExpeditionCheckConsultationModel
 class ExpeditionCheckConsultationSchema {
   ExpeditionCheckConsultationSchema._();
 
-  /// Schema para ExpeditionCheckConsultationModel
-  /// Baseado nos campos reais do modelo
   static final schema = z.map({
     'CodEmpresa': CommonSchemas.integerSchema,
     'CodConferir': CommonSchemas.integerSchema,
@@ -27,7 +24,6 @@ class ExpeditionCheckConsultationSchema {
     'Observacao': CommonSchemas.optionalStringSchema,
   });
 
-  /// Valida dados de consulta de conferência de expedição
   static Map<String, dynamic> validate(Map<String, dynamic> data) {
     try {
       return schema.parse(data);
@@ -36,7 +32,6 @@ class ExpeditionCheckConsultationSchema {
     }
   }
 
-  /// Validação segura para consulta de conferência de expedição
   static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> data) {
     return safeCallSync(() => validate(data));
   }

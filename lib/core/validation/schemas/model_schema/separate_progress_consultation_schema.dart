@@ -4,11 +4,9 @@ import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
 import 'package:data7_expedicao/core/validation/schemas/enum_schemas.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Schema para validação de SeparateProgressConsultationModel
 class SeparateProgressConsultationSchema {
   SeparateProgressConsultationSchema._();
 
-  /// Schema para SeparateProgressConsultationModel
   static final schema = z.map({
     'CodEmpresa': CommonSchemas.integerSchema,
     'CodSepararEstoque': CommonSchemas.integerSchema,
@@ -18,7 +16,6 @@ class SeparateProgressConsultationSchema {
     'ProcessoSeparacao': CommonSchemas.nonEmptyStringSchema,
   });
 
-  /// Valida dados de consulta de progresso de separação
   static Map<String, dynamic> validate(Map<String, dynamic> data) {
     try {
       return schema.parse(data);
@@ -27,7 +24,6 @@ class SeparateProgressConsultationSchema {
     }
   }
 
-  /// Validação segura para consulta de progresso de separação
   static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> data) {
     return safeCallSync(() => validate(data));
   }

@@ -8,10 +8,10 @@ import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
 import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
 import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
-import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/di/locator.dart';
 
 class ShelfScanningScreen extends StatefulWidget {
   final String expectedAddress;

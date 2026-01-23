@@ -17,13 +17,8 @@ class ScannerConfigScreen extends StatelessWidget {
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go(AppRouter.home)),
       ),
       body: const SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(24.0),
-          child: ScannerConfigForm(),
-        ),
+        child: SingleChildScrollView(padding: EdgeInsets.all(24.0), child: ScannerConfigForm()),
       ),
     );
   }
 }
-
-

@@ -43,25 +43,21 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
 
-    // Listener para atualizar o FAB quando trocar de aba
     _tabController.addListener(() {
       setState(() {});
     });
 
-    // Carrega os itens e carrinhos quando a tela é inicializada
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = context.read<SeparationItemsViewModel>();
       viewModel.loadSeparationItems(widget.separation);
       viewModel.loadSeparationCarts(widget.separation);
 
-      // Inicia o monitoramento de eventos de carrinho
       viewModel.startCartEventMonitoring();
     });
   }
 
   @override
   void dispose() {
-    // Para o monitoramento de eventos de carrinho
     try {
       final viewModel = context.read<SeparationItemsViewModel>();
       viewModel.stopCartEventMonitoring();
@@ -89,14 +85,12 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         showSocketStatus: false,
         leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
         actions: [
-          // Botões de ação baseados na aba ativa (não mostrar na aba Informações)
-          if (_tabController.index != 2) // Não mostrar filtro na aba Informações
+          if (_tabController.index != 2)
             Consumer<SeparationItemsViewModel>(
               builder: (context, viewModel, child) {
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Botão de filtro
                     IconButton(
                       onPressed: () => _showFilterModal(context),
                       icon: Stack(
@@ -117,7 +111,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
                       ),
                       tooltip: _tabController.index == 1 ? 'Filtros de Produtos' : 'Filtros de Carrinhos',
                     ),
-                    // Botão de atualizar
+
                     IconButton(
                       onPressed: () => _refreshData(viewModel),
                       icon: const Icon(Icons.refresh),
@@ -131,7 +125,6 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       ),
       body: Column(
         children: [
-          // Conteúdo principal
           Expanded(
             child: Consumer<SeparationItemsViewModel>(
               builder: (context, viewModel, child) {
@@ -144,10 +137,8 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       bottomNavigationBar: SeparateItemsBottomNavigation(tabController: _tabController),
       floatingActionButton: Consumer<SeparationItemsViewModel>(
         builder: (context, viewModel, child) {
-          // Na aba de informações (índice 2), não mostrar nenhum FAB
           if (_tabController.index == 2) return const SizedBox.shrink();
 
-          // Mostrar FAB de adicionar carrinho apenas na aba de carrinhos
           if (_tabController.index == 0) {
             final canAddCart = _canAddCart(viewModel.separation);
             return FloatingActionButton.extended(
@@ -260,7 +251,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
           UIConstants.defaultPadding,
           UIConstants.defaultPadding,
           100,
-        ), // Aumenta padding inferior para 100px
+        ),
         itemCount: viewModel.items.length,
         itemBuilder: (context, index) {
           final item = viewModel.items[index];
@@ -283,10 +274,8 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       backgroundColor: Colors.transparent,
       builder: (context) {
         if (_tabController.index == 1) {
-          // Aba de produtos
           return SeparateItemsFilterModal(viewModel: viewModel);
         } else {
-          // Aba de carrinhos
           return CartsFilterModal(viewModel: viewModel);
         }
       },
@@ -294,7 +283,6 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
   }
 
   void _onSeparateItem(BuildContext context, SeparateItemConsultationModel item, SeparationItemsViewModel viewModel) {
-    // TODO: Implementar ação de separar item específico
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Separar item ${item.codProduto} - Em desenvolvimento'),
@@ -306,7 +294,6 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
   Future<void> _onAddCart(BuildContext context) async {
     final viewModel = context.read<SeparationItemsViewModel>();
 
-    // Verificar se a separação permite adicionar carrinho
     if (!_canAddCart(viewModel.separation)) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -332,24 +319,52 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       ),
     );
 
-    // Se o carrinho foi adicionado com sucesso, atualizar a lista e abrir separação
     if (result == true) {
+      AppLogger.debug(
+        'Carrinho adicionado com sucesso, iniciando processo de abertura...',
+        tag: 'SeparationItemsScreen',
+      );
+
       await viewModel.refresh();
 
-      // Aguardar um pouco para garantir que os dados foram atualizados
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 500));
 
-      if (context.mounted) {
-        // Buscar o carrinho recém-adicionado e abrir a separação
-        await _openSeparationForNewestCart(context, viewModel);
+      int retryCount = 0;
+      while (!viewModel.cartsLoaded && retryCount < 5 && context.mounted) {
+        await Future.delayed(const Duration(milliseconds: 200));
+        retryCount++;
+      }
 
-        // Mostrar SnackBar após abrir a tela do carrinho
-        if (context.mounted) {
+      if (!context.mounted) {
+        AppLogger.warning('Context não está mais montado, abortando navegação', tag: 'SeparationItemsScreen');
+        return;
+      }
+
+      AppLogger.debug(
+        'Carrinhos carregados: ${viewModel.carts.length}, tentando abrir o mais recente...',
+        tag: 'SeparationItemsScreen',
+      );
+
+      final cartOpened = await _openSeparationForNewestCart(context, viewModel);
+
+      if (!cartOpened && context.mounted) {
+        AppLogger.debug('Primeira tentativa falhou, tentando novamente após refresh...', tag: 'SeparationItemsScreen');
+        await Future.delayed(const Duration(milliseconds: 500));
+        await viewModel.refresh();
+        final retryOpened = await _openSeparationForNewestCart(context, viewModel);
+
+        if (!retryOpened && context.mounted) {
+          AppLogger.warning(
+            'Não foi possível abrir o carrinho após múltiplas tentativas',
+            tag: 'SeparationItemsScreen',
+          );
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Carrinho adicionado com sucesso!'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: const Text(
+                'Carrinho adicionado, mas não foi possível abrir automaticamente. Tente abrir manualmente.',
+              ),
+              backgroundColor: Colors.orange,
+              duration: UIConstants.snackBarMediumDuration,
             ),
           );
         }
@@ -357,75 +372,80 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
     }
   }
 
-  /// Verifica se é possível adicionar carrinho baseado na situação da separação
   bool _canAddCart(SeparateConsultationModel? separation) {
     if (separation == null) return false;
 
-    // Permitir apenas nas situações: Aguardando, Separando, Em Separação
     return separation.situacao == ExpeditionSituation.aguardando ||
-        separation.situacao == ExpeditionSituation.separando ||
-        separation.situacao == ExpeditionSituation.aguardando;
+        separation.situacao == ExpeditionSituation.separando;
   }
 
-  /// Abre a separação do carrinho mais recente (recém-adicionado)
-  Future<void> _openSeparationForNewestCart(BuildContext context, SeparationItemsViewModel viewModel) async {
+  Future<bool> _openSeparationForNewestCart(BuildContext context, SeparationItemsViewModel viewModel) async {
     try {
-      // Obter o userModel da sessão
       final userSessionService = locator<UserSessionService>();
       final appUser = await userSessionService.loadUserSession();
       final userModel = appUser?.userSystemModel;
 
-      if (!context.mounted) return;
-
-      // Buscar o carrinho mais recente que pode ser separado
-      // Priorizar carrinhos na situação "separando" (recém-adicionados)
-      final newestCart =
-          viewModel.carts
-              .where(
-                (cart) =>
-                    cart.situacao == ExpeditionSituation.aguardando ||
-                    cart.situacao == ExpeditionSituation.separado ||
-                    cart.situacao == ExpeditionSituation.conferido ||
-                    cart.situacao == ExpeditionSituation.separando,
-              )
-              .toList()
-            ..sort((a, b) {
-              // Priorizar carrinhos na situação "separando"
-              if (a.situacao == ExpeditionSituation.separando && b.situacao != ExpeditionSituation.separando) {
-                return -1;
-              }
-              if (a.situacao != ExpeditionSituation.separando && b.situacao == ExpeditionSituation.separando) {
-                return 1;
-              }
-              // Se ambos têm a mesma prioridade, ordenar por data mais recente
-              return b.dataInicio.compareTo(a.dataInicio);
-            });
-
-      if (newestCart.isNotEmpty) {
-        final cart = newestCart.first;
-
-        // Navegar para a tela de separação do carrinho
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => ChangeNotifierProvider(
-              create: (_) => CardPickingViewModel(),
-              child: CardPickingScreen(
-                cart: cart,
-                userModel: userModel, // ✅ Agora passa o userModel correto
-              ),
-            ),
-          ),
-        );
-      } else {
-        // Se não encontrou carrinho adequado, mostrar mensagem
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Nenhum carrinho disponível para separação'), backgroundColor: Colors.orange),
-          );
-        }
+      if (!context.mounted) {
+        return false;
       }
+
+      final availableCarts = viewModel.carts
+          .where(
+            (cart) =>
+                cart.situacao == ExpeditionSituation.aguardando ||
+                cart.situacao == ExpeditionSituation.separado ||
+                cart.situacao == ExpeditionSituation.conferido ||
+                cart.situacao == ExpeditionSituation.separando,
+          )
+          .toList();
+
+      if (availableCarts.isEmpty) {
+        AppLogger.debug(
+          'Nenhum carrinho disponível para separação. Total de carrinhos: ${viewModel.carts.length}',
+          tag: 'SeparationItemsScreen',
+        );
+        return false;
+      }
+
+      availableCarts.sort((a, b) {
+        if (a.situacao == ExpeditionSituation.separando && b.situacao != ExpeditionSituation.separando) {
+          return -1;
+        }
+        if (a.situacao != ExpeditionSituation.separando && b.situacao == ExpeditionSituation.separando) {
+          return 1;
+        }
+
+        return b.dataInicio.compareTo(a.dataInicio);
+      });
+
+      final newestCart = availableCarts.first;
+
+      AppLogger.debug(
+        'Abrindo carrinho: ${newestCart.codCarrinho} (${newestCart.nomeCarrinho}), situação: ${newestCart.situacao.description}',
+        tag: 'SeparationItemsScreen',
+      );
+
+      if (!context.mounted) {
+        return false;
+      }
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ChangeNotifierProvider(
+            create: (_) => CardPickingViewModel(),
+            child: CardPickingScreen(cart: newestCart, userModel: userModel),
+          ),
+        ),
+      );
+
+      return true;
     } catch (e, stackTrace) {
-      AppLogger.error('Erro ao abrir separação do carrinho mais recente', tag: 'SeparationItemsScreen', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Erro ao abrir separação do carrinho mais recente',
+        tag: 'SeparationItemsScreen',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -434,6 +454,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
           ),
         );
       }
+      return false;
     }
   }
 }

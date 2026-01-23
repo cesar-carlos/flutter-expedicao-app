@@ -2,11 +2,9 @@ import 'package:zard/zard.dart';
 
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Schema para validação de LoginRequest
 class LoginRequestSchema {
   LoginRequestSchema._();
 
-  /// Schema para LoginRequest
   static final schema = z.map({
     'username': z.string().min(1, message: 'Usuário é obrigatório').transform((value) => value.trim()),
     'password': z
@@ -16,7 +14,6 @@ class LoginRequestSchema {
         .max(60, message: 'Senha deve ter no máximo 60 caracteres'),
   });
 
-  /// Valida dados de login
   static Map<String, dynamic> validate(Map<String, dynamic> data) {
     try {
       return schema.parse(data);
@@ -25,7 +22,6 @@ class LoginRequestSchema {
     }
   }
 
-  /// Validação segura para login
   static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> data) {
     return safeCallSync(() => validate(data));
   }

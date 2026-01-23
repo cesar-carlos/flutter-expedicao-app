@@ -14,13 +14,13 @@ class LoggerService implements ILogger {
       if (kDebugMode) {
         final levelEmoji = _getLevelEmoji(record.level);
         final tag = record.loggerName != 'Data7Expedicao' ? '[${record.loggerName}]' : '';
-        
+
         debugPrint('$levelEmoji$tag ${record.message}');
-        
+
         if (record.error != null) {
           debugPrint('💥 Erro: ${record.error}');
         }
-        
+
         if (record.stackTrace != null) {
           debugPrint('📍 Stack: ${record.stackTrace}');
         }

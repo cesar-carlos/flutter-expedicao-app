@@ -15,6 +15,7 @@ import 'package:data7_expedicao/domain/models/separate_item_consultation_model.d
 import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/scan_ui_controller.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class PickingCardScan extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -68,8 +69,6 @@ class _PickingCardScanProvider extends StatelessWidget {
 }
 
 class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAliveClientMixin {
-  static const Duration _displayDelay = Duration(milliseconds: 500);
-
   static const String _defaultQuantity = '1';
 
   final _scanController = TextEditingController();
@@ -115,7 +114,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       if (mounted) {
         _loadScannerPreferences();
 
-        Future.delayed(const Duration(milliseconds: 150), () {
+        Future.delayed(UIConstants.scannerInitDelay, () {
           if (mounted) {
             _ensureScannerModeActivated();
           }
@@ -131,7 +130,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     widget.viewModel.addListener(_onViewModelChanged);
 
-    Future.delayed(const Duration(milliseconds: 1000), () {
+    Future.delayed(UIConstants.longDelay, () {
       if (mounted && !_hasShownInitialShelfScan) {
         if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
           _checkInitialShelfScan();
@@ -180,20 +179,32 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       _scannerMode = config.scannerInputMode;
       _broadcastAction = (config.broadcastAction ?? '').trim();
       _broadcastExtraKey = (config.broadcastExtraKey ?? '').trim();
-      debugPrint('[Scan] prefs mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey');
-    } catch (_) {
+      AppLogger.debug(
+        'Scanner preferences loaded: mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey',
+        tag: 'PickingCardScan',
+      );
+    } catch (e, stackTrace) {
       _scannerMode = ScannerInputMode.focus;
       _broadcastAction = '';
       _broadcastExtraKey = '';
+      AppLogger.warning(
+        'Failed to load scanner preferences, using defaults',
+        tag: 'PickingCardScan',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
   void _startBroadcastListener() {
     if (!_isBroadcastMode) {
-      debugPrint('[Scan][Broadcast] start skipped - not broadcast mode');
+      AppLogger.debug('Broadcast listener start skipped - not broadcast mode', tag: 'PickingCardScan');
       return;
     }
-    debugPrint('[Scan][Broadcast] start action=$_broadcastAction extra=$_broadcastExtraKey');
+    AppLogger.debug(
+      'Starting broadcast listener: action=$_broadcastAction extra=$_broadcastExtraKey',
+      tag: 'PickingCardScan',
+    );
 
     _broadcastSubscription?.cancel();
     _broadcastSubscription = null;
@@ -205,29 +216,44 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
             (code) {
               if (!mounted) return;
               final trimmed = code.trim();
-              debugPrint('[Scan][Broadcast] received code="$trimmed"');
+              AppLogger.debug('Broadcast received code: $trimmed', tag: 'PickingCardScan');
               if (trimmed.isEmpty) return;
               _onBarcodeScanned(trimmed);
             },
-            onError: (error) {
-              debugPrint('[Scan][Broadcast] error: $error');
+            onError: (error, stackTrace) {
+              AppLogger.error(
+                'Broadcast listener error',
+                tag: 'PickingCardScan',
+                error: error,
+                stackTrace: stackTrace,
+              );
             },
             onDone: () {
-              debugPrint('[Scan][Broadcast] stream done');
+              AppLogger.debug('Broadcast listener stream done', tag: 'PickingCardScan');
             },
           );
-      debugPrint('[Scan][Broadcast] listener created successfully');
-    } catch (e) {
-      debugPrint('[Scan][Broadcast] error creating listener: $e');
+      AppLogger.debug('Broadcast listener created successfully', tag: 'PickingCardScan');
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Error creating broadcast listener',
+        tag: 'PickingCardScan',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
   Future<void> _stopBroadcastListener() async {
-    debugPrint('[Scan][Broadcast] stop');
+    AppLogger.debug('Stopping broadcast listener', tag: 'PickingCardScan');
     try {
       await _broadcastSubscription?.cancel();
     } catch (e, stackTrace) {
-      AppLogger.warning('Erro ao cancelar subscription de broadcast', tag: 'PickingCardScan', error: e, stackTrace: stackTrace);
+      AppLogger.warning(
+        'Error canceling broadcast subscription',
+        tag: 'PickingCardScan',
+        error: e,
+        stackTrace: stackTrace,
+      );
     } finally {
       _broadcastSubscription = null;
     }
@@ -244,7 +270,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     _scanState.setKeyboardEnabled(true);
     _keyboardController.enableKeyboardMode();
-    Future.delayed(const Duration(milliseconds: 150), () {
+    Future.delayed(UIConstants.scannerInitDelay, () {
       if (!mounted) return;
       _scanState.setKeyboardEnabled(false);
       _keyboardController.enableScannerMode();
@@ -260,7 +286,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   Future<void> _pauseScannerForShelf() async {
-    debugPrint('[Scan] pause for shelf');
+    AppLogger.debug('Pausing scanner for shelf scan', tag: 'PickingCardScan');
     _scanState.setEnabled(false);
     if (_isBroadcastMode) {
       await _stopBroadcastListener();
@@ -269,33 +295,34 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   void _reactivateScanner() {
-    debugPrint('[Scan] reactivate after shelf - mode=$_scannerMode');
+    AppLogger.debug('Reactivating scanner after shelf scan - mode=$_scannerMode', tag: 'PickingCardScan');
 
     if (_isBroadcastMode) {
-      debugPrint('[Scan] stopping broadcast listener before reactivation');
+      AppLogger.debug('Stopping broadcast listener before reactivation', tag: 'PickingCardScan');
       _stopBroadcastListener();
     }
 
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(UIConstants.mediumDelay, () {
       if (!mounted) {
-        debugPrint('[Scan] reactivate cancelled - not mounted');
+        AppLogger.debug('Scanner reactivation cancelled - not mounted', tag: 'PickingCardScan');
         return;
       }
 
       _loadScannerPreferences();
-      debugPrint(
-        '[Scan] reactivate - loaded prefs mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey',
+      AppLogger.debug(
+        'Scanner reactivation - loaded prefs: mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey',
+        tag: 'PickingCardScan',
       );
       _scannerModeInitialized = false;
 
       if (_isBroadcastMode) {
-        debugPrint('[Scan] reactivate - waiting to recreate broadcast listener');
-        Future.delayed(const Duration(milliseconds: 300), () {
+        AppLogger.debug('Waiting to recreate broadcast listener', tag: 'PickingCardScan');
+        Future.delayed(UIConstants.scannerBroadcastRecreateDelay, () {
           if (!mounted) {
-            debugPrint('[Scan] reactivate cancelled - not mounted (broadcast)');
+            AppLogger.debug('Scanner reactivation cancelled - not mounted (broadcast)', tag: 'PickingCardScan');
             return;
           }
-          debugPrint('[Scan] reactivate - recreating broadcast listener');
+          AppLogger.debug('Recreating broadcast listener', tag: 'PickingCardScan');
           _startBroadcastListener();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
@@ -303,11 +330,11 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
             _scanState.stopProcessing();
             _scanController.clear();
             _scanFocusNode.requestFocus();
-            debugPrint('[Scan] reactivate - broadcast listener recreated and ready');
+            AppLogger.debug('Broadcast listener recreated and ready', tag: 'PickingCardScan');
           });
         });
       } else {
-        debugPrint('[Scan] reactivate - focus mode');
+        AppLogger.debug('Reactivating scanner in focus mode', tag: 'PickingCardScan');
         _ensureScannerModeActivated();
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
@@ -329,7 +356,20 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _statusCache.forceCheckCartStatus();
-        _scanFocusNode.requestFocus();
+        
+        // Se os dados já estão carregados, ativar o scanner imediatamente
+        if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
+          Future.delayed(UIConstants.scannerActivationDelay, () {
+            if (mounted) {
+              _ensureScannerModeActivated();
+              _scanState.setEnabled(_isCartInSeparationStatus());
+              _scanFocusNode.requestFocus();
+            }
+          });
+        } else {
+          // Caso contrário, apenas solicitar foco
+          _scanFocusNode.requestFocus();
+        }
       }
     });
   }
@@ -343,12 +383,12 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   void _processScannerInput() {
     final text = _scanController.text.trim();
-    debugPrint('[Scan][Focus] raw="$text"');
+    AppLogger.debug('Processing scanner input: $text', tag: 'PickingCardScan');
     _scanProcessor.processScannerInput(text, _handleCompleteBarcode, _waitForMoreInput);
   }
 
   void _handleCompleteBarcode(String barcode) {
-    debugPrint('[Scan][Focus] complete="$barcode"');
+    AppLogger.debug('Complete barcode scanned: $barcode', tag: 'PickingCardScan');
     _clearScannerFieldAfterDelay();
     _onBarcodeScanned(barcode);
   }
@@ -357,13 +397,13 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     if (!mounted || _scanController.text.isEmpty) return;
 
     final barcode = _scanController.text.trim();
-    debugPrint('[Scan][Focus] timeout/partial="$barcode"');
+    AppLogger.debug('Timeout/partial barcode: $barcode', tag: 'PickingCardScan');
     _clearScannerFieldAfterDelay();
     _onBarcodeScanned(barcode);
   }
 
   void _clearScannerFieldAfterDelay() {
-    Future.delayed(_displayDelay, () {
+    Future.delayed(UIConstants.scannerDisplayDelay, () {
       if (mounted) {
         _scanController.clear();
       }
@@ -425,18 +465,31 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     if (!mounted) return;
 
     if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
-      Future.delayed(const Duration(milliseconds: 50), () {
+      Future.delayed(UIConstants.shortLoadingDelay, () {
         if (mounted) {
           _checkInitialShelfScan();
         }
       });
 
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted && !_scanState.enabled) {
+      // Ativar o scanner quando os dados são carregados
+      Future.delayed(UIConstants.scannerReactivationDelay, () {
+        if (!mounted) return;
+        
+        final isCartInSeparation = _isCartInSeparationStatus();
+        
+        // Sempre garantir que o scanner está ativado quando os dados estão prontos
+        if (!_scanState.enabled && isCartInSeparation) {
           _ensureScannerModeActivated();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               _scanState.setEnabled(true);
+              _scanFocusNode.requestFocus();
+            }
+          });
+        } else if (isCartInSeparation) {
+          // Se já está habilitado, apenas garantir que o foco está ativo
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
               _scanFocusNode.requestFocus();
             }
           });
@@ -467,7 +520,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   Future<void> _onBarcodeScanned(String barcode) async {
-    debugPrint('[Scan] onBarcodeScanned mode=$_scannerMode code="$barcode"');
+    AppLogger.debug('Barcode scanned: mode=$_scannerMode code="$barcode"', tag: 'PickingCardScan');
     if (barcode.trim().isEmpty) return;
 
     if (_scanState.isProcessingScan) return;
@@ -522,7 +575,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
         _checkNextItemShelfScan();
 
-        Future.delayed(const Duration(milliseconds: 500), () async {
+        Future.delayed(UIConstants.mediumDelay, () async {
           if (mounted) {
             await _checkAndShowSaveCartModal();
           }
@@ -548,7 +601,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     if (nextItem != null) {
       _hasShownInitialShelfScan = true;
 
-      Future.delayed(const Duration(milliseconds: 100), () {
+      Future.delayed(UIConstants.shortLoadingDelay, () {
         if (mounted) {
           _pauseScannerForShelf().then((_) {
             if (!mounted) return;
@@ -569,7 +622,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     );
 
     if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
-      Future.delayed(const Duration(milliseconds: 50), () {
+      Future.delayed(UIConstants.shortLoadingDelay, () {
         if (mounted) {
           _pauseScannerForShelf().then((_) {
             if (!mounted) return;

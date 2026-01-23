@@ -6,6 +6,7 @@ import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
 import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
 import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
@@ -95,18 +96,30 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
       _scannerMode = config.scannerInputMode;
       _broadcastAction = (config.broadcastAction ?? '').trim();
       _broadcastExtraKey = (config.broadcastExtraKey ?? '').trim();
-      debugPrint('[ShelfModal] prefs mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey');
-    } catch (_) {
+      AppLogger.debug(
+        'Shelf modal scanner preferences loaded: mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey',
+        tag: 'ShelfScanningModal',
+      );
+    } catch (e, stackTrace) {
       _scannerMode = ScannerInputMode.focus;
       _broadcastAction = '';
       _broadcastExtraKey = '';
+      AppLogger.warning(
+        'Failed to load scanner preferences, using defaults',
+        tag: 'ShelfScanningModal',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
   void _startBroadcastListener() {
     if (!_isBroadcastConfigured) return;
     if (_manualOverrideBroadcast) return;
-    debugPrint('[ShelfModal][Broadcast] start action=$_broadcastAction extra=$_broadcastExtraKey');
+    AppLogger.debug(
+      'Starting broadcast listener: action=$_broadcastAction extra=$_broadcastExtraKey',
+      tag: 'ShelfScanningModal',
+    );
     _broadcastSub?.cancel();
     _broadcastSub = _broadcastService.listen(action: _broadcastAction, extraKey: _broadcastExtraKey).listen((code) {
       if (!mounted) return;
@@ -117,11 +130,16 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   }
 
   Future<void> _stopBroadcastListener() async {
-    debugPrint('[ShelfModal][Broadcast] stop');
+    AppLogger.debug('Stopping broadcast listener', tag: 'ShelfScanningModal');
     try {
       await _broadcastSub?.cancel();
-    } catch (_) {
-      // Ignorar erro de cancelamento quando não há stream ativa
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Error canceling broadcast subscription',
+        tag: 'ShelfScanningModal',
+        error: e,
+        stackTrace: stackTrace,
+      );
     } finally {
       _broadcastSub = null;
     }
@@ -145,7 +163,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
       return;
     }
 
-    Future.delayed(const Duration(milliseconds: 100), () {
+    Future.delayed(UIConstants.shortLoadingDelay, () {
       if (mounted && _scanController.text.trim() == text) {
         _handleCompleteBarcode(text);
       }
@@ -153,13 +171,13 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   }
 
   void _handleCompleteBarcode(String barcode) {
-    debugPrint('[ShelfModal] complete="$barcode"');
+    AppLogger.debug('Complete barcode scanned: $barcode', tag: 'ShelfScanningModal');
     _clearScannerFieldAfterDelay();
     _validateShelfInput(barcode);
   }
 
   void _clearScannerFieldAfterDelay() {
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(UIConstants.scannerDisplayDelay, () {
       if (mounted) {
         _scanController.clear();
       }
@@ -177,7 +195,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   void _validateShelfInput([String? scannedValue]) {
     _validationTimer?.cancel();
 
-    _validationTimer = Timer(const Duration(milliseconds: 100), () {
+    _validationTimer = Timer(UIConstants.shortLoadingDelay, () {
       if (!mounted) return;
 
       final input = (scannedValue ?? _scanController.text).trim();
@@ -218,7 +236,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   }
 
   void _toggleInputMode() {
-    debugPrint('[ShelfModal] toggle manual=${!_isManualMode}');
+    AppLogger.debug('Toggling input mode: manual=${!_isManualMode}', tag: 'ShelfScanningModal');
     setState(() {
       _isManualMode = !_isManualMode;
       if (_isManualMode && _isBroadcastConfigured) {
@@ -241,7 +259,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   }
 
   void _enableScannerMode() {
-    debugPrint('[ShelfModal] enable scanner mode');
+    AppLogger.debug('Enabling scanner mode', tag: 'ShelfScanningModal');
     _hideKeyboard();
 
     Future.delayed(UIConstants.shortDelay, () {
@@ -252,7 +270,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   }
 
   void _enableKeyboardMode() {
-    debugPrint('[ShelfModal] enable keyboard mode');
+    AppLogger.debug('Enabling keyboard mode', tag: 'ShelfScanningModal');
     _focusNode.unfocus();
 
     Future.delayed(UIConstants.shortDelay, () {

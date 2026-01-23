@@ -4,11 +4,9 @@ import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
 import 'package:data7_expedicao/core/validation/schemas/model_schema/separate_item_unidade_medida_consultation_schema.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Schema para validação de SeparateItemConsultationModel
 class SeparateItemConsultationSchema {
   SeparateItemConsultationSchema._();
 
-  /// Schema para SeparateItemConsultationModel
   static final schema = z.map({
     'CodEmpresa': CommonSchemas.integerSchema,
     'CodSepararEstoque': CommonSchemas.integerSchema,
@@ -46,7 +44,6 @@ class SeparateItemConsultationSchema {
     'UnidadeMedidas': z.list(SeparateItemUnidadeMedidaConsultationSchema.schema),
   });
 
-  /// Valida dados de consulta do item de separação
   static Map<String, dynamic> validate(Map<String, dynamic> data) {
     try {
       return schema.parse(data);
@@ -55,7 +52,6 @@ class SeparateItemConsultationSchema {
     }
   }
 
-  /// Validação segura para consulta do item de separação
   static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> data) {
     return safeCallSync(() => validate(data));
   }

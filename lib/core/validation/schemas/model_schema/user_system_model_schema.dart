@@ -3,11 +3,9 @@ import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
 import 'package:data7_expedicao/core/validation/schemas/enum_schemas.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Schema de validação para UserSystemModel
 class UserSystemModelSchema {
   UserSystemModelSchema._();
 
-  /// Schema para UserSystemModel
   static final schema = z.map({
     'CodUsuario': CommonSchemas.integerSchema,
     'NomeUsuario': CommonSchemas.nonEmptyStringSchema,
@@ -41,7 +39,6 @@ class UserSystemModelSchema {
     'CodLoginApp': CommonSchemas.optionalIntegerSchema,
   });
 
-  /// Valida dados do modelo de usuário do sistema
   static Map<String, dynamic> validate(Map<String, dynamic> data) {
     try {
       return schema.parse(data);
@@ -50,7 +47,6 @@ class UserSystemModelSchema {
     }
   }
 
-  /// Validação segura para modelo de usuário do sistema
   static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> data) {
     return safeCallSync(() => validate(data));
   }

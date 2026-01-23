@@ -4,11 +4,9 @@ import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
 import 'package:data7_expedicao/core/validation/schemas/enum_schemas.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Schema para validação de AppUserConsultation
 class AppUserConsultationSchema {
   AppUserConsultationSchema._();
 
-  /// Schema para AppUserConsultation
   static final schema = z.map({
     'CodLoginApp': CommonSchemas.integerSchema,
     'Ativo': EnumSchemas.activeStatusSchema,
@@ -23,7 +21,6 @@ class AppUserConsultationSchema {
     'Observacao': CommonSchemas.optionalStringSchema,
   });
 
-  /// Valida dados de consulta do usuário
   static Map<String, dynamic> validate(Map<String, dynamic> data) {
     try {
       return schema.parse(data);
@@ -32,7 +29,6 @@ class AppUserConsultationSchema {
     }
   }
 
-  /// Validação segura para consulta do usuário
   static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> data) {
     return safeCallSync(() => validate(data));
   }

@@ -216,7 +216,12 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
         SnackBar(content: Text(message), backgroundColor: Colors.green, duration: const Duration(seconds: 2)),
       );
     } catch (e, stackTrace) {
-      AppLogger.warning('Erro ao exibir mensagem de sucesso', tag: 'QRCodeLoginScreen', error: e, stackTrace: stackTrace);
+      AppLogger.warning(
+        'Erro ao exibir mensagem de sucesso',
+        tag: 'QRCodeLoginScreen',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 

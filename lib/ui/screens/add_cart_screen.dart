@@ -20,6 +20,7 @@ class AddCartScreen extends StatefulWidget {
 class _AddCartScreenState extends State<AddCartScreen> {
   final _scrollController = ScrollController();
   late AddCartViewModel _viewModel;
+  bool _hasPopped = false;
 
   @override
   void initState() {
@@ -40,12 +41,20 @@ class _AddCartScreenState extends State<AddCartScreen> {
   void _onViewModelChanged() {
     if (_viewModel.hasCartData && !_viewModel.isScanning) {
       Future.delayed(const Duration(milliseconds: 100), () {
-        _scrollToActions();
+        if (mounted) {
+          _scrollToActions();
+        }
       });
     }
 
-    if (_viewModel.cartAddedSuccessfully && mounted) {
-      Navigator.of(context).pop(true);
+    if (_viewModel.cartAddedSuccessfully && mounted && !_hasPopped) {
+      _hasPopped = true;
+      
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted && _hasPopped) {
+          Navigator.of(context).pop(true);
+        }
+      });
     }
   }
 

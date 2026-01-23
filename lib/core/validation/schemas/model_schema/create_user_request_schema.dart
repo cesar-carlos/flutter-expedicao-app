@@ -3,11 +3,9 @@ import 'package:zard/zard.dart';
 import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Schema para validação de CreateUserRequest
 class CreateUserRequestSchema {
   CreateUserRequestSchema._();
 
-  /// Schema para CreateUserRequest
   static final schema = z.map({
     'Nome': z
         .string()
@@ -36,7 +34,6 @@ class CreateUserRequestSchema {
     'FotoUsuario': CommonSchemas.optionalStringSchema,
   });
 
-  /// Valida dados de criação de usuário
   static Map<String, dynamic> validate(Map<String, dynamic> data) {
     try {
       return schema.parse(data);
@@ -45,7 +42,6 @@ class CreateUserRequestSchema {
     }
   }
 
-  /// Validação segura para criação de usuário
   static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> data) {
     return safeCallSync(() => validate(data));
   }

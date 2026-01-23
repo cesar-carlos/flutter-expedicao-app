@@ -75,7 +75,12 @@ class StartSeparationUseCase {
 
       return separations.isNotEmpty ? separations.first : null;
     } catch (e, stackTrace) {
-      AppLogger.error('Erro ao buscar separação existente', tag: 'StartSeparationUseCase', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Erro ao buscar separação existente',
+        tag: 'StartSeparationUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -92,7 +97,12 @@ class StartSeparationUseCase {
 
       return cartRoutes.isNotEmpty ? cartRoutes.first : null;
     } catch (e, stackTrace) {
-      AppLogger.error('Erro ao buscar carrinho percurso existente', tag: 'StartSeparationUseCase', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Erro ao buscar carrinho percurso existente',
+        tag: 'StartSeparationUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -123,7 +133,12 @@ class StartSeparationUseCase {
         ),
       );
     } catch (e, stackTrace) {
-      AppLogger.error('Erro ao executar operação transacional de início de separação', tag: 'StartSeparationUseCase', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Erro ao executar operação transacional de início de separação',
+        tag: 'StartSeparationUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

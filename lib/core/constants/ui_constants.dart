@@ -160,4 +160,11 @@ class UIConstants {
   static const Duration retryDelay = Duration(seconds: 2);
   static const Duration shortRetryDelay = Duration(seconds: 1);
   static const Duration longRetryDelay = Duration(seconds: 5);
+
+  // Configurações de scanner
+  static const Duration scannerInitDelay = Duration(milliseconds: 150);
+  static const Duration scannerActivationDelay = Duration(milliseconds: 200);
+  static const Duration scannerReactivationDelay = Duration(milliseconds: 300);
+  static const Duration scannerDisplayDelay = Duration(milliseconds: 500);
+  static const Duration scannerBroadcastRecreateDelay = Duration(milliseconds: 300);
 }

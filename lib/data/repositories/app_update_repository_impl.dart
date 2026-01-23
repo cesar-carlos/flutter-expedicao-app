@@ -1,17 +1,19 @@
 import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:result_dart/result_dart.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+
 import 'package:data7_expedicao/domain/models/app_version.dart';
 import 'package:data7_expedicao/domain/models/github_release.dart';
 import 'package:data7_expedicao/domain/repositories/i_app_update_repository.dart';
 import 'package:data7_expedicao/data/services/github_api_service.dart';
 import 'package:data7_expedicao/core/results/app_result.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppUpdateRepositoryImpl implements IAppUpdateRepository {
   final GitHubApiService _githubApiService;

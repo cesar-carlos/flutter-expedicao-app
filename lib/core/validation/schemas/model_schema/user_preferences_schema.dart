@@ -3,11 +3,9 @@ import 'package:zard/zard.dart';
 import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Schema para validação de UserPreferences
 class UserPreferencesSchema {
   UserPreferencesSchema._();
 
-  /// Schema para UserPreferences
   static final schema = z.map({
     'theme': z.string().optional(),
     'language': z.string().optional(),
@@ -19,7 +17,6 @@ class UserPreferencesSchema {
     'useHttps': CommonSchemas.optionalBooleanSchema,
   });
 
-  /// Valida preferências do usuário
   static Map<String, dynamic> validate(Map<String, dynamic> data) {
     try {
       return schema.parse(data);
@@ -28,7 +25,6 @@ class UserPreferencesSchema {
     }
   }
 
-  /// Validação segura para preferências do usuário
   static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> data) {
     return safeCallSync(() => validate(data));
   }

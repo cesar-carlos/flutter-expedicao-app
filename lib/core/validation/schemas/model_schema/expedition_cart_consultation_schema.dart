@@ -4,11 +4,9 @@ import 'package:data7_expedicao/core/validation/schemas/common_schemas.dart';
 import 'package:data7_expedicao/core/validation/schemas/enum_schemas.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Schema para validação de ExpeditionCartConsultationModel
 class ExpeditionCartConsultationSchema {
   ExpeditionCartConsultationSchema._();
 
-  /// Schema para ExpeditionCartConsultationModel
   static final schema = z.map({
     'CodEmpresa': CommonSchemas.integerSchema,
     'CodExpedicaoCarrinho': CommonSchemas.integerSchema,
@@ -29,7 +27,6 @@ class ExpeditionCartConsultationSchema {
     'Observacao': CommonSchemas.optionalStringSchema,
   });
 
-  /// Valida dados da consulta do carrinho
   static Map<String, dynamic> validate(Map<String, dynamic> data) {
     try {
       return schema.parse(data);
@@ -38,7 +35,6 @@ class ExpeditionCartConsultationSchema {
     }
   }
 
-  /// Validação segura para consulta do carrinho
   static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> data) {
     return safeCallSync(() => validate(data));
   }
