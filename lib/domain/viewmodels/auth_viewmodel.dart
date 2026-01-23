@@ -5,6 +5,7 @@ import 'package:data7_expedicao/domain/usecases/user/login_user_usecase.dart';
 import 'package:data7_expedicao/domain/repositories/user_system_repository.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error, needsUserSelection }
 
@@ -171,9 +172,11 @@ class AuthViewModel extends ChangeNotifier {
         await _userSessionService.saveUserSession(_currentUser!);
       }
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Erro ao carregar UserSystemModel: $e');
-      }
+      AppLogger.error(
+        'Erro ao carregar UserSystemModel: $e',
+        tag: 'AuthViewModel',
+        error: e,
+      );
 
       if (_status == AuthStatus.authenticated) {
         return;

@@ -6,6 +6,7 @@ import 'package:data7_expedicao/core/network/network_initializer.dart';
 import 'package:data7_expedicao/data/datasources/config_service.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 /// ViewModel para gerenciar configurações da API
 class ConfigViewModel extends ChangeNotifier {
@@ -195,7 +196,7 @@ class ConfigViewModel extends ChangeNotifier {
       // Monta URL de teste
       final protocol = testHttps ? AppStrings.httpsProtocol : AppStrings.httpProtocol;
       final fullUrl = '$protocol://$testUrl:$testPort${AppStrings.apiEndpoint}';
-      debugPrint('[Config] Testing connection to $fullUrl (https=$testHttps)');
+      AppLogger.debug('Testing connection to $fullUrl (https=$testHttps)', tag: 'Config');
 
       // Cria instância do Dio
       final dio = Dio();
@@ -206,7 +207,7 @@ class ConfigViewModel extends ChangeNotifier {
 
       // Faz a requisição GET
       final response = await dio.get(fullUrl);
-      debugPrint('[Config] Response status: ${response.statusCode}, data: ${response.data}');
+      AppLogger.debug('Response status: ${response.statusCode}, data: ${response.data}', tag: 'Config');
 
       // Verifica se o status é 200 e se a resposta contém a mensagem esperada
       if (response.statusCode == 200) {
@@ -245,12 +246,16 @@ class ConfigViewModel extends ChangeNotifier {
         default:
           _errorMessage = '${AppStrings.connectionFailurePrefix}: ${e.message}';
       }
-      debugPrint('[Config] DioException type=${e.type} code=${e.response?.statusCode} message=${e.message}');
+      AppLogger.debug('DioException type=${e.type} code=${e.response?.statusCode} message=${e.message}', tag: 'Config');
       return false;
     } catch (e) {
       _connectionTested = false;
       _errorMessage = '${AppStrings.unexpectedError}: $e';
-      debugPrint('[Config] Unexpected error while testing connection: $e');
+      AppLogger.error(
+        'Unexpected error while testing connection: $e',
+        tag: 'Config',
+        error: e,
+      );
       return false;
     } finally {
       _setTesting(false);

@@ -1,11 +1,10 @@
-import 'package:flutter/foundation.dart';
-
 import 'package:data7_expedicao/core/network/dio_config.dart';
 import 'package:data7_expedicao/core/network/socket_config.dart';
 import 'package:data7_expedicao/data/datasources/config_service.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class NetworkInitializer {
   static void ensureDioInitialized() {
@@ -51,7 +50,11 @@ class NetworkInitializer {
       final socketService = locator<SocketService>();
       socketService.updateConfig(configViewModel.currentConfig);
     } catch (e) {
-      debugPrint('[NetworkInitializer] SocketService não disponível: $e');
+      AppLogger.warning(
+        'SocketService não disponível: $e',
+        tag: 'NetworkInitializer',
+        error: e,
+      );
       SocketConfig.updateConfig(configViewModel.currentConfig);
     }
   }

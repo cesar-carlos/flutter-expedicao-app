@@ -12,6 +12,7 @@ import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class ShelfScanningScreen extends StatefulWidget {
   final String expectedAddress;
@@ -117,7 +118,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
       _scannerMode = config.scannerInputMode;
       _broadcastAction = (config.broadcastAction ?? '').trim();
       _broadcastExtraKey = (config.broadcastExtraKey ?? '').trim();
-      debugPrint('[ShelfScreen] prefs mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey');
+      AppLogger.debug('prefs mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey', tag: 'ShelfScreen');
     } catch (_) {
       _scannerMode = ScannerInputMode.focus;
       _broadcastAction = '';
@@ -128,7 +129,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
   void _startBroadcastListener() {
     if (!_isBroadcastConfigured) return;
     if (_manualOverrideBroadcast) return;
-    debugPrint('[ShelfScreen][Broadcast] start action=$_broadcastAction extra=$_broadcastExtraKey');
+    AppLogger.debug('Broadcast start action=$_broadcastAction extra=$_broadcastExtraKey', tag: 'ShelfScreen');
     _broadcastSub?.cancel();
     _broadcastSub = _broadcastService.listen(action: _broadcastAction, extraKey: _broadcastExtraKey).listen((code) {
       if (!mounted) return;
@@ -139,7 +140,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
   }
 
   Future<void> _stopBroadcastListener() async {
-    debugPrint('[ShelfScreen][Broadcast] stop');
+    AppLogger.debug('Broadcast stop', tag: 'ShelfScreen');
     try {
       await _broadcastSub?.cancel();
     } catch (_) {
@@ -175,7 +176,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
   }
 
   void _handleCompleteBarcode(String barcode) {
-    debugPrint('[ShelfScreen] complete="$barcode"');
+    AppLogger.debug('complete="$barcode"', tag: 'ShelfScreen');
     _clearScannerFieldAfterDelay();
     _validateShelfInput(barcode);
   }
@@ -243,7 +244,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
   }
 
   void _toggleInputMode() {
-    debugPrint('[ShelfScreen] toggle manual=${!_isManualMode}');
+    AppLogger.debug('toggle manual=${!_isManualMode}', tag: 'ShelfScreen');
     setState(() {
       _isManualMode = !_isManualMode;
       if (_isManualMode && _isBroadcastConfigured) {
@@ -266,7 +267,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
   }
 
   void _enableScannerMode() {
-    debugPrint('[ShelfScreen] enable scanner mode');
+    AppLogger.debug('enable scanner mode', tag: 'ShelfScreen');
     _hideKeyboard();
 
     if (!_isBroadcastActive) {
@@ -281,7 +282,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
   }
 
   void _enableKeyboardMode() {
-    debugPrint('[ShelfScreen] enable keyboard mode');
+    AppLogger.debug('enable keyboard mode', tag: 'ShelfScreen');
     _focusNode.unfocus();
 
     Future.delayed(UIConstants.shortDelay, () {

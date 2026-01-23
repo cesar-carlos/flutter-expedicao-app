@@ -188,8 +188,12 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
   void _handleCriticalError(dynamic error, StackTrace stackTrace) {
     _setErrorState('Erro crítico ao processar QR Code: ${error.toString()}');
 
-    debugPrint('Erro ao processar QR Code: $error');
-    debugPrint('StackTrace: $stackTrace');
+    AppLogger.error(
+      'Erro ao processar QR Code: $error',
+      tag: 'QRCodeLoginScreen',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   void _setProcessingState(bool isProcessing) {
