@@ -6,7 +6,6 @@ import 'package:data7_expedicao/domain/models/situation/expedition_situation_mod
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 
-/// Modal para filtros da tela de separação
 class SeparationFilterModal extends StatefulWidget {
   const SeparationFilterModal({super.key});
 
@@ -18,7 +17,7 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
   late TextEditingController _codSepararEstoqueController;
   late TextEditingController _codOrigemController;
   String? _selectedOrigem;
-  List<String> _selectedSituacoes = []; // Mudado de String? para List<String>
+  List<String> _selectedSituacoes = [];
   DateTime? _selectedDate;
   ExpeditionSectorStockModel? _selectedSetorEstoque;
 
@@ -34,23 +33,19 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
     _selectedDate = viewModel.dataEmissaoFilter;
     _selectedSetorEstoque = viewModel.setorEstoqueFilter;
 
-    // Carrega setores de estoque se ainda não foram carregados
     if (!viewModel.sectorsLoaded) {
       viewModel.loadAvailableSectors().then((_) {
         if (mounted) {
           setState(() {
-            // Sincroniza o setor selecionado com a lista carregada
             _syncSelectedSector();
           });
         }
       });
     } else {
-      // Se os setores já foram carregados, sincroniza imediatamente
       _syncSelectedSector();
     }
   }
 
-  /// Sincroniza o setor selecionado com a lista de setores disponíveis
   void _syncSelectedSector() {
     final viewModel = context.read<SeparationViewModel>();
     if (_selectedSetorEstoque != null && viewModel.availableSectors.isNotEmpty) {
@@ -88,7 +83,6 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Row(
               children: [
                 Icon(Icons.filter_alt, color: colorScheme.primary),
@@ -127,7 +121,6 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
 
             const SizedBox(height: 24),
 
-            // Código de Separação
             TextField(
               controller: _codSepararEstoqueController,
               decoration: const InputDecoration(
@@ -141,7 +134,6 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
 
             const SizedBox(height: 16),
 
-            // Origem
             DropdownButtonFormField<String>(
               initialValue: _selectedOrigem,
               decoration: const InputDecoration(
@@ -164,7 +156,6 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
 
             const SizedBox(height: 16),
 
-            // Código de Origem
             TextField(
               controller: _codOrigemController,
               decoration: const InputDecoration(
@@ -178,7 +169,6 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
 
             const SizedBox(height: 16),
 
-            // Situação (Seleção Múltipla)
             InkWell(
               onTap: () => _showSituacoesDialog(context),
               child: InputDecorator(
@@ -197,7 +187,6 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
 
             const SizedBox(height: 16),
 
-            // Setor de Estoque
             Consumer<SeparationViewModel>(
               builder: (context, viewModel, child) {
                 return DropdownButtonFormField<ExpeditionSectorStockModel?>(
@@ -224,7 +213,6 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
 
             const SizedBox(height: 16),
 
-            // Data de Emissão
             InkWell(
               onTap: () => _selectDate(context),
               child: InputDecorator(
@@ -243,7 +231,6 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
 
             const SizedBox(height: 24),
 
-            // Botões
             Consumer<SeparationViewModel>(
               builder: (context, viewModel, child) {
                 return Row(
@@ -268,7 +255,6 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
               },
             ),
 
-            // Espaçamento para teclado
             SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
           ],
         ),
@@ -320,7 +306,6 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
     viewModel.applyFilters();
   }
 
-  /// Mostra diálogo para seleção múltipla de situações
   Future<void> _showSituacoesDialog(BuildContext context) async {
     final situacoes = _getFilteredSituations();
 
@@ -344,27 +329,22 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
         '${date.year}';
   }
 
-  /// Retorna o setor selecionado se ele ainda existe na lista, senão retorna null
   ExpeditionSectorStockModel? _getValidSelectedSector(SeparationViewModel viewModel) {
     if (_selectedSetorEstoque == null) return null;
 
-    // Se os setores ainda não foram carregados, retorna null
     if (viewModel.availableSectors.isEmpty) {
       return null;
     }
 
-    // Procura o setor na lista de setores disponíveis usando o operador == do modelo
     final matchingSector = viewModel.availableSectors.cast<ExpeditionSectorStockModel?>().firstWhere(
       (sector) => sector != null && sector == _selectedSetorEstoque,
       orElse: () => null,
     );
 
     if (matchingSector != null) {
-      // Atualiza a referência para usar o objeto da lista
       _selectedSetorEstoque = matchingSector;
       return matchingSector;
     } else {
-      // Se o setor não existe mais, limpa a seleção
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           setState(() {
@@ -376,8 +356,6 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
     }
   }
 
-  /// Retorna apenas as situações que devem aparecer no filtro
-  /// Removidas as situações marcadas em vermelho conforme solicitado
   List<ExpeditionSituation> _getFilteredSituations() {
     return ExpeditionSituation.values.where((situacao) {
       return situacao != ExpeditionSituation.emPausa &&
@@ -389,7 +367,6 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
   }
 }
 
-/// Widget de diálogo para seleção múltipla de situações
 class _MultiSelectSituacoesDialog extends StatefulWidget {
   final List<ExpeditionSituation> situacoes;
   final List<String> selectedSituacoes;

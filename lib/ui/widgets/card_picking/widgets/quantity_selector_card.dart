@@ -232,6 +232,13 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
   }
 
   Widget _buildQuantityField(ColorScheme colorScheme) {
+    final currentQuantity = _currentQuantity;
+    final maxQuantity = _maxQuantity;
+    final exceedsMax = currentQuantity > maxQuantity;
+    final borderColor = exceedsMax
+        ? Colors.red
+        : (widget.enabled ? Colors.orange : Colors.grey);
+
     return Expanded(
       child: TextField(
         controller: widget.controller,
@@ -241,39 +248,50 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
         textAlign: TextAlign.center,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(3)],
         onChanged: (value) {
-          // Garantir que o valor não exceda o máximo
           final intValue = int.tryParse(value);
           if (intValue != null && intValue > _maxQuantity) {
             widget.controller.text = _maxQuantity.toString();
             widget.controller.selection = TextSelection.fromPosition(
               TextPosition(offset: widget.controller.text.length),
             );
+            _showMaxQuantityExceededFeedback();
           }
         },
         decoration: InputDecoration(
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: widget.enabled ? Colors.orange : Colors.grey),
+            borderSide: BorderSide(color: borderColor),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: widget.enabled ? Colors.orange : Colors.grey),
+            borderSide: BorderSide(color: borderColor),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: widget.enabled ? Colors.orange : Colors.grey, width: 2),
+            borderSide: BorderSide(color: borderColor, width: 2),
           ),
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide(color: Colors.grey),
           ),
+          errorText: exceedsMax ? 'Máximo: $maxQuantity' : null,
+          errorMaxLines: 1,
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           fillColor: widget.enabled ? null : Colors.grey.withValues(alpha: 0.1),
           filled: !widget.enabled,
         ),
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: widget.enabled ? null : Colors.grey),
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: exceedsMax ? Colors.red : (widget.enabled ? null : Colors.grey),
+        ),
       ),
     );
+  }
+
+  void _showMaxQuantityExceededFeedback() {
+    if (!mounted) return;
+    HapticFeedback.mediumImpact();
   }
 
   Widget _buildHelpText(ThemeData theme, ColorScheme colorScheme) {

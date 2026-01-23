@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Widget reutilizável para cabeçalhos de seções com ícone e título
-/// Usado em UserInfoChips e outros componentes de perfil
 class SectionHeader extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -60,7 +58,6 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-/// Variante expandível do SectionHeader para seções que podem ser abertas/fechadas
 class ExpandableSectionHeader extends StatelessWidget {
   final String title;
   final String subtitle;

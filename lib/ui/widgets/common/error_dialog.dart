@@ -19,7 +19,6 @@ class ErrorDialog extends StatelessWidget {
     this.showRetryButton = false,
   });
 
-  /// Método estático para exibir o diálogo de erro do servidor
   static Future<void> showServerError(
     BuildContext context, {
     required String message,
@@ -44,7 +43,6 @@ class ErrorDialog extends StatelessWidget {
     );
   }
 
-  /// Método estático para exibir erro de conexão
   static Future<void> showConnectionError(BuildContext context, {VoidCallback? onRetry, VoidCallback? onClose}) {
     return showDialog<void>(
       context: context,
@@ -63,7 +61,6 @@ class ErrorDialog extends StatelessWidget {
     );
   }
 
-  /// Método estático para exibir erro genérico
   static Future<void> showGenericError(
     BuildContext context, {
     required String message,
@@ -79,7 +76,6 @@ class ErrorDialog extends StatelessWidget {
     );
   }
 
-  /// Método estático para exibir erro de validação
   static Future<void> showValidationError(BuildContext context, {required String message, String? details}) {
     return showDialog<void>(
       context: context,
@@ -171,7 +167,6 @@ class ErrorDialog extends StatelessWidget {
   }
 }
 
-/// Classe para padronizar tipos de erro comuns
 class AppErrorType {
   static const String serverError = 'server_error';
   static const String connectionError = 'connection_error';
@@ -182,24 +177,19 @@ class AppErrorType {
   static const String unknownError = 'unknown_error';
 }
 
-/// Extensão para facilitar o uso do ErrorDialog
 extension ErrorDialogExtension on BuildContext {
-  /// Exibe erro do servidor
   Future<void> showServerError(String message, {String? details, VoidCallback? onRetry, VoidCallback? onClose}) {
     return ErrorDialog.showServerError(this, message: message, details: details, onRetry: onRetry, onClose: onClose);
   }
 
-  /// Exibe erro de conexão
   Future<void> showConnectionError({VoidCallback? onRetry, VoidCallback? onClose}) {
     return ErrorDialog.showConnectionError(this, onRetry: onRetry, onClose: onClose);
   }
 
-  /// Exibe erro genérico
   Future<void> showGenericError(String message, {String? details, VoidCallback? onClose}) {
     return ErrorDialog.showGenericError(this, message: message, details: details, onClose: onClose);
   }
 
-  /// Exibe erro de validação
   Future<void> showValidationError(String message, {String? details}) {
     return ErrorDialog.showValidationError(this, message: message, details: details);
   }

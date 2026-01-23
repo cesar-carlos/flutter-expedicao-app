@@ -5,7 +5,6 @@ import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/core/utils/fields_helper.dart';
 
-/// DataGrid para exibir consultas de separação de expedição
 class SeparateConsultationDataGrid extends StatelessWidget {
   final List<SeparateConsultationModel> consultations;
   final Function(SeparateConsultationModel)? onRowTap;
@@ -121,7 +120,6 @@ class SeparateConsultationDataGrid extends StatelessWidget {
   }
 }
 
-/// DataSource para o DataGrid de consultas de separação
 class ShipmentSeparateConsultationDataSource extends DataGridSource {
   final List<SeparateConsultationModel> _consultations;
   final Function(SeparateConsultationModel)? onRowTap;
@@ -230,22 +228,18 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
     }
   }
 
-  /// Encontra o índice da linha de forma mais confiável
   int _findRowIndex(DataGridRow row) {
     try {
-      // Primeiro, tenta usar o indexOf normal
       final directIndex = rows.indexOf(row);
       if (directIndex >= 0) {
         return directIndex;
       }
 
-      // Se não encontrou, tenta comparar as células para encontrar a linha correspondente
       final rowCells = row.getCells();
       if (rowCells.isEmpty) {
         return -1;
       }
 
-      // Procura pela primeira célula (ID) para encontrar a linha correspondente
       final firstCell = rowCells.first;
       if (firstCell.columnName == 'id' && firstCell.value is int) {
         final idValue = firstCell.value as int;
@@ -339,9 +333,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
     }
   }
 
-  /// Determina a cor do texto baseada na cor de fundo
   Color _getTextColor(Color backgroundColor) {
-    // Cores que precisam de texto preto
     if (backgroundColor == Colors.yellow ||
         backgroundColor == Colors.lightGreen ||
         backgroundColor == Colors.amber ||

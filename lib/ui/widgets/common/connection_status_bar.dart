@@ -5,7 +5,6 @@ import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
-/// Widget de faixa de status de conexão para barras de navegação
 class ConnectionStatusBar extends StatelessWidget {
   const ConnectionStatusBar({super.key});
 
@@ -17,7 +16,6 @@ class ConnectionStatusBar extends StatelessWidget {
       builder: (context, socketViewModel, child) {
         final connectionState = socketViewModel.connectionState;
 
-        // Determinar cor e texto baseado no estado
         Color statusColor;
         String statusText;
         IconData statusIcon;

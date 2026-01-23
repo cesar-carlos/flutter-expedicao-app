@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Widget reutilizável para exibir status com indicador colorido
-/// Usado em ProfileHeader e outros componentes
 class StatusChip extends StatelessWidget {
   final String label;
   final String status;
@@ -59,7 +57,6 @@ class StatusChip extends StatelessWidget {
   }
 }
 
-/// Variante compacta do StatusChip para uso em headers
 class CompactStatusChip extends StatelessWidget {
   final String label;
   final String status;

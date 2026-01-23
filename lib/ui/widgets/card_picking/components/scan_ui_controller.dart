@@ -1,10 +1,12 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/keyboard_toggle_controller.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_dialog_manager.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class ScanUiController {
   final PickingDialogManager dialogManager;
@@ -13,6 +15,7 @@ class ScanUiController {
   final TextEditingController quantityController;
   final Future<void> Function() onFinishPicking;
   final Future<void> Function(SeparateItemConsultationModel item, String barcode, int quantity) onAddItem;
+  final BuildContext? context;
 
   const ScanUiController({
     required this.dialogManager,
@@ -21,7 +24,22 @@ class ScanUiController {
     required this.quantityController,
     required this.onFinishPicking,
     required this.onAddItem,
+    this.context,
   });
+
+  void _showQuantityConversionFeedback(int originalQuantity, int convertedQuantity) {
+    if (context == null) return;
+    
+    ScaffoldMessenger.of(context!).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Quantidade convertida: $originalQuantity → $convertedQuantity (unidade de medida)',
+        ),
+        duration: UIConstants.snackBarShortDuration,
+        backgroundColor: Colors.blue,
+      ),
+    );
+  }
 
   Future<void> handleScanResult(String barcode, ScanProcessResult scanResult, int inputQuantity) async {
     switch (scanResult.status) {
@@ -67,6 +85,7 @@ class ScanUiController {
 
           if (convertedQuantity != inputQuantity) {
             quantityController.text = convertedQuantity.toString();
+            _showQuantityConversionFeedback(inputQuantity, convertedQuantity);
           }
 
           await onAddItem(scanResult.expectedItem!, barcode, convertedQuantity);

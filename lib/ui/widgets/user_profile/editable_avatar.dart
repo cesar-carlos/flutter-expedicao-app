@@ -17,7 +17,6 @@ class EditableAvatar extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Container principal do avatar
           Container(
             width: 130,
             height: 130,
@@ -37,7 +36,6 @@ class EditableAvatar extends StatelessWidget {
             ),
           ),
 
-          // Botão de edição
           Positioned(
             bottom: 8,
             right: 8,
@@ -83,9 +81,6 @@ class EditableAvatar extends StatelessWidget {
         ),
       );
     }
-
-    // Se tem foto salva, usar avatar padrão por enquanto
-    // TODO: Implementar conversão de base64 para Image.memory
 
     return _buildDefaultAvatar(colorScheme, user);
   }

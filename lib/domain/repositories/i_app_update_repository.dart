@@ -1,4 +1,5 @@
 import 'package:result_dart/result_dart.dart';
+
 import 'package:data7_expedicao/domain/models/app_version.dart';
 import 'package:data7_expedicao/domain/models/github_release.dart';
 

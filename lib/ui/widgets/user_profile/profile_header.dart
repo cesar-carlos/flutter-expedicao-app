@@ -37,7 +37,6 @@ class ProfileHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Header com gradiente sutil
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -50,12 +49,10 @@ class ProfileHeader extends StatelessWidget {
             ),
             child: Column(
               children: [
-                // Avatar com design limpo
                 _buildAvatar(user, colorScheme),
 
                 const SizedBox(height: 20),
 
-                // Nome do usuário
                 Text(
                   user.nome,
                   style: theme.textTheme.headlineSmall?.copyWith(
@@ -69,7 +66,6 @@ class ProfileHeader extends StatelessWidget {
 
                 const SizedBox(height: 8),
 
-                // Nome do sistema (se diferente)
                 if (user.userSystemModel?.nomeUsuario.isNotEmpty == true &&
                     user.userSystemModel!.nomeUsuario != user.nome) ...[
                   Text(
@@ -86,7 +82,6 @@ class ProfileHeader extends StatelessWidget {
                   const SizedBox(height: 8),
                 ],
 
-                // Função/Cargo
                 if (user.userSystemModel?.nomeContaFinanceira != null) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -112,12 +107,10 @@ class ProfileHeader extends StatelessWidget {
             ),
           ),
 
-          // Seção de informações básicas
           Container(
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // IDs em grid responsivo
                 Row(
                   children: [
                     Expanded(
@@ -133,7 +126,6 @@ class ProfileHeader extends StatelessWidget {
 
                 const SizedBox(height: 12),
 
-                // Status em linha
                 Row(
                   children: [
                     Expanded(
@@ -155,7 +147,6 @@ class ProfileHeader extends StatelessWidget {
                   ],
                 ),
 
-                // Empresa (se disponível)
                 if (user.userSystemModel?.codEmpresa != null) ...[
                   const SizedBox(height: 12),
                   InfoCard(
@@ -185,7 +176,7 @@ class ProfileHeader extends StatelessWidget {
           ),
           child: EditableAvatar(viewModel: viewModel),
         ),
-        // Badge de status mais discreto
+
         Positioned(
           bottom: 4,
           right: 4,

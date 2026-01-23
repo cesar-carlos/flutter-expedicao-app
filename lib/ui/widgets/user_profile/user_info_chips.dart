@@ -13,16 +13,7 @@ class UserInfoChips extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Informações básicas do usuário
-        _buildUserBasicInfo(context),
-
-        // Informações da empresa e setores
-        _buildCompanySection(context),
-
-        // Permissões e acessos
-        _buildPermissionsSection(context),
-      ],
+      children: [_buildUserBasicInfo(context), _buildCompanySection(context), _buildPermissionsSection(context)],
     );
   }
 
@@ -37,7 +28,6 @@ class UserInfoChips extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Grid de informações básicas
           Column(
             children: [
               Row(
@@ -123,7 +113,6 @@ class UserInfoChips extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Grid de informações corporativas
           Column(
             children: [
               if (systemData.codEmpresa != null || systemData.nomeEmpresa != null) ...[
@@ -147,7 +136,6 @@ class UserInfoChips extends StatelessWidget {
                 const SizedBox(height: 12),
               ],
 
-              // Setores
               if (systemData.nomeSetorEstoque != null ||
                   systemData.nomeSetorConferencia != null ||
                   systemData.nomeSetorArmazenagem != null) ...[
@@ -155,7 +143,6 @@ class UserInfoChips extends StatelessWidget {
                 const SizedBox(height: 12),
               ],
 
-              // Vendedor e Local de Armazenagem
               if (systemData.nomeVendedor != null || systemData.nomeLocalArmazenagem != null) ...[
                 Row(
                   children: [
@@ -182,7 +169,6 @@ class UserInfoChips extends StatelessWidget {
                 const SizedBox(height: 12),
               ],
 
-              // Conta financeira e operador
               if (systemData.nomeContaFinanceira != null || systemData.nomeCaixaOperador != null) ...[
                 if (systemData.nomeContaFinanceira != null) ...[
                   Row(

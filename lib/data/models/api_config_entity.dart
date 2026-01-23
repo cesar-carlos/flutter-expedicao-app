@@ -4,7 +4,6 @@ import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 
 part 'api_config_entity.g.dart';
 
-/// Entidade para persistência da configuração da API usando Hive
 @HiveType(typeId: 0)
 class ApiConfigEntity extends HiveObject {
   @HiveField(0)
@@ -38,7 +37,6 @@ class ApiConfigEntity extends HiveObject {
     this.broadcastExtraKey,
   });
 
-  /// Converte a entidade para o modelo de domínio
   ApiConfig toDomain() {
     return ApiConfig(
       apiUrl: apiUrl,
@@ -51,7 +49,6 @@ class ApiConfigEntity extends HiveObject {
     );
   }
 
-  /// Cria uma entidade a partir do modelo de domínio
   static ApiConfigEntity fromDomain(ApiConfig config) {
     return ApiConfigEntity(
       apiUrl: config.apiUrl,
@@ -64,7 +61,6 @@ class ApiConfigEntity extends HiveObject {
     );
   }
 
-  /// Configuração padrão
   static ApiConfigEntity get defaultConfig {
     final domain = ApiConfig.defaultConfig;
     return fromDomain(domain);

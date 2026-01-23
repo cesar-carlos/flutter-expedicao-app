@@ -293,6 +293,24 @@ class CardPickingViewModel extends ChangeNotifier {
     return const ScanProcessResult(status: ScanProcessStatus.ignored);
   }
 
+  /// Converte a quantidade baseada no código de barras escaneado
+  ///
+  /// **Regras de Conversão:**
+  /// - Se o item tem apenas uma unidade de medida, retorna a quantidade original
+  /// - Se o item tem múltiplas unidades de medida:
+  ///   - O código de barras escaneado identifica qual unidade de medida foi usada
+  ///   - A quantidade é convertida da unidade escaneada para a unidade base do item
+  ///   - Exemplo: Se o item tem unidade base "UN" e foi escaneado código de "CX" (caixa),
+  ///     e o usuário digitou quantidade 1, a conversão pode resultar em 12 (se 1 CX = 12 UN)
+  ///
+  /// **Parâmetros:**
+  /// - [item]: Item que está sendo separado
+  /// - [barcode]: Código de barras escaneado (identifica a unidade de medida)
+  /// - [inputQuantity]: Quantidade digitada pelo usuário na unidade escaneada
+  ///
+  /// **Retorno:**
+  /// - Quantidade convertida para a unidade base do item
+  /// - Se a conversão falhar ou não for possível, retorna a quantidade original
   int _convertQuantityWithBarcode(SeparateItemConsultationModel item, String barcode, int inputQuantity) {
     try {
       if (item.unidadeMedidas.length <= 1) {

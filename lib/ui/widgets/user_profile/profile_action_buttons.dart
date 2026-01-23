@@ -4,7 +4,6 @@ import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
 import 'package:data7_expedicao/core/constants/app_strings.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
-/// Widget com botões de ação do perfil (Salvar e Voltar)
 class ProfileActionButtons extends StatelessWidget {
   final ProfileViewModel viewModel;
   final VoidCallback onSave;
@@ -117,7 +116,6 @@ class ProfileActionButtons extends StatelessWidget {
   }
 }
 
-/// Widget apenas com o botão de salvar (para usar sem o botão voltar)
 class ProfileSaveButton extends StatelessWidget {
   final ProfileViewModel viewModel;
   final VoidCallback onSave;

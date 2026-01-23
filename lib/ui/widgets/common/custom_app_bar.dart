@@ -6,7 +6,7 @@ import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/string_utils.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final dynamic title; // Aceita String ou Widget
+  final dynamic title;
   final List<Widget>? actions;
   final Widget? leading;
   final bool showSocketStatus;
@@ -38,7 +38,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
     final isDarkTheme = theme.brightness == Brightness.dark;
 
-    // Se não foi especificada cor de fundo, usa preto no tema escuro ou cor primária no tema claro
     final effectiveBackgroundColor = backgroundColor ?? (isDarkTheme ? Colors.black : theme.colorScheme.primary);
     final effectiveForegroundColor = foregroundColor ?? (isDarkTheme ? Colors.white : theme.colorScheme.onPrimary);
 
@@ -62,7 +61,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           const SizedBox(width: 8),
         ],
 
-        // Inclui os actions passados como parâmetro
         if (actions != null) ...actions!,
 
         if ((actions?.isEmpty ?? true) && showSocketStatus) const SizedBox(width: 8),
@@ -160,7 +158,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  /// Factory para criar AppBar com título customizado (Widget)
   factory CustomAppBar.withCustomTitle({
     required Widget title,
     List<Widget>? actions,

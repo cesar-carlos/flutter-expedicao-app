@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Widget reutilizável para exibir permissões com ícone e status
-/// Usado em UserInfoChips para mostrar permissões do usuário
 class PermissionCard extends StatelessWidget {
   final String title;
   final String description;
@@ -72,7 +70,6 @@ class PermissionCard extends StatelessWidget {
   }
 }
 
-/// Lista de permissões em grid responsivo
 class PermissionsGrid extends StatelessWidget {
   final List<PermissionData> permissions;
 
@@ -114,7 +111,6 @@ class PermissionsGrid extends StatelessWidget {
   }
 }
 
-/// Classe de dados para permissões
 class PermissionData {
   final String title;
   final String description;

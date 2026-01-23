@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/home_viewmodel.dart';
 
-/// Card de menu para a tela inicial
 class HomeMenuCard extends StatelessWidget {
   final String title;
   final String description;
@@ -32,11 +31,9 @@ class HomeMenuCard extends StatelessWidget {
       margin: const EdgeInsets.all(8),
       child: InkWell(
         onTap: () {
-          // Notifica o ViewModel sobre a navegação
           final homeViewModel = context.read<HomeViewModel>();
           homeViewModel.navigateToFunctionality(title);
 
-          // Navega para a rota
           context.go(route);
         },
         borderRadius: BorderRadius.circular(12),

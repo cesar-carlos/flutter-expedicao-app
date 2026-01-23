@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Widget customizado para botões simples com ícone e texto
-///
-/// Este widget padroniza a aparência e comportamento dos botões
-/// simples utilizados na aplicação, garantindo consistência visual.
 class CustomSimpleButton extends StatelessWidget {
   final String text;
   final IconData? icon;
@@ -171,9 +167,7 @@ class CustomSimpleButton extends StatelessWidget {
   }
 }
 
-/// Extensão com variações pré-definidas do CustomSimpleButton
 extension CustomSimpleButtonVariations on CustomSimpleButton {
-  /// Cria um botão primário simples
   static CustomSimpleButton primary({
     required String text,
     IconData? icon,
@@ -183,7 +177,6 @@ extension CustomSimpleButtonVariations on CustomSimpleButton {
     return CustomSimpleButton(text: text, icon: icon, onPressed: onPressed, isLoading: isLoading);
   }
 
-  /// Cria um botão outlined (contorno)
   static CustomSimpleButton outlined({
     required String text,
     IconData? icon,
@@ -202,7 +195,6 @@ extension CustomSimpleButtonVariations on CustomSimpleButton {
     );
   }
 
-  /// Cria um botão secundário (será aplicado durante o build)
   static CustomSimpleButton secondary({
     required String text,
     IconData? icon,
@@ -213,13 +205,12 @@ extension CustomSimpleButtonVariations on CustomSimpleButton {
       text: text,
       icon: icon,
       onPressed: onPressed,
-      backgroundColor: null, // Será definido no build usando secondary
-      foregroundColor: null, // Será definido no build usando onSecondary
+      backgroundColor: null,
+      foregroundColor: null,
       isLoading: isLoading,
     );
   }
 
-  /// Cria um botão de erro/danger
   static CustomSimpleButton danger({
     required String text,
     IconData? icon,
@@ -230,7 +221,7 @@ extension CustomSimpleButtonVariations on CustomSimpleButton {
       text: text,
       icon: icon,
       onPressed: onPressed,
-      backgroundColor: Colors.red, // Cor de erro padrão
+      backgroundColor: Colors.red,
       foregroundColor: Colors.white,
       isLoading: isLoading,
     );

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Widget reutilizável para dialogs de picking
 class PickingDialog extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -58,9 +57,7 @@ class PickingDialog extends StatelessWidget {
   }
 }
 
-/// Dialogs específicos para picking
 class PickingDialogs {
-  /// Dialog de produto incorreto
   static Widget wrongProduct({
     required String scannedBarcode,
     required String expectedAddress,
@@ -104,7 +101,6 @@ class PickingDialogs {
     );
   }
 
-  /// Dialog de erro ao adicionar item
   static Widget addItemError({required String barcode, required String productName, required String errorMessage}) {
     return PickingDialog(
       title: 'Erro ao Adicionar',
@@ -131,7 +127,6 @@ class PickingDialogs {
     );
   }
 
-  /// Dialog de produto de setor incorreto
   static Widget wrongSector({
     required String scannedBarcode,
     required String productName,
@@ -179,7 +174,6 @@ class PickingDialogs {
     );
   }
 
-  /// Dialog de não há mais itens do setor
   static Widget noItemsForSector({
     required int userSectorCode,
     required VoidCallback onFinish,
@@ -232,7 +226,6 @@ class PickingDialogs {
     );
   }
 
-  /// Dialog de separação completa
   static Widget separationComplete() {
     return PickingDialog(
       title: 'Separação Completa!',
@@ -251,7 +244,6 @@ class PickingDialogs {
     );
   }
 
-  /// Dialog de loading
   static Widget loading({String message = 'Processando...'}) {
     return PickingDialog(
       title: message,

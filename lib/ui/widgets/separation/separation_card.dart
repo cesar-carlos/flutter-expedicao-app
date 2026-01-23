@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_simple_button.dart';
 
-/// Card para exibir informações de uma separação
 class SeparationCard extends StatelessWidget {
   final SeparateConsultationModel separation;
   final VoidCallback? onTap;
@@ -33,10 +32,8 @@ class SeparationCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header com código e situação
                 Row(
                   children: [
-                    // Código da separação
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,7 +56,7 @@ class SeparationCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Status badge
+
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
@@ -76,7 +73,6 @@ class SeparationCard extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // Informações principais
                 _buildInfoRow(
                   context,
                   icon: Icons.business,
@@ -96,7 +92,6 @@ class SeparationCard extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // Prioridade e Setores de Estoque
                 Row(
                   children: [
                     Expanded(
@@ -114,7 +109,6 @@ class SeparationCard extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // Data e hora
                 Row(
                   children: [
                     Expanded(
@@ -137,7 +131,6 @@ class SeparationCard extends StatelessWidget {
                   ],
                 ),
 
-                // Observações (se houver)
                 if (separation.observacao != null && separation.observacao!.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   _buildInfoRow(
@@ -151,7 +144,6 @@ class SeparationCard extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // Botão Separar
                 _buildSeparateButton(context),
               ],
             ),
@@ -216,7 +208,6 @@ class SeparationCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Formatar a lista de setores no formato [1, 2, 3]
     final setoresText = '[${separation.codSetoresEstoque.join(', ')}]';
 
     return Row(
@@ -263,7 +254,6 @@ class SeparationCard extends StatelessWidget {
     if (onSeparate != null) {
       onSeparate!();
     } else {
-      // Fallback: mostrar mensagem de desenvolvimento
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Separação ${separation.codSepararEstoque} - Funcionalidade em desenvolvimento'),

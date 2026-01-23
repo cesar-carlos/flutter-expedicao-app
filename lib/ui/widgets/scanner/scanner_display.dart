@@ -2,15 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/models/scanner_data.dart';
 
-/// Widget para exibir os dados escaneados
 class ScannerDisplay extends StatelessWidget {
-  /// Dados do scanner para exibir
   final ScannerData scanData;
 
-  /// Callback para limpar o código escaneado
   final VoidCallback onClear;
 
-  /// Construtor
   const ScannerDisplay({super.key, required this.scanData, required this.onClear});
 
   @override

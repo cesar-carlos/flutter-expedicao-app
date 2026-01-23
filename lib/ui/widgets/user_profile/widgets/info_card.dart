@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Widget reutilizável para exibir informações com ícone, label e valor
-/// Usado em ProfileHeader e UserInfoChips
 class InfoCard extends StatelessWidget {
   final String label;
   final String value;
@@ -68,7 +66,6 @@ class InfoCard extends StatelessWidget {
   }
 }
 
-/// Variante do InfoCard com padding maior para UserInfoChips
 class DetailedInfoCard extends StatelessWidget {
   final String label;
   final String value;

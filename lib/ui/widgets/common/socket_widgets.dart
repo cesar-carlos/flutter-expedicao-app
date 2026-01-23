@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
 
-/// Widget que exibe o status da conexão WebSocket em tempo real
 class SocketStatusIndicator extends StatelessWidget {
   final bool showLabel;
   final double size;
@@ -23,11 +22,13 @@ class SocketStatusIndicator extends StatelessWidget {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           padding: padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(color: Colors.black.withValues(alpha:0.1), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Indicador visual com animação
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -39,7 +40,7 @@ class SocketStatusIndicator extends StatelessWidget {
                       color: Color(socketViewModel.connectionStateColor),
                     ),
                   ),
-                  // Animação de pulsação quando conectando
+
                   if (isConnecting)
                     TweenAnimationBuilder<double>(
                       duration: const Duration(milliseconds: 1000),
@@ -50,12 +51,11 @@ class SocketStatusIndicator extends StatelessWidget {
                           height: size * (1.0 + (value * 0.5)),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Color(socketViewModel.connectionStateColor).withValues(alpha:0.3 * (1.0 - value)),
+                            color: Color(socketViewModel.connectionStateColor).withValues(alpha: 0.3 * (1.0 - value)),
                           ),
                         );
                       },
                       onEnd: () {
-                        // Reinicia a animação
                         if (isConnecting) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             if (context.mounted) {
@@ -89,7 +89,6 @@ class SocketStatusIndicator extends StatelessWidget {
   }
 }
 
-/// Widget de botão para conectar/desconectar WebSocket com feedback visual
 class SocketConnectionButton extends StatelessWidget {
   final String? label;
   final IconData? icon;
@@ -206,8 +205,6 @@ class SocketConnectionButton extends StatelessWidget {
   }
 }
 
-// AppBarWithSocketStatus removido - usar CustomAppBar em vez disso
-/// Widget de card para exibir informações detalhadas do WebSocket
 class SocketStatusCard extends StatelessWidget {
   const SocketStatusCard({super.key});
 

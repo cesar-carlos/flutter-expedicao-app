@@ -5,7 +5,6 @@ import 'package:data7_expedicao/domain/models/separate_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/core/utils/fields_helper.dart';
 
-/// DataGrid para exibir separações de expedição
 class SeparateDataGrid extends StatelessWidget {
   final List<SeparateModel> separations;
   final Function(SeparateModel)? onRowTap;
@@ -111,7 +110,6 @@ class SeparateDataGrid extends StatelessWidget {
   }
 }
 
-/// DataSource para o DataGrid de separações
 class ShipmentSeparateDataSource extends DataGridSource {
   final List<SeparateModel> _separations;
   final Function(SeparateModel)? onRowTap;
@@ -189,9 +187,7 @@ class ShipmentSeparateDataSource extends DataGridSource {
     );
   }
 
-  /// Determina a cor do texto baseada na cor de fundo
   Color _getTextColor(Color backgroundColor) {
-    // Cores que precisam de texto preto
     if (backgroundColor == Colors.yellow ||
         backgroundColor == Colors.lightGreen ||
         backgroundColor == Colors.amber ||

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Widget personalizado para diálogos com largura customizável
 class CustomDialog extends StatelessWidget {
   final String title;
   final Widget? titleIcon;
@@ -27,7 +26,6 @@ class CustomDialog extends StatelessWidget {
     this.mainAxisSize = MainAxisSize.min,
   });
 
-  /// Cria um diálogo com largura responsiva (80% da tela)
   factory CustomDialog.responsive({
     required String title,
     Widget? titleIcon,
@@ -45,7 +43,7 @@ class CustomDialog extends StatelessWidget {
       titleIcon: titleIcon,
       content: content,
       actions: actions,
-      width: width, // Se null, será calculado como 80% da tela
+      width: width,
       height: height,
       contentPadding: contentPadding ?? const EdgeInsets.all(24.0),
       actionsPadding: actionsPadding ?? const EdgeInsets.fromLTRB(24, 0, 24, 24),
@@ -54,7 +52,6 @@ class CustomDialog extends StatelessWidget {
     );
   }
 
-  /// Cria um diálogo com largura fixa
   factory CustomDialog.fixed({
     required String title,
     Widget? titleIcon,
@@ -81,7 +78,6 @@ class CustomDialog extends StatelessWidget {
     );
   }
 
-  /// Cria um diálogo com largura e altura customizáveis
   factory CustomDialog.custom({
     required String title,
     Widget? titleIcon,
@@ -133,16 +129,9 @@ class CustomDialog extends StatelessWidget {
       contentWidget = SingleChildScrollView(child: content);
     }
 
-    // Se width ou height foram especificados, usar SizedBox
     if (width != null || height != null) {
-      contentWidget = SizedBox(
-        width: width ?? double.infinity, // Se width for null, usar largura máxima
-        height: height,
-        child: contentWidget,
-      );
+      contentWidget = SizedBox(width: width ?? double.infinity, height: height, child: contentWidget);
     } else {
-      // Largura responsiva (80% da tela) quando width não especificado
-      // Usa LayoutBuilder para garantir que o contexto está pronto
       contentWidget = LayoutBuilder(
         builder: (context, constraints) {
           final screenWidth = MediaQuery.of(context).size.width;
@@ -155,9 +144,7 @@ class CustomDialog extends StatelessWidget {
   }
 }
 
-/// Extensão para facilitar o uso do CustomDialog
 extension CustomDialogExtension on BuildContext {
-  /// Mostra um CustomDialog responsivo
   Future<T?> showCustomDialog<T>({
     required String title,
     Widget? titleIcon,
@@ -189,7 +176,6 @@ extension CustomDialogExtension on BuildContext {
     );
   }
 
-  /// Mostra um CustomDialog com largura fixa
   Future<T?> showCustomDialogFixed<T>({
     required String title,
     Widget? titleIcon,
@@ -221,7 +207,6 @@ extension CustomDialogExtension on BuildContext {
     );
   }
 
-  /// Mostra um CustomDialog com largura e altura customizáveis
   Future<T?> showCustomDialogCustom<T>({
     required String title,
     Widget? titleIcon,

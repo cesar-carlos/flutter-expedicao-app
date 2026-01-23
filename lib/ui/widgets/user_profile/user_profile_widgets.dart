@@ -5,7 +5,6 @@ import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 import 'package:data7_expedicao/ui/widgets/common/socket_widgets.dart';
 
-/// Widget que exibe a foto do usuário logado
 class UserProfileAvatar extends StatelessWidget {
   final double radius;
   final VoidCallback? onTap;
@@ -44,7 +43,6 @@ class UserProfileAvatar extends StatelessWidget {
   }
 }
 
-/// AppBar customizado com informações do usuário
 class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
@@ -57,7 +55,6 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Text(title),
       actions: [
-        // Indicador de WebSocket
         Center(child: SocketStatusIndicator(showLabel: false, size: 8, padding: EdgeInsets.only(right: 8))),
         if (showUserInfo) ...[
           Consumer<AuthViewModel>(
@@ -106,7 +103,6 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Cabeçalho com foto e informações
             Row(
               children: [
                 UserProfileAvatar(radius: 30),
@@ -148,7 +144,7 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             const SizedBox(height: 16),
             const Divider(),
-            // Opções do menu
+
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Sair'),

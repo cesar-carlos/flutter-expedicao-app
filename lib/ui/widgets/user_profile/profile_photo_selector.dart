@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:data7_expedicao/core/constants/app_strings.dart';
 
-/// Widget para seleção e exibição de foto de perfil
 class ProfilePhotoSelector extends StatefulWidget {
   final File? initialImage;
   final ValueChanged<File?>? onImageChanged;
@@ -110,7 +109,6 @@ class _ProfilePhotoSelectorState extends State<ProfilePhotoSelector> {
 
     return Column(
       children: [
-        // Container da foto
         GestureDetector(
           onTap: _showImageOptions,
           child: Container(
@@ -131,14 +129,12 @@ class _ProfilePhotoSelectorState extends State<ProfilePhotoSelector> {
 
         const SizedBox(height: 12),
 
-        // Botão de ação
         TextButton.icon(
           onPressed: _showImageOptions,
           icon: Icon(_selectedImage != null ? Icons.edit : Icons.add_a_photo, size: 18),
           label: Text(_selectedImage != null ? AppStrings.changePhoto : AppStrings.addPhoto),
         ),
 
-        // Texto opcional/obrigatório
         if (widget.isRequired) ...[
           const SizedBox(height: 4),
           Text('* Obrigatório', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.error)),
@@ -148,7 +144,6 @@ class _ProfilePhotoSelectorState extends State<ProfilePhotoSelector> {
   }
 }
 
-/// Validador para foto de perfil
 class ProfilePhotoValidator {
   static String? validate(File? image, {bool isRequired = false}) {
     if (isRequired && image == null) {

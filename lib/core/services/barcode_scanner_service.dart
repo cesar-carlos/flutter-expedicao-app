@@ -178,6 +178,42 @@ class BarcodeScannerService {
     return isValid;
   }
 
+  /// Valida o formato de um código de barras e retorna informações sobre o formato
+  ///
+  /// **Formatos suportados:**
+  /// - EAN-13: 13 dígitos
+  /// - EAN-8: 8 dígitos
+  /// - UPC-A: 12 dígitos
+  /// - UPC-E: 8 dígitos
+  /// - Code 128: 7-16 caracteres alfanuméricos
+  ///
+  /// **Retorno:**
+  /// - `true` se o formato é válido (7-16 dígitos)
+  /// - `false` se o formato é inválido
+  bool isValidBarcodeFormat(String barcode) {
+    final trimmed = barcode.trim();
+    if (trimmed.isEmpty) return false;
+    return _barcodePattern.hasMatch(trimmed);
+  }
+
+  /// Obtém informações sobre o formato do código de barras
+  ///
+  /// **Retorno:**
+  /// - String descrevendo o formato detectado ou "Formato inválido"
+  String getBarcodeFormatInfo(String barcode) {
+    final trimmed = barcode.trim();
+    if (trimmed.isEmpty) return 'Código vazio';
+    if (!_barcodePattern.hasMatch(trimmed)) return 'Formato inválido';
+
+    final length = trimmed.length;
+    if (length == 8) return 'EAN-8 ou UPC-E';
+    if (length == 12) return 'UPC-A';
+    if (length == 13) return 'EAN-13';
+    if (length >= 7 && length <= 16) return 'Code 128 ou similar';
+
+    return 'Formato válido';
+  }
+
   /// Verifica se a entrada é um código completo (13-16 dígitos)
   bool _isCompleteBarcode(String input) =>
       input.length >= _completeBarcodeMinLength &&

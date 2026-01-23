@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Container reutilizável para seções do perfil com gradiente e estilo consistente
-/// Usado em UserInfoChips para manter consistência visual
 class ProfileSectionContainer extends StatelessWidget {
   final Widget child;
   final List<Color>? gradientColors;
@@ -46,7 +44,6 @@ class ProfileSectionContainer extends StatelessWidget {
   }
 }
 
-/// Variantes pré-definidas do ProfileSectionContainer
 class PrimaryProfileSection extends StatelessWidget {
   final Widget child;
 
@@ -107,7 +104,6 @@ class TertiaryProfileSection extends StatelessWidget {
   }
 }
 
-/// Container para seções de erro/aviso
 class ErrorProfileSection extends StatelessWidget {
   final Widget child;
 
