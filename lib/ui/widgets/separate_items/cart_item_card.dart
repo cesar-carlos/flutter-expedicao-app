@@ -6,7 +6,7 @@ import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
-import 'package:data7_expedicao/ui/screens/picking_products_list_screen.dart';
+import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
@@ -857,41 +857,37 @@ class CartItemCard extends StatelessWidget {
   }
 
   void _onViewCart(BuildContext context) {
+    if (!context.mounted) return;
+
     // Criar ViewModel temporário para navegação
     final tempViewModel = CardPickingViewModel();
 
     // Navegar para a tela de produtos separados
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider.value(
-          value: tempViewModel,
-          child: PickingProductsListScreen(
-            filterType: 'completed',
-            viewModel: tempViewModel,
-            cart: cartRouteInternshipConsultation,
-          ),
-        ),
-      ),
+    context.push(
+      AppRouter.pickingProductsList,
+      extra: {
+        'filterType': 'completed',
+        'viewModel': tempViewModel,
+        'cart': cartRouteInternshipConsultation,
+      },
     );
   }
 
   void _onViewCartReadOnly(BuildContext context) {
+    if (!context.mounted) return;
+
     // Criar ViewModel temporário para navegação (modo somente leitura)
     final tempViewModel = CardPickingViewModel();
 
     // Navegar para a tela de produtos separados em modo somente leitura
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider.value(
-          value: tempViewModel,
-          child: PickingProductsListScreen(
-            filterType: 'completed',
-            viewModel: tempViewModel,
-            cart: cartRouteInternshipConsultation,
-            isReadOnly: true, // Novo parâmetro para modo somente leitura
-          ),
-        ),
-      ),
+    context.push(
+      AppRouter.pickingProductsList,
+      extra: {
+        'filterType': 'completed',
+        'viewModel': tempViewModel,
+        'cart': cartRouteInternshipConsultation,
+        'isReadOnly': true,
+      },
     );
   }
 

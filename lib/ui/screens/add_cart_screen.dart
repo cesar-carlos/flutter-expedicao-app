@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/add_cart_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/add_cart/cart_details_widget.dart';
@@ -52,7 +53,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
       
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted && _hasPopped) {
-          Navigator.of(context).pop(true);
+          context.pop(true);
         }
       });
     }
@@ -80,7 +81,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
               leading: IconButton(
                 onPressed: () {
                   viewModel.cancelAutoAdd();
-                  Navigator.of(context).pop();
+                  context.pop();
                 },
                 icon: const Icon(Icons.arrow_back),
                 tooltip: 'Voltar',
@@ -106,7 +107,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
                         viewModel: viewModel,
                         onCancel: () {
                           viewModel.cancelAutoAdd();
-                          Navigator.of(context).pop();
+                          context.pop();
                         },
                         onAdd: () => _onAddCart(viewModel),
                         onNewQuery: () => _onNewQuery(viewModel),

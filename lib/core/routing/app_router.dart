@@ -33,6 +33,8 @@ import 'package:data7_expedicao/ui/screens/shelf_scanning_screen.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/ui/screens/card_picking_screen.dart';
 import 'package:data7_expedicao/ui/screens/picking_products_list_screen.dart';
+import 'package:data7_expedicao/ui/screens/add_cart_screen.dart';
+import 'package:data7_expedicao/domain/viewmodels/add_cart_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 
@@ -58,6 +60,7 @@ class AppRouter {
   static const String shelfScanning = '/shelf-scanning';
   static const String cardPicking = '/home/card-picking';
   static const String pickingProductsList = '/home/picking-products-list';
+  static const String addCart = '/home/add-cart';
 
   static GoRouter createRouter(AuthViewModel authViewModel) {
     return GoRouter(
@@ -73,7 +76,8 @@ class AppRouter {
             currentLocation == shipmentSeparateConsultation ||
             currentLocation == shelfScanning ||
             currentLocation == cardPicking ||
-            currentLocation == pickingProductsList;
+            currentLocation == pickingProductsList ||
+            currentLocation == addCart;
 
         if (authStatus == AuthStatus.initial || authStatus == AuthStatus.loading) {
           if (currentLocation != splash) {
@@ -217,6 +221,7 @@ class AppRouter {
                 final filterType = args['filterType'] as String;
                 final viewModel = args['viewModel'] as CardPickingViewModel;
                 final cart = args['cart'] as ExpeditionCartRouteInternshipConsultationModel;
+                final isReadOnly = args['isReadOnly'] as bool? ?? false;
 
                 return ChangeNotifierProvider.value(
                   value: viewModel,
@@ -224,6 +229,32 @@ class AppRouter {
                     filterType: filterType,
                     viewModel: viewModel,
                     cart: cart,
+                    isReadOnly: isReadOnly,
+                  ),
+                );
+              },
+            ),
+
+            GoRoute(
+              path: 'add-cart',
+              name: 'add-cart',
+              builder: (context, state) {
+                final args = state.extra as Map<String, dynamic>?;
+                if (args == null) {
+                  return const Scaffold(body: Center(child: Text('Dados não encontrados')));
+                }
+
+                final codEmpresa = args['codEmpresa'] as int;
+                final codSepararEstoque = args['codSepararEstoque'] as int;
+
+                return ChangeNotifierProvider(
+                  create: (_) => AddCartViewModel(
+                    codEmpresa: codEmpresa,
+                    codSepararEstoque: codSepararEstoque,
+                  ),
+                  child: AddCartScreen(
+                    codEmpresa: codEmpresa,
+                    codSepararEstoque: codSepararEstoque,
                   ),
                 );
               },

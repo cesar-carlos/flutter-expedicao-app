@@ -130,7 +130,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     if (_errorMessage != null) {
       return PopScope(
         canPop: true,
-        onPopInvoked: (didPop) async {
+        onPopInvokedWithResult: (didPop, result) async {
           if (didPop) {
             await _stopScanner();
           }
@@ -165,7 +165,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
 
     return PopScope(
       canPop: !_isProcessing,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) {
           await _stopScanner();
         }

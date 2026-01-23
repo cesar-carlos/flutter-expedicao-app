@@ -3,8 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
-import 'package:data7_expedicao/ui/screens/add_cart_screen.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/separate_items/separate_item_card.dart';
@@ -19,7 +18,6 @@ import 'package:data7_expedicao/ui/widgets/separate_items/carts_list_view.dart';
 import 'package:data7_expedicao/ui/widgets/separation_title_with_connection_status.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
-import 'package:data7_expedicao/ui/screens/card_picking_screen.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
@@ -310,13 +308,14 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       return;
     }
 
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (context) => AddCartScreen(
-          codEmpresa: viewModel.separation?.codEmpresa ?? 1,
-          codSepararEstoque: viewModel.separation?.codSepararEstoque ?? 0,
-        ),
-      ),
+    if (!context.mounted) return;
+
+    final result = await context.push<bool>(
+      AppRouter.addCart,
+      extra: {
+        'codEmpresa': viewModel.separation?.codEmpresa ?? 1,
+        'codSepararEstoque': viewModel.separation?.codSepararEstoque ?? 0,
+      },
     );
 
     if (result == true) {
@@ -351,6 +350,12 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         AppLogger.debug('Primeira tentativa falhou, tentando novamente após refresh...', tag: 'SeparationItemsScreen');
         await Future.delayed(const Duration(milliseconds: 500));
         await viewModel.refresh();
+        
+        if (!context.mounted) {
+          AppLogger.warning('Context não está mais montado após refresh', tag: 'SeparationItemsScreen');
+          return;
+        }
+        
         final retryOpened = await _openSeparationForNewestCart(context, viewModel);
 
         if (!retryOpened && context.mounted) {
@@ -429,13 +434,12 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         return false;
       }
 
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => ChangeNotifierProvider(
-            create: (_) => CardPickingViewModel(),
-            child: CardPickingScreen(cart: newestCart, userModel: userModel),
-          ),
-        ),
+      context.push(
+        AppRouter.cardPicking,
+        extra: {
+          'cart': newestCart,
+          'userModel': userModel,
+        },
       );
 
       return true;
