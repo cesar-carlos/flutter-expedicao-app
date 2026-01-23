@@ -7,7 +7,6 @@ import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/picking_actions_bottom_bar.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/picking_card_scan.dart';
-import 'package:data7_expedicao/ui/screens/picking_products_list_screen.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/cart_status_warning.dart';
 import 'package:data7_expedicao/ui/widgets/cart_title_with_connection_status.dart';
@@ -236,13 +235,13 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
   Future<void> _showProductList(BuildContext context, String filter) async {
     final viewModel = context.read<CardPickingViewModel>();
 
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider.value(
-          value: viewModel,
-          child: PickingProductsListScreen(filterType: filter, viewModel: viewModel, cart: widget.cart),
-        ),
-      ),
+    await context.push(
+      '/home/picking-products-list',
+      extra: {
+        'filterType': filter,
+        'viewModel': viewModel,
+        'cart': widget.cart,
+      },
     );
 
     // Recarregar dados do carrinho quando retornar da tela de produtos

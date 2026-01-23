@@ -343,7 +343,11 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
         if (widget.onBack != null) {
           widget.onBack!();
         } else {
-          Navigator.of(context).pop();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+          });
         }
       },
       child: Builder(
@@ -421,8 +425,12 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
                 if (widget.onBack != null)
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
-                      widget.onBack!();
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          widget.onBack!();
+                        }
+                      });
                     },
                     child: const Text('Voltar'),
                   ),

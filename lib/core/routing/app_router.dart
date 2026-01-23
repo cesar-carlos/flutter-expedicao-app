@@ -31,6 +31,10 @@ import 'package:data7_expedicao/ui/screens/scanner_config_screen.dart';
 import 'package:data7_expedicao/ui/screens/home_screen.dart';
 import 'package:data7_expedicao/ui/screens/shelf_scanning_screen.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/ui/screens/card_picking_screen.dart';
+import 'package:data7_expedicao/ui/screens/picking_products_list_screen.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -52,6 +56,8 @@ class AppRouter {
   static const String storage = '/home/storage';
   static const String collection = '/home/collection';
   static const String shelfScanning = '/shelf-scanning';
+  static const String cardPicking = '/home/card-picking';
+  static const String pickingProductsList = '/home/picking-products-list';
 
   static GoRouter createRouter(AuthViewModel authViewModel) {
     return GoRouter(
@@ -65,7 +71,9 @@ class AppRouter {
         final isAuthenticatedRoute = currentLocation.startsWith(home) ||
             currentLocation == profile ||
             currentLocation == shipmentSeparateConsultation ||
-            currentLocation == shelfScanning;
+            currentLocation == shelfScanning ||
+            currentLocation == cardPicking ||
+            currentLocation == pickingProductsList;
 
         if (authStatus == AuthStatus.initial || authStatus == AuthStatus.loading) {
           if (currentLocation != splash) {
@@ -177,6 +185,49 @@ class AppRouter {
             GoRoute(path: 'storage', name: 'storage', builder: (context, state) => const StorageScreen()),
 
             GoRoute(path: 'collection', name: 'collection', builder: (context, state) => const CollectionScreen()),
+
+            GoRoute(
+              path: 'card-picking',
+              name: 'card-picking',
+              builder: (context, state) {
+                final args = state.extra as Map<String, dynamic>?;
+                if (args == null) {
+                  return const Scaffold(body: Center(child: Text('Dados do carrinho não encontrados')));
+                }
+
+                final cart = args['cart'] as ExpeditionCartRouteInternshipConsultationModel;
+                final userModel = args['userModel'] as UserSystemModel?;
+
+                return ChangeNotifierProvider(
+                  create: (_) => CardPickingViewModel(),
+                  child: CardPickingScreen(cart: cart, userModel: userModel),
+                );
+              },
+            ),
+
+            GoRoute(
+              path: 'picking-products-list',
+              name: 'picking-products-list',
+              builder: (context, state) {
+                final args = state.extra as Map<String, dynamic>?;
+                if (args == null) {
+                  return const Scaffold(body: Center(child: Text('Dados não encontrados')));
+                }
+
+                final filterType = args['filterType'] as String;
+                final viewModel = args['viewModel'] as CardPickingViewModel;
+                final cart = args['cart'] as ExpeditionCartRouteInternshipConsultationModel;
+
+                return ChangeNotifierProvider.value(
+                  value: viewModel,
+                  child: PickingProductsListScreen(
+                    filterType: filterType,
+                    viewModel: viewModel,
+                    cart: cart,
+                  ),
+                );
+              },
+            ),
           ],
         ),
 

@@ -47,14 +47,19 @@ class PickingDialogManager {
       builder: (context) => PickingDialogs.noItemsForSector(
         userSectorCode: userSectorCode,
         onFinish: () async {
-          Navigator.of(context).pop();
-          onFinish();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              Navigator.of(context).pop();
+              onFinish();
+            }
+          });
         },
         onCancel: () {
-          Navigator.of(context).pop();
-
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            scanFocusNode.requestFocus();
+            if (context.mounted) {
+              Navigator.of(context).pop();
+              scanFocusNode.requestFocus();
+            }
           });
         },
       ),
@@ -148,15 +153,23 @@ class PickingDialogManager {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              onContinue();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  onContinue();
+                }
+              });
             },
             child: Text('Continuar Separando'),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              onSaveCart();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  onSaveCart();
+                }
+              });
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
             child: Text('Salvar Carrinho', style: TextStyle(color: Colors.white)),

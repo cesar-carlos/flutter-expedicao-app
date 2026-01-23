@@ -306,11 +306,24 @@ class PickingItemCard extends StatelessWidget {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
+            TextButton(
+              onPressed: () {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                });
+              },
+              child: const Text('Cancelar'),
+            ),
             ElevatedButton(
               onPressed: () {
                 viewModel.updatePickedQuantity(itemId, newQuantity);
-                Navigator.of(context).pop();
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                });
               },
               child: const Text('Confirmar'),
             ),

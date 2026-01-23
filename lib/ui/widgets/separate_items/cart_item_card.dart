@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
@@ -16,7 +17,6 @@ import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dar
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
-import 'package:data7_expedicao/ui/screens/card_picking_screen.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class CartItemCard extends StatelessWidget {
@@ -641,13 +641,12 @@ class CartItemCard extends StatelessWidget {
 
     // Navegar para a tela de CardPicking
     if (context.mounted) {
-      final result = await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => ChangeNotifierProvider(
-            create: (_) => CardPickingViewModel(),
-            child: CardPickingScreen(cart: cartRouteInternshipConsultation, userModel: userModel),
-          ),
-        ),
+      final result = await context.push(
+        '/home/card-picking',
+        extra: {
+          'cart': cartRouteInternshipConsultation,
+          'userModel': userModel,
+        },
       );
 
       // Se o resultado for 'save_cart', executar salvamento automático

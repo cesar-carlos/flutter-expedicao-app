@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
@@ -35,7 +36,11 @@ class PickingFlowController {
         expectedAddressDescription: nextItem.enderecoDescricao ?? 'Endereço não definido',
         viewModel: viewModel,
         onBack: () {
-          Navigator.of(context).pop();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
+          });
         },
       ),
     ).then((_) {
@@ -79,29 +84,49 @@ class PickingFlowController {
       final result = await viewModel.saveCart();
 
       if (navigator.mounted) {
-        Navigator.of(navigator).pop();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (navigator.mounted) {
+            Navigator.of(navigator).pop();
+          }
+        });
       }
 
       result.fold(
         (_) {
           audioService.playSuccess();
           if (navigator.mounted) {
-            Navigator.of(navigator).pop();
-            Navigator.of(navigator).pop(true);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (navigator.mounted) {
+                Navigator.of(navigator).pop();
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (navigator.mounted) {
+                    GoRouter.of(navigator).pop('save_cart');
+                  }
+                });
+              }
+            });
           }
         },
         (failure) {
           final message = failure is AppFailure ? failure.userMessage : 'Erro ao salvar carrinho: $failure';
           final details = failure is SaveSeparationCartFailure ? failure.details : null;
           if (navigator.mounted) {
-            _showErrorDialog(navigator, message, details: details);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (navigator.mounted) {
+                _showErrorDialog(navigator, message, details: details);
+              }
+            });
           }
         },
       );
     } catch (e) {
       if (navigator.mounted) {
-        Navigator.of(navigator).pop();
-        _showErrorDialog(navigator, 'Erro inesperado ao salvar carrinho: $e');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (navigator.mounted) {
+            Navigator.of(navigator).pop();
+            _showErrorDialog(navigator, 'Erro inesperado ao salvar carrinho: $e');
+          }
+        });
       }
     }
   }
@@ -135,7 +160,18 @@ class PickingFlowController {
             ],
           ],
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
+        actions: [
+          TextButton(
+            onPressed: () {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              });
+            },
+            child: const Text('OK'),
+          )
+        ],
       ),
     );
   }

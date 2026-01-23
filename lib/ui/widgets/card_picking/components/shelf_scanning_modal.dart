@@ -210,10 +210,14 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
 
       if (isValid) {
         _isClosingFromSuccess = true;
-      Navigator.of(context).pop();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.onShelfScanned(input);
-      });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Navigator.of(context).pop();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              widget.onShelfScanned(input);
+            });
+          }
+        });
       } else {
         _showValidationError();
       }
