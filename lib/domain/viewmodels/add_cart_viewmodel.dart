@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_params.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
@@ -23,23 +26,31 @@ class AddCartViewModel extends ChangeNotifier {
   final BasicConsultationRepository<ExpeditionCartConsultationModel> _cartConsultationRepository;
   final BasicRepository<ExpeditionCartRouteModel> _cartRouteRepository;
   final StartSeparationUseCase _startSeparationUseCase;
+  final AudioService _audioService;
 
   bool _isScanning = false;
   bool _isAdding = false;
   ExpeditionCartConsultationModel? _scannedCart;
   String? _errorMessage;
+  Timer? _autoAddTimer;
+  int _countdownSeconds = 0;
+  bool _cartAddedSuccessfully = false;
 
   AddCartViewModel({required this.codEmpresa, required this.codSepararEstoque})
     : _addCartUseCase = locator<AddCartUseCase>(),
       _cartConsultationRepository = locator<BasicConsultationRepository<ExpeditionCartConsultationModel>>(),
       _cartRouteRepository = locator<BasicRepository<ExpeditionCartRouteModel>>(),
-      _startSeparationUseCase = locator<StartSeparationUseCase>();
+      _startSeparationUseCase = locator<StartSeparationUseCase>(),
+      _audioService = locator<AudioService>();
 
   bool get isScanning => _isScanning;
   bool get isAdding => _isAdding;
   bool get hasCartData => _scannedCart != null;
   bool get hasError => _errorMessage != null;
   bool get canAddCart => _scannedCart?.situacao == ExpeditionCartSituation.liberado;
+  int get countdownSeconds => _countdownSeconds;
+  bool get isCountdownActive => _autoAddTimer != null && _autoAddTimer!.isActive;
+  bool get cartAddedSuccessfully => _cartAddedSuccessfully;
 
   ExpeditionCartConsultationModel? get scannedCart => _scannedCart;
   String? get errorMessage => _errorMessage;
@@ -57,11 +68,14 @@ class AddCartViewModel extends ChangeNotifier {
 
       if (carts.isNotEmpty) {
         _scannedCart = carts.first;
+        _startAutoAddCountdown();
       } else {
         _setError('Carrinho não encontrado com o código de barras informado.');
+        _audioService.playError();
       }
     } catch (e) {
       _setError('Erro ao buscar carrinho: ${e.toString()}');
+      _audioService.playError();
     } finally {
       _setScanning(false);
     }
@@ -73,6 +87,7 @@ class AddCartViewModel extends ChangeNotifier {
       return false;
     }
 
+    _stopAutoAddCountdown();
     _setAdding(true);
     _clearError();
 
@@ -95,13 +110,20 @@ class AddCartViewModel extends ChangeNotifier {
       );
 
       final result = await _addCartUseCase.call(params);
-      return result.fold((success) => true, (failure) {
+      return result.fold((success) {
+        _audioService.playCartAddSuccess();
+        _cartAddedSuccessfully = true;
+        notifyListeners();
+        return true;
+      }, (failure) {
         final message = failure is AppFailure ? failure.userMessage : failure.toString();
         _setError(message);
+        _audioService.playError();
         return false;
       });
     } catch (e) {
       _setError('Erro inesperado: ${e.toString()}');
+      _audioService.playError();
       return false;
     } finally {
       _setAdding(false);
@@ -146,8 +168,41 @@ class AddCartViewModel extends ChangeNotifier {
   }
 
   void clearScannedData() {
+    _stopAutoAddCountdown();
     _scannedCart = null;
+    _cartAddedSuccessfully = false;
     _clearError();
+    notifyListeners();
+  }
+
+  void _startAutoAddCountdown() {
+    _stopAutoAddCountdown();
+
+    if (!canAddCart) return;
+
+    _countdownSeconds = 3;
+    notifyListeners();
+
+    _autoAddTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _countdownSeconds--;
+
+      if (_countdownSeconds <= 0) {
+        _stopAutoAddCountdown();
+        addCartToSeparation();
+      } else {
+        notifyListeners();
+      }
+    });
+  }
+
+  void _stopAutoAddCountdown() {
+    _autoAddTimer?.cancel();
+    _autoAddTimer = null;
+    _countdownSeconds = 0;
+  }
+
+  void cancelAutoAdd() {
+    _stopAutoAddCountdown();
     notifyListeners();
   }
 
@@ -169,5 +224,11 @@ class AddCartViewModel extends ChangeNotifier {
   void _clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _stopAutoAddCountdown();
+    super.dispose();
   }
 }

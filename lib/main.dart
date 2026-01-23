@@ -18,7 +18,9 @@ import 'package:data7_expedicao/core/theme/app_theme.dart';
 import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_progress_dialog.dart';
+import 'package:data7_expedicao/infrastructure/services/logger_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +28,8 @@ void main() async {
   await dotenv.load(fileName: '.env');
 
   setupLocator();
+
+  LoggerService.initialize(level: kDebugMode ? Level.ALL : Level.INFO);
 
   final configService = locator<ConfigService>();
   await configService.initialize();

@@ -161,7 +161,11 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
                   // Botão Adicionar - usando CustomFlatButton ocupando o espaço restante
                   Expanded(
                     child: CustomFlatButton(
-                      text: widget.viewModel.isAdding ? 'Adicionando...' : 'Adicionar',
+                      text: widget.viewModel.isAdding
+                          ? 'Adicionando...'
+                          : widget.viewModel.isCountdownActive
+                              ? 'Adicionar (${widget.viewModel.countdownSeconds}s)'
+                              : 'Adicionar',
                       icon: Icons.add_shopping_cart,
                       onPressed: !widget.viewModel.isAdding ? widget.onAdd : null,
                       isLoading: widget.viewModel.isAdding,

@@ -32,7 +32,6 @@ import 'package:data7_expedicao/ui/screens/home_screen.dart';
 import 'package:data7_expedicao/ui/screens/shelf_scanning_screen.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 
-/// Configuração das rotas da aplicação usando GoRouter
 class AppRouter {
   static const String splash = '/';
   static const String login = '/login';
@@ -54,18 +53,20 @@ class AppRouter {
   static const String collection = '/home/collection';
   static const String shelfScanning = '/shelf-scanning';
 
-  /// Configuração do GoRouter
   static GoRouter createRouter(AuthViewModel authViewModel) {
     return GoRouter(
       initialLocation: splash,
       debugLogDiagnostics: true,
 
-      // Redirect baseado no estado de autenticação
       redirect: (BuildContext context, GoRouterState state) {
         final authStatus = authViewModel.status;
         final currentLocation = state.uri.path;
 
-        // Se está no estado inicial ou loading, vai para splash
+        final isAuthenticatedRoute = currentLocation.startsWith(home) ||
+            currentLocation == profile ||
+            currentLocation == shipmentSeparateConsultation ||
+            currentLocation == shelfScanning;
+
         if (authStatus == AuthStatus.initial || authStatus == AuthStatus.loading) {
           if (currentLocation != splash) {
             return splash;
@@ -73,9 +74,11 @@ class AppRouter {
           return null;
         }
 
-        // Se não está autenticado, permite acesso ao login, registro, qrcode-login e config
         if (authStatus == AuthStatus.unauthenticated || authStatus == AuthStatus.error) {
-          // Permite acesso ao login, registro, qrcode-login e configuração
+          if (isAuthenticatedRoute) {
+            return null;
+          }
+
           if (currentLocation != login &&
               currentLocation != register &&
               currentLocation != qrcodeLogin &&
@@ -85,7 +88,6 @@ class AppRouter {
           return null;
         }
 
-        // Se precisa selecionar usuário, vai para tela de seleção
         if (authStatus == AuthStatus.needsUserSelection) {
           if (currentLocation != userSelection) {
             return userSelection;
@@ -93,7 +95,6 @@ class AppRouter {
           return null;
         }
 
-        // Se está autenticado, vai para home
         if (authStatus == AuthStatus.authenticated) {
           if (currentLocation == splash ||
               currentLocation == login ||
@@ -108,25 +109,18 @@ class AppRouter {
       },
 
       routes: [
-        // Rota do Splash
         GoRoute(path: splash, name: 'splash', builder: (context, state) => const SplashScreen()),
 
-        // Rota do Login
         GoRoute(path: login, name: 'login', builder: (context, state) => const LoginScreen()),
 
-        // Rota do Registro
         GoRoute(path: register, name: 'register', builder: (context, state) => const RegisterScreen()),
 
-        // Rota do Login via QR Code
         GoRoute(path: qrcodeLogin, name: 'qrcode-login', builder: (context, state) => const QRCodeLoginScreen()),
 
-        // Rota de Configurações
         GoRoute(path: config, name: 'config', builder: (context, state) => const ConfigScreen()),
 
-        // Rota de Configuração do Scanner
         GoRoute(path: scannerConfig, name: 'scanner-config', builder: (context, state) => const ScannerConfigScreen()),
 
-        // Rota de Seleção de Usuário
         GoRoute(
           path: userSelection,
           name: 'user-selection',
@@ -136,16 +130,13 @@ class AppRouter {
           ),
         ),
 
-        // Rota da Home (com todas as subrotas)
         GoRoute(
           path: home,
           name: 'home',
           builder: (context, state) => const HomeScreen(),
           routes: [
-            // Scanner como subrota
             GoRoute(path: 'scanner', name: 'scanner', builder: (context, state) => const ScannerScreen()),
 
-            // Separação como subrota
             GoRoute(
               path: 'separation',
               name: 'separation',
@@ -155,7 +146,6 @@ class AppRouter {
               ),
             ),
 
-            // Separação de Itens como subrota
             GoRoute(
               path: 'separate-items',
               name: 'separate-items',
@@ -174,28 +164,22 @@ class AppRouter {
               },
             ),
 
-            // Conferência como subrota
             GoRoute(path: 'conference', name: 'conference', builder: (context, state) => const ConferenceScreen()),
 
-            // Entrega Balcão como subrota
             GoRoute(
               path: 'counter-delivery',
               name: 'counter-delivery',
               builder: (context, state) => const CounterDeliveryScreen(),
             ),
 
-            // Embalagem como subrota
             GoRoute(path: 'packaging', name: 'packaging', builder: (context, state) => const PackagingScreen()),
 
-            // Armazenagem como subrota
             GoRoute(path: 'storage', name: 'storage', builder: (context, state) => const StorageScreen()),
 
-            // Coleta como subrota
             GoRoute(path: 'collection', name: 'collection', builder: (context, state) => const CollectionScreen()),
           ],
         ),
 
-        // Rota de Scan de Prateleira
         GoRoute(
           path: shelfScanning,
           name: 'shelf-scanning',
@@ -213,7 +197,6 @@ class AppRouter {
           },
         ),
 
-        // Rota do Perfil
         GoRoute(
           path: profile,
           name: 'profile',
@@ -224,7 +207,6 @@ class AppRouter {
           ),
         ),
 
-        // Rota de Consultas de Separação
         GoRoute(
           path: shipmentSeparateConsultation,
           name: 'shipment-separate-consultation',
@@ -235,7 +217,6 @@ class AppRouter {
         ),
       ],
 
-      // Página de erro
       errorBuilder: (context, state) => Scaffold(
         body: Center(
           child: Column(

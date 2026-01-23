@@ -43,6 +43,10 @@ class _AddCartScreenState extends State<AddCartScreen> {
         _scrollToActions();
       });
     }
+
+    if (_viewModel.cartAddedSuccessfully && mounted) {
+      Navigator.of(context).pop(true);
+    }
   }
 
   void _scrollToActions() {
@@ -65,7 +69,10 @@ class _AddCartScreenState extends State<AddCartScreen> {
             appBar: CustomAppBar.withoutSocket(
               title: 'Incluir Carrinho',
               leading: IconButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  viewModel.cancelAutoAdd();
+                  Navigator.of(context).pop();
+                },
                 icon: const Icon(Icons.arrow_back),
                 tooltip: 'Voltar',
               ),
@@ -88,7 +95,10 @@ class _AddCartScreenState extends State<AddCartScreen> {
 
                       CartActionsWidget(
                         viewModel: viewModel,
-                        onCancel: () => Navigator.of(context).pop(),
+                        onCancel: () {
+                          viewModel.cancelAutoAdd();
+                          Navigator.of(context).pop();
+                        },
                         onAdd: () => _onAddCart(viewModel),
                         onNewQuery: () => _onNewQuery(viewModel),
                       ),
@@ -130,14 +140,10 @@ class _AddCartScreenState extends State<AddCartScreen> {
   }
 
   Future<void> _onAddCart(AddCartViewModel viewModel) async {
+    viewModel.cancelAutoAdd();
     final success = await viewModel.addCartToSeparation();
 
-    if (success && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Carrinho adicionado com sucesso!'), backgroundColor: Colors.green));
-      Navigator.of(context).pop(true);
-    } else if (mounted) {
+    if (!success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(viewModel.errorMessage ?? 'Erro ao adicionar carrinho'),

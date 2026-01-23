@@ -14,12 +14,12 @@ import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separa
 import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_params.dart';
 import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_failure.dart';
 import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_success.dart';
-import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/domain/models/separation_user_sector_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/separation/separation_card.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/ui/widgets/app_drawer/app_drawer.dart';
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 
 /// Tela principal de listagem de separações
 class SeparationScreen extends StatefulWidget {

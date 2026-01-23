@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/domain/models/user/user_models.dart';
@@ -170,8 +169,16 @@ class AuthViewModel extends ChangeNotifier {
         _currentUser = _currentUser!.copyWith(userSystemModel: userSystemModel);
 
         await _userSessionService.saveUserSession(_currentUser!);
-      } else {}
+      }
     } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Erro ao carregar UserSystemModel: $e');
+      }
+
+      if (_status == AuthStatus.authenticated) {
+        return;
+      }
+
       _setError('Erro ao carregar UserSystemModel: $e');
     }
   }

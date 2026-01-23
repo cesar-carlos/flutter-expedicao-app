@@ -54,6 +54,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   MobileScannerController? _controller;
   bool _isProcessing = false;
   String? _errorMessage;
+  bool _isDisposed = false;
 
   @override
   void initState() {
@@ -79,14 +80,36 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     }
   }
 
+  Future<void> _stopScanner() async {
+    if (_controller == null || _isDisposed) return;
+
+    try {
+      await _controller!.stop();
+    } catch (e) {
+      developer.log('Erro ao parar scanner: $e');
+    }
+  }
+
+  Future<void> _closeWithResult(String? result) async {
+    if (_isDisposed || !mounted) return;
+
+    await _stopScanner();
+
+    if (mounted) {
+      Navigator.of(context).pop(result);
+    }
+  }
+
   @override
   void dispose() {
+    _isDisposed = true;
+    _stopScanner();
     _controller?.dispose();
     super.dispose();
   }
 
   void _onDetect(BarcodeCapture barcodeCapture) {
-    if (_isProcessing) return;
+    if (_isProcessing || _isDisposed) return;
 
     final barcode = barcodeCapture.barcodes.firstOrNull;
     if (barcode != null && barcode.rawValue != null && barcode.rawValue!.isNotEmpty) {
@@ -94,9 +117,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         _isProcessing = true;
       });
 
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) {
-          Navigator.of(context).pop(barcode.rawValue);
+      Future.delayed(const Duration(milliseconds: 300), () async {
+        if (mounted && !_isDisposed) {
+          await _closeWithResult(barcode.rawValue);
         }
       });
     }
@@ -105,20 +128,31 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   @override
   Widget build(BuildContext context) {
     if (_errorMessage != null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Erro no Scanner')),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                const SizedBox(height: 16),
-                Text(_errorMessage!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
-                const SizedBox(height: 24),
-                ElevatedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Voltar')),
-              ],
+      return PopScope(
+        canPop: true,
+        onPopInvoked: (didPop) async {
+          if (didPop) {
+            await _stopScanner();
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(title: const Text('Erro no Scanner')),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(_errorMessage!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => _closeWithResult(null),
+                    child: const Text('Voltar'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -129,54 +163,62 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Escanear Código'),
-        actions: [
-          IconButton(
-            icon: ValueListenableBuilder(
-              valueListenable: _controller!,
-              builder: (context, state, child) {
-                return Icon(state.torchState == TorchState.on ? Icons.flash_on : Icons.flash_off);
+    return PopScope(
+      canPop: !_isProcessing,
+      onPopInvoked: (didPop) async {
+        if (didPop) {
+          await _stopScanner();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Escanear Código'),
+          actions: [
+            IconButton(
+              icon: ValueListenableBuilder(
+                valueListenable: _controller!,
+                builder: (context, state, child) {
+                  return Icon(state.torchState == TorchState.on ? Icons.flash_on : Icons.flash_off);
+                },
+              ),
+              onPressed: () {
+                try {
+                  _controller?.toggleTorch();
+                } catch (e) {
+                  developer.log('Failed to toggle torch', error: e);
+                }
               },
             ),
-            onPressed: () {
-              try {
-                _controller?.toggleTorch();
-              } catch (e) {
-                developer.log('Failed to toggle torch', error: e);
-              }
-            },
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          MobileScanner(
-            controller: _controller!,
-            onDetect: _onDetect,
-            scanWindow: null,
-            errorBuilder: (context, error) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error, size: 64, color: Colors.red),
-                    const SizedBox(height: 16),
-                    Text('Erro: ${error.errorCode}', textAlign: TextAlign.center),
-                    const SizedBox(height: 8),
-                    Text(error.errorDetails?.message ?? 'Erro desconhecido', textAlign: TextAlign.center),
-                  ],
-                ),
-              );
-            },
-          ),
-          if (_isProcessing)
-            Container(
-              color: Colors.black54,
-              child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+          ],
+        ),
+        body: Stack(
+          children: [
+            MobileScanner(
+              controller: _controller!,
+              onDetect: _onDetect,
+              scanWindow: null,
+              errorBuilder: (context, error) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error, size: 64, color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text('Erro: ${error.errorCode}', textAlign: TextAlign.center),
+                      const SizedBox(height: 8),
+                      Text(error.errorDetails?.message ?? 'Erro desconhecido', textAlign: TextAlign.center),
+                    ],
+                  ),
+                );
+              },
             ),
-        ],
+            if (_isProcessing)
+              Container(
+                color: Colors.black54,
+                child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+              ),
+          ],
+        ),
       ),
     );
   }

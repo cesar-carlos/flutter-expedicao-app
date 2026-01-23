@@ -110,10 +110,13 @@ import 'package:data7_expedicao/domain/usecases/check_app_update/check_app_updat
 import 'package:data7_expedicao/domain/usecases/download_app_update/download_app_update_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/install_app_update/install_app_update_usecase.dart';
 import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
+import 'package:data7_expedicao/core/utils/i_logger.dart';
+import 'package:data7_expedicao/infrastructure/services/logger_service.dart';
 
 final GetIt locator = GetIt.instance;
 
 void setupLocator() {
+  locator.registerLazySingleton<ILogger>(() => LoggerService());
   locator.registerLazySingleton(() => ConfigService());
   locator.registerLazySingleton(() => UserPreferencesService());
   locator.registerLazySingleton(() => SocketService());

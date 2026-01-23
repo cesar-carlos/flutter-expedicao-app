@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import 'package:data7_expedicao/core/network/socket_config.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
 
 enum SocketEvent { userLocationUpdate, scannerResult, notification, statusUpdate, chatMessage }
@@ -50,7 +51,8 @@ class SocketService extends ChangeNotifier {
       _stopHeartbeat();
       SocketConfig.disconnect();
       _updateConnectionState(SocketConnectionState.disconnected);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao desconectar socket', tag: 'SocketService', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -73,7 +75,8 @@ class SocketService extends ChangeNotifier {
       final payload = {'userId': _userId, 'timestamp': DateTime.now().toIso8601String(), 'data': data};
 
       SocketConfig.instance.emit(eventName, payload);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao emitir evento socket: $eventName', tag: 'SocketService', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -110,11 +113,30 @@ class SocketService extends ChangeNotifier {
 
   void updateConfig(ApiConfig newConfig) {
     try {
+      final wasConnected = isConnected;
+      
+      _stopHeartbeat();
+      _updateConnectionState(SocketConnectionState.disconnected);
+      
       SocketConfig.updateConfig(newConfig);
-      if (isConnected) {
-        reconnect();
+      
+      _setupSocketListeners();
+      
+      if (wasConnected) {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (SocketConfig.isConnected) {
+            _updateConnectionState(SocketConnectionState.connected);
+            _startHeartbeat();
+          } else {
+            _updateConnectionState(SocketConnectionState.connecting);
+            reconnect();
+          }
+        });
+      } else {
+        _updateConnectionState(SocketConnectionState.disconnected);
       }
     } catch (e) {
+      _updateConnectionState(SocketConnectionState.error);
       rethrow;
     }
   }

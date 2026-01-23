@@ -18,6 +18,7 @@ import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/domain/models/user/app_user.dart';
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
 class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
@@ -136,7 +137,9 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
 
           await _userSessionService.saveUserSession(user);
         }
-      } catch (e) {}
+      } catch (e, stackTrace) {
+        AppLogger.warning('Erro ao carregar userSystemModel ou salvar sessão', tag: 'AddCartUseCase', error: e, stackTrace: stackTrace);
+      }
 
       return user;
     } catch (e) {

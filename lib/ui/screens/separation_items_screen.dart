@@ -21,6 +21,7 @@ import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/ui/screens/card_picking_screen.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class SeparationItemsScreen extends StatefulWidget {
   final SeparateConsultationModel separation;
@@ -64,8 +65,13 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
     try {
       final viewModel = context.read<SeparationItemsViewModel>();
       viewModel.stopCartEventMonitoring();
-    } catch (e) {
-      // Ignora erro se o contexto não estiver mais disponível
+    } catch (e, stackTrace) {
+      AppLogger.debug(
+        'Erro ao parar monitoramento de eventos (contexto pode não estar mais disponível)',
+        tag: 'SeparationItemsScreen',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
 
     _tabController.dispose();
@@ -329,17 +335,23 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
     // Se o carrinho foi adicionado com sucesso, atualizar a lista e abrir separação
     if (result == true) {
       await viewModel.refresh();
+
+      // Aguardar um pouco para garantir que os dados foram atualizados
+      await Future.delayed(const Duration(milliseconds: 300));
+
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Carrinho adicionado com sucesso!'), backgroundColor: Colors.green),
-        );
-
-        // Aguardar um pouco para o usuário ver o SnackBar
-        await Future.delayed(UIConstants.mediumDelay);
-
         // Buscar o carrinho recém-adicionado e abrir a separação
+        await _openSeparationForNewestCart(context, viewModel);
+
+        // Mostrar SnackBar após abrir a tela do carrinho
         if (context.mounted) {
-          await _openSeparationForNewestCart(context, viewModel);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Carrinho adicionado com sucesso!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
         }
       }
     }
@@ -366,6 +378,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       if (!context.mounted) return;
 
       // Buscar o carrinho mais recente que pode ser separado
+      // Priorizar carrinhos na situação "separando" (recém-adicionados)
       final newestCart =
           viewModel.carts
               .where(
@@ -376,7 +389,17 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
                     cart.situacao == ExpeditionSituation.separando,
               )
               .toList()
-            ..sort((a, b) => b.dataInicio.compareTo(a.dataInicio)); // Ordenar por data mais recente
+            ..sort((a, b) {
+              // Priorizar carrinhos na situação "separando"
+              if (a.situacao == ExpeditionSituation.separando && b.situacao != ExpeditionSituation.separando) {
+                return -1;
+              }
+              if (a.situacao != ExpeditionSituation.separando && b.situacao == ExpeditionSituation.separando) {
+                return 1;
+              }
+              // Se ambos têm a mesma prioridade, ordenar por data mais recente
+              return b.dataInicio.compareTo(a.dataInicio);
+            });
 
       if (newestCart.isNotEmpty) {
         final cart = newestCart.first;

@@ -1,11 +1,14 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
+
 /// Sons disponíveis no sistema
 enum SoundType {
   barcodeScan('som/BarcodeScan.wav'),
   success('som/finishi.mp3'),
   shelfScanSuccess('som/new-notification.mp3'), // Som para scan de prateleira
+  cartAddSuccess('som/new-notification-campainha.mp3'), // Som para adicionar carrinho com sucesso
   itemCompleted('som/success.wav'), // Som para quando um item é completamente separado
   error('som/Error.wav'),
   fail('som/Fail.wav'),
@@ -45,13 +48,10 @@ class AudioService {
     if (!_isEnabled) return;
 
     try {
-      // Paramos o player para evitar fila/atraso quando o usuário faz leituras em sequência.
       await _fxPlayer.stop();
       await _fxPlayer.play(AssetSource(soundType.path));
-    } catch (e) {
-      if (kDebugMode) {
-        // Erro ao reproduzir som
-      }
+    } catch (e, stackTrace) {
+      AppLogger.warning('Erro ao reproduzir som: ${soundType.path}', tag: 'AudioService', error: e, stackTrace: stackTrace);
     }
   }
 
@@ -73,6 +73,11 @@ class AudioService {
   /// Reproduz som de scan de prateleira bem-sucedido
   Future<void> playShelfScanSuccess() async {
     await playSound(SoundType.shelfScanSuccess);
+  }
+
+  /// Reproduz som de sucesso ao adicionar carrinho
+  Future<void> playCartAddSuccess() async {
+    await playSound(SoundType.cartAddSuccess);
   }
 
   /// Reproduz som de erro

@@ -6,6 +6,7 @@ import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
 import 'package:data7_expedicao/core/services/barcode_validation_service.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class ScanInputProcessor {
   final CardPickingViewModel viewModel;
@@ -82,7 +83,9 @@ class ScanInputProcessor {
   void _provideTactileFeedback() {
     try {
       HapticFeedback.lightImpact();
-    } catch (_) {}
+    } catch (e, stackTrace) {
+      AppLogger.debug('Erro ao fornecer feedback tátil', tag: 'ScanInputProcessor', error: e, stackTrace: stackTrace);
+    }
   }
 
   bool _didItemBecomeCompleted(String itemId, bool wasCompletedBefore) {

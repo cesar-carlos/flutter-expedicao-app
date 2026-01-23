@@ -14,6 +14,7 @@ import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_c
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/scan_ui_controller.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class PickingCardScan extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -225,7 +226,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     debugPrint('[Scan][Broadcast] stop');
     try {
       await _broadcastSubscription?.cancel();
-    } catch (_) {
+    } catch (e, stackTrace) {
+      AppLogger.warning('Erro ao cancelar subscription de broadcast', tag: 'PickingCardScan', error: e, stackTrace: stackTrace);
     } finally {
       _broadcastSubscription = null;
     }
@@ -428,6 +430,18 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
           _checkInitialShelfScan();
         }
       });
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted && !_scanState.enabled) {
+          _ensureScannerModeActivated();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _scanState.setEnabled(true);
+              _scanFocusNode.requestFocus();
+            }
+          });
+        }
+      });
     }
   }
 
@@ -466,6 +480,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
       await _pauseScannerForShelf();
+      if (!mounted) return;
       _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
       return;
     }

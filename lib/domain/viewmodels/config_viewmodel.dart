@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
+import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/network/network_initializer.dart';
+import 'package:data7_expedicao/data/datasources/config_service.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
-import 'package:data7_expedicao/data/datasources/config_service.dart';
-import 'package:data7_expedicao/core/constants/app_strings.dart';
 
 /// ViewModel para gerenciar configurações da API
 class ConfigViewModel extends ChangeNotifier {
@@ -118,6 +118,11 @@ class ConfigViewModel extends ChangeNotifier {
       // Só reseta o status de conexão testada se a configuração mudou
       if (configChanged) {
         _connectionTested = false;
+        
+        // Reinicializa os serviços de rede com a nova configuração
+        NetworkInitializer.reinitializeDio();
+        NetworkInitializer.reinitializeSocket();
+        
         // Testa automaticamente a conexão após salvar uma nova configuração
         await testConnection();
       }

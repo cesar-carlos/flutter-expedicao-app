@@ -10,6 +10,7 @@ import 'package:data7_expedicao/domain/models/user/system_qrcode_data.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class QRCodeLoginScreen extends StatefulWidget {
   const QRCodeLoginScreen({super.key});
@@ -214,7 +215,9 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: Colors.green, duration: const Duration(seconds: 2)),
       );
-    } catch (e) {}
+    } catch (e, stackTrace) {
+      AppLogger.warning('Erro ao exibir mensagem de sucesso', tag: 'QRCodeLoginScreen', error: e, stackTrace: stackTrace);
+    }
   }
 
   Future<void> _updateAuthStatus() async {
