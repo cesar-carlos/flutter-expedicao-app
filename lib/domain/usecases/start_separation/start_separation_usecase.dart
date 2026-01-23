@@ -12,6 +12,7 @@ import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class StartSeparationUseCase {
   final BasicRepository<SeparateModel> _separateRepository;
@@ -73,7 +74,8 @@ class StartSeparationUseCase {
       );
 
       return separations.isNotEmpty ? separations.first : null;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao buscar separação existente', tag: 'StartSeparationUseCase', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -89,7 +91,8 @@ class StartSeparationUseCase {
       );
 
       return cartRoutes.isNotEmpty ? cartRoutes.first : null;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao buscar carrinho percurso existente', tag: 'StartSeparationUseCase', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -119,7 +122,8 @@ class StartSeparationUseCase {
           updatedSeparation: updatedSeparations.first,
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao executar operação transacional de início de separação', tag: 'StartSeparationUseCase', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }

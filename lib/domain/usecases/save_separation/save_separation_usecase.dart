@@ -12,6 +12,7 @@ import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/models/separate_model.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class SaveSeparationUseCase {
   final BasicConsultationRepository<SeparateProgressConsultationModel> _separateProgressRepository;
@@ -89,7 +90,8 @@ class SaveSeparationUseCase {
 
       final separateModels = await _separateRepository.select(query);
       return separateModels.isNotEmpty ? separateModels.first : null;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao buscar separação', tag: 'SaveSeparationUseCase', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -102,7 +104,8 @@ class SaveSeparationUseCase {
 
       final separateProgresses = await _separateProgressRepository.selectConsultation(query);
       return separateProgresses.isNotEmpty ? separateProgresses.first : null;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao buscar progresso de separação', tag: 'SaveSeparationUseCase', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -128,7 +131,8 @@ class SaveSeparationUseCase {
 
       final cartRoutes = await _cartRouteRepository.select(query);
       return cartRoutes.isNotEmpty ? cartRoutes.first : null;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao buscar carrinho percurso', tag: 'SaveSeparationUseCase', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }

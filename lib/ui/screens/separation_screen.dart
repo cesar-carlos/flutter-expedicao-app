@@ -20,6 +20,7 @@ import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/ui/widgets/app_drawer/app_drawer.dart';
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 /// Tela principal de listagem de separações
 class SeparationScreen extends StatefulWidget {
@@ -90,9 +91,9 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     try {
       final viewModel = context.read<SeparationViewModel>();
       viewModel.stopEventMonitoring();
-      viewModel.setScreenVisible(false); // Marca tela como não visível
-    } catch (e) {
-      // Ignora erro se o contexto não estiver mais disponível
+      viewModel.setScreenVisible(false);
+    } catch (e, stackTrace) {
+      AppLogger.debug('Erro ao parar monitoramento (contexto pode não estar mais disponível)', tag: 'SeparationScreen', error: e, stackTrace: stackTrace);
     }
 
     _scrollController.dispose();
@@ -114,11 +115,10 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
           state == AppLifecycleState.detached) {
         viewModel.setScreenVisible(false);
       } else if (state == AppLifecycleState.resumed) {
-        // Só marca como visível se voltou ao foreground
         viewModel.setScreenVisible(true);
       }
-    } catch (e) {
-      // Ignora erro se contexto não disponível
+    } catch (e, stackTrace) {
+      AppLogger.debug('Erro ao atualizar visibilidade (contexto pode não estar mais disponível)', tag: 'SeparationScreen', error: e, stackTrace: stackTrace);
     }
   }
 

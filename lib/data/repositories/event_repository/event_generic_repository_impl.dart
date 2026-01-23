@@ -2,17 +2,15 @@ import 'package:data7_expedicao/domain/repositories/event_generic_repository.dar
 import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
 import 'package:data7_expedicao/domain/services/event_service.dart';
 
-/// Implementação genérica do repositório de eventos
 class EventGenericRepositoryImpl<T> implements EventGenericRepository<T> {
   final EventService _eventService;
-  final String _eventPrefix; // ex: 'separar', 'expedition', etc.
+  final String _eventPrefix;
   final List<EventListenerModel> _listeners = [];
 
   EventGenericRepositoryImpl(this._eventService, this._eventPrefix);
 
   @override
   void addListener(EventListenerModel listener) {
-    // Remove listener existente com mesmo ID se houver
     removeListener(listener.id);
 
     _listeners.add(listener);

@@ -9,6 +9,7 @@ import 'package:data7_expedicao/data/dtos/login_dto.dart';
 import 'package:data7_expedicao/data/dtos/login_response_dto.dart';
 import 'package:data7_expedicao/data/dtos/api_error_dto.dart';
 import 'package:data7_expedicao/domain/repositories/user_repository.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class UserRepositoryImpl implements UserRepository {
   Dio get _dio => DioConfig.instance;
@@ -85,7 +86,8 @@ class UserRepositoryImpl implements UserRepository {
         try {
           final errorDto = ApiErrorDto.fromApiResponse(e.response!.data, e.response!.statusCode);
           throw errorDto.toException();
-        } catch (_) {
+        } catch (parseError, stackTrace) {
+          AppLogger.warning('Erro ao parsear resposta de erro da API, usando erro genérico', tag: 'UserRepositoryImpl', error: parseError, stackTrace: stackTrace);
           final errorDto = ApiErrorDto.validationError('Erro de validação', e.response?.data);
           throw errorDto.toException();
         }

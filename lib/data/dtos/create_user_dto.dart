@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
+
 class CreateUserDto {
   final String nome;
   final String senha;
@@ -12,7 +14,6 @@ class CreateUserDto {
   Future<Map<String, dynamic>> toApiRequest() async {
     final Map<String, dynamic> request = {'Nome': nome.trim(), 'Senha': senha.toLowerCase()};
 
-    // Adicionar CodUsuario se fornecido (caso de cadastro via QR Code)
     if (codUsuario != null) {
       request['CodUsuario'] = codUsuario!;
     }
@@ -22,7 +23,8 @@ class CreateUserDto {
         final bytes = await profileImage!.readAsBytes();
         final base64Image = base64Encode(bytes);
         request['FotoUsuario'] = base64Image;
-      } catch (e) {
+      } catch (e, stackTrace) {
+        AppLogger.error('Erro ao converter foto para base64', tag: 'CreateUserDto', error: e, stackTrace: stackTrace);
         throw Exception('Erro ao converter foto para base64: $e');
       }
     }

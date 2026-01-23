@@ -424,8 +424,8 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
           );
         }
       }
-    } catch (e) {
-      // Em caso de erro, mostrar mensagem
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao abrir separação do carrinho mais recente', tag: 'SeparationItemsScreen', error: e, stackTrace: stackTrace);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
