@@ -127,6 +127,50 @@ class PickingDialogs {
     );
   }
 
+  static Widget quantityExceeded({
+    required String barcode,
+    required String productName,
+    required int requestedQuantity,
+    required int availableQuantity,
+  }) {
+    return PickingDialog(
+      title: 'Quantidade Excedida',
+      icon: Icons.warning,
+      iconColor: Colors.orange,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Código: $barcode', style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('Produto: $productName'),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Quantidade solicitada excede o disponível:',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange.shade700),
+                ),
+                const SizedBox(height: 6),
+                Text('Solicitado: $requestedQuantity'),
+                Text('Disponível: $availableQuantity', style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text('Ajuste a quantidade para não exceder o máximo permitido.'),
+        ],
+      ),
+    );
+  }
+
   static Widget wrongSector({
     required String scannedBarcode,
     required String productName,

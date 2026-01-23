@@ -278,12 +278,18 @@ class CardPickingViewModel extends ChangeNotifier {
     }
 
     if (validationResult.isValid && validationResult.expectedItem != null) {
-      final convertedQuantity = _convertQuantityWithBarcode(
-        validationResult.expectedItem!,
-        trimmedBarcode,
-        inputQuantity,
-      );
-      return ScanProcessResult.success(validationResult.expectedItem!, convertedQuantity);
+      final item = validationResult.expectedItem!;
+      final convertedQuantity = _convertQuantityWithBarcode(item, trimmedBarcode, inputQuantity);
+
+      final totalQuantity = item.quantidade.toInt();
+      final pickedQuantity = getPickedQuantity(item.item);
+      final remainingQuantity = totalQuantity - pickedQuantity;
+
+      if (convertedQuantity > remainingQuantity) {
+        return ScanProcessResult.quantityExceeded(item, convertedQuantity, remainingQuantity);
+      }
+
+      return ScanProcessResult.success(item, convertedQuantity);
     }
 
     if (validationResult.expectedItem != null) {
@@ -293,24 +299,6 @@ class CardPickingViewModel extends ChangeNotifier {
     return const ScanProcessResult(status: ScanProcessStatus.ignored);
   }
 
-  /// Converte a quantidade baseada no código de barras escaneado
-  ///
-  /// **Regras de Conversão:**
-  /// - Se o item tem apenas uma unidade de medida, retorna a quantidade original
-  /// - Se o item tem múltiplas unidades de medida:
-  ///   - O código de barras escaneado identifica qual unidade de medida foi usada
-  ///   - A quantidade é convertida da unidade escaneada para a unidade base do item
-  ///   - Exemplo: Se o item tem unidade base "UN" e foi escaneado código de "CX" (caixa),
-  ///     e o usuário digitou quantidade 1, a conversão pode resultar em 12 (se 1 CX = 12 UN)
-  ///
-  /// **Parâmetros:**
-  /// - [item]: Item que está sendo separado
-  /// - [barcode]: Código de barras escaneado (identifica a unidade de medida)
-  /// - [inputQuantity]: Quantidade digitada pelo usuário na unidade escaneada
-  ///
-  /// **Retorno:**
-  /// - Quantidade convertida para a unidade base do item
-  /// - Se a conversão falhar ou não for possível, retorna a quantidade original
   int _convertQuantityWithBarcode(SeparateItemConsultationModel item, String barcode, int inputQuantity) {
     try {
       if (item.unidadeMedidas.length <= 1) {
@@ -936,6 +924,7 @@ enum ScanProcessStatus {
   allItemsCompleted,
   wrongSector,
   wrongProduct,
+  quantityExceeded,
   success,
 }
 
@@ -945,6 +934,8 @@ class ScanProcessResult {
   final SeparateItemConsultationModel? scannedItem;
   final int? convertedQuantity;
   final int? userSectorCode;
+  final int? requestedQuantity;
+  final int? availableQuantity;
 
   const ScanProcessResult({
     required this.status,
@@ -952,6 +943,8 @@ class ScanProcessResult {
     this.scannedItem,
     this.convertedQuantity,
     this.userSectorCode,
+    this.requestedQuantity,
+    this.availableQuantity,
   });
 
   const ScanProcessResult.success(SeparateItemConsultationModel item, int convertedQuantity)
@@ -965,4 +958,15 @@ class ScanProcessResult {
 
   const ScanProcessResult.wrongProduct(SeparateItemConsultationModel expectedItem)
     : this(status: ScanProcessStatus.wrongProduct, expectedItem: expectedItem);
+
+  const ScanProcessResult.quantityExceeded(
+    SeparateItemConsultationModel item,
+    int requestedQuantity,
+    int availableQuantity,
+  ) : this(
+        status: ScanProcessStatus.quantityExceeded,
+        expectedItem: item,
+        requestedQuantity: requestedQuantity,
+        availableQuantity: availableQuantity,
+      );
 }

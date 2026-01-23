@@ -12,11 +12,8 @@ import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_c
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/scan_ui_controller.dart';
-import 'package:data7_expedicao/ui/widgets/card_picking/components/scanner_preferences_controller.dart';
-import 'package:data7_expedicao/ui/widgets/card_picking/components/scanner_broadcast_controller.dart';
-import 'package:data7_expedicao/ui/widgets/card_picking/components/scanner_activation_controller.dart';
-import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class PickingCardScan extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -217,8 +214,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _statusCache.forceCheckCartStatus();
-        
-        // Se os dados já estão carregados, ativar o scanner imediatamente
+
         if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
           Future.delayed(UIConstants.scannerActivationDelay, () {
             if (mounted) {
@@ -237,7 +233,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
             }
           });
         } else {
-          // Caso contrário, apenas solicitar foco
           _scanFocusNode.requestFocus();
         }
       }
@@ -341,13 +336,11 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         }
       });
 
-      // Ativar o scanner quando os dados são carregados
       Future.delayed(UIConstants.scannerReactivationDelay, () {
         if (!mounted) return;
-        
+
         final isCartInSeparation = _isCartInSeparationStatus();
-        
-        // Sempre garantir que o scanner está ativado quando os dados estão prontos
+
         if (!_scanState.enabled && isCartInSeparation) {
           if (!_scannerActivationController.isInitialized) {
             _scannerActivationController.activate(
@@ -366,7 +359,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
             }
           });
         } else if (isCartInSeparation) {
-          // Se já está habilitado, apenas garantir que o foco está ativo
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               _scanFocusNode.requestFocus();
@@ -407,19 +399,17 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     if (_scanState.isProcessingScan) return;
 
-    if (!_barcodeScannerService.isValidBarcodeFormat(barcode)) {
-      AppLogger.warning(
-        'Formato de código de barras inválido: "$barcode"',
-        tag: 'PickingCardScan',
-      );
-      _audioService.playError();
-      _dialogManager.showErrorDialog(
-        barcode,
-        'Formato inválido',
-        'O código de barras deve ter entre 7 e 16 dígitos numéricos',
-      );
-      return;
-    }
+    // Validação de formato de código de barras comentada
+    // if (!_barcodeScannerService.isValidBarcodeFormat(barcode)) {
+    //   AppLogger.warning('Formato de código de barras inválido: "$barcode"', tag: 'PickingCardScan');
+    //   _audioService.playError();
+    //   _dialogManager.showErrorDialog(
+    //     barcode,
+    //     'Formato inválido',
+    //     'O código de barras deve ter entre 7 e 16 dígitos numéricos',
+    //   );
+    //   return;
+    // }
 
     final nextItem = PickingUtils.findNextItemToPick(
       widget.viewModel.items,
@@ -477,16 +467,16 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
           }
         });
 
-        _keyboardController.returnFocusToScanner();
+        _keyboardController.forceFocusAndCloseKeyboard();
       } else {
         _scanProcessor.handleFailedItemAddition(item, result.message);
         _dialogManager.showErrorDialog(barcode, item.nomeProduto, result.message);
-        _keyboardController.returnFocusToScanner();
+        _keyboardController.forceFocusAndCloseKeyboard();
       }
     } catch (e) {
       _scanProcessor.handleFailedItemAddition(item, 'Erro inesperado: ${e.toString()}');
       _dialogManager.showErrorDialog(barcode, item.nomeProduto, 'Erro inesperado: ${e.toString()}');
-      _keyboardController.returnFocusToScanner();
+      _keyboardController.forceFocusAndCloseKeyboard();
     }
   }
 

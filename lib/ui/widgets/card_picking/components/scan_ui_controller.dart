@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/services/audio_service.dart';
@@ -29,12 +28,10 @@ class ScanUiController {
 
   void _showQuantityConversionFeedback(int originalQuantity, int convertedQuantity) {
     if (context == null) return;
-    
+
     ScaffoldMessenger.of(context!).showSnackBar(
       SnackBar(
-        content: Text(
-          'Quantidade convertida: $originalQuantity → $convertedQuantity (unidade de medida)',
-        ),
+        content: Text('Quantidade convertida: $originalQuantity → $convertedQuantity (unidade de medida)'),
         duration: UIConstants.snackBarShortDuration,
         backgroundColor: Colors.blue,
       ),
@@ -79,6 +76,20 @@ class ScanUiController {
           );
         }
         return;
+      case ScanProcessStatus.quantityExceeded:
+        if (scanResult.expectedItem != null &&
+            scanResult.requestedQuantity != null &&
+            scanResult.availableQuantity != null) {
+          audioService.playError();
+          final item = scanResult.expectedItem!;
+          dialogManager.showQuantityExceededDialog(
+            barcode,
+            item.nomeProduto,
+            scanResult.requestedQuantity!,
+            scanResult.availableQuantity!,
+          );
+        }
+        return;
       case ScanProcessStatus.success:
         if (scanResult.expectedItem != null) {
           final convertedQuantity = scanResult.convertedQuantity ?? inputQuantity;
@@ -89,7 +100,7 @@ class ScanUiController {
           }
 
           await onAddItem(scanResult.expectedItem!, barcode, convertedQuantity);
-          keyboardController.returnFocusToScanner();
+          keyboardController.forceFocusAndCloseKeyboard();
         }
         return;
     }

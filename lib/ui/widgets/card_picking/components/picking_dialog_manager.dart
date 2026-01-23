@@ -65,6 +65,22 @@ class PickingDialogManager {
     _showDialogWithFocusReturn(() => PickingDialogs.separationComplete());
   }
 
+  void showQuantityExceededDialog(
+    String barcode,
+    String productName,
+    int requestedQuantity,
+    int availableQuantity,
+  ) {
+    _showDialogWithFocusReturn(
+      () => PickingDialogs.quantityExceeded(
+        barcode: barcode,
+        productName: productName,
+        requestedQuantity: requestedQuantity,
+        availableQuantity: availableQuantity,
+      ),
+    );
+  }
+
   void showShelfScanDialog({
     required String expectedAddress,
     required String expectedAddressDescription,
@@ -161,7 +177,12 @@ class PickingDialogManager {
   void _returnFocusToScanner() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (context.mounted) {
-        scanFocusNode.requestFocus();
+        FocusScope.of(context).unfocus();
+        Future.delayed(UIConstants.shortDelay, () {
+          if (context.mounted) {
+            scanFocusNode.requestFocus();
+          }
+        });
       }
     });
   }

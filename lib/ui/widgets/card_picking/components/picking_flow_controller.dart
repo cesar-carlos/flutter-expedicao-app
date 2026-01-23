@@ -64,7 +64,7 @@ class PickingFlowController {
       dialogManager.showSaveCartAfterSectorCompletedDialog(
         userSectorCode,
         () => finishPicking(),
-        keyboardController.returnFocusToScanner,
+        keyboardController.forceFocusAndCloseKeyboard,
       );
     }
   }

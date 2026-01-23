@@ -107,4 +107,18 @@ class KeyboardToggleController {
       }
     });
   }
+
+  /// Força foco e fecha o teclado (útil após cada scan)
+  ///
+  /// Garante que o teclado virtual esteja fechado e o campo de scanner
+  /// esteja focado, preparando para o próximo scan.
+  void forceFocusAndCloseKeyboard() {
+    _hideKeyboard();
+
+    Future.delayed(_focusDelay, () {
+      if (context.mounted) {
+        scanFocusNode.requestFocus();
+      }
+    });
+  }
 }
