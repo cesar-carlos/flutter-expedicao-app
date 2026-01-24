@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 abstract class AppError {
@@ -26,6 +27,8 @@ class DataError extends AppError {
 
 extension AppErrorUI on BuildContext {
   void showErrorSnackBar(AppError error) {
-    ScaffoldMessenger.of(this).showSnackBar(SnackBar(content: Text(error.userMessage), backgroundColor: AppColors.error));
+    ScaffoldMessenger.of(
+      this,
+    ).showSnackBar(SnackBar(content: Text(error.userMessage), backgroundColor: AppColors.error));
   }
 }

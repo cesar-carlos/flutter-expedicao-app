@@ -72,7 +72,8 @@ class AppRouter {
         final authStatus = authViewModel.status;
         final currentLocation = state.uri.path;
 
-        final isAuthenticatedRoute = currentLocation.startsWith(home) ||
+        final isAuthenticatedRoute =
+            currentLocation.startsWith(home) ||
             currentLocation == profile ||
             currentLocation == shipmentSeparateConsultation ||
             currentLocation == shelfScanning ||
@@ -249,14 +250,8 @@ class AppRouter {
                 final codSepararEstoque = args['codSepararEstoque'] as int;
 
                 return ChangeNotifierProvider(
-                  create: (_) => AddCartViewModel(
-                    codEmpresa: codEmpresa,
-                    codSepararEstoque: codSepararEstoque,
-                  ),
-                  child: AddCartScreen(
-                    codEmpresa: codEmpresa,
-                    codSepararEstoque: codSepararEstoque,
-                  ),
+                  create: (_) => AddCartViewModel(codEmpresa: codEmpresa, codSepararEstoque: codSepararEstoque),
+                  child: AddCartScreen(codEmpresa: codEmpresa, codSepararEstoque: codSepararEstoque),
                 );
               },
             ),

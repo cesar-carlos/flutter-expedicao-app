@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:result_dart/result_dart.dart';
+
 import 'package:data7_expedicao/core/results/app_failure.dart';
 
 /// Tipo unitário para representar operações sem retorno
