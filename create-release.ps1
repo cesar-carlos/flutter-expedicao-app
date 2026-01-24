@@ -3,33 +3,12 @@
 
 param(
     [string]$Token = "",
-    [string]$Tag = "v1.0.7+2",
+    [string]$Tag = "v1.0.8+2",
     [string]$Owner = "cesar-carlos",
     [string]$Repo = "flutter-expedicao-app"
 )
 
-$releaseNotes = @"
-## Release v1.0.7+2
-
-### Novidades
-- ✅ Sistema de Auto Update implementado
-- ✅ Verificação manual de atualizações no menu lateral
-- ✅ Melhorias na UI do AppDrawer com ícone de atualização
-- ✅ FileProvider configurado para instalação segura de APKs
-
-### Melhorias
-- Refatoração do AppUpdateViewModel seguindo Clean Architecture
-- Documentação completa do sistema de auto-update
-- Tratamento de erros aprimorado
-
-### Arquitetura
-- Clean Architecture aplicada em todas as camadas
-- Separação de responsabilidades (SOLID)
-- Testabilidade melhorada
-
-### Documentação
-- Documentação técnica completa em `docs/auto-update-system.md`
-"@
+$releaseNotes = Get-Content -Path "docs\release\RELEASE_NOTES_v1.0.8+2.md" -Raw
 
 if ([string]::IsNullOrEmpty($Token)) {
     Write-Host "❌ Token do GitHub não fornecido!" -ForegroundColor Red
