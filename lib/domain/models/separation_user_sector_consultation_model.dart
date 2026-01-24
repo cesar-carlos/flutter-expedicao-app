@@ -4,7 +4,6 @@ import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/utils/app_helper.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 
-/// Modelo para consulta de separação por usuário e setor
 class SeparationUserSectorConsultationModel {
   final int codEmpresa;
   final int codSepararEstoque;
@@ -90,8 +89,6 @@ class SeparationUserSectorConsultationModel {
     };
   }
 
-  /// Factory method para criação segura com validação de schema
-  /// Retorna um Result que pode ser sucesso ou falha
   static Result<SeparationUserSectorConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
     return safeCallSync(() => SeparationUserSectorConsultationModel.fromJson(json));
   }
@@ -108,13 +105,10 @@ class SeparationUserSectorConsultationModel {
   @override
   int get hashCode => codSepararEstoque.hashCode ^ codEmpresa.hashCode ^ codSetorEstoque.hashCode;
 
-  /// Retorna o código da situação
   String get situacaoCode => separarEstoqueSituacao.code;
 
-  /// Retorna a descrição da situação
   String get situacaoDescription => separarEstoqueSituacao.description;
 
-  /// Retorna a cor da situação
   Color get situacaoColor => separarEstoqueSituacao.color;
 
   @override

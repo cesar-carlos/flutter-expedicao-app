@@ -1,5 +1,6 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
+
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class AppFonts {
@@ -7,10 +8,7 @@ class AppFonts {
 
   static String get primaryFontFamily => 'Inter';
 
-  static TextTheme getTextTheme({
-    required Color baseColor,
-    Brightness brightness = Brightness.light,
-  }) {
+  static TextTheme getTextTheme({required Color baseColor, Brightness brightness = Brightness.light}) {
     return GoogleFonts.interTextTheme(
       TextTheme(
         headlineLarge: GoogleFonts.inter(

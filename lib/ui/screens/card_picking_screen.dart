@@ -77,7 +77,6 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
         showSocketStatus: false,
         leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
         actions: [
-          // Botão de atualização
           Consumer<CardPickingViewModel>(
             builder: (context, viewModel, child) {
               return IconButton(
@@ -87,18 +86,19 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
                         await viewModel.refresh();
                       },
                 icon: viewModel.isLoading
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
-                        ),
-                      )
+                    ? child!
                     : const Icon(Icons.refresh),
                 tooltip: 'Atualizar dados',
               );
             },
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
+              ),
+            ),
           ),
           // Menu de três pontos
           PopupMenuButton<String>(
@@ -162,8 +162,15 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: Consumer<CardPickingViewModel>(
-        builder: (context, viewModel, child) {
+      bottomNavigationBar: Selector<CardPickingViewModel, ({double progress, int completed, int total, bool isComplete})>(
+        selector: (_, vm) => (
+          progress: vm.progress,
+          completed: vm.completedItems,
+          total: vm.totalItems,
+          isComplete: vm.isPickingComplete,
+        ),
+        builder: (context, data, _) {
+          final viewModel = context.read<CardPickingViewModel>();
           return PickingActionsBottomBar(viewModel: viewModel, cart: widget.cart);
         },
       ),

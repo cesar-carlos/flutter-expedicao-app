@@ -186,18 +186,11 @@ class CardPickingViewModel extends ChangeNotifier {
       _userSessionService = locator<UserSessionService>(),
       _cartEventRepository = locator<SeparateCartInternshipEventRepository>(),
       _shelfScanningService = locator<ShelfScanningService>(),
-      _stateManager = locator<PickingStateManager>() {
-    _stateManager.addListener(_onStateManagerChanged);
-  }
-
-  void _onStateManagerChanged() {
-    _safeNotifyListeners();
-  }
+      _stateManager = locator<PickingStateManager>();
 
   @override
   void dispose() {
     _disposed = true;
-    _stateManager.removeListener(_onStateManagerChanged);
     stopCartEventMonitoring();
     _errorController.close();
     super.dispose();
@@ -398,16 +391,19 @@ class CardPickingViewModel extends ChangeNotifier {
   void _updateLocalPickingStateOptimistic(String itemId, int quantity, DateTime timestamp) {
     if (_disposed) return;
     _stateManager.updateItemQuantityAndAddPending(itemId, quantity, timestamp);
+    _safeNotifyListeners();
   }
 
   void updatePickedQuantity(String itemId, int quantity) {
     if (_disposed) return;
     _stateManager.updateItemQuantity(itemId, quantity);
+    _safeNotifyListeners();
   }
 
   void completeItem(String itemId) {
     if (_disposed) return;
     _stateManager.completeItem(itemId);
+    _safeNotifyListeners();
   }
 
   int getPickedQuantity(String itemId) => _stateManager.getPickedQuantity(itemId);
@@ -826,6 +822,7 @@ class CardPickingViewModel extends ChangeNotifier {
           Future.delayed(const Duration(seconds: 2), () {
             if (!_disposed) {
               _stateManager.clearSyncedOperations(itemId);
+              _safeNotifyListeners();
             }
           });
         },
@@ -842,6 +839,7 @@ class CardPickingViewModel extends ChangeNotifier {
     if (_disposed) return;
     final errorMessage = error is AppFailure ? error.userMessage : error.toString();
     _stateManager.revertQuantityAndMarkOperationFailed(itemId, quantity, timestamp, errorMessage);
+    _safeNotifyListeners();
     _notifyOperationError(itemId, errorMessage);
   }
 
@@ -853,6 +851,7 @@ class CardPickingViewModel extends ChangeNotifier {
   }) {
     if (_disposed) return;
     _stateManager.updateOperationStatus(itemId, timestamp, status, errorMessage: errorMessage);
+    _safeNotifyListeners();
   }
 
   Future<void> _waitForPendingOperationsAndRefresh() async {
@@ -871,10 +870,6 @@ class CardPickingViewModel extends ChangeNotifier {
   }
 
   SeparateItemConsultationModel? _findItemByCodProduto(int codProduto) {
-    if (_itemsByCodProduto == null || _itemsByCodProduto!.isEmpty) {
-      _rebuildItemsCache();
-    }
-
     return _itemsByCodProduto?[codProduto];
   }
 

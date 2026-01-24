@@ -2,7 +2,6 @@ import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Modelo para consulta de separação de expedição
 class SeparateProgressConsultationModel {
   final int codEmpresa;
   final int codSepararEstoque;
@@ -47,8 +46,6 @@ class SeparateProgressConsultationModel {
     };
   }
 
-  /// Factory method para criação segura com validação de schema
-  /// Retorna um Result que pode ser sucesso ou falha
   static Result<SeparateProgressConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
     return safeCallSync(() => SeparateProgressConsultationModel.fromJson(json));
   }

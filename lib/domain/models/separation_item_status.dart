@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
-/// Situações possíveis para itens de separação
 enum SeparationItemStatus {
   separado('SE', 'Separado', AppColors.success),
   pendente('PE', 'Pendente', AppColors.warning),
@@ -14,7 +13,6 @@ enum SeparationItemStatus {
   final String description;
   final Color color;
 
-  /// Determina a situação baseada nas quantidades
   static SeparationItemStatus fromQuantities({required double quantidadeTotal, required double quantidadeSeparacao}) {
     if (quantidadeSeparacao <= 0) {
       return SeparationItemStatus.pendente;
@@ -25,17 +23,14 @@ enum SeparationItemStatus {
     }
   }
 
-  /// Retorna todas as situações disponíveis para filtro
   static List<SeparationItemStatus> get availableForFilter => [
     SeparationItemStatus.separado,
     SeparationItemStatus.pendente,
     SeparationItemStatus.parcial,
   ];
 
-  /// Retorna todas as descrições para filtro
   static List<String> get descriptions => availableForFilter.map((e) => e.description).toList();
 
-  /// Retorna todas as cores para filtro
   static List<Color> get colors => availableForFilter.map((e) => e.color).toList();
 
   @override

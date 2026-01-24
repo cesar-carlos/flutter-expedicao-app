@@ -5,7 +5,6 @@ import 'package:data7_expedicao/domain/models/situation/expedition_situation_mod
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
-/// Modelo para consulta de separação de expedição
 class SeparateConsultationModel {
   final int codEmpresa;
   final int codSepararEstoque;
@@ -97,8 +96,6 @@ class SeparateConsultationModel {
     };
   }
 
-  /// Factory method para criação segura com validação de schema
-  /// Retorna um Result que pode ser sucesso ou falha
   static Result<SeparateConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
     return safeCallSync(() => SeparateConsultationModel.fromJson(json));
   }
@@ -114,10 +111,8 @@ class SeparateConsultationModel {
   @override
   int get hashCode => codSepararEstoque.hashCode ^ codEmpresa.hashCode;
 
-  /// Retorna o código do tipo de entidade
   String get tipoEntidadeCode => tipoEntidade.code;
 
-  /// Retorna a descrição do tipo de entidade
   String get tipoEntidadeDescription => tipoEntidade.description;
 
   @override

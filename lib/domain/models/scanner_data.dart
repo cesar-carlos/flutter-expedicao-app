@@ -1,4 +1,3 @@
-/// Modelo de dados para informações do scanner
 class ScannerData {
   final String code;
 

@@ -1,4 +1,4 @@
-import 'dart:async' show StreamSubscription;
+import 'dart:async' show StreamSubscription, Timer, unawaited;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -91,6 +91,9 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   //final BarcodeScannerService _barcodeScannerService = locator<BarcodeScannerService>();
 
   StreamSubscription<OperationError>? _errorSubscription;
+
+  Timer? _shelfScanTimer;
+  Timer? _reactivationTimer;
 
   bool _hasShownInitialShelfScan = false;
 
@@ -309,6 +312,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   @override
   void dispose() {
+    _shelfScanTimer?.cancel();
+    _reactivationTimer?.cancel();
     _scannerActivationController.dispose();
     _errorSubscription?.cancel();
     widget.viewModel.removeListener(_onViewModelChanged);
@@ -328,14 +333,15 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   void _onViewModelChanged() {
     if (!mounted) return;
 
+    _shelfScanTimer?.cancel();
+    _reactivationTimer?.cancel();
+
     if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
-      Future.delayed(UIConstants.shortLoadingDelay, () {
-        if (mounted) {
-          _checkInitialShelfScan();
-        }
+      _shelfScanTimer = Timer(UIConstants.shortLoadingDelay, () {
+        if (mounted) _checkInitialShelfScan();
       });
 
-      Future.delayed(UIConstants.scannerReactivationDelay, () {
+      _reactivationTimer = Timer(UIConstants.scannerReactivationDelay, () {
         if (!mounted) return;
 
         final isCartInSeparation = _isCartInSeparationStatus();
@@ -359,9 +365,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
           });
         } else if (isCartInSeparation) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              _scanFocusNode.requestFocus();
-            }
+            if (mounted) _scanFocusNode.requestFocus();
           });
         }
       });
@@ -372,20 +376,22 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   Widget build(BuildContext context) {
     super.build(context);
 
-    final isEnabled = _isCartInSeparationStatus();
-
-    _scanState.setEnabled(isEnabled);
-
-    return _PickingCardScanProvider(
-      scanState: _scanState,
-      cart: widget.cart,
-      viewModel: widget.viewModel,
-      quantityController: _quantityController,
-      quantityFocusNode: _quantityFocusNode,
-      scanController: _scanController,
-      scanFocusNode: _scanFocusNode,
-      onToggleKeyboard: _toggleKeyboard,
-      onBarcodeScanned: _onBarcodeScanned,
+    return Selector<CardPickingViewModel, bool>(
+      selector: (_, vm) => vm.isCartInSeparationStatus,
+      builder: (context, isEnabled, _) {
+        _scanState.setEnabled(isEnabled);
+        return _PickingCardScanProvider(
+          scanState: _scanState,
+          cart: widget.cart,
+          viewModel: widget.viewModel,
+          quantityController: _quantityController,
+          quantityFocusNode: _quantityFocusNode,
+          scanController: _scanController,
+          scanFocusNode: _scanFocusNode,
+          onToggleKeyboard: _toggleKeyboard,
+          onBarcodeScanned: _onBarcodeScanned,
+        );
+      },
     );
   }
 
@@ -458,13 +464,12 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
           () async {},
         );
 
-        _checkNextItemShelfScan();
-
-        Future.delayed(UIConstants.mediumDelay, () async {
-          if (mounted) {
-            await _checkAndShowSaveCartModal();
-          }
-        });
+        unawaited(Future.wait([
+          _checkNextItemShelfScanAsync(),
+          Future.delayed(UIConstants.mediumDelay).then((_) async {
+            if (mounted) await _checkAndShowSaveCartModal();
+          }),
+        ]));
 
         _keyboardController.forceFocusAndCloseKeyboard();
       } else {
@@ -497,7 +502,8 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  void _checkNextItemShelfScan() {
+  Future<void> _checkNextItemShelfScanAsync() async {
+    await Future.delayed(UIConstants.shortLoadingDelay);
     if (!mounted) return;
 
     final nextItem = PickingUtils.findNextItemToPick(
@@ -507,14 +513,9 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     );
 
     if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
-      Future.delayed(UIConstants.shortLoadingDelay, () {
-        if (mounted) {
-          _pauseScannerForShelf().then((_) {
-            if (!mounted) return;
-            _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
-          });
-        }
-      });
+      await _pauseScannerForShelf();
+      if (!mounted) return;
+      _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
     }
   }
 

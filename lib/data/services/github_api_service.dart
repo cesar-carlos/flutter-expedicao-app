@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+
 import 'package:data7_expedicao/data/dtos/github_release_dto.dart';
 
 class GitHubApiService {
@@ -25,7 +26,9 @@ class GitHubApiService {
       if (e.response?.statusCode == 404) {
         throw Exception('Repositório não encontrado: $owner/$repo');
       } else if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
-        throw Exception('Acesso negado. Verifique se o repositório é público ou se o token está configurado corretamente');
+        throw Exception(
+          'Acesso negado. Verifique se o repositório é público ou se o token está configurado corretamente',
+        );
       }
       throw Exception('Erro ao buscar releases: ${e.message}');
     } catch (e) {
@@ -41,7 +44,9 @@ class GitHubApiService {
       if (e.response?.statusCode == 404) {
         throw Exception('Nenhum release encontrado para $owner/$repo');
       } else if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
-        throw Exception('Acesso negado. Verifique se o repositório é público ou se o token está configurado corretamente');
+        throw Exception(
+          'Acesso negado. Verifique se o repositório é público ou se o token está configurado corretamente',
+        );
       }
       throw Exception('Erro ao buscar latest release: ${e.message}');
     } catch (e) {

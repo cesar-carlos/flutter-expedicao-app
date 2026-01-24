@@ -82,7 +82,12 @@ class SocketService extends ChangeNotifier {
       SocketConfig.instance.emit(eventName, payload);
       AppLogger.operation('Evento emitido: $eventName', tag: 'SocketService');
     } catch (e, stackTrace) {
-      AppLogger.error('Erro ao emitir evento socket: $eventName', tag: 'SocketService', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Erro ao emitir evento socket: $eventName',
+        tag: 'SocketService',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
