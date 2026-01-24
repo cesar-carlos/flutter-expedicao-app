@@ -174,7 +174,10 @@ class PickingDialogManager {
               });
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-            child: Text('Salvar Carrinho', style: AppFonts.inter(color: AppColors.white)),
+            child: Text(
+              'Salvar Carrinho',
+              style: AppFonts.inter(color: Theme.of(context).colorScheme.onPrimary),
+            ),
           ),
         ],
       ),

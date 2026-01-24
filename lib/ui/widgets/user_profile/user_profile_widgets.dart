@@ -30,14 +30,16 @@ class UserProfileAvatar extends StatelessWidget {
           );
         }
 
+        final colorScheme = Theme.of(context).colorScheme;
+
         return GestureDetector(
           onTap: onTap,
           child: AvatarUtils.buildAvatar(
             name: currentUser.nome,
             photoBase64: currentUser.fotoUsuario,
             radius: radius,
-            backgroundColor: AppColors.blue100,
-            textColor: AppColors.blue800,
+            backgroundColor: colorScheme.primaryContainer,
+            textColor: colorScheme.onPrimaryContainer,
           ),
         );
       },
@@ -117,12 +119,18 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
                         Text(currentUser.nome, style: AppFonts.inter(fontSize: 18, fontWeight: FontWeight.bold)),
                         Text(
                           'ID: ${currentUser.codLoginApp}',
-                          style: AppFonts.inter(fontSize: 14, color: AppColors.grey600),
+                          style: AppFonts.inter(
+                            fontSize: 14,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         if (currentUser.codUsuario != null)
                           Text(
                             'Código: ${currentUser.codUsuario}',
-                            style: AppFonts.inter(fontSize: 14, color: AppColors.grey600),
+                            style: AppFonts.inter(
+                            fontSize: 14,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                           ),
                         Row(
                           children: [

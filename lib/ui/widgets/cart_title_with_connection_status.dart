@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
-import 'package:data7_expedicao/data/services/socket_service.dart';
-import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/ui/widgets/common/title_with_connection_status.dart';
 
 class CartTitleWithConnectionStatus extends StatelessWidget {
   final String cartName;
@@ -13,76 +11,24 @@ class CartTitleWithConnectionStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    return TitleWithConnectionStatus(
+      dynamicTitleBuilder: (context) {
+        return Consumer<CardPickingViewModel>(
+          builder: (context, pickingViewModel, child) {
+            final theme = Theme.of(context);
+            final cart = pickingViewModel.cart;
+            final displayName = cart?.nomeCarrinho ?? cartName;
 
-    return Consumer2<CardPickingViewModel, SocketViewModel>(
-      builder: (context, pickingViewModel, socketViewModel, child) {
-        final cart = pickingViewModel.cart;
-        final displayName = cart?.nomeCarrinho ?? cartName;
-        final connectionState = socketViewModel.connectionState;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
+            return Text(
               displayName,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onPrimary,
               ),
-            ),
-
-            _buildConnectionStatus(theme, connectionState),
-          ],
+            );
+          },
         );
       },
-    );
-  }
-
-  Widget _buildConnectionStatus(ThemeData theme, SocketConnectionState connectionState) {
-    Color statusColor;
-    String statusText;
-    IconData statusIcon;
-
-    switch (connectionState) {
-      case SocketConnectionState.connected:
-        statusColor = AppColors.success;
-        statusText = 'Conectado';
-        statusIcon = Icons.wifi;
-        break;
-      case SocketConnectionState.connecting:
-      case SocketConnectionState.reconnecting:
-        statusColor = AppColors.warning;
-        statusText = 'Conectando...';
-        statusIcon = Icons.wifi_find;
-        break;
-      case SocketConnectionState.disconnected:
-        statusColor = AppColors.grey;
-        statusText = 'Desconectado';
-        statusIcon = Icons.wifi_off;
-        break;
-      case SocketConnectionState.error:
-        statusColor = AppColors.error;
-        statusText = 'Erro de Conexão';
-        statusIcon = Icons.error_outline;
-        break;
-    }
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.only(top: 2),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(statusIcon, size: 12, color: statusColor),
-          const SizedBox(width: 4),
-          Text(
-            statusText,
-            style: theme.textTheme.labelSmall?.copyWith(color: statusColor, fontWeight: FontWeight.w600, fontSize: 10),
-          ),
-        ],
-      ),
     );
   }
 }

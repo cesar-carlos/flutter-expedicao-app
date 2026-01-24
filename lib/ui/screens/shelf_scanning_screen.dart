@@ -16,6 +16,7 @@ import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
+import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 
 class ShelfScanningScreen extends StatefulWidget {
   final String expectedAddress;
@@ -346,7 +347,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
         _handleBack();
       },
       child: Scaffold(
-        appBar: AppBar(
+        appBar: CustomAppBar.withCustomTitle(
           title: Row(
             children: [
               Icon(Icons.qr_code_scanner, color: AppColors.warning, size: UIConstants.largeIconSize),
@@ -355,6 +356,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
             ],
           ),
           leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: _handleBack),
+          showSocketStatus: false,
         ),
         body: Padding(
           padding: const EdgeInsets.all(UIConstants.defaultPadding),

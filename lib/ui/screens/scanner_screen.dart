@@ -146,8 +146,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               label: const Text('Limpar Tudo'),
                               onPressed: () => _showClearAllDialog(context, scannerViewModel),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.error,
-                                foregroundColor: AppColors.white,
+                                backgroundColor: Theme.of(context).colorScheme.error,
+                                foregroundColor: Theme.of(context).colorScheme.onError,
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               ),
                             ),
@@ -237,20 +237,23 @@ class _ScannerScreenState extends State<ScannerScreen> {
   /// Constrói a lista de leituras
   Widget _buildScanList(ScannerViewModel viewModel) {
     if (viewModel.scanHistory.isEmpty) {
+      final theme = Theme.of(context);
+      final colorScheme = theme.colorScheme;
+
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.qr_code_scanner_outlined, size: 64, color: AppColors.grey400),
+            Icon(Icons.qr_code_scanner_outlined, size: 64, color: colorScheme.onSurfaceVariant),
             const SizedBox(height: 16),
             Text(
               'Nenhuma leitura registrada',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.grey600),
+              style: theme.textTheme.titleLarge?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 8),
             Text(
               'Use o scanner para adicionar códigos',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
+              style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -279,7 +282,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
               child: Center(
                 child: Text(
                   '${index + 1}',
-                  style: AppFonts.inter(color: AppColors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: AppFonts.inter(
+                    color: isLatest ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSecondary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               ),
             ),
@@ -292,7 +299,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
             subtitle: Text(
               _formatTimestamp(scan.timestamp),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grey600),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -306,12 +315,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                     child: Text(
                       'ÚLTIMO',
-                      style: AppFonts.inter(color: AppColors.white, fontSize: UIConstants.extraSmallFontSize, fontWeight: FontWeight.bold),
+                      style: AppFonts.inter(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontSize: UIConstants.extraSmallFontSize,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                  icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
                   onPressed: () => _showDeleteDialog(context, viewModel, index),
                   tooltip: 'Remover leitura',
                 ),
@@ -357,7 +370,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               viewModel.removeFromHistory(index);
               Navigator.of(context).pop();
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Remover'),
           ),
         ],
@@ -379,7 +392,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               viewModel.clearHistory();
               Navigator.of(context).pop();
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Limpar Tudo'),
           ),
         ],

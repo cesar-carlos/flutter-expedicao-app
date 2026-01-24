@@ -7,6 +7,7 @@ import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/config/index.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 
 class ConfigScreen extends StatelessWidget {
   const ConfigScreen({super.key});
@@ -33,11 +34,11 @@ class ConfigScreen extends StatelessWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Configuração resetada!'),
+          SnackBar(
+            content: const Text('Configuração resetada!'),
             backgroundColor: AppColors.warning,
             behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.all(16),
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
@@ -47,8 +48,8 @@ class ConfigScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.configTitle),
+      appBar: CustomAppBar.withoutSocket(
+        title: context.l10n.configTitle,
         centerTitle: true,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go(AppRouter.home)),
         actions: [

@@ -393,7 +393,9 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
                         ),
                         Text(
                           'Pendentes',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.orange700),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.warning,
+                              ),
                         ),
                       ],
                     ),

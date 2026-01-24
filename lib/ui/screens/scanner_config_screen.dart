@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/ui/widgets/config/scanner_config_form.dart';
+import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 
 class ScannerConfigScreen extends StatelessWidget {
   const ScannerConfigScreen({super.key});
@@ -11,8 +12,8 @@ class ScannerConfigScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.scannerConfigMenu),
+      appBar: CustomAppBar.withoutSocket(
+        title: context.l10n.scannerConfigMenu,
         centerTitle: true,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go(AppRouter.home)),
       ),

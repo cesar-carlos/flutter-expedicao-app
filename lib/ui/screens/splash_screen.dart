@@ -74,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         child: AdaptiveLogo(
                           width: 120,
                           height: 120,
-                          fallback: const Icon(Icons.qr_code_scanner, size: 70, color: AppColors.white),
+                          fallback: Icon(Icons.qr_code_scanner, size: 70, color: theme.colorScheme.onPrimary),
                         ),
                       ),
                     ),
@@ -89,7 +89,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               opacity: _fadeAnimation,
               child: Text(
                 'Data7 Expedição',
-                style: AppFonts.inter(fontSize: UIConstants.xxLargeFontSize, fontWeight: FontWeight.bold, color: AppColors.white, letterSpacing: 2),
+                style: AppFonts.inter(
+                  fontSize: UIConstants.xxLargeFontSize,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onPrimary,
+                  letterSpacing: 2,
+                ),
               ),
             ),
 
@@ -107,8 +112,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
             FadeTransition(
               opacity: _fadeAnimation,
-              child: const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
                 strokeWidth: 3,
               ),
             ),

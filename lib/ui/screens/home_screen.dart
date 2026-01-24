@@ -6,7 +6,6 @@ import 'package:data7_expedicao/ui/widgets/app_drawer/index.dart';
 import 'package:data7_expedicao/domain/viewmodels/home_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/home/index.dart';
 import 'package:data7_expedicao/di/locator.dart';
-import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -48,7 +47,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: AppFonts.inter(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      Text(homeViewModel.subtitleMessage, style: AppFonts.inter(fontSize: 16, color: AppColors.grey)),
+                      Text(
+                        homeViewModel.subtitleMessage,
+                        style: AppFonts.inter(
+                          fontSize: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),

@@ -30,8 +30,8 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login System'),
+      appBar: CustomAppBar.withoutSocket(
+        title: 'Login System',
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/login')),
       ),
       body: SingleChildScrollView(

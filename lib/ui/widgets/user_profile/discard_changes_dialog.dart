@@ -31,7 +31,10 @@ class DiscardChangesDialog extends StatelessWidget {
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(true),
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.warning, foregroundColor: AppColors.white),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.warning,
+            foregroundColor: theme.colorScheme.onError,
+          ),
           child: const Text('Descartar'),
         ),
       ],

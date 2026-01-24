@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/theme/app_text_styles.dart';
+import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 
 class ErrorDialog extends StatelessWidget {
   final String title;
@@ -91,6 +92,9 @@ class ErrorDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
@@ -110,15 +114,27 @@ class ErrorDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(message, style: AppFonts.inter(fontSize: 16, color: AppColors.black87)),
+            Text(
+              message,
+              style: AppFonts.inter(
+                fontSize: 16,
+                color: theme.isDark ? AppColors.light : AppColors.black87,
+              ),
+            ),
             if (details != null && details!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.grey100,
+                  color: theme.isDark
+                      ? colorScheme.surfaceContainerHighest
+                      : AppColors.grey100,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.grey300),
+                  border: Border.all(
+                    color: theme.isDark
+                        ? colorScheme.outline.withValues(alpha: 0.3)
+                        : AppColors.grey300,
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +167,7 @@ class ErrorDialog extends StatelessWidget {
             },
             icon: const Icon(Icons.refresh),
             label: const Text('Tentar Novamente'),
-            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+            style: TextButton.styleFrom(foregroundColor: theme.adaptivePrimary(colorScheme)),
           ),
         TextButton.icon(
           onPressed: () {

@@ -58,7 +58,9 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: widget.enabled ? AppColors.warning.withValues(alpha: 0.3) : AppColors.grey.withValues(alpha: 0.3),
+          color: widget.enabled
+              ? AppColors.warning.withValues(alpha: 0.3)
+              : colorScheme.outline.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -168,15 +170,21 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
   }
 
   Widget _buildHeader(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+
     return Row(
       children: [
-        Icon(Icons.inventory_2, color: widget.enabled ? AppColors.warning : AppColors.grey, size: 20),
+        Icon(
+          Icons.inventory_2,
+          color: widget.enabled ? AppColors.warning : colorScheme.onSurfaceVariant,
+          size: 20,
+        ),
         const SizedBox(width: 6),
         Text(
           'Quantidade a Separar',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: widget.enabled ? AppColors.warning : AppColors.grey,
+            color: widget.enabled ? AppColors.warning : colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -196,18 +204,25 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
   }
 
   Widget _buildDecrementButton() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTapDown: widget.enabled ? (_) => _decrementOnce() : null,
       onLongPressStart: widget.enabled ? (_) => _startDecrementing() : null,
       onLongPressEnd: widget.enabled ? (_) => _stopDecrementing() : null,
       child: Container(
         decoration: BoxDecoration(
-          color: widget.enabled ? AppColors.warning.withValues(alpha: 0.1) : AppColors.grey.withValues(alpha: 0.1),
+          color: widget.enabled
+              ? AppColors.warning.withValues(alpha: 0.1)
+              : colorScheme.surfaceContainerHighest,
           shape: BoxShape.circle,
         ),
         child: IconButton(
           onPressed: widget.enabled ? _decrementOnce : null,
-          icon: Icon(Icons.remove, color: widget.enabled ? AppColors.warning : AppColors.grey),
+          icon: Icon(
+            Icons.remove,
+            color: widget.enabled ? AppColors.warning : colorScheme.onSurfaceVariant,
+          ),
           style: IconButton.styleFrom(backgroundColor: AppColors.transparent, shape: const CircleBorder()),
         ),
       ),
@@ -237,7 +252,9 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
     final currentQuantity = _currentQuantity;
     final maxQuantity = _maxQuantity;
     final exceedsMax = currentQuantity > maxQuantity;
-    final borderColor = exceedsMax ? AppColors.error : (widget.enabled ? AppColors.warning : AppColors.grey);
+    final borderColor = exceedsMax
+        ? AppColors.error
+        : (widget.enabled ? AppColors.warning : colorScheme.outline);
 
     return Expanded(
       child: TextField(
@@ -272,18 +289,20 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
           ),
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: AppColors.grey),
+            borderSide: BorderSide(color: colorScheme.outline),
           ),
           errorText: exceedsMax ? 'Máximo: $maxQuantity' : null,
           errorMaxLines: 1,
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          fillColor: widget.enabled ? null : AppColors.grey.withValues(alpha: 0.1),
+          fillColor: widget.enabled ? null : colorScheme.surfaceContainerHighest,
           filled: !widget.enabled,
         ),
         style: AppFonts.inter(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: exceedsMax ? AppColors.error : (widget.enabled ? null : AppColors.grey),
+          color: exceedsMax
+              ? AppColors.error
+              : (widget.enabled ? null : colorScheme.onSurfaceVariant),
         ),
       ),
     );
@@ -313,7 +332,9 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
 
     return Text(
       helpText,
-      style: theme.textTheme.bodySmall?.copyWith(color: widget.enabled ? colorScheme.onSurfaceVariant : AppColors.grey),
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: widget.enabled ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant,
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/constants/app_assets.dart';
+import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 
 class AdaptiveLogo extends StatelessWidget {
   final double? width;
@@ -20,9 +21,10 @@ class AdaptiveLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.isDark;
 
-    final logoPath = isDarkTheme ? AppAssets.logSe7eWhite : AppAssets.logSe7eBlack;
+    final logoPath = isDark ? AppAssets.logSe7eWhite : AppAssets.logSe7eBlack;
 
     return Image.asset(
       logoPath,
@@ -56,16 +58,13 @@ class AdaptiveLogoContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDarkTheme = theme.brightness == Brightness.dark;
 
     return Container(
       width: width,
       height: height,
       padding: padding ?? const EdgeInsets.all(1),
       decoration: BoxDecoration(
-        color: isDarkTheme
-            ? theme.colorScheme.surface.withValues(alpha: 1.0)
-            : theme.colorScheme.surface.withValues(alpha: 1.0),
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: showShadow
             ? [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.0), offset: const Offset(0, 8))]

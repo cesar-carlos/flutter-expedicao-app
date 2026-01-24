@@ -172,8 +172,15 @@ class ProfileHeader extends StatelessWidget {
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: user.isActive ? AppColors.green100 : AppColors.grey200,
-            border: Border.all(color: user.isActive ? AppColors.green300 : AppColors.grey400, width: 2),
+            color: user.isActive
+                ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                : colorScheme.surfaceContainerHighest,
+            border: Border.all(
+              color: user.isActive
+                  ? AppColors.success.withValues(alpha: 0.5)
+                  : colorScheme.outline.withValues(alpha: 0.3),
+              width: 2,
+            ),
           ),
           child: EditableAvatar(viewModel: viewModel),
         ),
@@ -189,7 +196,11 @@ class ProfileHeader extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: colorScheme.surface, width: 2),
             ),
-            child: Icon(user.isActive ? Icons.check : Icons.close, size: 10, color: AppColors.white),
+            child: Icon(
+              user.isActive ? Icons.check : Icons.close,
+              size: 10,
+              color: colorScheme.onPrimary,
+            ),
           ),
         ),
       ],

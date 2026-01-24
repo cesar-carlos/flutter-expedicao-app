@@ -137,7 +137,10 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
                   child: Container(
                     width: 8,
                     height: 8,
-                    decoration: BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.error,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
             ],
@@ -481,7 +484,10 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
             ),
             child: Text(
               '$itemCount',
-              style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.white, fontWeight: FontWeight.bold),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onPrimary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],

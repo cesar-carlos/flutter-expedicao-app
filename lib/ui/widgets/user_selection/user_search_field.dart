@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
-import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class UserSearchField extends StatelessWidget {
   final TextEditingController searchController;
@@ -49,12 +48,12 @@ class UserSearchField extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: viewModel.state == UserSelectionState.loading ? null : onPerformSearch,
             icon: viewModel.state == UserSelectionState.loading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
                     ),
                   )
                 : const Icon(Icons.search),
@@ -66,8 +65,8 @@ class UserSearchField extends StatelessWidget {
                   : 'Carregar Todos os Usuários',
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.white,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),

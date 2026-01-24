@@ -47,7 +47,7 @@ class ProfileActionButtons extends StatelessWidget {
         onPressed: isLoading || !hasChanges ? null : onSave,
         style: ElevatedButton.styleFrom(
           backgroundColor: hasChanges ? AppColors.transparent : null,
-          foregroundColor: hasChanges ? AppColors.white : null,
+          foregroundColor: hasChanges ? colorScheme.onPrimary : null,
           shadowColor: AppColors.transparent,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -61,7 +61,7 @@ class ProfileActionButtons extends StatelessWidget {
                     width: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation(hasChanges ? AppColors.white : colorScheme.primary),
+                      valueColor: AlwaysStoppedAnimation(hasChanges ? colorScheme.onPrimary : colorScheme.primary),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -70,7 +70,7 @@ class ProfileActionButtons extends StatelessWidget {
                     style: AppFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: hasChanges ? AppColors.white : null,
+                      color: hasChanges ? colorScheme.onPrimary : null,
                     ),
                   ),
                 ],
@@ -142,7 +142,7 @@ class ProfileSaveButton extends StatelessWidget {
         onPressed: isLoading || !hasChanges ? null : onSave,
         style: ElevatedButton.styleFrom(
           backgroundColor: hasChanges ? AppColors.transparent : null,
-          foregroundColor: hasChanges ? AppColors.white : null,
+          foregroundColor: hasChanges ? colorScheme.onPrimary : null,
           shadowColor: AppColors.transparent,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -156,7 +156,7 @@ class ProfileSaveButton extends StatelessWidget {
                     width: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation(hasChanges ? AppColors.white : colorScheme.primary),
+                      valueColor: AlwaysStoppedAnimation(hasChanges ? colorScheme.onPrimary : colorScheme.primary),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -165,7 +165,7 @@ class ProfileSaveButton extends StatelessWidget {
                     style: AppFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: hasChanges ? AppColors.white : null,
+                      color: hasChanges ? colorScheme.onPrimary : null,
                     ),
                   ),
                 ],

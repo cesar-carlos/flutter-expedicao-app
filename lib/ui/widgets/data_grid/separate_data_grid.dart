@@ -227,12 +227,18 @@ class ShipmentSeparateDataSource extends DataGridSource {
         text = 'N/A';
     }
 
+    final textColor = _getTextColor(backgroundColor);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(12)),
       child: Text(
         text,
-        style: AppFonts.inter(color: AppColors.white, fontSize: UIConstants.extraSmallFontSize, fontWeight: FontWeight.bold),
+        style: AppFonts.inter(
+          color: textColor,
+          fontSize: UIConstants.extraSmallFontSize,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

@@ -26,11 +26,21 @@ class SearchStatusInfo extends StatelessWidget {
         textColor: AppColors.warning,
       );
     } else if (viewModel.state == UserSelectionState.loading) {
+      final theme = Theme.of(context);
+      final colorScheme = theme.colorScheme;
+
       return _buildStatusContainer(
-        color: AppColors.primaryWithOpacity(0.1),
-        icon: const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+        icon: SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+          ),
+        ),
         text: 'Buscando usuários no servidor...',
-        textColor: AppColors.primary,
+        textColor: colorScheme.primary,
       );
     } else if (viewModel.state == UserSelectionState.loaded) {
       final allUsers = viewModel.filteredUsers;
@@ -47,11 +57,17 @@ class SearchStatusInfo extends StatelessWidget {
             textColor: AppColors.success,
           ),
           const SizedBox(height: 8),
-          _buildStatusContainer(
-            color: AppColors.primaryWithOpacity(0.1),
-            icon: Icon(Icons.info_outline, size: 16, color: AppColors.primary),
-            text: 'Usuários vinculados aparecem bloqueados na lista',
-            textColor: AppColors.primary,
+          Builder(
+            builder: (context) {
+              final colorScheme = Theme.of(context).colorScheme;
+
+              return _buildStatusContainer(
+                color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                icon: Icon(Icons.info_outline, size: 16, color: colorScheme.primary),
+                text: 'Usuários vinculados aparecem bloqueados na lista',
+                textColor: colorScheme.primary,
+              );
+            },
           ),
         ],
       );

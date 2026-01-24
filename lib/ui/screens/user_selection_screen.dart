@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
@@ -67,8 +66,6 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
     return Scaffold(
       appBar: CustomAppBar.withoutSocket(
         title: 'Selecionar Usuário do Sistema',
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
         elevation: 0,
       ),
       resizeToAvoidBottomInset: true,
@@ -114,7 +111,7 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
                           child: OutlinedButton(
                             onPressed: () => _clearSelection(viewModel),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
+                              foregroundColor: Theme.of(context).colorScheme.primary,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
@@ -167,7 +164,7 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: AppColors.error,
+            backgroundColor: Theme.of(context).colorScheme.error,
             content: Text(viewModel.errorMessage ?? 'Erro ao vincular usuário'),
           ),
         );
@@ -176,7 +173,12 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erro inesperado: $e'), backgroundColor: AppColors.error));
+        ).showSnackBar(
+          SnackBar(
+            content: Text('Erro inesperado: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     }
   }

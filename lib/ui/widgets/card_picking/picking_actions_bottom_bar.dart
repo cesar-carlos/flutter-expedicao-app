@@ -85,7 +85,10 @@ class PickingActionsBottomBar extends StatelessWidget {
             ),
             child: Text(
               '${(progress * 100).toInt()}%',
-              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold, color: AppColors.white),
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onPrimary,
+              ),
             ),
           ),
         ],
