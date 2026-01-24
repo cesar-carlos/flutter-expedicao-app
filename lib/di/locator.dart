@@ -110,7 +110,13 @@ import 'package:data7_expedicao/domain/usecases/check_app_update/check_app_updat
 import 'package:data7_expedicao/domain/usecases/download_app_update/download_app_update_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/install_app_update/install_app_update_usecase.dart';
 import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
+import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
+import 'package:data7_expedicao/core/metrics/metrics_storage.dart';
+import 'package:data7_expedicao/core/network/retry_policy.dart';
+import 'package:data7_expedicao/core/network/socket_connection_manager.dart';
+import 'package:data7_expedicao/core/network/socket_operation_retry.dart';
 import 'package:data7_expedicao/core/utils/i_logger.dart';
+import 'package:data7_expedicao/domain/services/picking_state_manager.dart';
 import 'package:data7_expedicao/infrastructure/services/logger_service.dart';
 
 final GetIt locator = GetIt.instance;
@@ -122,7 +128,25 @@ void setupLocator() {
   locator.registerLazySingleton(() => SocketService());
   locator.registerLazySingleton(() => AudioService());
   locator.registerLazySingleton(() => BarcodeBroadcastService());
-  // Serviços de escaneamento
+  locator.registerLazySingleton<MetricsStorage>(() => MetricsStorage());
+  locator.registerLazySingleton<MetricsCollector>(
+    () => MetricsCollector(locator<MetricsStorage>()),
+  );
+  locator.registerLazySingleton<RetryPolicy>(
+    () => const RetryPolicy(
+      maxAttempts: 3,
+      initialDelay: Duration(seconds: 1),
+      backoffMultiplier: 2.0,
+      maxDelay: Duration(seconds: 10),
+    ),
+  );
+  locator.registerLazySingleton<SocketConnectionManager>(
+    () => SocketConnectionManager(retryPolicy: locator<RetryPolicy>()),
+  );
+  locator.registerLazySingleton<SocketOperationRetry>(
+    () => SocketOperationRetry(retryPolicy: locator<RetryPolicy>()),
+  );
+  locator.registerLazySingleton<PickingStateManager>(() => PickingStateManager());
   locator.registerLazySingleton(() => BarcodeScannerService());
   locator.registerLazySingleton(() => ShelfScanningService());
 
@@ -316,6 +340,8 @@ void setupLocator() {
       separateItemRepository: locator<BasicRepository<SeparateItemModel>>(),
       separationItemRepository: locator<BasicRepository<SeparationItemModel>>(),
       userSessionService: locator<UserSessionService>(),
+      metricsCollector: locator<MetricsCollector>(),
+      socketOperationRetry: locator<SocketOperationRetry>(),
     ),
   );
 

@@ -25,10 +25,13 @@ class SocketService extends ChangeNotifier {
   Future<void> initialize(ApiConfig apiConfig, {String? userId}) async {
     try {
       _userId = userId;
+      AppLogger.init('Inicializando SocketService', tag: 'SocketService');
+      AppLogger.data('URL: ${apiConfig.fullUrl}, userId: $userId', tag: 'SocketService');
       SocketConfig.initialize(apiConfig);
       _setupSocketListeners();
       await connect();
     } catch (e) {
+      AppLogger.error('Falha ao inicializar SocketService', tag: 'SocketService', error: e);
       _updateConnectionState(SocketConnectionState.error);
     }
   }
@@ -39,9 +42,11 @@ class SocketService extends ChangeNotifier {
     }
 
     try {
+      AppLogger.connection('Tentando conectar socket', tag: 'SocketService');
       _updateConnectionState(SocketConnectionState.connecting);
       await SocketConfig.connect();
     } catch (e) {
+      AppLogger.error('Falha ao conectar socket', tag: 'SocketService', error: e);
       _updateConnectionState(SocketConnectionState.error);
     }
   }
@@ -75,6 +80,7 @@ class SocketService extends ChangeNotifier {
       final payload = {'userId': _userId, 'timestamp': DateTime.now().toIso8601String(), 'data': data};
 
       SocketConfig.instance.emit(eventName, payload);
+      AppLogger.operation('Evento emitido: $eventName', tag: 'SocketService');
     } catch (e, stackTrace) {
       AppLogger.error('Erro ao emitir evento socket: $eventName', tag: 'SocketService', error: e, stackTrace: stackTrace);
       rethrow;
@@ -114,14 +120,16 @@ class SocketService extends ChangeNotifier {
   void updateConfig(ApiConfig newConfig) {
     try {
       final wasConnected = isConnected;
-      
+      AppLogger.init('Atualizando config do socket', tag: 'SocketService');
+      AppLogger.data('Nova URL: ${newConfig.fullUrl}', tag: 'SocketService');
+
       _stopHeartbeat();
       _updateConnectionState(SocketConnectionState.disconnected);
-      
+
       SocketConfig.updateConfig(newConfig);
-      
+
       _setupSocketListeners();
-      
+
       if (wasConnected) {
         Future.delayed(const Duration(milliseconds: 100), () {
           if (SocketConfig.isConnected) {
@@ -136,6 +144,7 @@ class SocketService extends ChangeNotifier {
         _updateConnectionState(SocketConnectionState.disconnected);
       }
     } catch (e) {
+      AppLogger.error('Falha ao atualizar config do socket', tag: 'SocketService', error: e);
       _updateConnectionState(SocketConnectionState.error);
       rethrow;
     }

@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/l10n/app_localizations.dart';
 import 'package:data7_expedicao/core/network/dio_config.dart';
@@ -32,6 +33,8 @@ void main() async {
   setupLocator();
 
   LoggerService.initialize(level: kDebugMode ? Level.ALL : Level.INFO);
+
+  await locator<MetricsCollector>().init();
 
   final configService = locator<ConfigService>();
   await configService.initialize();

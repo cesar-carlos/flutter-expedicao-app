@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/domain/models/picking_state.dart';
+import 'package:data7_expedicao/domain/services/picking_state_manager.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
 import 'package:data7_expedicao/domain/models/separation_item_status.dart';
@@ -47,6 +48,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
   final SeparateCartInternshipEventRepository _cartEventRepository;
   final ShelfScanningService _shelfScanningService;
+  final PickingStateManager _stateManager;
 
   ExpeditionCartRouteInternshipConsultationModel? _cart;
   ExpeditionCartRouteInternshipConsultationModel? get cart => _cart;
@@ -89,13 +91,12 @@ class CardPickingViewModel extends ChangeNotifier {
     return _items.any((item) => item.codSetorEstoque == null || item.codSetorEstoque == userSectorCode);
   }
 
-  PickingState _pickingState = const PickingState({});
-  PickingState get pickingState => _pickingState;
+  PickingState get pickingState => _stateManager.pickingState;
 
-  int get totalItems => _pickingState.totalItems;
-  int get completedItems => _pickingState.completedItems;
-  double get progress => _pickingState.progress;
-  bool get isPickingComplete => _pickingState.isComplete;
+  int get totalItems => _stateManager.totalItems;
+  int get completedItems => _stateManager.completedItems;
+  double get progress => _stateManager.progress;
+  bool get isPickingComplete => _stateManager.isComplete;
 
   bool get isCartInSeparationStatus {
     return _cart?.situacao.code == _cartInSeparationCode || _cart?.situacao.code == _cartSeparatingCode;
@@ -184,11 +185,19 @@ class CardPickingViewModel extends ChangeNotifier {
       _saveSeparationCartUseCase = locator<SaveSeparationCartUseCase>(),
       _userSessionService = locator<UserSessionService>(),
       _cartEventRepository = locator<SeparateCartInternshipEventRepository>(),
-      _shelfScanningService = locator<ShelfScanningService>();
+      _shelfScanningService = locator<ShelfScanningService>(),
+      _stateManager = locator<PickingStateManager>() {
+    _stateManager.addListener(_onStateManagerChanged);
+  }
+
+  void _onStateManagerChanged() {
+    _safeNotifyListeners();
+  }
 
   @override
   void dispose() {
     _disposed = true;
+    _stateManager.removeListener(_onStateManagerChanged);
     stopCartEventMonitoring();
     _errorController.close();
     super.dispose();
@@ -282,7 +291,7 @@ class CardPickingViewModel extends ChangeNotifier {
       final convertedQuantity = _convertQuantityWithBarcode(item, trimmedBarcode, inputQuantity);
 
       final totalQuantity = item.quantidade.toInt();
-      final pickedQuantity = getPickedQuantity(item.item);
+      final pickedQuantity = _stateManager.getPickedQuantity(item.item);
       final remainingQuantity = totalQuantity - pickedQuantity;
 
       if (convertedQuantity > remainingQuantity) {
@@ -388,36 +397,22 @@ class CardPickingViewModel extends ChangeNotifier {
 
   void _updateLocalPickingStateOptimistic(String itemId, int quantity, DateTime timestamp) {
     if (_disposed) return;
-
-    final currentQuantity = _pickingState.getPickedQuantity(itemId);
-    _pickingState = _pickingState
-        .updateItemQuantity(itemId, currentQuantity + quantity)
-        .addPendingOperation(itemId, quantity, timestamp);
-
-    _safeNotifyListeners();
+    _stateManager.updateItemQuantityAndAddPending(itemId, quantity, timestamp);
   }
 
   void updatePickedQuantity(String itemId, int quantity) {
     if (_disposed) return;
-
-    _pickingState = _pickingState.updateItemQuantity(itemId, quantity);
-    _safeNotifyListeners();
+    _stateManager.updateItemQuantity(itemId, quantity);
   }
 
   void completeItem(String itemId) {
     if (_disposed) return;
-
-    _pickingState = _pickingState.completeItem(itemId);
-    _safeNotifyListeners();
+    _stateManager.completeItem(itemId);
   }
 
-  int getPickedQuantity(String itemId) {
-    return _pickingState.getPickedQuantity(itemId);
-  }
+  int getPickedQuantity(String itemId) => _stateManager.getPickedQuantity(itemId);
 
-  bool isItemCompleted(String itemId) {
-    return _pickingState.isItemCompleted(itemId);
-  }
+  bool isItemCompleted(String itemId) => _stateManager.isItemCompleted(itemId);
 
   Future<bool> finalizePicking() async {
     if (_disposed) return false;
@@ -627,7 +622,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
       _rebuildItemsCache();
 
-      _pickingState = PickingState.initial(_items);
+      _stateManager.initial(_items);
 
       _safeNotifyListeners();
     } catch (e) {
@@ -830,8 +825,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
           Future.delayed(const Duration(seconds: 2), () {
             if (!_disposed) {
-              _pickingState = _pickingState.clearSyncedOperations(itemId);
-              _safeNotifyListeners();
+              _stateManager.clearSyncedOperations(itemId);
             }
           });
         },
@@ -846,17 +840,8 @@ class CardPickingViewModel extends ChangeNotifier {
 
   void _handleAddItemFailure(String itemId, int quantity, DateTime timestamp, dynamic error) {
     if (_disposed) return;
-
-    final currentQuantity = _pickingState.getPickedQuantity(itemId);
-    final revertedQuantity = currentQuantity - quantity;
     final errorMessage = error is AppFailure ? error.userMessage : error.toString();
-
-    _pickingState = _pickingState
-        .updateItemQuantity(itemId, revertedQuantity)
-        .updateOperationStatus(itemId, timestamp, PendingOperationStatus.failed, errorMessage: errorMessage);
-
-    _safeNotifyListeners();
-
+    _stateManager.revertQuantityAndMarkOperationFailed(itemId, quantity, timestamp, errorMessage);
     _notifyOperationError(itemId, errorMessage);
   }
 
@@ -867,9 +852,7 @@ class CardPickingViewModel extends ChangeNotifier {
     String? errorMessage,
   }) {
     if (_disposed) return;
-
-    _pickingState = _pickingState.updateOperationStatus(itemId, timestamp, status, errorMessage: errorMessage);
-    _safeNotifyListeners();
+    _stateManager.updateOperationStatus(itemId, timestamp, status, errorMessage: errorMessage);
   }
 
   Future<void> _waitForPendingOperationsAndRefresh() async {

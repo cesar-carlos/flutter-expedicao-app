@@ -1,3 +1,7 @@
+import 'package:uuid/uuid.dart';
+
+import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
+import 'package:data7_expedicao/core/network/socket_operation_retry.dart';
 import 'package:data7_expedicao/core/utils/app_helper.dart';
 import 'package:data7_expedicao/domain/models/separate_item_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_model.dart';
@@ -25,14 +29,21 @@ class AddItemSeparationUseCase {
   final BasicRepository<SeparateItemModel> _separateItemRepository;
   final BasicRepository<SeparationItemModel> _separationItemRepository;
   final UserSessionService _userSessionService;
+  final MetricsCollector? _metricsCollector;
+  final SocketOperationRetry? _socketOperationRetry;
+  static const _uuid = Uuid();
 
   AddItemSeparationUseCase({
     required BasicRepository<SeparateItemModel> separateItemRepository,
     required BasicRepository<SeparationItemModel> separationItemRepository,
     required UserSessionService userSessionService,
-  }) : _separateItemRepository = separateItemRepository,
-       _separationItemRepository = separationItemRepository,
-       _userSessionService = userSessionService;
+    MetricsCollector? metricsCollector,
+    SocketOperationRetry? socketOperationRetry,
+  })  : _separateItemRepository = separateItemRepository,
+        _separationItemRepository = separationItemRepository,
+        _userSessionService = userSessionService,
+        _metricsCollector = metricsCollector,
+        _socketOperationRetry = socketOperationRetry;
 
   /// Adiciona um item à separação
   ///
@@ -41,10 +52,15 @@ class AddItemSeparationUseCase {
   ///
   /// Retorna [Result<AddItemSeparationSuccess>] com sucesso ou falha
   Future<Result<AddItemSeparationSuccess>> call(AddItemSeparationParams params, {UserSystemModel? userSystem}) async {
+    final operationId = 'add_item_${_uuid.v4()}';
+    final started = DateTime.now();
+    _metricsCollector?.recordOperationStart(operationId);
+
     try {
       // 1. Validar parâmetros
       if (!params.isValid) {
         final errors = params.validationErrors;
+        _recordOperationEnd(operationId, started, false);
         return failure(AddItemSeparationFailure.invalidParams('Parâmetros inválidos: ${errors.join(', ')}'));
       }
 
@@ -53,11 +69,15 @@ class AddItemSeparationUseCase {
 
       // 3. Buscar item de separação disponível
       final separateItem = await _findSeparateItem(params);
-      if (separateItem == null) return failure(AddItemSeparationFailure.separateItemNotFound(params.codProduto));
+      if (separateItem == null) {
+        _recordOperationEnd(operationId, started, false);
+        return failure(AddItemSeparationFailure.separateItemNotFound(params.codProduto));
+      }
 
       // 4. Validar quantidade disponível
       final availableQuantity = (separateItem.quantidade - separateItem.quantidadeSeparacao).toDouble();
       if (availableQuantity < params.quantidade) {
+        _recordOperationEnd(operationId, started, false);
         return failure(
           AddItemSeparationFailure.insufficientQuantity(
             requested: params.quantidade,
@@ -67,13 +87,28 @@ class AddItemSeparationUseCase {
         );
       }
 
-      // 5. Executar operação transacional: INSERT + UPDATE
-      return await _executeTransactionalOperation(params, separateItem, user);
+      // 5. Executar operação transacional: INSERT + UPDATE (com retry)
+      final result = _socketOperationRetry != null
+          ? await _socketOperationRetry.execute(
+              () => _executeTransactionalOperation(params, separateItem, user),
+              operationId: operationId,
+            )
+          : await _executeTransactionalOperation(params, separateItem, user);
+      final success = result.isSuccess();
+      _recordOperationEnd(operationId, started, success);
+      return result;
     } on DataError catch (e) {
+      _recordOperationEnd(operationId, started, false);
       return failure(AddItemSeparationFailure.networkError(e.message, Exception(e.message)));
     } on Exception catch (e) {
+      _recordOperationEnd(operationId, started, false);
       return failure(AddItemSeparationFailure.unknown(e.toString(), e));
     }
+  }
+
+  void _recordOperationEnd(String operationId, DateTime started, bool success) {
+    final duration = DateTime.now().difference(started);
+    _metricsCollector?.recordOperationEnd(operationId, success, duration);
   }
 
   /// Carrega o sistema do usuário
