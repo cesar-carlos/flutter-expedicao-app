@@ -5,6 +5,7 @@ import 'package:data7_expedicao/domain/models/separate_item_consultation_model.d
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/theme/app_text_styles.dart';
+import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class PickingItemCard extends StatelessWidget {
@@ -64,9 +65,8 @@ class PickingItemCard extends StatelessWidget {
   }
 
   Widget _buildLocationHeader(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
-    final isDark = theme.brightness == Brightness.dark;
-    final locationColor = isDark ? AppColors.light : colorScheme.secondary;
-    final productCodeColor = isDark ? AppColors.secondary : colorScheme.primary;
+    final locationColor = theme.adaptiveSecondaryColor(colorScheme);
+    final productCodeColor = theme.adaptiveSecondary(colorScheme);
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -115,8 +115,7 @@ class PickingItemCard extends StatelessWidget {
   }
 
   Widget _buildBarcodeAndBatch(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
-    final isDark = theme.brightness == Brightness.dark;
-    final sectorColor = isDark ? AppColors.orange700 : AppColors.orange800;
+    final sectorColor = theme.isDark ? AppColors.orange700 : AppColors.orange800;
 
     return Row(
       children: [

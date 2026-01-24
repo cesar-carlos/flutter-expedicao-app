@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 
 class BarcodeScannerCard extends StatelessWidget {
   final TextEditingController controller;
@@ -53,9 +54,8 @@ class BarcodeScannerCard extends StatelessWidget {
   }
 
   Widget _buildHeader(ThemeData theme, ColorScheme colorScheme) {
-    final isDark = theme.brightness == Brightness.dark;
     final headerColor = enabled 
-        ? (isDark ? AppColors.light : colorScheme.primary)
+        ? theme.adaptivePrimary(colorScheme)
         : AppColors.grey;
 
     return Row(
@@ -112,7 +112,7 @@ class BarcodeScannerCard extends StatelessWidget {
                       onPressed: onToggleKeyboard,
                       icon: Icon(
                         keyboardEnabled ? Icons.qr_code_scanner : Icons.keyboard,
-                        color: theme.brightness == Brightness.dark ? AppColors.light : colorScheme.primary,
+                        color: theme.adaptivePrimary(colorScheme),
                       ),
                       tooltip: keyboardEnabled ? 'Usar Scanner' : 'Usar Teclado',
                     )

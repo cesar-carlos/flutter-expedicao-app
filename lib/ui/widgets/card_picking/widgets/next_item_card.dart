@@ -8,6 +8,7 @@ import 'package:data7_expedicao/ui/widgets/card_picking/widgets/product_detail_i
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/theme/app_text_styles.dart';
+import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 
 class NextItemCard extends StatelessWidget {
   final SeparateItemConsultationModel? nextItem;
@@ -57,11 +58,10 @@ class NextItemCard extends StatelessWidget {
   }
 
   Widget _buildHeader(ThemeData theme, ColorScheme colorScheme, int completedCount, int totalCount) {
-    final isDark = theme.brightness == Brightness.dark;
-    final headerColor = isDark ? AppColors.light : colorScheme.primary;
-    final counterColor = isDark 
-        ? (completedCount == totalCount ? AppColors.green700 : AppColors.secondary)
-        : (completedCount == totalCount ? AppColors.green700 : colorScheme.primary);
+    final headerColor = theme.adaptivePrimary(colorScheme);
+    final counterColor = completedCount == totalCount
+        ? AppColors.green700
+        : theme.adaptiveSecondary(colorScheme);
 
     return Row(
       children: [
@@ -225,15 +225,13 @@ class NextItemCard extends StatelessWidget {
   }
 
   Widget _buildBarcodeInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme, SeparateItemConsultationModel nextItem) {
-    final isDark = theme.brightness == Brightness.dark;
-    
     // Se tem múltiplas unidades de medida, mostrar dropdown
       if (nextItem.unidadeMedidas.length > 1) {
       return _buildBarcodeDropdown(context, theme, colorScheme, nextItem, itemState);
     }
 
     // Caso contrário, mostrar como antes
-    final barcodeColor = isDark ? AppColors.light : colorScheme.onSurfaceVariant;
+    final barcodeColor = theme.adaptiveOnSurfaceVariant(colorScheme);
     
     return Container(
       padding: const EdgeInsets.all(8),
@@ -268,8 +266,6 @@ class NextItemCard extends StatelessWidget {
     SeparateItemConsultationModel nextItem,
     PickingItemState? itemState,
   ) {
-    final isDark = theme.brightness == Brightness.dark;
-    
     // Encontrar a unidade padrão primeiro
     final unidadePadrao = nextItem.unidadeMedidas.firstWhere(
       (unidade) => unidade.unidadeMedidaPadrao == Situation.ativo,
@@ -294,13 +290,13 @@ class NextItemCard extends StatelessWidget {
                 isExpanded: true,
                 isDense: true,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isDark ? AppColors.light : null,
+                  color: theme.isDark ? AppColors.light : null,
                 ),
                 icon: Icon(
                   Icons.arrow_drop_down,
-                  color: isDark ? AppColors.light : colorScheme.onSurfaceVariant,
+                  color: theme.adaptiveOnSurfaceVariant(colorScheme),
                 ),
-                dropdownColor: isDark ? colorScheme.surfaceContainerHighest : colorScheme.surface,
+                dropdownColor: theme.isDark ? colorScheme.surfaceContainerHighest : colorScheme.surface,
                 items: nextItem.unidadeMedidas.map((unidade) {
                   return DropdownMenuItem<SeparateItemUnidadeMedidaConsultationModel>(
                     value: unidade,
@@ -327,11 +323,10 @@ class NextItemCard extends StatelessWidget {
     ColorScheme colorScheme,
     SeparateItemUnidadeMedidaConsultationModel unidade,
   ) {
-    final isDark = theme.brightness == Brightness.dark;
     final isPadrao = unidade.unidadeMedidaPadrao == Situation.ativo;
     
-    final baseTextColor = isDark ? AppColors.light : colorScheme.onSurfaceVariant;
-    final barcodeColor = isDark ? AppColors.secondary : colorScheme.primary;
+    final baseTextColor = theme.adaptiveOnSurfaceVariant(colorScheme);
+    final barcodeColor = theme.adaptiveSecondary(colorScheme);
 
     return RichText(
       maxLines: 1,

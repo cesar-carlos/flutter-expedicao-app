@@ -4,6 +4,7 @@ import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_simple_button.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_text_styles.dart';
+import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 
 class SeparationCard extends StatelessWidget {
   final SeparateConsultationModel separation;
@@ -52,7 +53,7 @@ class SeparationCard extends StatelessWidget {
                             '${separation.codSepararEstoque}',
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: theme.brightness == Brightness.dark ? AppColors.light : colorScheme.primary,
+                              color: theme.adaptivePrimary(colorScheme),
                             ),
                           ),
                         ],
@@ -209,10 +210,9 @@ class SeparationCard extends StatelessWidget {
   Widget _buildSetoresInfoRow(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
     final setoresText = '[${separation.codSetoresEstoque.join(', ')}]';
-    final setoresColor = isDark ? AppColors.light : colorScheme.primary;
+    final setoresColor = theme.adaptivePrimary(colorScheme);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -91,4 +91,17 @@ class AppColors {
 
   // Métodos utilitários para cores com opacidade
   static Color withOpacity(Color color, double opacity) => color.withValues(alpha: opacity);
+
+  // Métodos helper para adaptação de cores em dark theme
+  static Color adaptivePrimary(ThemeData theme, ColorScheme colorScheme) {
+    return theme.brightness == Brightness.dark ? light : colorScheme.primary;
+  }
+
+  static Color adaptiveSecondary(ThemeData theme, ColorScheme colorScheme) {
+    return theme.brightness == Brightness.dark ? secondary : colorScheme.primary;
+  }
+
+  static Color adaptiveOnSurfaceVariant(ThemeData theme, ColorScheme colorScheme) {
+    return theme.brightness == Brightness.dark ? light : colorScheme.onSurfaceVariant;
+  }
 }

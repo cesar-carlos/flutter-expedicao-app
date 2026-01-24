@@ -21,6 +21,7 @@ import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/theme/app_text_styles.dart';
+import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 
 class CartItemCard extends StatelessWidget {
   final ExpeditionCartRouteInternshipConsultationModel cartRouteInternshipConsultation;
@@ -182,15 +183,13 @@ class CartItemCard extends StatelessWidget {
   }
 
   Widget _buildCodeAndSituation(BuildContext context, ThemeData theme, ColorScheme colorScheme, Color situationColor) {
-    final isDark = theme.brightness == Brightness.dark;
+    final barcodeLabelColor = theme.adaptivePrimary(colorScheme);
+    final barcodeValueColor = theme.adaptiveSecondary(colorScheme);
     
-    final barcodeLabelColor = isDark ? AppColors.light : colorScheme.primary;
-    final barcodeValueColor = isDark ? AppColors.secondary : colorScheme.primary;
-    
-    final originLabelColor = isDark 
+    final originLabelColor = theme.isDark 
         ? (situationColor == AppColors.warning ? AppColors.orange700 : AppColors.light)
         : situationColor;
-    final originValueColor = isDark
+    final originValueColor = theme.isDark
         ? (situationColor == AppColors.warning ? AppColors.orange700 : AppColors.secondary)
         : situationColor;
 
@@ -492,7 +491,7 @@ class CartItemCard extends StatelessWidget {
                   child: CustomFlatButtonVariations.outlined(
                     text: 'Separar',
                     icon: Icons.play_arrow,
-                    textColor: theme.brightness == Brightness.dark ? AppColors.light : colorScheme.primary,
+                    textColor: theme.adaptivePrimary(colorScheme),
                     borderColor: colorScheme.primary.withValues(alpha: 0.3),
                     onPressed: () => _onSeparateCart(context),
                   ),

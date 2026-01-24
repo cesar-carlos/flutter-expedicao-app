@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 
 class ProductDetailItem extends StatelessWidget {
   final ThemeData theme;
@@ -20,8 +21,7 @@ class ProductDetailItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = theme.brightness == Brightness.dark;
-    final valueColor = isDark ? AppColors.secondary : null;
+    final valueColor = theme.isDark ? AppColors.secondary : null;
 
     return Container(
       padding: const EdgeInsets.all(6),
