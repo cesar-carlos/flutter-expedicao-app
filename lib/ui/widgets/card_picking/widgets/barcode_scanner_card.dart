@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class BarcodeScannerCard extends StatelessWidget {
   final TextEditingController controller;
@@ -138,7 +139,7 @@ class BarcodeScannerCard extends StatelessWidget {
         fillColor: enabled ? null : AppColors.grey.withValues(alpha: 0.1),
         filled: !enabled,
       ),
-      style: TextStyle(color: enabled ? null : AppColors.grey),
+      style: AppFonts.inter(color: enabled ? null : AppColors.grey),
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -395,13 +396,13 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         icon: Icon(icon, color: color, size: _modalIconSize),
         title: Text(
           title,
-          style: TextStyle(color: color, fontWeight: FontWeight.bold),
+          style: AppFonts.inter(color: color, fontWeight: FontWeight.bold),
         ),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK', style: TextStyle(color: color)),
+            child: Text('OK', style: AppFonts.inter(color: color)),
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'dart:async' show Timer;
 import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:flutter/services.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
@@ -281,7 +282,7 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
           fillColor: widget.enabled ? null : AppColors.grey.withValues(alpha: 0.1),
           filled: !widget.enabled,
         ),
-        style: TextStyle(
+        style: AppFonts.inter(
           fontSize: 18,
           fontWeight: FontWeight.bold,
           color: exceedsMax ? AppColors.error : (widget.enabled ? null : AppColors.grey),

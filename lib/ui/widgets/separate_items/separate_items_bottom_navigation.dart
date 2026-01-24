@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class SeparateItemsBottomNavigation extends StatelessWidget {
   final TabController tabController;
@@ -57,7 +58,7 @@ class SeparateItemsBottomNavigation extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+              style: AppFonts.inter(fontSize: 10, fontWeight: FontWeight.w500),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

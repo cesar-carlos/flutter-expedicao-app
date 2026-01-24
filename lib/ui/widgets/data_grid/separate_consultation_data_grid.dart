@@ -5,6 +5,7 @@ import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/core/utils/fields_helper.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class SeparateConsultationDataGrid extends StatelessWidget {
   final List<SeparateConsultationModel> consultations;
@@ -50,7 +51,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
-          child: const Text('Cód. Separação', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Cód. Separação', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 120,
       ),
@@ -59,7 +60,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
-          child: const Text('Cód. Empresa', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Cód. Empresa', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 100,
       ),
@@ -68,7 +69,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
-          child: const Text('Tipo Operação', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Tipo Operação', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 180,
       ),
@@ -77,7 +78,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
-          child: const Text('Situação', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Situação', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 120,
       ),
@@ -86,7 +87,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
-          child: const Text('Data Emissão', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Data Emissão', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 120,
       ),
@@ -95,7 +96,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
-          child: const Text('Data/Hora', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Data/Hora', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 150,
       ),
@@ -104,7 +105,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
-          child: const Text('Entidade', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Entidade', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 200,
       ),
@@ -113,7 +114,7 @@ class SeparateConsultationDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
-          child: const Text('Observações', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Observações', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 200,
       ),
@@ -170,7 +171,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
             8,
             (index) => Container(
               padding: const EdgeInsets.all(8.0),
-              child: const Text('ERRO: Índice inválido', style: TextStyle(fontSize: 12, color: AppColors.error)),
+              child: Text('ERRO: Índice inválido', style: AppFonts.inter(fontSize: 12, color: AppColors.error)),
             ),
           ),
         );
@@ -191,7 +192,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
           } else {
             final valueText = dataGridCell.value?.toString() ?? '';
 
-            cellWidget = Text(valueText, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis);
+            cellWidget = Text(valueText, style: AppFonts.inter(fontSize: 12), overflow: TextOverflow.ellipsis);
           }
 
           cells.add(
@@ -209,7 +210,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
           cells.add(
             Container(
               padding: const EdgeInsets.all(8.0),
-              child: Text('ERRO: $e', style: const TextStyle(fontSize: 10, color: AppColors.error)),
+              child: Text('ERRO: $e', style: AppFonts.inter(fontSize: 10, color: AppColors.error)),
             ),
           );
         }
@@ -222,7 +223,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
           8,
           (index) => Container(
             padding: const EdgeInsets.all(8.0),
-            child: Text('ERRO GERAL: $e', style: const TextStyle(fontSize: 10, color: AppColors.error)),
+            child: Text('ERRO GERAL: $e', style: AppFonts.inter(fontSize: 10, color: AppColors.error)),
           ),
         ),
       );
@@ -293,16 +294,16 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
         decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(12)),
         child: Text(
           description,
-          style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.bold),
+          style: AppFonts.inter(color: textColor, fontSize: 10, fontWeight: FontWeight.bold),
         ),
       );
     } catch (e) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(color: AppColors.grey, borderRadius: BorderRadius.circular(12)),
-        child: const Text(
+        child: Text(
           'Erro',
-          style: TextStyle(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
+          style: AppFonts.inter(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
         ),
       );
     }
@@ -314,9 +315,9 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(12)),
-          child: const Text(
+          child: Text(
             'N/A',
-            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+            style: AppFonts.inter(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
           ),
         );
       }
@@ -326,9 +327,9 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(12)),
-        child: const Text(
+        child: Text(
           'ERRO',
-          style: TextStyle(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
+          style: AppFonts.inter(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
         ),
       );
     }

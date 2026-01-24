@@ -7,6 +7,7 @@ import 'package:data7_expedicao/ui/widgets/add_cart/cart_details_widget.dart';
 import 'package:data7_expedicao/ui/widgets/add_cart/barcode_scanner_widget.dart';
 import 'package:data7_expedicao/ui/widgets/add_cart/cart_actions_widget.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class AddCartScreen extends StatefulWidget {
   final int codEmpresa;
@@ -128,7 +129,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
                             const SizedBox(height: 8),
                             Text(
                               viewModel.errorMessage ?? 'Erro desconhecido',
-                              style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w500),
+                              style: AppFonts.inter(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w500),
                               textAlign: TextAlign.center,
                             ),
                           ],

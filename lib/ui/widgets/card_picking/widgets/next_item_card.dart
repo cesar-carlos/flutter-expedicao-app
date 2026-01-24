@@ -6,6 +6,8 @@ import 'package:data7_expedicao/domain/models/picking_state.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/widgets/product_detail_item.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/theme/app_text_styles.dart';
 
 class NextItemCard extends StatelessWidget {
   final SeparateItemConsultationModel? nextItem;
@@ -45,7 +47,7 @@ class NextItemCard extends StatelessWidget {
           _buildHeader(theme, colorScheme, completedCount, totalCount),
           const SizedBox(height: 4),
           if (nextItem != null) ...[
-            _buildNextItemContent(theme, colorScheme, nextItem!),
+            _buildNextItemContent(context, theme, colorScheme, nextItem!),
           ] else ...[
             _buildCompletionMessage(theme),
           ],
@@ -84,7 +86,7 @@ class NextItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildNextItemContent(ThemeData theme, ColorScheme colorScheme, SeparateItemConsultationModel nextItem) {
+  Widget _buildNextItemContent(BuildContext context, ThemeData theme, ColorScheme colorScheme, SeparateItemConsultationModel nextItem) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -96,7 +98,7 @@ class NextItemCard extends StatelessWidget {
         _buildProductDetails(theme, colorScheme, nextItem),
         const SizedBox(height: 4),
         if (nextItem.codigoBarras != null && nextItem.codigoBarras!.isNotEmpty)
-          _buildBarcodeInfo(theme, colorScheme, nextItem),
+          _buildBarcodeInfo(context, theme, colorScheme, nextItem),
       ],
     );
   }
@@ -216,10 +218,10 @@ class NextItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildBarcodeInfo(ThemeData theme, ColorScheme colorScheme, SeparateItemConsultationModel nextItem) {
+  Widget _buildBarcodeInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme, SeparateItemConsultationModel nextItem) {
     // Se tem múltiplas unidades de medida, mostrar dropdown
-    if (nextItem.unidadeMedidas.length > 1) {
-      return _buildBarcodeDropdown(theme, colorScheme, nextItem, itemState);
+      if (nextItem.unidadeMedidas.length > 1) {
+      return _buildBarcodeDropdown(context, theme, colorScheme, nextItem, itemState);
     }
 
     // Caso contrário, mostrar como antes
@@ -237,7 +239,9 @@ class NextItemCard extends StatelessWidget {
           Expanded(
             child: Text(
               nextItem.codigoBarras!,
-              style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace', color: colorScheme.onSurfaceVariant),
+              style: AppTextStyles.code(context, color: colorScheme.onSurfaceVariant).copyWith(
+                fontSize: theme.textTheme.bodySmall?.fontSize,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -248,6 +252,7 @@ class NextItemCard extends StatelessWidget {
   }
 
   Widget _buildBarcodeDropdown(
+    BuildContext context,
     ThemeData theme,
     ColorScheme colorScheme,
     SeparateItemConsultationModel nextItem,
@@ -279,7 +284,7 @@ class NextItemCard extends StatelessWidget {
                 items: nextItem.unidadeMedidas.map((unidade) {
                   return DropdownMenuItem<SeparateItemUnidadeMedidaConsultationModel>(
                     value: unidade,
-                    child: _buildDropdownItem(theme, colorScheme, unidade),
+                    child: _buildDropdownItem(context, theme, colorScheme, unidade),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -297,6 +302,7 @@ class NextItemCard extends StatelessWidget {
   }
 
   Widget _buildDropdownItem(
+    BuildContext context,
     ThemeData theme,
     ColorScheme colorScheme,
     SeparateItemUnidadeMedidaConsultationModel unidade,
@@ -307,17 +313,16 @@ class NextItemCard extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       text: TextSpan(
-        style: theme.textTheme.bodySmall?.copyWith(
-          fontFamily: 'monospace',
+        style: AppTextStyles.code(context, color: colorScheme.onSurfaceVariant).copyWith(
+          fontSize: theme.textTheme.bodySmall?.fontSize,
           fontWeight: isPadrao ? FontWeight.bold : FontWeight.normal,
-          color: colorScheme.onSurfaceVariant,
           height: 1.2,
         ),
         children: [
           TextSpan(text: '${unidade.codUnidadeMedida}/${unidade.fatorConversao.toStringAsFixed(0)} '),
           TextSpan(
             text: unidade.codigoBarras ?? '',
-            style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary),
+            style: AppFonts.inter(fontWeight: FontWeight.bold, color: colorScheme.primary),
           ),
         ],
       ),

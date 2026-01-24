@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class LoadingButton extends StatelessWidget {
   final String text;
@@ -46,7 +47,7 @@ class LoadingButton extends StatelessWidget {
                 valueColor: AlwaysStoppedAnimation<Color>(loadingColor!),
               ),
             )
-          : Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          : Text(text, style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.w700)),
     );
   }
 }

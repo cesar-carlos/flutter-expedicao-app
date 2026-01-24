@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class CartStatusWarning extends StatelessWidget {
   const CartStatusWarning({super.key});
@@ -77,7 +78,7 @@ class CartStatusWarning extends StatelessWidget {
   Widget _buildWarningTitle() {
     return Text(
       'Carrinho não está em separação',
-      style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.red800, fontSize: _titleFontSize),
+      style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.red800, fontSize: _titleFontSize),
     );
   }
 
@@ -85,7 +86,7 @@ class CartStatusWarning extends StatelessWidget {
     return Text(
       'Este carrinho não está mais em situação de separação. '
       'Não é possível adicionar ou remover itens.',
-      style: TextStyle(color: AppColors.red700, fontSize: _descriptionFontSize),
+      style: AppFonts.inter(color: AppColors.red700, fontSize: _descriptionFontSize),
     );
   }
 }

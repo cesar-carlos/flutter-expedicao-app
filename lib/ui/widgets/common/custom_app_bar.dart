@@ -5,7 +5,7 @@ import 'package:data7_expedicao/ui/widgets/common/socket_widgets.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/string_utils.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
-import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final dynamic title;
@@ -74,7 +74,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (title is Widget) {
       return title as Widget;
     } else {
-      return Text(title as String, style: foregroundColor != null ? TextStyle(color: foregroundColor) : null);
+      return Text(title as String, style: foregroundColor != null ? AppFonts.inter(color: foregroundColor) : null);
     }
   }
 
@@ -85,7 +85,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         final userName = currentUser?.nome ?? (title is String ? title as String : 'Usuário');
         return Text(
           'Olá ${StringUtils.capitalizeWords(userName)}',
-          style: foregroundColor != null ? TextStyle(color: foregroundColor) : null,
+          style: foregroundColor != null ? AppFonts.inter(color: foregroundColor) : null,
         );
       },
     );

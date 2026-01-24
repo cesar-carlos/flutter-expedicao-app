@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class SeparationInfoDialog extends StatelessWidget {
   final SeparateConsultationModel separation;
@@ -40,7 +41,7 @@ class SeparationInfoDialog extends StatelessWidget {
       children: [
         SizedBox(
           width: 80,
-          child: Text('$label:', style: const TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('$label:', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         Expanded(child: Text(value)),
       ],

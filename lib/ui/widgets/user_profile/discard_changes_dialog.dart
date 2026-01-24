@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class DiscardChangesDialog extends StatelessWidget {
   const DiscardChangesDialog({super.key});
@@ -26,7 +27,7 @@ class DiscardChangesDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: Text('Cancelar', style: TextStyle(color: theme.colorScheme.primary)),
+          child: Text('Cancelar', style: AppFonts.inter(color: theme.colorScheme.primary)),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(true),

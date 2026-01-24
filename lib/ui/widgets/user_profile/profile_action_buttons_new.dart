@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
 import 'package:data7_expedicao/core/constants/app_strings.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class ProfileActionButtons extends StatelessWidget {
   final ProfileViewModel viewModel;
@@ -66,7 +67,7 @@ class ProfileActionButtons extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(
                     'Salvando...',
-                    style: TextStyle(
+                    style: AppFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: hasChanges ? AppColors.white : null,
@@ -81,7 +82,7 @@ class ProfileActionButtons extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     hasChanges ? AppStrings.saveProfile : 'Nenhuma alteração',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -107,7 +108,7 @@ class ProfileActionButtons extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'Voltar',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+              style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
             ),
           ],
         ),
@@ -161,7 +162,7 @@ class ProfileSaveButton extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(
                     'Salvando...',
-                    style: TextStyle(
+                    style: AppFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: hasChanges ? AppColors.white : null,
@@ -176,7 +177,7 @@ class ProfileSaveButton extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     hasChanges ? AppStrings.saveProfile : 'Nenhuma alteração',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),

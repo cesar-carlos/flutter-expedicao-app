@@ -7,6 +7,7 @@ import 'package:data7_expedicao/core/validation/forms/form_validators.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_text_styles.dart';
 
 class ServerConfigForm extends StatefulWidget {
   const ServerConfigForm({super.key});
@@ -273,9 +274,8 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
               ),
               child: Text(
                 _buildPreviewUrl(),
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontFamily: 'monospace',
-                  color: theme.colorScheme.primary,
+                style: AppTextStyles.code(context, color: theme.colorScheme.primary).copyWith(
+                  fontSize: theme.textTheme.bodyLarge?.fontSize,
                   fontWeight: FontWeight.bold,
                 ),
               ),

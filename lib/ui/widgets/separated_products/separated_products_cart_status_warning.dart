@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/separated_products_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class SeparatedProductsCartStatusWarning extends StatelessWidget {
   const SeparatedProductsCartStatusWarning({super.key});
@@ -34,13 +35,13 @@ class SeparatedProductsCartStatusWarning extends StatelessWidget {
                   children: [
                     Text(
                       'Carrinho não está em separação',
-                      style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.red800, fontSize: 16),
+                      style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.red800, fontSize: 16),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Este carrinho não está mais em situação de separação. '
                       'Não é possível remover itens da lista de produtos separados.',
-                      style: TextStyle(color: AppColors.red700, fontSize: 14),
+                      style: AppFonts.inter(color: AppColors.red700, fontSize: 14),
                     ),
                   ],
                 ),

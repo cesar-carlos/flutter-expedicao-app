@@ -19,6 +19,8 @@ import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/theme/app_text_styles.dart';
 
 class CartItemCard extends StatelessWidget {
   final ExpeditionCartRouteInternshipConsultationModel cartRouteInternshipConsultation;
@@ -216,10 +218,9 @@ class CartItemCard extends StatelessWidget {
                     ),
                     child: Text(
                       cartRouteInternshipConsultation.codigoBarrasCarrinho,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.primary,
+                      style: AppTextStyles.code(context, color: colorScheme.primary).copyWith(
                         fontWeight: FontWeight.w600,
-                        fontFamily: 'monospace',
+                        fontSize: theme.textTheme.bodySmall?.fontSize,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -679,19 +680,19 @@ class CartItemCard extends StatelessWidget {
                 children: [
                   Text(
                     '❌ Você não pode separar neste carrinho',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.red700),
+                    style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.red700),
                   ),
                   const SizedBox(height: 8),
-                  Text('Carrinho incluído por: $cartOwnerName', style: TextStyle(color: AppColors.red600)),
+                  Text('Carrinho incluído por: $cartOwnerName', style: AppFonts.inter(color: AppColors.red600)),
                 ],
               ),
             ),
             const SizedBox(height: UIConstants.defaultPadding),
             const Text('Este carrinho foi incluído por outro usuário.'),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Apenas o usuário que incluiu o carrinho pode realizar a separação.',
-              style: TextStyle(fontSize: 12),
+              style: AppFonts.inter(fontSize: 12),
             ),
           ],
         ),
@@ -727,19 +728,19 @@ class CartItemCard extends StatelessWidget {
                 children: [
                   Text(
                     'Todos os itens do seu setor já foram separados!',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue700),
+                    style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.blue700),
                   ),
                   const SizedBox(height: 8),
-                  Text('Seu setor: Setor $userSectorCode', style: TextStyle(color: AppColors.blue600)),
+                  Text('Seu setor: Setor $userSectorCode', style: AppFonts.inter(color: AppColors.blue600)),
                 ],
               ),
             ),
             const SizedBox(height: UIConstants.defaultPadding),
             const Text('Não há mais produtos do seu setor neste carrinho para separar.'),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Os itens restantes pertencem a outros setores e serão separados por outros usuários.',
-              style: TextStyle(fontSize: 12),
+              style: AppFonts.inter(fontSize: 12),
             ),
           ],
         ),
@@ -879,7 +880,7 @@ class CartItemCard extends StatelessWidget {
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-                child: const Text('Salvar', style: TextStyle(color: AppColors.white)),
+                child: Text('Salvar', style: AppFonts.inter(color: AppColors.white)),
               ),
             ],
           ),
@@ -919,7 +920,7 @@ class CartItemCard extends StatelessWidget {
             Text('Carrinho #${cartRouteInternshipConsultation.codCarrinho} finalizado com sucesso!'),
             if (success.details != null) ...[
               const SizedBox(height: 8),
-              Text(success.details!, style: const TextStyle(fontSize: 12, color: AppColors.grey)),
+              Text(success.details!, style: AppFonts.inter(fontSize: 12, color: AppColors.grey)),
             ],
           ],
         ),
@@ -927,7 +928,7 @@ class CartItemCard extends StatelessWidget {
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-            child: const Text('OK', style: TextStyle(color: AppColors.white)),
+            child: Text('OK', style: AppFonts.inter(color: AppColors.white)),
           ),
         ],
       ),
@@ -954,7 +955,7 @@ class CartItemCard extends StatelessWidget {
             Text(failure.userMessage),
             if (failure is SaveSeparationCartFailure && failure.details != null) ...[
               const SizedBox(height: 8),
-              Text(failure.details!, style: const TextStyle(fontSize: 12, color: AppColors.grey)),
+              Text(failure.details!, style: AppFonts.inter(fontSize: 12, color: AppColors.grey)),
             ],
           ],
         ),
@@ -962,7 +963,7 @@ class CartItemCard extends StatelessWidget {
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('OK', style: TextStyle(color: AppColors.white)),
+            child: Text('OK', style: AppFonts.inter(color: AppColors.white)),
           ),
         ],
       ),

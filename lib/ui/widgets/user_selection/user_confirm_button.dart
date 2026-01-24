@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class UserConfirmButton extends StatelessWidget {
   final UserSelectionViewModel viewModel;
@@ -30,7 +31,7 @@ class UserConfirmButton extends StatelessWidget {
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                 ),
               )
-            : const Text('Confirmar Seleção', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            : Text('Confirmar Seleção', style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class SearchStatusInfo extends StatelessWidget {
   final UserSelectionViewModel viewModel;
@@ -75,7 +76,7 @@ class SearchStatusInfo extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             text,
-            style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.w500),
+            style: AppFonts.inter(color: textColor, fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ],
       ),

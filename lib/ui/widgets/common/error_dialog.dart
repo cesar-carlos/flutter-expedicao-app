@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/theme/app_text_styles.dart';
 
 class ErrorDialog extends StatelessWidget {
   final String title;
@@ -97,7 +99,7 @@ class ErrorDialog extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.error),
+              style: AppFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.error),
             ),
           ),
         ],
@@ -107,7 +109,7 @@ class ErrorDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(message, style: const TextStyle(fontSize: 16, color: AppColors.black87)),
+            Text(message, style: AppFonts.inter(fontSize: 16, color: AppColors.black87)),
             if (details != null && details!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
@@ -126,14 +128,14 @@ class ErrorDialog extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           'Detalhes técnicos:',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.grey700),
+                          style: AppFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.grey700),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Text(
                       details!,
-                      style: TextStyle(fontSize: 13, color: AppColors.grey600, fontFamily: 'monospace'),
+                      style: AppTextStyles.code(context, color: AppColors.grey600),
                     ),
                   ],
                 ),

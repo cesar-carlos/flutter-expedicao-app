@@ -5,6 +5,7 @@ import 'package:data7_expedicao/domain/models/separate_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/core/utils/fields_helper.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class SeparateDataGrid extends StatelessWidget {
   final List<SeparateModel> separations;
@@ -49,7 +50,7 @@ class SeparateDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
-          child: const Text('Código', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Código', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 100,
       ),
@@ -58,7 +59,7 @@ class SeparateDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
-          child: const Text('Cliente', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Cliente', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 200,
       ),
@@ -67,7 +68,7 @@ class SeparateDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
-          child: const Text('Situação', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Situação', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 120,
       ),
@@ -76,7 +77,7 @@ class SeparateDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
-          child: const Text('Data', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Data', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 100,
       ),
@@ -85,7 +86,7 @@ class SeparateDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
-          child: const Text('Hora', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Hora', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 80,
       ),
@@ -94,7 +95,7 @@ class SeparateDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.center,
-          child: const Text('Prioridade', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Prioridade', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 100,
       ),
@@ -103,7 +104,7 @@ class SeparateDataGrid extends StatelessWidget {
         label: Container(
           padding: const EdgeInsets.all(8.0),
           alignment: Alignment.centerLeft,
-          child: const Text('Observação', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text('Observação', style: AppFonts.inter(fontWeight: FontWeight.bold)),
         ),
         width: 200,
       ),
@@ -152,7 +153,7 @@ class ShipmentSeparateDataSource extends DataGridSource {
                 ? dataGridCell.value as Widget
                 : Text(
                     dataGridCell.value?.toString() ?? '',
-                    style: const TextStyle(fontSize: 12),
+                    style: AppFonts.inter(fontSize: 12),
                     overflow: TextOverflow.ellipsis,
                   ),
           ),
@@ -183,7 +184,7 @@ class ShipmentSeparateDataSource extends DataGridSource {
       decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(12)),
       child: Text(
         situacao.description,
-        style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.bold),
+        style: AppFonts.inter(color: textColor, fontSize: 10, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -230,7 +231,7 @@ class ShipmentSeparateDataSource extends DataGridSource {
       decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(12)),
       child: Text(
         text,
-        style: const TextStyle(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
+        style: AppFonts.inter(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
       ),
     );
   }

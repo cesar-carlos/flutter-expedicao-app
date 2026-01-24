@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class DrawerMenuTile extends StatelessWidget {
   final IconData icon;
@@ -35,7 +36,7 @@ class DrawerMenuTile extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: TextStyle(
+        style: AppFonts.inter(
           color:
               textColor ??
               (isPlaceholder ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6) : theme.colorScheme.onSurface),

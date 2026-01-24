@@ -14,6 +14,7 @@ import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class ShelfScanningScreen extends StatefulWidget {
   final String expectedAddress;
@@ -366,7 +367,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
                   Expanded(
                     child: Text(
                       widget.expectedAddressDescription,
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: AppFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),

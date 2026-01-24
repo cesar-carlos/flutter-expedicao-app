@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class UserInfoCard extends StatelessWidget {
   const UserInfoCard({super.key});
@@ -20,15 +21,15 @@ class UserInfoCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   'Vincular Usuário do Sistema',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.secondary),
+                  style: AppFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.secondary),
                 ),
               ],
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               'Seu login não possui um usuário do sistema vinculado. '
               'Busque e selecione seu usuário para continuar usando o aplicativo.',
-              style: TextStyle(fontSize: 14, color: AppColors.fontDark),
+              style: AppFonts.inter(fontSize: 14, color: AppColors.fontDark),
             ),
           ],
         ),

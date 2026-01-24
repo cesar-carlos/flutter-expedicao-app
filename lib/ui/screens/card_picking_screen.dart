@@ -12,6 +12,7 @@ import 'package:data7_expedicao/ui/widgets/card_picking/cart_status_warning.dart
 import 'package:data7_expedicao/ui/widgets/cart_title_with_connection_status.dart';
 import 'package:data7_expedicao/ui/widgets/cart_status_bar.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class CardPickingScreen extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -285,7 +286,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(label, style: AppFonts.inter(fontWeight: FontWeight.bold)),
           const SizedBox(width: 8),
           Expanded(child: Text(value)),
         ],

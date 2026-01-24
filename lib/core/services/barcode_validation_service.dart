@@ -1,26 +1,20 @@
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 
-/// Serviço para validação e processamento de códigos de barras
 class BarcodeValidationService {
-  /// Cache de buscas por código de barras para melhorar performance
   static final Map<String, SeparateItemConsultationModel?> _barcodeSearchCache = {};
 
-  /// Cache de validações para evitar reprocessamento
   static final Map<String, BarcodeValidationResult> _validationCache = {};
 
-  /// Limpa todos os caches
   static void clearCaches() {
     _barcodeSearchCache.clear();
     _validationCache.clear();
   }
 
-  /// Limpa cache de validações específico
   static void clearValidationCache() {
     _validationCache.clear();
   }
 
-  /// Valida se o código escaneado corresponde ao próximo item esperado
   static BarcodeValidationResult validateScannedBarcode(
     String scannedBarcode,
     List<SeparateItemConsultationModel> items,
@@ -31,11 +25,9 @@ class BarcodeValidationService {
       return BarcodeValidationResult.empty();
     }
 
-    // Encontrar o próximo item a ser separado
     final nextItem = PickingUtils.findNextItemToPick(items, isItemCompleted, userSectorCode: userSectorCode);
 
     if (nextItem == null) {
-      // Verificar se é porque não há mais itens do setor do usuário
       if (userSectorCode != null) {
         final hasItemsForSector = items.any(
           (item) =>
@@ -50,17 +42,14 @@ class BarcodeValidationService {
       return BarcodeValidationResult.allItemsCompleted();
     }
 
-    // Validar se o código corresponde ao próximo item
     final isValid = PickingUtils.validateBarcode(scannedBarcode, nextItem);
 
     if (isValid) {
       return BarcodeValidationResult.valid(nextItem);
     } else {
-      // Verificar se o produto escaneado pertence a outro setor
       final scannedItem = _findItemByBarcode(items, scannedBarcode);
 
       if (scannedItem != null && userSectorCode != null) {
-        // Se usuário tem setor definido e o produto tem setor diferente (e não é null)
         final productSector = scannedItem.codSetorEstoque;
         if (productSector != null && productSector != userSectorCode) {
           return BarcodeValidationResult.wrongSector(scannedBarcode, scannedItem, userSectorCode);
@@ -71,13 +60,9 @@ class BarcodeValidationService {
     }
   }
 
-  /// Encontra um item pelo código de barras
-  /// Verifica tanto os códigos principais quanto os códigos das unidades de medida
-  /// Usa cache para melhorar performance em buscas repetidas
   static SeparateItemConsultationModel? _findItemByBarcode(List<SeparateItemConsultationModel> items, String barcode) {
     final trimmedBarcode = barcode.trim();
 
-    // Verificar cache primeiro
     if (_barcodeSearchCache.containsKey(trimmedBarcode)) {
       return _barcodeSearchCache[trimmedBarcode];
     }
@@ -88,13 +73,11 @@ class BarcodeValidationService {
       final barcode1 = item.codigoBarras?.trim();
       final barcode2 = item.codigoBarras2?.trim();
 
-      // Verificar códigos principais
       if ((barcode1 != null && barcode1 == trimmedBarcode) || (barcode2 != null && barcode2 == trimmedBarcode)) {
         foundItem = item;
         break;
       }
 
-      // Verificar se o código está na lista de unidades de medida
       final unidadeEncontrada = item.buscarUnidadeMedidaPorCodigoBarras(trimmedBarcode);
       if (unidadeEncontrada != null) {
         foundItem = item;
@@ -102,13 +85,11 @@ class BarcodeValidationService {
       }
     }
 
-    // Cachear resultado
     _barcodeSearchCache[trimmedBarcode] = foundItem;
     return foundItem;
   }
 }
 
-/// Resultado da validação de código de barras
 class BarcodeValidationResult {
   final bool isValid;
   final bool isEmpty;

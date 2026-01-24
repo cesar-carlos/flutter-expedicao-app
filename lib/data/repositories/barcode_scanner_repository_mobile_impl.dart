@@ -6,6 +6,7 @@ import 'dart:developer' as developer;
 import 'package:data7_expedicao/domain/repositories/barcode_scanner_repository.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class BarcodeScannerRepositoryMobileImpl implements BarcodeScannerRepository {
   BuildContext? _context;
@@ -146,7 +147,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                 children: [
                   const Icon(Icons.error_outline, size: 64, color: AppColors.error),
                   const SizedBox(height: 16),
-                  Text(_errorMessage!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
+                  Text(_errorMessage!, textAlign: TextAlign.center, style: AppFonts.inter(fontSize: 16)),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () => _closeWithResult(null),

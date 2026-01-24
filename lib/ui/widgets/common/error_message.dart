@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class ErrorMessage extends StatelessWidget {
   final String message;
@@ -29,7 +30,7 @@ class ErrorMessage extends StatelessWidget {
         children: [
           if (icon != null) ...[Icon(icon, color: theme.colorScheme.error, size: 20), const SizedBox(width: 8)],
           Expanded(
-            child: Text(message, style: TextStyle(color: theme.colorScheme.onErrorContainer, fontSize: 14)),
+            child: Text(message, style: AppFonts.inter(color: theme.colorScheme.onErrorContainer, fontSize: 14)),
           ),
         ],
       ),

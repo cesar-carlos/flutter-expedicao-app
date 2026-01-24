@@ -1,4 +1,3 @@
-/// DTO for sending query requests through socket connection
 class SendQuerySocketDto {
   final String session;
   final String responseIn;
@@ -14,7 +13,6 @@ class SendQuerySocketDto {
     this.orderBy,
   });
 
-  /// Creates a copy of this DTO with updated values
   SendQuerySocketDto copyWith({
     String? session,
     String? responseIn,
@@ -31,11 +29,9 @@ class SendQuerySocketDto {
     );
   }
 
-  /// Converts this DTO to JSON format for socket communication
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{'Session': session, 'ResponseIn': responseIn};
 
-    // Only include optional fields if they have values
     if (where != null && where!.isNotEmpty) {
       json['Where'] = where;
     }
@@ -49,7 +45,6 @@ class SendQuerySocketDto {
     return json;
   }
 
-  /// Creates a DTO from JSON response
   factory SendQuerySocketDto.fromJson(Map<String, dynamic> json) {
     return SendQuerySocketDto(
       session: json['Session'] as String,

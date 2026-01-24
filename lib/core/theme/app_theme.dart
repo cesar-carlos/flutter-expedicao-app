@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
-/// Classe responsável por definir os temas da aplicação
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: Brightness.light),
+      textTheme: AppFonts.getTextTheme(baseColor: AppColors.fontDark, brightness: Brightness.light),
 
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
-        titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.white),
+        titleTextStyle: AppFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.white),
       ),
 
       cardTheme: CardThemeData(
@@ -53,24 +54,22 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: Brightness.dark),
+      textTheme: AppFonts.getTextTheme(baseColor: AppColors.fontLight, brightness: Brightness.dark),
 
-      // AppBar Theme
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
         backgroundColor: AppColors.accent,
         foregroundColor: AppColors.white,
-        titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.white),
+        titleTextStyle: AppFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.white),
       ),
 
-      // Card Theme
       cardTheme: CardThemeData(
         elevation: 0,
         color: AppColors.accentWithOpacity(0.3),
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
       ),
 
-      // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
@@ -81,7 +80,6 @@ class AppTheme {
         ),
       ),
 
-      // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/user_selection/index.dart';
@@ -117,9 +118,9 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Escolher Outro Usuário',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),

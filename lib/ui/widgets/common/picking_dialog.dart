@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class PickingDialog extends StatelessWidget {
   final String title;
@@ -86,7 +87,7 @@ class PickingDialogs {
               children: [
                 Text(
                   'Próximo produto esperado:',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue700),
+                  style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.blue700),
                 ),
                 const SizedBox(height: 6),
                 Text('📍 $expectedAddress'),
@@ -110,7 +111,7 @@ class PickingDialogs {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Código: $barcode', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text('Código: $barcode', style: AppFonts.inter(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text('Produto: $productName'),
           const SizedBox(height: 12),
@@ -121,7 +122,7 @@ class PickingDialogs {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
             ),
-            child: Text(errorMessage, style: TextStyle(color: AppColors.red700)),
+            child: Text(errorMessage, style: AppFonts.inter(color: AppColors.red700)),
           ),
         ],
       ),
@@ -141,7 +142,7 @@ class PickingDialogs {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Código: $barcode', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text('Código: $barcode', style: AppFonts.inter(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text('Produto: $productName'),
           const SizedBox(height: 12),
@@ -157,11 +158,11 @@ class PickingDialogs {
               children: [
                 Text(
                   'Quantidade solicitada excede o disponível:',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.orange700),
+                  style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.orange700),
                 ),
                 const SizedBox(height: 6),
                 Text('Solicitado: $requestedQuantity'),
-                Text('Disponível: $availableQuantity', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text('Disponível: $availableQuantity', style: AppFonts.inter(fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -199,7 +200,7 @@ class PickingDialogs {
               children: [
                 Text(
                   'Produto de outro setor:',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.red700),
+                  style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.red700),
                 ),
                 const SizedBox(height: 6),
                 Text('📦 $productName'),
@@ -207,7 +208,7 @@ class PickingDialogs {
                 const SizedBox(height: 8),
                 Text(
                   'Seu setor: Setor $userSectorCode',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue700),
+                  style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.blue700),
                 ),
               ],
             ),
@@ -244,19 +245,19 @@ class PickingDialogs {
               children: [
                 Text(
                   '✓ Todos os itens do seu setor foram separados!',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue700),
+                  style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.blue700),
                 ),
                 const SizedBox(height: 8),
-                Text('Seu setor: Setor $userSectorCode', style: TextStyle(color: AppColors.blue600)),
+                Text('Seu setor: Setor $userSectorCode', style: AppFonts.inter(color: AppColors.blue600)),
               ],
             ),
           ),
           const SizedBox(height: 16),
           const Text('Não há mais produtos do seu setor neste carrinho para separar.'),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Os itens restantes pertencem a outros setores e serão separados por outros usuários.',
-            style: TextStyle(fontSize: 12),
+            style: AppFonts.inter(fontSize: 12),
           ),
         ],
       ),

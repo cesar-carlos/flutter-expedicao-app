@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_scan_state.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 /// Card de scanner de código de barras otimizado com Provider
 ///
@@ -174,7 +175,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
         fillColor: enabled ? null : AppColors.grey.withValues(alpha: 0.1),
         filled: !enabled,
       ),
-      style: TextStyle(color: enabled ? null : AppColors.grey),
+      style: AppFonts.inter(color: enabled ? null : AppColors.grey),
     );
   }
 

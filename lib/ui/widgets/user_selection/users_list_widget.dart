@@ -4,6 +4,7 @@ import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart'
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class UsersListWidget extends StatelessWidget {
   final UserSelectionViewModel viewModel;
@@ -69,7 +70,7 @@ class UsersListWidget extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, color: AppColors.grey),
+              style: AppFonts.inter(fontSize: 16, color: AppColors.grey),
             ),
           ],
         ),
@@ -105,14 +106,15 @@ class UsersListWidget extends StatelessWidget {
               : AppColors.grey,
           child: Text(
             user.nomeUsuario.substring(0, 2).toUpperCase(),
-            style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.bold),
+            style: AppFonts.inter(color: AppColors.white, fontWeight: FontWeight.bold),
           ),
         ),
         title: Text(
           user.nomeUsuario,
-          style: TextStyle(
+          style: AppFonts.inter(
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             color: isBlocked ? AppColors.grey600 : null,
+          ).copyWith(
             decoration: isBlocked ? TextDecoration.lineThrough : null,
           ),
         ),
@@ -124,7 +126,7 @@ class UsersListWidget extends StatelessWidget {
             if (isBlocked)
               Text(
                 'Vinculado (ID: ${user.codLoginApp})',
-                style: TextStyle(color: AppColors.red600, fontSize: 12, fontWeight: FontWeight.w500),
+                style: AppFonts.inter(color: AppColors.red600, fontSize: 12, fontWeight: FontWeight.w500),
               ),
           ],
         ),
@@ -152,29 +154,29 @@ class UsersListWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       child: viewModel.isLoadingMore
-          ? const Row(
+          ? Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                SizedBox(width: 12),
-                Text('Carregando mais usuários...', style: TextStyle(fontSize: 14, color: AppColors.grey)),
+                const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                const SizedBox(width: 12),
+                Text('Carregando mais usuários...', style: AppFonts.inter(fontSize: 14, color: AppColors.grey)),
               ],
             )
           : viewModel.hasMoreData
-          ? const Row(
+          ? Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.keyboard_arrow_down, color: AppColors.grey),
-                SizedBox(width: 8),
-                Text('Role para carregar mais', style: TextStyle(fontSize: 12, color: AppColors.grey)),
+                const Icon(Icons.keyboard_arrow_down, color: AppColors.grey),
+                const SizedBox(width: 8),
+                Text('Role para carregar mais', style: AppFonts.inter(fontSize: 12, color: AppColors.grey)),
               ],
             )
-          : const Row(
+          : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.check_circle, color: AppColors.success, size: 16),
-                SizedBox(width: 8),
-                Text('Todos os usuários foram carregados', style: TextStyle(fontSize: 12, color: AppColors.grey)),
+                const Icon(Icons.check_circle, color: AppColors.success, size: 16),
+                const SizedBox(width: 8),
+                Text('Todos os usuários foram carregados', style: AppFonts.inter(fontSize: 12, color: AppColors.grey)),
               ],
             ),
     );

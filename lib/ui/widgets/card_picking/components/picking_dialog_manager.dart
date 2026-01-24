@@ -4,6 +4,7 @@ import 'package:data7_expedicao/ui/widgets/common/picking_dialog.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class PickingDialogManager {
   final BuildContext context;
@@ -137,17 +138,17 @@ class PickingDialogManager {
                 children: [
                   Text(
                     '✓ Todos os itens do seu setor foram separados!',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.green700),
+                    style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.green700),
                   ),
                   const SizedBox(height: UIConstants.smallPadding),
-                  Text('Seu setor: Setor $userSectorCode', style: TextStyle(color: AppColors.green600)),
+                  Text('Seu setor: Setor $userSectorCode', style: AppFonts.inter(color: AppColors.green600)),
                 ],
               ),
             ),
             const SizedBox(height: UIConstants.defaultPadding),
             Text(
               'Deseja salvar o carrinho agora ou continuar separando itens de outros setores?',
-              style: TextStyle(fontSize: UIConstants.defaultFontSize),
+              style: AppFonts.inter(fontSize: UIConstants.defaultFontSize),
             ),
           ],
         ),
@@ -173,7 +174,7 @@ class PickingDialogManager {
               });
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-            child: Text('Salvar Carrinho', style: TextStyle(color: AppColors.white)),
+            child: Text('Salvar Carrinho', style: AppFonts.inter(color: AppColors.white)),
           ),
         ],
       ),

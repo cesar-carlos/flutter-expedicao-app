@@ -6,6 +6,7 @@ import 'package:data7_expedicao/domain/models/situation/expedition_item_situatio
 import 'package:data7_expedicao/domain/viewmodels/separated_products_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_text_styles.dart';
 
 class SeparatedProductItem extends StatelessWidget {
   final SeparationItemConsultationModel item;
@@ -162,9 +163,8 @@ class SeparatedProductItem extends StatelessWidget {
                         Expanded(
                           child: Text(
                             item.codigoBarras!,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontFamily: 'monospace',
-                              color: colorScheme.onSurfaceVariant,
+                            style: AppTextStyles.code(context, color: colorScheme.onSurfaceVariant).copyWith(
+                              fontSize: theme.textTheme.bodySmall?.fontSize,
                             ),
                           ),
                         ),

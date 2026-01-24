@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class PickingProductListItem extends StatelessWidget {
   final SeparateItemConsultationModel item;
@@ -345,7 +346,7 @@ class PickingProductListItem extends StatelessWidget {
               ).showSnackBar(const SnackBar(content: Text('Separação removida'), backgroundColor: AppColors.warning));
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Remover', style: TextStyle(color: AppColors.white)),
+            child: Text('Remover', style: AppFonts.inter(color: AppColors.white)),
           ),
         ],
       ),

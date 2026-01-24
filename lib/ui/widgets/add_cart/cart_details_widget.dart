@@ -4,6 +4,7 @@ import 'package:data7_expedicao/domain/models/expedition_cart_consultation_model
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:data7_expedicao/core/utils/app_helper.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class CartDetailsWidget extends StatelessWidget {
   final ExpeditionCartConsultationModel cart;
@@ -78,7 +79,7 @@ class CartDetailsWidget extends StatelessWidget {
                         ),
                         child: Text(
                           cart.situacaoDescription.toUpperCase(),
-                          style: const TextStyle(color: AppColors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                          style: AppFonts.inter(color: AppColors.white, fontSize: 12, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ],

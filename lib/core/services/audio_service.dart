@@ -3,47 +3,39 @@ import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
-/// Sons disponíveis no sistema
 enum SoundType {
   barcodeScan('som/BarcodeScan.wav'),
   success('som/finishi.mp3'),
-  shelfScanSuccess('som/new-notification.mp3'), // Som para scan de prateleira
-  cartAddSuccess('som/new-notification-campainha.mp3'), // Som para adicionar carrinho com sucesso
-  itemCompleted('som/success.wav'), // Som para quando um item é completamente separado
+  shelfScanSuccess('som/new-notification.mp3'),
+  cartAddSuccess('som/new-notification-campainha.mp3'),
+  itemCompleted('som/success.wav'),
   error('som/Error.wav'),
   fail('som/Fail.wav'),
   alert('som/Alert.wav'),
-  alertComplete('som/AlertFalha.wav'), // Som para separação completa
+  alertComplete('som/AlertFalha.wav'),
   disconnected('som/Disconected.wav');
 
   const SoundType(this.path);
   final String path;
 }
 
-/// Serviço centralizado para gerenciar reprodução de áudios
-/// Gerencia os sons de feedback do sistema (scan, erro, notificação, etc.)
 class AudioService {
   static final AudioService _instance = AudioService._internal();
   factory AudioService() => _instance;
   AudioService._internal();
 
-  /// Player otimizado para efeitos curtos (baixa latência).
-  /// Mantemos uma única instância para evitar re-criação e atrasos de init.
   final AudioPlayer _fxPlayer = AudioPlayer(playerId: 'fx_player')
     ..setPlayerMode(PlayerMode.lowLatency)
     ..setReleaseMode(ReleaseMode.stop);
 
   bool _isEnabled = true;
 
-  /// Habilita ou desabilita os sons do sistema
   void setEnabled(bool enabled) {
     _isEnabled = enabled;
   }
 
-  /// Verifica se os sons estão habilitados
   bool get isEnabled => _isEnabled;
 
-  /// Reproduz um som específico
   Future<void> playSound(SoundType soundType) async {
     if (!_isEnabled) return;
 
@@ -51,94 +43,79 @@ class AudioService {
       await _fxPlayer.stop();
       await _fxPlayer.play(AssetSource(soundType.path));
     } catch (e, stackTrace) {
-      AppLogger.warning('Erro ao reproduzir som: ${soundType.path}', tag: 'AudioService', error: e, stackTrace: stackTrace);
+      AppLogger.warning(
+        'Erro ao reproduzir som: ${soundType.path}',
+        tag: 'AudioService',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
-  /// Reproduz som de scan de código de barras
   Future<void> playBarcodeScan() async {
     await playSound(SoundType.barcodeScan);
   }
 
-  /// Reproduz som de sucesso/notificação
   Future<void> playSuccess() async {
     await playSound(SoundType.success);
   }
 
-  /// Reproduz som de item completamente separado
   Future<void> playItemCompleted() async {
     await playSound(SoundType.itemCompleted);
   }
 
-  /// Reproduz som de scan de prateleira bem-sucedido
   Future<void> playShelfScanSuccess() async {
     await playSound(SoundType.shelfScanSuccess);
   }
 
-  /// Reproduz som de sucesso ao adicionar carrinho
   Future<void> playCartAddSuccess() async {
     await playSound(SoundType.cartAddSuccess);
   }
 
-  /// Reproduz som de erro
   Future<void> playError() async {
     await playSound(SoundType.error);
   }
 
-  /// Reproduz som de falha
   Future<void> playFail() async {
     await playSound(SoundType.fail);
   }
 
-  /// Reproduz som de alerta
   Future<void> playAlert() async {
     await playSound(SoundType.alert);
   }
 
-  /// Reproduz som de alerta de separação completa
   Future<void> playAlertComplete() async {
     await playSound(SoundType.alertComplete);
   }
 
-  /// Reproduz som de desconexão
   Future<void> playDisconnected() async {
     await playSound(SoundType.disconnected);
   }
 
-  /// Para a reprodução atual
   Future<void> stop() async {
     try {
       await _fxPlayer.stop();
     } catch (e) {
-      if (kDebugMode) {
-        // Erro ao parar reprodução
-      }
+      if (kDebugMode) {}
     }
   }
 
-  /// Libera recursos do player
   Future<void> dispose() async {
     try {
       await _fxPlayer.dispose();
     } catch (e) {
-      if (kDebugMode) {
-        // Erro ao liberar recursos do AudioPlayer
-      }
+      if (kDebugMode) {}
     }
   }
 
-  /// Define o volume (0.0 a 1.0)
   Future<void> setVolume(double volume) async {
     try {
       await _fxPlayer.setVolume(volume.clamp(0.0, 1.0));
     } catch (e) {
-      if (kDebugMode) {
-        // Erro ao definir volume
-      }
+      if (kDebugMode) {}
     }
   }
 
-  /// Reproduz som com volume específico
   Future<void> playSoundWithVolume(SoundType soundType, double volume) async {
     if (!_isEnabled) return;
 
@@ -146,9 +123,7 @@ class AudioService {
       await setVolume(volume);
       await playSound(soundType);
     } catch (e) {
-      if (kDebugMode) {
-        // Erro ao reproduzir som com volume
-      }
+      if (kDebugMode) {}
     }
   }
 }

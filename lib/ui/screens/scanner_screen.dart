@@ -12,6 +12,7 @@ import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -276,7 +277,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               child: Center(
                 child: Text(
                   '${index + 1}',
-                  style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: AppFonts.inter(color: AppColors.white, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
             ),
@@ -303,7 +304,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                     child: Text(
                       'ÚLTIMO',
-                      style: TextStyle(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      style: AppFonts.inter(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
                     ),
                   ),
                 const SizedBox(width: 8),

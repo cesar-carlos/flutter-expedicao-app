@@ -5,6 +5,7 @@ import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 import 'package:data7_expedicao/ui/widgets/common/socket_widgets.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class UserProfileAvatar extends StatelessWidget {
   final double radius;
@@ -72,10 +73,10 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(currentUser.nome, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                          Text(currentUser.nome, style: AppFonts.inter(fontSize: 14, fontWeight: FontWeight.w500)),
                           Text(
                             'ID: ${currentUser.codLoginApp}',
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade300),
+                            style: AppFonts.inter(fontSize: 12, color: Colors.grey.shade300),
                           ),
                         ],
                       ),
@@ -113,15 +114,15 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(currentUser.nome, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text(currentUser.nome, style: AppFonts.inter(fontSize: 18, fontWeight: FontWeight.bold)),
                         Text(
                           'ID: ${currentUser.codLoginApp}',
-                          style: TextStyle(fontSize: 14, color: AppColors.grey600),
+                          style: AppFonts.inter(fontSize: 14, color: AppColors.grey600),
                         ),
                         if (currentUser.codUsuario != null)
                           Text(
                             'Código: ${currentUser.codUsuario}',
-                            style: TextStyle(fontSize: 14, color: AppColors.grey600),
+                            style: AppFonts.inter(fontSize: 14, color: AppColors.grey600),
                           ),
                         Row(
                           children: [
@@ -133,7 +134,7 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
                             const SizedBox(width: 4),
                             Text(
                               currentUser.isActive ? 'Ativo' : 'Inativo',
-                              style: TextStyle(fontSize: 12, color: currentUser.isActive ? AppColors.success : AppColors.error),
+                              style: AppFonts.inter(fontSize: 12, color: currentUser.isActive ? AppColors.success : AppColors.error),
                             ),
                           ],
                         ),

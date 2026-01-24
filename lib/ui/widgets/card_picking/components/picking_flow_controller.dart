@@ -10,6 +10,7 @@ import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_dialo
 import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal_v2.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class PickingFlowController {
   final CardPickingViewModel viewModel;
@@ -157,7 +158,7 @@ class PickingFlowController {
             Text(message),
             if (details != null) ...[
               const SizedBox(height: 8),
-              Text(details, style: const TextStyle(fontSize: 12, color: AppColors.grey)),
+              Text(details, style: AppFonts.inter(fontSize: 12, color: AppColors.grey)),
             ],
           ],
         ),

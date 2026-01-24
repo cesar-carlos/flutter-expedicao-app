@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -87,7 +88,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               opacity: _fadeAnimation,
               child: Text(
                 'Data7 Expedição',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.white, letterSpacing: 2),
+                style: AppFonts.inter(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.white, letterSpacing: 2),
               ),
             ),
 
@@ -97,7 +98,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               opacity: _fadeAnimation,
               child: Text(
                 'Se7e Sistemas',
-                style: TextStyle(fontSize: 16, color: AppColors.white.withValues(alpha: 0.8), letterSpacing: 1),
+                style: AppFonts.inter(fontSize: 16, color: AppColors.white.withValues(alpha: 0.8), letterSpacing: 1),
               ),
             ),
 

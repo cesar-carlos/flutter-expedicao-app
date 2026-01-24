@@ -11,6 +11,7 @@ import 'package:data7_expedicao/domain/models/situation/expedition_situation_mod
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class SeparateConsultationScreen extends StatefulWidget {
   const SeparateConsultationScreen({super.key});
@@ -302,7 +303,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
         children: [
           SizedBox(
             width: 100,
-            child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(label, style: AppFonts.inter(fontWeight: FontWeight.bold)),
           ),
           Expanded(child: Text(value.isEmpty ? 'N/A' : value)),
         ],
@@ -347,7 +348,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
             ),
             child: Text(
               '${viewModel.currentPage + 1}',
-              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold),
+              style: AppFonts.inter(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold),
             ),
           ),
 
@@ -386,7 +387,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Escolha o tipo de consulta:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Escolha o tipo de consulta:', style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: UIConstants.defaultPadding),
 
             SegmentedButton<String>(
@@ -449,7 +450,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
                       Expanded(
                         child: Text(
                           'Configurações de Paginação',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: AppFonts.inter(fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -493,7 +494,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
                       selectedFilter == 'todos'
                           ? 'Esta consulta retornará todas as separações disponíveis no sistema com paginação.'
                           : 'Esta consulta filtrará as separações baseada nos critérios selecionados com paginação.',
-                      style: const TextStyle(fontSize: 12),
+                      style: AppFonts.inter(fontSize: 12),
                     ),
                   ),
                 ],

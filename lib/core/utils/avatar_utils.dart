@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 /// Utilitários centralizados para gerenciamento de avatares
 class AvatarUtils {
@@ -78,7 +80,7 @@ class AvatarUtils {
       child: photoBase64 == null || photoBase64.isEmpty
           ? Text(
               getInitials(name),
-              style: TextStyle(
+              style: AppFonts.inter(
                 color: textColor,
                 fontSize: fontSize ?? radius * 0.6,
                 fontWeight: fontWeight ?? FontWeight.bold,

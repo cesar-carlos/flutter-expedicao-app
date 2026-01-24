@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/photo_options_modal.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class EditableAvatar extends StatelessWidget {
   final ProfileViewModel viewModel;
@@ -101,7 +102,7 @@ class EditableAvatar extends StatelessWidget {
       child: Center(
         child: Text(
           user?.nome?.isNotEmpty == true ? user.nome.substring(0, 1).toUpperCase() : 'U',
-          style: TextStyle(fontSize: 48, fontWeight: FontWeight.w800, color: AppColors.white, letterSpacing: 1),
+          style: AppFonts.inter(fontSize: 48, fontWeight: FontWeight.w800, color: AppColors.white, letterSpacing: 1),
         ),
       ),
     );
