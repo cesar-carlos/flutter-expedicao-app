@@ -106,6 +106,7 @@ import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecas
 import 'package:data7_expedicao/domain/usecases/user/register_via_qrcode_usecase.dart';
 import 'package:data7_expedicao/domain/repositories/i_app_update_repository.dart';
 import 'package:data7_expedicao/data/repositories/app_update_repository_impl.dart';
+import 'package:data7_expedicao/infrastructure/services/github_release_json_adapter.dart';
 import 'package:data7_expedicao/domain/usecases/check_app_update/check_app_update_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/download_app_update/download_app_update_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/install_app_update/install_app_update_usecase.dart';

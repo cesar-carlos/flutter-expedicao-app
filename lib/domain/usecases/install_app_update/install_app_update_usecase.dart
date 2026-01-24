@@ -1,8 +1,9 @@
 import 'package:result_dart/result_dart.dart';
+
+import 'package:data7_expedicao/core/results/app_failure.dart';
+import 'package:data7_expedicao/core/results/app_result.dart';
 import 'package:data7_expedicao/domain/models/app_update_failure.dart';
 import 'package:data7_expedicao/domain/repositories/i_app_update_repository.dart';
-import 'package:data7_expedicao/core/results/app_result.dart';
-import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/domain/usecases/install_app_update/install_app_update_params.dart';
 
 class InstallAppUpdateUseCase {

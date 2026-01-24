@@ -1,15 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:data7_expedicao/domain/models/github_release.dart';
+
 import 'package:data7_expedicao/domain/models/app_update_failure.dart';
-import 'package:data7_expedicao/domain/usecases/check_app_update/check_app_update_usecase.dart';
+import 'package:data7_expedicao/domain/models/github_release.dart';
 import 'package:data7_expedicao/domain/usecases/check_app_update/check_app_update_params.dart';
-import 'package:data7_expedicao/domain/usecases/download_app_update/download_app_update_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/check_app_update/check_app_update_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/download_app_update/download_app_update_params.dart';
-import 'package:data7_expedicao/domain/usecases/install_app_update/install_app_update_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/download_app_update/download_app_update_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/install_app_update/install_app_update_params.dart';
+import 'package:data7_expedicao/domain/usecases/install_app_update/install_app_update_usecase.dart';
 
 class AppUpdateViewModel extends ChangeNotifier {
   final CheckAppUpdateUseCase checkAppUpdateUseCase;
@@ -49,12 +49,9 @@ class AppUpdateViewModel extends ChangeNotifier {
     required this.installAppUpdateUseCase,
   });
 
-  Future<void> checkForUpdate() async {
-    final owner = dotenv.env['GITHUB_OWNER']?.trim();
-    final repo = dotenv.env['GITHUB_REPO']?.trim();
-
+  Future<void> checkForUpdate({String? owner, String? repo}) async {
     if (owner == null || owner.isEmpty || repo == null || repo.isEmpty) {
-      _error = AppUpdateFailure.versionCheckFailed('GITHUB_OWNER ou GITHUB_REPO não configurados no .env');
+      _error = AppUpdateFailure.versionCheckFailed('GITHUB_OWNER ou GITHUB_REPO não configurados');
       notifyListeners();
       return;
     }

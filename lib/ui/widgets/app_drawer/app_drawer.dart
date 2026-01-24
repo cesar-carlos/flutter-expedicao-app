@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:data7_expedicao/core/utils/string_utils.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
@@ -241,8 +242,10 @@ class AppDrawer extends StatelessWidget {
 
         return Consumer<AppUpdateViewModel>(
           builder: (context, appUpdateViewModel, child) {
-            return GestureDetector(
-              onTap: () => _handleVersionTap(context, appUpdateViewModel),
+            return InkWell(
+              onTap: appUpdateViewModel.isChecking
+                  ? null
+                  : () => _handleVersionTap(context, appUpdateViewModel),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -253,9 +256,19 @@ class AppDrawer extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    if (!appUpdateViewModel.isChecking)
+                      Icon(
+                        Icons.system_update_outlined,
+                        size: 16,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    if (!appUpdateViewModel.isChecking) const SizedBox(width: 8),
                     Text(
                       'Versão $version+$buildNumber',
-                      style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                      style: AppFonts.inter(
+                        fontSize: UIConstants.smallFontSize,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
                     ),
                     if (appUpdateViewModel.isChecking) ...[
                       const SizedBox(width: 8),
@@ -284,7 +297,9 @@ class AppDrawer extends StatelessWidget {
     appUpdateViewModel.clearError();
 
     try {
-      await appUpdateViewModel.checkForUpdate();
+      final owner = dotenv.env['GITHUB_OWNER']?.trim();
+      final repo = dotenv.env['GITHUB_REPO']?.trim();
+      await appUpdateViewModel.checkForUpdate(owner: owner, repo: repo);
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

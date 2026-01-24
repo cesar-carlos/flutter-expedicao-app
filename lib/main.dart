@@ -95,7 +95,9 @@ class _MyAppState extends State<MyApp> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (kReleaseMode) {
                 Future.delayed(const Duration(seconds: 2), () async {
-                  await appUpdateViewModel.checkForUpdate();
+                  final owner = dotenv.env['GITHUB_OWNER']?.trim();
+                  final repo = dotenv.env['GITHUB_REPO']?.trim();
+                  await appUpdateViewModel.checkForUpdate(owner: owner, repo: repo);
                 });
               }
             });
