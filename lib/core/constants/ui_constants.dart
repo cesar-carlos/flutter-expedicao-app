@@ -57,11 +57,17 @@ class UIConstants {
   static const double highElevation = 8.0;
 
   // Tamanhos de fonte
+  static const double extraSmallFontSize = 10.0;
+  static const double tinyFontSize = 11.0;
   static const double smallFontSize = 12.0;
   static const double defaultFontSize = 14.0;
   static const double mediumFontSize = 16.0;
   static const double largeFontSize = 18.0;
+  static const double xLargeFontSize = 20.0;
   static const double extraLargeFontSize = 24.0;
+  static const double hugeFontSize = 25.0;
+  static const double xxLargeFontSize = 32.0;
+  static const double extraHugeFontSize = 48.0;
 
   // Limites de caracteres
   static const int maxTextFieldLength = 255;

@@ -13,6 +13,7 @@ import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -304,7 +305,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                     child: Text(
                       'ÚLTIMO',
-                      style: AppFonts.inter(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      style: AppFonts.inter(color: AppColors.white, fontSize: UIConstants.extraSmallFontSize, fontWeight: FontWeight.bold),
                     ),
                   ),
                 const SizedBox(width: 8),

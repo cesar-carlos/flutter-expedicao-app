@@ -6,6 +6,7 @@ import 'package:data7_expedicao/domain/models/situation/expedition_situation_mod
 import 'package:data7_expedicao/core/utils/fields_helper.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class SeparateDataGrid extends StatelessWidget {
   final List<SeparateModel> separations;
@@ -184,7 +185,7 @@ class ShipmentSeparateDataSource extends DataGridSource {
       decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(12)),
       child: Text(
         situacao.description,
-        style: AppFonts.inter(color: textColor, fontSize: 10, fontWeight: FontWeight.bold),
+        style: AppFonts.inter(color: textColor, fontSize: UIConstants.extraSmallFontSize, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -231,7 +232,7 @@ class ShipmentSeparateDataSource extends DataGridSource {
       decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(12)),
       child: Text(
         text,
-        style: AppFonts.inter(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
+        style: AppFonts.inter(color: AppColors.white, fontSize: UIConstants.extraSmallFontSize, fontWeight: FontWeight.bold),
       ),
     );
   }

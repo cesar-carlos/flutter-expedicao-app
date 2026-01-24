@@ -5,6 +5,7 @@ import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class UsersListWidget extends StatelessWidget {
   final UserSelectionViewModel viewModel;
@@ -70,7 +71,7 @@ class UsersListWidget extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: AppFonts.inter(fontSize: 16, color: AppColors.grey),
+              style: AppFonts.inter(fontSize: UIConstants.mediumFontSize, color: AppColors.grey),
             ),
           ],
         ),
@@ -126,7 +127,7 @@ class UsersListWidget extends StatelessWidget {
             if (isBlocked)
               Text(
                 'Vinculado (ID: ${user.codLoginApp})',
-                style: AppFonts.inter(color: AppColors.red600, fontSize: 12, fontWeight: FontWeight.w500),
+                style: AppFonts.inter(color: AppColors.red600, fontSize: UIConstants.smallFontSize, fontWeight: FontWeight.w500),
               ),
           ],
         ),
@@ -159,7 +160,7 @@ class UsersListWidget extends StatelessWidget {
               children: [
                 const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
                 const SizedBox(width: 12),
-                Text('Carregando mais usuários...', style: AppFonts.inter(fontSize: 14, color: AppColors.grey)),
+                Text('Carregando mais usuários...', style: AppFonts.inter(fontSize: UIConstants.defaultFontSize, color: AppColors.grey)),
               ],
             )
           : viewModel.hasMoreData
@@ -168,7 +169,7 @@ class UsersListWidget extends StatelessWidget {
               children: [
                 const Icon(Icons.keyboard_arrow_down, color: AppColors.grey),
                 const SizedBox(width: 8),
-                Text('Role para carregar mais', style: AppFonts.inter(fontSize: 12, color: AppColors.grey)),
+                Text('Role para carregar mais', style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: AppColors.grey)),
               ],
             )
           : Row(
@@ -176,7 +177,7 @@ class UsersListWidget extends StatelessWidget {
               children: [
                 const Icon(Icons.check_circle, color: AppColors.success, size: 16),
                 const SizedBox(width: 8),
-                Text('Todos os usuários foram carregados', style: AppFonts.inter(fontSize: 12, color: AppColors.grey)),
+                Text('Todos os usuários foram carregados', style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: AppColors.grey)),
               ],
             ),
     );

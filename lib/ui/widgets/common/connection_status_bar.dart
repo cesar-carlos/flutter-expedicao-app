@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class ConnectionStatusBar extends StatelessWidget {
   const ConnectionStatusBar({super.key});
@@ -65,7 +66,7 @@ class ConnectionStatusBar extends StatelessWidget {
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: statusColor,
                   fontWeight: FontWeight.w600,
-                  fontSize: 11,
+                  fontSize: UIConstants.tinyFontSize,
                 ),
               ),
             ],

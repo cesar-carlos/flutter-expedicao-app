@@ -692,7 +692,7 @@ class CartItemCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Apenas o usuário que incluiu o carrinho pode realizar a separação.',
-              style: AppFonts.inter(fontSize: 12),
+              style: AppFonts.inter(fontSize: UIConstants.smallFontSize),
             ),
           ],
         ),
@@ -740,7 +740,7 @@ class CartItemCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Os itens restantes pertencem a outros setores e serão separados por outros usuários.',
-              style: AppFonts.inter(fontSize: 12),
+              style: AppFonts.inter(fontSize: UIConstants.smallFontSize),
             ),
           ],
         ),
@@ -920,7 +920,7 @@ class CartItemCard extends StatelessWidget {
             Text('Carrinho #${cartRouteInternshipConsultation.codCarrinho} finalizado com sucesso!'),
             if (success.details != null) ...[
               const SizedBox(height: 8),
-              Text(success.details!, style: AppFonts.inter(fontSize: 12, color: AppColors.grey)),
+              Text(success.details!, style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: AppColors.grey)),
             ],
           ],
         ),
@@ -955,7 +955,7 @@ class CartItemCard extends StatelessWidget {
             Text(failure.userMessage),
             if (failure is SaveSeparationCartFailure && failure.details != null) ...[
               const SizedBox(height: 8),
-              Text(failure.details!, style: AppFonts.inter(fontSize: 12, color: AppColors.grey)),
+              Text(failure.details!, style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: AppColors.grey)),
             ],
           ],
         ),

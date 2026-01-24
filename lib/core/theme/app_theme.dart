@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
@@ -15,7 +16,7 @@ class AppTheme {
         elevation: 0,
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
-        titleTextStyle: AppFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.white),
+        titleTextStyle: AppFonts.inter(fontSize: UIConstants.xLargeFontSize, fontWeight: FontWeight.w600, color: AppColors.white),
       ),
 
       cardTheme: CardThemeData(
@@ -61,7 +62,7 @@ class AppTheme {
         elevation: 0,
         backgroundColor: AppColors.accent,
         foregroundColor: AppColors.white,
-        titleTextStyle: AppFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.white),
+        titleTextStyle: AppFonts.inter(fontSize: UIConstants.xLargeFontSize, fontWeight: FontWeight.w600, color: AppColors.white),
       ),
 
       cardTheme: CardThemeData(

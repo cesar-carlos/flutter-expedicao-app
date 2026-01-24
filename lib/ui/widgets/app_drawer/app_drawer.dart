@@ -15,6 +15,7 @@ import 'package:data7_expedicao/core/constants/app_strings.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -67,7 +68,7 @@ class AppDrawer extends StatelessWidget {
                           backgroundColor: AppColors.transparent,
                           textColor: theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.bold,
-                          fontSize: 25,
+                          fontSize: UIConstants.hugeFontSize,
                           radius: 30,
                         ),
                       ),
@@ -77,7 +78,7 @@ class AppDrawer extends StatelessWidget {
                         authViewModel.username.isNotEmpty
                             ? StringUtils.capitalizeWords(authViewModel.username)
                             : 'Usuário',
-                        style: AppFonts.inter(color: theme.colorScheme.onPrimary, fontSize: 16, fontWeight: FontWeight.w600),
+                        style: AppFonts.inter(color: theme.colorScheme.onPrimary, fontSize: UIConstants.mediumFontSize, fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -254,7 +255,7 @@ class AppDrawer extends StatelessWidget {
                   children: [
                     Text(
                       'Versão $version+$buildNumber',
-                      style: AppFonts.inter(fontSize: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                      style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
                     ),
                     if (appUpdateViewModel.isChecking) ...[
                       const SizedBox(width: 8),

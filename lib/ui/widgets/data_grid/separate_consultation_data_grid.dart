@@ -6,6 +6,7 @@ import 'package:data7_expedicao/domain/models/situation/expedition_situation_mod
 import 'package:data7_expedicao/core/utils/fields_helper.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class SeparateConsultationDataGrid extends StatelessWidget {
   final List<SeparateConsultationModel> consultations;
@@ -210,7 +211,10 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
           cells.add(
             Container(
               padding: const EdgeInsets.all(8.0),
-              child: Text('ERRO: $e', style: AppFonts.inter(fontSize: 10, color: AppColors.error)),
+              child: Text(
+                'ERRO: $e',
+                style: AppFonts.inter(fontSize: UIConstants.extraSmallFontSize, color: AppColors.error),
+              ),
             ),
           );
         }
@@ -223,7 +227,10 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
           8,
           (index) => Container(
             padding: const EdgeInsets.all(8.0),
-            child: Text('ERRO GERAL: $e', style: AppFonts.inter(fontSize: 10, color: AppColors.error)),
+            child: Text(
+              'ERRO GERAL: $e',
+              style: AppFonts.inter(fontSize: UIConstants.extraSmallFontSize, color: AppColors.error),
+            ),
           ),
         ),
       );
@@ -294,7 +301,11 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
         decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(12)),
         child: Text(
           description,
-          style: AppFonts.inter(color: textColor, fontSize: 10, fontWeight: FontWeight.bold),
+          style: AppFonts.inter(
+            color: textColor,
+            fontSize: UIConstants.extraSmallFontSize,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       );
     } catch (e) {
@@ -303,7 +314,11 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
         decoration: BoxDecoration(color: AppColors.grey, borderRadius: BorderRadius.circular(12)),
         child: Text(
           'Erro',
-          style: AppFonts.inter(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
+          style: AppFonts.inter(
+            color: AppColors.white,
+            fontSize: UIConstants.extraSmallFontSize,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       );
     }
@@ -317,7 +332,11 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
           decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(12)),
           child: Text(
             'N/A',
-            style: AppFonts.inter(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+            style: AppFonts.inter(
+              color: Colors.white,
+              fontSize: UIConstants.extraSmallFontSize,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         );
       }
@@ -329,7 +348,11 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
         decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(12)),
         child: Text(
           'ERRO',
-          style: AppFonts.inter(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
+          style: AppFonts.inter(
+            color: AppColors.white,
+            fontSize: UIConstants.extraSmallFontSize,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       );
     }

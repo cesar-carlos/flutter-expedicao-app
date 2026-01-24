@@ -5,6 +5,7 @@ import 'package:data7_expedicao/domain/models/separate_item_consultation_model.d
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/theme/app_text_styles.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class PickingItemCard extends StatelessWidget {
   final SeparateItemConsultationModel item;
@@ -301,7 +302,7 @@ class PickingItemCard extends StatelessWidget {
                       border: Border.all(color: AppColors.grey),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Text('$newQuantity', style: AppFonts.inter(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: Text('$newQuantity', style: AppFonts.inter(fontSize: UIConstants.largeFontSize, fontWeight: FontWeight.bold)),
                   ),
                   IconButton(
                     onPressed: newQuantity < totalQuantity ? () => setState(() => newQuantity++) : null,
