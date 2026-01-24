@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
 
 class AppUpdateProgressDialog extends StatelessWidget {
@@ -13,7 +14,7 @@ class AppUpdateProgressDialog extends StatelessWidget {
         return PopScope(
           canPop: !viewModel.isDownloading,
           child: AlertDialog(
-            title: const Text('Baixando Atualização'),
+            title: Text(context.l10n.appUpdateDownloadingTitle),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -27,7 +28,7 @@ class AppUpdateProgressDialog extends StatelessWidget {
                 ] else if (viewModel.isInstalling) ...[
                   const CircularProgressIndicator(),
                   const SizedBox(height: 16),
-                  const Text('Instalando atualização...'),
+                  Text(context.l10n.appUpdateInstalling),
                 ],
               ],
             ),
@@ -38,7 +39,7 @@ class AppUpdateProgressDialog extends StatelessWidget {
                     viewModel.cancelDownload();
                     Navigator.of(context).pop();
                   },
-                  child: const Text('Cancelar'),
+                  child: Text(context.l10n.appUpdateCancelButton),
                 ),
             ],
           ),

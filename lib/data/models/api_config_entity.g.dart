@@ -21,7 +21,7 @@ class ApiConfigEntityAdapter extends TypeAdapter<ApiConfigEntity> {
       apiPort: fields[1] as int,
       useHttps: fields[2] as bool,
       lastUpdated: fields[3] as DateTime?,
-      scannerModeIndex: fields[4] as int? ?? 0,
+      scannerModeIndex: fields[4] as int,
       broadcastAction: fields[5] as String?,
       broadcastExtraKey: fields[6] as String?,
     );

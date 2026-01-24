@@ -313,5 +313,22 @@
   "typeBarcodeManually": "Digite o código de barras manualmente ou toque no ícone para usar o scanner",
   "positionProductScanner": "Posicione o produto no scanner ou toque no ícone para usar o teclado",
   "scannerDisabled": "Scanner desabilitado - carrinho não está em situação de separação",
-  "cancelCart": "Cancelar Carrinho"
+  "cancelCart": "Cancelar Carrinho",
+
+  "@@appUpdate": {},
+  "appUpdateTitle": "Atualização Disponível",
+  "appUpdateMessage": "Uma nova versão do app está disponível:",
+  "appUpdateVersionLabel": "Versão:",
+  "appUpdateLaterButton": "Depois",
+  "appUpdateNowButton": "Atualizar Agora",
+  "appUpdateDownloadingTitle": "Baixando Atualização",
+  "appUpdateInstalling": "Instalando atualização...",
+  "appUpdateCancelButton": "Cancelar",
+  "appUpdateChecking": "Verificando...",
+  "appUpdateNoUpdateAvailable": "Você está usando a versão mais recente",
+  "appUpdateCheckError": "Erro ao verificar atualização",
+  "appUpdateNotConfigured": "GITHUB_OWNER ou GITHUB_REPO não configurados",
+  "appUpdateNetworkError": "Sem conexão com a internet",
+  "appUpdateDownloadError": "Erro ao baixar atualização",
+  "appUpdateInstallError": "Erro ao instalar atualização"
 }

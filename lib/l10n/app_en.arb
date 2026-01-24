@@ -313,5 +313,22 @@
   "typeBarcodeManually": "Type the barcode manually or tap the icon to use the scanner",
   "positionProductScanner": "Position the product on the scanner or tap the icon to use the keyboard",
   "scannerDisabled": "Scanner disabled - cart is not in separation status",
-  "cancelCart": "Cancel Cart"
+  "cancelCart": "Cancel Cart",
+
+  "@@appUpdate": {},
+  "appUpdateTitle": "Update Available",
+  "appUpdateMessage": "A new version of the app is available:",
+  "appUpdateVersionLabel": "Version:",
+  "appUpdateLaterButton": "Later",
+  "appUpdateNowButton": "Update Now",
+  "appUpdateDownloadingTitle": "Downloading Update",
+  "appUpdateInstalling": "Installing update...",
+  "appUpdateCancelButton": "Cancel",
+  "appUpdateChecking": "Checking...",
+  "appUpdateNoUpdateAvailable": "You are using the latest version",
+  "appUpdateCheckError": "Error checking for update",
+  "appUpdateNotConfigured": "GITHUB_OWNER or GITHUB_REPO not configured",
+  "appUpdateNetworkError": "No internet connection",
+  "appUpdateDownloadError": "Error downloading update",
+  "appUpdateInstallError": "Error installing update"
 }

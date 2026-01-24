@@ -566,6 +566,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancelCart => 'Cancel Cart';
+
+  @override
+  String get appUpdateTitle => 'Update Available';
+
+  @override
+  String get appUpdateMessage => 'A new version of the app is available:';
+
+  @override
+  String get appUpdateVersionLabel => 'Version:';
+
+  @override
+  String get appUpdateLaterButton => 'Later';
+
+  @override
+  String get appUpdateNowButton => 'Update Now';
+
+  @override
+  String get appUpdateDownloadingTitle => 'Downloading Update';
+
+  @override
+  String get appUpdateInstalling => 'Installing update...';
+
+  @override
+  String get appUpdateCancelButton => 'Cancel';
+
+  @override
+  String get appUpdateChecking => 'Checking...';
+
+  @override
+  String get appUpdateNoUpdateAvailable => 'You are using the latest version';
+
+  @override
+  String get appUpdateCheckError => 'Error checking for update';
+
+  @override
+  String get appUpdateNotConfigured =>
+      'GITHUB_OWNER or GITHUB_REPO not configured';
+
+  @override
+  String get appUpdateNetworkError => 'No internet connection';
+
+  @override
+  String get appUpdateDownloadError => 'Error downloading update';
+
+  @override
+  String get appUpdateInstallError => 'Error installing update';
 }
 
 /// The translations for English, as used in the United States (`en_US`).

@@ -1137,6 +1137,96 @@ abstract class AppLocalizations {
   /// In pt_BR, this message translates to:
   /// **'Cancelar Carrinho'**
   String get cancelCart;
+
+  /// No description provided for @appUpdateTitle.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Atualização Disponível'**
+  String get appUpdateTitle;
+
+  /// No description provided for @appUpdateMessage.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Uma nova versão do app está disponível:'**
+  String get appUpdateMessage;
+
+  /// No description provided for @appUpdateVersionLabel.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Versão:'**
+  String get appUpdateVersionLabel;
+
+  /// No description provided for @appUpdateLaterButton.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Depois'**
+  String get appUpdateLaterButton;
+
+  /// No description provided for @appUpdateNowButton.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Atualizar Agora'**
+  String get appUpdateNowButton;
+
+  /// No description provided for @appUpdateDownloadingTitle.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Baixando Atualização'**
+  String get appUpdateDownloadingTitle;
+
+  /// No description provided for @appUpdateInstalling.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Instalando atualização...'**
+  String get appUpdateInstalling;
+
+  /// No description provided for @appUpdateCancelButton.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Cancelar'**
+  String get appUpdateCancelButton;
+
+  /// No description provided for @appUpdateChecking.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Verificando...'**
+  String get appUpdateChecking;
+
+  /// No description provided for @appUpdateNoUpdateAvailable.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Você está usando a versão mais recente'**
+  String get appUpdateNoUpdateAvailable;
+
+  /// No description provided for @appUpdateCheckError.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Erro ao verificar atualização'**
+  String get appUpdateCheckError;
+
+  /// No description provided for @appUpdateNotConfigured.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'GITHUB_OWNER ou GITHUB_REPO não configurados'**
+  String get appUpdateNotConfigured;
+
+  /// No description provided for @appUpdateNetworkError.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Sem conexão com a internet'**
+  String get appUpdateNetworkError;
+
+  /// No description provided for @appUpdateDownloadError.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Erro ao baixar atualização'**
+  String get appUpdateDownloadError;
+
+  /// No description provided for @appUpdateInstallError.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Erro ao instalar atualização'**
+  String get appUpdateInstallError;
 }
 
 class _AppLocalizationsDelegate

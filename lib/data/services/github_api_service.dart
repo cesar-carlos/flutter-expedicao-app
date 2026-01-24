@@ -12,8 +12,9 @@ class GitHubApiService {
           headers: token != null
               ? {'Authorization': 'token $token', 'Accept': 'application/vnd.github.v3+json'}
               : {'Accept': 'application/vnd.github.v3+json'},
-          connectTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 30),
+          connectTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 7),
+          sendTimeout: const Duration(seconds: 5),
         ),
       );
 

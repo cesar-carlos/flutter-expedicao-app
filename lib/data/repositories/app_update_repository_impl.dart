@@ -11,6 +11,7 @@ import 'package:result_dart/result_dart.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/results/app_result.dart';
 import 'package:data7_expedicao/data/services/github_api_service.dart';
+import 'package:data7_expedicao/domain/models/app_update_failure.dart';
 import 'package:data7_expedicao/domain/models/app_version.dart';
 import 'package:data7_expedicao/domain/models/github_release.dart';
 import 'package:data7_expedicao/domain/repositories/i_app_update_repository.dart';
@@ -21,6 +22,40 @@ class AppUpdateRepositoryImpl implements IAppUpdateRepository {
   AppUpdateRepositoryImpl({
     GitHubApiService? githubApiService,
   })  : _githubApiService = githubApiService ?? GitHubApiService(token: dotenv.env['GITHUB_TOKEN']);
+
+  /// Trata exceções do Dio e retorna [AppFailure] apropriado.
+  AppFailure _handleDioException(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+        return AppUpdateFailure.networkError('Tempo de conexão esgotado');
+      case DioExceptionType.sendTimeout:
+        return AppUpdateFailure.networkError('Tempo de envio esgotado');
+      case DioExceptionType.receiveTimeout:
+        return AppUpdateFailure.networkError('Tempo de resposta esgotado');
+      case DioExceptionType.badResponse:
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 404) {
+          return AppUpdateFailure.versionCheckFailed('Recurso não encontrado');
+        } else if (statusCode == 401 || statusCode == 403) {
+          return AppUpdateFailure.versionCheckFailed('Acesso negado. Verifique suas credenciais');
+        } else if (statusCode != null && statusCode >= 500) {
+          return AppUpdateFailure.versionCheckFailed('Erro no servidor (HTTP $statusCode)');
+        } else {
+          return AppUpdateFailure.versionCheckFailed('Erro HTTP $statusCode');
+        }
+      case DioExceptionType.cancel:
+        return AppUpdateFailure.downloadFailed('Download cancelado');
+      case DioExceptionType.connectionError:
+        return AppUpdateFailure.networkError('Sem conexão com a internet');
+      case DioExceptionType.badCertificate:
+        return AppUpdateFailure.networkError('Erro de certificado SSL');
+      case DioExceptionType.unknown:
+        if (e.error is SocketException) {
+          return AppUpdateFailure.networkError('Sem conexão com a internet');
+        }
+        return AppUpdateFailure.networkError('Erro de rede desconhecido: ${e.message}');
+    }
+  }
 
   @override
   Future<Result<AppVersion>> getCurrentVersion() async {
@@ -41,6 +76,8 @@ class AppUpdateRepositoryImpl implements IAppUpdateRepository {
       final releasesDto = await _githubApiService.getReleases(owner, repo);
       final releases = releasesDto.map((dto) => dto.toDomain()).toList();
       return success(releases);
+    } on DioException catch (e) {
+      return failure(_handleDioException(e));
     } catch (e) {
       return unknownFailure(e);
     }
@@ -51,6 +88,8 @@ class AppUpdateRepositoryImpl implements IAppUpdateRepository {
     try {
       final releaseDto = await _githubApiService.getLatestRelease(owner, repo);
       return success(releaseDto.toDomain());
+    } on DioException catch (e) {
+      return failure(_handleDioException(e));
     } catch (e) {
       return unknownFailure(e);
     }
@@ -90,6 +129,8 @@ class AppUpdateRepositoryImpl implements IAppUpdateRepository {
       } else {
         return failure(DataFailure(message: 'Falha ao baixar APK', code: 'DOWNLOAD_FAILED'));
       }
+    } on DioException catch (e) {
+      return failure(_handleDioException(e));
     } catch (e) {
       return unknownFailure(e);
     }

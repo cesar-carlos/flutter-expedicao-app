@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/github_release.dart';
+import 'package:data7_expedicao/ui/widgets/app_update_progress_dialog.dart';
 
 class AppUpdateDialog extends StatelessWidget {
   final GitHubRelease release;
@@ -15,16 +17,16 @@ class AppUpdateDialog extends StatelessWidget {
     final releaseVersion = release.getVersion();
 
     return AlertDialog(
-      title: const Text('Atualização Disponível'),
+      title: Text(context.l10n.appUpdateTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Uma nova versão do app está disponível:'),
+          Text(context.l10n.appUpdateMessage),
           const SizedBox(height: 8),
           if (releaseVersion != null)
             Text(
-              'Versão: ${releaseVersion.version}+${releaseVersion.buildNumber}',
+              '${context.l10n.appUpdateVersionLabel} ${releaseVersion.version}+${releaseVersion.buildNumber}',
               style: Theme.of(context).textTheme.titleMedium,
             ),
           const SizedBox(height: 8),
@@ -33,13 +35,23 @@ class AppUpdateDialog extends StatelessWidget {
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Depois')),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(context.l10n.appUpdateLaterButton),
+        ),
         ElevatedButton(
           onPressed: () {
+            // Mostra o diálogo de progresso imediatamente
             Navigator.of(context).pop();
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => const AppUpdateProgressDialog(),
+            );
+            // Inicia o download em background
             viewModel.downloadAndInstall();
           },
-          child: const Text('Atualizar Agora'),
+          child: Text(context.l10n.appUpdateNowButton),
         ),
       ],
     );

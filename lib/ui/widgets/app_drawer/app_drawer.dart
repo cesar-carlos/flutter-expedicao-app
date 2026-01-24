@@ -300,31 +300,14 @@ class AppDrawer extends StatelessWidget {
     final scaffoldState = Scaffold.of(context);
     final scaffoldContext = scaffoldState.context;
 
-    try {
-      final owner = dotenv.env['GITHUB_OWNER']?.trim();
-      final repo = dotenv.env['GITHUB_REPO']?.trim();
+    final owner = dotenv.env['GITHUB_OWNER']?.trim();
+    final repo = dotenv.env['GITHUB_REPO']?.trim();
 
-      if (owner == null || owner.isEmpty || repo == null || repo.isEmpty) {
-        await Future.delayed(const Duration(milliseconds: 300));
-        if (scaffoldContext.mounted) {
-          ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-            SnackBar(
-              content: const Text('GITHUB_OWNER ou GITHUB_REPO não configurados'),
-              backgroundColor: Theme.of(scaffoldContext).colorScheme.error,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-        return;
-      }
-
-      await appUpdateViewModel.checkForUpdate(owner: owner, repo: repo);
-    } catch (e) {
-      await Future.delayed(const Duration(milliseconds: 300));
+    if (owner == null || owner.isEmpty || repo == null || repo.isEmpty) {
       if (scaffoldContext.mounted) {
         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
           SnackBar(
-            content: Text('Erro ao verificar atualização: $e'),
+            content: const Text('GITHUB_OWNER ou GITHUB_REPO não configurados'),
             backgroundColor: Theme.of(scaffoldContext).colorScheme.error,
             duration: const Duration(seconds: 3),
           ),
@@ -333,7 +316,15 @@ class AppDrawer extends StatelessWidget {
       return;
     }
 
+    appUpdateViewModel.checkForUpdate(owner: owner, repo: repo, forceCheck: true);
+
     await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!scaffoldContext.mounted) return;
+
+    while (appUpdateViewModel.isChecking && scaffoldContext.mounted) {
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
 
     if (!scaffoldContext.mounted) return;
 

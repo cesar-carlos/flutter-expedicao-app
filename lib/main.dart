@@ -53,15 +53,29 @@ void main() async {
   final themeViewModel = ThemeViewModel(userPreferencesService);
   await themeViewModel.initialize();
 
-  runApp(MyApp(configViewModel: configViewModel, themeViewModel: themeViewModel, socketViewModel: socketViewModel));
+  final appUpdateViewModel = await locator.getAsync<AppUpdateViewModel>();
+
+  runApp(MyApp(
+    configViewModel: configViewModel,
+    themeViewModel: themeViewModel,
+    socketViewModel: socketViewModel,
+    appUpdateViewModel: appUpdateViewModel,
+  ));
 }
 
 class MyApp extends StatefulWidget {
   final ConfigViewModel configViewModel;
   final ThemeViewModel themeViewModel;
   final SocketViewModel socketViewModel;
+  final AppUpdateViewModel appUpdateViewModel;
 
-  const MyApp({super.key, required this.configViewModel, required this.themeViewModel, required this.socketViewModel});
+  const MyApp({
+    super.key,
+    required this.configViewModel,
+    required this.themeViewModel,
+    required this.socketViewModel,
+    required this.appUpdateViewModel,
+  });
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -74,8 +88,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final appUpdateViewModel = locator<AppUpdateViewModel>();
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ScannerViewModel()),
@@ -84,7 +96,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider.value(value: widget.configViewModel),
         ChangeNotifierProvider.value(value: widget.themeViewModel),
         ChangeNotifierProvider.value(value: widget.socketViewModel),
-        ChangeNotifierProvider.value(value: appUpdateViewModel),
+        ChangeNotifierProvider.value(value: widget.appUpdateViewModel),
       ],
       child: Consumer3<AuthViewModel, ThemeViewModel, AppUpdateViewModel>(
         builder: (context, authViewModel, themeViewModel, appUpdateViewModel, child) {
@@ -94,10 +106,10 @@ class _MyAppState extends State<MyApp> {
             _hasScheduledUpdateCheck = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (kReleaseMode) {
-                Future.delayed(const Duration(seconds: 2), () async {
+                Future.delayed(const Duration(seconds: 2), () {
                   final owner = dotenv.env['GITHUB_OWNER']?.trim();
                   final repo = dotenv.env['GITHUB_REPO']?.trim();
-                  await appUpdateViewModel.checkForUpdate(owner: owner, repo: repo);
+                  appUpdateViewModel.checkForUpdate(owner: owner, repo: repo, forceCheck: false);
                 });
               }
             });

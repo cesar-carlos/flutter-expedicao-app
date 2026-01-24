@@ -13,8 +13,13 @@ class UserPreferencesAdapter extends TypeAdapter<UserPreferences> {
   @override
   UserPreferences read(BinaryReader reader) {
     final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read()};
-    return UserPreferences(themeModeIndex: fields[0] as int, lastUpdated: fields[1] as DateTime?);
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return UserPreferences(
+      themeModeIndex: fields[0] as int,
+      lastUpdated: fields[1] as DateTime?,
+    );
   }
 
   @override
@@ -33,5 +38,7 @@ class UserPreferencesAdapter extends TypeAdapter<UserPreferences> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is UserPreferencesAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+      other is UserPreferencesAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }

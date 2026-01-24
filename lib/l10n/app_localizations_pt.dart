@@ -566,6 +566,53 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get cancelCart => 'Cancelar Carrinho';
+
+  @override
+  String get appUpdateTitle => 'Atualização Disponível';
+
+  @override
+  String get appUpdateMessage => 'Uma nova versão do app está disponível:';
+
+  @override
+  String get appUpdateVersionLabel => 'Versão:';
+
+  @override
+  String get appUpdateLaterButton => 'Depois';
+
+  @override
+  String get appUpdateNowButton => 'Atualizar Agora';
+
+  @override
+  String get appUpdateDownloadingTitle => 'Baixando Atualização';
+
+  @override
+  String get appUpdateInstalling => 'Instalando atualização...';
+
+  @override
+  String get appUpdateCancelButton => 'Cancelar';
+
+  @override
+  String get appUpdateChecking => 'Verificando...';
+
+  @override
+  String get appUpdateNoUpdateAvailable =>
+      'Você está usando a versão mais recente';
+
+  @override
+  String get appUpdateCheckError => 'Erro ao verificar atualização';
+
+  @override
+  String get appUpdateNotConfigured =>
+      'GITHUB_OWNER ou GITHUB_REPO não configurados';
+
+  @override
+  String get appUpdateNetworkError => 'Sem conexão com a internet';
+
+  @override
+  String get appUpdateDownloadError => 'Erro ao baixar atualização';
+
+  @override
+  String get appUpdateInstallError => 'Erro ao instalar atualização';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -1130,4 +1177,51 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get cancelCart => 'Cancelar Carrinho';
+
+  @override
+  String get appUpdateTitle => 'Atualização Disponível';
+
+  @override
+  String get appUpdateMessage => 'Uma nova versão do app está disponível:';
+
+  @override
+  String get appUpdateVersionLabel => 'Versão:';
+
+  @override
+  String get appUpdateLaterButton => 'Depois';
+
+  @override
+  String get appUpdateNowButton => 'Atualizar Agora';
+
+  @override
+  String get appUpdateDownloadingTitle => 'Baixando Atualização';
+
+  @override
+  String get appUpdateInstalling => 'Instalando atualização...';
+
+  @override
+  String get appUpdateCancelButton => 'Cancelar';
+
+  @override
+  String get appUpdateChecking => 'Verificando...';
+
+  @override
+  String get appUpdateNoUpdateAvailable =>
+      'Você está usando a versão mais recente';
+
+  @override
+  String get appUpdateCheckError => 'Erro ao verificar atualização';
+
+  @override
+  String get appUpdateNotConfigured =>
+      'GITHUB_OWNER ou GITHUB_REPO não configurados';
+
+  @override
+  String get appUpdateNetworkError => 'Sem conexão com a internet';
+
+  @override
+  String get appUpdateDownloadError => 'Erro ao baixar atualização';
+
+  @override
+  String get appUpdateInstallError => 'Erro ao instalar atualização';
 }

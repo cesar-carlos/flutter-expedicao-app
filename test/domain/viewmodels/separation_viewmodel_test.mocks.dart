@@ -512,6 +512,26 @@ class MockAudioService extends _i1.Mock implements _i13.AudioService {
       ) as _i6.Future<void>);
 
   @override
+  _i6.Future<void> playShelfScanSuccess() => (super.noSuchMethod(
+        Invocation.method(
+          #playShelfScanSuccess,
+          [],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+
+  @override
+  _i6.Future<void> playCartAddSuccess() => (super.noSuchMethod(
+        Invocation.method(
+          #playCartAddSuccess,
+          [],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+
+  @override
   _i6.Future<void> playError() => (super.noSuchMethod(
         Invocation.method(
           #playError,

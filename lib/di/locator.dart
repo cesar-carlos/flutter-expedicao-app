@@ -18,7 +18,9 @@ import 'package:data7_expedicao/domain/viewmodels/separation_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
 import 'package:data7_expedicao/data/datasources/config_service.dart';
 import 'package:data7_expedicao/data/datasources/user_preferences_service.dart';
+import 'package:data7_expedicao/data/datasources/update_cache_service.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:data7_expedicao/data/services/filters_storage_service.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
@@ -118,6 +120,8 @@ import 'package:data7_expedicao/core/network/socket_operation_retry.dart';
 import 'package:data7_expedicao/core/utils/i_logger.dart';
 import 'package:data7_expedicao/domain/services/picking_state_manager.dart';
 import 'package:data7_expedicao/infrastructure/services/logger_service.dart';
+import 'package:data7_expedicao/core/network/network_service.dart';
+import 'package:data7_expedicao/infrastructure/network/internet_address_network_service.dart';
 
 final GetIt locator = GetIt.instance;
 
@@ -125,11 +129,16 @@ void setupLocator() {
   locator.registerLazySingleton<ILogger>(() => LoggerService());
   locator.registerLazySingleton(() => ConfigService());
   locator.registerLazySingleton(() => UserPreferencesService());
+  locator.registerLazySingletonAsync<UpdateCacheService>(() async {
+    final prefs = await SharedPreferences.getInstance();
+    return UpdateCacheService(prefs: prefs);
+  });
   locator.registerLazySingleton(() => SocketService());
   locator.registerLazySingleton(() => AudioService());
   locator.registerLazySingleton(() => BarcodeBroadcastService());
   locator.registerLazySingleton<MetricsStorage>(() => MetricsStorage());
   locator.registerLazySingleton<MetricsCollector>(() => MetricsCollector(locator<MetricsStorage>()));
+  locator.registerLazySingleton<NetworkService>(() => const InternetAddressNetworkService());
   locator.registerLazySingleton<RetryPolicy>(
     () => const RetryPolicy(
       maxAttempts: 3,
@@ -445,11 +454,15 @@ void setupLocator() {
     () => InstallAppUpdateUseCase(locator<IAppUpdateRepository>()),
   );
 
-  locator.registerLazySingleton<AppUpdateViewModel>(
-    () => AppUpdateViewModel(
-      checkAppUpdateUseCase: locator<CheckAppUpdateUseCase>(),
-      downloadAppUpdateUseCase: locator<DownloadAppUpdateUseCase>(),
-      installAppUpdateUseCase: locator<InstallAppUpdateUseCase>(),
-    ),
+  locator.registerLazySingletonAsync<AppUpdateViewModel>(
+    () async {
+      final cacheService = await locator.getAsync<UpdateCacheService>();
+      return AppUpdateViewModel(
+        checkAppUpdateUseCase: locator<CheckAppUpdateUseCase>(),
+        downloadAppUpdateUseCase: locator<DownloadAppUpdateUseCase>(),
+        installAppUpdateUseCase: locator<InstallAppUpdateUseCase>(),
+        updateCacheService: cacheService,
+      );
+    },
   );
 }

@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 
+import 'package:data7_expedicao/data/datasources/update_cache_service.dart';
 import 'package:data7_expedicao/domain/models/app_update_failure.dart';
 import 'package:data7_expedicao/domain/models/github_release.dart';
 import 'package:data7_expedicao/domain/usecases/check_app_update/check_app_update_params.dart';
@@ -15,6 +14,7 @@ class AppUpdateViewModel extends ChangeNotifier {
   final CheckAppUpdateUseCase checkAppUpdateUseCase;
   final DownloadAppUpdateUseCase downloadAppUpdateUseCase;
   final InstallAppUpdateUseCase installAppUpdateUseCase;
+  final UpdateCacheService updateCacheService;
 
   bool _cancelDownloadFlag = false;
 
@@ -34,32 +34,27 @@ class AppUpdateViewModel extends ChangeNotifier {
   double get downloadProgress => _downloadProgress;
   bool get isProcessing => _isChecking || _isDownloading || _isInstalling;
 
-  Future<bool> _hasNetwork() async {
-    try {
-      final lookup = await InternetAddress.lookup('github.com').timeout(const Duration(seconds: 3));
-      return lookup.isNotEmpty;
-    } catch (_) {
-      return false;
-    }
-  }
-
   AppUpdateViewModel({
     required this.checkAppUpdateUseCase,
     required this.downloadAppUpdateUseCase,
     required this.installAppUpdateUseCase,
+    required this.updateCacheService,
   });
 
-  Future<void> checkForUpdate({String? owner, String? repo}) async {
+  Future<void> checkForUpdate({
+    String? owner,
+    String? repo,
+    bool forceCheck = false,
+  }) async {
     if (owner == null || owner.isEmpty || repo == null || repo.isEmpty) {
-      _error = AppUpdateFailure.versionCheckFailed('GITHUB_OWNER ou GITHUB_REPO não configurados');
-      notifyListeners();
+      if (forceCheck) {
+        _error = AppUpdateFailure.versionCheckFailed('GITHUB_OWNER ou GITHUB_REPO não configurados');
+        notifyListeners();
+      }
       return;
     }
 
-    final hasNetwork = await _hasNetwork();
-    if (!hasNetwork) {
-      _error = AppUpdateFailure.networkError('Sem conexão com a internet');
-      notifyListeners();
+    if (!forceCheck && !updateCacheService.shouldCheckForUpdates()) {
       return;
     }
 
@@ -68,24 +63,43 @@ class AppUpdateViewModel extends ChangeNotifier {
     _updateAvailable = null;
     notifyListeners();
 
-    final result = await checkAppUpdateUseCase(CheckAppUpdateParams(owner: owner, repo: repo));
+    try {
+      final result = await checkAppUpdateUseCase(CheckAppUpdateParams(owner: owner, repo: repo));
 
-    _isChecking = false;
+      _isChecking = false;
 
-    result.fold(
-      (success) {
-        _updateAvailable = success;
-        notifyListeners();
-      },
-      (failure) {
-        if (failure is AppUpdateFailure && failure.type == AppUpdateFailureType.noUpdateAvailable) {
-          _updateAvailable = null;
-        } else {
-          _error = failure is AppUpdateFailure ? failure : AppUpdateFailure.versionCheckFailed(failure.toString());
-        }
-        notifyListeners();
-      },
-    );
+      result.fold(
+        (success) {
+          _updateAvailable = success;
+          updateCacheService.markAsChecked();
+          notifyListeners();
+        },
+        (failure) {
+          if (failure is AppUpdateFailure && failure.type == AppUpdateFailureType.noUpdateAvailable) {
+            _updateAvailable = null;
+            updateCacheService.markAsChecked();
+          } else if (failure is AppUpdateFailure &&
+              (failure.type == AppUpdateFailureType.networkError ||
+                  failure.message.contains('timeout') ||
+                  failure.message.contains('conexão'))) {
+            if (!forceCheck) {
+              _error = null;
+            } else {
+              _error = failure;
+            }
+          } else {
+            _error = failure is AppUpdateFailure ? failure : AppUpdateFailure.versionCheckFailed(failure.toString());
+          }
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      _isChecking = false;
+      if (forceCheck) {
+        _error = AppUpdateFailure.versionCheckFailed('Erro ao verificar atualização: ${e.toString()}');
+      }
+      notifyListeners();
+    }
   }
 
   Future<void> downloadAndInstall() async {
