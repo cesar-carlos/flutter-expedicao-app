@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/theme/app_text_styles.dart';
@@ -133,10 +134,7 @@ class ErrorDialog extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      details!,
-                      style: AppTextStyles.code(context, color: AppColors.grey600),
-                    ),
+                    Text(details!, style: AppTextStyles.code(context, color: AppColors.grey600)),
                   ],
                 ),
               ),
