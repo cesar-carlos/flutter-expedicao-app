@@ -51,7 +51,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
 
     if (_viewModel.cartAddedSuccessfully && mounted && !_hasPopped) {
       _hasPopped = true;
-      
+
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted && _hasPopped) {
           context.pop(true);
@@ -129,7 +129,10 @@ class _AddCartScreenState extends State<AddCartScreen> {
                             const SizedBox(height: 8),
                             Text(
                               viewModel.errorMessage ?? 'Erro desconhecido',
-                              style: AppFonts.inter(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w500),
+                              style: AppFonts.inter(
+                                color: Theme.of(context).colorScheme.error,
+                                fontWeight: FontWeight.w500,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ],

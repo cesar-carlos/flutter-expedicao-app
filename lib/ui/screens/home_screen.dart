@@ -26,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return viewModel;
       },
       child: Scaffold(
+        key: const Key('home_scaffold'),
         appBar: CustomAppBar.withUserInfo(title: 'Data7 Expedição', replaceWithUserName: true, showSocketStatus: true),
         drawer: const AppDrawer(),
         body: Consumer<HomeViewModel>(

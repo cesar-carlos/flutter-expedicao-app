@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/user/user_models.dart';
 import 'package:data7_expedicao/domain/usecases/user/login_user_usecase.dart';
 import 'package:data7_expedicao/domain/repositories/user_system_repository.dart';
@@ -33,6 +34,21 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> checkAuthStatus() async {
+    if (const bool.fromEnvironment('INTEGRATION_TEST', defaultValue: false)) {
+      _status = AuthStatus.loading;
+      notifyListeners();
+      _status = AuthStatus.authenticated;
+      _username = 'E2E User';
+      _currentUser = AppUser(
+        codLoginApp: 1,
+        ativo: Situation.ativo,
+        nome: 'E2E User',
+        codUsuario: 1,
+      );
+      notifyListeners();
+      return;
+    }
+
     _status = AuthStatus.loading;
     notifyListeners();
 

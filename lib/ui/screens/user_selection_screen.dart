@@ -166,7 +166,10 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(backgroundColor: AppColors.error, content: Text(viewModel.errorMessage ?? 'Erro ao vincular usuário')),
+          SnackBar(
+            backgroundColor: AppColors.error,
+            content: Text(viewModel.errorMessage ?? 'Erro ao vincular usuário'),
+          ),
         );
       }
     } catch (e) {

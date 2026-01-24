@@ -52,7 +52,7 @@ class SeparationCard extends StatelessWidget {
                             '${separation.codSepararEstoque}',
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
+                              color: theme.brightness == Brightness.dark ? AppColors.light : colorScheme.primary,
                             ),
                           ),
                         ],
@@ -209,8 +209,10 @@ class SeparationCard extends StatelessWidget {
   Widget _buildSetoresInfoRow(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     final setoresText = '[${separation.codSetoresEstoque.join(', ')}]';
+    final setoresColor = isDark ? AppColors.light : colorScheme.primary;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,7 +233,7 @@ class SeparationCard extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 setoresText,
-                style: AppTextStyles.code(context, color: colorScheme.primary).copyWith(
+                style: AppTextStyles.code(context, color: setoresColor).copyWith(
                   fontSize: theme.textTheme.bodyMedium?.fontSize,
                   fontWeight: FontWeight.w500,
                 ),

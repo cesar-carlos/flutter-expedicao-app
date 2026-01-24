@@ -53,15 +53,20 @@ class BarcodeScannerCard extends StatelessWidget {
   }
 
   Widget _buildHeader(ThemeData theme, ColorScheme colorScheme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final headerColor = enabled 
+        ? (isDark ? AppColors.light : colorScheme.primary)
+        : AppColors.grey;
+
     return Row(
       children: [
-        Icon(Icons.qr_code_scanner, color: enabled ? colorScheme.primary : AppColors.grey, size: 20),
+        Icon(Icons.qr_code_scanner, color: headerColor, size: 20),
         const SizedBox(width: 6),
         Text(
           'Escaneie o código de barras',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: enabled ? colorScheme.primary : AppColors.grey,
+            color: headerColor,
           ),
         ),
       ],
@@ -105,7 +110,10 @@ class BarcodeScannerCard extends StatelessWidget {
             : (enabled
                   ? IconButton(
                       onPressed: onToggleKeyboard,
-                      icon: Icon(keyboardEnabled ? Icons.qr_code_scanner : Icons.keyboard, color: colorScheme.primary),
+                      icon: Icon(
+                        keyboardEnabled ? Icons.qr_code_scanner : Icons.keyboard,
+                        color: theme.brightness == Brightness.dark ? AppColors.light : colorScheme.primary,
+                      ),
                       tooltip: keyboardEnabled ? 'Usar Scanner' : 'Usar Teclado',
                     )
                   : Icon(Icons.qr_code, color: AppColors.grey)),

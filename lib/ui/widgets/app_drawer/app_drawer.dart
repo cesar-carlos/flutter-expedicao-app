@@ -243,6 +243,7 @@ class AppDrawer extends StatelessWidget {
         return Consumer<AppUpdateViewModel>(
           builder: (context, appUpdateViewModel, child) {
             return GestureDetector(
+              key: const Key('app_drawer_version'),
               onTap: appUpdateViewModel.isChecking
                   ? null
                   : () => _handleVersionTap(context, appUpdateViewModel),

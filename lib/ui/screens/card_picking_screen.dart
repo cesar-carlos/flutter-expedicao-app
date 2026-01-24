@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
@@ -29,18 +30,10 @@ class _CardPickingBodyState {
   final bool hasError;
   final String? errorMessage;
 
-  const _CardPickingBodyState({
-    required this.isLoading,
-    required this.hasError,
-    required this.errorMessage,
-  });
+  const _CardPickingBodyState({required this.isLoading, required this.hasError, required this.errorMessage});
 
   factory _CardPickingBodyState.fromViewModel(CardPickingViewModel vm) {
-    return _CardPickingBodyState(
-      isLoading: vm.isLoading,
-      hasError: vm.hasError,
-      errorMessage: vm.errorMessage,
-    );
+    return _CardPickingBodyState(isLoading: vm.isLoading, hasError: vm.hasError, errorMessage: vm.errorMessage);
   }
 }
 
@@ -49,7 +42,6 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
   void initState() {
     super.initState();
 
-    // Inicializar dados do carrinho quando a tela é carregada
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = context.read<CardPickingViewModel>();
       viewModel.initializeCart(widget.cart, userModel: widget.userModel);
@@ -58,12 +50,11 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
 
   @override
   void dispose() {
-    // Para o monitoramento de eventos de carrinho
     try {
       final viewModel = context.read<CardPickingViewModel>();
       viewModel.stopCartEventMonitoring();
     } catch (e) {
-      // Ignora erro se o contexto não estiver mais disponível
+      AppLogger.error('Error stopping cart event monitoring: $e', tag: 'CardPickingScreen');
     }
     super.dispose();
   }
@@ -85,9 +76,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
                     : () async {
                         await viewModel.refresh();
                       },
-                icon: viewModel.isLoading
-                    ? child!
-                    : const Icon(Icons.refresh),
+                icon: viewModel.isLoading ? child! : const Icon(Icons.refresh),
                 tooltip: 'Atualizar dados',
               );
             },
@@ -100,7 +89,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
               ),
             ),
           ),
-          // Menu de três pontos
+
           PopupMenuButton<String>(
             onSelected: (value) => _onMenuItemSelected(context, value),
             itemBuilder: (context) => [
@@ -162,18 +151,19 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: Selector<CardPickingViewModel, ({double progress, int completed, int total, bool isComplete})>(
-        selector: (_, vm) => (
-          progress: vm.progress,
-          completed: vm.completedItems,
-          total: vm.totalItems,
-          isComplete: vm.isPickingComplete,
-        ),
-        builder: (context, data, _) {
-          final viewModel = context.read<CardPickingViewModel>();
-          return PickingActionsBottomBar(viewModel: viewModel, cart: widget.cart);
-        },
-      ),
+      bottomNavigationBar:
+          Selector<CardPickingViewModel, ({double progress, int completed, int total, bool isComplete})>(
+            selector: (_, vm) => (
+              progress: vm.progress,
+              completed: vm.completedItems,
+              total: vm.totalItems,
+              isComplete: vm.isPickingComplete,
+            ),
+            builder: (context, data, _) {
+              final viewModel = context.read<CardPickingViewModel>();
+              return PickingActionsBottomBar(viewModel: viewModel, cart: widget.cart);
+            },
+          ),
     );
   }
 
@@ -202,7 +192,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-              state.errorMessage ?? 'Erro desconhecido',
+                state.errorMessage ?? 'Erro desconhecido',
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
@@ -216,7 +206,6 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
 
     return Column(
       children: [
-        // Card com informações do picking
         Expanded(
           child: PickingCardScan(cart: widget.cart, viewModel: viewModel),
         ),
@@ -246,14 +235,9 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
 
     await context.push(
       '/home/picking-products-list',
-      extra: {
-        'filterType': filter,
-        'viewModel': viewModel,
-        'cart': widget.cart,
-      },
+      extra: {'filterType': filter, 'viewModel': viewModel, 'cart': widget.cart},
     );
 
-    // Recarregar dados do carrinho quando retornar da tela de produtos
     if (context.mounted) {
       await viewModel.refresh();
     }
@@ -322,7 +306,6 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Progress bar
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -361,7 +344,6 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
 
             const SizedBox(height: 16),
 
-            // Estatísticas
             Row(
               children: [
                 Expanded(
@@ -422,7 +404,6 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
 
             const SizedBox(height: 16),
 
-            // Informações do carrinho
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(

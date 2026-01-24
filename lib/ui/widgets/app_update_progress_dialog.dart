@@ -35,6 +35,7 @@ class AppUpdateProgressDialog extends StatelessWidget {
             actions: [
               if (viewModel.isDownloading)
                 TextButton(
+                  key: const Key('app_update_cancel'),
                   onPressed: () {
                     viewModel.cancelDownload();
                     Navigator.of(context).pop();

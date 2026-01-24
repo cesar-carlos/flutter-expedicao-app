@@ -36,10 +36,12 @@ class AppUpdateDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
+          key: const Key('app_update_later'),
           onPressed: () => Navigator.of(context).pop(),
           child: Text(context.l10n.appUpdateLaterButton),
         ),
         ElevatedButton(
+          key: const Key('app_update_now'),
           onPressed: () {
             // Mostra o diálogo de progresso imediatamente
             Navigator.of(context).pop();

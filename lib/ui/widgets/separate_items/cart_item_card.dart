@@ -182,6 +182,18 @@ class CartItemCard extends StatelessWidget {
   }
 
   Widget _buildCodeAndSituation(BuildContext context, ThemeData theme, ColorScheme colorScheme, Color situationColor) {
+    final isDark = theme.brightness == Brightness.dark;
+    
+    final barcodeLabelColor = isDark ? AppColors.light : colorScheme.primary;
+    final barcodeValueColor = isDark ? AppColors.secondary : colorScheme.primary;
+    
+    final originLabelColor = isDark 
+        ? (situationColor == AppColors.warning ? AppColors.orange700 : AppColors.light)
+        : situationColor;
+    final originValueColor = isDark
+        ? (situationColor == AppColors.warning ? AppColors.orange700 : AppColors.secondary)
+        : situationColor;
+
     return Container(
       padding: const EdgeInsets.all(UIConstants.smallPadding),
       decoration: BoxDecoration(
@@ -198,12 +210,12 @@ class CartItemCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.qr_code_2, size: UIConstants.defaultIconSize, color: colorScheme.primary),
+                      Icon(Icons.qr_code_2, size: UIConstants.defaultIconSize, color: barcodeLabelColor),
                       const SizedBox(width: 6),
                       Text(
                         'Código de Barras',
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.primary,
+                          color: barcodeLabelColor,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -218,7 +230,7 @@ class CartItemCard extends StatelessWidget {
                     ),
                     child: Text(
                       cartRouteInternshipConsultation.codigoBarrasCarrinho,
-                      style: AppTextStyles.code(context, color: colorScheme.primary).copyWith(
+                      style: AppTextStyles.code(context, color: barcodeValueColor).copyWith(
                         fontWeight: FontWeight.w600,
                         fontSize: theme.textTheme.bodySmall?.fontSize,
                       ),
@@ -238,11 +250,11 @@ class CartItemCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.source, size: UIConstants.defaultIconSize, color: situationColor),
+                    Icon(Icons.source, size: UIConstants.defaultIconSize, color: originLabelColor),
                     const SizedBox(width: 6),
                     Text(
                       'Origem',
-                      style: theme.textTheme.labelSmall?.copyWith(color: situationColor, fontWeight: FontWeight.w600),
+                      style: theme.textTheme.labelSmall?.copyWith(color: originLabelColor, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -255,7 +267,7 @@ class CartItemCard extends StatelessWidget {
                   ),
                   child: Text(
                     '${cartRouteInternshipConsultation.origem.description} #${cartRouteInternshipConsultation.codOrigem}',
-                    style: theme.textTheme.bodySmall?.copyWith(color: situationColor, fontWeight: FontWeight.w600),
+                    style: theme.textTheme.bodySmall?.copyWith(color: originValueColor, fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -480,7 +492,7 @@ class CartItemCard extends StatelessWidget {
                   child: CustomFlatButtonVariations.outlined(
                     text: 'Separar',
                     icon: Icons.play_arrow,
-                    textColor: colorScheme.primary,
+                    textColor: theme.brightness == Brightness.dark ? AppColors.light : colorScheme.primary,
                     borderColor: colorScheme.primary.withValues(alpha: 0.3),
                     onPressed: () => _onSeparateCart(context),
                   ),

@@ -64,6 +64,10 @@ class PickingItemCard extends StatelessWidget {
   }
 
   Widget _buildLocationHeader(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final locationColor = isDark ? AppColors.light : colorScheme.secondary;
+    final productCodeColor = isDark ? AppColors.secondary : colorScheme.primary;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -73,11 +77,11 @@ class PickingItemCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.location_on, color: colorScheme.secondary, size: 20),
+          Icon(Icons.location_on, color: locationColor, size: 20),
           const SizedBox(width: 8),
           Text(
             item.enderecoDescricao ?? 'Localização não definida',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.secondary),
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: locationColor),
           ),
           const Spacer(),
           Container(
@@ -88,7 +92,7 @@ class PickingItemCard extends StatelessWidget {
             ),
             child: Text(
               item.codProduto.toString(),
-              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
+              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold, color: productCodeColor),
             ),
           ),
         ],
@@ -111,6 +115,9 @@ class PickingItemCard extends StatelessWidget {
   }
 
   Widget _buildBarcodeAndBatch(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final sectorColor = isDark ? AppColors.orange700 : AppColors.orange800;
+
     return Row(
       children: [
         Expanded(
@@ -151,7 +158,7 @@ class PickingItemCard extends StatelessWidget {
               ),
               child: Text(
                 item.nomeSetorEstoque ?? 'N/A',
-                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: AppColors.orange800),
+                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: sectorColor),
               ),
             ),
           ],

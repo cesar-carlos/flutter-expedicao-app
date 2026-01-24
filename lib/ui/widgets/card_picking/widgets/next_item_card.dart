@@ -57,13 +57,19 @@ class NextItemCard extends StatelessWidget {
   }
 
   Widget _buildHeader(ThemeData theme, ColorScheme colorScheme, int completedCount, int totalCount) {
+    final isDark = theme.brightness == Brightness.dark;
+    final headerColor = isDark ? AppColors.light : colorScheme.primary;
+    final counterColor = isDark 
+        ? (completedCount == totalCount ? AppColors.green700 : AppColors.secondary)
+        : (completedCount == totalCount ? AppColors.green700 : colorScheme.primary);
+
     return Row(
       children: [
-        Icon(Icons.my_location, color: colorScheme.primary, size: 20),
+        Icon(Icons.my_location, color: headerColor, size: 20),
         const SizedBox(width: 6),
         Text(
           'Próximo Item',
-          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
+          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: headerColor),
         ),
         const Spacer(),
         Container(
@@ -77,7 +83,7 @@ class NextItemCard extends StatelessWidget {
           child: Text(
             '$completedCount/$totalCount',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: completedCount == totalCount ? AppColors.green700 : colorScheme.primary,
+              color: counterColor,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -219,12 +225,16 @@ class NextItemCard extends StatelessWidget {
   }
 
   Widget _buildBarcodeInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme, SeparateItemConsultationModel nextItem) {
+    final isDark = theme.brightness == Brightness.dark;
+    
     // Se tem múltiplas unidades de medida, mostrar dropdown
       if (nextItem.unidadeMedidas.length > 1) {
       return _buildBarcodeDropdown(context, theme, colorScheme, nextItem, itemState);
     }
 
     // Caso contrário, mostrar como antes
+    final barcodeColor = isDark ? AppColors.light : colorScheme.onSurfaceVariant;
+    
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -234,12 +244,12 @@ class NextItemCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.qr_code, color: colorScheme.onSurfaceVariant, size: 16),
+          Icon(Icons.qr_code, color: barcodeColor, size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               nextItem.codigoBarras!,
-              style: AppTextStyles.code(context, color: colorScheme.onSurfaceVariant).copyWith(
+              style: AppTextStyles.code(context, color: barcodeColor).copyWith(
                 fontSize: theme.textTheme.bodySmall?.fontSize,
               ),
             ),
@@ -258,6 +268,8 @@ class NextItemCard extends StatelessWidget {
     SeparateItemConsultationModel nextItem,
     PickingItemState? itemState,
   ) {
+    final isDark = theme.brightness == Brightness.dark;
+    
     // Encontrar a unidade padrão primeiro
     final unidadePadrao = nextItem.unidadeMedidas.firstWhere(
       (unidade) => unidade.unidadeMedidaPadrao == Situation.ativo,
@@ -281,6 +293,14 @@ class NextItemCard extends StatelessWidget {
                 value: unidadePadrao,
                 isExpanded: true,
                 isDense: true,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isDark ? AppColors.light : null,
+                ),
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                  color: isDark ? AppColors.light : colorScheme.onSurfaceVariant,
+                ),
+                dropdownColor: isDark ? colorScheme.surfaceContainerHighest : colorScheme.surface,
                 items: nextItem.unidadeMedidas.map((unidade) {
                   return DropdownMenuItem<SeparateItemUnidadeMedidaConsultationModel>(
                     value: unidade,
@@ -307,13 +327,17 @@ class NextItemCard extends StatelessWidget {
     ColorScheme colorScheme,
     SeparateItemUnidadeMedidaConsultationModel unidade,
   ) {
+    final isDark = theme.brightness == Brightness.dark;
     final isPadrao = unidade.unidadeMedidaPadrao == Situation.ativo;
+    
+    final baseTextColor = isDark ? AppColors.light : colorScheme.onSurfaceVariant;
+    final barcodeColor = isDark ? AppColors.secondary : colorScheme.primary;
 
     return RichText(
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       text: TextSpan(
-        style: AppTextStyles.code(context, color: colorScheme.onSurfaceVariant).copyWith(
+        style: AppTextStyles.code(context, color: baseTextColor).copyWith(
           fontSize: theme.textTheme.bodySmall?.fontSize,
           fontWeight: isPadrao ? FontWeight.bold : FontWeight.normal,
           height: 1.2,
@@ -322,7 +346,7 @@ class NextItemCard extends StatelessWidget {
           TextSpan(text: '${unidade.codUnidadeMedida}/${unidade.fatorConversao.toStringAsFixed(0)} '),
           TextSpan(
             text: unidade.codigoBarras ?? '',
-            style: AppFonts.inter(fontWeight: FontWeight.bold, color: colorScheme.primary),
+            style: AppFonts.inter(fontWeight: FontWeight.bold, color: barcodeColor),
           ),
         ],
       ),

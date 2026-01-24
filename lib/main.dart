@@ -1,66 +1,37 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
 import 'package:data7_expedicao/di/locator.dart';
-import 'package:data7_expedicao/l10n/app_localizations.dart';
-import 'package:data7_expedicao/core/network/dio_config.dart';
-import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/register_viewmodel.dart';
-import 'package:data7_expedicao/data/datasources/user_preferences_service.dart';
-import 'package:data7_expedicao/domain/viewmodels/scanner_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/theme_viewmodel.dart';
-import 'package:data7_expedicao/core/network/network_initializer.dart';
-import 'package:data7_expedicao/data/datasources/config_service.dart';
+import 'package:data7_expedicao/core/bootstrap.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/theme/app_theme.dart';
 import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/register_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/scanner_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/theme_viewmodel.dart';
+import 'package:data7_expedicao/l10n/app_localizations.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_progress_dialog.dart';
-import 'package:data7_expedicao/infrastructure/services/logger_service.dart';
-import 'package:flutter/foundation.dart';
-import 'package:logging/logging.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await dotenv.load(fileName: '.env');
+  final boot = await bootstrap();
 
-  setupLocator();
-
-  LoggerService.initialize(level: kDebugMode ? Level.ALL : Level.INFO);
-
-  await locator<MetricsCollector>().init();
-
-  final configService = locator<ConfigService>();
-  await configService.initialize();
-
-  final configViewModel = locator<ConfigViewModel>();
-  await configViewModel.initialize();
-
-  DioConfig.initialize(configViewModel.currentConfig);
-
-  await NetworkInitializer.initializeSocketService();
-
-  final socketViewModel = locator<SocketViewModel>();
-  socketViewModel.initialize();
-
-  final userPreferencesService = locator<UserPreferencesService>();
-  final themeViewModel = ThemeViewModel(userPreferencesService);
-  await themeViewModel.initialize();
-
-  final appUpdateViewModel = await locator.getAsync<AppUpdateViewModel>();
-
-  runApp(MyApp(
-    configViewModel: configViewModel,
-    themeViewModel: themeViewModel,
-    socketViewModel: socketViewModel,
-    appUpdateViewModel: appUpdateViewModel,
-  ));
+  runApp(
+    MyApp(
+      configViewModel: boot.configViewModel,
+      themeViewModel: boot.themeViewModel,
+      socketViewModel: boot.socketViewModel,
+      appUpdateViewModel: boot.appUpdateViewModel,
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -162,10 +133,7 @@ class _MyAppState extends State<MyApp> {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: const [
-              Locale('pt', 'BR'),
-              Locale('en', 'US'),
-            ],
+            supportedLocales: const [Locale('pt', 'BR'), Locale('en', 'US')],
             locale: const Locale('pt', 'BR'),
           );
         },
