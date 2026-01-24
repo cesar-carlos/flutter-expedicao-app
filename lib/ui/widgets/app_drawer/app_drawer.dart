@@ -4,19 +4,19 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'package:data7_expedicao/core/utils/string_utils.dart';
-import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/theme_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
-import 'package:data7_expedicao/ui/widgets/app_drawer/drawer_menu_tile.dart';
-import 'package:data7_expedicao/core/utils/avatar_utils.dart';
-import 'package:data7_expedicao/core/routing/app_router.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
-import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
+import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
-import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/core/utils/avatar_utils.dart';
+import 'package:data7_expedicao/core/utils/string_utils.dart';
+import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
+import 'package:data7_expedicao/domain/viewmodels/theme_viewmodel.dart';
+import 'package:data7_expedicao/ui/widgets/app_drawer/drawer_menu_tile.dart';
+import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -242,10 +242,11 @@ class AppDrawer extends StatelessWidget {
 
         return Consumer<AppUpdateViewModel>(
           builder: (context, appUpdateViewModel, child) {
-            return InkWell(
+            return GestureDetector(
               onTap: appUpdateViewModel.isChecking
                   ? null
                   : () => _handleVersionTap(context, appUpdateViewModel),
+              behavior: HitTestBehavior.opaque,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -296,61 +297,67 @@ class AppDrawer extends StatelessWidget {
 
     appUpdateViewModel.clearError();
 
+    final scaffoldState = Scaffold.of(context);
+    final scaffoldContext = scaffoldState.context;
+
     try {
       final owner = dotenv.env['GITHUB_OWNER']?.trim();
       final repo = dotenv.env['GITHUB_REPO']?.trim();
-      await appUpdateViewModel.checkForUpdate(owner: owner, repo: repo);
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao verificar atualização: $e'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
 
-    if (!context.mounted) return;
-
-    await Future.delayed(const Duration(milliseconds: 200));
-
-    if (!context.mounted) return;
-
-    if (appUpdateViewModel.hasUpdate && appUpdateViewModel.updateAvailable != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
-          );
-        }
-      });
-    } else if (appUpdateViewModel.error != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+      if (owner == null || owner.isEmpty || repo == null || repo.isEmpty) {
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (scaffoldContext.mounted) {
+          ScaffoldMessenger.of(scaffoldContext).showSnackBar(
             SnackBar(
-              content: Text(appUpdateViewModel.error!.message),
-              backgroundColor: Theme.of(context).colorScheme.error,
+              content: const Text('GITHUB_OWNER ou GITHUB_REPO não configurados'),
+              backgroundColor: Theme.of(scaffoldContext).colorScheme.error,
               duration: const Duration(seconds: 3),
             ),
           );
         }
-      });
+        return;
+      }
+
+      await appUpdateViewModel.checkForUpdate(owner: owner, repo: repo);
+    } catch (e) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (scaffoldContext.mounted) {
+        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao verificar atualização: $e'),
+            backgroundColor: Theme.of(scaffoldContext).colorScheme.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!scaffoldContext.mounted) return;
+
+    if (appUpdateViewModel.hasUpdate && appUpdateViewModel.updateAvailable != null) {
+      await showDialog(
+        context: scaffoldContext,
+        barrierDismissible: false,
+        builder: (_) => AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
+      );
+    } else if (appUpdateViewModel.error != null) {
+      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+        SnackBar(
+          content: Text(appUpdateViewModel.error!.message),
+          backgroundColor: Theme.of(scaffoldContext).colorScheme.error,
+          duration: const Duration(seconds: 3),
+        ),
+      );
     } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Você está usando a versão mais recente'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
-      });
+      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+        const SnackBar(
+          content: Text('Você está usando a versão mais recente'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 

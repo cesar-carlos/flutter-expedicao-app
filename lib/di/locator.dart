@@ -106,7 +106,6 @@ import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecas
 import 'package:data7_expedicao/domain/usecases/user/register_via_qrcode_usecase.dart';
 import 'package:data7_expedicao/domain/repositories/i_app_update_repository.dart';
 import 'package:data7_expedicao/data/repositories/app_update_repository_impl.dart';
-import 'package:data7_expedicao/infrastructure/services/github_release_json_adapter.dart';
 import 'package:data7_expedicao/domain/usecases/check_app_update/check_app_update_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/download_app_update/download_app_update_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/install_app_update/install_app_update_usecase.dart';
@@ -130,9 +129,7 @@ void setupLocator() {
   locator.registerLazySingleton(() => AudioService());
   locator.registerLazySingleton(() => BarcodeBroadcastService());
   locator.registerLazySingleton<MetricsStorage>(() => MetricsStorage());
-  locator.registerLazySingleton<MetricsCollector>(
-    () => MetricsCollector(locator<MetricsStorage>()),
-  );
+  locator.registerLazySingleton<MetricsCollector>(() => MetricsCollector(locator<MetricsStorage>()));
   locator.registerLazySingleton<RetryPolicy>(
     () => const RetryPolicy(
       maxAttempts: 3,
@@ -144,9 +141,7 @@ void setupLocator() {
   locator.registerLazySingleton<SocketConnectionManager>(
     () => SocketConnectionManager(retryPolicy: locator<RetryPolicy>()),
   );
-  locator.registerLazySingleton<SocketOperationRetry>(
-    () => SocketOperationRetry(retryPolicy: locator<RetryPolicy>()),
-  );
+  locator.registerLazySingleton<SocketOperationRetry>(() => SocketOperationRetry(retryPolicy: locator<RetryPolicy>()));
   locator.registerLazySingleton<PickingStateManager>(() => PickingStateManager());
   locator.registerLazySingleton(() => BarcodeScannerService());
   locator.registerLazySingleton(() => ShelfScanningService());
@@ -438,13 +433,9 @@ void setupLocator() {
   locator.registerFactory(() => SeparationItemsViewModel());
 
   // Registro do App Update
-  locator.registerLazySingleton<IAppUpdateRepository>(
-    () => AppUpdateRepositoryImpl(),
-  );
+  locator.registerLazySingleton<IAppUpdateRepository>(() => AppUpdateRepositoryImpl());
 
-  locator.registerLazySingleton<CheckAppUpdateUseCase>(
-    () => CheckAppUpdateUseCase(locator<IAppUpdateRepository>()),
-  );
+  locator.registerLazySingleton<CheckAppUpdateUseCase>(() => CheckAppUpdateUseCase(locator<IAppUpdateRepository>()));
 
   locator.registerLazySingleton<DownloadAppUpdateUseCase>(
     () => DownloadAppUpdateUseCase(locator<IAppUpdateRepository>()),
