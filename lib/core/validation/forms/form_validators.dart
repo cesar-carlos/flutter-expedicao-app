@@ -44,7 +44,10 @@ class FormValidators {
       .transform((value) => value.trim());
 
   /// Schema para URL da API
-  static final _apiUrlSchema = z.string().min(1, message: 'Por favor, digite a URL da API').transform((value) => value.trim());
+  static final _apiUrlSchema = z
+      .string()
+      .min(1, message: 'Por favor, digite a URL da API')
+      .transform((value) => value.trim());
 
   /// Schema para porta da API
   static final _apiPortSchema = z
@@ -150,10 +153,7 @@ class FormValidators {
 
     try {
       z
-          .map({
-            'password': z.string(),
-            'confirmPassword': z.string().min(1, message: 'Por favor, confirme sua senha'),
-          })
+          .map({'password': z.string(), 'confirmPassword': z.string().min(1, message: 'Por favor, confirme sua senha')})
           .refine((data) {
             return data['confirmPassword'] == data['password'];
           }, message: 'As senhas não coincidem')
