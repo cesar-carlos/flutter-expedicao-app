@@ -29,7 +29,7 @@ class CartTitleWithConnectionStatus extends StatelessWidget {
               displayName,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
+                color: theme.colorScheme.onPrimary,
               ),
             ),
 

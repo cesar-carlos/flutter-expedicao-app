@@ -24,7 +24,7 @@ class PendingProductsTitleWithConnectionStatus extends StatelessWidget {
               'Produtos Pendentes',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
+                color: theme.colorScheme.onPrimary,
               ),
             ),
 

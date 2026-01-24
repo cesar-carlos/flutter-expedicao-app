@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/github_release.dart';
 
