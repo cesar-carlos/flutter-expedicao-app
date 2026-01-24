@@ -11,6 +11,7 @@ Este documento explica em detalhes como funciona o sistema de atualização auto
 5. [Estrutura de Código](#estrutura-de-código)
 6. [Detalhes de Implementação](#detalhes-de-implementação)
 7. [Configuração](#configuração)
+   - [Criando Releases](#criando-releases)
 
 ## Visão Geral
 
@@ -556,6 +557,41 @@ locator.registerLazySingleton<CheckAppUpdateUseCase>(
 
 // ... outros use cases
 ```
+
+### Criando Releases
+
+Para criar um novo release no GitHub:
+
+1. **Atualize a versão no `pubspec.yaml`**:
+   ```yaml
+   version: 1.0.7+2
+   ```
+
+2. **Crie as notas de release**:
+   - Sempre salve as notas de release em `docs/release/RELEASE_NOTES_v{versão}.md`
+   - Exemplo: `docs/release/RELEASE_NOTES_v1.0.7+2.md`
+   - Inclua novidades, melhorias, correções e instruções de uso
+
+3. **Crie a tag Git**:
+   ```bash
+   git tag -a v1.0.7+2 -m "Release v1.0.7+2 - Descrição do release"
+   git push origin v1.0.7+2
+   ```
+
+4. **Gere o APK**:
+   ```bash
+   flutter build apk --release
+   ```
+   O APK será gerado em `build/app/outputs/flutter-apk/app-release.apk`
+
+5. **Crie o release no GitHub**:
+   - Acesse: https://github.com/{GITHUB_OWNER}/{GITHUB_REPO}/releases/new
+   - Selecione a tag criada
+   - Cole o conteúdo do arquivo de notas de release de `docs/release/`
+   - Faça upload do APK gerado
+   - Publique o release
+
+**Importante**: Sempre mantenha as notas de release organizadas em `docs/release/` para facilitar a referência e o histórico de versões.
 
 ## Fluxo Completo de Exemplo
 
