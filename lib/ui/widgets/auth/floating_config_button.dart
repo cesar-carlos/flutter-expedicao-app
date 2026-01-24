@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 
 class FloatingConfigButton extends StatelessWidget {
@@ -27,7 +27,7 @@ class FloatingConfigButton extends StatelessWidget {
                 context.go(AppRouter.config);
               },
           icon: const Icon(Icons.settings),
-          tooltip: tooltip ?? AppStrings.settingsTooltip,
+          tooltip: tooltip ?? context.l10n.settingsTooltip,
           style: IconButton.styleFrom(
             backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.95),
             foregroundColor: theme.colorScheme.onSurface,

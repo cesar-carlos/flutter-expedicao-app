@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:data7_expedicao/core/constants/app_strings.dart';
-import 'package:data7_expedicao/core/validation/forms/form_validators.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
+import 'package:data7_expedicao/core/validation/forms/form_validators_localized.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
@@ -35,12 +35,12 @@ class _LoginFormState extends State<LoginForm> {
       final configViewModel = context.read<ConfigViewModel>();
 
       if (!configViewModel.hasConfig) {
-        _showServerConfigDialog(AppStrings.serverNotConfigured);
+        _showServerConfigDialog(context.l10n.serverNotConfigured);
         return;
       }
 
       if (!configViewModel.connectionTested) {
-        _showServerConfigDialog(AppStrings.serverNotTested);
+        _showServerConfigDialog(context.l10n.serverNotTested);
         return;
       }
 
@@ -55,12 +55,12 @@ class _LoginFormState extends State<LoginForm> {
       context: context,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.warning, color: AppColors.warning, size: 32),
-        title: const Text('Configuração Necessária'),
+        title: Text(context.l10n.configurationNeeded),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.cancel)),
           FilledButton(
-            child: const Text('Configurar'),
+            child: Text(context.l10n.configure),
             onPressed: () {
               Navigator.of(context).pop();
               context.go('/config');
@@ -73,6 +73,8 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
+    final validators = FormValidatorsLocalized(context.l10n);
+    
     return Consumer<AuthViewModel>(
       builder: (context, authViewModel, child) {
         return Form(
@@ -83,10 +85,10 @@ class _LoginFormState extends State<LoginForm> {
               CustomTextFormField(
                 controller: _usernameController,
                 enabled: !authViewModel.isLoginLoading,
-                labelText: AppStrings.username,
-                hintText: AppStrings.usernameHint,
+                labelText: context.l10n.username,
+                hintText: context.l10n.usernameHint,
                 prefixIcon: Icons.person_outline,
-                validator: FormValidators.username,
+                validator: validators.username,
                 textInputAction: TextInputAction.next,
               ),
 
@@ -96,11 +98,11 @@ class _LoginFormState extends State<LoginForm> {
                 controller: _passwordController,
                 enabled: !authViewModel.isLoginLoading,
                 obscureText: true,
-                labelText: AppStrings.password,
-                hintText: AppStrings.passwordHint,
+                labelText: context.l10n.password,
+                hintText: context.l10n.passwordHint,
                 prefixIcon: Icons.lock_outline,
                 showVisibilityToggle: true,
-                validator: FormValidators.password,
+                validator: validators.password,
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: _handleLogin,
               ),
@@ -108,7 +110,7 @@ class _LoginFormState extends State<LoginForm> {
               const SizedBox(height: 24),
 
               LoadingButton(
-                text: AppStrings.loginButton,
+                text: context.l10n.loginButton,
                 onPressed: _handleLogin,
                 isLoading: authViewModel.isLoginLoading,
               ),
@@ -117,7 +119,7 @@ class _LoginFormState extends State<LoginForm> {
 
               // Botão Login System
               CustomFlatButton(
-                text: 'Login System',
+                text: context.l10n.loginSystem,
                 onPressed: authViewModel.isLoginLoading ? null : () => context.go('/qrcode-login'),
                 icon: Icons.qr_code_scanner,
                 textColor: Theme.of(context).colorScheme.secondary,

@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-import 'package:data7_expedicao/core/constants/app_strings.dart';
 import 'package:data7_expedicao/core/network/network_initializer.dart';
 import 'package:data7_expedicao/data/datasources/config_service.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
@@ -43,7 +42,7 @@ class ConfigViewModel extends ChangeNotifier {
       _currentConfig = _configService.getApiConfig();
       notifyListeners();
     } catch (e) {
-      _errorMessage = '${AppStrings.loadConfigError}: $e';
+      _errorMessage = 'Erro ao carregar configuração: $e';
       notifyListeners();
     }
   }
@@ -54,7 +53,7 @@ class ConfigViewModel extends ChangeNotifier {
       _errorMessage = '';
       _currentConfig = _configService.getApiConfig();
     } catch (e) {
-      _errorMessage = '${AppStrings.loadConfigError}: $e';
+      _errorMessage = 'Erro ao carregar configuração: $e';
     }
   }
 
@@ -71,7 +70,7 @@ class ConfigViewModel extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      _errorMessage = '${AppStrings.loadConfigError}: $e';
+      _errorMessage = 'Erro ao carregar configuração: $e';
       notifyListeners();
     }
   }
@@ -86,11 +85,11 @@ class ConfigViewModel extends ChangeNotifier {
       // Valida os dados
       final port = int.tryParse(apiPort);
       if (port == null || port < 1 || port > 65535) {
-        throw ArgumentError(AppStrings.portRangeError);
+        throw ArgumentError('Porta deve ser um número entre 1 e 65535');
       }
 
       if (apiUrl.trim().isEmpty) {
-        throw ArgumentError(AppStrings.apiUrlEmptyError);
+        throw ArgumentError('URL da API não pode estar vazia');
       }
 
       // Cria nova configuração
@@ -143,7 +142,7 @@ class ConfigViewModel extends ChangeNotifier {
       await _configService.clearConfig();
       _currentConfig = ApiConfig.defaultConfig;
     } catch (e) {
-      _errorMessage = '${AppStrings.resetConfigError}: $e';
+      _errorMessage = 'Erro ao resetar configuração: $e';
     } finally {
       _setLoading(false);
     }
@@ -184,18 +183,18 @@ class ConfigViewModel extends ChangeNotifier {
       final testHttps = useHttps ?? _currentConfig.useHttps;
 
       if (testUrl.trim().isEmpty) {
-        _errorMessage = AppStrings.apiUrlEmptyError;
+        _errorMessage = 'URL da API não pode estar vazia';
         return false;
       }
 
       if (testPort < 1 || testPort > 65535) {
-        _errorMessage = AppStrings.portRangeError;
+        _errorMessage = 'Porta deve ser um número entre 1 e 65535';
         return false;
       }
 
       // Monta URL de teste
-      final protocol = testHttps ? AppStrings.httpsProtocol : AppStrings.httpProtocol;
-      final fullUrl = '$protocol://$testUrl:$testPort${AppStrings.apiEndpoint}';
+      final protocol = testHttps ? 'https' : 'http';
+      final fullUrl = '$protocol://$testUrl:$testPort/expedicao';
       AppLogger.debug('Testing connection to $fullUrl (https=$testHttps)', tag: 'Config');
 
       // Cria instância do Dio
@@ -213,18 +212,18 @@ class ConfigViewModel extends ChangeNotifier {
       if (response.statusCode == 200) {
         final data = response.data;
 
-        if (data is Map<String, dynamic> && data['message'] == AppStrings.expectedApiMessage) {
+        if (data is Map<String, dynamic> && data['message'] == 'Expedição API') {
           // Marca a conexão como testada com sucesso
           _connectionTested = true;
           return true;
         } else {
           _connectionTested = false;
-          _errorMessage = AppStrings.invalidServerResponse;
+          _errorMessage = 'Resposta inválida do servidor';
           return false;
         }
       } else {
         _connectionTested = false;
-        _errorMessage = '${AppStrings.connectionFailedStatus} ${response.statusCode}';
+        _errorMessage = 'Falha na conexão: Status ${response.statusCode}';
         return false;
       }
     } on DioException catch (e) {
@@ -232,25 +231,25 @@ class ConfigViewModel extends ChangeNotifier {
       _connectionTested = false;
       switch (e.type) {
         case DioExceptionType.connectionTimeout:
-          _errorMessage = AppStrings.connectionTimeout;
+          _errorMessage = 'Timeout de conexão';
           break;
         case DioExceptionType.receiveTimeout:
-          _errorMessage = AppStrings.receiveTimeout;
+          _errorMessage = 'Timeout de resposta';
           break;
         case DioExceptionType.connectionError:
-          _errorMessage = AppStrings.connectionCheckError;
+          _errorMessage = 'Erro de conexão - Verifique URL e porta';
           break;
         case DioExceptionType.badResponse:
-          _errorMessage = '${AppStrings.badServerResponse} (${e.response?.statusCode})';
+          _errorMessage = 'Resposta inválida do servidor (${e.response?.statusCode})';
           break;
         default:
-          _errorMessage = '${AppStrings.connectionFailurePrefix}: ${e.message}';
+          _errorMessage = 'Erro na conexão: ${e.message}';
       }
       AppLogger.debug('DioException type=${e.type} code=${e.response?.statusCode} message=${e.message}', tag: 'Config');
       return false;
     } catch (e) {
       _connectionTested = false;
-      _errorMessage = '${AppStrings.unexpectedError}: $e';
+      _errorMessage = 'Erro inesperado: $e';
       AppLogger.error('Unexpected error while testing connection: $e', tag: 'Config', error: e);
       return false;
     } finally {

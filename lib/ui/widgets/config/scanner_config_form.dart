@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 
-import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
@@ -50,8 +50,8 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
     if (!mounted) return;
     if (vm.errorMessage.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(AppStrings.scannerConfigSaved),
+        SnackBar(
+          content: Text(context.l10n.scannerConfigSaved),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.fixed,
         ),
@@ -83,7 +83,7 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
                       Icon(Icons.qr_code_scanner, color: colorScheme.primary, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        AppStrings.scannerConfigTitle,
+                        context.l10n.scannerConfigTitle,
                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -97,9 +97,9 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
                   _buildModeSelector(theme, colorScheme),
                   if (_mode == ScannerInputMode.broadcast) ...[
                     const SizedBox(height: 12),
-                    _buildActionField(theme),
+                    _buildActionField(context, theme),
                     const SizedBox(height: 12),
-                    _buildExtraField(theme),
+                    _buildExtraField(context, theme),
                   ],
                   const SizedBox(height: 16),
                   Align(
@@ -109,7 +109,7 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
                       icon: vm.isSaving
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                           : const Icon(Icons.save),
-                      label: const Text(AppStrings.saveConfig),
+                      label: Text(context.l10n.saveConfig),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -130,26 +130,26 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(AppStrings.scannerModeLabel, style: theme.textTheme.bodyMedium),
+          Text(context.l10n.scannerModeLabel, style: theme.textTheme.bodyMedium),
           const SizedBox(height: 8),
           RadioListTile<ScannerInputMode>(
             value: ScannerInputMode.focus,
-            title: const Text(AppStrings.scannerModeFocus),
+            title: Text(context.l10n.scannerModeFocus),
           ),
           RadioListTile<ScannerInputMode>(
             value: ScannerInputMode.broadcast,
-            title: const Text(AppStrings.scannerModeBroadcast),
+            title: Text(context.l10n.scannerModeBroadcast),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActionField(ThemeData theme) {
+  Widget _buildActionField(BuildContext context, ThemeData theme) {
     return TextFormField(
       controller: _actionController,
-      decoration: const InputDecoration(
-        labelText: AppStrings.broadcastActionLabel,
+      decoration: InputDecoration(
+        labelText: context.l10n.broadcastActionLabel,
         hintText: 'Ex: com.scanner.BARCODE',
         border: OutlineInputBorder(),
       ),
@@ -162,11 +162,11 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
     );
   }
 
-  Widget _buildExtraField(ThemeData theme) {
+  Widget _buildExtraField(BuildContext context, ThemeData theme) {
     return TextFormField(
       controller: _extraController,
-      decoration: const InputDecoration(
-        labelText: AppStrings.broadcastExtraLabel,
+      decoration: InputDecoration(
+        labelText: context.l10n.broadcastExtraLabel,
         hintText: 'Ex: barcode',
         border: OutlineInputBorder(),
       ),

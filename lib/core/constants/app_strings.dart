@@ -1,5 +1,6 @@
 /// Classe que contém todas as strings/textos utilizados na aplicação.
 /// Facilita a manutenção, tradução e garante consistência textual.
+@Deprecated('Use AppLocalizations via context.l10n instead. This class will be removed in a future version.')
 class AppStrings {
   // Construtor privado para evitar instanciação
   AppStrings._();

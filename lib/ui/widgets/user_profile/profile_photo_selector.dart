@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class ProfilePhotoSelector extends StatefulWidget {
@@ -90,7 +90,7 @@ class _ProfilePhotoSelectorState extends State<ProfilePhotoSelector> {
             if (_selectedImage != null)
               ListTile(
                 leading: const Icon(Icons.delete, color: AppColors.error),
-                title: const Text(AppStrings.removePhoto),
+                title: Text(context.l10n.removePhoto),
                 textColor: AppColors.error,
                 onTap: () {
                   Navigator.of(context).pop();
@@ -133,7 +133,7 @@ class _ProfilePhotoSelectorState extends State<ProfilePhotoSelector> {
         TextButton.icon(
           onPressed: _showImageOptions,
           icon: Icon(_selectedImage != null ? Icons.edit : Icons.add_a_photo, size: 18),
-          label: Text(_selectedImage != null ? AppStrings.changePhoto : AppStrings.addPhoto),
+          label: Text(_selectedImage != null ? context.l10n.changePhoto : context.l10n.addPhoto),
         ),
 
         if (widget.isRequired) ...[

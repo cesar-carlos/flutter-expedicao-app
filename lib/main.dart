@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/l10n/app_localizations.dart';
 import 'package:data7_expedicao/core/network/dio_config.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
@@ -137,6 +139,17 @@ class _MyAppState extends State<MyApp> {
             darkTheme: AppTheme.darkTheme,
             themeMode: themeViewModel.themeMode,
             routerConfig: router,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('pt', 'BR'),
+              Locale('en', 'US'),
+            ],
+            locale: const Locale('pt', 'BR'),
           );
         },
       ),

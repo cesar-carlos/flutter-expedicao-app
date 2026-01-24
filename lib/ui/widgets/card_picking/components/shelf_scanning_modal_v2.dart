@@ -15,6 +15,7 @@ import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 
 class ShelfScanningModalV2 extends StatefulWidget {
   final String expectedAddress;
@@ -401,7 +402,7 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
                         : (_isBroadcastActive ? TextInputType.none : const TextInputType.numberWithOptions(decimal: false)),
                     showCursor: !_isManualMode && !_isBroadcastActive && _hasFocus,
                     decoration: InputDecoration(
-                      labelText: 'Código da Prateleira',
+                      labelText: context.l10n.shelfCode,
                       border: const OutlineInputBorder(),
                       prefixIcon: GestureDetector(
                         onTap: _toggleInputMode,
@@ -434,7 +435,7 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
                         }
                       });
                     },
-                    child: const Text('Voltar'),
+                    child: Text(context.l10n.back),
                   ),
               ],
             ),

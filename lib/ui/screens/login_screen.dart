@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/ui/widgets/auth/index.dart';
 
@@ -22,9 +22,9 @@ class LoginScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 40),
-                  const AppHeader(
-                    title: AppStrings.appName,
-                    subtitle: AppStrings.loginTitle,
+                  AppHeader(
+                    title: context.l10n.appName,
+                    subtitle: context.l10n.loginTitle,
                     logoSize: 230,
                     spacing: 8,
                   ),

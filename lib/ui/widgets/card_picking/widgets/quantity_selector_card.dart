@@ -1,9 +1,9 @@
 import 'dart:async' show Timer;
 import 'package:flutter/material.dart';
-import 'package:data7_expedicao/core/theme/app_colors.dart';
-import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:flutter/services.dart';
 
+import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 
@@ -237,9 +237,7 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
     final currentQuantity = _currentQuantity;
     final maxQuantity = _maxQuantity;
     final exceedsMax = currentQuantity > maxQuantity;
-    final borderColor = exceedsMax
-        ? AppColors.error
-        : (widget.enabled ? AppColors.warning : AppColors.grey);
+    final borderColor = exceedsMax ? AppColors.error : (widget.enabled ? AppColors.warning : AppColors.grey);
 
     return Expanded(
       child: TextField(

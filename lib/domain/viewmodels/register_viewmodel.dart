@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-import 'package:data7_expedicao/core/constants/app_strings.dart';
 import 'package:data7_expedicao/domain/usecases/user/register_user_usecase.dart';
 import 'package:data7_expedicao/domain/models/user/user_models.dart';
 
@@ -68,7 +67,7 @@ class RegisterViewModel extends ChangeNotifier {
       setError(e.message);
       return false;
     } catch (e) {
-      setError('${AppStrings.registerError}: $e');
+      setError('Erro ao criar conta: $e');
       return false;
     } finally {
       _isLoading = false;
@@ -80,37 +79,37 @@ class RegisterViewModel extends ChangeNotifier {
     clearError();
 
     if (name.trim().isEmpty) {
-      setError(AppStrings.nameRequired);
+      setError('Por favor, digite seu nome');
       return false;
     }
 
     if (name.trim().length > 30) {
-      setError(AppStrings.nameMaxLength);
+      setError('Nome deve ter no máximo 30 caracteres');
       return false;
     }
 
     if (password.isEmpty) {
-      setError(AppStrings.passwordRequired);
+      setError('Por favor, digite sua senha');
       return false;
     }
 
     if (password.length < 4) {
-      setError(AppStrings.passwordMinLength);
+      setError('A senha deve ter pelo menos 4 caracteres');
       return false;
     }
 
     if (password.length > 60) {
-      setError(AppStrings.passwordMaxLength);
+      setError('Senha deve ter no máximo 60 caracteres');
       return false;
     }
 
     if (confirmPassword.isEmpty) {
-      setError(AppStrings.confirmPasswordRequired);
+      setError('Por favor, confirme sua senha');
       return false;
     }
 
     if (password != confirmPassword) {
-      setError(AppStrings.passwordsDoNotMatch);
+      setError('As senhas não coincidem');
       return false;
     }
 

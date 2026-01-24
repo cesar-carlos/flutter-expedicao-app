@@ -1,11 +1,15 @@
 import 'package:zard/zard.dart';
-import 'package:data7_expedicao/core/constants/app_strings.dart';
+
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 
 /// Classe utilitária com validadores comuns para formulários usando Zard
 /// Mantém compatibilidade com TextFormField e adiciona validação robusta
+///
+/// NOTA: Esta classe usa strings hardcoded em português porque os validadores são estáticos
+/// e não têm acesso a BuildContext. Para novos códigos, use FormValidatorsLocalized
+/// que recebe AppLocalizations como parâmetro.
 class FormValidators {
   // Construtor privado para evitar instanciação
   FormValidators._();
@@ -15,22 +19,22 @@ class FormValidators {
   /// Schema para validação de username
   static final _usernameSchema = z
       .string()
-      .min(1, message: AppStrings.usernameRequired)
+      .min(1, message: 'Por favor, digite seu usuário')
       .transform((value) => value.trim());
 
   /// Schema para validação de senha
   static final _passwordSchema = z
       .string()
-      .min(1, message: AppStrings.passwordRequired)
-      .min(4, message: AppStrings.passwordMinLength)
-      .max(60, message: AppStrings.passwordMaxLength);
+      .min(1, message: 'Por favor, digite sua senha')
+      .min(4, message: 'A senha deve ter pelo menos 4 caracteres')
+      .max(60, message: 'Senha deve ter no máximo 60 caracteres');
 
   /// Schema para validação de nome
   static final _nameSchema = z
       .string()
-      .min(1, message: AppStrings.nameRequired)
+      .min(1, message: 'Por favor, digite seu nome')
       .transform((value) => value.trim())
-      .refine((value) => value.length <= 30, message: AppStrings.nameMaxLength);
+      .refine((value) => value.length <= 30, message: 'Nome deve ter no máximo 30 caracteres');
 
   /// Schema para validação de email
   static final _emailSchema = z
@@ -40,17 +44,17 @@ class FormValidators {
       .transform((value) => value.trim());
 
   /// Schema para URL da API
-  static final _apiUrlSchema = z.string().min(1, message: AppStrings.urlRequired).transform((value) => value.trim());
+  static final _apiUrlSchema = z.string().min(1, message: 'Por favor, digite a URL da API').transform((value) => value.trim());
 
   /// Schema para porta da API
   static final _apiPortSchema = z
       .string()
-      .min(1, message: AppStrings.portRequired)
+      .min(1, message: 'Por favor, digite a porta')
       .transform((value) => value.trim())
       .refine((value) {
         final port = int.tryParse(value);
         return port != null && port >= 1 && port <= 65535;
-      }, message: AppStrings.portInvalid);
+      }, message: 'Porta deve ser um número entre 1 e 65535');
 
   /// Schema para campo numérico genérico
   static Schema<String> _numericSchema({String? fieldName}) {
@@ -142,17 +146,17 @@ class FormValidators {
   /// Validador para confirmação de senha
   /// Verifica se a confirmação coincide com a senha original
   static String? confirmPassword(String? value, String? originalPassword) {
-    if (originalPassword == null) return 'Senha original é obrigatória';
+    if (originalPassword == null) return 'Por favor, digite sua senha';
 
     try {
       z
           .map({
             'password': z.string(),
-            'confirmPassword': z.string().min(1, message: AppStrings.confirmPasswordRequired),
+            'confirmPassword': z.string().min(1, message: 'Por favor, confirme sua senha'),
           })
           .refine((data) {
             return data['confirmPassword'] == data['password'];
-          }, message: AppStrings.passwordsDoNotMatch)
+          }, message: 'As senhas não coincidem')
           .parse({'password': originalPassword, 'confirmPassword': value ?? ''});
       return null;
     } catch (e) {

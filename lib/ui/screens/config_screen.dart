@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/core/routing/app_router.dart';
-import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/config/index.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
@@ -48,7 +48,7 @@ class ConfigScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.configTitle),
+        title: Text(context.l10n.configTitle),
         centerTitle: true,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go(AppRouter.home)),
         actions: [

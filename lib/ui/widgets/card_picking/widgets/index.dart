@@ -1,4 +1,3 @@
-// Widgets para Card Picking
 export 'barcode_scanner_card.dart';
 export 'connection_status_indicator.dart';
 export 'quantity_selector_card.dart';

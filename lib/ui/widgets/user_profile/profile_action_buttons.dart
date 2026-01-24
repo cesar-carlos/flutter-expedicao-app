@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
-import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
@@ -26,14 +26,14 @@ class ProfileActionButtons extends StatelessWidget {
 
     return Column(
       children: [
-        _buildSaveButton(isLoading, colorScheme),
+        _buildSaveButton(context, isLoading, colorScheme),
         const SizedBox(height: 16),
-        _buildBackButton(isLoading, colorScheme),
+        _buildBackButton(context, isLoading, colorScheme),
       ],
     );
   }
 
-  Widget _buildSaveButton(bool isLoading, ColorScheme colorScheme) {
+  Widget _buildSaveButton(BuildContext context, bool isLoading, ColorScheme colorScheme) {
     return Container(
       width: double.infinity,
       height: 56,
@@ -81,7 +81,7 @@ class ProfileActionButtons extends StatelessWidget {
                   Icon(hasChanges ? Icons.save : Icons.save_outlined, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    hasChanges ? AppStrings.saveProfile : 'Nenhuma alteração',
+                    hasChanges ? context.l10n.saveProfile : 'Nenhuma alteração',
                     style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -90,7 +90,7 @@ class ProfileActionButtons extends StatelessWidget {
     );
   }
 
-  Widget _buildBackButton(bool isLoading, ColorScheme colorScheme) {
+  Widget _buildBackButton(BuildContext context, bool isLoading, ColorScheme colorScheme) {
     return SizedBox(
       width: double.infinity,
       height: 56,
@@ -107,7 +107,7 @@ class ProfileActionButtons extends StatelessWidget {
             Icon(Icons.arrow_back, size: 20, color: colorScheme.onSurface),
             const SizedBox(width: 8),
             Text(
-              'Voltar',
+              context.l10n.back,
               style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
             ),
           ],
@@ -176,7 +176,7 @@ class ProfileSaveButton extends StatelessWidget {
                   Icon(hasChanges ? Icons.save : Icons.save_outlined, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    hasChanges ? AppStrings.saveProfile : 'Nenhuma alteração',
+                    hasChanges ? context.l10n.saveProfile : 'Nenhuma alteração',
                     style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],

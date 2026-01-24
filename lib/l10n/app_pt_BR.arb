@@ -1,0 +1,316 @@
+{
+  "@@locale": "pt_BR",
+  "@@last_modified": "2026-01-24T00:00:00.000Z",
+  
+  "@@navigation": {},
+  "back": "Voltar",
+  "cancel": "Cancelar",
+  "save": "Salvar",
+  "edit": "Editar",
+  "delete": "Excluir",
+  "confirm": "Confirmar",
+  "close": "Fechar",
+  "ok": "OK",
+  
+  "@@general": {},
+  "appName": "Data7 Expedição",
+  "appDescription": "Sistema de expedição Data7",
+  
+  "@@auth": {},
+  "loginTitle": "Faça login para continuar",
+  "username": "Usuário",
+  "password": "Senha",
+  "usernameHint": "Digite seu usuário",
+  "passwordHint": "Digite sua senha",
+  "loginButton": "Entrar",
+  "logout": "Sair",
+  "registerText": "Cadastrar",
+  "registerTitle": "Criar Nova Conta",
+  "registerSubtitle": "Preencha os dados para criar sua conta",
+  "name": "Nome",
+  "nameHint": "Digite seu nome completo",
+  "confirmPassword": "Confirmar Senha",
+  "confirmPasswordHint": "Digite a senha novamente",
+  "profilePhoto": "Foto do Perfil",
+  "addPhoto": "Adicionar Foto",
+  "changePhoto": "Alterar Foto",
+  "removePhoto": "Remover Foto",
+  "registerButton": "Criar Conta",
+  "backToLogin": "Voltar ao Login",
+  "loginSystem": "Login System",
+  "configurationNeeded": "Configuração Necessária",
+  "configure": "Configurar",
+  
+  "@@validation": {},
+  "usernameRequired": "Por favor, digite seu usuário",
+  "passwordRequired": "Por favor, digite sua senha",
+  "passwordMinLength": "A senha deve ter pelo menos {minLength} caracteres",
+  "@passwordMinLength": {
+    "placeholders": {
+      "minLength": {
+        "type": "int"
+      }
+    }
+  },
+  "nameRequired": "Por favor, digite seu nome",
+  "nameMaxLength": "Nome deve ter no máximo {maxLength} caracteres",
+  "@nameMaxLength": {
+    "placeholders": {
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
+  "passwordMaxLength": "Senha deve ter no máximo {maxLength} caracteres",
+  "@passwordMaxLength": {
+    "placeholders": {
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
+  "confirmPasswordRequired": "Por favor, confirme sua senha",
+  "passwordsDoNotMatch": "As senhas não coincidem",
+  "emailRequired": "Por favor, digite um email",
+  "emailInvalid": "Por favor, digite um email válido",
+  "fieldRequired": "Por favor, digite {fieldName}",
+  "@fieldRequired": {
+    "placeholders": {
+      "fieldName": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldMustBeNumber": "{fieldName} deve ser um número válido",
+  "@fieldMustBeNumber": {
+    "placeholders": {
+      "fieldName": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldMinLength": "{fieldName} deve ter pelo menos {minLength} caracteres",
+  "@fieldMinLength": {
+    "placeholders": {
+      "fieldName": {
+        "type": "String"
+      },
+      "minLength": {
+        "type": "int"
+      }
+    }
+  },
+  "fieldMaxLength": "{fieldName} deve ter no máximo {maxLength} caracteres",
+  "@fieldMaxLength": {
+    "placeholders": {
+      "fieldName": {
+        "type": "String"
+      },
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
+  "codeMustBeNumeric": "Código deve ser numérico",
+  "invalidOrigin": "Origem inválida",
+  "invalidSituation": "Situação inválida",
+  "invalidEntityType": "Tipo de entidade inválido (deve ser C ou F)",
+  
+  "@@config": {},
+  "configTitle": "Configurações",
+  "configSubtitle": "Configure a URL e porta da API",
+  "serverConfigTitle": "Configuração do Servidor",
+  "scannerConfigTitle": "Configuração do Scanner",
+  "scannerModeLabel": "Modo de Leitura",
+  "scannerModeFocus": "Focus/Teclado (campo focado)",
+  "scannerModeBroadcast": "Broadcast (intent)",
+  "broadcastActionLabel": "Ação do Broadcast",
+  "broadcastExtraLabel": "Chave do Extra (código de barras)",
+  "scannerConfigSaved": "Preferências do scanner salvas!",
+  "scannerConfigMenu": "Configuração do Scanner",
+  "apiUrl": "URL da API",
+  "apiPort": "Porta",
+  "apiUrlHint": "Ex: 192.168.1.100",
+  "apiPortHint": "Ex: 8080",
+  "useHttps": "Usar HTTPS",
+  "httpsSubtitle": "Conexão segura (SSL/TLS)",
+  "testConnection": "Testar Conexão",
+  "previewUrl": "Preview da URL",
+  "saveConfig": "Salvar Configuração",
+  "lastUpdate": "Última atualização",
+  "defaultUrl": "localhost",
+  "defaultPort": "3001",
+  "urlRequired": "Por favor, digite a URL da API",
+  "portRequired": "Por favor, digite a porta",
+  "portInvalid": "Porta deve ser um número entre 1 e 65535",
+  
+  "@@success": {},
+  "registerSuccess": "Conta criada com sucesso!",
+  "configSaved": "Configuração salva com sucesso!",
+  "connectionSuccess": "Conexão bem-sucedida!",
+  "profileSaved": "Perfil atualizado com sucesso!",
+  "passwordChangedSuccess": "Senha alterada com sucesso!",
+  "profileAndPasswordSaved": "Perfil e senha atualizados com sucesso!",
+  
+  "@@errors": {},
+  "registerError": "Erro ao criar conta",
+  "connectionError": "Erro ao conectar com o servidor",
+  "configError": "Erro ao salvar configuração",
+  "loginError": "Erro ao fazer login",
+  "genericError": "Ocorreu um erro inesperado",
+  "networkError": "Erro de conexão de rede",
+  "timeoutError": "Tempo limite de conexão excedido",
+  "serverNotConfigured": "Servidor não configurado! Configure o servidor antes de fazer login.",
+  "serverNotTested": "Servidor não testado! Teste a conexão com o servidor antes de fazer login.",
+  "loadConfigError": "Erro ao carregar configuração",
+  "resetConfigError": "Erro ao resetar configuração",
+  "apiUrlEmptyError": "URL da API não pode estar vazia",
+  "portRangeError": "Porta deve ser um número entre 1 e 65535",
+  "invalidServerResponse": "Resposta inválida do servidor",
+  "connectionFailedStatus": "Falha na conexão: Status {statusCode}",
+  "@connectionFailedStatus": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "connectionTimeout": "Timeout de conexão",
+  "receiveTimeout": "Timeout de resposta",
+  "connectionCheckError": "Erro de conexão - Verifique URL e porta",
+  "badServerResponse": "Resposta inválida do servidor",
+  "unexpectedError": "Erro inesperado",
+  "connectionFailurePrefix": "Erro na conexão",
+  "profileError": "Erro ao atualizar perfil",
+  "currentPasswordRequired": "Senha atual é obrigatória para alterar a senha",
+  "currentPasswordIncorrect": "Senha atual incorreta",
+  "newPasswordRequired": "Nova senha é obrigatória",
+  "passwordMinLengthProfile": "A nova senha deve ter pelo menos 4 caracteres",
+  "confirmNewPasswordRequired": "Confirmação da nova senha é obrigatória",
+  "passwordsDoNotMatchProfile": "As senhas não coincidem",
+  "photoProcessingError": "Erro ao processar a imagem",
+  "passwordChangeError": "Erro ao alterar senha",
+  "validationError": "Dados inválidos: {errors}",
+  "@validationError": {
+    "placeholders": {
+      "errors": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailure": "Falha na conexão. Verifique sua internet e tente novamente.",
+  "timeoutConnection": "Timeout na conexão",
+  "noInternet": "Sem conexão com a internet",
+  "serverError": "Erro do servidor",
+  "unauthenticated": "Usuário não autenticado",
+  "unauthorized": "Acesso negado",
+  "invalidCredentials": "Credenciais inválidas",
+  "dataProcessingError": "Erro ao processar dados. Tente novamente.",
+  "entityNotFound": "{entity} não encontrado",
+  "@entityNotFound": {
+    "placeholders": {
+      "entity": {
+        "type": "String"
+      }
+    }
+  },
+  "parsingError": "Erro ao processar dados: {details}",
+  "@parsingError": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "repositoryError": "Erro no repositório: {exception}",
+  "@repositoryError": {
+    "placeholders": {
+      "exception": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidState": "Estado inválido: {details}",
+  "@invalidState": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotAllowed": "Operação não permitida: {reason}",
+  "@operationNotAllowed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "unknownError": "Erro inesperado. Tente novamente.",
+  "unknownErrorDetails": "Erro inesperado: {exception}",
+  "@unknownErrorDetails": {
+    "placeholders": {
+      "exception": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "@@protocol": {},
+  "httpsProtocol": "https",
+  "httpProtocol": "http",
+  "apiEndpoint": "/expedicao",
+  "expectedApiMessage": "Expedição API",
+  
+  "@@loading": {},
+  "loading": "Carregando...",
+  "connecting": "Conectando...",
+  "saving": "Salvando...",
+  "testing": "Testando...",
+  "loadingApp": "Carregando aplicação...",
+  "initializing": "Inicializando...",
+  
+  "@@actions": {},
+  "settings": "Configurações",
+  "refresh": "Atualizar",
+  "retry": "Tentar Novamente",
+  "search": "Pesquisar",
+  "filter": "Filtrar",
+  "clear": "Limpar",
+  
+  "@@status": {},
+  "online": "Online",
+  "offline": "Offline",
+  "connected": "Conectado",
+  "disconnected": "Desconectado",
+  
+  "@@profile": {},
+  "profileTitle": "Meu Perfil",
+  "profileSubtitle": "Gerencie suas informações pessoais",
+  "personalInfo": "Informações Pessoais",
+  "changeProfilePhoto": "Alterar Foto do Perfil",
+  "changePasswordSection": "Alterar Senha",
+  "currentPasswordLabel": "Senha Atual",
+  "currentPasswordHint": "Digite sua senha atual",
+  "newPasswordLabel": "Nova Senha",
+  "newPasswordHint": "Digite a nova senha",
+  "confirmNewPasswordLabel": "Confirmar Nova Senha",
+  "confirmNewPasswordHint": "Digite a nova senha novamente",
+  "saveProfile": "Salvar Alterações",
+  
+  "@@tooltips": {},
+  "settingsTooltip": "Abrir configurações",
+  "backTooltip": "Voltar",
+  "refreshTooltip": "Atualizar dados",
+  
+  "@@scanner": {},
+  "lastReading": "Última leitura",
+  "lastReadingColon": "Última leitura:",
+  "clearReading": "Limpar Leitura",
+  "shelfCode": "Código da Prateleira",
+  "waitProcessing": "Aguarde, processando item...",
+  "typeBarcodeManually": "Digite o código de barras manualmente ou toque no ícone para usar o scanner",
+  "positionProductScanner": "Posicione o produto no scanner ou toque no ícone para usar o teclado",
+  "scannerDisabled": "Scanner desabilitado - carrinho não está em situação de separação",
+  "cancelCart": "Cancelar Carrinho"
+}

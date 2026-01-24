@@ -11,7 +11,7 @@ import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/app_drawer/drawer_menu_tile.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
-import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
@@ -176,7 +176,7 @@ class AppDrawer extends StatelessWidget {
 
                 DrawerMenuTile(
                   icon: Icons.qr_code_2_outlined,
-                  title: AppStrings.scannerConfigMenu,
+                  title: context.l10n.scannerConfigMenu,
                   onTap: () {
                     Navigator.pop(context);
                     context.go(AppRouter.scannerConfig);

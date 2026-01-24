@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/profile_photo_selector.dart';
-import 'package:data7_expedicao/core/validation/forms/form_validators.dart';
+import 'package:data7_expedicao/core/validation/forms/form_validators_localized.dart';
 import 'package:data7_expedicao/domain/viewmodels/register_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
@@ -48,11 +48,11 @@ class _RegisterFormState extends State<RegisterForm> {
 
       if (mounted && success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(AppStrings.registerSuccess),
+          SnackBar(
+            content: Text(context.l10n.registerSuccess),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.all(16),
+            margin: const EdgeInsets.all(16),
           ),
         );
 
@@ -63,6 +63,8 @@ class _RegisterFormState extends State<RegisterForm> {
 
   @override
   Widget build(BuildContext context) {
+    final validators = FormValidatorsLocalized(context.l10n);
+    
     return Consumer<RegisterViewModel>(
       builder: (context, registerViewModel, child) {
         return Form(
@@ -86,10 +88,10 @@ class _RegisterFormState extends State<RegisterForm> {
               CustomTextFormField(
                 controller: _nameController,
                 enabled: !registerViewModel.isLoading,
-                labelText: AppStrings.name,
-                hintText: AppStrings.nameHint,
+                labelText: context.l10n.name,
+                hintText: context.l10n.nameHint,
                 prefixIcon: Icons.person_outline,
-                validator: FormValidators.name,
+                validator: validators.name,
                 textInputAction: TextInputAction.next,
               ),
 
@@ -99,11 +101,11 @@ class _RegisterFormState extends State<RegisterForm> {
                 controller: _passwordController,
                 enabled: !registerViewModel.isLoading,
                 obscureText: true,
-                labelText: AppStrings.password,
-                hintText: AppStrings.passwordHint,
+                labelText: context.l10n.password,
+                hintText: context.l10n.passwordHint,
                 prefixIcon: Icons.lock_outline,
                 showVisibilityToggle: true,
-                validator: FormValidators.password,
+                validator: validators.password,
                 textInputAction: TextInputAction.next,
               ),
 
@@ -113,11 +115,11 @@ class _RegisterFormState extends State<RegisterForm> {
                 controller: _confirmPasswordController,
                 enabled: !registerViewModel.isLoading,
                 obscureText: true,
-                labelText: AppStrings.confirmPassword,
-                hintText: AppStrings.confirmPasswordHint,
+                labelText: context.l10n.confirmPassword,
+                hintText: context.l10n.confirmPasswordHint,
                 prefixIcon: Icons.lock_outline,
                 showVisibilityToggle: true,
-                validator: (value) => FormValidators.confirmPassword(value, _passwordController.text),
+                validator: (value) => validators.confirmPassword(value, _passwordController.text),
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: _handleRegister,
               ),
@@ -125,7 +127,7 @@ class _RegisterFormState extends State<RegisterForm> {
               const SizedBox(height: 24),
 
               LoadingButton(
-                text: AppStrings.registerButton,
+                text: context.l10n.registerButton,
                 onPressed: _handleRegister,
                 isLoading: registerViewModel.isLoading,
               ),
@@ -138,7 +140,7 @@ class _RegisterFormState extends State<RegisterForm> {
               ],
 
               CustomFlatButton(
-                text: AppStrings.backToLogin,
+                text: context.l10n.backToLogin,
                 onPressed: registerViewModel.isLoading ? null : () => context.go('/login'),
                 icon: Icons.arrow_back_outlined,
                 textColor: Theme.of(context).colorScheme.secondary,

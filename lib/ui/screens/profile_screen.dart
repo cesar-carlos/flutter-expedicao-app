@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/index.dart';
 import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
-import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -65,7 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
           child: Scaffold(
             appBar: CustomAppBar.withoutSocket(
-              title: AppStrings.profileTitle,
+              title: context.l10n.profileTitle,
               elevation: 0,
               backgroundColor: colorScheme.surface,
               foregroundColor: colorScheme.onSurface,
@@ -138,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (_isNavigatingAway) return;
           _isNavigatingAway = true;
 
-          final successMsg = viewModel.successMessage ?? AppStrings.profileSaved;
+          final successMsg = viewModel.successMessage ?? context.l10n.profileSaved;
 
           viewModel.resetState();
           _clearPasswordFields();
@@ -163,7 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (viewModel.errorMessage != null) {
             ErrorDialog.showServerError(
               context,
-              message: AppStrings.profileError,
+              message: context.l10n.profileError,
               details: viewModel.errorMessage!,
               showRetryButton: false,
             );

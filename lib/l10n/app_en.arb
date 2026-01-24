@@ -1,0 +1,317 @@
+{
+  "@@locale": "en",
+  "@@last_modified": "2026-01-24T00:00:00.000Z",
+  
+  "@@navigation": {},
+  "back": "Back",
+  "cancel": "Cancel",
+  "save": "Save",
+  "edit": "Edit",
+  "delete": "Delete",
+  "confirm": "Confirm",
+  "close": "Close",
+  "ok": "OK",
+  
+  "@@general": {},
+  "appName": "Data7 Expedition",
+  "appDescription": "Data7 expedition system",
+  
+  "@@auth": {},
+  "loginTitle": "Please login to continue",
+  "username": "Username",
+  "password": "Password",
+  "usernameHint": "Enter your username",
+  "passwordHint": "Enter your password",
+  "loginButton": "Login",
+  "logout": "Logout",
+  "registerText": "Register",
+  "registerTitle": "Create New Account",
+  "registerSubtitle": "Fill in the data to create your account",
+  "name": "Name",
+  "nameHint": "Enter your full name",
+  "confirmPassword": "Confirm Password",
+  "confirmPasswordHint": "Enter the password again",
+  "profilePhoto": "Profile Photo",
+  "addPhoto": "Add Photo",
+  "changePhoto": "Change Photo",
+  "removePhoto": "Remove Photo",
+  "registerButton": "Create Account",
+  "backToLogin": "Back to Login",
+  "loginSystem": "System Login",
+  "configurationNeeded": "Configuration Required",
+  "configure": "Configure",
+  
+  "@@validation": {},
+  "usernameRequired": "Please enter your username",
+  "passwordRequired": "Please enter your password",
+  "passwordMinLength": "Password must be at least {minLength} characters",
+  "@passwordMinLength": {
+    "placeholders": {
+      "minLength": {
+        "type": "int"
+      }
+    }
+  },
+  "nameRequired": "Please enter your name",
+  "nameMaxLength": "Name must be at most {maxLength} characters",
+  "@nameMaxLength": {
+    "placeholders": {
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
+  "passwordMaxLength": "Password must be at most {maxLength} characters",
+  "@passwordMaxLength": {
+    "placeholders": {
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
+  "confirmPasswordRequired": "Please confirm your password",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "emailRequired": "Please enter an email",
+  "emailInvalid": "Please enter a valid email",
+  "fieldRequired": "Please enter {fieldName}",
+  "@fieldRequired": {
+    "placeholders": {
+      "fieldName": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldMustBeNumber": "{fieldName} must be a valid number",
+  "@fieldMustBeNumber": {
+    "placeholders": {
+      "fieldName": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldMinLength": "{fieldName} must be at least {minLength} characters",
+  "@fieldMinLength": {
+    "placeholders": {
+      "fieldName": {
+        "type": "String"
+      },
+      "minLength": {
+        "type": "int"
+      }
+    }
+  },
+  "fieldMaxLength": "{fieldName} must be at most {maxLength} characters",
+  "@fieldMaxLength": {
+    "placeholders": {
+      "fieldName": {
+        "type": "String"
+      },
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
+  "codeMustBeNumeric": "Code must be numeric",
+  "invalidOrigin": "Invalid origin",
+  "invalidSituation": "Invalid situation",
+  "invalidEntityType": "Invalid entity type (must be C or F)",
+  
+  "@@config": {},
+  "configTitle": "Settings",
+  "configSubtitle": "Configure API URL and port",
+  "serverConfigTitle": "Server Configuration",
+  "scannerConfigTitle": "Scanner Configuration",
+  "scannerModeLabel": "Reading Mode",
+  "scannerModeFocus": "Focus/Keyboard (focused field)",
+  "scannerModeBroadcast": "Broadcast (intent)",
+  "broadcastActionLabel": "Broadcast Action",
+  "broadcastExtraLabel": "Extra Key (barcode)",
+  "scannerConfigSaved": "Scanner preferences saved!",
+  "scannerConfigMenu": "Scanner Configuration",
+  "apiUrl": "API URL",
+  "apiPort": "Port",
+  "apiUrlHint": "Ex: 192.168.1.100",
+  "apiPortHint": "Ex: 8080",
+  "useHttps": "Use HTTPS",
+  "httpsSubtitle": "Secure connection (SSL/TLS)",
+  "testConnection": "Test Connection",
+  "previewUrl": "URL Preview",
+  "saveConfig": "Save Configuration",
+  "lastUpdate": "Last update",
+  "defaultUrl": "localhost",
+  "defaultPort": "3001",
+  "urlRequired": "Please enter the API URL",
+  "portRequired": "Please enter the port",
+  "portInvalid": "Port must be a number between 1 and 65535",
+  
+  "@@success": {},
+  "registerSuccess": "Account created successfully!",
+  "configSaved": "Configuration saved successfully!",
+  "connectionSuccess": "Connection successful!",
+  "profileSaved": "Profile updated successfully!",
+  "passwordChangedSuccess": "Password changed successfully!",
+  "profileAndPasswordSaved": "Profile and password updated successfully!",
+  
+  "@@errors": {},
+  "registerError": "Error creating account",
+  "connectionError": "Error connecting to server",
+  "configError": "Error saving configuration",
+  "loginError": "Error logging in",
+  "genericError": "An unexpected error occurred",
+  "networkError": "Network connection error",
+  "timeoutError": "Connection timeout exceeded",
+  "serverNotConfigured": "Server not configured! Configure the server before logging in.",
+  "serverNotTested": "Server not tested! Test the server connection before logging in.",
+  "loadConfigError": "Error loading configuration",
+  "resetConfigError": "Error resetting configuration",
+  "apiUrlEmptyError": "API URL cannot be empty",
+  "portRangeError": "Port must be a number between 1 and 65535",
+  "invalidServerResponse": "Invalid server response",
+  "connectionFailedStatus": "Connection failed: Status {statusCode}",
+  "@connectionFailedStatus": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "connectionTimeout": "Connection timeout",
+  "receiveTimeout": "Response timeout",
+  "connectionCheckError": "Connection error - Check URL and port",
+  "badServerResponse": "Invalid server response",
+  "unexpectedError": "Unexpected error",
+  "connectionFailurePrefix": "Connection error",
+  "profileError": "Error updating profile",
+  "currentPasswordRequired": "Current password is required to change password",
+  "currentPasswordIncorrect": "Incorrect current password",
+  "newPasswordRequired": "New password is required",
+  "passwordMinLengthProfile": "New password must be at least 4 characters",
+  "confirmNewPasswordRequired": "New password confirmation is required",
+  "passwordsDoNotMatchProfile": "Passwords do not match",
+  "photoProcessingError": "Error processing image",
+  "passwordChangeError": "Error changing password",
+  "validationError": "Invalid data: {errors}",
+  "@validationError": {
+    "placeholders": {
+      "errors": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailure": "Connection failure. Check your internet and try again.",
+  "timeoutConnection": "Connection timeout",
+  "noInternet": "No internet connection",
+  "serverError": "Server error",
+  "unauthenticated": "User not authenticated",
+  "unauthorized": "Access denied",
+  "invalidCredentials": "Invalid credentials",
+  "dataProcessingError": "Error processing data. Please try again.",
+  "entityNotFound": "{entity} not found",
+  "@entityNotFound": {
+    "placeholders": {
+      "entity": {
+        "type": "String"
+      }
+    }
+  },
+  "parsingError": "Error processing data: {details}",
+  "@parsingError": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "repositoryError": "Repository error: {exception}",
+  "@repositoryError": {
+    "placeholders": {
+      "exception": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidState": "Invalid state: {details}",
+  "@invalidState": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotAllowed": "Operation not allowed: {reason}",
+  "@operationNotAllowed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "unknownError": "Unexpected error. Please try again.",
+  "unknownErrorDetails": "Unexpected error: {exception}",
+  "@unknownErrorDetails": {
+    "placeholders": {
+      "exception": {
+        "type": "String"
+      }
+    }
+  },
+  "useCaseNotAvailable": "UseCase not available",
+  
+  "@@protocol": {},
+  "httpsProtocol": "https",
+  "httpProtocol": "http",
+  "apiEndpoint": "/expedicao",
+  "expectedApiMessage": "Expedition API",
+  
+  "@@loading": {},
+  "loading": "Loading...",
+  "connecting": "Connecting...",
+  "saving": "Saving...",
+  "testing": "Testing...",
+  "loadingApp": "Loading application...",
+  "initializing": "Initializing...",
+  
+  "@@actions": {},
+  "settings": "Settings",
+  "refresh": "Refresh",
+  "retry": "Try Again",
+  "search": "Search",
+  "filter": "Filter",
+  "clear": "Clear",
+  
+  "@@status": {},
+  "online": "Online",
+  "offline": "Offline",
+  "connected": "Connected",
+  "disconnected": "Disconnected",
+  
+  "@@profile": {},
+  "profileTitle": "My Profile",
+  "profileSubtitle": "Manage your personal information",
+  "personalInfo": "Personal Information",
+  "changeProfilePhoto": "Change Profile Photo",
+  "changePasswordSection": "Change Password",
+  "currentPasswordLabel": "Current Password",
+  "currentPasswordHint": "Enter your current password",
+  "newPasswordLabel": "New Password",
+  "newPasswordHint": "Enter the new password",
+  "confirmNewPasswordLabel": "Confirm New Password",
+  "confirmNewPasswordHint": "Enter the new password again",
+  "saveProfile": "Save Changes",
+  
+  "@@tooltips": {},
+  "settingsTooltip": "Open settings",
+  "backTooltip": "Back",
+  "refreshTooltip": "Refresh data",
+  
+  "@@scanner": {},
+  "lastReading": "Last reading",
+  "lastReadingColon": "Last reading:",
+  "clearReading": "Clear Reading",
+  "shelfCode": "Shelf Code",
+  "waitProcessing": "Please wait, processing item...",
+  "typeBarcodeManually": "Type the barcode manually or tap the icon to use the scanner",
+  "positionProductScanner": "Position the product on the scanner or tap the icon to use the keyboard",
+  "scannerDisabled": "Scanner disabled - cart is not in separation status",
+  "cancelCart": "Cancel Cart"
+}

@@ -15,6 +15,7 @@ import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 
 class ShelfScanningScreen extends StatefulWidget {
   final String expectedAddress;
@@ -385,7 +386,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
                     : (_isBroadcastActive ? TextInputType.none : const TextInputType.numberWithOptions(decimal: false)),
                 showCursor: !_isManualMode && !_isBroadcastActive && _hasFocus,
                 decoration: InputDecoration(
-                  labelText: 'Código da Prateleira',
+                  labelText: context.l10n.shelfCode,
                   border: const OutlineInputBorder(),
                   prefixIcon: GestureDetector(
                     onTap: _toggleInputMode,

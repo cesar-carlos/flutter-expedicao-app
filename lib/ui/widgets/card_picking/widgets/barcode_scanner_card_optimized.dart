@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_scan_state.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 
 /// Card de scanner de código de barras otimizado com Provider
 ///
@@ -64,6 +65,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
           Consumer<PickingScanState>(
             builder: (context, scanState, child) {
               return _buildHelpText(
+                context,
                 theme,
                 colorScheme,
                 isEnabled,
@@ -180,6 +182,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
   }
 
   Widget _buildHelpText(
+    BuildContext context,
     ThemeData theme,
     ColorScheme colorScheme,
     bool enabled,
@@ -188,12 +191,12 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
   ) {
     return Text(
       isProcessing
-          ? 'Aguarde, processando item...'
+          ? context.l10n.waitProcessing
           : (enabled
                 ? (keyboardEnabled
-                      ? 'Digite o código de barras manualmente ou toque no ícone para usar o scanner'
-                      : 'Posicione o produto no scanner ou toque no ícone para usar o teclado')
-                : 'Scanner desabilitado - carrinho não está em situação de separação'),
+                      ? context.l10n.typeBarcodeManually
+                      : context.l10n.positionProductScanner)
+                : context.l10n.scannerDisabled),
       style: theme.textTheme.bodySmall?.copyWith(
         color: isProcessing ? colorScheme.primary : (enabled ? colorScheme.onSurfaceVariant : AppColors.grey),
       ),

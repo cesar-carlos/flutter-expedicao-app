@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:data7_expedicao/core/constants/app_strings.dart';
-import 'package:data7_expedicao/core/validation/forms/form_validators.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
+import 'package:data7_expedicao/core/validation/forms/form_validators_localized.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
@@ -58,11 +58,11 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
 
       if (mounted && configViewModel.errorMessage.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(AppStrings.configSaved),
+          SnackBar(
+            content: Text(context.l10n.configSaved),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.all(16),
+            margin: const EdgeInsets.all(16),
           ),
         );
 
@@ -95,8 +95,8 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
                 Expanded(
                   child: Text(
                     success
-                        ? AppStrings.connectionSuccess
-                        : '${AppStrings.connectionError}: ${configViewModel.errorMessage}',
+                        ? context.l10n.connectionSuccess
+                        : '${context.l10n.connectionError}: ${configViewModel.errorMessage}',
                   ),
                 ),
               ],
@@ -111,17 +111,18 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
     }
   }
 
-  String _buildPreviewUrl() {
-    final protocol = _useHttps ? AppStrings.httpsProtocol : AppStrings.httpProtocol;
-    final url = _urlController.text.trim().isNotEmpty ? _urlController.text.trim() : AppStrings.defaultUrl;
-    final port = _portController.text.trim().isNotEmpty ? _portController.text.trim() : AppStrings.defaultPort;
+  String _buildPreviewUrl(BuildContext context) {
+    final protocol = _useHttps ? context.l10n.httpsProtocol : context.l10n.httpProtocol;
+    final url = _urlController.text.trim().isNotEmpty ? _urlController.text.trim() : context.l10n.defaultUrl;
+    final port = _portController.text.trim().isNotEmpty ? _portController.text.trim() : context.l10n.defaultPort;
 
-    return '$protocol://$url:$port${AppStrings.apiEndpoint}';
+    return '$protocol://$url:$port${context.l10n.apiEndpoint}';
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final validators = FormValidatorsLocalized(context.l10n);
 
     return Consumer<ConfigViewModel>(
       builder: (context, configViewModel, child) {
@@ -134,11 +135,11 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
 
               const SizedBox(height: 24),
 
-              _buildConfigFields(configViewModel),
+              _buildConfigFields(context, configViewModel, validators),
 
               const SizedBox(height: 24),
 
-              _buildUrlPreview(theme),
+              _buildUrlPreview(context, theme),
 
               const SizedBox(height: 24),
 
@@ -166,14 +167,14 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
                 Icon(Icons.settings_ethernet, color: theme.colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  AppStrings.serverConfigTitle,
+                  context.l10n.serverConfigTitle,
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              AppStrings.configSubtitle,
+              context.l10n.configSubtitle,
               style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
             ),
             if (configViewModel.currentConfig.lastUpdated != null) ...[
@@ -183,7 +184,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
                   Icon(Icons.schedule, size: 16, color: theme.colorScheme.outline),
                   const SizedBox(width: 4),
                   Text(
-                    '${AppStrings.lastUpdate}: ${_formatDate(configViewModel.currentConfig.lastUpdated!)}',
+                    '${context.l10n.lastUpdate}: ${_formatDate(configViewModel.currentConfig.lastUpdated!)}',
                     style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline),
                   ),
                 ],
@@ -195,16 +196,16 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
     );
   }
 
-  Widget _buildConfigFields(ConfigViewModel configViewModel) {
+  Widget _buildConfigFields(BuildContext context, ConfigViewModel configViewModel, FormValidatorsLocalized validators) {
     return Column(
       children: [
         CustomTextFormField(
           controller: _urlController,
           enabled: !configViewModel.isLoading,
-          labelText: AppStrings.apiUrl,
-          hintText: AppStrings.apiUrlHint,
+          labelText: context.l10n.apiUrl,
+          hintText: context.l10n.apiUrlHint,
           prefixIcon: Icons.language,
-          validator: FormValidators.apiUrl,
+          validator: validators.apiUrl,
           textInputAction: TextInputAction.next,
           onFieldSubmitted: () {
             FocusScope.of(context).nextFocus();
@@ -216,11 +217,11 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
         CustomTextFormField(
           controller: _portController,
           enabled: !configViewModel.isLoading,
-          labelText: AppStrings.apiPort,
-          hintText: AppStrings.apiPortHint,
+          labelText: context.l10n.apiPort,
+          hintText: context.l10n.apiPortHint,
           prefixIcon: Icons.settings_ethernet,
           keyboardType: TextInputType.number,
-          validator: FormValidators.apiPort,
+          validator: validators.apiPort,
           textInputAction: TextInputAction.done,
         ),
 
@@ -228,8 +229,8 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
 
         Card(
           child: SwitchListTile(
-            title: const Text(AppStrings.useHttps),
-            subtitle: const Text(AppStrings.httpsSubtitle),
+            title: Text(context.l10n.useHttps),
+            subtitle: Text(context.l10n.httpsSubtitle),
             secondary: Icon(
               _useHttps ? Icons.lock : Icons.lock_open,
               color: _useHttps ? AppColors.success : AppColors.grey,
@@ -242,7 +243,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
     );
   }
 
-  Widget _buildUrlPreview(ThemeData theme) {
+  Widget _buildUrlPreview(BuildContext context, ThemeData theme) {
     return Card(
       color: theme.colorScheme.surfaceContainerHighest,
       child: Padding(
@@ -255,7 +256,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
                 Icon(Icons.preview, size: 16, color: theme.colorScheme.primary),
                 const SizedBox(width: 6),
                 Text(
-                  AppStrings.previewUrl,
+                  context.l10n.previewUrl,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.w600,
@@ -273,7 +274,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
                 border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
               ),
               child: Text(
-                _buildPreviewUrl(),
+                _buildPreviewUrl(context),
                 style: AppTextStyles.code(context, color: theme.colorScheme.primary).copyWith(
                   fontSize: theme.textTheme.bodyLarge?.fontSize,
                   fontWeight: FontWeight.bold,
@@ -296,7 +297,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
             icon: configViewModel.isTesting
                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.wifi_find),
-            label: Text(configViewModel.isTesting ? AppStrings.testing : AppStrings.testConnection),
+            label: Text(configViewModel.isTesting ? context.l10n.testing : context.l10n.testConnection),
           ),
         ),
         const SizedBox(height: 12),
@@ -304,7 +305,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
         SizedBox(
           width: double.infinity,
           child: LoadingButton(
-            text: AppStrings.saveConfig,
+            text: context.l10n.saveConfig,
             onPressed: _handleSave,
             isLoading: configViewModel.isSaving,
           ),

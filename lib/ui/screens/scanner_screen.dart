@@ -14,6 +14,7 @@ import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -64,7 +65,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       appBar: CustomAppBar(
         title: const ScannerTitleWithConnectionStatus(),
         showSocketStatus: false,
-        leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
+        leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: context.l10n.back),
       ),
       body: Consumer<ScannerViewModel>(
         builder: (context, scannerViewModel, child) {
@@ -179,7 +180,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Última leitura:',
+                          context.l10n.lastReadingColon,
                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.onPrimaryContainer,

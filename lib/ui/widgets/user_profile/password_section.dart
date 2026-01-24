@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/widgets/index.dart';
-import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class PasswordSection extends StatefulWidget {
@@ -123,8 +123,8 @@ class _PasswordSectionState extends State<PasswordSection> {
   Widget _buildCurrentPasswordField(ColorScheme colorScheme, ThemeData theme) {
     return _buildPasswordField(
       controller: widget.currentPasswordController,
-      labelText: AppStrings.currentPasswordLabel,
-      hintText: AppStrings.currentPasswordHint,
+      labelText: context.l10n.currentPasswordLabel,
+      hintText: context.l10n.currentPasswordHint,
       prefixIcon: Icons.lock_outline,
       obscureText: !_showCurrentPassword,
       onVisibilityToggle: () {
@@ -136,7 +136,7 @@ class _PasswordSectionState extends State<PasswordSection> {
       validator: (value) {
         if (widget.newPasswordController.text.isNotEmpty) {
           if (value == null || value.isEmpty) {
-            return AppStrings.currentPasswordRequired;
+            return context.l10n.currentPasswordRequired;
           }
         }
         return null;
@@ -149,8 +149,8 @@ class _PasswordSectionState extends State<PasswordSection> {
   Widget _buildNewPasswordField(ColorScheme colorScheme, ThemeData theme) {
     return _buildPasswordField(
       controller: widget.newPasswordController,
-      labelText: AppStrings.newPasswordLabel,
-      hintText: AppStrings.newPasswordHint,
+      labelText: context.l10n.newPasswordLabel,
+      hintText: context.l10n.newPasswordHint,
       prefixIcon: Icons.lock_reset,
       obscureText: !_showNewPassword,
       onVisibilityToggle: () {
@@ -161,7 +161,7 @@ class _PasswordSectionState extends State<PasswordSection> {
       onChanged: widget.viewModel.setNewPassword,
       validator: (value) {
         if (value != null && value.isNotEmpty && value.length < 4) {
-          return AppStrings.passwordMinLengthProfile;
+          return context.l10n.passwordMinLengthProfile;
         }
         return null;
       },
@@ -173,8 +173,8 @@ class _PasswordSectionState extends State<PasswordSection> {
   Widget _buildConfirmPasswordField(ColorScheme colorScheme, ThemeData theme) {
     return _buildPasswordField(
       controller: widget.confirmPasswordController,
-      labelText: AppStrings.confirmNewPasswordLabel,
-      hintText: AppStrings.confirmNewPasswordHint,
+      labelText: context.l10n.confirmNewPasswordLabel,
+      hintText: context.l10n.confirmNewPasswordHint,
       prefixIcon: Icons.verified_user,
       obscureText: !_showConfirmPassword,
       onVisibilityToggle: () {
@@ -186,7 +186,7 @@ class _PasswordSectionState extends State<PasswordSection> {
       validator: (value) {
         if (widget.newPasswordController.text.isNotEmpty) {
           if (value != widget.newPasswordController.text) {
-            return AppStrings.passwordsDoNotMatchProfile;
+            return context.l10n.passwordsDoNotMatchProfile;
           }
         }
         return null;

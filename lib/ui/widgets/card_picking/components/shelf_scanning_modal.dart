@@ -12,6 +12,7 @@ import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 
 class ShelfScanningModal extends StatefulWidget {
   final String expectedAddress;
@@ -374,7 +375,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
                               : const TextInputType.numberWithOptions(decimal: false)),
                     showCursor: !_isManualMode ? true : null,
                     decoration: InputDecoration(
-                      labelText: 'Código da Prateleira',
+                      labelText: context.l10n.shelfCode,
                       border: OutlineInputBorder(),
                       prefixIcon: GestureDetector(
                         onTap: _toggleInputMode,
@@ -385,7 +386,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
                   ),
                 ],
               ),
-              actions: [if (widget.onBack != null) TextButton(onPressed: widget.onBack, child: const Text('Voltar'))],
+              actions: [if (widget.onBack != null) TextButton(onPressed: widget.onBack, child: Text(context.l10n.back))],
             ),
           );
         },
