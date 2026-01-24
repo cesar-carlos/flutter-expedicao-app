@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/ui/widgets/common/socket_widgets.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/string_utils.dart';
-import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -38,10 +37,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDarkTheme = theme.brightness == Brightness.dark;
 
-    final effectiveBackgroundColor = backgroundColor ?? (isDarkTheme ? AppColors.black : theme.colorScheme.primary);
-    final effectiveForegroundColor = foregroundColor ?? (isDarkTheme ? AppColors.white : theme.colorScheme.onPrimary);
+    final effectiveBackgroundColor = backgroundColor ?? theme.appBarTheme.backgroundColor ?? theme.colorScheme.primary;
+    final effectiveForegroundColor = foregroundColor ?? theme.appBarTheme.foregroundColor ?? theme.colorScheme.onPrimary;
 
     return AppBar(
       title: replaceWithUserName ? _buildUserTitle(context) : _buildNormalTitle(),
@@ -74,7 +72,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (title is Widget) {
       return title as Widget;
     } else {
-      return Text(title as String, style: foregroundColor != null ? AppFonts.inter(color: foregroundColor) : null);
+      return Text(
+        title as String,
+        style: AppFonts.inter(color: foregroundColor),
+      );
     }
   }
 
@@ -85,7 +86,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         final userName = currentUser?.nome ?? (title is String ? title as String : 'Usuário');
         return Text(
           'Olá ${StringUtils.capitalizeWords(userName)}',
-          style: foregroundColor != null ? AppFonts.inter(color: foregroundColor) : null,
+          style: AppFonts.inter(color: foregroundColor),
         );
       },
     );

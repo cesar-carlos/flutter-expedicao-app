@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:data7_expedicao/core/theme/app_colors.dart';
 
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
 

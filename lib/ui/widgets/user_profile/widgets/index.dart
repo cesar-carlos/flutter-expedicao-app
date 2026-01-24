@@ -1,4 +1,3 @@
-// Widgets reutilizáveis para componentes de perfil
 export 'info_card.dart';
 export 'status_chip.dart';
 export 'section_header.dart';

@@ -50,11 +50,16 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
+    final darkColorScheme = ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: Brightness.dark);
+    
     return ThemeData(
       scaffoldBackgroundColor: AppColors.dark,
       useMaterial3: true,
       brightness: Brightness.dark,
-      colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: Brightness.dark),
+      colorScheme: darkColorScheme.copyWith(
+        primary: AppColors.accent,
+        onPrimary: AppColors.white,
+      ),
       textTheme: AppFonts.getTextTheme(baseColor: AppColors.fontLight, brightness: Brightness.dark),
 
       appBarTheme: AppBarTheme(
