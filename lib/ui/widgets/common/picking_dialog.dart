@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class PickingDialog extends StatelessWidget {
   final String title;
@@ -67,7 +68,7 @@ class PickingDialogs {
     return PickingDialog(
       title: 'Produto Incorreto',
       icon: Icons.warning,
-      iconColor: Colors.orange,
+      iconColor: AppColors.warning,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -76,16 +77,16 @@ class PickingDialogs {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.1),
+              color: AppColors.info.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+              border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Próximo produto esperado:',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue700),
                 ),
                 const SizedBox(height: 6),
                 Text('📍 $expectedAddress'),
@@ -105,7 +106,7 @@ class PickingDialogs {
     return PickingDialog(
       title: 'Erro ao Adicionar',
       icon: Icons.error,
-      iconColor: Colors.red,
+      iconColor: AppColors.error,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -116,11 +117,11 @@ class PickingDialogs {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.red.withValues(alpha: 0.1),
+              color: AppColors.error.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+              border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
             ),
-            child: Text(errorMessage, style: TextStyle(color: Colors.red.shade700)),
+            child: Text(errorMessage, style: TextStyle(color: AppColors.red700)),
           ),
         ],
       ),
@@ -136,7 +137,7 @@ class PickingDialogs {
     return PickingDialog(
       title: 'Quantidade Excedida',
       icon: Icons.warning,
-      iconColor: Colors.orange,
+      iconColor: AppColors.warning,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -147,16 +148,16 @@ class PickingDialogs {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
+              color: AppColors.warning.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+              border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Quantidade solicitada excede o disponível:',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange.shade700),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.orange700),
                 ),
                 const SizedBox(height: 6),
                 Text('Solicitado: $requestedQuantity'),
@@ -180,7 +181,7 @@ class PickingDialogs {
     return PickingDialog(
       title: 'Setor Incorreto',
       icon: Icons.block,
-      iconColor: Colors.red,
+      iconColor: AppColors.error,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -189,16 +190,16 @@ class PickingDialogs {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.red.withValues(alpha: 0.1),
+              color: AppColors.error.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+              border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Produto de outro setor:',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.red700),
                 ),
                 const SizedBox(height: 6),
                 Text('📦 $productName'),
@@ -206,7 +207,7 @@ class PickingDialogs {
                 const SizedBox(height: 8),
                 Text(
                   'Seu setor: Setor $userSectorCode',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue700),
                 ),
               ],
             ),
@@ -226,7 +227,7 @@ class PickingDialogs {
     return PickingDialog(
       title: 'Separação Finalizada',
       icon: Icons.info_outline,
-      iconColor: Colors.blue,
+      iconColor: AppColors.info,
       showCloseButton: false,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,19 +235,19 @@ class PickingDialogs {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.1),
+              color: AppColors.info.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+              border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '✓ Todos os itens do seu setor foram separados!',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue700),
                 ),
                 const SizedBox(height: 8),
-                Text('Seu setor: Setor $userSectorCode', style: TextStyle(color: Colors.blue.shade600)),
+                Text('Seu setor: Setor $userSectorCode', style: TextStyle(color: AppColors.blue600)),
               ],
             ),
           ),
@@ -274,7 +275,7 @@ class PickingDialogs {
     return PickingDialog(
       title: 'Separação Completa!',
       icon: Icons.check_circle,
-      iconColor: Colors.green,
+      iconColor: AppColors.success,
       content: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -292,7 +293,7 @@ class PickingDialogs {
     return PickingDialog(
       title: message,
       icon: Icons.hourglass_empty,
-      iconColor: Colors.blue,
+      iconColor: AppColors.info,
       showCloseButton: false,
       content: const Center(
         child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()),

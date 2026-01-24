@@ -69,7 +69,7 @@ class UsersListWidget extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, color: Colors.grey),
+              style: const TextStyle(fontSize: 16, color: AppColors.grey),
             ),
           ],
         ),
@@ -99,20 +99,20 @@ class UsersListWidget extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: isBlocked
-              ? Colors.grey.shade400
+              ? AppColors.grey400
               : user.ativo == Situation.ativo
               ? AppColors.success
-              : Colors.grey,
+              : AppColors.grey,
           child: Text(
             user.nomeUsuario.substring(0, 2).toUpperCase(),
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.bold),
           ),
         ),
         title: Text(
           user.nomeUsuario,
           style: TextStyle(
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isBlocked ? Colors.grey.shade600 : null,
+            color: isBlocked ? AppColors.grey600 : null,
             decoration: isBlocked ? TextDecoration.lineThrough : null,
           ),
         ),
@@ -124,19 +124,19 @@ class UsersListWidget extends StatelessWidget {
             if (isBlocked)
               Text(
                 'Vinculado (ID: ${user.codLoginApp})',
-                style: TextStyle(color: Colors.red.shade600, fontSize: 12, fontWeight: FontWeight.w500),
+                style: TextStyle(color: AppColors.red600, fontSize: 12, fontWeight: FontWeight.w500),
               ),
           ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (isBlocked) Icon(Icons.link, color: Colors.red.shade600, size: 20),
-            if (user.ativo != Situation.ativo) const Icon(Icons.warning, color: Colors.orange),
+            if (isBlocked) Icon(Icons.link, color: AppColors.red600, size: 20),
+            if (user.ativo != Situation.ativo) const Icon(Icons.warning, color: AppColors.warning),
             if (isAvailable)
               Icon(
                 isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: isSelected ? AppColors.success : Colors.grey,
+                color: isSelected ? AppColors.success : AppColors.grey,
               ),
           ],
         ),
@@ -157,24 +157,24 @@ class UsersListWidget extends StatelessWidget {
               children: [
                 SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
                 SizedBox(width: 12),
-                Text('Carregando mais usuários...', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                Text('Carregando mais usuários...', style: TextStyle(fontSize: 14, color: AppColors.grey)),
               ],
             )
           : viewModel.hasMoreData
           ? const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                Icon(Icons.keyboard_arrow_down, color: AppColors.grey),
                 SizedBox(width: 8),
-                Text('Role para carregar mais', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                Text('Role para carregar mais', style: TextStyle(fontSize: 12, color: AppColors.grey)),
               ],
             )
           : const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.check_circle, color: Colors.green, size: 16),
+                Icon(Icons.check_circle, color: AppColors.success, size: 16),
                 SizedBox(width: 8),
-                Text('Todos os usuários foram carregados', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                Text('Todos os usuários foram carregados', style: TextStyle(fontSize: 12, color: AppColors.grey)),
               ],
             ),
     );

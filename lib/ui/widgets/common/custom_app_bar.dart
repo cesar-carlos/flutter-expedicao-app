@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/ui/widgets/common/socket_widgets.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/string_utils.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final dynamic title;
@@ -38,8 +40,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
     final isDarkTheme = theme.brightness == Brightness.dark;
 
-    final effectiveBackgroundColor = backgroundColor ?? (isDarkTheme ? Colors.black : theme.colorScheme.primary);
-    final effectiveForegroundColor = foregroundColor ?? (isDarkTheme ? Colors.white : theme.colorScheme.onPrimary);
+    final effectiveBackgroundColor = backgroundColor ?? (isDarkTheme ? AppColors.black : theme.colorScheme.primary);
+    final effectiveForegroundColor = foregroundColor ?? (isDarkTheme ? AppColors.white : theme.colorScheme.onPrimary);
 
     return AppBar(
       title: replaceWithUserName ? _buildUserTitle(context) : _buildNormalTitle(),

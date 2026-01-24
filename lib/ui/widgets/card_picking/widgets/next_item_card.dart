@@ -5,6 +5,7 @@ import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consu
 import 'package:data7_expedicao/domain/models/picking_state.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/widgets/product_detail_item.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class NextItemCard extends StatelessWidget {
   final SeparateItemConsultationModel? nextItem;
@@ -67,14 +68,14 @@ class NextItemCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: completedCount == totalCount
-                ? Colors.green.withValues(alpha: 0.2)
+                ? AppColors.success.withValues(alpha: 0.2)
                 : colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
             '$completedCount/$totalCount',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: completedCount == totalCount ? Colors.green.shade700 : colorScheme.primary,
+              color: completedCount == totalCount ? AppColors.green700 : colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -106,12 +107,12 @@ class NextItemCard extends StatelessWidget {
       decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(6)),
       child: Row(
         children: [
-          Icon(Icons.location_on, color: Colors.white, size: 18),
+          Icon(Icons.location_on, color: AppColors.white, size: 18),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               nextItem.enderecoDescricao ?? 'Endereço não definido',
-              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: AppColors.white),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -179,7 +180,7 @@ class NextItemCard extends StatelessWidget {
     if (itemState == null || !itemState.hasPendingSync) {
       // Estado normal: conectado e sincronizado
       icon = Icons.cloud_done;
-      color = Colors.green;
+      color = AppColors.success;
       tooltip = 'Conectado';
     } else {
       final pendingOps = itemState.pendingOperations;
@@ -188,15 +189,15 @@ class NextItemCard extends StatelessWidget {
 
       if (hasFailed) {
         icon = Icons.sync_problem;
-        color = Colors.red;
+        color = AppColors.error;
         tooltip = 'Erro ao sincronizar';
       } else if (isSyncing) {
         icon = Icons.sync;
-        color = Colors.blue;
+        color = AppColors.info;
         tooltip = 'Sincronizando...';
       } else {
         icon = Icons.cloud_upload;
-        color = Colors.orange;
+        color = AppColors.warning;
         tooltip = 'Aguardando sincronização';
       }
     }
@@ -329,28 +330,28 @@ class NextItemCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.blue.withValues(alpha: 0.1),
+          color: AppColors.info.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 2),
+          border: Border.all(color: AppColors.info.withValues(alpha: 0.3), width: 2),
         ),
         child: Column(
           children: [
-            Icon(Icons.info_outline, color: Colors.blue, size: 48),
+            Icon(Icons.info_outline, color: AppColors.info, size: 48),
             const SizedBox(height: 6),
             Text(
               'Sem Itens para Separar',
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.blue700),
             ),
             const SizedBox(height: 6),
             Text(
               'Não há itens do seu setor (Setor $userSectorCode) neste carrinho para separar.',
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.blue.shade600),
+              style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.blue600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               'Os itens deste carrinho pertencem a outros setores.',
-              style: theme.textTheme.bodySmall?.copyWith(color: Colors.blue.shade500),
+              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.blue500),
               textAlign: TextAlign.center,
             ),
           ],
@@ -362,22 +363,22 @@ class NextItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.green.withValues(alpha: 0.1),
+        color: AppColors.success.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green.withValues(alpha: 0.3), width: 2),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.3), width: 2),
       ),
       child: Column(
         children: [
-          Icon(Icons.check_circle, color: Colors.green, size: 48),
+          Icon(Icons.check_circle, color: AppColors.success, size: 48),
           const SizedBox(height: 6),
           Text(
             'Separação Concluída!',
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.green.shade700),
+            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.green700),
           ),
           const SizedBox(height: 6),
           Text(
             'Todos os itens foram separados com sucesso.',
-            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.green.shade600),
+            style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.green600),
             textAlign: TextAlign.center,
           ),
         ],

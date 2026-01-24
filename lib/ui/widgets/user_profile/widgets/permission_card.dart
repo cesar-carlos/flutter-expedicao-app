@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class PermissionCard extends StatelessWidget {
   final String title;
@@ -18,9 +19,9 @@ class PermissionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
-    final color = hasPermission ? Colors.green : colorScheme.onSurfaceVariant;
+    final color = hasPermission ? AppColors.success : colorScheme.onSurfaceVariant;
     final backgroundColor = hasPermission
-        ? Colors.green.withValues(alpha: 0.1)
+        ? AppColors.success.withValues(alpha: 0.1)
         : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
 
     return Container(
@@ -30,7 +31,7 @@ class PermissionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withValues(alpha: 0.3)),
         boxShadow: hasPermission
-            ? [BoxShadow(color: Colors.green.withValues(alpha: 0.1), offset: const Offset(0, 2), blurRadius: 4)]
+            ? [BoxShadow(color: AppColors.success.withValues(alpha: 0.1), offset: const Offset(0, 2), blurRadius: 4)]
             : null,
       ),
       child: Column(

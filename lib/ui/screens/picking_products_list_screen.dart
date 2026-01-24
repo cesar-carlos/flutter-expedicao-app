@@ -13,6 +13,7 @@ import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/separated_products/separated_products_cart_status_warning.dart';
 import 'package:data7_expedicao/ui/widgets/separated_products_title_with_connection_status.dart';
 import 'package:data7_expedicao/ui/widgets/pending_products_title_with_connection_status.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class PickingProductsListScreen extends StatefulWidget {
   final String filterType;
@@ -136,7 +137,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
                   child: Container(
                     width: 8,
                     height: 8,
-                    decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    decoration: BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
                   ),
                 ),
             ],
@@ -480,7 +481,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
             ),
             child: Text(
               '$itemCount',
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+              style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.white, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -492,7 +493,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (context) => PendingProductsFilterModal(viewModel: widget.viewModel),
     );
   }

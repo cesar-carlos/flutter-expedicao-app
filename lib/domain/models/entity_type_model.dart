@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 enum EntityType {
-  cliente('C', 'Cliente', Colors.blue),
-  fornecedor('F', 'Fornecedor', Colors.green);
+  cliente('C', 'Cliente', AppColors.info),
+  fornecedor('F', 'Fornecedor', AppColors.success);
 
   const EntityType(this.code, this.description, this.color);
 
@@ -35,7 +36,7 @@ enum EntityType {
   }
 
   static Color getColor(String code) {
-    return fromCode(code)?.color ?? Colors.grey;
+    return fromCode(code)?.color ?? AppColors.grey;
   }
 }
 

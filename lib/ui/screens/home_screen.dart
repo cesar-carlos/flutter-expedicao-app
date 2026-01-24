@@ -6,6 +6,7 @@ import 'package:data7_expedicao/ui/widgets/app_drawer/index.dart';
 import 'package:data7_expedicao/domain/viewmodels/home_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/home/index.dart';
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      Text(homeViewModel.subtitleMessage, style: const TextStyle(fontSize: 16, color: Colors.grey)),
+                      Text(homeViewModel.subtitleMessage, style: const TextStyle(fontSize: 16, color: AppColors.grey)),
                     ],
                   ),
                 ),

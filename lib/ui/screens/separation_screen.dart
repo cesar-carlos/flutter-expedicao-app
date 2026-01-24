@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -181,7 +182,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (modalContext) => ChangeNotifierProvider.value(
         value: context.read<SeparationViewModel>(),
         child: const SeparationFilterModal(),
@@ -373,7 +374,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   // ========== Helper Methods ==========
 
   void _showErrorModal(String title, String message) {
-    _showCustomModal(title: title, message: message, icon: Icons.error_outline, color: Colors.red);
+    _showCustomModal(title: title, message: message, icon: Icons.error_outline, color: AppColors.error);
   }
 
   void _showInfoModal(String title, String message) {
@@ -597,7 +598,7 @@ class _FilterIconWithBadge extends StatelessWidget {
             child: Container(
               width: 8,
               height: 8,
-              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+              decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
             ),
           ),
       ],

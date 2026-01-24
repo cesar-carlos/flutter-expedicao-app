@@ -4,6 +4,7 @@ import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dar
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/separate_items/carts_empty_state.dart';
 import 'package:data7_expedicao/ui/widgets/separate_items/cart_item_card.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class CartsListView extends StatelessWidget {
   final SeparationItemsViewModel viewModel;
@@ -47,7 +48,7 @@ class CartsListView extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Lista de carrinhos atualizada'),
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.info,
         duration: const Duration(seconds: 2),
       ),
     );

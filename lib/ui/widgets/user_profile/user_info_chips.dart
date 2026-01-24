@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 import 'package:data7_expedicao/domain/models/user/app_user.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
@@ -61,7 +62,7 @@ class UserInfoChips extends StatelessWidget {
                       label: 'Status',
                       value: user.isActive ? 'Ativo' : 'Inativo',
                       icon: user.isActive ? Icons.check_circle : Icons.cancel,
-                      statusColor: user.isActive ? Colors.green : Colors.red,
+                      statusColor: user.isActive ? AppColors.success : AppColors.error,
                     ),
                   ),
                   const SizedBox(width: 12),

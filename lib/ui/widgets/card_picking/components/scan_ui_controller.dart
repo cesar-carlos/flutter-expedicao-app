@@ -6,6 +6,7 @@ import 'package:data7_expedicao/domain/models/separate_item_consultation_model.d
 import 'package:data7_expedicao/ui/widgets/card_picking/components/keyboard_toggle_controller.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_dialog_manager.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class ScanUiController {
   final PickingDialogManager dialogManager;
@@ -33,7 +34,7 @@ class ScanUiController {
       SnackBar(
         content: Text('Quantidade convertida: $originalQuantity → $convertedQuantity (unidade de medida)'),
         duration: UIConstants.snackBarShortDuration,
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.info,
       ),
     );
   }

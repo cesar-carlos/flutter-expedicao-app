@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class CustomSimpleButton extends StatelessWidget {
   final String text;
@@ -39,7 +40,7 @@ class CustomSimpleButton extends StatelessWidget {
 
     final effectiveBackgroundColor = backgroundColor ?? colorScheme.primary;
     final effectiveForegroundColor = foregroundColor ?? (isOutlined ? effectiveBackgroundColor : colorScheme.onPrimary);
-    final effectiveBorderColor = borderColor ?? (isOutlined ? effectiveBackgroundColor : Colors.transparent);
+    final effectiveBorderColor = borderColor ?? (isOutlined ? effectiveBackgroundColor : AppColors.transparent);
     final effectivePadding = padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 24);
     final effectiveBorderRadius = borderRadius ?? 12.0;
     final effectiveIconSize = iconSize ?? 20.0;
@@ -119,7 +120,7 @@ class CustomSimpleButton extends StatelessWidget {
       return OutlinedButton.icon(
         onPressed: isLoading ? null : onPressed,
         style: OutlinedButton.styleFrom(
-          backgroundColor: isOutlined ? Colors.transparent : backgroundColor,
+          backgroundColor: isOutlined ? AppColors.transparent : backgroundColor,
           foregroundColor: foregroundColor,
           side: BorderSide(color: borderColor),
           padding: padding,
@@ -132,7 +133,7 @@ class CustomSimpleButton extends StatelessWidget {
       return OutlinedButton(
         onPressed: isLoading ? null : onPressed,
         style: OutlinedButton.styleFrom(
-          backgroundColor: isOutlined ? Colors.transparent : backgroundColor,
+          backgroundColor: isOutlined ? AppColors.transparent : backgroundColor,
           foregroundColor: foregroundColor,
           side: BorderSide(color: borderColor),
           padding: padding,
@@ -221,8 +222,8 @@ extension CustomSimpleButtonVariations on CustomSimpleButton {
       text: text,
       icon: icon,
       onPressed: onPressed,
-      backgroundColor: Colors.red,
-      foregroundColor: Colors.white,
+      backgroundColor: AppColors.error,
+      foregroundColor: AppColors.white,
       isLoading: isLoading,
     );
   }

@@ -7,6 +7,7 @@ import 'package:data7_expedicao/ui/widgets/user_profile/profile_photo_selector.d
 import 'package:data7_expedicao/core/validation/forms/form_validators.dart';
 import 'package:data7_expedicao/domain/viewmodels/register_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class RegisterForm extends StatefulWidget {
   const RegisterForm({super.key});
@@ -49,7 +50,7 @@ class _RegisterFormState extends State<RegisterForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(AppStrings.registerSuccess),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
             margin: EdgeInsets.all(16),
           ),
@@ -141,8 +142,8 @@ class _RegisterFormState extends State<RegisterForm> {
                 onPressed: registerViewModel.isLoading ? null : () => context.go('/login'),
                 icon: Icons.arrow_back_outlined,
                 textColor: Theme.of(context).colorScheme.secondary,
-                backgroundColor: Colors.transparent,
-                borderColor: Colors.transparent,
+                backgroundColor: AppColors.transparent,
+                borderColor: AppColors.transparent,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 borderRadius: 6,
               ),

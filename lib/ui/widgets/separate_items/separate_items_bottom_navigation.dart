@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class SeparateItemsBottomNavigation extends StatelessWidget {
   final TabController tabController;
@@ -32,7 +33,7 @@ class SeparateItemsBottomNavigation extends StatelessWidget {
             labelStyle: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600, fontSize: 10),
             unselectedLabelStyle: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w500, fontSize: 10),
             splashFactory: NoSplash.splashFactory,
-            overlayColor: WidgetStateProperty.all(Colors.transparent),
+            overlayColor: WidgetStateProperty.all(AppColors.transparent),
             tabs: [
               _buildTab(icon: Icons.shopping_cart, label: 'Carrinhos', colorScheme: colorScheme),
               _buildTab(icon: Icons.inventory_2, label: 'Produtos', colorScheme: colorScheme),

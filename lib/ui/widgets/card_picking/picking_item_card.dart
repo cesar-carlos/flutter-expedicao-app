@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class PickingItemCard extends StatelessWidget {
   final SeparateItemConsultationModel item;
@@ -17,7 +18,7 @@ class PickingItemCard extends StatelessWidget {
 
     final itemId = item.item;
     final isCompleted = viewModel.isItemCompleted(itemId);
-    final statusColor = isCompleted ? Colors.green : colorScheme.primary;
+    final statusColor = isCompleted ? AppColors.success : colorScheme.primary;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -139,12 +140,12 @@ class PickingItemCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.2),
+                color: AppColors.warning.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
                 item.nomeSetorEstoque ?? 'N/A',
-                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.orange.shade800),
+                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: AppColors.orange800),
               ),
             ),
           ],
@@ -196,14 +197,14 @@ class PickingItemCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: isCompleted ? Colors.green.withValues(alpha: 0.2) : statusColor.withValues(alpha: 0.2),
+                      color: isCompleted ? AppColors.success.withValues(alpha: 0.2) : statusColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       '$pickedQuantity/$totalQuantity',
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isCompleted ? Colors.green.shade700 : statusColor,
+                        color: isCompleted ? AppColors.green700 : statusColor,
                       ),
                     ),
                   ),
@@ -222,7 +223,7 @@ class PickingItemCard extends StatelessWidget {
                     onPressed: onPick,
                     icon: const Icon(Icons.qr_code_scanner, size: 18),
                     label: const Text('Separar'),
-                    style: ElevatedButton.styleFrom(backgroundColor: statusColor, foregroundColor: Colors.white),
+                    style: ElevatedButton.styleFrom(backgroundColor: statusColor, foregroundColor: AppColors.white),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -230,7 +231,7 @@ class PickingItemCard extends StatelessWidget {
                   onPressed: () => _showQuantityDialog(context, itemId),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.secondary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColors.white,
                     minimumSize: const Size(48, 36),
                   ),
                   child: const Icon(Icons.edit, size: 18),
@@ -240,19 +241,19 @@ class PickingItemCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.2),
+                      color: AppColors.success.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.check_circle, color: Colors.green.shade700, size: 20),
+                        Icon(Icons.check_circle, color: AppColors.green700, size: 20),
                         const SizedBox(width: 8),
                         Text(
                           'Item Completado',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Colors.green.shade700,
+                            color: AppColors.green700,
                           ),
                         ),
                       ],
@@ -292,7 +293,7 @@ class PickingItemCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
+                      border: Border.all(color: AppColors.grey),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text('$newQuantity', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),

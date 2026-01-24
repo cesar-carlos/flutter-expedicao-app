@@ -119,11 +119,11 @@ class ConfigViewModel extends ChangeNotifier {
       // Só reseta o status de conexão testada se a configuração mudou
       if (configChanged) {
         _connectionTested = false;
-        
+
         // Reinicializa os serviços de rede com a nova configuração
         NetworkInitializer.reinitializeDio();
         NetworkInitializer.reinitializeSocket();
-        
+
         // Testa automaticamente a conexão após salvar uma nova configuração
         await testConnection();
       }
@@ -251,11 +251,7 @@ class ConfigViewModel extends ChangeNotifier {
     } catch (e) {
       _connectionTested = false;
       _errorMessage = '${AppStrings.unexpectedError}: $e';
-      AppLogger.error(
-        'Unexpected error while testing connection: $e',
-        tag: 'Config',
-        error: e,
-      );
+      AppLogger.error('Unexpected error while testing connection: $e', tag: 'Config', error: e);
       return false;
     } finally {
       _setTesting(false);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_simple_button.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class SeparationCard extends StatelessWidget {
   final SeparateConsultationModel separation;
@@ -23,7 +24,7 @@ class SeparationCard extends StatelessWidget {
         border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1), width: 1),
       ),
       child: Material(
-        color: Colors.transparent,
+        color: AppColors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(20),
@@ -65,7 +66,7 @@ class SeparationCard extends StatelessWidget {
                       ),
                       child: Text(
                         separation.situacao.description,
-                        style: theme.textTheme.labelMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+                        style: theme.textTheme.labelMedium?.copyWith(color: AppColors.white, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],

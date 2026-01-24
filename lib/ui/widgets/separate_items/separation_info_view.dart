@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
@@ -224,7 +225,7 @@ class SeparationInfoView extends StatelessWidget {
                     'Status',
                     viewModel.isSeparationComplete ? 'Completa' : 'Em Andamento',
                     viewModel.isSeparationComplete ? Icons.done_all : Icons.hourglass_empty,
-                    viewModel.isSeparationComplete ? Colors.green : colorScheme.error,
+                    viewModel.isSeparationComplete ? AppColors.success : colorScheme.error,
                     fontSize: theme.textTheme.titleMedium?.fontSize,
                   ),
                 ),

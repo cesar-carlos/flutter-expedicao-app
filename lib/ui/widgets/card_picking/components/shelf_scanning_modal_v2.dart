@@ -13,6 +13,7 @@ import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class ShelfScanningModalV2 extends StatefulWidget {
   final String expectedAddress;
@@ -253,7 +254,7 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
               ? 'Endereço incorreto. Esperado: ${widget.expectedAddressDescription}'
               : 'Código de barras incorreto. Esperado: ${widget.expectedAddress}',
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
       ),
     );
 
@@ -361,7 +362,7 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
               actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
               title: Row(
                 children: [
-                  const Icon(Icons.qr_code_scanner, color: Colors.orange, size: UIConstants.largeIconSize),
+                  const Icon(Icons.qr_code_scanner, color: AppColors.warning, size: UIConstants.largeIconSize),
                   const SizedBox(width: 8),
                   const Expanded(
                     child: Text(
@@ -376,7 +377,7 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.location_on, color: Colors.blue, size: UIConstants.mediumIconSize),
+                      const Icon(Icons.location_on, color: AppColors.info, size: UIConstants.mediumIconSize),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -405,7 +406,7 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
                         onTap: _toggleInputMode,
                         child: Icon(
                           _isManualMode ? Icons.keyboard : Icons.qr_code_scanner,
-                          color: Colors.orange,
+                          color: AppColors.warning,
                         ),
                       ),
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class StatusChip extends StatelessWidget {
   final String label;
@@ -12,7 +13,7 @@ class StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
-    final color = isActive ? Colors.green : Colors.red;
+    final color = isActive ? AppColors.success : AppColors.error;
 
     return Container(
       padding: padding ?? const EdgeInsets.all(12),
@@ -67,7 +68,7 @@ class CompactStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = isActive ? Colors.green : Colors.red;
+    final color = isActive ? AppColors.success : AppColors.error;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

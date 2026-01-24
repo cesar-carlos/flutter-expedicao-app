@@ -39,7 +39,6 @@ class _PasswordSectionState extends State<PasswordSection> {
       padding: EdgeInsets.zero,
       child: Column(
         children: [
-          // Header clicável usando ExpandableSectionHeader
           ExpandableSectionHeader(
             title: 'Segurança da Conta',
             subtitle: 'Altere sua senha de acesso ao sistema',
@@ -54,7 +53,6 @@ class _PasswordSectionState extends State<PasswordSection> {
             },
           ),
 
-          // Conteúdo expansível
           AnimatedSize(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeInOut,
@@ -63,27 +61,24 @@ class _PasswordSectionState extends State<PasswordSection> {
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                     child: Column(
                       children: [
-                        // Divisor
                         Container(
                           height: 1,
                           margin: const EdgeInsets.only(bottom: 20),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                Colors.transparent,
+                                AppColors.transparent,
                                 colorScheme.outline.withValues(alpha: 0.2),
-                                Colors.transparent,
+                                AppColors.transparent,
                               ],
                             ),
                           ),
                         ),
 
-                        // Aviso de segurança
                         _buildSecurityWarning(theme, colorScheme),
 
                         const SizedBox(height: 20),
 
-                        // Campos de senha
                         _buildCurrentPasswordField(colorScheme, theme),
                         const SizedBox(height: 16),
                         _buildNewPasswordField(colorScheme, theme),

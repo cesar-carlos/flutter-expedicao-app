@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 enum ExpeditionSituation {
-  aguardando('AGUARDANDO', 'Aguardando', Colors.grey),
-  emPausa('EM PAUSA', 'Em Pausa', Colors.yellow),
-  cancelada('CANCELADA', 'Cancelada', Colors.red),
-  separando('SEPARANDO', 'Separando', Colors.orange),
-  separado('SEPARADO', 'Separado', Colors.lightGreen),
-  conferindo('CONFERINDO', 'Conferindo', Colors.purple),
-  conferido('CONFERIDO', 'Conferido', Colors.lightGreen),
-  entregue('ENTREGUE', 'Entregue', Colors.green),
-  embalando('EMBALANDO', 'Embalando', Colors.teal),
-  embalado('EMBALADO', 'Embalado', Colors.teal),
-  agrupado('AGRUPADO', 'Agrupado', Colors.red),
-  finalizada('FINALIZADA', 'Finalizada', Colors.green),
-  naoLocalizada('NÃO LOCALIZADO', 'Não Localizada', Colors.red);
+  aguardando('AGUARDANDO', 'Aguardando', AppColors.grey),
+  emPausa('EM PAUSA', 'Em Pausa', AppColors.yellow),
+  cancelada('CANCELADA', 'Cancelada', AppColors.error),
+  separando('SEPARANDO', 'Separando', AppColors.warning),
+  separado('SEPARADO', 'Separado', AppColors.lightGreen),
+  conferindo('CONFERINDO', 'Conferindo', AppColors.purple),
+  conferido('CONFERIDO', 'Conferido', AppColors.lightGreen),
+  entregue('ENTREGUE', 'Entregue', AppColors.success),
+  embalando('EMBALANDO', 'Embalando', AppColors.teal),
+  embalado('EMBALADO', 'Embalado', AppColors.teal),
+  agrupado('AGRUPADO', 'Agrupado', AppColors.error),
+  finalizada('FINALIZADA', 'Finalizada', AppColors.success),
+  naoLocalizada('NÃO LOCALIZADO', 'Não Localizada', AppColors.error);
 
   const ExpeditionSituation(this.code, this.description, this.color);
 
@@ -46,7 +47,7 @@ enum ExpeditionSituation {
   }
 
   static Color getColor(String code) {
-    return fromCode(code)?.color ?? Colors.grey;
+    return fromCode(code)?.color ?? AppColors.grey;
   }
 }
 

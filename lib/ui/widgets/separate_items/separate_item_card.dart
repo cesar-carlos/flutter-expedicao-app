@@ -4,6 +4,7 @@ import 'package:data7_expedicao/domain/models/separate_item_consultation_model.d
 import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class SeparateItemCard extends StatelessWidget {
   final SeparateItemConsultationModel item;
@@ -16,7 +17,6 @@ class SeparateItemCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Usar a situação real do item
     final situacao = item.situacaoSeparacao;
     final situacaoColor = situacao.color;
     final isCompleted = situacao == SeparationItemStatus.separado;
@@ -54,25 +54,19 @@ class SeparateItemCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header do item com código e nome
               _buildHeader(context, theme, colorScheme),
 
               const SizedBox(height: 12),
 
-              // Código de barras e status
               _buildCodeAndStatus(context, theme, colorScheme, isCompleted),
 
               const SizedBox(height: 8),
 
-              // Localização e grupo
               _buildLocationRow(context, theme, colorScheme),
 
               const SizedBox(height: 12),
 
-              // Informações de quantidade e grupo
               _buildQuantityRow(context, theme, colorScheme, isCompleted),
-
-              // Botão de ação removido conforme solicitado
             ],
           ),
         ),
@@ -131,11 +125,11 @@ class SeparateItemCard extends StatelessWidget {
           ),
         ],
         const Spacer(),
-        // Status visual (movido para cá)
+
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: isCompleted ? Colors.green.withValues(alpha: 0.15) : colorScheme.error.withValues(alpha: 0.1),
+            color: isCompleted ? AppColors.success.withValues(alpha: 0.15) : colorScheme.error.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -143,14 +137,14 @@ class SeparateItemCard extends StatelessWidget {
             children: [
               Icon(
                 isCompleted ? Icons.check_circle : Icons.hourglass_empty,
-                color: isCompleted ? Colors.green : colorScheme.error,
+                color: isCompleted ? AppColors.success : colorScheme.error,
                 size: 16,
               ),
               const SizedBox(width: 4),
               Text(
                 isCompleted ? 'Separado' : 'Pendente',
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: isCompleted ? Colors.green : colorScheme.error,
+                  color: isCompleted ? AppColors.success : colorScheme.error,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -255,7 +249,7 @@ class SeparateItemCard extends StatelessWidget {
             context,
             'Qtd. Separada',
             item.quantidadeSeparacao.toStringAsFixed(2),
-            color: isCompleted ? Colors.green : colorScheme.error,
+            color: isCompleted ? AppColors.success : colorScheme.error,
           ),
         ),
         Expanded(
@@ -321,7 +315,7 @@ class SeparateItemCard extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (context) => _UnitsModal(title: item.nomeProduto, units: item.unidadeMedidas),
     );
   }
@@ -374,7 +368,6 @@ class _UnitsModal extends StatelessWidget {
           decoration: BoxDecoration(color: colorScheme.surface, borderRadius: BorderRadius.circular(16)),
           child: Column(
             children: [
-              // Header do modal
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -404,7 +397,7 @@ class _UnitsModal extends StatelessWidget {
                   ],
                 ),
               ),
-              // Lista de unidades
+
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.all(16),

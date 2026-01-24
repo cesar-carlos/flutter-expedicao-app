@@ -10,6 +10,7 @@ import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class ShelfScanningModal extends StatefulWidget {
   final String expectedAddress;
@@ -232,7 +233,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
               ? 'Endereço incorreto. Esperado: ${widget.expectedAddressDescription}'
               : 'Código de barras incorreto. Esperado: ${widget.expectedAddress}',
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
       ),
     );
 
@@ -331,7 +332,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
               actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
               title: Row(
                 children: [
-                  Icon(Icons.qr_code_scanner, color: Colors.orange, size: UIConstants.largeIconSize),
+                  Icon(Icons.qr_code_scanner, color: AppColors.warning, size: UIConstants.largeIconSize),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -347,7 +348,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.location_on, color: Colors.blue, size: UIConstants.mediumIconSize),
+                      Icon(Icons.location_on, color: AppColors.info, size: UIConstants.mediumIconSize),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -376,7 +377,7 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
                       border: OutlineInputBorder(),
                       prefixIcon: GestureDetector(
                         onTap: _toggleInputMode,
-                        child: Icon(_isManualMode ? Icons.keyboard : Icons.qr_code_scanner, color: Colors.orange),
+                        child: Icon(_isManualMode ? Icons.keyboard : Icons.qr_code_scanner, color: AppColors.warning),
                       ),
                     ),
                     onSubmitted: (_) => _validateShelfInput(),

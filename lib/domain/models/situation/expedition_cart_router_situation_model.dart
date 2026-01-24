@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 enum ExpeditionCartRouterSituation {
-  cancelada('CANCELADA', 'Cancelada', Colors.red),
-  conferido('CONFERIDO', 'Conferido', Colors.lightGreen),
-  emConferencia('EM CONFERENCIA', 'Em Conferência', Colors.purple),
-  emEntrega('EM ENTREGA', 'Em Entrega', Colors.teal),
-  entregue('ENTREGUE', 'Entregue', Colors.yellow),
-  emSeparacao('EM SEPARACAO', 'Em Separação', Colors.orange),
-  finalizada('FINALIZADA', 'Finalizada', Colors.green),
-  separado('SEPARADO', 'Separado', Colors.lightGreen),
-  embalado('EMBALADO', 'Embalado', Colors.teal),
-  vazio('', '', Colors.grey);
+  cancelada('CANCELADA', 'Cancelada', AppColors.error),
+  conferido('CONFERIDO', 'Conferido', AppColors.lightGreen),
+  emConferencia('EM CONFERENCIA', 'Em Conferência', AppColors.purple),
+  emEntrega('EM ENTREGA', 'Em Entrega', AppColors.teal),
+  entregue('ENTREGUE', 'Entregue', AppColors.yellow),
+  emSeparacao('EM SEPARACAO', 'Em Separação', AppColors.warning),
+  finalizada('FINALIZADA', 'Finalizada', AppColors.success),
+  separado('SEPARADO', 'Separado', AppColors.lightGreen),
+  embalado('EMBALADO', 'Embalado', AppColors.teal),
+  vazio('', '', AppColors.grey);
 
   const ExpeditionCartRouterSituation(this.code, this.description, this.color);
 
@@ -43,7 +44,7 @@ enum ExpeditionCartRouterSituation {
   }
 
   static Color getColor(String code) {
-    return fromCode(code)?.color ?? Colors.grey;
+    return fromCode(code)?.color ?? AppColors.grey;
   }
 
   static Map<String, String> getSituacaoMap() {

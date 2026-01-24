@@ -13,6 +13,7 @@ import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/constants/app_strings.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -62,7 +63,7 @@ class AppDrawer extends StatelessWidget {
                         child: AvatarUtils.buildAvatar(
                           name: authViewModel.username.isNotEmpty ? authViewModel.username : 'Usuário',
                           photoBase64: authViewModel.currentUser?.fotoUsuario,
-                          backgroundColor: Colors.transparent,
+                          backgroundColor: AppColors.transparent,
                           textColor: theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 25,

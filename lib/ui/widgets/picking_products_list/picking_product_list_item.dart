@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class PickingProductListItem extends StatelessWidget {
   final SeparateItemConsultationModel item;
@@ -22,7 +23,7 @@ class PickingProductListItem extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final statusColor = isCompleted ? Colors.green : Colors.orange;
+    final statusColor = isCompleted ? AppColors.success : AppColors.warning;
     final pickedQuantity = viewModel.getPickedQuantity(item.item);
     final totalQuantity = item.quantidade.toInt();
 
@@ -99,7 +100,7 @@ class PickingProductListItem extends StatelessWidget {
           decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(12)),
           child: Text(
             isCompleted ? 'Separado' : 'Pendente',
-            style: theme.textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+            style: theme.textTheme.bodySmall?.copyWith(color: AppColors.white, fontWeight: FontWeight.bold),
           ),
         ),
       ],
@@ -254,8 +255,8 @@ class PickingProductListItem extends StatelessWidget {
                   iconSize: 20,
                   tooltip: 'Remover separação',
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.red.withValues(alpha: 0.1),
-                    foregroundColor: Colors.red,
+                    backgroundColor: AppColors.error.withValues(alpha: 0.1),
+                    foregroundColor: AppColors.error,
                   ),
                 ),
               ],
@@ -308,7 +309,7 @@ class PickingProductListItem extends StatelessWidget {
               } else {
                 ScaffoldMessenger.of(
                   context,
-                ).showSnackBar(const SnackBar(content: Text('Quantidade inválida'), backgroundColor: Colors.red));
+                ).showSnackBar(const SnackBar(content: Text('Quantidade inválida'), backgroundColor: AppColors.error));
               }
             },
             child: const Text('Salvar'),
@@ -341,10 +342,10 @@ class PickingProductListItem extends StatelessWidget {
               Navigator.of(context).pop();
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('Separação removida'), backgroundColor: Colors.orange));
+              ).showSnackBar(const SnackBar(content: Text('Separação removida'), backgroundColor: AppColors.warning));
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Remover', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Remover', style: TextStyle(color: AppColors.white)),
           ),
         ],
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class CartStatusWarning extends StatelessWidget {
   const CartStatusWarning({super.key});
@@ -40,8 +41,8 @@ class CartStatusWarning extends StatelessWidget {
 
   BoxDecoration _buildWarningDecoration() {
     return BoxDecoration(
-      color: Colors.red.shade50,
-      border: Border.all(color: Colors.red.shade300),
+      color: AppColors.red50,
+      border: Border.all(color: AppColors.red300),
       borderRadius: BorderRadius.circular(_borderRadius),
     );
   }
@@ -58,7 +59,7 @@ class CartStatusWarning extends StatelessWidget {
   Widget _buildWarningIcon() {
     return Padding(
       padding: _iconSpacing,
-      child: Icon(Icons.warning_amber_rounded, color: Colors.red.shade600, size: _iconSize),
+      child: Icon(Icons.warning_amber_rounded, color: AppColors.red600, size: _iconSize),
     );
   }
 
@@ -76,7 +77,7 @@ class CartStatusWarning extends StatelessWidget {
   Widget _buildWarningTitle() {
     return Text(
       'Carrinho não está em separação',
-      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade800, fontSize: _titleFontSize),
+      style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.red800, fontSize: _titleFontSize),
     );
   }
 
@@ -84,7 +85,7 @@ class CartStatusWarning extends StatelessWidget {
     return Text(
       'Este carrinho não está mais em situação de separação. '
       'Não é possível adicionar ou remover itens.',
-      style: TextStyle(color: Colors.red.shade700, fontSize: _descriptionFontSize),
+      style: TextStyle(color: AppColors.red700, fontSize: _descriptionFontSize),
     );
   }
 }

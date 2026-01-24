@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class LoadingButton extends StatelessWidget {
   final String text;
@@ -21,7 +22,7 @@ class LoadingButton extends StatelessWidget {
     this.borderRadius = const BorderRadius.all(Radius.circular(12)),
     this.backgroundColor,
     this.foregroundColor,
-    this.loadingColor = Colors.white,
+    this.loadingColor = AppColors.white,
     this.loadingSize = 20,
     this.strokeWidth = 2,
   });

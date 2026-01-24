@@ -4,6 +4,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:data7_expedicao/domain/models/separate_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/core/utils/fields_helper.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class SeparateDataGrid extends StatelessWidget {
   final List<SeparateModel> separations;
@@ -188,14 +189,14 @@ class ShipmentSeparateDataSource extends DataGridSource {
   }
 
   Color _getTextColor(Color backgroundColor) {
-    if (backgroundColor == Colors.yellow ||
-        backgroundColor == Colors.lightGreen ||
-        backgroundColor == Colors.amber ||
-        backgroundColor == Colors.lightBlue) {
-      return Colors.black;
+    if (backgroundColor == AppColors.yellow ||
+        backgroundColor == AppColors.lightGreen ||
+        backgroundColor == AppColors.warning ||
+        backgroundColor == AppColors.info) {
+      return AppColors.black;
     }
 
-    return Colors.white;
+    return AppColors.white;
   }
 
   Widget _buildPrioridadeChip(int prioridade) {
@@ -204,23 +205,23 @@ class ShipmentSeparateDataSource extends DataGridSource {
 
     switch (prioridade) {
       case 1:
-        backgroundColor = Colors.green;
+        backgroundColor = AppColors.success;
         text = 'Baixa';
         break;
       case 2:
-        backgroundColor = Colors.yellow;
+        backgroundColor = AppColors.yellow;
         text = 'Média';
         break;
       case 3:
-        backgroundColor = Colors.orange;
+        backgroundColor = AppColors.warning;
         text = 'Alta';
         break;
       case 4:
-        backgroundColor = Colors.red;
+        backgroundColor = AppColors.error;
         text = 'Urgente';
         break;
       default:
-        backgroundColor = Colors.grey;
+        backgroundColor = AppColors.grey;
         text = 'N/A';
     }
 
@@ -229,7 +230,7 @@ class ShipmentSeparateDataSource extends DataGridSource {
       decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(12)),
       child: Text(
         text,
-        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+        style: const TextStyle(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
       ),
     );
   }

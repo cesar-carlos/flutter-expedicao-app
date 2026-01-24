@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -217,7 +218,7 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
   void _showSuccessMessage(String message) {
     try {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.green, duration: const Duration(seconds: 2)),
+        SnackBar(content: Text(message), backgroundColor: AppColors.success, duration: const Duration(seconds: 2)),
       );
     } catch (e, stackTrace) {
       AppLogger.warning(

@@ -37,6 +37,7 @@ import 'package:data7_expedicao/ui/screens/add_cart_screen.dart';
 import 'package:data7_expedicao/domain/viewmodels/add_cart_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -304,7 +305,7 @@ class AppRouter {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const Icon(Icons.error_outline, size: 64, color: AppColors.error),
               const SizedBox(height: 16),
               Text('Erro na navegação', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 8),

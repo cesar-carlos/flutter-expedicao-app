@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_scan_state.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 /// Card de scanner de código de barras otimizado com Provider
 ///
@@ -36,7 +37,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isEnabled ? colorScheme.primary.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.3),
+          color: isEnabled ? colorScheme.primary.withValues(alpha: 0.3) : AppColors.grey.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -78,13 +79,13 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
   Widget _buildHeader(ThemeData theme, ColorScheme colorScheme, bool isEnabled) {
     return Row(
       children: [
-        Icon(Icons.qr_code_scanner, color: isEnabled ? colorScheme.primary : Colors.grey, size: 20),
+        Icon(Icons.qr_code_scanner, color: isEnabled ? colorScheme.primary : AppColors.grey, size: 20),
         const SizedBox(width: 6),
         Text(
           'Escaneie o código de barras',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: isEnabled ? colorScheme.primary : Colors.grey,
+            color: isEnabled ? colorScheme.primary : AppColors.grey,
           ),
         ),
       ],
@@ -141,7 +142,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
                       icon: Icon(keyboardEnabled ? Icons.qr_code_scanner : Icons.keyboard, color: colorScheme.primary),
                       tooltip: keyboardEnabled ? 'Usar Scanner' : 'Usar Teclado',
                     )
-                  : Icon(Icons.qr_code, color: Colors.grey)),
+                  : Icon(Icons.qr_code, color: AppColors.grey)),
         suffixIcon: isProcessing
             ? null
             : (enabled
@@ -155,25 +156,25 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
                   : null),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: enabled ? colorScheme.outline : Colors.grey),
+          borderSide: BorderSide(color: enabled ? colorScheme.outline : AppColors.grey),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: enabled ? colorScheme.outline : Colors.grey),
+          borderSide: BorderSide(color: enabled ? colorScheme.outline : AppColors.grey),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: enabled ? colorScheme.primary : Colors.grey, width: 2),
+          borderSide: BorderSide(color: enabled ? colorScheme.primary : AppColors.grey, width: 2),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey),
+          borderSide: BorderSide(color: AppColors.grey),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        fillColor: enabled ? null : Colors.grey.withValues(alpha: 0.1),
+        fillColor: enabled ? null : AppColors.grey.withValues(alpha: 0.1),
         filled: !enabled,
       ),
-      style: TextStyle(color: enabled ? null : Colors.grey),
+      style: TextStyle(color: enabled ? null : AppColors.grey),
     );
   }
 
@@ -193,7 +194,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
                       : 'Posicione o produto no scanner ou toque no ícone para usar o teclado')
                 : 'Scanner desabilitado - carrinho não está em situação de separação'),
       style: theme.textTheme.bodySmall?.copyWith(
-        color: isProcessing ? colorScheme.primary : (enabled ? colorScheme.onSurfaceVariant : Colors.grey),
+        color: isProcessing ? colorScheme.primary : (enabled ? colorScheme.onSurfaceVariant : AppColors.grey),
       ),
     );
   }

@@ -10,8 +10,8 @@ import 'package:data7_expedicao/domain/viewmodels/separate_consultation_viewmode
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
-/// Tela para exibir consultas de separação de expedição
 class SeparateConsultationScreen extends StatefulWidget {
   const SeparateConsultationScreen({super.key});
 
@@ -49,7 +49,6 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
 
     return Consumer<ShipmentSeparateConsultationViewModel>(
       builder: (context, viewModel, child) {
-        // Só processar mudanças de estado se o widget ainda estiver montado e não navegando
         if (mounted && !_isNavigatingAway) {
           _handleViewModelState(context, viewModel);
         }
@@ -87,18 +86,16 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
             drawer: const AppDrawer(),
             body: Column(
               children: [
-                // Barra de pesquisa e filtros
                 Container(
                   padding: const EdgeInsets.all(UIConstants.defaultPadding),
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2)),
+                      BoxShadow(color: AppColors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2)),
                     ],
                   ),
                   child: Column(
                     children: [
-                      // Campo de pesquisa
                       TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
@@ -122,7 +119,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
                         onChanged: (value) => viewModel.setSearchQuery(value),
                       ),
                       const SizedBox(height: UIConstants.smallPadding),
-                      // Botão de consulta principal
+
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -139,7 +136,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
                     ],
                   ),
                 ),
-                // DataGrid
+
                 Expanded(child: _buildDataGrid(viewModel)),
               ],
             ),
@@ -210,7 +207,6 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Informações do resultado
           Row(
             children: [
               Text(
@@ -230,7 +226,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
             ],
           ),
           const SizedBox(height: 16),
-          // DataGrid
+
           Expanded(
             child: Column(
               children: [
@@ -241,7 +237,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
                     onRowDoubleTap: _onConsultationDoubleTap,
                   ),
                 ),
-                // Controles de paginação
+
                 _buildPaginationControls(viewModel),
               ],
             ),
@@ -290,7 +286,6 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              // TODO: Implementar edição
             },
             child: const Text('Editar'),
           ),
@@ -330,14 +325,12 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
       ),
       child: Row(
         children: [
-          // Informações da paginação
           Text(
             'Página ${viewModel.currentPage + 1} - ${viewModel.consultations.length} registros',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const Spacer(),
 
-          // Botão página anterior
           IconButton(
             onPressed: viewModel.currentPage > 0 && !viewModel.isLoading
                 ? () => viewModel.loadPage(viewModel.currentPage - 1)
@@ -346,7 +339,6 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
             tooltip: 'Página anterior',
           ),
 
-          // Indicador de página atual
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -359,7 +351,6 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
             ),
           ),
 
-          // Botão próxima página
           IconButton(
             onPressed: viewModel.hasMoreData && !viewModel.isLoading ? () => viewModel.loadNextPage() : null,
             icon: const Icon(Icons.chevron_right),
@@ -375,7 +366,6 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
   }
 
   void _performConsultation(ShipmentSeparateConsultationViewModel viewModel) {
-    // Mostrar diálogo para inserir parâmetros de consulta
     context.showCustomDialog(
       title: 'Consultar Separações',
       titleIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
@@ -399,7 +389,6 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
             const Text('Escolha o tipo de consulta:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: UIConstants.defaultPadding),
 
-            // Opções de filtro
             SegmentedButton<String>(
               segments: const [
                 ButtonSegment(value: 'todos', label: Text('Todas as separações'), icon: Icon(Icons.all_inbox)),
@@ -414,7 +403,6 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
 
             const SizedBox(height: UIConstants.defaultPadding),
 
-            // Campo de entrada baseado na seleção
             if (selectedFilter == 'codigo') ...[
               TextField(
                 controller: paramsController,
@@ -444,7 +432,6 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
 
             const SizedBox(height: UIConstants.defaultPadding),
 
-            // Configurações de paginação
             Container(
               padding: const EdgeInsets.all(UIConstants.smallPadding),
               decoration: BoxDecoration(
@@ -513,7 +500,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
               ),
             ),
             const SizedBox(height: UIConstants.largePadding),
-            // Botões de ação
+
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -524,7 +511,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
                   label: const Text('Consultar'),
                   onPressed: () {
                     Navigator.of(context).pop();
-                    // Atualizar tamanho da página se necessário
+
                     if (pageSize != viewModel.pageSize) {
                       viewModel.setPageSize(pageSize);
                     }
@@ -546,12 +533,10 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
   ) {
     QueryBuilder? queryBuilder;
 
-    // Usa o pageSize atual do ViewModel
     final currentPageSize = viewModel.pageSize;
 
     switch (filterType) {
       case 'todos':
-        // QueryBuilder com paginação usando o pageSize atual
         queryBuilder = QueryBuilderExtension.withDefaultPagination(
           limit: currentPageSize,
         ).orderByDesc('codSepararEstoque');
@@ -584,7 +569,6 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
   }
 
   void _executeConsultation(ShipmentSeparateConsultationViewModel viewModel, QueryBuilder? queryBuilder) {
-    // Mostrar loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -593,17 +577,13 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
       ),
     );
 
-    // Executar consulta
     viewModel
         .performConsultation(queryBuilder)
         .then((_) {
-          // Verificar se o widget ainda está montado
           if (!mounted) return;
 
-          // Fechar loading
           Navigator.of(context).pop();
 
-          // Mostrar resultado
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -611,22 +591,20 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
                     ? 'Erro na consulta: ${viewModel.errorMessage}'
                     : 'Consulta realizada com sucesso! ${viewModel.consultations.length} registros encontrados.',
               ),
-              backgroundColor: viewModel.hasError ? Colors.red : Colors.green,
+              backgroundColor: viewModel.hasError ? AppColors.error : AppColors.success,
               duration: UIConstants.snackBarMediumDuration,
             ),
           );
         })
         .catchError((error) {
-          // Verificar se o widget ainda está montado
           if (!mounted) return;
 
-          // Fechar loading em caso de erro
           Navigator.of(context).pop();
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Erro na consulta: $error'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
               duration: UIConstants.snackBarMediumDuration,
             ),
           );
@@ -634,11 +612,9 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
   }
 
   void _handleViewModelState(BuildContext context, ShipmentSeparateConsultationViewModel viewModel) {
-    // Verificar se o widget ainda está montado e não está navegando
     if (!mounted || _isNavigatingAway) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Verificar novamente se o widget ainda está montado
       if (!mounted || _isNavigatingAway) return;
 
       switch (viewModel.state) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class CustomFlatButton extends StatelessWidget {
   final String text;
@@ -34,7 +35,7 @@ class CustomFlatButton extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     final effectiveTextColor = textColor ?? (isOutlined ? colorScheme.primary : colorScheme.onPrimary);
-    final effectiveBackgroundColor = backgroundColor ?? (isOutlined ? Colors.transparent : colorScheme.primary);
+    final effectiveBackgroundColor = backgroundColor ?? (isOutlined ? AppColors.transparent : colorScheme.primary);
     final effectiveBorderColor = borderColor ?? (isOutlined ? colorScheme.primary : effectiveBackgroundColor);
 
     return SizedBox(
@@ -63,7 +64,7 @@ class CustomFlatButton extends StatelessWidget {
                 padding: padding ?? const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius ?? 8)),
                 elevation: 0,
-                shadowColor: Colors.transparent,
+                shadowColor: AppColors.transparent,
               ),
             ),
     );
@@ -107,8 +108,8 @@ extension CustomFlatButtonVariations on CustomFlatButton {
       onPressed: onPressed,
       isLoading: isLoading,
       textColor: textColor,
-      backgroundColor: Colors.transparent,
-      borderColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
+      borderColor: AppColors.transparent,
       icon: icon,
       textStyle: textStyle,
       padding: const EdgeInsets.symmetric(vertical: 12),

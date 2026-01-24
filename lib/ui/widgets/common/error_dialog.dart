@@ -92,12 +92,12 @@ class ErrorDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
         children: [
-          Icon(Icons.error_outline, color: Colors.red, size: 28),
+          Icon(Icons.error_outline, color: AppColors.error, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.red),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.error),
             ),
           ),
         ],
@@ -107,33 +107,33 @@ class ErrorDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(message, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+            Text(message, style: const TextStyle(fontSize: 16, color: AppColors.black87)),
             if (details != null && details!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: AppColors.grey100,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
+                  border: Border.all(color: AppColors.grey300),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.grey[600], size: 16),
+                        Icon(Icons.info_outline, color: AppColors.grey600, size: 16),
                         const SizedBox(width: 8),
                         Text(
                           'Detalhes técnicos:',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700]),
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.grey700),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Text(
                       details!,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600], fontFamily: 'monospace'),
+                      style: TextStyle(fontSize: 13, color: AppColors.grey600, fontFamily: 'monospace'),
                     ),
                   ],
                 ),
@@ -160,7 +160,7 @@ class ErrorDialog extends StatelessWidget {
           },
           icon: const Icon(Icons.close),
           label: const Text('Fechar'),
-          style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
+          style: TextButton.styleFrom(foregroundColor: AppColors.grey600),
         ),
       ],
     );

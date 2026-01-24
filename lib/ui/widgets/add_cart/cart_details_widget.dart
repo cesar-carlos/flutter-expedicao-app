@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class CartDetailsWidget extends StatelessWidget {
   final ExpeditionCartConsultationModel cart;
@@ -18,12 +19,12 @@ class CartDetailsWidget extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: isReleased ? 3 : 1,
-      shadowColor: isReleased ? Colors.green.withValues(alpha: 0.3) : null,
+      shadowColor: isReleased ? AppColors.success.withValues(alpha: 0.3) : null,
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isReleased ? Colors.green.withValues(alpha: 0.6) : colorScheme.error.withValues(alpha: 0.6),
+          color: isReleased ? AppColors.success.withValues(alpha: 0.6) : colorScheme.error.withValues(alpha: 0.6),
           width: isReleased ? 3 : 2,
         ),
       ),
@@ -34,7 +35,7 @@ class CartDetailsWidget extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Colors.green.withValues(alpha: 0.08), Colors.green.withValues(alpha: 0.03)],
+                  colors: [AppColors.success.withValues(alpha: 0.08), AppColors.success.withValues(alpha: 0.03)],
                 ),
               )
             : null,
@@ -47,10 +48,10 @@ class CartDetailsWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isReleased ? Colors.green : colorScheme.error,
+                    color: isReleased ? AppColors.success : colorScheme.error,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(Icons.shopping_cart, color: Colors.white, size: 24),
+                  child: Icon(Icons.shopping_cart, color: AppColors.white, size: 24),
                 ),
 
                 const SizedBox(width: 16),
@@ -72,12 +73,12 @@ class CartDetailsWidget extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: isReleased ? Colors.green : colorScheme.error,
+                          color: isReleased ? AppColors.success : colorScheme.error,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           cart.situacaoDescription.toUpperCase(),
-                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                          style: const TextStyle(color: AppColors.white, fontSize: 12, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ],

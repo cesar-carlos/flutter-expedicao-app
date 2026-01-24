@@ -20,6 +20,7 @@ import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class SeparationItemsScreen extends StatefulWidget {
   final SeparateConsultationModel separation;
@@ -102,7 +103,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
                               child: Container(
                                 width: 8,
                                 height: 8,
-                                decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                decoration: BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
                               ),
                             ),
                         ],
@@ -300,7 +301,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
               'Não é possível adicionar carrinho. Situação atual: ${viewModel.separation?.situacao.description ?? 'Desconhecida'}\n'
               'Permitido apenas em: Aguardando, Separando ou Em Separação',
             ),
-            backgroundColor: Colors.orange,
+            backgroundColor: AppColors.warning,
             duration: UIConstants.snackBarLongDuration,
           ),
         );
@@ -368,7 +369,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
               content: const Text(
                 'Carrinho adicionado, mas não foi possível abrir automaticamente. Tente abrir manualmente.',
               ),
-              backgroundColor: Colors.orange,
+              backgroundColor: AppColors.warning,
               duration: UIConstants.snackBarMediumDuration,
             ),
           );

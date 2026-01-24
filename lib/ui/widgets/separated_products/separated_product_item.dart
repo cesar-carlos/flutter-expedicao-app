@@ -5,6 +5,7 @@ import 'package:data7_expedicao/domain/models/separation_item_consultation_model
 import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:data7_expedicao/domain/viewmodels/separated_products_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class SeparatedProductItem extends StatelessWidget {
   final SeparationItemConsultationModel item;
@@ -54,12 +55,12 @@ class SeparatedProductItem extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(_getSituationIcon(item.situacao), color: Colors.white, size: 14),
+                          Icon(_getSituationIcon(item.situacao), color: AppColors.white, size: 14),
                           const SizedBox(width: 4),
                           Text(
                             item.situacao.description,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -88,7 +89,7 @@ class SeparatedProductItem extends StatelessWidget {
                         icon: Icons.inventory_2,
                         label: 'Quantidade',
                         value: '${item.quantidade.toStringAsFixed(2)} ${item.codUnidadeMedida}',
-                        color: Colors.blue,
+                        color: AppColors.info,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -98,7 +99,7 @@ class SeparatedProductItem extends StatelessWidget {
                         icon: Icons.warehouse,
                         label: 'Setor',
                         value: item.nomeSetorEstoque ?? 'N/A',
-                        color: Colors.purple,
+                        color: AppColors.purple,
                       ),
                     ),
                   ],
@@ -192,8 +193,8 @@ class SeparatedProductItem extends StatelessWidget {
                     ? null
                     : () => _showDeleteDialog(context),
                 isLoading: viewModel!.isItemBeingCancelled(item.item),
-                textColor: viewModel!.isCartInSeparationStatus ? theme.colorScheme.error : Colors.grey,
-                borderColor: viewModel!.isCartInSeparationStatus ? theme.colorScheme.error : Colors.grey,
+                textColor: viewModel!.isCartInSeparationStatus ? theme.colorScheme.error : AppColors.grey,
+                borderColor: viewModel!.isCartInSeparationStatus ? theme.colorScheme.error : AppColors.grey,
                 icon: Icons.delete_outline,
               ),
             ),
@@ -365,7 +366,7 @@ class SeparatedProductItem extends StatelessWidget {
   void _showSuccessMessage(BuildContext context) {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Item excluído com sucesso!'), backgroundColor: Colors.green));
+    ).showSnackBar(const SnackBar(content: Text('Item excluído com sucesso!'), backgroundColor: AppColors.success));
   }
 
   void _showErrorMessage(BuildContext context) {

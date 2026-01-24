@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class BarcodeScannerCard extends StatelessWidget {
   final TextEditingController controller;
@@ -32,7 +33,7 @@ class BarcodeScannerCard extends StatelessWidget {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: enabled ? colorScheme.primary.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.3),
+          color: enabled ? colorScheme.primary.withValues(alpha: 0.3) : AppColors.grey.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -52,13 +53,13 @@ class BarcodeScannerCard extends StatelessWidget {
   Widget _buildHeader(ThemeData theme, ColorScheme colorScheme) {
     return Row(
       children: [
-        Icon(Icons.qr_code_scanner, color: enabled ? colorScheme.primary : Colors.grey, size: 20),
+        Icon(Icons.qr_code_scanner, color: enabled ? colorScheme.primary : AppColors.grey, size: 20),
         const SizedBox(width: 6),
         Text(
           'Escaneie o código de barras',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: enabled ? colorScheme.primary : Colors.grey,
+            color: enabled ? colorScheme.primary : AppColors.grey,
           ),
         ),
       ],
@@ -105,7 +106,7 @@ class BarcodeScannerCard extends StatelessWidget {
                       icon: Icon(keyboardEnabled ? Icons.qr_code_scanner : Icons.keyboard, color: colorScheme.primary),
                       tooltip: keyboardEnabled ? 'Usar Scanner' : 'Usar Teclado',
                     )
-                  : Icon(Icons.qr_code, color: Colors.grey)),
+                  : Icon(Icons.qr_code, color: AppColors.grey)),
         suffixIcon: isProcessing
             ? null
             : (enabled
@@ -119,25 +120,25 @@ class BarcodeScannerCard extends StatelessWidget {
                   : null),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: enabled ? colorScheme.outline : Colors.grey),
+          borderSide: BorderSide(color: enabled ? colorScheme.outline : AppColors.grey),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: enabled ? colorScheme.outline : Colors.grey),
+          borderSide: BorderSide(color: enabled ? colorScheme.outline : AppColors.grey),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: enabled ? colorScheme.primary : Colors.grey, width: 2),
+          borderSide: BorderSide(color: enabled ? colorScheme.primary : AppColors.grey, width: 2),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey),
+          borderSide: BorderSide(color: AppColors.grey),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        fillColor: enabled ? null : Colors.grey.withValues(alpha: 0.1),
+        fillColor: enabled ? null : AppColors.grey.withValues(alpha: 0.1),
         filled: !enabled,
       ),
-      style: TextStyle(color: enabled ? null : Colors.grey),
+      style: TextStyle(color: enabled ? null : AppColors.grey),
     );
   }
 
@@ -151,7 +152,7 @@ class BarcodeScannerCard extends StatelessWidget {
                       : 'Posicione o produto no scanner ou toque no ícone para usar o teclado')
                 : 'Scanner desabilitado - carrinho não está em situação de separação'),
       style: theme.textTheme.bodySmall?.copyWith(
-        color: isProcessing ? colorScheme.primary : (enabled ? colorScheme.onSurfaceVariant : Colors.grey),
+        color: isProcessing ? colorScheme.primary : (enabled ? colorScheme.onSurfaceVariant : AppColors.grey),
       ),
     );
   }

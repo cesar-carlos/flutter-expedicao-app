@@ -6,6 +6,7 @@ import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/constants/app_strings.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/config/index.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class ConfigScreen extends StatelessWidget {
   const ConfigScreen({super.key});
@@ -34,7 +35,7 @@ class ConfigScreen extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Configuração resetada!'),
-            backgroundColor: Colors.orange,
+            backgroundColor: AppColors.warning,
             behavior: SnackBarBehavior.floating,
             margin: EdgeInsets.all(16),
           ),

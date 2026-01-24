@@ -4,6 +4,7 @@ import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/editable_avatar.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/widgets/index.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class ProfileHeader extends StatelessWidget {
   final ProfileViewModel viewModel;
@@ -171,8 +172,8 @@ class ProfileHeader extends StatelessWidget {
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: user.isActive ? Colors.green.shade100 : Colors.grey.shade200,
-            border: Border.all(color: user.isActive ? Colors.green.shade300 : Colors.grey.shade400, width: 2),
+            color: user.isActive ? AppColors.green100 : AppColors.grey200,
+            border: Border.all(color: user.isActive ? AppColors.green300 : AppColors.grey400, width: 2),
           ),
           child: EditableAvatar(viewModel: viewModel),
         ),
@@ -184,11 +185,11 @@ class ProfileHeader extends StatelessWidget {
             width: 20,
             height: 20,
             decoration: BoxDecoration(
-              color: user.isActive ? Colors.green : Colors.grey,
+              color: user.isActive ? AppColors.success : AppColors.grey,
               shape: BoxShape.circle,
               border: Border.all(color: colorScheme.surface, width: 2),
             ),
-            child: Icon(user.isActive ? Icons.check : Icons.close, size: 10, color: Colors.white),
+            child: Icon(user.isActive ? Icons.check : Icons.close, size: 10, color: AppColors.white),
           ),
         ),
       ],

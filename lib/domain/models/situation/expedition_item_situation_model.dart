@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 enum ExpeditionItemSituation {
-  separado('SP', 'Separado', Colors.lightGreen),
-  cancelado('CA', 'Cancelado', Colors.red),
-  pendente('PE', 'Pendente', Colors.grey),
-  conferido('CO', 'Conferido', Colors.lightGreen),
-  embalado('EM', 'Embalado', Colors.teal),
-  entregue('EN', 'Entregue', Colors.green),
-  expedido('EX', 'Expedido', Colors.green),
-  pausado('PA', 'Pausado', Colors.yellow),
-  reiniciado('RE', 'Reiniciado', Colors.blue),
-  finalizado('FN', 'Finalizado', Colors.green),
-  armazenar('AR', 'Armazenar', Colors.brown),
-  vazio('', 'Vazio', Colors.grey);
+  separado('SP', 'Separado', AppColors.lightGreen),
+  cancelado('CA', 'Cancelado', AppColors.error),
+  pendente('PE', 'Pendente', AppColors.grey),
+  conferido('CO', 'Conferido', AppColors.lightGreen),
+  embalado('EM', 'Embalado', AppColors.teal),
+  entregue('EN', 'Entregue', AppColors.success),
+  expedido('EX', 'Expedido', AppColors.success),
+  pausado('PA', 'Pausado', AppColors.yellow),
+  reiniciado('RE', 'Reiniciado', AppColors.info),
+  finalizado('FN', 'Finalizado', AppColors.success),
+  armazenar('AR', 'Armazenar', AppColors.brown),
+  vazio('', 'Vazio', AppColors.grey);
 
   const ExpeditionItemSituation(this.code, this.description, this.color);
 
@@ -45,7 +46,7 @@ enum ExpeditionItemSituation {
   }
 
   static Color getColor(String code) {
-    return fromCode(code)?.color ?? Colors.grey;
+    return fromCode(code)?.color ?? AppColors.grey;
   }
 }
 

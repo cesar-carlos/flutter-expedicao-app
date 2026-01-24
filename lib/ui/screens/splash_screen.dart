@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -65,13 +66,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     child: Container(
                       width: 140,
                       height: 140,
-                      decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.circular(20)),
+                      decoration: BoxDecoration(color: AppColors.transparent, borderRadius: BorderRadius.circular(20)),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: AdaptiveLogo(
                           width: 120,
                           height: 120,
-                          fallback: const Icon(Icons.qr_code_scanner, size: 70, color: Colors.white),
+                          fallback: const Icon(Icons.qr_code_scanner, size: 70, color: AppColors.white),
                         ),
                       ),
                     ),
@@ -86,7 +87,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               opacity: _fadeAnimation,
               child: Text(
                 'Data7 Expedição',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 2),
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.white, letterSpacing: 2),
               ),
             ),
 
@@ -96,7 +97,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               opacity: _fadeAnimation,
               child: Text(
                 'Se7e Sistemas',
-                style: TextStyle(fontSize: 16, color: Colors.white.withValues(alpha: 0.8), letterSpacing: 1),
+                style: TextStyle(fontSize: 16, color: AppColors.white.withValues(alpha: 0.8), letterSpacing: 1),
               ),
             ),
 
@@ -105,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             FadeTransition(
               opacity: _fadeAnimation,
               child: const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                 strokeWidth: 3,
               ),
             ),

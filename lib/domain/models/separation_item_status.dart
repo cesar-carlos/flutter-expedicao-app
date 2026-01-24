@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 /// Situações possíveis para itens de separação
 enum SeparationItemStatus {
-  separado('SE', 'Separado', Colors.green),
-  pendente('PE', 'Pendente', Colors.orange),
-  parcial('PA', 'Parcial', Colors.blue),
-  cancelado('CA', 'Cancelado', Colors.red);
+  separado('SE', 'Separado', AppColors.success),
+  pendente('PE', 'Pendente', AppColors.warning),
+  parcial('PA', 'Parcial', AppColors.info),
+  cancelado('CA', 'Cancelado', AppColors.error);
 
   const SeparationItemStatus(this.code, this.description, this.color);
 

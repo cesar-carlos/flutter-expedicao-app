@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/ui/widgets/common/picking_dialog.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class PickingDialogManager {
   final BuildContext context;
@@ -115,7 +116,7 @@ class PickingDialogManager {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.check_circle_outline, color: Colors.green, size: UIConstants.largeIconSize),
+            Icon(Icons.check_circle_outline, color: AppColors.success, size: UIConstants.largeIconSize),
             const SizedBox(width: 8),
             const Text('Setor Concluído!'),
           ],
@@ -127,19 +128,19 @@ class PickingDialogManager {
             Container(
               padding: const EdgeInsets.all(UIConstants.smallPadding),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-                border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '✓ Todos os itens do seu setor foram separados!',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade700),
+                    style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.green700),
                   ),
                   const SizedBox(height: UIConstants.smallPadding),
-                  Text('Seu setor: Setor $userSectorCode', style: TextStyle(color: Colors.green.shade600)),
+                  Text('Seu setor: Setor $userSectorCode', style: TextStyle(color: AppColors.green600)),
                 ],
               ),
             ),
@@ -171,8 +172,8 @@ class PickingDialogManager {
                 }
               });
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: Text('Salvar Carrinho', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+            child: Text('Salvar Carrinho', style: TextStyle(color: AppColors.white)),
           ),
         ],
       ),

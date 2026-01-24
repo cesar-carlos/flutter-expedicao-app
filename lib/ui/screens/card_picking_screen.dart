@@ -11,6 +11,7 @@ import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/cart_status_warning.dart';
 import 'package:data7_expedicao/ui/widgets/cart_title_with_connection_status.dart';
 import 'package:data7_expedicao/ui/widgets/cart_status_bar.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class CardPickingScreen extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cart;
@@ -106,7 +107,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
                 value: 'pending',
                 child: Row(
                   children: [
-                    Icon(Icons.pending_actions, color: Colors.orange, size: 20),
+                    Icon(Icons.pending_actions, color: AppColors.warning, size: 20),
                     SizedBox(width: 12),
                     Text('Produtos Pendentes'),
                   ],
@@ -116,7 +117,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
                 value: 'completed',
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle, color: Colors.green, size: 20),
+                    Icon(Icons.check_circle, color: AppColors.success, size: 20),
                     SizedBox(width: 12),
                     Text('Produtos Separados'),
                   ],
@@ -333,7 +334,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
                         '${(progress * 100).toInt()}%',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: progress >= 1.0 ? Colors.green : Theme.of(context).colorScheme.primary,
+                          color: progress >= 1.0 ? AppColors.success : Theme.of(context).colorScheme.primary,
                         ),
                       ),
                     ],
@@ -343,7 +344,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
                     value: progress,
                     backgroundColor: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      progress >= 1.0 ? Colors.green : Theme.of(context).colorScheme.primary,
+                      progress >= 1.0 ? AppColors.success : Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ],
@@ -359,23 +360,23 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.1),
+                      color: AppColors.success.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                      border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
                     ),
                     child: Column(
                       children: [
-                        Icon(Icons.check_circle, color: Colors.green, size: 24),
+                        Icon(Icons.check_circle, color: AppColors.success, size: 24),
                         const SizedBox(height: 4),
                         Text(
                           '$completedItems',
                           style: Theme.of(
                             context,
-                          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.green),
+                          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.success),
                         ),
                         Text(
                           'Separados',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.green.shade700),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.green700),
                         ),
                       ],
                     ),
@@ -386,23 +387,23 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
+                      color: AppColors.warning.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                      border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
                     ),
                     child: Column(
                       children: [
-                        Icon(Icons.pending_actions, color: Colors.orange, size: 24),
+                        Icon(Icons.pending_actions, color: AppColors.warning, size: 24),
                         const SizedBox(height: 4),
                         Text(
                           '$pendingItems',
                           style: Theme.of(
                             context,
-                          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.orange),
+                          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.warning),
                         ),
                         Text(
                           'Pendentes',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.orange.shade700),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.orange700),
                         ),
                       ],
                     ),

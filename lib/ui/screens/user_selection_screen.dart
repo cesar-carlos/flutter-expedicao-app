@@ -67,7 +67,7 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
       appBar: CustomAppBar.withoutSocket(
         title: 'Selecionar Usuário do Sistema',
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.white,
         elevation: 0,
       ),
       resizeToAvoidBottomInset: true,
@@ -165,14 +165,14 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(backgroundColor: Colors.red, content: Text(viewModel.errorMessage ?? 'Erro ao vincular usuário')),
+          SnackBar(backgroundColor: AppColors.error, content: Text(viewModel.errorMessage ?? 'Erro ao vincular usuário')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erro inesperado: $e'), backgroundColor: Colors.red));
+        ).showSnackBar(SnackBar(content: Text('Erro inesperado: $e'), backgroundColor: AppColors.error));
       }
     }
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:data7_expedicao/core/constants/app_strings.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class ProfilePhotoSelector extends StatefulWidget {
   final File? initialImage;
@@ -88,9 +89,9 @@ class _ProfilePhotoSelectorState extends State<ProfilePhotoSelector> {
             ),
             if (_selectedImage != null)
               ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
+                leading: const Icon(Icons.delete, color: AppColors.error),
                 title: const Text(AppStrings.removePhoto),
-                textColor: Colors.red,
+                textColor: AppColors.error,
                 onTap: () {
                   Navigator.of(context).pop();
                   _removeImage();

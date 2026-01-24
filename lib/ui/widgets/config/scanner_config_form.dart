@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/core/constants/app_strings.dart';
@@ -51,13 +52,13 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(AppStrings.scannerConfigSaved),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.fixed,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(vm.errorMessage), backgroundColor: Colors.red, behavior: SnackBarBehavior.fixed),
+        SnackBar(content: Text(vm.errorMessage), backgroundColor: AppColors.error, behavior: SnackBarBehavior.fixed),
       );
     }
   }

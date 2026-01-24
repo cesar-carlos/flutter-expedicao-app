@@ -7,6 +7,7 @@ import 'package:data7_expedicao/core/validation/forms/form_validators.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class LoginForm extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
@@ -53,7 +54,7 @@ class _LoginFormState extends State<LoginForm> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.warning, color: Colors.orange, size: 32),
+        icon: const Icon(Icons.warning, color: AppColors.warning, size: 32),
         title: const Text('Configuração Necessária'),
         content: Text(message),
         actions: [
@@ -120,8 +121,8 @@ class _LoginFormState extends State<LoginForm> {
                 onPressed: authViewModel.isLoginLoading ? null : () => context.go('/qrcode-login'),
                 icon: Icons.qr_code_scanner,
                 textColor: Theme.of(context).colorScheme.secondary,
-                backgroundColor: Colors.transparent,
-                borderColor: Colors.transparent,
+                backgroundColor: AppColors.transparent,
+                borderColor: AppColors.transparent,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 borderRadius: 6,
               ),

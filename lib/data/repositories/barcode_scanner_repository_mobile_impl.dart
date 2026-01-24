@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import 'package:data7_expedicao/domain/repositories/barcode_scanner_repository.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class BarcodeScannerRepositoryMobileImpl implements BarcodeScannerRepository {
   BuildContext? _context;
@@ -143,7 +144,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const Icon(Icons.error_outline, size: 64, color: AppColors.error),
                   const SizedBox(height: 16),
                   Text(_errorMessage!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
                   const SizedBox(height: 24),
@@ -202,7 +203,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error, size: 64, color: Colors.red),
+                      const Icon(Icons.error, size: 64, color: AppColors.error),
                       const SizedBox(height: 16),
                       Text('Erro: ${error.errorCode}', textAlign: TextAlign.center),
                       const SizedBox(height: 8),
@@ -214,8 +215,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             ),
             if (_isProcessing)
               Container(
-                color: Colors.black54,
-                child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+                color: AppColors.black54,
+                child: const Center(child: CircularProgressIndicator(color: AppColors.white)),
               ),
           ],
         ),

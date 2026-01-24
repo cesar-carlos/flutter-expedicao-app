@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/add_cart_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class CartActionsWidget extends StatefulWidget {
   final AddCartViewModel viewModel;
@@ -64,13 +65,13 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade50,
+                  color: AppColors.green50,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                  border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle_outline, color: Colors.green, size: 24),
+                    Icon(Icons.check_circle_outline, color: AppColors.success, size: 24),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -79,14 +80,14 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
                           Text(
                             'Carrinho Válido',
                             style: textTheme.titleSmall?.copyWith(
-                              color: Colors.green.shade700,
+                              color: AppColors.green700,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Este carrinho pode ser adicionado à separação.',
-                            style: textTheme.bodySmall?.copyWith(color: Colors.green.shade600),
+                            style: textTheme.bodySmall?.copyWith(color: AppColors.green600),
                           ),
                         ],
                       ),
@@ -144,10 +145,10 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
                     decoration: BoxDecoration(
                       border: Border.all(color: colorScheme.outline),
                       borderRadius: BorderRadius.circular(8),
-                      color: Colors.transparent,
+                      color: AppColors.transparent,
                     ),
                     child: Material(
-                      color: Colors.transparent,
+                      color: AppColors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(8),
                         onTap: widget.viewModel.isAdding ? null : widget.onCancel,
@@ -187,10 +188,10 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
                     decoration: BoxDecoration(
                       border: Border.all(color: colorScheme.outline),
                       borderRadius: BorderRadius.circular(8),
-                      color: Colors.transparent,
+                      color: AppColors.transparent,
                     ),
                     child: Material(
-                      color: Colors.transparent,
+                      color: AppColors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(8),
                         onTap: widget.viewModel.isAdding ? null : widget.onCancel,

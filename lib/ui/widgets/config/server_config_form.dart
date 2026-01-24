@@ -6,6 +6,7 @@ import 'package:data7_expedicao/core/constants/app_strings.dart';
 import 'package:data7_expedicao/core/validation/forms/form_validators.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class ServerConfigForm extends StatefulWidget {
   const ServerConfigForm({super.key});
@@ -23,7 +24,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
   @override
   void initState() {
     super.initState();
-    // Carrega a configuração silenciosamente sem causar rebuild
+
     _loadCurrentConfig();
   }
 
@@ -58,13 +59,12 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(AppStrings.configSaved),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
             margin: EdgeInsets.all(16),
           ),
         );
 
-        // Navega de volta para o login de forma segura
         if (context.canPop()) {
           context.pop();
         } else {
@@ -89,7 +89,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
           SnackBar(
             content: Row(
               children: [
-                Icon(success ? Icons.check_circle : Icons.error, color: Colors.white, size: 20),
+                Icon(success ? Icons.check_circle : Icons.error, color: AppColors.white, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -100,7 +100,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
                 ),
               ],
             ),
-            backgroundColor: success ? Colors.green : Colors.red,
+            backgroundColor: success ? AppColors.success : AppColors.error,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
             duration: Duration(seconds: success ? 3 : 5),
@@ -129,27 +129,22 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Card informativo
               _buildInfoCard(theme, configViewModel),
 
               const SizedBox(height: 24),
 
-              // Campos de configuração
               _buildConfigFields(configViewModel),
 
               const SizedBox(height: 24),
 
-              // Preview da URL
               _buildUrlPreview(theme),
 
               const SizedBox(height: 24),
 
-              // Botões de ação
               _buildActionButtons(configViewModel),
 
               const SizedBox(height: 16),
 
-              // Mensagem de erro
               ErrorMessage(message: configViewModel.errorMessage),
             ],
           ),
@@ -202,7 +197,6 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
   Widget _buildConfigFields(ConfigViewModel configViewModel) {
     return Column(
       children: [
-        // Campo URL
         CustomTextFormField(
           controller: _urlController,
           enabled: !configViewModel.isLoading,
@@ -212,14 +206,12 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
           validator: FormValidators.apiUrl,
           textInputAction: TextInputAction.next,
           onFieldSubmitted: () {
-            // Foca no próximo campo
             FocusScope.of(context).nextFocus();
           },
         ),
 
         const SizedBox(height: 16),
 
-        // Campo Porta
         CustomTextFormField(
           controller: _portController,
           enabled: !configViewModel.isLoading,
@@ -233,12 +225,14 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
 
         const SizedBox(height: 16),
 
-        // Switch HTTPS
         Card(
           child: SwitchListTile(
             title: const Text(AppStrings.useHttps),
             subtitle: const Text(AppStrings.httpsSubtitle),
-            secondary: Icon(_useHttps ? Icons.lock : Icons.lock_open, color: _useHttps ? Colors.green : Colors.grey),
+            secondary: Icon(
+              _useHttps ? Icons.lock : Icons.lock_open,
+              color: _useHttps ? AppColors.success : AppColors.grey,
+            ),
             value: _useHttps,
             onChanged: configViewModel.isLoading ? null : (value) => setState(() => _useHttps = value),
           ),
@@ -295,7 +289,6 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
   Widget _buildActionButtons(ConfigViewModel configViewModel) {
     return Column(
       children: [
-        // Botão de testar conexão
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
@@ -307,7 +300,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
           ),
         ),
         const SizedBox(height: 12),
-        // Botão de salvar
+
         SizedBox(
           width: double.infinity,
           child: LoadingButton(

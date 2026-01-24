@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class SocketStatusIndicator extends StatelessWidget {
   final bool showLabel;
@@ -23,7 +24,7 @@ class SocketStatusIndicator extends StatelessWidget {
           duration: const Duration(milliseconds: 300),
           padding: padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: AppColors.black.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(

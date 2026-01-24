@@ -17,7 +17,7 @@ class UserConfirmButton extends StatelessWidget {
         onPressed: viewModel.state == UserSelectionState.selecting ? null : onConfirm,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.success,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -27,7 +27,7 @@ class UserConfirmButton extends StatelessWidget {
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                 ),
               )
             : const Text('Confirmar Seleção', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

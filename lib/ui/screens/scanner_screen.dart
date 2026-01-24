@@ -11,6 +11,7 @@ import 'package:data7_expedicao/ui/widgets/scanner_title_with_connection_status.
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -112,7 +113,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       width: 8,
                                       height: 8,
                                       decoration: BoxDecoration(
-                                        color: _focusNode.hasFocus ? Colors.green : Colors.grey,
+                                        color: _focusNode.hasFocus ? AppColors.success : AppColors.grey,
                                         shape: BoxShape.circle,
                                       ),
                                     ),
@@ -120,7 +121,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                     Text(
                                       _focusNode.hasFocus ? 'Scanner ativo' : 'Scanner inativo',
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: _focusNode.hasFocus ? Colors.green : Colors.grey,
+                                        color: _focusNode.hasFocus ? AppColors.success : AppColors.grey,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -142,8 +143,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               label: const Text('Limpar Tudo'),
                               onPressed: () => _showClearAllDialog(context, scannerViewModel),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
+                                backgroundColor: AppColors.error,
+                                foregroundColor: AppColors.white,
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               ),
                             ),
@@ -237,16 +238,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.qr_code_scanner_outlined, size: 64, color: Colors.grey[400]),
+            Icon(Icons.qr_code_scanner_outlined, size: 64, color: AppColors.grey400),
             const SizedBox(height: 16),
             Text(
               'Nenhuma leitura registrada',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.grey[600]),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.grey600),
             ),
             const SizedBox(height: 8),
             Text(
               'Use o scanner para adicionar códigos',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey500),
             ),
           ],
         ),
@@ -275,7 +276,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               child: Center(
                 child: Text(
                   '${index + 1}',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
             ),
@@ -288,7 +289,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
             subtitle: Text(
               _formatTimestamp(scan.timestamp),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.grey600),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -302,12 +303,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                     child: Text(
                       'ÚLTIMO',
-                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
                     ),
                   ),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
                   onPressed: () => _showDeleteDialog(context, viewModel, index),
                   tooltip: 'Remover leitura',
                 ),
@@ -353,7 +354,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               viewModel.removeFromHistory(index);
               Navigator.of(context).pop();
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Remover'),
           ),
         ],
@@ -375,7 +376,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               viewModel.clearHistory();
               Navigator.of(context).pop();
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Limpar Tudo'),
           ),
         ],

@@ -4,6 +4,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/core/utils/fields_helper.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class SeparateConsultationDataGrid extends StatelessWidget {
   final List<SeparateConsultationModel> consultations;
@@ -169,7 +170,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
             8,
             (index) => Container(
               padding: const EdgeInsets.all(8.0),
-              child: const Text('ERRO: Índice inválido', style: TextStyle(fontSize: 12, color: Colors.red)),
+              child: const Text('ERRO: Índice inválido', style: TextStyle(fontSize: 12, color: AppColors.error)),
             ),
           ),
         );
@@ -208,7 +209,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
           cells.add(
             Container(
               padding: const EdgeInsets.all(8.0),
-              child: Text('ERRO: $e', style: const TextStyle(fontSize: 10, color: Colors.red)),
+              child: Text('ERRO: $e', style: const TextStyle(fontSize: 10, color: AppColors.error)),
             ),
           );
         }
@@ -221,7 +222,7 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
           8,
           (index) => Container(
             padding: const EdgeInsets.all(8.0),
-            child: Text('ERRO GERAL: $e', style: const TextStyle(fontSize: 10, color: Colors.red)),
+            child: Text('ERRO GERAL: $e', style: const TextStyle(fontSize: 10, color: AppColors.error)),
           ),
         ),
       );
@@ -298,10 +299,10 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
     } catch (e) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(color: AppColors.grey, borderRadius: BorderRadius.circular(12)),
         child: const Text(
           'Erro',
-          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
         ),
       );
     }
@@ -324,23 +325,23 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
     } catch (e) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(12)),
         child: const Text(
           'ERRO',
-          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.white, fontSize: 10, fontWeight: FontWeight.bold),
         ),
       );
     }
   }
 
   Color _getTextColor(Color backgroundColor) {
-    if (backgroundColor == Colors.yellow ||
-        backgroundColor == Colors.lightGreen ||
-        backgroundColor == Colors.amber ||
-        backgroundColor == Colors.lightBlue) {
-      return Colors.black;
+    if (backgroundColor == AppColors.yellow ||
+        backgroundColor == AppColors.lightGreen ||
+        backgroundColor == AppColors.warning ||
+        backgroundColor == AppColors.info) {
+      return AppColors.black;
     }
 
-    return Colors.white;
+    return AppColors.white;
   }
 }
