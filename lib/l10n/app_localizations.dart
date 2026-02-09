@@ -472,6 +472,228 @@ abstract class AppLocalizations {
   /// **'Configuração do Scanner'**
   String get scannerConfigMenu;
 
+  /// No description provided for @printerConfigTitle.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Configuração de Impressoras'**
+  String get printerConfigTitle;
+
+  /// No description provided for @printerConfigDescription.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Cadastre impressoras manualmente ou busque automaticamente na rede local.'**
+  String get printerConfigDescription;
+
+  /// No description provided for @printerConfigRefreshTooltip.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Atualizar impressoras'**
+  String get printerConfigRefreshTooltip;
+
+  /// No description provided for @printerConfigSearchingNetwork.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Buscando na rede...'**
+  String get printerConfigSearchingNetwork;
+
+  /// No description provided for @printerConfigSearchNetwork.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Buscar na Rede'**
+  String get printerConfigSearchNetwork;
+
+  /// No description provided for @printerConfigAdvancedSearch.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Busca Avancada'**
+  String get printerConfigAdvancedSearch;
+
+  /// No description provided for @printerConfigAddPrinter.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Adicionar Impressora'**
+  String get printerConfigAddPrinter;
+
+  /// No description provided for @printerConfigEmpty.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Nenhuma impressora cadastrada.'**
+  String get printerConfigEmpty;
+
+  /// No description provided for @printerConfigDefaultBadge.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Padrao'**
+  String get printerConfigDefaultBadge;
+
+  /// No description provided for @printerConfigTestPrinter.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Testar impressora'**
+  String get printerConfigTestPrinter;
+
+  /// No description provided for @printerConfigSetDefault.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Definir como padrao'**
+  String get printerConfigSetDefault;
+
+  /// No description provided for @printerConfigRemoveAction.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Remover'**
+  String get printerConfigRemoveAction;
+
+  /// No description provided for @printerConfigRemoveTitle.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Remover impressora'**
+  String get printerConfigRemoveTitle;
+
+  /// No description provided for @printerConfigRemoveMessage.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Deseja remover \"{printerName}\" da lista de impressoras disponiveis?'**
+  String printerConfigRemoveMessage(String printerName);
+
+  /// No description provided for @printerConfigEditTitle.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Editar impressora'**
+  String get printerConfigEditTitle;
+
+  /// No description provided for @printerConfigAddTitle.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Adicionar impressora'**
+  String get printerConfigAddTitle;
+
+  /// No description provided for @printerConfigAddAction.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Adicionar'**
+  String get printerConfigAddAction;
+
+  /// No description provided for @printerConfigNameLabel.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Nome'**
+  String get printerConfigNameLabel;
+
+  /// No description provided for @printerConfigNameHint.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Ex: Impressora Expedicao 1'**
+  String get printerConfigNameHint;
+
+  /// No description provided for @printerConfigNameRequired.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Informe o nome da impressora'**
+  String get printerConfigNameRequired;
+
+  /// No description provided for @printerConfigHostLabel.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'IP/Host'**
+  String get printerConfigHostLabel;
+
+  /// No description provided for @printerConfigHostHint.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Ex: 192.168.1.150'**
+  String get printerConfigHostHint;
+
+  /// No description provided for @printerConfigHostRequired.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Informe IP ou host da impressora'**
+  String get printerConfigHostRequired;
+
+  /// No description provided for @printerConfigPortLabel.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Porta'**
+  String get printerConfigPortLabel;
+
+  /// No description provided for @printerConfigPortHint.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'9100'**
+  String get printerConfigPortHint;
+
+  /// No description provided for @printerConfigPortRangeRequired.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Informe uma porta valida (1-65535)'**
+  String get printerConfigPortRangeRequired;
+
+  /// No description provided for @printerConfigAdvancedTitle.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Busca Avancada de Impressoras'**
+  String get printerConfigAdvancedTitle;
+
+  /// No description provided for @printerConfigSubnetLabel.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Prefixo de rede'**
+  String get printerConfigSubnetLabel;
+
+  /// No description provided for @printerConfigSubnetHint.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Ex: 192.168.1'**
+  String get printerConfigSubnetHint;
+
+  /// No description provided for @printerConfigSubnetFormatError.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Use o formato XXX.XXX.XXX'**
+  String get printerConfigSubnetFormatError;
+
+  /// No description provided for @printerConfigSubnetInvalid.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Prefixo invalido'**
+  String get printerConfigSubnetInvalid;
+
+  /// No description provided for @printerConfigStartHostLabel.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Host inicial'**
+  String get printerConfigStartHostLabel;
+
+  /// No description provided for @printerConfigEndHostLabel.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Host final'**
+  String get printerConfigEndHostLabel;
+
+  /// No description provided for @printerConfigHostRangeError.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'1-254'**
+  String get printerConfigHostRangeError;
+
+  /// No description provided for @printerConfigPortInvalid.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Porta invalida'**
+  String get printerConfigPortInvalid;
+
+  /// No description provided for @printerConfigSearchAction.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Buscar'**
+  String get printerConfigSearchAction;
+
+  /// No description provided for @printerConfigHostRangeOrderError.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Host inicial nao pode ser maior que host final.'**
+  String get printerConfigHostRangeOrderError;
+
   /// No description provided for @apiUrl.
   ///
   /// In pt_BR, this message translates to:

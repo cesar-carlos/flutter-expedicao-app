@@ -5,11 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
-import 'package:data7_expedicao/ui/widgets/config/scanner_config_form.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
+import 'package:data7_expedicao/ui/widgets/config/printer_config_form.dart';
 
-class ScannerConfigScreen extends StatelessWidget {
-  const ScannerConfigScreen({super.key});
+class PrinterConfigScreen extends StatelessWidget {
+  const PrinterConfigScreen({super.key});
 
   void _handleBack(BuildContext context) {
     if (context.canPop()) {
@@ -30,7 +30,7 @@ class ScannerConfigScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar.withoutSocket(
-        title: context.l10n.scannerConfigMenu,
+        title: context.l10n.printerConfigTitle,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -40,7 +40,7 @@ class ScannerConfigScreen extends StatelessWidget {
       body: const SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(24.0),
-          child: ScannerConfigForm(),
+          child: PrinterConfigForm(),
         ),
       ),
     );

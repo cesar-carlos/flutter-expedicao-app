@@ -28,6 +28,7 @@ import 'package:data7_expedicao/ui/screens/storage_screen.dart';
 import 'package:data7_expedicao/ui/screens/scanner_screen.dart';
 import 'package:data7_expedicao/ui/screens/config_screen.dart';
 import 'package:data7_expedicao/ui/screens/scanner_config_screen.dart';
+import 'package:data7_expedicao/ui/screens/printer_config_screen.dart';
 import 'package:data7_expedicao/ui/screens/home_screen.dart';
 import 'package:data7_expedicao/ui/screens/shelf_scanning_screen.dart';
 import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
@@ -46,6 +47,7 @@ class AppRouter {
   static const String qrcodeLogin = '/qrcode-login';
   static const String config = '/config';
   static const String scannerConfig = '/scanner-config';
+  static const String printerConfig = '/printer-config';
   static const String home = '/home';
   static const String scanner = '/home/scanner';
   static const String userSelection = '/user-selection';
@@ -63,63 +65,64 @@ class AppRouter {
   static const String pickingProductsList = '/home/picking-products-list';
   static const String addCart = '/home/add-cart';
 
+  static String? resolveRedirect({required AuthStatus authStatus, required String currentLocation}) {
+    final isAuthenticatedRoute =
+        currentLocation.startsWith(home) ||
+        currentLocation == profile ||
+        currentLocation == shipmentSeparateConsultation ||
+        currentLocation == shelfScanning ||
+        currentLocation == cardPicking ||
+        currentLocation == pickingProductsList ||
+        currentLocation == addCart;
+
+    if (authStatus == AuthStatus.initial || authStatus == AuthStatus.loading) {
+      if (currentLocation != splash) {
+        return splash;
+      }
+      return null;
+    }
+
+    if (authStatus == AuthStatus.unauthenticated || authStatus == AuthStatus.error) {
+      if (isAuthenticatedRoute) {
+        return login;
+      }
+
+      if (currentLocation != login &&
+          currentLocation != register &&
+          currentLocation != qrcodeLogin &&
+          currentLocation != config) {
+        return login;
+      }
+      return null;
+    }
+
+    if (authStatus == AuthStatus.needsUserSelection) {
+      if (currentLocation != userSelection) {
+        return userSelection;
+      }
+      return null;
+    }
+
+    if (authStatus == AuthStatus.authenticated) {
+      if (currentLocation == splash ||
+          currentLocation == login ||
+          currentLocation == register ||
+          currentLocation == userSelection) {
+        return home;
+      }
+      return null;
+    }
+
+    return null;
+  }
+
   static GoRouter createRouter(AuthViewModel authViewModel) {
     return GoRouter(
       initialLocation: splash,
       debugLogDiagnostics: true,
 
       redirect: (BuildContext context, GoRouterState state) {
-        final authStatus = authViewModel.status;
-        final currentLocation = state.uri.path;
-
-        final isAuthenticatedRoute =
-            currentLocation.startsWith(home) ||
-            currentLocation == profile ||
-            currentLocation == shipmentSeparateConsultation ||
-            currentLocation == shelfScanning ||
-            currentLocation == cardPicking ||
-            currentLocation == pickingProductsList ||
-            currentLocation == addCart;
-
-        if (authStatus == AuthStatus.initial || authStatus == AuthStatus.loading) {
-          if (currentLocation != splash) {
-            return splash;
-          }
-          return null;
-        }
-
-        if (authStatus == AuthStatus.unauthenticated || authStatus == AuthStatus.error) {
-          if (isAuthenticatedRoute) {
-            return null;
-          }
-
-          if (currentLocation != login &&
-              currentLocation != register &&
-              currentLocation != qrcodeLogin &&
-              currentLocation != config) {
-            return login;
-          }
-          return null;
-        }
-
-        if (authStatus == AuthStatus.needsUserSelection) {
-          if (currentLocation != userSelection) {
-            return userSelection;
-          }
-          return null;
-        }
-
-        if (authStatus == AuthStatus.authenticated) {
-          if (currentLocation == splash ||
-              currentLocation == login ||
-              currentLocation == register ||
-              currentLocation == userSelection) {
-            return home;
-          }
-          return null;
-        }
-
-        return null;
+        return resolveRedirect(authStatus: authViewModel.status, currentLocation: state.uri.path);
       },
 
       routes: [
@@ -134,6 +137,8 @@ class AppRouter {
         GoRoute(path: config, name: 'config', builder: (context, state) => const ConfigScreen()),
 
         GoRoute(path: scannerConfig, name: 'scanner-config', builder: (context, state) => const ScannerConfigScreen()),
+
+        GoRoute(path: printerConfig, name: 'printer-config', builder: (context, state) => const PrinterConfigScreen()),
 
         GoRoute(
           path: userSelection,

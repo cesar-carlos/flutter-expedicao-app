@@ -10,8 +10,17 @@ class SeparationCard extends StatelessWidget {
   final SeparateConsultationModel separation;
   final VoidCallback? onTap;
   final VoidCallback? onSeparate;
+  final VoidCallback? onPrint;
+  final bool isPrinting;
 
-  const SeparationCard({super.key, required this.separation, this.onTap, this.onSeparate});
+  const SeparationCard({
+    super.key,
+    required this.separation,
+    this.onTap,
+    this.onSeparate,
+    this.onPrint,
+    this.isPrinting = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +32,10 @@ class SeparationCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1), width: 1),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
       child: Material(
         color: AppColors.transparent,
@@ -61,14 +73,20 @@ class SeparationCard extends StatelessWidget {
                     ),
 
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: separation.situacao.color,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         separation.situacao.description,
-                        style: theme.textTheme.labelMedium?.copyWith(color: AppColors.white, fontWeight: FontWeight.w600),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -131,10 +149,13 @@ class SeparationCard extends StatelessWidget {
                         value: separation.horaEmissao,
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    _buildPrintButton(context),
                   ],
                 ),
 
-                if (separation.observacao != null && separation.observacao!.isNotEmpty) ...[
+                if (separation.observacao != null &&
+                    separation.observacao!.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   _buildInfoRow(
                     context,
@@ -186,7 +207,9 @@ class SeparationCard extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 value,
-                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
                 maxLines: maxLines,
                 overflow: maxLines != null ? TextOverflow.ellipsis : null,
               ),
@@ -217,7 +240,11 @@ class SeparationCard extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(Icons.business_center, size: 16, color: colorScheme.onSurfaceVariant),
+        Icon(
+          Icons.business_center,
+          size: 16,
+          color: colorScheme.onSurfaceVariant,
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Column(
@@ -233,10 +260,11 @@ class SeparationCard extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 setoresText,
-                style: AppTextStyles.code(context, color: setoresColor).copyWith(
-                  fontSize: theme.textTheme.bodyMedium?.fontSize,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: AppTextStyles.code(context, color: setoresColor)
+                    .copyWith(
+                      fontSize: theme.textTheme.bodyMedium?.fontSize,
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
             ],
           ),
@@ -253,13 +281,62 @@ class SeparationCard extends StatelessWidget {
     );
   }
 
+  Widget _buildPrintButton(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final actionColor = theme.adaptivePrimary(colorScheme);
+
+    if (isPrinting) {
+      return SizedBox(
+        width: 40,
+        height: 40,
+        child: Center(
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(actionColor),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Tooltip(
+      message: 'Imprimir lista',
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: IconButton(
+          onPressed: onPrint,
+          icon: const Icon(Icons.print_outlined, size: 20),
+          style: IconButton.styleFrom(
+            foregroundColor: actionColor,
+            side: BorderSide(
+              color: colorScheme.outline.withValues(alpha: 0.35),
+            ),
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: theme.isDark ? 0.35 : 1,
+            ),
+            disabledForegroundColor: colorScheme.onSurface.withValues(
+              alpha: 0.38,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _onSeparatePressed(BuildContext context) {
     if (onSeparate != null) {
       onSeparate!();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Separação ${separation.codSepararEstoque} - Funcionalidade em desenvolvimento'),
+          content: Text(
+            'Separação ${separation.codSepararEstoque} - Funcionalidade em desenvolvimento',
+          ),
           duration: const Duration(seconds: 2),
           backgroundColor: Theme.of(context).colorScheme.primary,
         ),

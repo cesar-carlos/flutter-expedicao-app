@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
+import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 import 'package:data7_expedicao/core/validation/forms/form_validators_localized.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
@@ -65,12 +65,6 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
             margin: const EdgeInsets.all(16),
           ),
         );
-
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          context.go('/login');
-        }
       }
     }
   }
@@ -90,7 +84,11 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
           SnackBar(
             content: Row(
               children: [
-                Icon(success ? Icons.check_circle : Icons.error, color: AppColors.white, size: 20),
+                Icon(
+                  success ? Icons.check_circle : Icons.error,
+                  color: AppColors.white,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -112,9 +110,15 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
   }
 
   String _buildPreviewUrl(BuildContext context) {
-    final protocol = _useHttps ? context.l10n.httpsProtocol : context.l10n.httpProtocol;
-    final url = _urlController.text.trim().isNotEmpty ? _urlController.text.trim() : context.l10n.defaultUrl;
-    final port = _portController.text.trim().isNotEmpty ? _portController.text.trim() : context.l10n.defaultPort;
+    final protocol = _useHttps
+        ? context.l10n.httpsProtocol
+        : context.l10n.httpProtocol;
+    final url = _urlController.text.trim().isNotEmpty
+        ? _urlController.text.trim()
+        : context.l10n.defaultUrl;
+    final port = _portController.text.trim().isNotEmpty
+        ? _portController.text.trim()
+        : context.l10n.defaultPort;
 
     return '$protocol://$url:$port${context.l10n.apiEndpoint}';
   }
@@ -143,7 +147,7 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
 
               const SizedBox(height: 24),
 
-              _buildActionButtons(configViewModel),
+              _buildActionButtons(theme, configViewModel),
 
               const SizedBox(height: 16),
 
@@ -164,28 +168,42 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
           children: [
             Row(
               children: [
-                Icon(Icons.settings_ethernet, color: theme.colorScheme.primary, size: 20),
+                Icon(
+                  Icons.settings_ethernet,
+                  color: theme.colorScheme.primary,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   context.l10n.serverConfigTitle,
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
               context.l10n.configSubtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
             ),
             if (configViewModel.currentConfig.lastUpdated != null) ...[
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.schedule, size: 16, color: theme.colorScheme.outline),
+                  Icon(
+                    Icons.schedule,
+                    size: 16,
+                    color: theme.colorScheme.outline,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     '${context.l10n.lastUpdate}: ${_formatDate(configViewModel.currentConfig.lastUpdated!)}',
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
                   ),
                 ],
               ),
@@ -196,7 +214,11 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
     );
   }
 
-  Widget _buildConfigFields(BuildContext context, ConfigViewModel configViewModel, FormValidatorsLocalized validators) {
+  Widget _buildConfigFields(
+    BuildContext context,
+    ConfigViewModel configViewModel,
+    FormValidatorsLocalized validators,
+  ) {
     return Column(
       children: [
         CustomTextFormField(
@@ -236,7 +258,9 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
               color: _useHttps ? AppColors.success : AppColors.grey,
             ),
             value: _useHttps,
-            onChanged: configViewModel.isLoading ? null : (value) => setState(() => _useHttps = value),
+            onChanged: configViewModel.isLoading
+                ? null
+                : (value) => setState(() => _useHttps = value),
           ),
         ),
       ],
@@ -244,8 +268,20 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
   }
 
   Widget _buildUrlPreview(BuildContext context, ThemeData theme) {
+    final isDark = theme.isDark;
+    final previewAccent = theme.adaptiveSecondary(theme.colorScheme);
+    final previewCardColor = isDark
+        ? theme.colorScheme.surfaceContainerLow
+        : theme.colorScheme.surfaceContainerHighest;
+    final previewContainerColor = isDark
+        ? theme.colorScheme.surfaceContainer
+        : theme.colorScheme.surface;
+    final previewTextColor = isDark
+        ? theme.colorScheme.onSurface
+        : theme.colorScheme.primary;
+
     return Card(
-      color: theme.colorScheme.surfaceContainerHighest,
+      color: previewCardColor,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -253,12 +289,12 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
           children: [
             Row(
               children: [
-                Icon(Icons.preview, size: 16, color: theme.colorScheme.primary),
+                Icon(Icons.preview, size: 16, color: previewAccent),
                 const SizedBox(width: 6),
                 Text(
                   context.l10n.previewUrl,
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.primary,
+                    color: previewAccent,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -269,16 +305,21 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
+                color: previewContainerColor,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withValues(
+                    alpha: isDark ? 0.5 : 0.3,
+                  ),
+                ),
               ),
               child: Text(
                 _buildPreviewUrl(context),
-                style: AppTextStyles.code(context, color: theme.colorScheme.primary).copyWith(
-                  fontSize: theme.textTheme.bodyLarge?.fontSize,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTextStyles.code(context, color: previewTextColor)
+                    .copyWith(
+                      fontSize: theme.textTheme.bodyLarge?.fontSize,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
             ),
           ],
@@ -287,17 +328,46 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
     );
   }
 
-  Widget _buildActionButtons(ConfigViewModel configViewModel) {
+  Widget _buildActionButtons(ThemeData theme, ConfigViewModel configViewModel) {
+    final isDark = theme.isDark;
+    final outlinedForeground = isDark
+        ? theme.colorScheme.onSurface
+        : theme.colorScheme.primary;
+    final outlinedBorder = theme.colorScheme.outline.withValues(
+      alpha: isDark ? 0.8 : 0.6,
+    );
+
     return Column(
       children: [
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: outlinedForeground,
+              side: BorderSide(color: outlinedBorder),
+              disabledForegroundColor: outlinedForeground.withValues(
+                alpha: 0.45,
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
             onPressed: configViewModel.isTesting ? null : _handleTest,
             icon: configViewModel.isTesting
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        outlinedForeground,
+                      ),
+                    ),
+                  )
                 : const Icon(Icons.wifi_find),
-            label: Text(configViewModel.isTesting ? context.l10n.testing : context.l10n.testConnection),
+            label: Text(
+              configViewModel.isTesting
+                  ? context.l10n.testing
+                  : context.l10n.testConnection,
+            ),
           ),
         ),
         const SizedBox(height: 12),

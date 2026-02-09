@@ -209,6 +209,122 @@ class AppLocalizationsPt extends AppLocalizations {
   String get scannerConfigMenu => 'Configuração do Scanner';
 
   @override
+  String get printerConfigTitle => 'Configuração de Impressoras';
+
+  @override
+  String get printerConfigDescription =>
+      'Cadastre impressoras manualmente ou busque automaticamente na rede local.';
+
+  @override
+  String get printerConfigRefreshTooltip => 'Atualizar impressoras';
+
+  @override
+  String get printerConfigSearchingNetwork => 'Buscando na rede...';
+
+  @override
+  String get printerConfigSearchNetwork => 'Buscar na Rede';
+
+  @override
+  String get printerConfigAdvancedSearch => 'Busca Avancada';
+
+  @override
+  String get printerConfigAddPrinter => 'Adicionar Impressora';
+
+  @override
+  String get printerConfigEmpty => 'Nenhuma impressora cadastrada.';
+
+  @override
+  String get printerConfigDefaultBadge => 'Padrao';
+
+  @override
+  String get printerConfigTestPrinter => 'Testar impressora';
+
+  @override
+  String get printerConfigSetDefault => 'Definir como padrao';
+
+  @override
+  String get printerConfigRemoveAction => 'Remover';
+
+  @override
+  String get printerConfigRemoveTitle => 'Remover impressora';
+
+  @override
+  String printerConfigRemoveMessage(String printerName) {
+    return 'Deseja remover \"$printerName\" da lista de impressoras disponiveis?';
+  }
+
+  @override
+  String get printerConfigEditTitle => 'Editar impressora';
+
+  @override
+  String get printerConfigAddTitle => 'Adicionar impressora';
+
+  @override
+  String get printerConfigAddAction => 'Adicionar';
+
+  @override
+  String get printerConfigNameLabel => 'Nome';
+
+  @override
+  String get printerConfigNameHint => 'Ex: Impressora Expedicao 1';
+
+  @override
+  String get printerConfigNameRequired => 'Informe o nome da impressora';
+
+  @override
+  String get printerConfigHostLabel => 'IP/Host';
+
+  @override
+  String get printerConfigHostHint => 'Ex: 192.168.1.150';
+
+  @override
+  String get printerConfigHostRequired => 'Informe IP ou host da impressora';
+
+  @override
+  String get printerConfigPortLabel => 'Porta';
+
+  @override
+  String get printerConfigPortHint => '9100';
+
+  @override
+  String get printerConfigPortRangeRequired =>
+      'Informe uma porta valida (1-65535)';
+
+  @override
+  String get printerConfigAdvancedTitle => 'Busca Avancada de Impressoras';
+
+  @override
+  String get printerConfigSubnetLabel => 'Prefixo de rede';
+
+  @override
+  String get printerConfigSubnetHint => 'Ex: 192.168.1';
+
+  @override
+  String get printerConfigSubnetFormatError => 'Use o formato XXX.XXX.XXX';
+
+  @override
+  String get printerConfigSubnetInvalid => 'Prefixo invalido';
+
+  @override
+  String get printerConfigStartHostLabel => 'Host inicial';
+
+  @override
+  String get printerConfigEndHostLabel => 'Host final';
+
+  @override
+  String get printerConfigHostRangeError => '1-254';
+
+  @override
+  String get printerConfigPortInvalid => 'Porta invalida';
+
+  @override
+  String get printerConfigSearchAction => 'Buscar';
+
+  @override
+  String get printerConfigHostRangeOrderError =>
+      'Host inicial nao pode ser maior que host final.';
+
+  @override
   String get apiUrl => 'URL da API';
 
   @override
@@ -818,6 +934,122 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get scannerConfigMenu => 'Configuração do Scanner';
+
+  @override
+  String get printerConfigTitle => 'Configuração de Impressoras';
+
+  @override
+  String get printerConfigDescription =>
+      'Cadastre impressoras manualmente ou busque automaticamente na rede local.';
+
+  @override
+  String get printerConfigRefreshTooltip => 'Atualizar impressoras';
+
+  @override
+  String get printerConfigSearchingNetwork => 'Buscando na rede...';
+
+  @override
+  String get printerConfigSearchNetwork => 'Buscar na Rede';
+
+  @override
+  String get printerConfigAdvancedSearch => 'Busca Avancada';
+
+  @override
+  String get printerConfigAddPrinter => 'Adicionar Impressora';
+
+  @override
+  String get printerConfigEmpty => 'Nenhuma impressora cadastrada.';
+
+  @override
+  String get printerConfigDefaultBadge => 'Padrao';
+
+  @override
+  String get printerConfigTestPrinter => 'Testar impressora';
+
+  @override
+  String get printerConfigSetDefault => 'Definir como padrao';
+
+  @override
+  String get printerConfigRemoveAction => 'Remover';
+
+  @override
+  String get printerConfigRemoveTitle => 'Remover impressora';
+
+  @override
+  String printerConfigRemoveMessage(String printerName) {
+    return 'Deseja remover \"$printerName\" da lista de impressoras disponiveis?';
+  }
+
+  @override
+  String get printerConfigEditTitle => 'Editar impressora';
+
+  @override
+  String get printerConfigAddTitle => 'Adicionar impressora';
+
+  @override
+  String get printerConfigAddAction => 'Adicionar';
+
+  @override
+  String get printerConfigNameLabel => 'Nome';
+
+  @override
+  String get printerConfigNameHint => 'Ex: Impressora Expedicao 1';
+
+  @override
+  String get printerConfigNameRequired => 'Informe o nome da impressora';
+
+  @override
+  String get printerConfigHostLabel => 'IP/Host';
+
+  @override
+  String get printerConfigHostHint => 'Ex: 192.168.1.150';
+
+  @override
+  String get printerConfigHostRequired => 'Informe IP ou host da impressora';
+
+  @override
+  String get printerConfigPortLabel => 'Porta';
+
+  @override
+  String get printerConfigPortHint => '9100';
+
+  @override
+  String get printerConfigPortRangeRequired =>
+      'Informe uma porta valida (1-65535)';
+
+  @override
+  String get printerConfigAdvancedTitle => 'Busca Avancada de Impressoras';
+
+  @override
+  String get printerConfigSubnetLabel => 'Prefixo de rede';
+
+  @override
+  String get printerConfigSubnetHint => 'Ex: 192.168.1';
+
+  @override
+  String get printerConfigSubnetFormatError => 'Use o formato XXX.XXX.XXX';
+
+  @override
+  String get printerConfigSubnetInvalid => 'Prefixo invalido';
+
+  @override
+  String get printerConfigStartHostLabel => 'Host inicial';
+
+  @override
+  String get printerConfigEndHostLabel => 'Host final';
+
+  @override
+  String get printerConfigHostRangeError => '1-254';
+
+  @override
+  String get printerConfigPortInvalid => 'Porta invalida';
+
+  @override
+  String get printerConfigSearchAction => 'Buscar';
+
+  @override
+  String get printerConfigHostRangeOrderError =>
+      'Host inicial nao pode ser maior que host final.';
 
   @override
   String get apiUrl => 'URL da API';

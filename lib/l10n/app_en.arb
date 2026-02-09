@@ -1,4 +1,4 @@
-{
+﻿{
   "@@locale": "en",
   "@@last_modified": "2026-01-24T00:00:00.000Z",
   
@@ -128,6 +128,50 @@
   "broadcastExtraLabel": "Extra Key (barcode)",
   "scannerConfigSaved": "Scanner preferences saved!",
   "scannerConfigMenu": "Scanner Configuration",
+  "printerConfigTitle": "Printer Configuration",
+  "printerConfigDescription": "Register printers manually or search automatically on the local network.",
+  "printerConfigRefreshTooltip": "Refresh printers",
+  "printerConfigSearchingNetwork": "Searching network...",
+  "printerConfigSearchNetwork": "Search Network",
+  "printerConfigAdvancedSearch": "Advanced Search",
+  "printerConfigAddPrinter": "Add Printer",
+  "printerConfigEmpty": "No printers registered.",
+  "printerConfigDefaultBadge": "Default",
+  "printerConfigTestPrinter": "Test printer",
+  "printerConfigSetDefault": "Set as default",
+  "printerConfigRemoveAction": "Remove",
+  "printerConfigRemoveTitle": "Remove printer",
+  "printerConfigRemoveMessage": "Do you want to remove \"{printerName}\" from the list of available printers?",
+  "@printerConfigRemoveMessage": {
+    "placeholders": {
+      "printerName": {
+        "type": "String"
+      }
+    }
+  },
+  "printerConfigEditTitle": "Edit printer",
+  "printerConfigAddTitle": "Add printer",
+  "printerConfigAddAction": "Add",
+  "printerConfigNameLabel": "Name",
+  "printerConfigNameHint": "Ex: Expedition Printer 1",
+  "printerConfigNameRequired": "Enter the printer name",
+  "printerConfigHostLabel": "IP/Host",
+  "printerConfigHostHint": "Ex: 192.168.1.150",
+  "printerConfigHostRequired": "Enter printer IP or host",
+  "printerConfigPortLabel": "Port",
+  "printerConfigPortHint": "9100",
+  "printerConfigPortRangeRequired": "Enter a valid port (1-65535)",
+  "printerConfigAdvancedTitle": "Advanced Printer Search",
+  "printerConfigSubnetLabel": "Network prefix",
+  "printerConfigSubnetHint": "Ex: 192.168.1",
+  "printerConfigSubnetFormatError": "Use format XXX.XXX.XXX",
+  "printerConfigSubnetInvalid": "Invalid prefix",
+  "printerConfigStartHostLabel": "Start host",
+  "printerConfigEndHostLabel": "End host",
+  "printerConfigHostRangeError": "1-254",
+  "printerConfigPortInvalid": "Invalid port",
+  "printerConfigSearchAction": "Search",
+  "printerConfigHostRangeOrderError": "Start host cannot be greater than end host.",
   "apiUrl": "API URL",
   "apiPort": "Port",
   "apiUrlHint": "Ex: 192.168.1.100",
@@ -332,3 +376,7 @@
   "appUpdateDownloadError": "Error downloading update",
   "appUpdateInstallError": "Error installing update"
 }
+
+
+
+

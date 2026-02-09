@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
@@ -7,7 +9,9 @@ import 'package:go_router/go_router.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
+import 'package:data7_expedicao/data/datasources/printer_preferences_service.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/models/printer_config.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/separation/separation_filter_modal.dart';
@@ -23,6 +27,8 @@ import 'package:data7_expedicao/ui/widgets/app_drawer/app_drawer.dart';
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_params.dart';
+import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
 
 /// Tela principal de listagem de separações
 class SeparationScreen extends StatefulWidget {
@@ -32,7 +38,8 @@ class SeparationScreen extends StatefulWidget {
   State<SeparationScreen> createState() => _SeparationScreenState();
 }
 
-class _SeparationScreenState extends State<SeparationScreen> with TickerProviderStateMixin, WidgetsBindingObserver {
+class _SeparationScreenState extends State<SeparationScreen>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   // === CONSTANTES ===
   static const double _scrollThresholdToShowButton = 200.0;
   static const double _scrollThresholdToLoadMore = 200.0;
@@ -50,6 +57,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   // === ESTADO ===
   bool _showScrollToTop = false;
   bool _isLoadingNextSeparation = false;
+  final Set<String> _printingTickets = <String>{};
 
   // === ANIMAÇÃO ===
   late AnimationController _fabAnimationController;
@@ -66,11 +74,13 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     _scrollController.addListener(_onScroll);
 
     // Inicializar animação do FAB
-    _fabAnimationController = AnimationController(duration: _fabAnimationDuration, vsync: this);
-    _fabAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _fabAnimationController, curve: Curves.easeInOut));
+    _fabAnimationController = AnimationController(
+      duration: _fabAnimationDuration,
+      vsync: this,
+    );
+    _fabAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fabAnimationController, curve: Curves.easeInOut),
+    );
 
     // Iniciar com o botão "Próxima Separação" visível
     _fabAnimationController.forward();
@@ -95,7 +105,12 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       viewModel.stopEventMonitoring();
       viewModel.setScreenVisible(false);
     } catch (e, stackTrace) {
-      AppLogger.debug('Erro ao parar monitoramento (contexto pode não estar mais disponível)', tag: 'SeparationScreen', error: e, stackTrace: stackTrace);
+      AppLogger.debug(
+        'Erro ao parar monitoramento (contexto pode não estar mais disponível)',
+        tag: 'SeparationScreen',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
 
     _scrollController.dispose();
@@ -120,7 +135,12 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         viewModel.setScreenVisible(true);
       }
     } catch (e, stackTrace) {
-      AppLogger.debug('Erro ao atualizar visibilidade (contexto pode não estar mais disponível)', tag: 'SeparationScreen', error: e, stackTrace: stackTrace);
+      AppLogger.debug(
+        'Erro ao atualizar visibilidade (contexto pode não estar mais disponível)',
+        tag: 'SeparationScreen',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -155,7 +175,8 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
 
   void _loadMoreIfNeeded() {
     final isNearBottom =
-        _scrollController.position.pixels >= _scrollController.position.maxScrollExtent - _scrollThresholdToLoadMore;
+        _scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - _scrollThresholdToLoadMore;
     if (isNearBottom) {
       context.read<SeparationViewModel>().loadMoreSeparations();
     }
@@ -163,7 +184,11 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
 
   void _scrollToTop() {
     if (!_scrollController.hasClients) return;
-    _scrollController.animateTo(0, duration: _scrollAnimationDuration, curve: Curves.easeInOut);
+    _scrollController.animateTo(
+      0,
+      duration: _scrollAnimationDuration,
+      curve: Curves.easeInOut,
+    );
   }
 
   void _refreshAndScrollToTop(SeparationViewModel viewModel) {
@@ -171,6 +196,14 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       _scrollController.jumpTo(0);
     }
     viewModel.refresh();
+  }
+
+  String _buildPrintKey(SeparateConsultationModel separation) {
+    return '${separation.codEmpresa}-${separation.codSepararEstoque}';
+  }
+
+  bool _isPrintingTicket(SeparateConsultationModel separation) {
+    return _printingTickets.contains(_buildPrintKey(separation));
   }
 
   // ========== UI Actions ==========
@@ -191,13 +224,137 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     );
   }
 
+  Future<void> _onPrintTap(SeparateConsultationModel separation) async {
+    final key = _buildPrintKey(separation);
+    if (_printingTickets.contains(key)) {
+      return;
+    }
+
+    if (mounted) {
+      setState(() => _printingTickets.add(key));
+    } else {
+      _printingTickets.add(key);
+    }
+
+    try {
+      final printer = await _loadDefaultPrinter();
+      if (!mounted) return;
+
+      if (printer == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Nenhuma impressora padrão configurada para impressão.',
+            ),
+            backgroundColor: AppColors.warning,
+            action: SnackBarAction(
+              label: 'Configurar',
+              onPressed: () => context.push(AppRouter.printerConfig),
+            ),
+          ),
+        );
+        return;
+      }
+
+      final appUser = await locator<UserSessionService>().loadUserSession();
+      final separatorName =
+          appUser?.userSystemModel?.nomeUsuario ?? appUser?.nome;
+
+      final printUseCase = locator<PrintExpeditionTicketUseCase>();
+      final result = await printUseCase.call(
+        PrintExpeditionTicketParams(
+          codEmpresa: separation.codEmpresa,
+          codSepararEstoque: separation.codSepararEstoque,
+          printer: printer,
+          separatorName: separatorName,
+        ),
+      );
+
+      if (!mounted) return;
+
+      final success = result.getOrNull();
+      if (success != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Impressão enviada para ${printer.name} (${printer.ip}:${printer.port}).',
+            ),
+            backgroundColor: AppColors.info,
+          ),
+        );
+        return;
+      }
+
+      final failure = result.exceptionOrNull();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_buildPrintFailureMessage(failure)),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao imprimir separação: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _printingTickets.remove(key));
+      } else {
+        _printingTickets.remove(key);
+      }
+    }
+  }
+
+  Future<PrinterConfig?> _loadDefaultPrinter() async {
+    final printerPreferencesService = locator<PrinterPreferencesService>();
+    final printers = await printerPreferencesService.loadPrinters();
+
+    if (printers.isEmpty) {
+      return null;
+    }
+
+    final defaultPrinterId = await printerPreferencesService
+        .loadDefaultPrinterId();
+
+    if (defaultPrinterId == null || defaultPrinterId.isEmpty) {
+      return printers.first;
+    }
+
+    for (final printer in printers) {
+      if (printer.id == defaultPrinterId) {
+        return printer;
+      }
+    }
+
+    return printers.first;
+  }
+
+  String _buildPrintFailureMessage(Object? failure) {
+    if (failure is AppFailure) {
+      return 'Falha ao imprimir separação: ${failure.message}';
+    }
+
+    if (failure != null) {
+      return 'Falha ao imprimir separação: $failure';
+    }
+
+    return 'Falha ao imprimir separação.';
+  }
+
   // ========== Next Separation FAB ==========
 
   Widget _buildFloatingActionButton() {
     return AnimatedBuilder(
       animation: _fabAnimation,
       builder: (context, child) {
-        return Stack(alignment: Alignment.bottomRight, children: [_buildNextSeparationFab(), _buildScrollToTopFab()]);
+        return Stack(
+          alignment: Alignment.bottomRight,
+          children: [_buildNextSeparationFab(), _buildScrollToTopFab()],
+        );
       },
     );
   }
@@ -218,7 +375,9 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
               onPressed: _isLoadingNextSeparation ? null : _findNextSeparation,
               tooltip: 'Buscar próxima separação',
               icon: _buildFabIcon(),
-              label: Text(_isLoadingNextSeparation ? 'Buscando...' : 'Próxima Separação'),
+              label: Text(
+                _isLoadingNextSeparation ? 'Buscando...' : 'Próxima Separação',
+              ),
             ),
           ),
         ),
@@ -308,7 +467,10 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
 
     if (!params.hasValidSector) {
       if (mounted) {
-        _showErrorModal('Configuração Inválida', 'Usuário não possui setor estoque configurado');
+        _showErrorModal(
+          'Configuração Inválida',
+          'Usuário não possui setor estoque configurado',
+        );
       }
       return null;
     }
@@ -317,7 +479,9 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   }
 
   /// Executa o usecase de próxima separação
-  Future<Result<NextSeparationUserSuccess>> _executeNextSeparationUseCase(NextSeparationUserParams params) async {
+  Future<Result<NextSeparationUserSuccess>> _executeNextSeparationUseCase(
+    NextSeparationUserParams params,
+  ) async {
     final usecase = locator<NextSeparationUserUseCase>();
     return await usecase(params);
   }
@@ -333,7 +497,9 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         }
       },
       (failure) {
-        final errorMessage = failure is NextSeparationUserFailure ? failure.userMessage : failure.toString();
+        final errorMessage = failure is NextSeparationUserFailure
+            ? failure.userMessage
+            : failure.toString();
         _showErrorModal('Erro na Busca', errorMessage);
       },
     );
@@ -360,26 +526,44 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         codPrioridade: separation.codPrioridade,
         nomePrioridade: separation.descricaoPrioridade,
         codSetoresEstoque: [separation.codSetorEstoque],
-        codUsuariosSeparacao: separation.codUsuario != null ? [separation.codUsuario!] : [],
+        codUsuariosSeparacao: separation.codUsuario != null
+            ? [separation.codUsuario!]
+            : [],
         historico: null,
         observacao: null,
       );
 
       // Navegar para a tela de separação
-      context.push(AppRouter.separateItems, extra: separateConsultation.toJson());
+      context.push(
+        AppRouter.separateItems,
+        extra: separateConsultation.toJson(),
+      );
     } catch (e) {
-      _showErrorModal('Erro ao Abrir Separação', 'Erro ao abrir separação: ${e.toString()}');
+      _showErrorModal(
+        'Erro ao Abrir Separação',
+        'Erro ao abrir separação: ${e.toString()}',
+      );
     }
   }
 
   // ========== Helper Methods ==========
 
   void _showErrorModal(String title, String message) {
-    _showCustomModal(title: title, message: message, icon: Icons.error_outline, color: AppColors.error);
+    _showCustomModal(
+      title: title,
+      message: message,
+      icon: Icons.error_outline,
+      color: AppColors.error,
+    );
   }
 
   void _showInfoModal(String title, String message) {
-    _showCustomModal(title: title, message: message, icon: Icons.info_outline, color: Colors.blue);
+    _showCustomModal(
+      title: title,
+      message: message,
+      icon: Icons.info_outline,
+      color: Colors.blue,
+    );
   }
 
   /// Modal customizado reutilizável
@@ -417,7 +601,11 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       appBar: CustomAppBar(
         title: const SeparationTitleWithConnectionStatus(),
         showSocketStatus: false,
-        leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
+        leading: IconButton(
+          onPressed: () => context.pop(),
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Voltar',
+        ),
         actions: [_buildAppBarActions()],
       ),
       drawer: const AppDrawer(),
@@ -440,7 +628,10 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     return Consumer<SeparationViewModel>(
       builder: (context, viewModel, child) => Row(
         mainAxisSize: MainAxisSize.min,
-        children: [_buildFilterButton(viewModel), _buildRefreshButton(viewModel)],
+        children: [
+          _buildFilterButton(viewModel),
+          _buildRefreshButton(viewModel),
+        ],
       ),
     );
   }
@@ -472,7 +663,11 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando separações...')],
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('Carregando separações...'),
+        ],
       ),
     );
   }
@@ -484,11 +679,17 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: _emptyStateIconSize, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: _emptyStateIconSize,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
             Text(
               'Erro ao carregar separações',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -515,11 +716,17 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, size: _emptyStateIconSize, color: Theme.of(context).colorScheme.outline),
+            Icon(
+              Icons.inventory_2_outlined,
+              size: _emptyStateIconSize,
+              color: Theme.of(context).colorScheme.outline,
+            ),
             const SizedBox(height: 16),
             Text(
               'Nenhuma separação encontrada',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -545,7 +752,8 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       child: ListView.builder(
         key: const PageStorageKey<String>('separations_list'),
         controller: _scrollController,
-        itemCount: viewModel.separations.length + (viewModel.hasMoreData ? 1 : 0),
+        itemCount:
+            viewModel.separations.length + (viewModel.hasMoreData ? 1 : 0),
         itemBuilder: (context, index) => _buildListItem(index, viewModel),
       ),
     );
@@ -557,7 +765,12 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     }
 
     final separation = viewModel.separations[index];
-    return SeparationCard(separation: separation, onSeparate: () => _onSeparationTap(separation));
+    return SeparationCard(
+      separation: separation,
+      onSeparate: () => _onSeparationTap(separation),
+      onPrint: () => unawaited(_onPrintTap(separation)),
+      isPrinting: _isPrintingTicket(separation),
+    );
   }
 
   Widget _buildLoadingMoreIndicator(SeparationViewModel viewModel) {
@@ -599,7 +812,10 @@ class _FilterIconWithBadge extends StatelessWidget {
             child: Container(
               width: 8,
               height: 8,
-              decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
+              decoration: const BoxDecoration(
+                color: AppColors.error,
+                shape: BoxShape.circle,
+              ),
             ),
           ),
       ],

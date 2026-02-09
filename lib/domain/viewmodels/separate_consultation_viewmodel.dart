@@ -270,7 +270,6 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
     }
   }
 
-  /// Cria uma nova consulta
   Future<void> createConsultation(SeparateConsultationModel consultation) async {
     if (_disposed) return;
 

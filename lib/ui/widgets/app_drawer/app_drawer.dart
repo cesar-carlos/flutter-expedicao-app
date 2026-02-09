@@ -36,7 +36,10 @@ class AppDrawer extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.8)],
+                colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.primary.withValues(alpha: 0.8),
+                ],
               ),
             ),
             child: DrawerHeader(
@@ -47,7 +50,10 @@ class AppDrawer extends StatelessWidget {
                     right: 0,
                     child: IconButton(
                       onPressed: () => themeViewModel.toggleTheme(),
-                      icon: Icon(themeViewModel.themeIcon, color: theme.colorScheme.onPrimary),
+                      icon: Icon(
+                        themeViewModel.themeIcon,
+                        color: theme.colorScheme.onPrimary,
+                      ),
                       tooltip: themeViewModel.themeTooltip,
                     ),
                   ),
@@ -60,11 +66,18 @@ class AppDrawer extends StatelessWidget {
                         height: 80,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
-                          border: Border.all(color: theme.colorScheme.onPrimary, width: 2),
+                          color: theme.colorScheme.onPrimary.withValues(
+                            alpha: 0.2,
+                          ),
+                          border: Border.all(
+                            color: theme.colorScheme.onPrimary,
+                            width: 2,
+                          ),
                         ),
                         child: AvatarUtils.buildAvatar(
-                          name: authViewModel.username.isNotEmpty ? authViewModel.username : 'Usuário',
+                          name: authViewModel.username.isNotEmpty
+                              ? authViewModel.username
+                              : 'Usuário',
                           photoBase64: authViewModel.currentUser?.fotoUsuario,
                           backgroundColor: AppColors.transparent,
                           textColor: theme.colorScheme.onPrimary,
@@ -77,9 +90,15 @@ class AppDrawer extends StatelessWidget {
 
                       Text(
                         authViewModel.username.isNotEmpty
-                            ? StringUtils.capitalizeWords(authViewModel.username)
+                            ? StringUtils.capitalizeWords(
+                                authViewModel.username,
+                              )
                             : 'Usuário',
-                        style: AppFonts.inter(color: theme.colorScheme.onPrimary, fontSize: UIConstants.mediumFontSize, fontWeight: FontWeight.w600),
+                        style: AppFonts.inter(
+                          color: theme.colorScheme.onPrimary,
+                          fontSize: UIConstants.mediumFontSize,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
@@ -185,8 +204,17 @@ class AppDrawer extends StatelessWidget {
                 ),
 
                 DrawerMenuTile(
+                  icon: Icons.print_outlined,
+                  title: context.l10n.printerConfigTitle,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go(AppRouter.printerConfig);
+                  },
+                ),
+
+                DrawerMenuTile(
                   icon: Icons.settings_outlined,
-                  title: 'Configurações',
+                  title: context.l10n.serverConfigTitle,
                   onTap: () {
                     Navigator.pop(context);
                     context.go(AppRouter.config);
@@ -199,8 +227,12 @@ class AppDrawer extends StatelessWidget {
                     return DrawerMenuTile(
                       iconColor: Color(socketViewModel.connectionStateColor),
                       textColor: Color(socketViewModel.connectionStateColor),
-                      icon: socketViewModel.isConnected ? Icons.wifi : Icons.wifi_off,
-                      title: socketViewModel.isConnected ? 'Conectado' : 'Desconectado',
+                      icon: socketViewModel.isConnected
+                          ? Icons.wifi
+                          : Icons.wifi_off,
+                      title: socketViewModel.isConnected
+                          ? 'Conectado'
+                          : 'Desconectado',
                       onTap: () {
                         if (socketViewModel.isConnected) {
                           socketViewModel.disconnect();
@@ -250,10 +282,18 @@ class AppDrawer extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surface,
-                  border: Border(top: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.12), width: 1)),
+                  border: Border(
+                    top: BorderSide(
+                      color: theme.colorScheme.outline.withValues(alpha: 0.12),
+                      width: 1,
+                    ),
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -262,14 +302,19 @@ class AppDrawer extends StatelessWidget {
                       Icon(
                         Icons.system_update_outlined,
                         size: 16,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
-                    if (!appUpdateViewModel.isChecking) const SizedBox(width: 8),
+                    if (!appUpdateViewModel.isChecking)
+                      const SizedBox(width: 8),
                     Text(
                       'Versão $version+$buildNumber',
                       style: AppFonts.inter(
                         fontSize: UIConstants.smallFontSize,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                     ),
                     if (appUpdateViewModel.isChecking) ...[
@@ -279,7 +324,9 @@ class AppDrawer extends StatelessWidget {
                         height: 12,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            theme.colorScheme.primary,
+                          ),
                         ),
                       ),
                     ],
@@ -293,7 +340,10 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  Future<void> _handleVersionTap(BuildContext context, AppUpdateViewModel appUpdateViewModel) async {
+  Future<void> _handleVersionTap(
+    BuildContext context,
+    AppUpdateViewModel appUpdateViewModel,
+  ) async {
     if (appUpdateViewModel.isChecking) return;
 
     appUpdateViewModel.clearError();
@@ -308,7 +358,9 @@ class AppDrawer extends StatelessWidget {
       if (scaffoldContext.mounted) {
         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
           SnackBar(
-            content: const Text('GITHUB_OWNER ou GITHUB_REPO não configurados'),
+            content: const Text(
+              'GITHUB_OWNER ou GITHUB_REPO não configurados',
+            ),
             backgroundColor: Theme.of(scaffoldContext).colorScheme.error,
             duration: const Duration(seconds: 3),
           ),
@@ -317,7 +369,11 @@ class AppDrawer extends StatelessWidget {
       return;
     }
 
-    appUpdateViewModel.checkForUpdate(owner: owner, repo: repo, forceCheck: true);
+    appUpdateViewModel.checkForUpdate(
+      owner: owner,
+      repo: repo,
+      forceCheck: true,
+    );
 
     await Future.delayed(const Duration(milliseconds: 500));
 
@@ -329,11 +385,13 @@ class AppDrawer extends StatelessWidget {
 
     if (!scaffoldContext.mounted) return;
 
-    if (appUpdateViewModel.hasUpdate && appUpdateViewModel.updateAvailable != null) {
+    if (appUpdateViewModel.hasUpdate &&
+        appUpdateViewModel.updateAvailable != null) {
       await showDialog(
         context: scaffoldContext,
         barrierDismissible: false,
-        builder: (_) => AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
+        builder: (_) =>
+            AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
       );
     } else if (appUpdateViewModel.error != null) {
       ScaffoldMessenger.of(scaffoldContext).showSnackBar(
@@ -360,14 +418,20 @@ class AppDrawer extends StatelessWidget {
         title: const Text('Confirmar Saída'),
         content: const Text('Deseja realmente sair do aplicativo?'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
               context.read<AuthViewModel>().logout();
             },
-            child: Text('Sair', style: AppFonts.inter(color: Theme.of(context).colorScheme.error)),
+            child: Text(
+              'Sair',
+              style: AppFonts.inter(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ],
       ),
