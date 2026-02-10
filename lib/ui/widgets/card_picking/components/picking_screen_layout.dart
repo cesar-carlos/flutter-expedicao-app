@@ -10,7 +10,6 @@ import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/domain/models/picking_state.dart';
-import 'package:data7_expedicao/ui/widgets/card_picking/widgets/pending_sync_banner.dart';
 
 /// Layout principal da tela de picking com otimizações de performance
 ///
@@ -84,8 +83,6 @@ class PickingScreenLayout extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🚀 Banner de sincronização pendente (aparece no topo quando há operações em andamento)
-              const PendingSyncBanner(),
               _buildNextItemCard(),
               const SizedBox(height: _cardSpacing),
               _buildQuantitySelector(),
