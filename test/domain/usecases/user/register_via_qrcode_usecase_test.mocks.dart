@@ -6,14 +6,20 @@
 import 'dart:async' as _i5;
 import 'dart:io' as _i6;
 
-import 'package:data7_expedicao/data/dtos/user_system_list_response_dto.dart' as _i3;
-import 'package:data7_expedicao/data/services/user_session_service.dart' as _i11;
-import 'package:data7_expedicao/domain/models/pagination/pagination.dart' as _i9;
-import 'package:data7_expedicao/domain/models/situation/situation_model.dart' as _i8;
+import 'package:data7_expedicao/data/dtos/user_system_list_response_dto.dart'
+    as _i3;
+import 'package:data7_expedicao/data/services/user_session_service.dart'
+    as _i11;
+import 'package:data7_expedicao/domain/models/pagination/pagination.dart'
+    as _i9;
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart'
+    as _i8;
 import 'package:data7_expedicao/domain/models/user/user_models.dart' as _i2;
 import 'package:data7_expedicao/domain/models/user_system_models.dart' as _i10;
-import 'package:data7_expedicao/domain/repositories/user_repository.dart' as _i4;
-import 'package:data7_expedicao/domain/repositories/user_system_repository.dart' as _i7;
+import 'package:data7_expedicao/domain/repositories/user_repository.dart'
+    as _i4;
+import 'package:data7_expedicao/domain/repositories/user_system_repository.dart'
+    as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -29,20 +35,47 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeCreateUserResponse_0 extends _i1.SmartFake implements _i2.CreateUserResponse {
-  _FakeCreateUserResponse_0(Object parent, Invocation parentInvocation) : super(parent, parentInvocation);
+class _FakeCreateUserResponse_0 extends _i1.SmartFake
+    implements _i2.CreateUserResponse {
+  _FakeCreateUserResponse_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 class _FakeLoginResponse_1 extends _i1.SmartFake implements _i2.LoginResponse {
-  _FakeLoginResponse_1(Object parent, Invocation parentInvocation) : super(parent, parentInvocation);
+  _FakeLoginResponse_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
-class _FakeAppUserConsultation_2 extends _i1.SmartFake implements _i2.AppUserConsultation {
-  _FakeAppUserConsultation_2(Object parent, Invocation parentInvocation) : super(parent, parentInvocation);
+class _FakeAppUserConsultation_2 extends _i1.SmartFake
+    implements _i2.AppUserConsultation {
+  _FakeAppUserConsultation_2(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
-class _FakeUserSystemListResponseDto_3 extends _i1.SmartFake implements _i3.UserSystemListResponseDto {
-  _FakeUserSystemListResponseDto_3(Object parent, Invocation parentInvocation) : super(parent, parentInvocation);
+class _FakeUserSystemListResponseDto_3 extends _i1.SmartFake
+    implements _i3.UserSystemListResponseDto {
+  _FakeUserSystemListResponseDto_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 /// A class which mocks [UserRepository].
@@ -61,63 +94,107 @@ class MockUserRepository extends _i1.Mock implements _i4.UserRepository {
     int? codUsuario,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#createUser, [], {
+        Invocation.method(
+          #createUser,
+          [],
+          {
+            #nome: nome,
+            #senha: senha,
+            #profileImage: profileImage,
+            #codUsuario: codUsuario,
+          },
+        ),
+        returnValue:
+            _i5.Future<_i2.CreateUserResponse>.value(_FakeCreateUserResponse_0(
+          this,
+          Invocation.method(
+            #createUser,
+            [],
+            {
               #nome: nome,
               #senha: senha,
               #profileImage: profileImage,
               #codUsuario: codUsuario,
-            }),
-            returnValue: _i5.Future<_i2.CreateUserResponse>.value(
-              _FakeCreateUserResponse_0(
-                this,
-                Invocation.method(#createUser, [], {
-                  #nome: nome,
-                  #senha: senha,
-                  #profileImage: profileImage,
-                  #codUsuario: codUsuario,
-                }),
-              ),
-            ),
-          )
-          as _i5.Future<_i2.CreateUserResponse>);
+            },
+          ),
+        )),
+      ) as _i5.Future<_i2.CreateUserResponse>);
 
   @override
-  _i5.Future<_i2.LoginResponse> login(String? nome, String? senha) =>
+  _i5.Future<_i2.LoginResponse> login(
+    String? nome,
+    String? senha,
+  ) =>
       (super.noSuchMethod(
-            Invocation.method(#login, [nome, senha]),
-            returnValue: _i5.Future<_i2.LoginResponse>.value(
-              _FakeLoginResponse_1(this, Invocation.method(#login, [nome, senha])),
-            ),
-          )
-          as _i5.Future<_i2.LoginResponse>);
+        Invocation.method(
+          #login,
+          [
+            nome,
+            senha,
+          ],
+        ),
+        returnValue: _i5.Future<_i2.LoginResponse>.value(_FakeLoginResponse_1(
+          this,
+          Invocation.method(
+            #login,
+            [
+              nome,
+              senha,
+            ],
+          ),
+        )),
+      ) as _i5.Future<_i2.LoginResponse>);
 
   @override
   _i5.Future<_i2.AppUserConsultation> getAppUser(int? codLoginApp) =>
       (super.noSuchMethod(
-            Invocation.method(#getAppUser, [codLoginApp]),
-            returnValue: _i5.Future<_i2.AppUserConsultation>.value(
-              _FakeAppUserConsultation_2(this, Invocation.method(#getAppUser, [codLoginApp])),
-            ),
-          )
-          as _i5.Future<_i2.AppUserConsultation>);
+        Invocation.method(
+          #getAppUser,
+          [codLoginApp],
+        ),
+        returnValue: _i5.Future<_i2.AppUserConsultation>.value(
+            _FakeAppUserConsultation_2(
+          this,
+          Invocation.method(
+            #getAppUser,
+            [codLoginApp],
+          ),
+        )),
+      ) as _i5.Future<_i2.AppUserConsultation>);
 
   @override
   _i5.Future<_i2.AppUserConsultation> putAppUser(_i2.AppUser? appUser) =>
       (super.noSuchMethod(
-            Invocation.method(#putAppUser, [appUser]),
-            returnValue: _i5.Future<_i2.AppUserConsultation>.value(
-              _FakeAppUserConsultation_2(this, Invocation.method(#putAppUser, [appUser])),
-            ),
-          )
-          as _i5.Future<_i2.AppUserConsultation>);
+        Invocation.method(
+          #putAppUser,
+          [appUser],
+        ),
+        returnValue: _i5.Future<_i2.AppUserConsultation>.value(
+            _FakeAppUserConsultation_2(
+          this,
+          Invocation.method(
+            #putAppUser,
+            [appUser],
+          ),
+        )),
+      ) as _i5.Future<_i2.AppUserConsultation>);
 
   @override
-  _i5.Future<bool> validateCurrentPassword({required String? nome, required String? currentPassword}) =>
+  _i5.Future<bool> validateCurrentPassword({
+    required String? nome,
+    required String? currentPassword,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#validateCurrentPassword, [], {#nome: nome, #currentPassword: currentPassword}),
-            returnValue: _i5.Future<bool>.value(false),
-          )
-          as _i5.Future<bool>);
+        Invocation.method(
+          #validateCurrentPassword,
+          [],
+          {
+            #nome: nome,
+            #currentPassword: currentPassword,
+          },
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
 
   @override
   _i5.Future<bool> changePassword({
@@ -126,20 +203,24 @@ class MockUserRepository extends _i1.Mock implements _i4.UserRepository {
     required String? newPassword,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#changePassword, [], {
-              #nome: nome,
-              #currentPassword: currentPassword,
-              #newPassword: newPassword,
-            }),
-            returnValue: _i5.Future<bool>.value(false),
-          )
-          as _i5.Future<bool>);
+        Invocation.method(
+          #changePassword,
+          [],
+          {
+            #nome: nome,
+            #currentPassword: currentPassword,
+            #newPassword: newPassword,
+          },
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
 }
 
 /// A class which mocks [UserSystemRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockUserSystemRepository extends _i1.Mock implements _i7.UserSystemRepository {
+class MockUserSystemRepository extends _i1.Mock
+    implements _i7.UserSystemRepository {
   MockUserSystemRepository() {
     _i1.throwOnMissingStub(this);
   }
@@ -147,10 +228,13 @@ class MockUserSystemRepository extends _i1.Mock implements _i7.UserSystemReposit
   @override
   _i5.Future<Map<String, dynamic>> getUserSystemInfo(int? codUsuario) =>
       (super.noSuchMethod(
-            Invocation.method(#getUserSystemInfo, [codUsuario]),
-            returnValue: _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-          )
-          as _i5.Future<Map<String, dynamic>>);
+        Invocation.method(
+          #getUserSystemInfo,
+          [codUsuario],
+        ),
+        returnValue:
+            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i5.Future<Map<String, dynamic>>);
 
   @override
   _i5.Future<_i3.UserSystemListResponseDto> getUsers({
@@ -159,31 +243,39 @@ class MockUserSystemRepository extends _i1.Mock implements _i7.UserSystemReposit
     _i9.Pagination? pagination,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#getUsers, [], {
+        Invocation.method(
+          #getUsers,
+          [],
+          {
+            #codEmpresa: codEmpresa,
+            #apenasAtivos: apenasAtivos,
+            #pagination: pagination,
+          },
+        ),
+        returnValue: _i5.Future<_i3.UserSystemListResponseDto>.value(
+            _FakeUserSystemListResponseDto_3(
+          this,
+          Invocation.method(
+            #getUsers,
+            [],
+            {
               #codEmpresa: codEmpresa,
               #apenasAtivos: apenasAtivos,
               #pagination: pagination,
-            }),
-            returnValue: _i5.Future<_i3.UserSystemListResponseDto>.value(
-              _FakeUserSystemListResponseDto_3(
-                this,
-                Invocation.method(#getUsers, [], {
-                  #codEmpresa: codEmpresa,
-                  #apenasAtivos: apenasAtivos,
-                  #pagination: pagination,
-                }),
-              ),
-            ),
-          )
-          as _i5.Future<_i3.UserSystemListResponseDto>);
+            },
+          ),
+        )),
+      ) as _i5.Future<_i3.UserSystemListResponseDto>);
 
   @override
   _i5.Future<_i10.UserSystemModel?> getUserById(int? codUsuario) =>
       (super.noSuchMethod(
-            Invocation.method(#getUserById, [codUsuario]),
-            returnValue: _i5.Future<_i10.UserSystemModel?>.value(),
-          )
-          as _i5.Future<_i10.UserSystemModel?>);
+        Invocation.method(
+          #getUserById,
+          [codUsuario],
+        ),
+        returnValue: _i5.Future<_i10.UserSystemModel?>.value(),
+      ) as _i5.Future<_i10.UserSystemModel?>);
 
   @override
   _i5.Future<_i3.UserSystemListResponseDto> searchUsersByName(
@@ -193,72 +285,95 @@ class MockUserSystemRepository extends _i1.Mock implements _i7.UserSystemReposit
     _i9.Pagination? pagination,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(
-              #searchUsersByName,
-              [nome],
-              {#codEmpresa: codEmpresa, #apenasAtivos: apenasAtivos, #pagination: pagination},
-            ),
-            returnValue: _i5.Future<_i3.UserSystemListResponseDto>.value(
-              _FakeUserSystemListResponseDto_3(
-                this,
-                Invocation.method(
-                  #searchUsersByName,
-                  [nome],
-                  {#codEmpresa: codEmpresa, #apenasAtivos: apenasAtivos, #pagination: pagination},
-                ),
-              ),
-            ),
-          )
-          as _i5.Future<_i3.UserSystemListResponseDto>);
+        Invocation.method(
+          #searchUsersByName,
+          [nome],
+          {
+            #codEmpresa: codEmpresa,
+            #apenasAtivos: apenasAtivos,
+            #pagination: pagination,
+          },
+        ),
+        returnValue: _i5.Future<_i3.UserSystemListResponseDto>.value(
+            _FakeUserSystemListResponseDto_3(
+          this,
+          Invocation.method(
+            #searchUsersByName,
+            [nome],
+            {
+              #codEmpresa: codEmpresa,
+              #apenasAtivos: apenasAtivos,
+              #pagination: pagination,
+            },
+          ),
+        )),
+      ) as _i5.Future<_i3.UserSystemListResponseDto>);
 }
 
 /// A class which mocks [UserSessionService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockUserSessionService extends _i1.Mock implements _i11.UserSessionService {
+class MockUserSessionService extends _i1.Mock
+    implements _i11.UserSessionService {
   MockUserSessionService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Future<void> saveUserSession(_i2.AppUser? appUser) =>
-      (super.noSuchMethod(
-            Invocation.method(#saveUserSession, [appUser]),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
-          )
-          as _i5.Future<void>);
+  _i5.Future<void> saveUserSession(_i2.AppUser? appUser) => (super.noSuchMethod(
+        Invocation.method(
+          #saveUserSession,
+          [appUser],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i5.Future<_i2.AppUser?> loadUserSession() =>
-      (super.noSuchMethod(Invocation.method(#loadUserSession, []), returnValue: _i5.Future<_i2.AppUser?>.value())
-          as _i5.Future<_i2.AppUser?>);
+  _i5.Future<_i2.AppUser?> loadUserSession() => (super.noSuchMethod(
+        Invocation.method(
+          #loadUserSession,
+          [],
+        ),
+        returnValue: _i5.Future<_i2.AppUser?>.value(),
+      ) as _i5.Future<_i2.AppUser?>);
 
   @override
   _i5.Future<void> updateUserSession(_i2.AppUser? appUser) =>
       (super.noSuchMethod(
-            Invocation.method(#updateUserSession, [appUser]),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
-          )
-          as _i5.Future<void>);
+        Invocation.method(
+          #updateUserSession,
+          [appUser],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i5.Future<bool> hasActiveSession() =>
-      (super.noSuchMethod(Invocation.method(#hasActiveSession, []), returnValue: _i5.Future<bool>.value(false))
-          as _i5.Future<bool>);
+  _i5.Future<bool> hasActiveSession() => (super.noSuchMethod(
+        Invocation.method(
+          #hasActiveSession,
+          [],
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
 
   @override
-  _i5.Future<bool> isUserLoggedIn() =>
-      (super.noSuchMethod(Invocation.method(#isUserLoggedIn, []), returnValue: _i5.Future<bool>.value(false))
-          as _i5.Future<bool>);
+  _i5.Future<bool> isUserLoggedIn() => (super.noSuchMethod(
+        Invocation.method(
+          #isUserLoggedIn,
+          [],
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
 
   @override
-  _i5.Future<void> clearUserSession() =>
-      (super.noSuchMethod(
-            Invocation.method(#clearUserSession, []),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
-          )
-          as _i5.Future<void>);
+  _i5.Future<void> clearUserSession() => (super.noSuchMethod(
+        Invocation.method(
+          #clearUserSession,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 }
