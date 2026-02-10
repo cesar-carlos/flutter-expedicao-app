@@ -22,6 +22,7 @@ class AddCartScreen extends StatefulWidget {
 class _AddCartScreenState extends State<AddCartScreen> {
   final _scrollController = ScrollController();
   late AddCartViewModel _viewModel;
+  int _lastSuccessCounter = 0;
 
   @override
   void initState() {
@@ -48,10 +49,10 @@ class _AddCartScreenState extends State<AddCartScreen> {
       });
     }
 
-    if (_viewModel.lastAddSucceeded) {
+    if (_viewModel.successCounter > _lastSuccessCounter && mounted) {
+      _lastSuccessCounter = _viewModel.successCounter;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          _viewModel.resetSuccessFlag();
           context.pop(true);
         }
       });

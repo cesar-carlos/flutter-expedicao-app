@@ -35,7 +35,7 @@ class AddCartViewModel extends ChangeNotifier {
   Timer? _autoAddTimer;
   int _countdownSeconds = 0;
   bool _disposed = false;
-  bool _lastAddSucceeded = false;
+  int _successCounter = 0;
 
   AddCartViewModel({required this.codEmpresa, required this.codSepararEstoque})
     : _addCartUseCase = locator<AddCartUseCase>(),
@@ -51,7 +51,7 @@ class AddCartViewModel extends ChangeNotifier {
   bool get canAddCart => _scannedCart?.situacao == ExpeditionCartSituation.liberado;
   int get countdownSeconds => _countdownSeconds;
   bool get isCountdownActive => _autoAddTimer != null && _autoAddTimer!.isActive;
-  bool get lastAddSucceeded => _lastAddSucceeded;
+  int get successCounter => _successCounter;
 
   ExpeditionCartConsultationModel? get scannedCart => _scannedCart;
   String? get errorMessage => _errorMessage;
@@ -99,7 +99,6 @@ class AddCartViewModel extends ChangeNotifier {
     _stopAutoAddCountdown();
     _setAdding(true);
     _clearError();
-    _lastAddSucceeded = false;
 
     try {
       final existingCartRoute = await _checkExistingCartRoute();
@@ -120,7 +119,7 @@ class AddCartViewModel extends ChangeNotifier {
       return result.fold(
         (success) {
           _audioService.playCartAddSuccess();
-          _lastAddSucceeded = true;
+          _successCounter++;
           notifyListeners();
           return true;
         },
@@ -182,10 +181,6 @@ class AddCartViewModel extends ChangeNotifier {
     _scannedCart = null;
     _clearError();
     notifyListeners();
-  }
-
-  void resetSuccessFlag() {
-    _lastAddSucceeded = false;
   }
 
   void _startAutoAddCountdown() {
