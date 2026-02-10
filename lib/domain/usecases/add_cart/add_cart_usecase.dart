@@ -60,7 +60,10 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
         return failure(AddCartFailure.userNotAuthenticated());
       }
 
-      final cartsResult = await _findCartByCode(params.codCarrinho);
+      final cartsResult = params.scannedCart != null
+          ? success(params.scannedCart!)
+          : await _findCartByCode(params.codCarrinho);
+
       final cart = cartsResult.fold((success) => success, (failure) => null);
       if (cart == null) {
         return cartsResult.fold(

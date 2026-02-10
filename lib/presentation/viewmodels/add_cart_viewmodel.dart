@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_params.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
@@ -34,7 +35,7 @@ class AddCartViewModel extends ChangeNotifier {
   String? _errorMessage;
   Timer? _autoAddTimer;
   int _countdownSeconds = 0;
-  bool _cartAddedSuccessfully = false;
+  bool _disposed = false;
 
   AddCartViewModel({required this.codEmpresa, required this.codSepararEstoque})
     : _addCartUseCase = locator<AddCartUseCase>(),
@@ -50,7 +51,6 @@ class AddCartViewModel extends ChangeNotifier {
   bool get canAddCart => _scannedCart?.situacao == ExpeditionCartSituation.liberado;
   int get countdownSeconds => _countdownSeconds;
   bool get isCountdownActive => _autoAddTimer != null && _autoAddTimer!.isActive;
-  bool get cartAddedSuccessfully => _cartAddedSuccessfully;
 
   ExpeditionCartConsultationModel? get scannedCart => _scannedCart;
   String? get errorMessage => _errorMessage;
@@ -58,8 +58,10 @@ class AddCartViewModel extends ChangeNotifier {
   Future<void> scanBarcode(String barcode) async {
     if (barcode.isEmpty) return;
 
-    _setScanning(true);
-    _clearError();
+    _isScanning = true;
+    _errorMessage = null;
+
+    notifyListeners();
 
     try {
       final query = QueryBuilder().equals('codigoBarras', barcode);
@@ -68,22 +70,36 @@ class AddCartViewModel extends ChangeNotifier {
 
       if (carts.isNotEmpty) {
         _scannedCart = carts.first;
+        _audioService.playBarcodeScan();
         _startAutoAddCountdown();
       } else {
-        _setError('Carrinho não encontrado com o código de barras informado.');
+        _errorMessage = 'Carrinho não encontrado com o código de barras informado.';
         _audioService.playError();
       }
     } catch (e) {
-      _setError('Erro ao buscar carrinho: ${e.toString()}');
+      _errorMessage = 'Erro ao buscar carrinho: ${e.toString()}';
       _audioService.playError();
     } finally {
-      _setScanning(false);
+      _isScanning = false;
+      notifyListeners();
     }
   }
 
   Future<bool> addCartToSeparation() async {
+    AppLogger.debug('addCartToSeparation: INÍCIO', tag: 'AddCartViewModel');
+
+    if (_disposed) {
+      AppLogger.debug('addCartToSeparation: ABORTADO - disposed', tag: 'AddCartViewModel');
+      return false;
+    }
     if (_scannedCart == null) {
       _setError('Nenhum carrinho foi escaneado.');
+      AppLogger.debug('addCartToSeparation: ERRO - sem carrinho escaneado', tag: 'AddCartViewModel');
+      return false;
+    }
+
+    if (_isAdding) {
+      AppLogger.debug('addCartToSeparation: ABORTADO - já está adicionando', tag: 'AddCartViewModel');
       return false;
     }
 
@@ -92,44 +108,50 @@ class AddCartViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      if (ExpeditionOrigem.separacaoEstoque.code == ExpeditionOrigem.separacaoEstoque.code) {
-        final existingCartRoute = await _checkExistingCartRoute();
-        if (existingCartRoute == null) {
-          final startResult = await _startSeparation();
-          if (!startResult) {
-            return false;
-          }
+      AppLogger.debug('addCartToSeparation: verificando rota existente', tag: 'AddCartViewModel');
+      final existingCartRoute = await _checkExistingCartRoute();
+      if (existingCartRoute == null) {
+        AppLogger.debug('addCartToSeparation: iniciando separação', tag: 'AddCartViewModel');
+        final startResult = await _startSeparation();
+        if (!startResult) {
+          AppLogger.debug('addCartToSeparation: FALHOU ao iniciar separação', tag: 'AddCartViewModel');
+          return false;
         }
       }
 
+      AppLogger.debug('addCartToSeparation: chamando UseCase', tag: 'AddCartViewModel');
       final params = AddCartParams(
         codEmpresa: codEmpresa,
         origem: ExpeditionOrigem.separacaoEstoque,
         codOrigem: codSepararEstoque,
         codCarrinho: _scannedCart!.codCarrinho,
+        scannedCart: _scannedCart,
       );
 
       final result = await _addCartUseCase.call(params);
       return result.fold(
         (success) {
+          AppLogger.debug('addCartToSeparation: SUCESSO - reproduzindo som', tag: 'AddCartViewModel');
           _audioService.playCartAddSuccess();
-          _cartAddedSuccessfully = true;
           notifyListeners();
           return true;
         },
         (failure) {
           final message = failure is AppFailure ? failure.userMessage : failure.toString();
+          AppLogger.debug('addCartToSeparation: FALHOU - $message', tag: 'AddCartViewModel');
           _setError(message);
           _audioService.playError();
           return false;
         },
       );
     } catch (e) {
+      AppLogger.debug('addCartToSeparation: ERRO - ${e.toString()}', tag: 'AddCartViewModel');
       _setError('Erro inesperado: ${e.toString()}');
       _audioService.playError();
       return false;
     } finally {
       _setAdding(false);
+      AppLogger.debug('addCartToSeparation: FIM - isAdding=$_isAdding', tag: 'AddCartViewModel');
     }
   }
 
@@ -173,7 +195,6 @@ class AddCartViewModel extends ChangeNotifier {
   void clearScannedData() {
     _stopAutoAddCountdown();
     _scannedCart = null;
-    _cartAddedSuccessfully = false;
     _clearError();
     notifyListeners();
   }
@@ -183,15 +204,23 @@ class AddCartViewModel extends ChangeNotifier {
 
     if (!canAddCart) return;
 
-    _countdownSeconds = 3;
+    _countdownSeconds = 5;
+    AppLogger.debug('COUNTDOWN: Iniciado - $_countdownSeconds segundos', tag: 'AddCartViewModel');
     notifyListeners();
 
     _autoAddTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_disposed) return;
+
       _countdownSeconds--;
+      AppLogger.debug('COUNTDOWN: Contagem $_countdownSeconds', tag: 'AddCartViewModel');
 
       if (_countdownSeconds <= 0) {
         _stopAutoAddCountdown();
-        addCartToSeparation();
+        AppLogger.debug('COUNTDOWN: Executando addCartToSeparation', tag: 'AddCartViewModel');
+        if (!_disposed) {
+          AppLogger.debug('COUNTDOWN: Chamando addCartToSeparation diretamente', tag: 'AddCartViewModel');
+          addCartToSeparation();
+        }
       } else {
         notifyListeners();
       }
@@ -209,28 +238,30 @@ class AddCartViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _setScanning(bool scanning) {
-    _isScanning = scanning;
-    notifyListeners();
-  }
-
   void _setAdding(bool adding) {
-    _isAdding = adding;
-    notifyListeners();
+    if (!_disposed) {
+      _isAdding = adding;
+      notifyListeners();
+    }
   }
 
   void _setError(String message) {
-    _errorMessage = message;
-    notifyListeners();
+    if (!_disposed) {
+      _errorMessage = message;
+      notifyListeners();
+    }
   }
 
   void _clearError() {
-    _errorMessage = null;
-    notifyListeners();
+    if (!_disposed) {
+      _errorMessage = null;
+      notifyListeners();
+    }
   }
 
   @override
   void dispose() {
+    _disposed = true;
     _stopAutoAddCountdown();
     super.dispose();
   }

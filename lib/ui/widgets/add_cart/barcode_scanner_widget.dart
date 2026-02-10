@@ -132,18 +132,8 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        if (_keyboardEnabled) {
-          _focusNode.unfocus();
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (mounted) _focusNode.requestFocus();
-          });
-        } else {
-          _focusNode.unfocus();
-          FocusScope.of(context).unfocus();
-          Future.delayed(const Duration(milliseconds: 200), () {
-            if (mounted) _focusNode.requestFocus();
-          });
-        }
+        _focusNode.unfocus();
+        _focusNode.requestFocus();
       }
     });
   }

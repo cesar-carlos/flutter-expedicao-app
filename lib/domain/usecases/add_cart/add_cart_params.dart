@@ -1,16 +1,19 @@
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_consultation_model.dart';
 
 class AddCartParams {
   final int codEmpresa;
   final ExpeditionOrigem origem;
   final int codOrigem;
   final int codCarrinho;
+  final ExpeditionCartConsultationModel? scannedCart;
 
   const AddCartParams({
     required this.codEmpresa,
     required this.origem,
     required this.codOrigem,
     required this.codCarrinho,
+    this.scannedCart,
   });
 
   @override

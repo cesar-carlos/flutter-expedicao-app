@@ -35,7 +35,7 @@ import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.d
 import 'package:data7_expedicao/ui/screens/card_picking_screen.dart';
 import 'package:data7_expedicao/ui/screens/picking_products_list_screen.dart';
 import 'package:data7_expedicao/ui/screens/add_cart_screen.dart';
-import 'package:data7_expedicao/domain/viewmodels/add_cart_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/add_cart_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';

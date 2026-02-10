@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:data7_expedicao/domain/viewmodels/add_cart_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/add_cart_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/add_cart/cart_details_widget.dart';
 import 'package:data7_expedicao/ui/widgets/add_cart/barcode_scanner_widget.dart';
 import 'package:data7_expedicao/ui/widgets/add_cart/cart_actions_widget.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class AddCartScreen extends StatefulWidget {
   final int codEmpresa;
@@ -22,7 +23,6 @@ class AddCartScreen extends StatefulWidget {
 class _AddCartScreenState extends State<AddCartScreen> {
   final _scrollController = ScrollController();
   late AddCartViewModel _viewModel;
-  bool _hasPopped = false;
 
   @override
   void initState() {
@@ -42,19 +42,9 @@ class _AddCartScreenState extends State<AddCartScreen> {
 
   void _onViewModelChanged() {
     if (_viewModel.hasCartData && !_viewModel.isScanning) {
-      Future.delayed(const Duration(milliseconds: 100), () {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _scrollToActions();
-        }
-      });
-    }
-
-    if (_viewModel.cartAddedSuccessfully && mounted && !_hasPopped) {
-      _hasPopped = true;
-
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted && _hasPopped) {
-          context.pop(true);
         }
       });
     }
@@ -115,7 +105,6 @@ class _AddCartScreenState extends State<AddCartScreen> {
                       ),
                     ],
 
-                    // Só mostra erro se não há dados do carrinho (erro de busca)
                     if (viewModel.hasError && !viewModel.hasCartData)
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -150,14 +139,30 @@ class _AddCartScreenState extends State<AddCartScreen> {
 
   void _onNewQuery(AddCartViewModel viewModel) {
     viewModel.clearScannedData();
-    // O foco será aplicado automaticamente pelo BarcodeScanner quando os dados forem limpos
   }
 
   Future<void> _onAddCart(AddCartViewModel viewModel) async {
+    AppLogger.debug('onAddCart: INÍCIO - isAdding=${viewModel.isAdding}', tag: 'AddCartScreen');
+
+    if (viewModel.isAdding) {
+      AppLogger.debug('onAddCart: ABORTADO - já está adicionando', tag: 'AddCartScreen');
+      return;
+    }
+
     viewModel.cancelAutoAdd();
+    AppLogger.debug('onAddCart: chamando addCartToSeparation', tag: 'AddCartScreen');
     final success = await viewModel.addCartToSeparation();
 
-    if (!success && mounted) {
+    AppLogger.debug('onAddCart: resultado=$success, mounted=$mounted', tag: 'AddCartScreen');
+
+    if (success && mounted) {
+      await Future.delayed(const Duration(milliseconds: 800));
+      if (mounted) {
+        AppLogger.debug('onAddCart: fechando tela com sucesso', tag: 'AddCartScreen');
+        context.pop(true);
+      }
+    } else if (!success && mounted) {
+      AppLogger.debug('onAddCart: mostrando erro', tag: 'AddCartScreen');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(viewModel.errorMessage ?? 'Erro ao adicionar carrinho'),

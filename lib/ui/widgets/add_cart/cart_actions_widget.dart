@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:data7_expedicao/domain/viewmodels/add_cart_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/add_cart_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
@@ -28,6 +28,7 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
   @override
   void initState() {
     super.initState();
+    widget.viewModel.addListener(_onViewModelChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.viewModel.canAddCart) {
@@ -38,8 +39,15 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
 
   @override
   void dispose() {
+    widget.viewModel.removeListener(_onViewModelChanged);
     _addButtonFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override

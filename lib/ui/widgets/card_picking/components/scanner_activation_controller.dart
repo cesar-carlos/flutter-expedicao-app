@@ -7,13 +7,6 @@ import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_scan_
 import 'package:data7_expedicao/ui/widgets/card_picking/components/scanner_preferences_controller.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/scanner_broadcast_controller.dart';
 
-/// Controller responsável por coordenar a ativação do scanner
-///
-/// Responsabilidades:
-/// - Coordenar ativação do scanner (focus ou broadcast)
-/// - Gerenciar pausa/reactivação do scanner
-/// - Integrar com KeyboardToggleController e PickingScanState
-/// - Garantir que o scanner seja ativado corretamente após mudanças de estado
 class ScannerActivationController {
   final ScannerPreferencesController _preferencesController;
   final ScannerBroadcastController _broadcastController;
@@ -21,10 +14,7 @@ class ScannerActivationController {
   bool _isInitialized = false;
   bool _isPaused = false;
 
-  /// Indica se o scanner foi inicializado
   bool get isInitialized => _isInitialized;
-
-  /// Indica se o scanner está pausado
   bool get isPaused => _isPaused;
 
   ScannerActivationController({
@@ -33,14 +23,6 @@ class ScannerActivationController {
   }) : _preferencesController = preferencesController ?? ScannerPreferencesController(),
        _broadcastController = broadcastController ?? ScannerBroadcastController();
 
-  /// Ativa o scanner no modo apropriado (focus ou broadcast)
-  ///
-  /// [scanState] - Estado do scanner
-  /// [keyboardController] - Controller para gerenciar teclado/scanner
-  /// [scanFocusNode] - FocusNode do campo de scan
-  /// [scanController] - TextEditingController do campo de scan
-  /// [onBarcodeScanned] - Callback quando um código é escaneado
-  /// [mounted] - Função para verificar se o widget está montado
   Future<void> activate({
     required PickingScanState scanState,
     required KeyboardToggleController keyboardController,
@@ -66,7 +48,6 @@ class ScannerActivationController {
     _isInitialized = true;
   }
 
-  /// Ativa o scanner em modo broadcast
   Future<void> _activateBroadcastMode(void Function(String) onBarcodeScanned, bool Function() mounted) async {
     AppLogger.debug('Activating scanner in broadcast mode', tag: 'ScannerActivationController');
     await _broadcastController.start(
@@ -80,7 +61,6 @@ class ScannerActivationController {
     );
   }
 
-  /// Ativa o scanner em modo focus
   Future<void> _activateFocusMode(
     PickingScanState scanState,
     KeyboardToggleController keyboardController,
@@ -88,21 +68,10 @@ class ScannerActivationController {
     bool Function() mounted,
   ) async {
     AppLogger.debug('Activating scanner in focus mode', tag: 'ScannerActivationController');
-    scanState.setKeyboardEnabled(true);
-    keyboardController.enableKeyboardMode();
-
-    await Future.delayed(UIConstants.scannerInitDelay);
-    if (!mounted()) return;
-
     scanState.setKeyboardEnabled(false);
     keyboardController.enableScannerMode();
   }
 
-  /// Pausa o scanner (usado durante scan de prateleira, por exemplo)
-  ///
-  /// [scanState] - Estado do scanner
-  /// [scanFocusNode] - FocusNode do campo de scan
-  /// [mounted] - Função para verificar se o widget está montado
   Future<void> pause({
     required PickingScanState scanState,
     required FocusNode scanFocusNode,
@@ -121,14 +90,6 @@ class ScannerActivationController {
     scanFocusNode.unfocus();
   }
 
-  /// Reativa o scanner após uma pausa
-  ///
-  /// [scanState] - Estado do scanner
-  /// [keyboardController] - Controller para gerenciar teclado/scanner
-  /// [scanFocusNode] - FocusNode do campo de scan
-  /// [scanController] - TextEditingController do campo de scan
-  /// [onBarcodeScanned] - Callback quando um código é escaneado
-  /// [mounted] - Função para verificar se o widget está montado
   Future<void> reactivate({
     required PickingScanState scanState,
     required KeyboardToggleController keyboardController,
@@ -158,7 +119,6 @@ class ScannerActivationController {
     }
   }
 
-  /// Reativa o scanner em modo broadcast
   Future<void> _reactivateBroadcastMode(
     PickingScanState scanState,
     TextEditingController scanController,
@@ -194,7 +154,6 @@ class ScannerActivationController {
     });
   }
 
-  /// Reativa o scanner em modo focus
   Future<void> _reactivateFocusMode(
     PickingScanState scanState,
     KeyboardToggleController keyboardController,
@@ -203,6 +162,8 @@ class ScannerActivationController {
     bool Function() mounted,
   ) async {
     AppLogger.debug('Reactivating scanner in focus mode', tag: 'ScannerActivationController');
+
+    _isInitialized = false;
 
     await activate(
       scanState: scanState,
@@ -215,16 +176,13 @@ class ScannerActivationController {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted()) return;
-      scanState.setKeyboardEnabled(false);
       scanState.setEnabled(true);
-      keyboardController.enableScannerMode();
       scanState.stopProcessing();
       scanController.clear();
       scanFocusNode.requestFocus();
     });
   }
 
-  /// Descarta o controller e limpa recursos
   void dispose() {
     _broadcastController.dispose();
     _isInitialized = false;
