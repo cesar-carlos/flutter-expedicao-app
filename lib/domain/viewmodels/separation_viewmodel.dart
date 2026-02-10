@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
@@ -69,6 +71,7 @@ class SeparationViewModel extends ChangeNotifier {
   bool _updateListListenerRegistered = false;
 
   bool _isScreenVisible = false;
+  Timer? _notificationDebounce;
 
   bool get isScreenVisible => _isScreenVisible;
 
@@ -273,6 +276,7 @@ class SeparationViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _notificationDebounce?.cancel();
     _disposed = true;
     super.dispose();
   }
@@ -735,9 +739,13 @@ class SeparationViewModel extends ChangeNotifier {
   }
 
   void _playNotificationIfNeeded(SeparateConsultationModel separationData) {
-    if (_shouldAddToCurrentList(separationData)) {
+    if (!_shouldAddToCurrentList(separationData)) return;
+
+    _notificationDebounce?.cancel();
+    _notificationDebounce = Timer(const Duration(seconds: 5), () {
+      if (_disposed) return;
       _audioService.playSuccess();
-    }
+    });
   }
 
   bool _hasRelevantChanges(SeparateConsultationModel current, SeparateConsultationModel updated) {

@@ -64,7 +64,6 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
 
   // === LIFECYCLE ===
 
-  // ========== Lifecycle ==========
 
   @override
   void initState() {
@@ -96,18 +95,19 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
 
-    // Para o monitoramento de eventos quando a tela é fechada
-    try {
-      final viewModel = context.read<SeparationViewModel>();
-      viewModel.stopEventMonitoring();
-      viewModel.setScreenVisible(false);
-    } catch (e, stackTrace) {
-      AppLogger.debug(
-        'Erro ao parar monitoramento (contexto pode não estar mais disponível)',
-        tag: 'SeparationScreen',
-        error: e,
-        stackTrace: stackTrace,
-      );
+    if (mounted) {
+      try {
+        final viewModel = context.read<SeparationViewModel>();
+        viewModel.stopEventMonitoring();
+        viewModel.setScreenVisible(false);
+      } catch (e, stackTrace) {
+        AppLogger.debug(
+          'Erro ao parar monitoramento (contexto pode não estar mais disponível)',
+          tag: 'SeparationScreen',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
     }
 
     _scrollController.dispose();
@@ -119,11 +119,11 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    // Atualizar visibilidade baseado no estado do app
+    if (!mounted) return;
+
     try {
       final viewModel = context.read<SeparationViewModel>();
 
-      // Considera "não visível" se app está em background
       if (state == AppLifecycleState.paused ||
           state == AppLifecycleState.inactive ||
           state == AppLifecycleState.detached) {
@@ -141,13 +141,11 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     }
   }
 
-  // ========== Data Loading ==========
 
   void _loadInitialData() {
     context.read<SeparationViewModel>().loadSeparations();
   }
 
-  // ========== Scroll Handling ==========
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
@@ -198,7 +196,6 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     return _printingTickets.contains(_buildPrintKey(separation));
   }
 
-  // ========== UI Actions ==========
 
   void _onSeparationTap(SeparateConsultationModel separation) {
     context.push(AppRouter.separateItems, extra: separation.toJson());
@@ -346,7 +343,6 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     return 'Falha ao imprimir separação.';
   }
 
-  // ========== Next Separation FAB ==========
 
   Widget _buildFloatingActionButton() {
     return AnimatedBuilder(
@@ -527,7 +523,6 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     }
   }
 
-  // ========== Helper Methods ==========
 
   void _showErrorModal(String title, String message) {
     _showCustomModal(title: title, message: message, icon: Icons.error_outline, color: AppColors.error);
@@ -564,7 +559,6 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     );
   }
 
-  // ========== Build Methods ==========
 
   @override
   Widget build(BuildContext context) {
