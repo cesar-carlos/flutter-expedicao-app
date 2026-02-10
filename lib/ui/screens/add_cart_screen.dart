@@ -8,7 +8,6 @@ import 'package:data7_expedicao/ui/widgets/add_cart/barcode_scanner_widget.dart'
 import 'package:data7_expedicao/ui/widgets/add_cart/cart_actions_widget.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
-import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class AddCartScreen extends StatefulWidget {
   final int codEmpresa;
@@ -23,7 +22,6 @@ class AddCartScreen extends StatefulWidget {
 class _AddCartScreenState extends State<AddCartScreen> {
   final _scrollController = ScrollController();
   late AddCartViewModel _viewModel;
-  bool _wasAdding = false;
 
   @override
   void initState() {
@@ -50,16 +48,12 @@ class _AddCartScreenState extends State<AddCartScreen> {
       });
     }
 
-    if (_wasAdding && !_viewModel.isAdding && _viewModel.errorMessage == null && mounted) {
-      AppLogger.debug('onAddCart: detectado sucesso no add, fechando tela', tag: 'AddCartScreen');
-      _wasAdding = false;
+    if (_viewModel.lastAddSucceeded) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.pop(true);
         }
       });
-    } else if (_viewModel.isAdding) {
-      _wasAdding = true;
     }
   }
 
@@ -155,16 +149,9 @@ class _AddCartScreenState extends State<AddCartScreen> {
   }
 
   Future<void> _onAddCart(AddCartViewModel viewModel) async {
-    AppLogger.debug('onAddCart: INÍCIO - isAdding=${viewModel.isAdding}', tag: 'AddCartScreen');
-
-    if (viewModel.isAdding) {
-      AppLogger.debug('onAddCart: ABORTADO - já está adicionando', tag: 'AddCartScreen');
-      return;
-    }
+    if (viewModel.isAdding) return;
 
     viewModel.cancelAutoAdd();
-    AppLogger.debug('onAddCart: chamando addCartToSeparation', tag: 'AddCartScreen');
     await viewModel.addCartToSeparation();
-    AppLogger.debug('onAddCart: addCartToSeparation completado', tag: 'AddCartScreen');
   }
 }

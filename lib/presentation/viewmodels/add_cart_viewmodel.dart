@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
-import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_params.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
@@ -36,6 +35,7 @@ class AddCartViewModel extends ChangeNotifier {
   Timer? _autoAddTimer;
   int _countdownSeconds = 0;
   bool _disposed = false;
+  bool _lastAddSucceeded = false;
 
   AddCartViewModel({required this.codEmpresa, required this.codSepararEstoque})
     : _addCartUseCase = locator<AddCartUseCase>(),
@@ -51,6 +51,7 @@ class AddCartViewModel extends ChangeNotifier {
   bool get canAddCart => _scannedCart?.situacao == ExpeditionCartSituation.liberado;
   int get countdownSeconds => _countdownSeconds;
   bool get isCountdownActive => _autoAddTimer != null && _autoAddTimer!.isActive;
+  bool get lastAddSucceeded => _lastAddSucceeded;
 
   ExpeditionCartConsultationModel? get scannedCart => _scannedCart;
   String? get errorMessage => _errorMessage;
@@ -86,40 +87,27 @@ class AddCartViewModel extends ChangeNotifier {
   }
 
   Future<bool> addCartToSeparation() async {
-    AppLogger.debug('addCartToSeparation: INÍCIO', tag: 'AddCartViewModel');
+    if (_disposed) return false;
 
-    if (_disposed) {
-      AppLogger.debug('addCartToSeparation: ABORTADO - disposed', tag: 'AddCartViewModel');
-      return false;
-    }
     if (_scannedCart == null) {
       _setError('Nenhum carrinho foi escaneado.');
-      AppLogger.debug('addCartToSeparation: ERRO - sem carrinho escaneado', tag: 'AddCartViewModel');
       return false;
     }
 
-    if (_isAdding) {
-      AppLogger.debug('addCartToSeparation: ABORTADO - já está adicionando', tag: 'AddCartViewModel');
-      return false;
-    }
+    if (_isAdding) return false;
 
     _stopAutoAddCountdown();
     _setAdding(true);
     _clearError();
+    _lastAddSucceeded = false;
 
     try {
-      AppLogger.debug('addCartToSeparation: verificando rota existente', tag: 'AddCartViewModel');
       final existingCartRoute = await _checkExistingCartRoute();
       if (existingCartRoute == null) {
-        AppLogger.debug('addCartToSeparation: iniciando separação', tag: 'AddCartViewModel');
         final startResult = await _startSeparation();
-        if (!startResult) {
-          AppLogger.debug('addCartToSeparation: FALHOU ao iniciar separação', tag: 'AddCartViewModel');
-          return false;
-        }
+        if (!startResult) return false;
       }
 
-      AppLogger.debug('addCartToSeparation: chamando UseCase', tag: 'AddCartViewModel');
       final params = AddCartParams(
         codEmpresa: codEmpresa,
         origem: ExpeditionOrigem.separacaoEstoque,
@@ -131,27 +119,24 @@ class AddCartViewModel extends ChangeNotifier {
       final result = await _addCartUseCase.call(params);
       return result.fold(
         (success) {
-          AppLogger.debug('addCartToSeparation: SUCESSO - reproduzindo som', tag: 'AddCartViewModel');
           _audioService.playCartAddSuccess();
+          _lastAddSucceeded = true;
           notifyListeners();
           return true;
         },
         (failure) {
           final message = failure is AppFailure ? failure.userMessage : failure.toString();
-          AppLogger.debug('addCartToSeparation: FALHOU - $message', tag: 'AddCartViewModel');
           _setError(message);
           _audioService.playError();
           return false;
         },
       );
     } catch (e) {
-      AppLogger.debug('addCartToSeparation: ERRO - ${e.toString()}', tag: 'AddCartViewModel');
       _setError('Erro inesperado: ${e.toString()}');
       _audioService.playError();
       return false;
     } finally {
       _setAdding(false);
-      AppLogger.debug('addCartToSeparation: FIM - isAdding=$_isAdding', tag: 'AddCartViewModel');
     }
   }
 
@@ -205,18 +190,15 @@ class AddCartViewModel extends ChangeNotifier {
     if (!canAddCart) return;
 
     _countdownSeconds = 5;
-    AppLogger.debug('COUNTDOWN: Iniciado - $_countdownSeconds segundos', tag: 'AddCartViewModel');
     notifyListeners();
 
     _autoAddTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_disposed) return;
 
       _countdownSeconds--;
-      AppLogger.debug('COUNTDOWN: Contagem $_countdownSeconds', tag: 'AddCartViewModel');
 
       if (_countdownSeconds <= 0) {
         _stopAutoAddCountdown();
-        AppLogger.debug('COUNTDOWN: Executando auto add', tag: 'AddCartViewModel');
         if (!_disposed) {
           addCartToSeparation();
         }
