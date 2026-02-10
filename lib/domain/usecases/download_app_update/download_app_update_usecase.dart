@@ -20,9 +20,7 @@ class DownloadAppUpdateUseCase {
     );
 
     return downloadResult.mapFailureToAppUpdate(
-      (e) => AppUpdateFailure.downloadFailed(
-        e is AppFailure ? e.message : e.toString(),
-      ),
+      (e) => AppUpdateFailure.downloadFailed(e is AppFailure ? e.message : e.toString()),
     );
   }
 }

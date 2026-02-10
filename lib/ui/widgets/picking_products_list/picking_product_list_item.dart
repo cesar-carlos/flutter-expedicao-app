@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 

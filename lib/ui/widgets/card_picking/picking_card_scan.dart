@@ -6,7 +6,7 @@ import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 //import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
@@ -380,16 +380,18 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       selector: (_, vm) => vm.isCartInSeparationStatus,
       builder: (context, isEnabled, _) {
         _scanState.setEnabled(isEnabled);
-        return _PickingCardScanProvider(
-          scanState: _scanState,
-          cart: widget.cart,
-          viewModel: widget.viewModel,
-          quantityController: _quantityController,
-          quantityFocusNode: _quantityFocusNode,
-          scanController: _scanController,
-          scanFocusNode: _scanFocusNode,
-          onToggleKeyboard: _toggleKeyboard,
-          onBarcodeScanned: _onBarcodeScanned,
+        return RepaintBoundary(
+          child: _PickingCardScanProvider(
+            scanState: _scanState,
+            cart: widget.cart,
+            viewModel: widget.viewModel,
+            quantityController: _quantityController,
+            quantityFocusNode: _quantityFocusNode,
+            scanController: _scanController,
+            scanFocusNode: _scanFocusNode,
+            onToggleKeyboard: _toggleKeyboard,
+            onBarcodeScanned: _onBarcodeScanned,
+          ),
         );
       },
     );
@@ -464,12 +466,14 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
           () async {},
         );
 
-        unawaited(Future.wait([
-          _checkNextItemShelfScanAsync(),
-          Future.delayed(UIConstants.mediumDelay).then((_) async {
-            if (mounted) await _checkAndShowSaveCartModal();
-          }),
-        ]));
+        unawaited(
+          Future.wait([
+            _checkNextItemShelfScanAsync(),
+            Future.delayed(UIConstants.mediumDelay).then((_) async {
+              if (mounted) await _checkAndShowSaveCartModal();
+            }),
+          ]),
+        );
 
         _keyboardController.forceFocusAndCloseKeyboard();
       } else {

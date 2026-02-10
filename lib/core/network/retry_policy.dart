@@ -36,12 +36,7 @@ class RetryPolicy {
       } catch (e, stack) {
         lastError = e;
         if (attempt == maxAttempts) {
-          AppLogger.error(
-            'Falha após $maxAttempts tentativas',
-            tag: tag ?? 'RetryPolicy',
-            error: e,
-            stackTrace: stack,
-          );
+          AppLogger.error('Falha após $maxAttempts tentativas', tag: tag ?? 'RetryPolicy', error: e, stackTrace: stack);
           rethrow;
         }
         final delay = getDelayForAttempt(attempt);

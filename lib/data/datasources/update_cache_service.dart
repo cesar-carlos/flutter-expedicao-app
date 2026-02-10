@@ -18,10 +18,8 @@ class UpdateCacheService {
   ///
   /// [_prefs] é a instância de SharedPreferences usada para armazenar o cache.
   /// [cacheValidDuration] é a duração de validade do cache (padrão: 1 hora).
-  UpdateCacheService({
-    required SharedPreferences prefs,
-    this.cacheValidDuration = _defaultCacheValidDuration,
-  }) : _prefs = prefs;
+  UpdateCacheService({required SharedPreferences prefs, this.cacheValidDuration = _defaultCacheValidDuration})
+    : _prefs = prefs;
 
   /// Verifica se deve verificar por atualizações.
   ///

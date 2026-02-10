@@ -19,9 +19,8 @@ import 'package:data7_expedicao/domain/repositories/i_app_update_repository.dart
 class AppUpdateRepositoryImpl implements IAppUpdateRepository {
   final GitHubApiService _githubApiService;
 
-  AppUpdateRepositoryImpl({
-    GitHubApiService? githubApiService,
-  })  : _githubApiService = githubApiService ?? GitHubApiService(token: dotenv.env['GITHUB_TOKEN']);
+  AppUpdateRepositoryImpl({GitHubApiService? githubApiService})
+    : _githubApiService = githubApiService ?? GitHubApiService(token: dotenv.env['GITHUB_TOKEN']);
 
   /// Trata exceções do Dio e retorna [AppFailure] apropriado.
   AppFailure _handleDioException(DioException e) {

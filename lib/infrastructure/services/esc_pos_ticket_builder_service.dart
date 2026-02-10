@@ -138,7 +138,9 @@ class EscPosTicketBuilderService {
     // Observacao Interna: Apenas OrcamentoObservacao
     if (header.orcamentoObservacao != null && header.orcamentoObservacao!.trim().isNotEmpty) {
       bytes.addAll(generator.emptyLines(1));
-      bytes.addAll(generator.text(header.orcamentoObservacao!.trim(), styles: const PosStyles(align: PosAlign.left, bold: true)));
+      bytes.addAll(
+        generator.text(header.orcamentoObservacao!.trim(), styles: const PosStyles(align: PosAlign.left, bold: true)),
+      );
     }
 
     bytes.addAll(generator.emptyLines(1));
@@ -170,10 +172,14 @@ class EscPosTicketBuilderService {
       );
 
       // FAB (esquerda - conforme modelo)
-      bytes.addAll(generator.text('FAB: ${item.codigoFabricante ?? '-'}', styles: const PosStyles(align: PosAlign.left)));
+      bytes.addAll(
+        generator.text('FAB: ${item.codigoFabricante ?? '-'}', styles: const PosStyles(align: PosAlign.left)),
+      );
 
       // END (esquerda - conforme modelo)
-      bytes.addAll(generator.text('END: ${item.descricaoEnderecoProduto ?? '-'}', styles: const PosStyles(align: PosAlign.left)));
+      bytes.addAll(
+        generator.text('END: ${item.descricaoEnderecoProduto ?? '-'}', styles: const PosStyles(align: PosAlign.left)),
+      );
 
       // QTD (esquerda - conforme solicitado)
       bytes.addAll(
@@ -191,7 +197,9 @@ class EscPosTicketBuilderService {
       final separatorText = codUsuario != null && normalizedSeparator != null && normalizedSeparator.isNotEmpty
           ? '$codUsuario $normalizedSeparator'
           : (codUsuario?.toString() ?? normalizedSeparator ?? '');
-      bytes.addAll(generator.text('SEPARADOR: $separatorText', styles: const PosStyles(align: PosAlign.left, bold: true)));
+      bytes.addAll(
+        generator.text('SEPARADOR: $separatorText', styles: const PosStyles(align: PosAlign.left, bold: true)),
+      );
       bytes.addAll(generator.emptyLines(1));
     }
 

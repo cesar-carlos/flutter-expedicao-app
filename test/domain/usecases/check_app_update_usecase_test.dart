@@ -67,11 +67,17 @@ void main() {
 
     test('should return release when newer version is available', () async {
       // Arrange
-      when(mockRepository.getCurrentVersion()).thenAnswer((_) async => success(tCurrentVersion));
-      when(mockRepository.getLatestRelease('owner', 'repo')).thenAnswer((_) async => success(tNewerRelease));
+      when(
+        mockRepository.getCurrentVersion(),
+      ).thenAnswer((_) async => success(tCurrentVersion));
+      when(
+        mockRepository.getLatestRelease('owner', 'repo'),
+      ).thenAnswer((_) async => success(tNewerRelease));
 
       // Act
-      final result = await useCase(const CheckAppUpdateParams(owner: 'owner', repo: 'repo'));
+      final result = await useCase(
+        const CheckAppUpdateParams(owner: 'owner', repo: 'repo'),
+      );
 
       // Assert
       expect(result.isSuccess(), true);
@@ -83,40 +89,61 @@ void main() {
 
     test('should return noUpdateAvailable when versions are equal', () async {
       // Arrange
-      when(mockRepository.getCurrentVersion()).thenAnswer((_) async => success(tCurrentVersion));
-      when(mockRepository.getLatestRelease('owner', 'repo')).thenAnswer((_) async => success(tSameVersionRelease));
+      when(
+        mockRepository.getCurrentVersion(),
+      ).thenAnswer((_) async => success(tCurrentVersion));
+      when(
+        mockRepository.getLatestRelease('owner', 'repo'),
+      ).thenAnswer((_) async => success(tSameVersionRelease));
 
       // Act
-      final result = await useCase(const CheckAppUpdateParams(owner: 'owner', repo: 'repo'));
-
-      // Assert
-      expect(result.isError(), true);
-      final err = result.getError();
-      expect(err, isA<AppUpdateFailure>());
-      expect((err as AppUpdateFailure).type, AppUpdateFailureType.noUpdateAvailable);
-    });
-
-    test('should return noUpdateAvailable when release version is older', () async {
-      // Arrange
-      final olderRelease = GitHubRelease(
-        tagName: 'v0.9.9',
-        name: 'Version 0.9.9',
-        body: 'Older version',
-        publishedAt: DateTime(2024, 1, 1),
-        assets: [],
+      final result = await useCase(
+        const CheckAppUpdateParams(owner: 'owner', repo: 'repo'),
       );
-      when(mockRepository.getCurrentVersion()).thenAnswer((_) async => success(tCurrentVersion));
-      when(mockRepository.getLatestRelease('owner', 'repo')).thenAnswer((_) async => success(olderRelease));
-
-      // Act
-      final result = await useCase(const CheckAppUpdateParams(owner: 'owner', repo: 'repo'));
 
       // Assert
       expect(result.isError(), true);
       final err = result.getError();
       expect(err, isA<AppUpdateFailure>());
-      expect((err as AppUpdateFailure).type, AppUpdateFailureType.noUpdateAvailable);
+      expect(
+        (err as AppUpdateFailure).type,
+        AppUpdateFailureType.noUpdateAvailable,
+      );
     });
+
+    test(
+      'should return noUpdateAvailable when release version is older',
+      () async {
+        // Arrange
+        final olderRelease = GitHubRelease(
+          tagName: 'v0.9.9',
+          name: 'Version 0.9.9',
+          body: 'Older version',
+          publishedAt: DateTime(2024, 1, 1),
+          assets: [],
+        );
+        when(
+          mockRepository.getCurrentVersion(),
+        ).thenAnswer((_) async => success(tCurrentVersion));
+        when(
+          mockRepository.getLatestRelease('owner', 'repo'),
+        ).thenAnswer((_) async => success(olderRelease));
+
+        // Act
+        final result = await useCase(
+          const CheckAppUpdateParams(owner: 'owner', repo: 'repo'),
+        );
+
+        // Assert
+        expect(result.isError(), true);
+        final err = result.getError();
+        expect(err, isA<AppUpdateFailure>());
+        expect(
+          (err as AppUpdateFailure).type,
+          AppUpdateFailureType.noUpdateAvailable,
+        );
+      },
+    );
 
     test('should return noApkFound when release has no APK asset', () async {
       // Arrange
@@ -127,11 +154,17 @@ void main() {
         publishedAt: DateTime(2024, 1, 1),
         assets: [],
       );
-      when(mockRepository.getCurrentVersion()).thenAnswer((_) async => success(tCurrentVersion));
-      when(mockRepository.getLatestRelease('owner', 'repo')).thenAnswer((_) async => success(releaseWithoutApk));
+      when(
+        mockRepository.getCurrentVersion(),
+      ).thenAnswer((_) async => success(tCurrentVersion));
+      when(
+        mockRepository.getLatestRelease('owner', 'repo'),
+      ).thenAnswer((_) async => success(releaseWithoutApk));
 
       // Act
-      final result = await useCase(const CheckAppUpdateParams(owner: 'owner', repo: 'repo'));
+      final result = await useCase(
+        const CheckAppUpdateParams(owner: 'owner', repo: 'repo'),
+      );
 
       // Assert
       expect(result.isError(), true);
@@ -149,27 +182,39 @@ void main() {
         publishedAt: DateTime(2024, 1, 1),
         assets: [],
       );
-      when(mockRepository.getCurrentVersion()).thenAnswer((_) async => success(tCurrentVersion));
-      when(mockRepository.getLatestRelease('owner', 'repo')).thenAnswer((_) async => success(invalidRelease));
+      when(
+        mockRepository.getCurrentVersion(),
+      ).thenAnswer((_) async => success(tCurrentVersion));
+      when(
+        mockRepository.getLatestRelease('owner', 'repo'),
+      ).thenAnswer((_) async => success(invalidRelease));
 
       // Act
-      final result = await useCase(const CheckAppUpdateParams(owner: 'owner', repo: 'repo'));
+      final result = await useCase(
+        const CheckAppUpdateParams(owner: 'owner', repo: 'repo'),
+      );
 
       // Assert
       expect(result.isError(), true);
       final err = result.getError();
       expect(err, isA<AppUpdateFailure>());
-      expect((err as AppUpdateFailure).type, AppUpdateFailureType.invalidRelease);
+      expect(
+        (err as AppUpdateFailure).type,
+        AppUpdateFailureType.invalidRelease,
+      );
     });
 
     test('should return failure when getCurrentVersion fails', () async {
       // Arrange
-      when(
-        mockRepository.getCurrentVersion(),
-      ).thenAnswer((_) async => failure(AppUpdateFailure.versionCheckFailed('Network error')));
+      when(mockRepository.getCurrentVersion()).thenAnswer(
+        (_) async =>
+            failure(AppUpdateFailure.versionCheckFailed('Network error')),
+      );
 
       // Act
-      final result = await useCase(const CheckAppUpdateParams(owner: 'owner', repo: 'repo'));
+      final result = await useCase(
+        const CheckAppUpdateParams(owner: 'owner', repo: 'repo'),
+      );
 
       // Assert
       expect(result.isError(), true);
@@ -179,13 +224,17 @@ void main() {
 
     test('should return failure when getLatestRelease fails', () async {
       // Arrange
-      when(mockRepository.getCurrentVersion()).thenAnswer((_) async => success(tCurrentVersion));
       when(
-        mockRepository.getLatestRelease('owner', 'repo'),
-      ).thenAnswer((_) async => failure(AppUpdateFailure.versionCheckFailed('Not found')));
+        mockRepository.getCurrentVersion(),
+      ).thenAnswer((_) async => success(tCurrentVersion));
+      when(mockRepository.getLatestRelease('owner', 'repo')).thenAnswer(
+        (_) async => failure(AppUpdateFailure.versionCheckFailed('Not found')),
+      );
 
       // Act
-      final result = await useCase(const CheckAppUpdateParams(owner: 'owner', repo: 'repo'));
+      final result = await useCase(
+        const CheckAppUpdateParams(owner: 'owner', repo: 'repo'),
+      );
 
       // Assert
       expect(result.isError(), true);

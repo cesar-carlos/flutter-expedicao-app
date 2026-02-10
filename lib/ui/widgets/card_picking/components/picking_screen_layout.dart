@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/ui/widgets/card_picking/widgets/index.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/widgets/barcode_scanner_card_optimized.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_scan_state.dart';
@@ -10,6 +10,7 @@ import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/domain/models/picking_state.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/widgets/pending_sync_banner.dart';
 
 /// Layout principal da tela de picking com otimizações de performance
 ///
@@ -83,6 +84,8 @@ class PickingScreenLayout extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 🚀 Banner de sincronização pendente (aparece no topo quando há operações em andamento)
+              const PendingSyncBanner(),
               _buildNextItemCard(),
               const SizedBox(height: _cardSpacing),
               _buildQuantitySelector(),
@@ -120,11 +123,14 @@ class PickingScreenLayout extends StatelessWidget {
     return Selector<PickingScanState, bool>(
       selector: (_, s) => s.enabled,
       builder: (context, isEnabled, _) {
-        return QuantitySelectorCard(
-          controller: quantityController,
-          focusNode: quantityFocusNode,
-          enabled: isEnabled,
-          viewModel: viewModel,
+        // 🚀 RepaintBoundary para isolar rebuilds do seletor de quantidade
+        return RepaintBoundary(
+          child: QuantitySelectorCard(
+            controller: quantityController,
+            focusNode: quantityFocusNode,
+            enabled: isEnabled,
+            viewModel: viewModel,
+          ),
         );
       },
     );

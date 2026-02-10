@@ -9,7 +9,9 @@ enum TipoFatorConversao {
 
   static TipoFatorConversao? fromCode(String code) {
     try {
-      return TipoFatorConversao.values.firstWhere((tipo) => tipo.code.toUpperCase() == code.toUpperCase());
+      return TipoFatorConversao.values.firstWhere(
+        (tipo) => tipo.code.toUpperCase() == code.toUpperCase(),
+      );
     } catch (e) {
       return null;
     }
@@ -40,18 +42,24 @@ enum TipoFatorConversao {
 }
 
 extension TipoFatorConversaoExtension on String {
-  TipoFatorConversao? get asTipoFatorConversao => TipoFatorConversao.fromCode(this);
-  String get tipoFatorConversaoDescription => TipoFatorConversao.getDescription(this);
-  bool get isValidTipoFatorConversao => TipoFatorConversao.isValidTipoFatorConversao(this);
+  TipoFatorConversao? get asTipoFatorConversao =>
+      TipoFatorConversao.fromCode(this);
+  String get tipoFatorConversaoDescription =>
+      TipoFatorConversao.getDescription(this);
+  bool get isValidTipoFatorConversao =>
+      TipoFatorConversao.isValidTipoFatorConversao(this);
 }
 
 class TipoFatorConversaoModel {
   TipoFatorConversaoModel._();
 
-  static String getDescription(String code) => TipoFatorConversao.getDescription(code);
-  static bool isValidTipoFatorConversao(String code) => TipoFatorConversao.isValidTipoFatorConversao(code);
+  static String getDescription(String code) =>
+      TipoFatorConversao.getDescription(code);
+  static bool isValidTipoFatorConversao(String code) =>
+      TipoFatorConversao.isValidTipoFatorConversao(code);
   static List<String> getAllCodes() => TipoFatorConversao.getAllCodes();
-  static List<String> getAllDescriptions() => TipoFatorConversao.getAllDescriptions();
+  static List<String> getAllDescriptions() =>
+      TipoFatorConversao.getAllDescriptions();
   static List<TipoFatorConversao> getAllTipos() => TipoFatorConversao.values;
 
   static TipoFatorConversao fromCodeWithFallback(
@@ -62,6 +70,10 @@ class TipoFatorConversaoModel {
   }
 
   static Map<String, String> get tipoFatorConversaoMap {
-    return Map.fromEntries(TipoFatorConversao.values.map((tipo) => MapEntry(tipo.code, tipo.description)));
+    return Map.fromEntries(
+      TipoFatorConversao.values.map(
+        (tipo) => MapEntry(tipo.code, tipo.description),
+      ),
+    );
   }
 }

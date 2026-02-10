@@ -25,11 +25,7 @@ class UserInfoCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   'Vincular Usuário do Sistema',
-                  style: AppFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.secondary,
-                  ),
+                  style: AppFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.secondary),
                 ),
               ],
             ),
@@ -37,10 +33,7 @@ class UserInfoCard extends StatelessWidget {
             Text(
               'Seu login não possui um usuário do sistema vinculado. '
               'Busque e selecione seu usuário para continuar usando o aplicativo.',
-              style: AppFonts.inter(
-                fontSize: 14,
-                color: theme.isDark ? AppColors.light : colorScheme.onSurfaceVariant,
-              ),
+              style: AppFonts.inter(fontSize: 14, color: theme.isDark ? AppColors.light : colorScheme.onSurfaceVariant),
             ),
           ],
         ),

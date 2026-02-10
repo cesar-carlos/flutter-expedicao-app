@@ -54,10 +54,7 @@ class ProductDetailItem extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: valueColor,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: valueColor),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),

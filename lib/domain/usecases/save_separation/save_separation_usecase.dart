@@ -105,7 +105,12 @@ class SaveSeparationUseCase {
       final separateProgresses = await _separateProgressRepository.selectConsultation(query);
       return separateProgresses.isNotEmpty ? separateProgresses.first : null;
     } catch (e, stackTrace) {
-      AppLogger.error('Erro ao buscar progresso de separação', tag: 'SaveSeparationUseCase', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Erro ao buscar progresso de separação',
+        tag: 'SaveSeparationUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -132,7 +137,12 @@ class SaveSeparationUseCase {
       final cartRoutes = await _cartRouteRepository.select(query);
       return cartRoutes.isNotEmpty ? cartRoutes.first : null;
     } catch (e, stackTrace) {
-      AppLogger.error('Erro ao buscar carrinho percurso', tag: 'SaveSeparationUseCase', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Erro ao buscar carrinho percurso',
+        tag: 'SaveSeparationUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

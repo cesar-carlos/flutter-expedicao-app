@@ -65,7 +65,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
       appBar: CustomAppBar(
         title: const ScannerTitleWithConnectionStatus(),
         showSocketStatus: false,
-        leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: context.l10n.back),
+        leading: IconButton(
+          onPressed: () => context.pop(),
+          icon: const Icon(Icons.arrow_back),
+          tooltip: context.l10n.back,
+        ),
       ),
       body: Consumer<ScannerViewModel>(
         builder: (context, scannerViewModel, child) {
@@ -283,7 +287,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 child: Text(
                   '${index + 1}',
                   style: AppFonts.inter(
-                    color: isLatest ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSecondary,
+                    color: isLatest
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSecondary,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -299,9 +305,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
             subtitle: Text(
               _formatTimestamp(scan.timestamp),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,

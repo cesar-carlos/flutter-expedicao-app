@@ -19,7 +19,9 @@ class PermissionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
-    final color = hasPermission ? AppColors.success : colorScheme.onSurfaceVariant;
+    final color = hasPermission
+        ? AppColors.success
+        : colorScheme.onSurfaceVariant;
     final backgroundColor = hasPermission
         ? AppColors.success.withValues(alpha: 0.1)
         : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
@@ -31,7 +33,13 @@ class PermissionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withValues(alpha: 0.3)),
         boxShadow: hasPermission
-            ? [BoxShadow(color: AppColors.success.withValues(alpha: 0.1), offset: const Offset(0, 2), blurRadius: 4)]
+            ? [
+                BoxShadow(
+                  color: AppColors.success.withValues(alpha: 0.1),
+                  offset: const Offset(0, 2),
+                  blurRadius: 4,
+                ),
+              ]
             : null,
       ),
       child: Column(
@@ -41,18 +49,28 @@ class PermissionCard extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: Icon(icon, size: 18, color: color),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   title,
-                  style: theme.textTheme.titleSmall?.copyWith(color: color, fontWeight: FontWeight.w700),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Icon(hasPermission ? Icons.check_circle : Icons.cancel, size: 20, color: color),
+              Icon(
+                hasPermission ? Icons.check_circle : Icons.cancel,
+                size: 20,
+                color: color,
+              ),
             ],
           ),
           const SizedBox(height: 8),

@@ -30,8 +30,8 @@ class ScannerActivationController {
   ScannerActivationController({
     ScannerPreferencesController? preferencesController,
     ScannerBroadcastController? broadcastController,
-  })  : _preferencesController = preferencesController ?? ScannerPreferencesController(),
-        _broadcastController = broadcastController ?? ScannerBroadcastController();
+  }) : _preferencesController = preferencesController ?? ScannerPreferencesController(),
+       _broadcastController = broadcastController ?? ScannerBroadcastController();
 
   /// Ativa o scanner no modo apropriado (focus ou broadcast)
   ///
@@ -67,10 +67,7 @@ class ScannerActivationController {
   }
 
   /// Ativa o scanner em modo broadcast
-  Future<void> _activateBroadcastMode(
-    void Function(String) onBarcodeScanned,
-    bool Function() mounted,
-  ) async {
+  Future<void> _activateBroadcastMode(void Function(String) onBarcodeScanned, bool Function() mounted) async {
     AppLogger.debug('Activating scanner in broadcast mode', tag: 'ScannerActivationController');
     await _broadcastController.start(
       action: _preferencesController.broadcastAction,

@@ -5,17 +5,14 @@ import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 
 void main() {
   group('AppRouter.resolveRedirect', () {
-    test(
-      'deve redirecionar para login ao acessar rota autenticada sem login',
-      () {
-        final redirect = AppRouter.resolveRedirect(
-          authStatus: AuthStatus.unauthenticated,
-          currentLocation: AppRouter.home,
-        );
+    test('deve redirecionar para login ao acessar rota autenticada sem login', () {
+      final redirect = AppRouter.resolveRedirect(
+        authStatus: AuthStatus.unauthenticated,
+        currentLocation: AppRouter.home,
+      );
 
-        expect(redirect, AppRouter.login);
-      },
-    );
+      expect(redirect, AppRouter.login);
+    });
 
     test('deve permitir tela de configuração do servidor sem login', () {
       final redirect = AppRouter.resolveRedirect(

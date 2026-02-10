@@ -221,6 +221,41 @@ class PickingDialogs {
     );
   }
 
+  static Widget wrongShelf({required String expectedShelf, required String scannedShelf}) {
+    return PickingDialog(
+      title: 'Prateleira Incorreta',
+      icon: Icons.location_off,
+      iconColor: AppColors.error,
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.error.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Prateleira incorreta escaneada:',
+                  style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.red700),
+                ),
+                const SizedBox(height: 6),
+                Text('❌ Escaneado: $scannedShelf'),
+                Text('✅ Esperado: $expectedShelf'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text('Escaneie o código da prateleira correta para continuar.'),
+        ],
+      ),
+    );
+  }
+
   static Widget noItemsForSector({
     required int userSectorCode,
     required VoidCallback onFinish,

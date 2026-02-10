@@ -23,13 +23,21 @@ class SeparationFiltersModel {
       codSepararEstoque: json['codSepararEstoque'],
       origem: json['origem'],
       codOrigem: json['codOrigem'],
-      situacoes: json['situacoes'] != null ? List<String>.from(json['situacoes']) : null,
-      dataEmissao: json['dataEmissao'] != null ? DateTime.parse(json['dataEmissao']) : null,
-      setorEstoque: json['setorEstoque'] != null ? ExpeditionSectorStockModel.fromJson(json['setorEstoque']) : null,
+      situacoes: json['situacoes'] != null
+          ? List<String>.from(json['situacoes'])
+          : null,
+      dataEmissao: json['dataEmissao'] != null
+          ? DateTime.parse(json['dataEmissao'])
+          : null,
+      setorEstoque: json['setorEstoque'] != null
+          ? ExpeditionSectorStockModel.fromJson(json['setorEstoque'])
+          : null,
     );
   }
 
-  static Result<SeparationFiltersModel> fromJsonSafe(Map<String, dynamic> json) {
+  static Result<SeparationFiltersModel> fromJsonSafe(
+    Map<String, dynamic> json,
+  ) {
     return safeCallSync(() => SeparationFiltersModel.fromJson(json));
   }
 
@@ -102,7 +110,14 @@ class SeparationFiltersModel {
 
   @override
   int get hashCode {
-    return Object.hash(codSepararEstoque, origem, codOrigem, situacoes, dataEmissao, setorEstoque);
+    return Object.hash(
+      codSepararEstoque,
+      origem,
+      codOrigem,
+      situacoes,
+      dataEmissao,
+      setorEstoque,
+    );
   }
 
   bool _listEquals(List<String>? a, List<String>? b) {

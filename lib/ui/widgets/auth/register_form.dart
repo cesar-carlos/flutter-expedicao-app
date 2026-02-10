@@ -64,7 +64,7 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   Widget build(BuildContext context) {
     final validators = FormValidatorsLocalized(context.l10n);
-    
+
     return Consumer<RegisterViewModel>(
       builder: (context, registerViewModel, child) {
         return Form(

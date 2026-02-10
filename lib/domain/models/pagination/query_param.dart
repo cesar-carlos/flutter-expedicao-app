@@ -4,18 +4,36 @@ class QueryParam<P> {
   final String operator;
   final bool isFieldComparison;
 
-  const QueryParam({required this.key, required this.value, this.operator = '=', this.isFieldComparison = false});
+  const QueryParam({
+    required this.key,
+    required this.value,
+    this.operator = '=',
+    this.isFieldComparison = false,
+  });
 
   static QueryParam<P> create<P>(String key, P value) {
     return QueryParam<P>(key: key, value: value, operator: '=');
   }
 
-  static QueryParam<P> createWithOperator<P>(String key, P value, String operator) {
+  static QueryParam<P> createWithOperator<P>(
+    String key,
+    P value,
+    String operator,
+  ) {
     return QueryParam<P>(key: key, value: value, operator: operator);
   }
 
-  static QueryParam<String> createFieldComparison(String key, String fieldName, String operator) {
-    return QueryParam<String>(key: key, value: fieldName, operator: operator, isFieldComparison: true);
+  static QueryParam<String> createFieldComparison(
+    String key,
+    String fieldName,
+    String operator,
+  ) {
+    return QueryParam<String>(
+      key: key,
+      value: fieldName,
+      operator: operator,
+      isFieldComparison: true,
+    );
   }
 
   String toQueryString() {

@@ -16,7 +16,9 @@ class SeparateProgressConsultationRepositoryImpl
   final selectEvent = 'separar.progresso.consulta';
 
   @override
-  Future<List<SeparateProgressConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
+  Future<List<SeparateProgressConsultationModel>> selectConsultation(
+    QueryBuilder queryBuilder,
+  ) async {
     final event = '${socket.id} $selectEvent';
     final completer = Completer<List<SeparateProgressConsultationModel>>();
     final responseId = uuid.v4();

@@ -47,10 +47,7 @@ class SaveSeparationCartUseCase {
     try {
       if (!params.isValid) {
         final errors = params.validationErrors.join(', ');
-        AppLogger.warning(
-          'Parâmetros inválidos ao salvar carrinho: $errors',
-          tag: 'SaveSeparationCartUseCase',
-        );
+        AppLogger.warning('Parâmetros inválidos ao salvar carrinho: $errors', tag: 'SaveSeparationCartUseCase');
         return Failure(SaveSeparationCartFailure.unexpected('Parâmetros inválidos: $errors'));
       }
 
@@ -67,11 +64,7 @@ class SaveSeparationCartUseCase {
 
       final results = await Future.wait([
         _findSeparateProgress(params),
-        _findItemsSeparation(
-          params.codEmpresa,
-          params.codCarrinhoPercurso,
-          params.itemCarrinhoPercurso,
-        ),
+        _findItemsSeparation(params.codEmpresa, params.codCarrinhoPercurso, params.itemCarrinhoPercurso),
       ]);
 
       final separateProgress = results[0] as SeparateProgressConsultationModel?;
@@ -111,10 +104,7 @@ class SaveSeparationCartUseCase {
         return Failure(SaveSeparationCartFailure.noSeparatedItems());
       }
 
-      AppLogger.debug(
-        'Validando quantidades separadas antes de salvar carrinho',
-        tag: 'SaveSeparationCartUseCase',
-      );
+      AppLogger.debug('Validando quantidades separadas antes de salvar carrinho', tag: 'SaveSeparationCartUseCase');
 
       final validationResult = await _validateSeparatedQuantities(params);
       if (validationResult != null) {
@@ -170,16 +160,7 @@ class SaveSeparationCartUseCase {
         nomeUsuarioFinalizacao: userModel.nomeUsuario,
       );
 
-      AppLogger.debug(
-        'Atualizando carrinho e itens para situação SEPARADO',
-        tag: 'SaveSeparationCartUseCase',
-      );
-
-      await _updateSeparationItemsToFinalized(
-        params.codEmpresa,
-        params.codCarrinhoPercurso,
-        params.itemCarrinhoPercurso,
-      );
+      AppLogger.debug('Atualizando carrinho e itens para situação SEPARADO', tag: 'SaveSeparationCartUseCase');
 
       await _updateSeparationItemsToFinalized(
         params.codEmpresa,
@@ -285,10 +266,7 @@ class SaveSeparationCartUseCase {
 
   Future<SaveSeparationCartFailure?> _validateSeparatedQuantities(SaveSeparationCartParams params) async {
     try {
-      AppLogger.debug(
-        'Iniciando validação de quantidades separadas',
-        tag: 'SaveSeparationCartUseCase',
-      );
+      AppLogger.debug('Iniciando validação de quantidades separadas', tag: 'SaveSeparationCartUseCase');
 
       final separateItemsQuery = QueryBuilder()
         ..equals('CodEmpresa', params.codEmpresa.toString())
@@ -299,10 +277,7 @@ class SaveSeparationCartUseCase {
         ..equals('CodCarrinhoPercurso', params.codCarrinhoPercurso.toString())
         ..equals('ItemCarrinhoPercurso', params.itemCarrinhoPercurso);
 
-      AppLogger.debug(
-        'Sincronizando dados do servidor antes da validação',
-        tag: 'SaveSeparationCartUseCase',
-      );
+      AppLogger.debug('Sincronizando dados do servidor antes da validação', tag: 'SaveSeparationCartUseCase');
 
       final syncResults = await Future.wait([
         _separateItemRepository.selectConsultation(separateItemsQuery),
@@ -313,10 +288,7 @@ class SaveSeparationCartUseCase {
       final separationItems = syncResults[1] as List<SeparationItemConsultationModel>;
 
       if (separateItems.isEmpty) {
-        AppLogger.debug(
-          'Nenhum item de separação encontrado para validação',
-          tag: 'SaveSeparationCartUseCase',
-        );
+        AppLogger.debug('Nenhum item de separação encontrado para validação', tag: 'SaveSeparationCartUseCase');
         return null;
       }
 
@@ -325,10 +297,7 @@ class SaveSeparationCartUseCase {
           .toList();
 
       if (validSeparationItems.isEmpty) {
-        AppLogger.debug(
-          'Nenhum item válido de separação encontrado para validação',
-          tag: 'SaveSeparationCartUseCase',
-        );
+        AppLogger.debug('Nenhum item válido de separação encontrado para validação', tag: 'SaveSeparationCartUseCase');
         return null;
       }
 
@@ -338,8 +307,7 @@ class SaveSeparationCartUseCase {
         final codProduto = item.codProduto;
         final quantidade = item.quantidade;
 
-        quantidadesSeparadasPorProduto[codProduto] =
-            (quantidadesSeparadasPorProduto[codProduto] ?? 0.0) + quantidade;
+        quantidadesSeparadasPorProduto[codProduto] = (quantidadesSeparadasPorProduto[codProduto] ?? 0.0) + quantidade;
       }
 
       for (final separateItem in separateItems) {
@@ -367,10 +335,7 @@ class SaveSeparationCartUseCase {
         }
       }
 
-      AppLogger.debug(
-        'Validação de quantidades concluída com sucesso',
-        tag: 'SaveSeparationCartUseCase',
-      );
+      AppLogger.debug('Validação de quantidades concluída com sucesso', tag: 'SaveSeparationCartUseCase');
       return null;
     } catch (e, stackTrace) {
       AppLogger.error(

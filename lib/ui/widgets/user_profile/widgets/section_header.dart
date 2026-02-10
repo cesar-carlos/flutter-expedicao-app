@@ -29,7 +29,11 @@ class SectionHeader extends StatelessWidget {
             color: iconBackgroundColor ?? colorScheme.primary,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: iconColor ?? colorScheme.onPrimary, size: 20),
+          child: Icon(
+            icon,
+            color: iconColor ?? colorScheme.onPrimary,
+            size: 20,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -38,7 +42,10 @@ class SectionHeader extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, color: colorScheme.onSurface),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurface,
+                ),
               ),
               if (subtitle != null) ...[
                 const SizedBox(height: 4),
@@ -97,7 +104,8 @@ class ExpandableSectionHeader extends StatelessWidget {
           gradient: isExpanded
               ? LinearGradient(
                   colors: [
-                    (iconBackgroundColor ?? colorScheme.errorContainer).withValues(alpha: 0.1),
+                    (iconBackgroundColor ?? colorScheme.errorContainer)
+                        .withValues(alpha: 0.1),
                     colorScheme.surface,
                   ],
                   begin: Alignment.topCenter,
@@ -114,11 +122,20 @@ class ExpandableSectionHeader extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: (iconBackgroundColor ?? colorScheme.errorContainer).withValues(alpha: 0.2),
+                color: (iconBackgroundColor ?? colorScheme.errorContainer)
+                    .withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: (iconBackgroundColor ?? colorScheme.error).withValues(alpha: 0.2)),
+                border: Border.all(
+                  color: (iconBackgroundColor ?? colorScheme.error).withValues(
+                    alpha: 0.2,
+                  ),
+                ),
               ),
-              child: Icon(icon, color: iconColor ?? colorScheme.error, size: 22),
+              child: Icon(
+                icon,
+                color: iconColor ?? colorScheme.error,
+                size: 22,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -147,13 +164,19 @@ class ExpandableSectionHeader extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                    color: colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.5,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: Icon(Icons.expand_more, color: colorScheme.onSurfaceVariant, size: 20),
+                    child: Icon(
+                      Icons.expand_more,
+                      color: colorScheme.onSurfaceVariant,
+                      size: 20,
+                    ),
                   ),
                 ),
           ],

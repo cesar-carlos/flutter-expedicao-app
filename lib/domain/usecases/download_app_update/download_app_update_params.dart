@@ -4,10 +4,5 @@ class DownloadAppUpdateParams {
   final void Function(int received, int total)? onProgress;
   final bool Function()? isCancelled;
 
-  const DownloadAppUpdateParams({
-    required this.downloadUrl,
-    required this.fileName,
-    this.onProgress,
-    this.isCancelled,
-  });
+  const DownloadAppUpdateParams({required this.downloadUrl, required this.fileName, this.onProgress, this.isCancelled});
 }

@@ -108,31 +108,19 @@ void main() {
     test('deve validar IP vazio', () async {
       expect(
         () => service.send(ip: '  ', port: 9100, bytes: utf8.encode('TEST')),
-        throwsA(isA<StateError>().having(
-          (e) => e.message,
-          'message',
-          contains('IP/host'),
-        )),
+        throwsA(isA<StateError>().having((e) => e.message, 'message', contains('IP/host'))),
       );
     });
 
     test('deve validar porta fora do range', () async {
       expect(
         () => service.send(ip: '127.0.0.1', port: 0, bytes: utf8.encode('TEST')),
-        throwsA(isA<StateError>().having(
-          (e) => e.message,
-          'message',
-          contains('Porta'),
-        )),
+        throwsA(isA<StateError>().having((e) => e.message, 'message', contains('Porta'))),
       );
 
       expect(
         () => service.send(ip: '127.0.0.1', port: 65536, bytes: utf8.encode('TEST')),
-        throwsA(isA<StateError>().having(
-          (e) => e.message,
-          'message',
-          contains('Porta'),
-        )),
+        throwsA(isA<StateError>().having((e) => e.message, 'message', contains('Porta'))),
       );
     });
 
@@ -145,11 +133,7 @@ void main() {
       });
 
       final payload = utf8.encode('TESTE DE PERFORMANCE');
-      final report = await service.send(
-        ip: '127.0.0.1',
-        port: port,
-        bytes: payload,
-      );
+      final report = await service.send(ip: '127.0.0.1', port: port, bytes: payload);
 
       expect(report.elapsed.inMilliseconds, greaterThan(0), reason: 'Deve medir tempo positivo');
       expect(report.sentAt, isNotNull, reason: 'Deve registrar timestamp');

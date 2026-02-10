@@ -76,10 +76,7 @@ class UsersListWidget extends StatelessWidget {
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: AppFonts.inter(
-                    fontSize: UIConstants.mediumFontSize,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                  style: AppFonts.inter(fontSize: UIConstants.mediumFontSize, color: colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -137,9 +134,7 @@ class UsersListWidget extends StatelessWidget {
               style: AppFonts.inter(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 color: isBlocked ? colorScheme.onSurfaceVariant : null,
-              ).copyWith(
-                decoration: isBlocked ? TextDecoration.lineThrough : null,
-              ),
+              ).copyWith(decoration: isBlocked ? TextDecoration.lineThrough : null),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,10 +189,7 @@ class UsersListWidget extends StatelessWidget {
                     const SizedBox(width: 12),
                     Text(
                       'Carregando mais usuários...',
-                      style: AppFonts.inter(
-                        fontSize: UIConstants.defaultFontSize,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                      style: AppFonts.inter(fontSize: UIConstants.defaultFontSize, color: colorScheme.onSurfaceVariant),
                     ),
                   ],
                 )
@@ -209,10 +201,7 @@ class UsersListWidget extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       'Role para carregar mais',
-                      style: AppFonts.inter(
-                        fontSize: UIConstants.smallFontSize,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                      style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: colorScheme.onSurfaceVariant),
                     ),
                   ],
                 )
@@ -223,10 +212,7 @@ class UsersListWidget extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       'Todos os usuários foram carregados',
-                      style: AppFonts.inter(
-                        fontSize: UIConstants.smallFontSize,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                      style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),

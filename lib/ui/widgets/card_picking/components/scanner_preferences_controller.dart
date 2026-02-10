@@ -28,9 +28,7 @@ class ScannerPreferencesController {
 
   /// Verifica se o broadcast está configurado corretamente
   bool get isBroadcastConfigured =>
-      _scannerMode == ScannerInputMode.broadcast &&
-      _broadcastAction.isNotEmpty &&
-      _broadcastExtraKey.isNotEmpty;
+      _scannerMode == ScannerInputMode.broadcast && _broadcastAction.isNotEmpty && _broadcastExtraKey.isNotEmpty;
 
   /// Carrega as preferências do scanner do ConfigViewModel
   Future<void> loadPreferences() async {

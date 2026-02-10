@@ -11,7 +11,7 @@ import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
@@ -366,12 +366,7 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
                 children: [
                   const Icon(Icons.qr_code_scanner, color: AppColors.warning, size: UIConstants.largeIconSize),
                   const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Prateleira',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+                  const Expanded(child: Text('Prateleira', overflow: TextOverflow.ellipsis)),
                 ],
               ),
               content: Column(
@@ -399,17 +394,16 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
                     readOnly: !_isManualMode && _isBroadcastActive,
                     keyboardType: _isManualMode
                         ? TextInputType.text
-                        : (_isBroadcastActive ? TextInputType.none : const TextInputType.numberWithOptions(decimal: false)),
+                        : (_isBroadcastActive
+                              ? TextInputType.none
+                              : const TextInputType.numberWithOptions(decimal: false)),
                     showCursor: !_isManualMode && !_isBroadcastActive && _hasFocus,
                     decoration: InputDecoration(
                       labelText: context.l10n.shelfCode,
                       border: const OutlineInputBorder(),
                       prefixIcon: GestureDetector(
                         onTap: _toggleInputMode,
-                        child: Icon(
-                          _isManualMode ? Icons.keyboard : Icons.qr_code_scanner,
-                          color: AppColors.warning,
-                        ),
+                        child: Icon(_isManualMode ? Icons.keyboard : Icons.qr_code_scanner, color: AppColors.warning),
                       ),
                     ),
                     onSubmitted: (_) => _validateShelfInput(),
@@ -445,4 +439,3 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
     );
   }
 }
-

@@ -9,13 +9,16 @@ import 'package:data7_expedicao/domain/repositories/basic_consultation_repositor
 import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
 import 'package:data7_expedicao/core/network/socket_config.dart';
 
-class SeparationItemConsultationRepositoryImpl implements BasicConsultationRepository<SeparationItemConsultationModel> {
+class SeparationItemConsultationRepositoryImpl
+    implements BasicConsultationRepository<SeparationItemConsultationModel> {
   final uuid = const Uuid();
   var socket = SocketConfig.instance;
   final selectEvent = 'separacao.item.consulta';
 
   @override
-  Future<List<SeparationItemConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
+  Future<List<SeparationItemConsultationModel>> selectConsultation(
+    QueryBuilder queryBuilder,
+  ) async {
     final event = '${socket.id} $selectEvent';
     final completer = Completer<List<SeparationItemConsultationModel>>();
     final responseId = uuid.v4();

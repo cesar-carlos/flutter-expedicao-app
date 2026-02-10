@@ -41,7 +41,8 @@ UserSystemModel createUpdatedTestUserSystem(UserSystemModel originalUser) {
     codLoginApp: originalUser.codLoginApp,
     permiteSepararForaSequencia: Situation.inativo,
     visualizaTodasSeparacoes: originalUser.visualizaTodasSeparacoes,
-    expedicaoObrigaEscanearPrateleira: originalUser.expedicaoObrigaEscanearPrateleira,
+    expedicaoObrigaEscanearPrateleira:
+        originalUser.expedicaoObrigaEscanearPrateleira,
     permiteConferirForaSequencia: originalUser.permiteConferirForaSequencia,
     visualizaTodasConferencias: originalUser.visualizaTodasConferencias,
     permiteArmazenarForaSequencia: originalUser.permiteArmazenarForaSequencia,

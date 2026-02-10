@@ -59,15 +59,9 @@ void main() {
       expect(bytes.length, greaterThan(100));
     });
 
-    test(
-      'deve lancar StateError quando lista de itens estiver vazia',
-      () async {
-        expect(
-          () => service.buildExpeditionTicketBytes(items: const []),
-          throwsA(isA<StateError>()),
-        );
-      },
-    );
+    test('deve lancar StateError quando lista de itens estiver vazia', () async {
+      expect(() => service.buildExpeditionTicketBytes(items: const []), throwsA(isA<StateError>()));
+    });
   });
 }
 

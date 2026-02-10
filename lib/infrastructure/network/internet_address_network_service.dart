@@ -17,10 +17,7 @@ class InternetAddressNetworkService implements NetworkService {
   ///
   /// [testHost] é o host usado para verificar a conectividade (padrão: 'github.com').
   /// [timeout] é o tempo máximo de espera pela resposta do DNS (padrão: 3 segundos).
-  const InternetAddressNetworkService({
-    this.testHost = 'github.com',
-    this.timeout = const Duration(seconds: 3),
-  });
+  const InternetAddressNetworkService({this.testHost = 'github.com', this.timeout = const Duration(seconds: 3)});
 
   @override
   Future<bool> hasInternetConnection() async {

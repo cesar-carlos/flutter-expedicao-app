@@ -7,7 +7,13 @@ class StatusChip extends StatelessWidget {
   final bool isActive;
   final EdgeInsets? padding;
 
-  const StatusChip({super.key, required this.label, required this.status, required this.isActive, this.padding});
+  const StatusChip({
+    super.key,
+    required this.label,
+    required this.status,
+    required this.isActive,
+    this.padding,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +54,10 @@ class StatusChip extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             status,
-            style: theme.textTheme.bodyMedium?.copyWith(color: color, fontWeight: FontWeight.w700),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -63,7 +72,12 @@ class CompactStatusChip extends StatelessWidget {
   final String status;
   final bool isActive;
 
-  const CompactStatusChip({super.key, required this.label, required this.status, required this.isActive});
+  const CompactStatusChip({
+    super.key,
+    required this.label,
+    required this.status,
+    required this.isActive,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +102,10 @@ class CompactStatusChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             '$label: $status',
-            style: theme.textTheme.labelSmall?.copyWith(color: color, fontWeight: FontWeight.w600),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

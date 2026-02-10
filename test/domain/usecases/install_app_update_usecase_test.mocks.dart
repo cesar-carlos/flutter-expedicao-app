@@ -7,8 +7,7 @@ import 'dart:async' as _i3;
 
 import 'package:data7_expedicao/domain/models/app_version.dart' as _i5;
 import 'package:data7_expedicao/domain/models/github_release.dart' as _i7;
-import 'package:data7_expedicao/domain/repositories/i_app_update_repository.dart'
-    as _i2;
+import 'package:data7_expedicao/domain/repositories/i_app_update_repository.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i6;
 import 'package:result_dart/result_dart.dart' as _i4;
@@ -29,8 +28,7 @@ import 'package:result_dart/result_dart.dart' as _i4;
 /// A class which mocks [IAppUpdateRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockIAppUpdateRepository extends _i1.Mock
-    implements _i2.IAppUpdateRepository {
+class MockIAppUpdateRepository extends _i1.Mock implements _i2.IAppUpdateRepository {
   MockIAppUpdateRepository() {
     _i1.throwOnMissingStub(this);
   }
@@ -38,124 +36,75 @@ class MockIAppUpdateRepository extends _i1.Mock
   @override
   _i3.Future<_i4.ResultDart<_i5.AppVersion, Exception>> getCurrentVersion() =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getCurrentVersion,
-          [],
-        ),
-        returnValue:
-            _i3.Future<_i4.ResultDart<_i5.AppVersion, Exception>>.value(
-                _i6.dummyValue<_i4.ResultDart<_i5.AppVersion, Exception>>(
-          this,
-          Invocation.method(
-            #getCurrentVersion,
-            [],
-          ),
-        )),
-      ) as _i3.Future<_i4.ResultDart<_i5.AppVersion, Exception>>);
+            Invocation.method(#getCurrentVersion, []),
+            returnValue: _i3.Future<_i4.ResultDart<_i5.AppVersion, Exception>>.value(
+              _i6.dummyValue<_i4.ResultDart<_i5.AppVersion, Exception>>(
+                this,
+                Invocation.method(#getCurrentVersion, []),
+              ),
+            ),
+          )
+          as _i3.Future<_i4.ResultDart<_i5.AppVersion, Exception>>);
 
   @override
-  _i3.Future<_i4.ResultDart<List<_i7.GitHubRelease>, Exception>> getReleases(
-    String? owner,
-    String? repo,
-  ) =>
+  _i3.Future<_i4.ResultDart<List<_i7.GitHubRelease>, Exception>> getReleases(String? owner, String? repo) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getReleases,
-          [
-            owner,
-            repo,
-          ],
-        ),
-        returnValue: _i3
-            .Future<_i4.ResultDart<List<_i7.GitHubRelease>, Exception>>.value(
-            _i6.dummyValue<_i4.ResultDart<List<_i7.GitHubRelease>, Exception>>(
-          this,
-          Invocation.method(
-            #getReleases,
-            [
-              owner,
-              repo,
-            ],
-          ),
-        )),
-      ) as _i3.Future<_i4.ResultDart<List<_i7.GitHubRelease>, Exception>>);
+            Invocation.method(#getReleases, [owner, repo]),
+            returnValue: _i3.Future<_i4.ResultDart<List<_i7.GitHubRelease>, Exception>>.value(
+              _i6.dummyValue<_i4.ResultDart<List<_i7.GitHubRelease>, Exception>>(
+                this,
+                Invocation.method(#getReleases, [owner, repo]),
+              ),
+            ),
+          )
+          as _i3.Future<_i4.ResultDart<List<_i7.GitHubRelease>, Exception>>);
 
   @override
-  _i3.Future<_i4.ResultDart<_i7.GitHubRelease, Exception>> getLatestRelease(
-    String? owner,
-    String? repo,
-  ) =>
+  _i3.Future<_i4.ResultDart<_i7.GitHubRelease, Exception>> getLatestRelease(String? owner, String? repo) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getLatestRelease,
-          [
-            owner,
-            repo,
-          ],
-        ),
-        returnValue:
-            _i3.Future<_i4.ResultDart<_i7.GitHubRelease, Exception>>.value(
-                _i6.dummyValue<_i4.ResultDart<_i7.GitHubRelease, Exception>>(
-          this,
-          Invocation.method(
-            #getLatestRelease,
-            [
-              owner,
-              repo,
-            ],
-          ),
-        )),
-      ) as _i3.Future<_i4.ResultDart<_i7.GitHubRelease, Exception>>);
+            Invocation.method(#getLatestRelease, [owner, repo]),
+            returnValue: _i3.Future<_i4.ResultDart<_i7.GitHubRelease, Exception>>.value(
+              _i6.dummyValue<_i4.ResultDart<_i7.GitHubRelease, Exception>>(
+                this,
+                Invocation.method(#getLatestRelease, [owner, repo]),
+              ),
+            ),
+          )
+          as _i3.Future<_i4.ResultDart<_i7.GitHubRelease, Exception>>);
 
   @override
   _i3.Future<_i4.ResultDart<String, Exception>> downloadApk(
     String? downloadUrl, {
     required String? fileName,
-    void Function(
-      int,
-      int,
-    )? onProgress,
+    void Function(int, int)? onProgress,
     bool Function()? isCancelled,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #downloadApk,
-          [downloadUrl],
-          {
-            #fileName: fileName,
-            #onProgress: onProgress,
-            #isCancelled: isCancelled,
-          },
-        ),
-        returnValue: _i3.Future<_i4.ResultDart<String, Exception>>.value(
-            _i6.dummyValue<_i4.ResultDart<String, Exception>>(
-          this,
-          Invocation.method(
-            #downloadApk,
-            [downloadUrl],
-            {
-              #fileName: fileName,
-              #onProgress: onProgress,
-              #isCancelled: isCancelled,
-            },
-          ),
-        )),
-      ) as _i3.Future<_i4.ResultDart<String, Exception>>);
+            Invocation.method(
+              #downloadApk,
+              [downloadUrl],
+              {#fileName: fileName, #onProgress: onProgress, #isCancelled: isCancelled},
+            ),
+            returnValue: _i3.Future<_i4.ResultDart<String, Exception>>.value(
+              _i6.dummyValue<_i4.ResultDart<String, Exception>>(
+                this,
+                Invocation.method(
+                  #downloadApk,
+                  [downloadUrl],
+                  {#fileName: fileName, #onProgress: onProgress, #isCancelled: isCancelled},
+                ),
+              ),
+            ),
+          )
+          as _i3.Future<_i4.ResultDart<String, Exception>>);
 
   @override
   _i3.Future<_i4.ResultDart<void, Exception>> installApk(String? apkPath) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #installApk,
-          [apkPath],
-        ),
-        returnValue: _i3.Future<_i4.ResultDart<void, Exception>>.value(
-            _i6.dummyValue<_i4.ResultDart<void, Exception>>(
-          this,
-          Invocation.method(
-            #installApk,
-            [apkPath],
-          ),
-        )),
-      ) as _i3.Future<_i4.ResultDart<void, Exception>>);
+            Invocation.method(#installApk, [apkPath]),
+            returnValue: _i3.Future<_i4.ResultDart<void, Exception>>.value(
+              _i6.dummyValue<_i4.ResultDart<void, Exception>>(this, Invocation.method(#installApk, [apkPath])),
+            ),
+          )
+          as _i3.Future<_i4.ResultDart<void, Exception>>);
 }

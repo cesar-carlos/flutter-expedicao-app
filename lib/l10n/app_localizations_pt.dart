@@ -212,8 +212,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get printerConfigTitle => 'Configuração de Impressoras';
 
   @override
-  String get printerConfigDescription =>
-      'Cadastre impressoras manualmente ou busque automaticamente na rede local.';
+  String get printerConfigDescription => 'Cadastre impressoras manualmente ou busque automaticamente na rede local.';
 
   @override
   String get printerConfigRefreshTooltip => 'Atualizar impressoras';
@@ -287,8 +286,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get printerConfigPortHint => '9100';
 
   @override
-  String get printerConfigPortRangeRequired =>
-      'Informe uma porta valida (1-65535)';
+  String get printerConfigPortRangeRequired => 'Informe uma porta valida (1-65535)';
 
   @override
   String get printerConfigAdvancedTitle => 'Busca Avancada de Impressoras';
@@ -321,8 +319,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get printerConfigSearchAction => 'Buscar';
 
   @override
-  String get printerConfigHostRangeOrderError =>
-      'Host inicial nao pode ser maior que host final.';
+  String get printerConfigHostRangeOrderError => 'Host inicial nao pode ser maior que host final.';
 
   @override
   String get apiUrl => 'URL da API';
@@ -385,8 +382,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passwordChangedSuccess => 'Senha alterada com sucesso!';
 
   @override
-  String get profileAndPasswordSaved =>
-      'Perfil e senha atualizados com sucesso!';
+  String get profileAndPasswordSaved => 'Perfil e senha atualizados com sucesso!';
 
   @override
   String get registerError => 'Erro ao criar conta';
@@ -410,12 +406,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get timeoutError => 'Tempo limite de conexão excedido';
 
   @override
-  String get serverNotConfigured =>
-      'Servidor não configurado! Configure o servidor antes de fazer login.';
+  String get serverNotConfigured => 'Servidor não configurado! Configure o servidor antes de fazer login.';
 
   @override
-  String get serverNotTested =>
-      'Servidor não testado! Teste a conexão com o servidor antes de fazer login.';
+  String get serverNotTested => 'Servidor não testado! Teste a conexão com o servidor antes de fazer login.';
 
   @override
   String get loadConfigError => 'Erro ao carregar configuração';
@@ -459,8 +453,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get profileError => 'Erro ao atualizar perfil';
 
   @override
-  String get currentPasswordRequired =>
-      'Senha atual é obrigatória para alterar a senha';
+  String get currentPasswordRequired => 'Senha atual é obrigatória para alterar a senha';
 
   @override
   String get currentPasswordIncorrect => 'Senha atual incorreta';
@@ -469,12 +462,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get newPasswordRequired => 'Nova senha é obrigatória';
 
   @override
-  String get passwordMinLengthProfile =>
-      'A nova senha deve ter pelo menos 4 caracteres';
+  String get passwordMinLengthProfile => 'A nova senha deve ter pelo menos 4 caracteres';
 
   @override
-  String get confirmNewPasswordRequired =>
-      'Confirmação da nova senha é obrigatória';
+  String get confirmNewPasswordRequired => 'Confirmação da nova senha é obrigatória';
 
   @override
   String get passwordsDoNotMatchProfile => 'As senhas não coincidem';
@@ -491,8 +482,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get connectionFailure =>
-      'Falha na conexão. Verifique sua internet e tente novamente.';
+  String get connectionFailure => 'Falha na conexão. Verifique sua internet e tente novamente.';
 
   @override
   String get timeoutConnection => 'Timeout na conexão';
@@ -669,16 +659,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get waitProcessing => 'Aguarde, processando item...';
 
   @override
-  String get typeBarcodeManually =>
-      'Digite o código de barras manualmente ou toque no ícone para usar o scanner';
+  String get typeBarcodeManually => 'Digite o código de barras manualmente ou toque no ícone para usar o scanner';
 
   @override
-  String get positionProductScanner =>
-      'Posicione o produto no scanner ou toque no ícone para usar o teclado';
+  String get positionProductScanner => 'Posicione o produto no scanner ou toque no ícone para usar o teclado';
 
   @override
-  String get scannerDisabled =>
-      'Scanner desabilitado - carrinho não está em situação de separação';
+  String get scannerDisabled => 'Scanner desabilitado - carrinho não está em situação de separação';
 
   @override
   String get cancelCart => 'Cancelar Carrinho';
@@ -711,15 +698,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get appUpdateChecking => 'Verificando...';
 
   @override
-  String get appUpdateNoUpdateAvailable =>
-      'Você está usando a versão mais recente';
+  String get appUpdateNoUpdateAvailable => 'Você está usando a versão mais recente';
 
   @override
   String get appUpdateCheckError => 'Erro ao verificar atualização';
 
   @override
-  String get appUpdateNotConfigured =>
-      'GITHUB_OWNER ou GITHUB_REPO não configurados';
+  String get appUpdateNotConfigured => 'GITHUB_OWNER ou GITHUB_REPO não configurados';
 
   @override
   String get appUpdateNetworkError => 'Sem conexão com a internet';
@@ -939,8 +924,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get printerConfigTitle => 'Configuração de Impressoras';
 
   @override
-  String get printerConfigDescription =>
-      'Cadastre impressoras manualmente ou busque automaticamente na rede local.';
+  String get printerConfigDescription => 'Cadastre impressoras manualmente ou busque automaticamente na rede local.';
 
   @override
   String get printerConfigRefreshTooltip => 'Atualizar impressoras';
@@ -1014,8 +998,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get printerConfigPortHint => '9100';
 
   @override
-  String get printerConfigPortRangeRequired =>
-      'Informe uma porta valida (1-65535)';
+  String get printerConfigPortRangeRequired => 'Informe uma porta valida (1-65535)';
 
   @override
   String get printerConfigAdvancedTitle => 'Busca Avancada de Impressoras';
@@ -1048,8 +1031,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get printerConfigSearchAction => 'Buscar';
 
   @override
-  String get printerConfigHostRangeOrderError =>
-      'Host inicial nao pode ser maior que host final.';
+  String get printerConfigHostRangeOrderError => 'Host inicial nao pode ser maior que host final.';
 
   @override
   String get apiUrl => 'URL da API';
@@ -1112,8 +1094,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get passwordChangedSuccess => 'Senha alterada com sucesso!';
 
   @override
-  String get profileAndPasswordSaved =>
-      'Perfil e senha atualizados com sucesso!';
+  String get profileAndPasswordSaved => 'Perfil e senha atualizados com sucesso!';
 
   @override
   String get registerError => 'Erro ao criar conta';
@@ -1137,12 +1118,10 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get timeoutError => 'Tempo limite de conexão excedido';
 
   @override
-  String get serverNotConfigured =>
-      'Servidor não configurado! Configure o servidor antes de fazer login.';
+  String get serverNotConfigured => 'Servidor não configurado! Configure o servidor antes de fazer login.';
 
   @override
-  String get serverNotTested =>
-      'Servidor não testado! Teste a conexão com o servidor antes de fazer login.';
+  String get serverNotTested => 'Servidor não testado! Teste a conexão com o servidor antes de fazer login.';
 
   @override
   String get loadConfigError => 'Erro ao carregar configuração';
@@ -1186,8 +1165,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get profileError => 'Erro ao atualizar perfil';
 
   @override
-  String get currentPasswordRequired =>
-      'Senha atual é obrigatória para alterar a senha';
+  String get currentPasswordRequired => 'Senha atual é obrigatória para alterar a senha';
 
   @override
   String get currentPasswordIncorrect => 'Senha atual incorreta';
@@ -1196,12 +1174,10 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get newPasswordRequired => 'Nova senha é obrigatória';
 
   @override
-  String get passwordMinLengthProfile =>
-      'A nova senha deve ter pelo menos 4 caracteres';
+  String get passwordMinLengthProfile => 'A nova senha deve ter pelo menos 4 caracteres';
 
   @override
-  String get confirmNewPasswordRequired =>
-      'Confirmação da nova senha é obrigatória';
+  String get confirmNewPasswordRequired => 'Confirmação da nova senha é obrigatória';
 
   @override
   String get passwordsDoNotMatchProfile => 'As senhas não coincidem';
@@ -1218,8 +1194,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   }
 
   @override
-  String get connectionFailure =>
-      'Falha na conexão. Verifique sua internet e tente novamente.';
+  String get connectionFailure => 'Falha na conexão. Verifique sua internet e tente novamente.';
 
   @override
   String get timeoutConnection => 'Timeout na conexão';
@@ -1396,16 +1371,13 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get waitProcessing => 'Aguarde, processando item...';
 
   @override
-  String get typeBarcodeManually =>
-      'Digite o código de barras manualmente ou toque no ícone para usar o scanner';
+  String get typeBarcodeManually => 'Digite o código de barras manualmente ou toque no ícone para usar o scanner';
 
   @override
-  String get positionProductScanner =>
-      'Posicione o produto no scanner ou toque no ícone para usar o teclado';
+  String get positionProductScanner => 'Posicione o produto no scanner ou toque no ícone para usar o teclado';
 
   @override
-  String get scannerDisabled =>
-      'Scanner desabilitado - carrinho não está em situação de separação';
+  String get scannerDisabled => 'Scanner desabilitado - carrinho não está em situação de separação';
 
   @override
   String get cancelCart => 'Cancelar Carrinho';
@@ -1438,15 +1410,13 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get appUpdateChecking => 'Verificando...';
 
   @override
-  String get appUpdateNoUpdateAvailable =>
-      'Você está usando a versão mais recente';
+  String get appUpdateNoUpdateAvailable => 'Você está usando a versão mais recente';
 
   @override
   String get appUpdateCheckError => 'Erro ao verificar atualização';
 
   @override
-  String get appUpdateNotConfigured =>
-      'GITHUB_OWNER ou GITHUB_REPO não configurados';
+  String get appUpdateNotConfigured => 'GITHUB_OWNER ou GITHUB_REPO não configurados';
 
   @override
   String get appUpdateNetworkError => 'Sem conexão com a internet';

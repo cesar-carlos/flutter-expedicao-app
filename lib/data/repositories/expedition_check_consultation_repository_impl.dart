@@ -16,7 +16,9 @@ class ExpeditionCheckConsultationRepositoryImpl
   final selectEvent = 'conferir.consulta';
 
   @override
-  Future<List<ExpeditionCheckConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
+  Future<List<ExpeditionCheckConsultationModel>> selectConsultation(
+    QueryBuilder queryBuilder,
+  ) async {
     final event = '${socket.id} $selectEvent';
     final completer = Completer<List<ExpeditionCheckConsultationModel>>();
     final responseId = uuid.v4();

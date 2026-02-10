@@ -71,13 +71,6 @@ class PrintExpeditionTicketParams {
   }
 
   @override
-  int get hashCode => Object.hash(
-        codEmpresa,
-        codSepararEstoque,
-        printer,
-        separatorName,
-        autoCut,
-        codSetorEstoque,
-        codUsuario,
-      );
+  int get hashCode =>
+      Object.hash(codEmpresa, codSepararEstoque, printer, separatorName, autoCut, codSetorEstoque, codUsuario);
 }

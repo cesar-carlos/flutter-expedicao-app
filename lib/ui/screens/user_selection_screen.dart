@@ -64,10 +64,7 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar.withoutSocket(
-        title: 'Selecionar Usuário do Sistema',
-        elevation: 0,
-      ),
+      appBar: CustomAppBar.withoutSocket(title: 'Selecionar Usuário do Sistema', elevation: 0),
       resizeToAvoidBottomInset: true,
       body: Consumer<UserSelectionViewModel>(
         builder: (context, viewModel, child) {
@@ -171,13 +168,8 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
-          SnackBar(
-            content: Text('Erro inesperado: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro inesperado: $e'), backgroundColor: Theme.of(context).colorScheme.error),
         );
       }
     }

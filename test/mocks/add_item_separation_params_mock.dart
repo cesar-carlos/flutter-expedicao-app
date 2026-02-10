@@ -23,7 +23,9 @@ AddItemSeparationParams createDefaultTestAddItemSeparationParams() {
 }
 
 /// Cria parâmetros com sessionId específico
-AddItemSeparationParams createTestAddItemSeparationParamsWithSessionId(String sessionId) {
+AddItemSeparationParams createTestAddItemSeparationParamsWithSessionId(
+  String sessionId,
+) {
   return AddItemSeparationParams(
     codEmpresa: 1,
     codSepararEstoque: 999999,
@@ -39,9 +41,13 @@ AddItemSeparationParams createTestAddItemSeparationParamsWithSessionId(String se
 }
 
 /// Cria parâmetros com quantidade insuficiente
-AddItemSeparationParams createTestAddItemSeparationParamsWithExcessiveQuantity(String sessionId) {
+AddItemSeparationParams createTestAddItemSeparationParamsWithExcessiveQuantity(
+  String sessionId,
+) {
   if (sessionId.isEmpty) {
-    throw StateError('Socket não conectado. SessionId não disponível para teste.');
+    throw StateError(
+      'Socket não conectado. SessionId não disponível para teste.',
+    );
   }
 
   return AddItemSeparationParams(
@@ -59,9 +65,13 @@ AddItemSeparationParams createTestAddItemSeparationParamsWithExcessiveQuantity(S
 }
 
 /// Cria parâmetros para produto não existente
-AddItemSeparationParams createTestAddItemSeparationParamsWithNonExistentProduct(String sessionId) {
+AddItemSeparationParams createTestAddItemSeparationParamsWithNonExistentProduct(
+  String sessionId,
+) {
   if (sessionId.isEmpty) {
-    throw StateError('Socket não conectado. SessionId não disponível para teste.');
+    throw StateError(
+      'Socket não conectado. SessionId não disponível para teste.',
+    );
   }
 
   // Gerar itemCarrinhoPercurso único respeitando varchar(5)
@@ -83,7 +93,9 @@ AddItemSeparationParams createTestAddItemSeparationParamsWithNonExistentProduct(
 }
 
 /// Cria parâmetros para primeira separação em testes múltiplos
-AddItemSeparationParams createTestAddItemSeparationParamsForMultiple1(String sessionId) {
+AddItemSeparationParams createTestAddItemSeparationParamsForMultiple1(
+  String sessionId,
+) {
   return AddItemSeparationParams(
     codEmpresa: 1,
     codSepararEstoque: 999999,
@@ -99,7 +111,9 @@ AddItemSeparationParams createTestAddItemSeparationParamsForMultiple1(String ses
 }
 
 /// Cria parâmetros para segunda separação em testes múltiplos
-AddItemSeparationParams createTestAddItemSeparationParamsForMultiple2(String sessionId) {
+AddItemSeparationParams createTestAddItemSeparationParamsForMultiple2(
+  String sessionId,
+) {
   return AddItemSeparationParams(
     codEmpresa: 1,
     codSepararEstoque: 999999,

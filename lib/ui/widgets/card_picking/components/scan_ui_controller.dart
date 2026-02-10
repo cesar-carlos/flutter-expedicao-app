@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/services/audio_service.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/keyboard_toggle_controller.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_dialog_manager.dart';
@@ -65,6 +65,19 @@ class ScanUiController {
           dialogManager.showWrongSectorDialog(barcode, scannedItem.nomeProduto, sectorName, sectorCode);
         }
         return;
+      case ScanProcessStatus.wrongShelf:
+        audioService.playError();
+        dialogManager.showWrongShelfDialog(
+          scanResult.expectedShelf ?? 'Endereço não definido',
+          scanResult.scannedShelf ?? 'Código escaneado',
+        );
+        return;
+      case ScanProcessStatus.shelfScanned:
+        audioService.playSuccess();
+        if (scanResult.expectedItem != null) {
+          _showShelfScannedFeedback(scanResult.expectedItem!.enderecoDescricao ?? 'Endereço escaneado');
+        }
+        return;
       case ScanProcessStatus.wrongProduct:
         if (scanResult.expectedItem != null) {
           audioService.playError();
@@ -105,5 +118,17 @@ class ScanUiController {
         }
         return;
     }
+  }
+
+  void _showShelfScannedFeedback(String shelfAddress) {
+    if (context == null) return;
+
+    ScaffoldMessenger.of(context!).showSnackBar(
+      SnackBar(
+        content: Text('Prateleira confirmada: $shelfAddress'),
+        duration: UIConstants.snackBarShortDuration,
+        backgroundColor: AppColors.success,
+      ),
+    );
   }
 }

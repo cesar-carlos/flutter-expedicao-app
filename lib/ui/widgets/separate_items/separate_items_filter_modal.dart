@@ -11,7 +11,8 @@ class SeparateItemsFilterModal extends StatefulWidget {
   const SeparateItemsFilterModal({super.key, required this.viewModel});
 
   @override
-  State<SeparateItemsFilterModal> createState() => _SeparateItemsFilterModalState();
+  State<SeparateItemsFilterModal> createState() =>
+      _SeparateItemsFilterModalState();
 }
 
 class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
@@ -26,10 +27,18 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
   void initState() {
     super.initState();
 
-    _codProdutoController = TextEditingController(text: widget.viewModel.itemsFilters.codProduto ?? '');
-    _codigoBarrasController = TextEditingController(text: widget.viewModel.itemsFilters.codigoBarras ?? '');
-    _nomeProdutoController = TextEditingController(text: widget.viewModel.itemsFilters.nomeProduto ?? '');
-    _enderecoDescricaoController = TextEditingController(text: widget.viewModel.itemsFilters.enderecoDescricao ?? '');
+    _codProdutoController = TextEditingController(
+      text: widget.viewModel.itemsFilters.codProduto ?? '',
+    );
+    _codigoBarrasController = TextEditingController(
+      text: widget.viewModel.itemsFilters.codigoBarras ?? '',
+    );
+    _nomeProdutoController = TextEditingController(
+      text: widget.viewModel.itemsFilters.nomeProduto ?? '',
+    );
+    _enderecoDescricaoController = TextEditingController(
+      text: widget.viewModel.itemsFilters.enderecoDescricao ?? '',
+    );
     _selectedSituacao = widget.viewModel.itemsFilters.situacao;
     _selectedSetorEstoque = widget.viewModel.itemsFilters.setorEstoque;
 
@@ -47,11 +56,14 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
   }
 
   void _syncSelectedSector() {
-    if (_selectedSetorEstoque != null && widget.viewModel.availableSectors.isNotEmpty) {
-      final matchingSector = widget.viewModel.availableSectors.cast<ExpeditionSectorStockModel?>().firstWhere(
-        (sector) => sector != null && sector == _selectedSetorEstoque,
-        orElse: () => null,
-      );
+    if (_selectedSetorEstoque != null &&
+        widget.viewModel.availableSectors.isNotEmpty) {
+      final matchingSector = widget.viewModel.availableSectors
+          .cast<ExpeditionSectorStockModel?>()
+          .firstWhere(
+            (sector) => sector != null && sector == _selectedSetorEstoque,
+            orElse: () => null,
+          );
 
       if (matchingSector != null) {
         _selectedSetorEstoque = matchingSector;
@@ -90,12 +102,17 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
               Expanded(
                 child: Text(
                   'Filtros de Produtos',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               if (widget.viewModel.hasActiveItemsFilters)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -109,7 +126,10 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
                   ),
                 ),
               const SizedBox(width: 8),
-              IconButton(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.close)),
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close),
+              ),
             ],
           ),
 
@@ -169,16 +189,26 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
                   const SizedBox(height: 16),
 
                   DropdownButtonFormField<SeparationItemStatus?>(
-                    decoration: const InputDecoration(labelText: 'Situação', border: OutlineInputBorder()),
+                    decoration: const InputDecoration(
+                      labelText: 'Situação',
+                      border: OutlineInputBorder(),
+                    ),
                     initialValue: _selectedSituacao,
                     items: [
-                      const DropdownMenuItem<SeparationItemStatus?>(value: null, child: Text('Todos')),
+                      const DropdownMenuItem<SeparationItemStatus?>(
+                        value: null,
+                        child: Text('Todos'),
+                      ),
                       ...widget.viewModel.situacaoFilterOptions.map((situacao) {
                         return DropdownMenuItem<SeparationItemStatus?>(
                           value: situacao,
                           child: Row(
                             children: [
-                              Icon(Icons.circle, color: situacao.color, size: 12),
+                              Icon(
+                                Icons.circle,
+                                color: situacao.color,
+                                size: 12,
+                              ),
                               const SizedBox(width: 8),
                               Text(situacao.description),
                             ],
@@ -203,7 +233,10 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
                     ),
                     initialValue: _getValidSelectedSector(),
                     items: [
-                      const DropdownMenuItem<ExpeditionSectorStockModel?>(value: null, child: Text('Todos os setores')),
+                      const DropdownMenuItem<ExpeditionSectorStockModel?>(
+                        value: null,
+                        child: Text('Todos os setores'),
+                      ),
                       ...widget.viewModel.availableSectors.map((setor) {
                         return DropdownMenuItem<ExpeditionSectorStockModel?>(
                           value: setor,
@@ -237,7 +270,11 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
                 child: ElevatedButton(
                   onPressed: widget.viewModel.isLoading ? null : _applyFilters,
                   child: widget.viewModel.isLoading
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Text('Aplicar Filtros'),
                 ),
               ),
@@ -257,10 +294,12 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
       return null;
     }
 
-    final matchingSector = widget.viewModel.availableSectors.cast<ExpeditionSectorStockModel?>().firstWhere(
-      (sector) => sector != null && sector == _selectedSetorEstoque,
-      orElse: () => null,
-    );
+    final matchingSector = widget.viewModel.availableSectors
+        .cast<ExpeditionSectorStockModel?>()
+        .firstWhere(
+          (sector) => sector != null && sector == _selectedSetorEstoque,
+          orElse: () => null,
+        );
 
     if (matchingSector != null) {
       _selectedSetorEstoque = matchingSector;
@@ -291,9 +330,15 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
 
   void _applyFilters() {
     final filters = SeparateItemsFiltersModel(
-      codProduto: _codProdutoController.text.trim().isNotEmpty ? _codProdutoController.text.trim() : null,
-      codigoBarras: _codigoBarrasController.text.trim().isNotEmpty ? _codigoBarrasController.text.trim() : null,
-      nomeProduto: _nomeProdutoController.text.trim().isNotEmpty ? _nomeProdutoController.text.trim() : null,
+      codProduto: _codProdutoController.text.trim().isNotEmpty
+          ? _codProdutoController.text.trim()
+          : null,
+      codigoBarras: _codigoBarrasController.text.trim().isNotEmpty
+          ? _codigoBarrasController.text.trim()
+          : null,
+      nomeProduto: _nomeProdutoController.text.trim().isNotEmpty
+          ? _nomeProdutoController.text.trim()
+          : null,
       enderecoDescricao: _enderecoDescricaoController.text.trim().isNotEmpty
           ? _enderecoDescricaoController.text.trim()
           : null,

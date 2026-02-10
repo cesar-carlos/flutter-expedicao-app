@@ -47,12 +47,16 @@ class ExpeditionCancellationModel {
       origem: origem ?? this.origem,
       codOrigem: codOrigem ?? this.codOrigem,
       itemOrigem: itemOrigem ?? this.itemOrigem,
-      codMotivoCancelamento: codMotivoCancelamento ?? this.codMotivoCancelamento,
+      codMotivoCancelamento:
+          codMotivoCancelamento ?? this.codMotivoCancelamento,
       dataCancelamento: dataCancelamento ?? this.dataCancelamento,
       horaCancelamento: horaCancelamento ?? this.horaCancelamento,
-      codUsuarioCancelamento: codUsuarioCancelamento ?? this.codUsuarioCancelamento,
-      nomeUsuarioCancelamento: nomeUsuarioCancelamento ?? this.nomeUsuarioCancelamento,
-      observacaoCancelamento: observacaoCancelamento ?? this.observacaoCancelamento,
+      codUsuarioCancelamento:
+          codUsuarioCancelamento ?? this.codUsuarioCancelamento,
+      nomeUsuarioCancelamento:
+          nomeUsuarioCancelamento ?? this.nomeUsuarioCancelamento,
+      observacaoCancelamento:
+          observacaoCancelamento ?? this.observacaoCancelamento,
     );
   }
 
@@ -61,7 +65,9 @@ class ExpeditionCancellationModel {
       return ExpeditionCancellationModel(
         codEmpresa: json['CodEmpresa'],
         codCancelamento: json['CodCancelamento'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
+        origem: ExpeditionOrigem.fromCodeWithFallback(
+          json['Origem'] as String? ?? '',
+        ),
         codOrigem: json['CodOrigem'],
         itemOrigem: json['ItemOrigem'],
         codMotivoCancelamento: json['CodMotivoCancelamento'],
@@ -76,7 +82,9 @@ class ExpeditionCancellationModel {
     }
   }
 
-  static Result<ExpeditionCancellationModel> fromJsonSafe(Map<String, dynamic> json) {
+  static Result<ExpeditionCancellationModel> fromJsonSafe(
+    Map<String, dynamic> json,
+  ) {
     return safeCallSync(() => ExpeditionCancellationModel.fromJson(json));
   }
 

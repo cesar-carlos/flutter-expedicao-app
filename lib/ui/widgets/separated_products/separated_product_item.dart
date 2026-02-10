@@ -163,9 +163,10 @@ class SeparatedProductItem extends StatelessWidget {
                         Expanded(
                           child: Text(
                             item.codigoBarras!,
-                            style: AppTextStyles.code(context, color: colorScheme.onSurfaceVariant).copyWith(
-                              fontSize: theme.textTheme.bodySmall?.fontSize,
-                            ),
+                            style: AppTextStyles.code(
+                              context,
+                              color: colorScheme.onSurfaceVariant,
+                            ).copyWith(fontSize: theme.textTheme.bodySmall?.fontSize),
                           ),
                         ),
                       ],

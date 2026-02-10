@@ -110,17 +110,20 @@ class AddCartViewModel extends ChangeNotifier {
       );
 
       final result = await _addCartUseCase.call(params);
-      return result.fold((success) {
-        _audioService.playCartAddSuccess();
-        _cartAddedSuccessfully = true;
-        notifyListeners();
-        return true;
-      }, (failure) {
-        final message = failure is AppFailure ? failure.userMessage : failure.toString();
-        _setError(message);
-        _audioService.playError();
-        return false;
-      });
+      return result.fold(
+        (success) {
+          _audioService.playCartAddSuccess();
+          _cartAddedSuccessfully = true;
+          notifyListeners();
+          return true;
+        },
+        (failure) {
+          final message = failure is AppFailure ? failure.userMessage : failure.toString();
+          _setError(message);
+          _audioService.playError();
+          return false;
+        },
+      );
     } catch (e) {
       _setError('Erro inesperado: ${e.toString()}');
       _audioService.playError();

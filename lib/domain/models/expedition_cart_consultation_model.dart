@@ -50,12 +50,18 @@ class ExpeditionCartConsultationModel {
         codCarrinho: json['CodCarrinho'],
         descricaoCarrinho: json['Descricao'],
         ativo: Situation.fromCodeWithFallback(json['Ativo'] as String? ?? ''),
-        situacao: ExpeditionCartSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionCartSituation.vazio,
+        situacao:
+            ExpeditionCartSituation.fromCode(
+              json['Situacao'] as String? ?? '',
+            ) ??
+            ExpeditionCartSituation.vazio,
         codigoBarras: json['CodigoBarras'],
         codCarrinhoPercurso: json['CodCarrinhoPercurso'],
         codPercursoEstagio: json['CodPercursoEstagio'],
         descricaoPercursoEstagio: json['DescricaoPercursoEstagio'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
+        origem: ExpeditionOrigem.fromCodeWithFallback(
+          json['Origem'] as String? ?? '',
+        ),
         codOrigem: json['CodOrigem'],
         dataInicio: AppHelper.tryStringToDateOrNull(json['DataInicio']),
         horaInicio: json['HoraInicio'],
@@ -71,7 +77,9 @@ class ExpeditionCartConsultationModel {
 
   /// Factory method para criação segura com validação de schema
   /// Retorna um Result que pode ser sucesso ou falha
-  static Result<ExpeditionCartConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
+  static Result<ExpeditionCartConsultationModel> fromJsonSafe(
+    Map<String, dynamic> json,
+  ) {
     return safeCallSync(() => ExpeditionCartConsultationModel.fromJson(json));
   }
 

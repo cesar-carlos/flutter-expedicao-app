@@ -92,7 +92,11 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     boxShadow: [
-                      BoxShadow(color: AppColors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2)),
+                      BoxShadow(
+                        color: AppColors.black.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
                     ],
                   ),
                   child: Column(

@@ -149,12 +149,8 @@ void setupLocator() {
   locator.registerLazySingleton(() => AudioService());
   locator.registerLazySingleton(() => BarcodeBroadcastService());
   locator.registerLazySingleton<MetricsStorage>(() => MetricsStorage());
-  locator.registerLazySingleton<MetricsCollector>(
-    () => MetricsCollector(locator<MetricsStorage>()),
-  );
-  locator.registerLazySingleton<NetworkService>(
-    () => const InternetAddressNetworkService(),
-  );
+  locator.registerLazySingleton<MetricsCollector>(() => MetricsCollector(locator<MetricsStorage>()));
+  locator.registerLazySingleton<NetworkService>(() => const InternetAddressNetworkService());
   locator.registerLazySingleton<RetryPolicy>(
     () => const RetryPolicy(
       maxAttempts: 3,
@@ -166,18 +162,12 @@ void setupLocator() {
   locator.registerLazySingleton<SocketConnectionManager>(
     () => SocketConnectionManager(retryPolicy: locator<RetryPolicy>()),
   );
-  locator.registerLazySingleton<SocketOperationRetry>(
-    () => SocketOperationRetry(retryPolicy: locator<RetryPolicy>()),
-  );
-  locator.registerLazySingleton<PickingStateManager>(
-    () => PickingStateManager(),
-  );
+  locator.registerLazySingleton<SocketOperationRetry>(() => SocketOperationRetry(retryPolicy: locator<RetryPolicy>()));
+  locator.registerLazySingleton<PickingStateManager>(() => PickingStateManager());
   locator.registerLazySingleton(() => BarcodeScannerService());
   locator.registerLazySingleton(() => ShelfScanningService());
   locator.registerLazySingleton(() => CompanyLogoService());
-  locator.registerLazySingleton(() => EscPosTicketBuilderService(
-        logoService: locator<CompanyLogoService>(),
-      ));
+  locator.registerLazySingleton(() => EscPosTicketBuilderService(logoService: locator<CompanyLogoService>()));
   locator.registerLazySingleton(() => const ThermalPrinterTcpService());
 
   locator.registerLazySingleton(
@@ -190,29 +180,23 @@ void setupLocator() {
   );
 
   locator.registerLazySingleton<UserRepository>(() => UserRepositoryImpl());
-  locator.registerLazySingleton<UserSystemRepository>(
-    () => UserSystemRepositoryImpl(),
+  locator.registerLazySingleton<UserSystemRepository>(() => UserSystemRepositoryImpl());
+
+  locator.registerLazySingleton<BasicRepository<SeparateModel>>(() => SeparateRepositoryImpl());
+
+  locator.registerLazySingleton<BasicRepository<SeparationUserSectorModel>>(() => SeparationUserSectorRepositoryImpl());
+
+  locator.registerLazySingleton<BasicConsultationRepository<SeparationUserSectorConsultationModel>>(
+    () => SeparationUserSectorConsultationRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<BasicRepository<SeparateModel>>(
-    () => SeparateRepositoryImpl(),
+  locator.registerLazySingleton<BasicConsultationRepository<SeparateConsultationModel>>(
+    () => SeparateConsultationRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<BasicRepository<SeparationUserSectorModel>>(
-    () => SeparationUserSectorRepositoryImpl(),
+  locator.registerLazySingleton<BasicConsultationRepository<ExpeditionItemPrintConsultationModel>>(
+    () => ExpeditionItemPrintConsultationRepositoryImpl(),
   );
-
-  locator.registerLazySingleton<
-    BasicConsultationRepository<SeparationUserSectorConsultationModel>
-  >(() => SeparationUserSectorConsultationRepositoryImpl());
-
-  locator.registerLazySingleton<
-    BasicConsultationRepository<SeparateConsultationModel>
-  >(() => SeparateConsultationRepositoryImpl());
-
-  locator.registerLazySingleton<
-    BasicConsultationRepository<ExpeditionItemPrintConsultationModel>
-  >(() => ExpeditionItemPrintConsultationRepositoryImpl());
 
   locator.registerLazySingleton<ThermalPrinterRepository>(
     () => ThermalPrinterRepositoryImpl(
@@ -222,104 +206,82 @@ void setupLocator() {
     ),
   );
 
-  locator.registerLazySingleton<
-    BasicConsultationRepository<SeparateProgressConsultationModel>
-  >(() => SeparateProgressConsultationRepositoryImpl());
-
-  locator.registerLazySingleton<
-    BasicConsultationRepository<SeparationItemConsultationModel>
-  >(() => SeparationItemConsultationRepositoryImpl());
-
-  locator.registerLazySingleton<
-    BasicConsultationRepository<SeparationItemSummaryConsultationModel>
-  >(() => SeparationItemSummaryConsultationRepositoryImpl());
-
-  locator.registerLazySingleton<
-    BasicConsultationRepository<
-      ExpeditionCartRouteInternshipGroupConsultationModel
-    >
-  >(
-    () =>
-        group_consultation.ExpeditionCartRouteInternshipConsultationRepositoryImpl(),
+  locator.registerLazySingleton<BasicConsultationRepository<SeparateProgressConsultationModel>>(
+    () => SeparateProgressConsultationRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<
-    BasicRepository<ExpeditionCartRouteInternshipGroupModel>
-  >(() => ExpeditionCartRouteInternshipGorupImpl());
-
-  locator.registerLazySingleton<
-    BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel>
-  >(
-    () =>
-        consultation.ExpeditionCartRouteInternshipConsultationRepositoryImpl(),
+  locator.registerLazySingleton<BasicConsultationRepository<SeparationItemConsultationModel>>(
+    () => SeparationItemConsultationRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<BasicRepository<SeparateItemModel>>(
-    () => SeparateItemRepositoryImpl(),
+  locator.registerLazySingleton<BasicConsultationRepository<SeparationItemSummaryConsultationModel>>(
+    () => SeparationItemSummaryConsultationRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<BasicRepository<SeparationItemModel>>(
-    () => SeparationItemRepositoryImpl(),
+  locator.registerLazySingleton<BasicConsultationRepository<ExpeditionCartRouteInternshipGroupConsultationModel>>(
+    () => group_consultation.ExpeditionCartRouteInternshipConsultationRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<
-    BasicConsultationRepository<SeparateItemConsultationModel>
-  >(() => SeparateItemConsultationRepositoryImpl());
+  locator.registerLazySingleton<BasicRepository<ExpeditionCartRouteInternshipGroupModel>>(
+    () => ExpeditionCartRouteInternshipGorupImpl(),
+  );
 
-  locator.registerLazySingleton<
-    BasicConsultationRepository<SeparateItemUnidadeMedidaConsultationModel>
-  >(() => SeparateItemUnidadeMedidaRepositoryImpl());
+  locator.registerLazySingleton<BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel>>(
+    () => consultation.ExpeditionCartRouteInternshipConsultationRepositoryImpl(),
+  );
 
-  locator.registerLazySingleton<
-    BasicRepository<ExpeditionCartRouteInternshipModel>
-  >(() => ExpeditionCartRouteInternshipRepositoryImpl());
+  locator.registerLazySingleton<BasicRepository<SeparateItemModel>>(() => SeparateItemRepositoryImpl());
 
-  locator.registerLazySingleton<
-    BasicConsultationRepository<StockProductConsultationModel>
-  >(() => StockProductConsultationRepositoryImpl());
+  locator.registerLazySingleton<BasicRepository<SeparationItemModel>>(() => SeparationItemRepositoryImpl());
 
-  locator.registerLazySingleton<
-    BasicConsultationRepository<ExpeditionCartConsultationModel>
-  >(() => ExpeditionCartConsultationRepositoryImpl());
+  locator.registerLazySingleton<BasicConsultationRepository<SeparateItemConsultationModel>>(
+    () => SeparateItemConsultationRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<BasicConsultationRepository<SeparateItemUnidadeMedidaConsultationModel>>(
+    () => SeparateItemUnidadeMedidaRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<BasicRepository<ExpeditionCartRouteInternshipModel>>(
+    () => ExpeditionCartRouteInternshipRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<BasicConsultationRepository<StockProductConsultationModel>>(
+    () => StockProductConsultationRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<BasicConsultationRepository<ExpeditionCartConsultationModel>>(
+    () => ExpeditionCartConsultationRepositoryImpl(),
+  );
   locator.registerLazySingleton<ExpeditionCartConsultationRepositoryImpl>(
     () => ExpeditionCartConsultationRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<BasicRepository<ExpeditionCartModel>>(
-    () => ExpeditionCartRepositoryImpl(),
-  );
+  locator.registerLazySingleton<BasicRepository<ExpeditionCartModel>>(() => ExpeditionCartRepositoryImpl());
 
-  locator.registerLazySingleton<BasicRepository<ExpeditionCartRouteModel>>(
-    () => ExpeditionCartRouteRepositoryImpl(),
-  );
+  locator.registerLazySingleton<BasicRepository<ExpeditionCartRouteModel>>(() => ExpeditionCartRouteRepositoryImpl());
 
-  locator.registerLazySingleton<BasicRepository<ExpeditionInternshipModel>>(
-    () => ExpeditionInternshipRepositoryImpl(),
-  );
+  locator.registerLazySingleton<BasicRepository<ExpeditionInternshipModel>>(() => ExpeditionInternshipRepositoryImpl());
 
   locator.registerLazySingleton<BasicRepository<ExpeditionSectorStockModel>>(
     () => ExpeditionSectorStockRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<BasicRepository<ExpeditionCheckModel>>(
-    () => ExpeditionCheckRepositoryImpl(),
+  locator.registerLazySingleton<BasicRepository<ExpeditionCheckModel>>(() => ExpeditionCheckRepositoryImpl());
+
+  locator.registerLazySingleton<BasicConsultationRepository<ExpeditionCheckConsultationModel>>(
+    () => ExpeditionCheckConsultationRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<
-    BasicConsultationRepository<ExpeditionCheckConsultationModel>
-  >(() => ExpeditionCheckConsultationRepositoryImpl());
-
-  locator.registerLazySingleton<
-    BasicConsultationRepository<ExpeditionCheckCartConsultationModel>
-  >(() => ExpeditionCheckCartConsultationRepositoryImpl());
-
-  locator.registerLazySingleton<BasicRepository<ExpeditionCheckItemModel>>(
-    () => ExpeditionCheckItemRepositoryImpl(),
+  locator.registerLazySingleton<BasicConsultationRepository<ExpeditionCheckCartConsultationModel>>(
+    () => ExpeditionCheckCartConsultationRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<
-    BasicConsultationRepository<ExpeditionCheckItemConsultationModel>
-  >(() => ExpeditionCheckItemConsultationRepositoryImpl());
+  locator.registerLazySingleton<BasicRepository<ExpeditionCheckItemModel>>(() => ExpeditionCheckItemRepositoryImpl());
+
+  locator.registerLazySingleton<BasicConsultationRepository<ExpeditionCheckItemConsultationModel>>(
+    () => ExpeditionCheckItemConsultationRepositoryImpl(),
+  );
 
   locator.registerFactory(() => RegisterUserUseCase(locator<UserRepository>()));
   locator.registerFactory(() => LoginUserUseCase(locator<UserRepository>()));
@@ -335,9 +297,7 @@ void setupLocator() {
   locator.registerFactory(() {
     final configService = locator<ConfigService>();
     if (!configService.isInitialized) {
-      throw StateError(
-        'ConfigService deve ser inicializado antes de criar RegisterViewModel',
-      );
+      throw StateError('ConfigService deve ser inicializado antes de criar RegisterViewModel');
     }
 
     final viewModel = RegisterViewModel();
@@ -348,9 +308,7 @@ void setupLocator() {
   locator.registerFactory(() {
     final configService = locator<ConfigService>();
     if (!configService.isInitialized) {
-      throw StateError(
-        'ConfigService deve ser inicializado antes de criar AuthViewModel',
-      );
+      throw StateError('ConfigService deve ser inicializado antes de criar AuthViewModel');
     }
 
     final viewModel = AuthViewModel();
@@ -359,24 +317,16 @@ void setupLocator() {
   });
 
   locator.registerFactory(() {
-    return UserSelectionViewModel(
-      locator<UserSystemRepository>(),
-      locator<UserRepository>(),
-    );
+    return UserSelectionViewModel(locator<UserSystemRepository>(), locator<UserRepository>());
   });
 
   locator.registerFactory(() {
     final configService = locator<ConfigService>();
     if (!configService.isInitialized) {
-      throw StateError(
-        'ConfigService deve ser inicializado antes de criar ProfileViewModel',
-      );
+      throw StateError('ConfigService deve ser inicializado antes de criar ProfileViewModel');
     }
 
-    return ProfileViewModel(
-      locator<UserRepository>(),
-      locator<AuthViewModel>(),
-    );
+    return ProfileViewModel(locator<UserRepository>(), locator<AuthViewModel>());
   });
 
   locator.registerLazySingleton(() {
@@ -387,23 +337,16 @@ void setupLocator() {
 
   locator.registerFactory(() => HomeViewModel());
 
-  locator.registerLazySingleton<FiltersStorageService>(
-    () => FiltersStorageService(),
-  );
+  locator.registerLazySingleton<FiltersStorageService>(() => FiltersStorageService());
   locator.registerLazySingleton<UserSessionService>(() => UserSessionService());
 
   locator.registerLazySingleton<AddCartUseCase>(
     () => AddCartUseCase(
       cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
       cartRouteRepository: locator<BasicRepository<ExpeditionCartRouteModel>>(),
-      cartRouteInternshipRepository:
-          locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
-      cartConsultationRepository:
-          locator<
-            BasicConsultationRepository<ExpeditionCartConsultationModel>
-          >(),
-      expeditionInternshipRepository:
-          locator<BasicRepository<ExpeditionInternshipModel>>(),
+      cartRouteInternshipRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
+      cartConsultationRepository: locator<BasicConsultationRepository<ExpeditionCartConsultationModel>>(),
+      expeditionInternshipRepository: locator<BasicRepository<ExpeditionInternshipModel>>(),
       userSystemRepository: locator<UserSystemRepository>(),
       userSessionService: locator<UserSessionService>(),
     ),
@@ -417,10 +360,8 @@ void setupLocator() {
   locator.registerLazySingleton<CancelCartUseCase>(
     () => CancelCartUseCase(
       cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
-      cancellationRepository:
-          locator<BasicRepository<ExpeditionCancellationModel>>(),
-      cartInternshipRouteRepository:
-          locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
+      cancellationRepository: locator<BasicRepository<ExpeditionCancellationModel>>(),
+      cartInternshipRouteRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
       userSessionService: locator<UserSessionService>(),
     ),
   );
@@ -463,20 +404,11 @@ void setupLocator() {
 
   locator.registerLazySingleton<SaveSeparationCartUseCase>(
     () => SaveSeparationCartUseCase(
-      cartRouteInternshipRepository:
-          locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
-      separationItemConsultationRepository:
-          locator<
-            BasicConsultationRepository<SeparationItemConsultationModel>
-          >(),
-      separateItemRepository:
-          locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
-      separateProgressRepository:
-          locator<
-            BasicConsultationRepository<SeparateProgressConsultationModel>
-          >(),
-      separationItemModelRepository:
-          locator<BasicRepository<SeparationItemModel>>(),
+      cartRouteInternshipRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
+      separationItemConsultationRepository: locator<BasicConsultationRepository<SeparationItemConsultationModel>>(),
+      separateItemRepository: locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
+      separateProgressRepository: locator<BasicConsultationRepository<SeparateProgressConsultationModel>>(),
+      separationItemModelRepository: locator<BasicRepository<SeparationItemModel>>(),
       cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
       userSessionService: locator<UserSessionService>(),
     ),
@@ -484,10 +416,7 @@ void setupLocator() {
 
   locator.registerLazySingleton<SaveSeparationUseCase>(
     () => SaveSeparationUseCase(
-      separateProgressRepository:
-          locator<
-            BasicConsultationRepository<SeparateProgressConsultationModel>
-          >(),
+      separateProgressRepository: locator<BasicConsultationRepository<SeparateProgressConsultationModel>>(),
       separateRepository: locator<BasicRepository<SeparateModel>>(),
       cartRouteRepository: locator<BasicRepository<ExpeditionCartRouteModel>>(),
     ),
@@ -502,36 +431,28 @@ void setupLocator() {
   );
 
   locator.registerLazySingleton<RegisterSeparationUserSectorUseCase>(
-    () => RegisterSeparationUserSectorUseCase(
-      repository: locator<BasicRepository<SeparationUserSectorModel>>(),
-    ),
+    () => RegisterSeparationUserSectorUseCase(repository: locator<BasicRepository<SeparationUserSectorModel>>()),
   );
 
   locator.registerLazySingleton<NextSeparationUserUseCase>(
     () => NextSeparationUserUseCase(
-      separationUserSectorRepository:
-          locator<
-            BasicConsultationRepository<SeparationUserSectorConsultationModel>
-          >(),
+      separationUserSectorRepository: locator<BasicConsultationRepository<SeparationUserSectorConsultationModel>>(),
       getRegisterUseCase: () => locator<RegisterSeparationUserSectorUseCase>(),
     ),
   );
 
   locator.registerLazySingleton<PrintExpeditionTicketUseCase>(
     () => PrintExpeditionTicketUseCase(
-      expeditionItemPrintRepository:
-          locator<
-            BasicConsultationRepository<ExpeditionItemPrintConsultationModel>
-          >(),
+      expeditionItemPrintRepository: locator<BasicConsultationRepository<ExpeditionItemPrintConsultationModel>>(),
       thermalPrinterRepository: locator<ThermalPrinterRepository>(),
     ),
   );
 
   locator.registerLazySingleton<EventService>(() => EventServiceImpl());
 
-  locator.registerLazySingleton<
-    EventGenericRepositoryImpl<SeparateConsultationModel>
-  >(() => EventGenericRepositoryImpl(locator<EventService>(), 'separar'));
+  locator.registerLazySingleton<EventGenericRepositoryImpl<SeparateConsultationModel>>(
+    () => EventGenericRepositoryImpl(locator<EventService>(), 'separar'),
+  );
 
   locator.registerLazySingleton<SeparateEventRepository>(
     () => SeparateEventRepositoryImpl(
@@ -540,34 +461,21 @@ void setupLocator() {
     ),
   );
 
-  locator.registerLazySingleton<
-    EventGenericRepositoryImpl<ExpeditionCartRouteInternshipConsultationModel>
-  >(
-    () => EventGenericRepositoryImpl(
-      locator<EventService>(),
-      'carrinho.percurso.estagio',
-    ),
+  locator.registerLazySingleton<EventGenericRepositoryImpl<ExpeditionCartRouteInternshipConsultationModel>>(
+    () => EventGenericRepositoryImpl(locator<EventService>(), 'carrinho.percurso.estagio'),
   );
 
   locator.registerLazySingleton<SeparateCartInternshipEventRepository>(
     () => SeparateCartInternshipEventRepositoryImpl(
-      locator<
-        EventGenericRepositoryImpl<
-          ExpeditionCartRouteInternshipConsultationModel
-        >
-      >(),
+      locator<EventGenericRepositoryImpl<ExpeditionCartRouteInternshipConsultationModel>>(),
     ),
   );
 
   // Registro do Barcode Scanner Repository e UseCase
-  locator.registerLazySingleton<BarcodeScannerRepository>(
-    () => BarcodeScannerRepositoryMobileImpl(),
-  );
+  locator.registerLazySingleton<BarcodeScannerRepository>(() => BarcodeScannerRepositoryMobileImpl());
 
   locator.registerLazySingleton<ScanBarcodeUseCase>(
-    () => ScanBarcodeUseCase(
-      scannerRepository: locator<BarcodeScannerRepository>(),
-    ),
+    () => ScanBarcodeUseCase(scannerRepository: locator<BarcodeScannerRepository>()),
   );
 
   // Registro dos ViewModels após os repositórios de eventos
@@ -575,13 +483,9 @@ void setupLocator() {
   locator.registerFactory(() => SeparationItemsViewModel());
 
   // Registro do App Update
-  locator.registerLazySingleton<IAppUpdateRepository>(
-    () => AppUpdateRepositoryImpl(),
-  );
+  locator.registerLazySingleton<IAppUpdateRepository>(() => AppUpdateRepositoryImpl());
 
-  locator.registerLazySingleton<CheckAppUpdateUseCase>(
-    () => CheckAppUpdateUseCase(locator<IAppUpdateRepository>()),
-  );
+  locator.registerLazySingleton<CheckAppUpdateUseCase>(() => CheckAppUpdateUseCase(locator<IAppUpdateRepository>()));
 
   locator.registerLazySingleton<DownloadAppUpdateUseCase>(
     () => DownloadAppUpdateUseCase(locator<IAppUpdateRepository>()),

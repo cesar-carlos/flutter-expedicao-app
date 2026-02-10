@@ -15,9 +15,7 @@ class InstallAppUpdateUseCase {
     final installResult = await repository.installApk(params.apkPath);
 
     return installResult.mapFailureToAppUpdate(
-      (e) => AppUpdateFailure.installFailed(
-        e is AppFailure ? e.message : e.toString(),
-      ),
+      (e) => AppUpdateFailure.installFailed(e is AppFailure ? e.message : e.toString()),
     );
   }
 }

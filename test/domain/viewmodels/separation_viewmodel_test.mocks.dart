@@ -43,35 +43,20 @@ import 'package:mockito/mockito.dart' as _i1;
 
 class _FakeSeparationFiltersModel_0 extends _i1.SmartFake
     implements _i2.SeparationFiltersModel {
-  _FakeSeparationFiltersModel_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeSeparationFiltersModel_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeSeparateItemsFiltersModel_1 extends _i1.SmartFake
     implements _i3.SeparateItemsFiltersModel {
-  _FakeSeparateItemsFiltersModel_1(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeSeparateItemsFiltersModel_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeCartsFiltersModel_2 extends _i1.SmartFake
     implements _i4.CartsFiltersModel {
-  _FakeCartsFiltersModel_2(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeCartsFiltersModel_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 /// A class which mocks [BasicConsultationRepository].
@@ -86,12 +71,10 @@ class MockBasicConsultationRepository<T> extends _i1.Mock
   @override
   _i6.Future<List<T>> selectConsultation(_i7.QueryBuilder? queryBuilder) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #selectConsultation,
-          [queryBuilder],
-        ),
-        returnValue: _i6.Future<List<T>>.value(<T>[]),
-      ) as _i6.Future<List<T>>);
+            Invocation.method(#selectConsultation, [queryBuilder]),
+            returnValue: _i6.Future<List<T>>.value(<T>[]),
+          )
+          as _i6.Future<List<T>>);
 }
 
 /// A class which mocks [BasicRepository].
@@ -106,39 +89,34 @@ class MockBasicRepository<T> extends _i1.Mock
   @override
   _i6.Future<List<T>> select(_i7.QueryBuilder? queryBuilder) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #select,
-          [queryBuilder],
-        ),
-        returnValue: _i6.Future<List<T>>.value(<T>[]),
-      ) as _i6.Future<List<T>>);
+            Invocation.method(#select, [queryBuilder]),
+            returnValue: _i6.Future<List<T>>.value(<T>[]),
+          )
+          as _i6.Future<List<T>>);
 
   @override
-  _i6.Future<List<T>> insert(T? entity) => (super.noSuchMethod(
-        Invocation.method(
-          #insert,
-          [entity],
-        ),
-        returnValue: _i6.Future<List<T>>.value(<T>[]),
-      ) as _i6.Future<List<T>>);
+  _i6.Future<List<T>> insert(T? entity) =>
+      (super.noSuchMethod(
+            Invocation.method(#insert, [entity]),
+            returnValue: _i6.Future<List<T>>.value(<T>[]),
+          )
+          as _i6.Future<List<T>>);
 
   @override
-  _i6.Future<List<T>> update(T? entity) => (super.noSuchMethod(
-        Invocation.method(
-          #update,
-          [entity],
-        ),
-        returnValue: _i6.Future<List<T>>.value(<T>[]),
-      ) as _i6.Future<List<T>>);
+  _i6.Future<List<T>> update(T? entity) =>
+      (super.noSuchMethod(
+            Invocation.method(#update, [entity]),
+            returnValue: _i6.Future<List<T>>.value(<T>[]),
+          )
+          as _i6.Future<List<T>>);
 
   @override
-  _i6.Future<List<T>> delete(T? entity) => (super.noSuchMethod(
-        Invocation.method(
-          #delete,
-          [entity],
-        ),
-        returnValue: _i6.Future<List<T>>.value(<T>[]),
-      ) as _i6.Future<List<T>>);
+  _i6.Future<List<T>> delete(T? entity) =>
+      (super.noSuchMethod(
+            Invocation.method(#delete, [entity]),
+            returnValue: _i6.Future<List<T>>.value(<T>[]),
+          )
+          as _i6.Future<List<T>>);
 }
 
 /// A class which mocks [FiltersStorageService].
@@ -153,184 +131,157 @@ class MockFiltersStorageService extends _i1.Mock
   @override
   _i6.Future<void> saveSeparationFilters(_i2.SeparationFiltersModel? filters) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #saveSeparationFilters,
-          [filters],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+            Invocation.method(#saveSeparationFilters, [filters]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
   _i6.Future<_i2.SeparationFiltersModel> loadSeparationFilters() =>
       (super.noSuchMethod(
-        Invocation.method(
-          #loadSeparationFilters,
-          [],
-        ),
-        returnValue: _i6.Future<_i2.SeparationFiltersModel>.value(
-            _FakeSeparationFiltersModel_0(
-          this,
-          Invocation.method(
-            #loadSeparationFilters,
-            [],
-          ),
-        )),
-      ) as _i6.Future<_i2.SeparationFiltersModel>);
+            Invocation.method(#loadSeparationFilters, []),
+            returnValue: _i6.Future<_i2.SeparationFiltersModel>.value(
+              _FakeSeparationFiltersModel_0(
+                this,
+                Invocation.method(#loadSeparationFilters, []),
+              ),
+            ),
+          )
+          as _i6.Future<_i2.SeparationFiltersModel>);
 
   @override
-  _i6.Future<void> clearSeparationFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #clearSeparationFilters,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> clearSeparationFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearSeparationFilters, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<bool> hasSavedSeparationFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #hasSavedSeparationFilters,
-          [],
-        ),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
+  _i6.Future<bool> hasSavedSeparationFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#hasSavedSeparationFilters, []),
+            returnValue: _i6.Future<bool>.value(false),
+          )
+          as _i6.Future<bool>);
 
   @override
   _i6.Future<void> saveSeparateItemsFilters(
-          _i3.SeparateItemsFiltersModel? filters) =>
+    _i3.SeparateItemsFiltersModel? filters,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #saveSeparateItemsFilters,
-          [filters],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+            Invocation.method(#saveSeparateItemsFilters, [filters]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
   _i6.Future<_i3.SeparateItemsFiltersModel> loadSeparateItemsFilters() =>
       (super.noSuchMethod(
-        Invocation.method(
-          #loadSeparateItemsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<_i3.SeparateItemsFiltersModel>.value(
-            _FakeSeparateItemsFiltersModel_1(
-          this,
-          Invocation.method(
-            #loadSeparateItemsFilters,
-            [],
-          ),
-        )),
-      ) as _i6.Future<_i3.SeparateItemsFiltersModel>);
+            Invocation.method(#loadSeparateItemsFilters, []),
+            returnValue: _i6.Future<_i3.SeparateItemsFiltersModel>.value(
+              _FakeSeparateItemsFiltersModel_1(
+                this,
+                Invocation.method(#loadSeparateItemsFilters, []),
+              ),
+            ),
+          )
+          as _i6.Future<_i3.SeparateItemsFiltersModel>);
 
   @override
-  _i6.Future<void> clearSeparateItemsFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #clearSeparateItemsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> clearSeparateItemsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearSeparateItemsFilters, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<bool> hasSavedSeparateItemsFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #hasSavedSeparateItemsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
+  _i6.Future<bool> hasSavedSeparateItemsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#hasSavedSeparateItemsFilters, []),
+            returnValue: _i6.Future<bool>.value(false),
+          )
+          as _i6.Future<bool>);
 
   @override
   _i6.Future<void> saveCartsFilters(_i4.CartsFiltersModel? filters) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #saveCartsFilters,
-          [filters],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+            Invocation.method(#saveCartsFilters, [filters]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<_i4.CartsFiltersModel> loadCartsFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #loadCartsFilters,
-          [],
-        ),
-        returnValue:
-            _i6.Future<_i4.CartsFiltersModel>.value(_FakeCartsFiltersModel_2(
-          this,
-          Invocation.method(
-            #loadCartsFilters,
-            [],
-          ),
-        )),
-      ) as _i6.Future<_i4.CartsFiltersModel>);
+  _i6.Future<_i4.CartsFiltersModel> loadCartsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#loadCartsFilters, []),
+            returnValue: _i6.Future<_i4.CartsFiltersModel>.value(
+              _FakeCartsFiltersModel_2(
+                this,
+                Invocation.method(#loadCartsFilters, []),
+              ),
+            ),
+          )
+          as _i6.Future<_i4.CartsFiltersModel>);
 
   @override
-  _i6.Future<void> clearCartsFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #clearCartsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> clearCartsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearCartsFilters, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<bool> hasSavedCartsFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #hasSavedCartsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
+  _i6.Future<bool> hasSavedCartsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#hasSavedCartsFilters, []),
+            returnValue: _i6.Future<bool>.value(false),
+          )
+          as _i6.Future<bool>);
 
   @override
   _i6.Future<void> savePendingProductsFilters(
-          _i10.PendingProductsFiltersModel? filters) =>
+    _i10.PendingProductsFiltersModel? filters,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #savePendingProductsFilters,
-          [filters],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+            Invocation.method(#savePendingProductsFilters, [filters]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
   _i6.Future<_i10.PendingProductsFiltersModel?> loadPendingProductsFilters() =>
       (super.noSuchMethod(
-        Invocation.method(
-          #loadPendingProductsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<_i10.PendingProductsFiltersModel?>.value(),
-      ) as _i6.Future<_i10.PendingProductsFiltersModel?>);
+            Invocation.method(#loadPendingProductsFilters, []),
+            returnValue: _i6.Future<_i10.PendingProductsFiltersModel?>.value(),
+          )
+          as _i6.Future<_i10.PendingProductsFiltersModel?>);
 
   @override
-  _i6.Future<void> clearPendingProductsFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #clearPendingProductsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> clearPendingProductsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearPendingProductsFilters, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<bool> hasSavedPendingProductsFilters() => (super.noSuchMethod(
-        Invocation.method(
-          #hasSavedPendingProductsFilters,
-          [],
-        ),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
+  _i6.Future<bool> hasSavedPendingProductsFilters() =>
+      (super.noSuchMethod(
+            Invocation.method(#hasSavedPendingProductsFilters, []),
+            returnValue: _i6.Future<bool>.value(false),
+          )
+          as _i6.Future<bool>);
 }
 
 /// A class which mocks [SeparateEventRepository].
@@ -343,109 +294,81 @@ class MockSeparateEventRepository extends _i1.Mock
   }
 
   @override
-  List<_i12.EventListenerModel> get listeners => (super.noSuchMethod(
-        Invocation.getter(#listeners),
-        returnValue: <_i12.EventListenerModel>[],
-      ) as List<_i12.EventListenerModel>);
+  List<_i12.EventListenerModel> get listeners =>
+      (super.noSuchMethod(
+            Invocation.getter(#listeners),
+            returnValue: <_i12.EventListenerModel>[],
+          )
+          as List<_i12.EventListenerModel>);
 
   @override
   void addConsultationListener(_i12.EventListenerModel? listener) =>
       super.noSuchMethod(
-        Invocation.method(
-          #addConsultationListener,
-          [listener],
-        ),
+        Invocation.method(#addConsultationListener, [listener]),
         returnValueForMissingStub: null,
       );
 
   @override
   void removeConsultationListener(String? listenerId) => super.noSuchMethod(
-        Invocation.method(
-          #removeConsultationListener,
-          [listenerId],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#removeConsultationListener, [listenerId]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void addUpdateListener(_i12.EventListenerModel? listener) =>
       super.noSuchMethod(
-        Invocation.method(
-          #addUpdateListener,
-          [listener],
-        ),
+        Invocation.method(#addUpdateListener, [listener]),
         returnValueForMissingStub: null,
       );
 
   @override
   void removeUpdateListener(String? listenerId) => super.noSuchMethod(
-        Invocation.method(
-          #removeUpdateListener,
-          [listenerId],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#removeUpdateListener, [listenerId]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void addListener(_i12.EventListenerModel? listener) => super.noSuchMethod(
-        Invocation.method(
-          #addListener,
-          [listener],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#addListener, [listener]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void removeListener(String? listenerId) => super.noSuchMethod(
-        Invocation.method(
-          #removeListener,
-          [listenerId],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#removeListener, [listenerId]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void removeListeners(List<String>? listenerIds) => super.noSuchMethod(
-        Invocation.method(
-          #removeListeners,
-          [listenerIds],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#removeListeners, [listenerIds]),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void removeAllListeners() => super.noSuchMethod(
-        Invocation.method(
-          #removeAllListeners,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#removeAllListeners, []),
+    returnValueForMissingStub: null,
+  );
 
   @override
-  bool hasListener(String? listenerId) => (super.noSuchMethod(
-        Invocation.method(
-          #hasListener,
-          [listenerId],
-        ),
-        returnValue: false,
-      ) as bool);
+  bool hasListener(String? listenerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#hasListener, [listenerId]),
+            returnValue: false,
+          )
+          as bool);
 
   @override
   _i12.EventListenerModel? getListenerById(String? listenerId) =>
-      (super.noSuchMethod(Invocation.method(
-        #getListenerById,
-        [listenerId],
-      )) as _i12.EventListenerModel?);
+      (super.noSuchMethod(Invocation.method(#getListenerById, [listenerId]))
+          as _i12.EventListenerModel?);
 
   @override
   void dispose() => super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#dispose, []),
+    returnValueForMissingStub: null,
+  );
 }
 
 /// A class which mocks [AudioService].
@@ -457,159 +380,141 @@ class MockAudioService extends _i1.Mock implements _i13.AudioService {
   }
 
   @override
-  bool get isEnabled => (super.noSuchMethod(
-        Invocation.getter(#isEnabled),
-        returnValue: false,
-      ) as bool);
+  bool get isEnabled =>
+      (super.noSuchMethod(Invocation.getter(#isEnabled), returnValue: false)
+          as bool);
 
   @override
   void setEnabled(bool? enabled) => super.noSuchMethod(
-        Invocation.method(
-          #setEnabled,
-          [enabled],
-        ),
-        returnValueForMissingStub: null,
-      );
+    Invocation.method(#setEnabled, [enabled]),
+    returnValueForMissingStub: null,
+  );
 
   @override
-  _i6.Future<void> playSound(_i13.SoundType? soundType) => (super.noSuchMethod(
-        Invocation.method(
-          #playSound,
-          [soundType],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> playSound(_i13.SoundType? soundType) =>
+      (super.noSuchMethod(
+            Invocation.method(#playSound, [soundType]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> playBarcodeScan() => (super.noSuchMethod(
-        Invocation.method(
-          #playBarcodeScan,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> playBarcodeScan() =>
+      (super.noSuchMethod(
+            Invocation.method(#playBarcodeScan, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> playSuccess() => (super.noSuchMethod(
-        Invocation.method(
-          #playSuccess,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> playSuccess() =>
+      (super.noSuchMethod(
+            Invocation.method(#playSuccess, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> playItemCompleted() => (super.noSuchMethod(
-        Invocation.method(
-          #playItemCompleted,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> playItemCompleted() =>
+      (super.noSuchMethod(
+            Invocation.method(#playItemCompleted, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> playShelfScanSuccess() => (super.noSuchMethod(
-        Invocation.method(
-          #playShelfScanSuccess,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> playShelfScanSuccess() =>
+      (super.noSuchMethod(
+            Invocation.method(#playShelfScanSuccess, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> playCartAddSuccess() => (super.noSuchMethod(
-        Invocation.method(
-          #playCartAddSuccess,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> playCartAddSuccess() =>
+      (super.noSuchMethod(
+            Invocation.method(#playCartAddSuccess, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> playError() => (super.noSuchMethod(
-        Invocation.method(
-          #playError,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> playError() =>
+      (super.noSuchMethod(
+            Invocation.method(#playError, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> playFail() => (super.noSuchMethod(
-        Invocation.method(
-          #playFail,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> playFail() =>
+      (super.noSuchMethod(
+            Invocation.method(#playFail, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> playAlert() => (super.noSuchMethod(
-        Invocation.method(
-          #playAlert,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> playAlert() =>
+      (super.noSuchMethod(
+            Invocation.method(#playAlert, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> playAlertComplete() => (super.noSuchMethod(
-        Invocation.method(
-          #playAlertComplete,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> playAlertComplete() =>
+      (super.noSuchMethod(
+            Invocation.method(#playAlertComplete, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> playDisconnected() => (super.noSuchMethod(
-        Invocation.method(
-          #playDisconnected,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> playDisconnected() =>
+      (super.noSuchMethod(
+            Invocation.method(#playDisconnected, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> stop() => (super.noSuchMethod(
-        Invocation.method(
-          #stop,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> stop() =>
+      (super.noSuchMethod(
+            Invocation.method(#stop, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> dispose() => (super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> dispose() =>
+      (super.noSuchMethod(
+            Invocation.method(#dispose, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
-  _i6.Future<void> setVolume(double? volume) => (super.noSuchMethod(
-        Invocation.method(
-          #setVolume,
-          [volume],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i6.Future<void> setVolume(double? volume) =>
+      (super.noSuchMethod(
+            Invocation.method(#setVolume, [volume]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
   _i6.Future<void> playSoundWithVolume(
@@ -617,14 +522,9 @@ class MockAudioService extends _i1.Mock implements _i13.AudioService {
     double? volume,
   ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #playSoundWithVolume,
-          [
-            soundType,
-            volume,
-          ],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+            Invocation.method(#playSoundWithVolume, [soundType, volume]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 }

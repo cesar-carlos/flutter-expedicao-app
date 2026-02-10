@@ -16,7 +16,12 @@ enum AppUpdateFailureType {
 class AppUpdateFailure extends AppFailure {
   final AppUpdateFailureType type;
 
-  const AppUpdateFailure({required this.type, required super.message, super.code, super.exception});
+  const AppUpdateFailure({
+    required this.type,
+    required super.message,
+    super.code,
+    super.exception,
+  });
 
   factory AppUpdateFailure.noUpdateAvailable() {
     return const AppUpdateFailure(

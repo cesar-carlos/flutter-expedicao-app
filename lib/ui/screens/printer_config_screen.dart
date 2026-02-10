@@ -32,16 +32,10 @@ class PrinterConfigScreen extends StatelessWidget {
       appBar: CustomAppBar.withoutSocket(
         title: context.l10n.printerConfigTitle,
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => _handleBack(context),
-        ),
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => _handleBack(context)),
       ),
       body: const SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(24.0),
-          child: PrinterConfigForm(),
-        ),
+        child: SingleChildScrollView(padding: EdgeInsets.all(24.0), child: PrinterConfigForm()),
       ),
     );
   }

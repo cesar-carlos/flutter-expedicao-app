@@ -1,6 +1,1 @@
-enum ScannerInputMode {
-  focus,
-  broadcast,
-}
-
-
+enum ScannerInputMode { focus, broadcast }

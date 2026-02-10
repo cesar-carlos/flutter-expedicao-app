@@ -22,12 +22,7 @@ class LoginScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 40),
-                  AppHeader(
-                    title: context.l10n.appName,
-                    subtitle: context.l10n.loginTitle,
-                    logoSize: 230,
-                    spacing: 8,
-                  ),
+                  AppHeader(title: context.l10n.appName, subtitle: context.l10n.loginTitle, logoSize: 230, spacing: 8),
 
                   const SizedBox(height: 32),
                   const LoginForm(),

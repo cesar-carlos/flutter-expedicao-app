@@ -132,10 +132,7 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
         children: [
           Text(context.l10n.scannerModeLabel, style: theme.textTheme.bodyMedium),
           const SizedBox(height: 8),
-          RadioListTile<ScannerInputMode>(
-            value: ScannerInputMode.focus,
-            title: Text(context.l10n.scannerModeFocus),
-          ),
+          RadioListTile<ScannerInputMode>(value: ScannerInputMode.focus, title: Text(context.l10n.scannerModeFocus)),
           RadioListTile<ScannerInputMode>(
             value: ScannerInputMode.broadcast,
             title: Text(context.l10n.scannerModeBroadcast),

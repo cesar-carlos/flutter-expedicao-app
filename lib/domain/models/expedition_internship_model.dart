@@ -49,7 +49,9 @@ class ExpeditionInternshipModel {
 
   /// Factory method para criação segura com validação de schema
   /// Retorna um Result que pode ser sucesso ou falha
-  static Result<ExpeditionInternshipModel> fromJsonSafe(Map<String, dynamic> json) {
+  static Result<ExpeditionInternshipModel> fromJsonSafe(
+    Map<String, dynamic> json,
+  ) {
     return safeCallSync(() => ExpeditionInternshipModel.fromJson(json));
   }
 
@@ -66,7 +68,8 @@ class ExpeditionInternshipModel {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is ExpeditionInternshipModel && other.codPercursoEstagio == codPercursoEstagio;
+    return other is ExpeditionInternshipModel &&
+        other.codPercursoEstagio == codPercursoEstagio;
   }
 
   @override

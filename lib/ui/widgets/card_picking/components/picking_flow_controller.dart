@@ -3,12 +3,13 @@ import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_failure.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/keyboard_toggle_controller.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_dialog_manager.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal_v2.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class PickingFlowController {
@@ -77,6 +78,10 @@ class PickingFlowController {
 
   Future<void> finishPicking() async {
     final navigator = dialogManager.context;
+
+    final confirmed = await _showFinishConfirmationDialog(navigator);
+    if (!confirmed) return;
+
     if (navigator.mounted) {
       _showLoadingDialog(navigator);
     }
@@ -157,13 +162,7 @@ class PickingFlowController {
             Text(message),
             if (details != null) ...[
               const SizedBox(height: 8),
-              Text(
-                details,
-                style: AppFonts.inter(
-                  fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
+              Text(details, style: AppFonts.inter(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ],
           ],
         ),
@@ -176,8 +175,98 @@ class PickingFlowController {
                 }
               });
             },
-            child: const Text('OK'),
-          )
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool> _showFinishConfirmationDialog(BuildContext context) async {
+    final cart = viewModel.cart;
+    if (cart == null) return false;
+
+    final completedItems = viewModel.completedItems;
+    final totalItems = viewModel.totalItems;
+    final progress = viewModel.progress;
+
+    int pendingOps = 0;
+    for (final item in viewModel.items) {
+      final itemState = viewModel.pickingState.getItemState(item.item);
+      if (itemState?.hasPendingSync == true) {
+        pendingOps += itemState!.pendingOperations.length;
+      }
+    }
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: AppColors.success, size: 28),
+            const SizedBox(width: 8),
+            const Expanded(child: Text('Finalizar Separação', overflow: TextOverflow.ellipsis)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Confirma finalização do carrinho ${cart.nomeCarrinho}?'),
+            const SizedBox(height: 16),
+            _buildInfoRow('Código', '#${cart.codCarrinho}'),
+            _buildInfoRow('Itens totais', '$totalItems'),
+            _buildInfoRow('Itens separados', '$completedItems'),
+            _buildInfoRow('Progresso', '${(progress * 100).toInt()}%'),
+            if (pendingOps > 0) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: AppColors.warning, size: 16),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Há $pendingOps operação${pendingOps == 1 ? '' : 'es'} sincronizando',
+                        style: AppFonts.inter(fontSize: 11, color: AppColors.warning),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: pendingOps == 0 ? () => Navigator.of(dialogContext).pop(true) : null,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, foregroundColor: AppColors.white),
+            child: const Text('Confirmar Finalização'),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text('$label:', style: AppFonts.inter(fontWeight: FontWeight.bold, fontSize: 12)),
+          ),
+          Expanded(child: Text(value, style: AppFonts.inter(fontSize: 12))),
         ],
       ),
     );

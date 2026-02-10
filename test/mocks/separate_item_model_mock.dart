@@ -25,5 +25,9 @@ SeparateItemModel createDefaultTestItem() {
 }
 
 SeparateItemModel createUpdatedTestItem(SeparateItemModel originalItem) {
-  return originalItem.copyWith(quantidadeSeparacao: 40.0, quantidadeInterna: 0.0, quantidadeExterna: 35.0);
+  return originalItem.copyWith(
+    quantidadeSeparacao: 40.0,
+    quantidadeInterna: 0.0,
+    quantidadeExterna: 35.0,
+  );
 }

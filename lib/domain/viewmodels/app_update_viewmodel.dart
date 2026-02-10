@@ -41,11 +41,7 @@ class AppUpdateViewModel extends ChangeNotifier {
     required this.updateCacheService,
   });
 
-  Future<void> checkForUpdate({
-    String? owner,
-    String? repo,
-    bool forceCheck = false,
-  }) async {
+  Future<void> checkForUpdate({String? owner, String? repo, bool forceCheck = false}) async {
     if (owner == null || owner.isEmpty || repo == null || repo.isEmpty) {
       if (forceCheck) {
         _error = AppUpdateFailure.versionCheckFailed('GITHUB_OWNER ou GITHUB_REPO não configurados');

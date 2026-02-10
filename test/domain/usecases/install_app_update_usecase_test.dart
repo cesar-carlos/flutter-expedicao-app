@@ -31,10 +31,14 @@ void main() {
 
     test('should return success when installation succeeds', () async {
       // Arrange
-      when(mockRepository.installApk(any)).thenAnswer((_) async => successVoid());
+      when(
+        mockRepository.installApk(any),
+      ).thenAnswer((_) async => successVoid());
 
       // Act
-      final result = await useCase(const InstallAppUpdateParams(apkPath: tApkPath));
+      final result = await useCase(
+        const InstallAppUpdateParams(apkPath: tApkPath),
+      );
 
       // Assert
       expect(result.isSuccess(), true);
@@ -48,13 +52,18 @@ void main() {
       );
 
       // Act
-      final result = await useCase(const InstallAppUpdateParams(apkPath: tApkPath));
+      final result = await useCase(
+        const InstallAppUpdateParams(apkPath: tApkPath),
+      );
 
       // Assert
       expect(result.isError(), true);
       final err = result.getError();
       expect(err, isA<AppUpdateFailure>());
-      expect((err as AppUpdateFailure).type, AppUpdateFailureType.installFailed);
+      expect(
+        (err as AppUpdateFailure).type,
+        AppUpdateFailureType.installFailed,
+      );
     });
   });
 }

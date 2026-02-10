@@ -30,19 +30,13 @@ class CollectionScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Funcionalidade em desenvolvimento',
-              style: AppFonts.inter(
-                fontSize: 16,
-                color: theme.isDark ? AppColors.light : colorScheme.onSurfaceVariant,
-              ),
+              style: AppFonts.inter(fontSize: 16, color: theme.isDark ? AppColors.light : colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
             Text(
               'Aqui será implementada a funcionalidade de processamento de coleta de produtos.',
               textAlign: TextAlign.center,
-              style: AppFonts.inter(
-                fontSize: 14,
-                color: theme.isDark ? AppColors.light : colorScheme.onSurfaceVariant,
-              ),
+              style: AppFonts.inter(fontSize: 14, color: theme.isDark ? AppColors.light : colorScheme.onSurfaceVariant),
             ),
           ],
         ),

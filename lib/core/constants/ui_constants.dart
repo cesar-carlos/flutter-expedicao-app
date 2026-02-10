@@ -108,8 +108,19 @@ class UIConstants {
   // Configurações de arquivo
   static const int maxFileSizeMB = 10;
   static const int maxImageSizeMB = 5;
-  static const List<String> allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-  static const List<String> allowedDocumentExtensions = ['pdf', 'doc', 'docx', 'txt'];
+  static const List<String> allowedImageExtensions = [
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'webp',
+  ];
+  static const List<String> allowedDocumentExtensions = [
+    'pdf',
+    'doc',
+    'docx',
+    'txt',
+  ];
 
   // Configurações de notificação
   static const Duration notificationDuration = Duration(seconds: 3);
@@ -172,5 +183,7 @@ class UIConstants {
   static const Duration scannerActivationDelay = Duration(milliseconds: 200);
   static const Duration scannerReactivationDelay = Duration(milliseconds: 300);
   static const Duration scannerDisplayDelay = Duration(milliseconds: 500);
-  static const Duration scannerBroadcastRecreateDelay = Duration(milliseconds: 300);
+  static const Duration scannerBroadcastRecreateDelay = Duration(
+    milliseconds: 300,
+  );
 }

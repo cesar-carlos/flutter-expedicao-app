@@ -31,7 +31,7 @@ import 'package:data7_expedicao/ui/screens/scanner_config_screen.dart';
 import 'package:data7_expedicao/ui/screens/printer_config_screen.dart';
 import 'package:data7_expedicao/ui/screens/home_screen.dart';
 import 'package:data7_expedicao/ui/screens/shelf_scanning_screen.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/ui/screens/card_picking_screen.dart';
 import 'package:data7_expedicao/ui/screens/picking_products_list_screen.dart';
 import 'package:data7_expedicao/ui/screens/add_cart_screen.dart';

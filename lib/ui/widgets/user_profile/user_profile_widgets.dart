@@ -119,18 +119,12 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
                         Text(currentUser.nome, style: AppFonts.inter(fontSize: 18, fontWeight: FontWeight.bold)),
                         Text(
                           'ID: ${currentUser.codLoginApp}',
-                          style: AppFonts.inter(
-                            fontSize: 14,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: AppFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                         if (currentUser.codUsuario != null)
                           Text(
                             'Código: ${currentUser.codUsuario}',
-                            style: AppFonts.inter(
-                            fontSize: 14,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                            style: AppFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
                         Row(
                           children: [
@@ -142,7 +136,10 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
                             const SizedBox(width: 4),
                             Text(
                               currentUser.isActive ? 'Ativo' : 'Inativo',
-                              style: AppFonts.inter(fontSize: 12, color: currentUser.isActive ? AppColors.success : AppColors.error),
+                              style: AppFonts.inter(
+                                fontSize: 12,
+                                color: currentUser.isActive ? AppColors.success : AppColors.error,
+                              ),
                             ),
                           ],
                         ),

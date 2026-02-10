@@ -116,24 +116,17 @@ class ErrorDialog extends StatelessWidget {
           children: [
             Text(
               message,
-              style: AppFonts.inter(
-                fontSize: 16,
-                color: theme.isDark ? AppColors.light : AppColors.black87,
-              ),
+              style: AppFonts.inter(fontSize: 16, color: theme.isDark ? AppColors.light : AppColors.black87),
             ),
             if (details != null && details!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: theme.isDark
-                      ? colorScheme.surfaceContainerHighest
-                      : AppColors.grey100,
+                  color: theme.isDark ? colorScheme.surfaceContainerHighest : AppColors.grey100,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: theme.isDark
-                        ? colorScheme.outline.withValues(alpha: 0.3)
-                        : AppColors.grey300,
+                    color: theme.isDark ? colorScheme.outline.withValues(alpha: 0.3) : AppColors.grey300,
                   ),
                 ),
                 child: Column(

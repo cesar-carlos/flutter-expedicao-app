@@ -25,11 +25,17 @@ class ProfileSectionContainer extends StatelessWidget {
       padding: padding ?? const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: gradientColors != null
-            ? LinearGradient(colors: gradientColors!, begin: Alignment.topLeft, end: Alignment.bottomRight)
+            ? LinearGradient(
+                colors: gradientColors!,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
             : null,
         color: gradientColors == null ? colorScheme.surface : null,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor ?? colorScheme.outline.withValues(alpha: 0.1)),
+        border: Border.all(
+          color: borderColor ?? colorScheme.outline.withValues(alpha: 0.1),
+        ),
         boxShadow: [
           BoxShadow(
             color: colorScheme.shadow.withValues(alpha: 0.08),
@@ -114,7 +120,10 @@ class ErrorProfileSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return ProfileSectionContainer(
-      gradientColors: [colorScheme.errorContainer.withValues(alpha: 0.1), colorScheme.surface],
+      gradientColors: [
+        colorScheme.errorContainer.withValues(alpha: 0.1),
+        colorScheme.surface,
+      ],
       borderColor: colorScheme.error.withValues(alpha: 0.3),
       child: child,
     );

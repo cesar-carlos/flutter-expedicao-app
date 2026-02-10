@@ -480,9 +480,30 @@ Lacunas de teste:
 
 ## 16. Proximos Passos Recomendados
 
-- Ativar e estabilizar testes de integracao de consulta atualmente `skip: true`.
-- Criar testes de integracao do fluxo operacional (salvar + imprimir) garantindo nao rollback em falha de impressao.
-- Expandir testes de transporte TCP para cobrir host inexistente e desconexao durante escrita.
-- Homologar em campo com NP-330N (QRCode, corte, acentuacao, logo e desempenho).
-- Definir se o produto precisa de opcao explicita "Salvar e Imprimir" alem do auto print atual.
-- Definir fonte/configuracao de logo (asset ou remoto) para uso em producao, aproveitando o suporte tecnico ja implementado no builder.
+### ✅ CONCLUÍDOS (2026-02-10)
+
+- [x] **Expandir testes de transporte TCP**: Implementados testes para host inexistente, desconexão durante escrita, timeout, validações de IP/porta e medição de tempo. Arquivo: `test/infrastructure/services/thermal_printer_tcp_service_test.dart`
+
+- [x] **Criar testes de fluxo completo**: Implementados testes que demonstram que falhas na impressão não afetam o salvamento do carrinho, com uso de `unawaited()` e tratamento de múltiplos cenários de falha. Arquivo: `test/domain/usecases/save_cart_with_print_test.dart`
+
+- [x] **Definir fonte/configuracao de logo**: Implementado `CompanyLogoService` que carrega automaticamente o logo da empresa (`assets/images/log_se7e_black.png`). Integrado com `EscPosTicketBuilderService` via DI. Arquivos:
+  - `lib/infrastructure/services/company_logo_service.dart`
+  - `lib/infrastructure/services/esc_pos_ticket_builder_service.dart` (atualizado)
+  - `lib/di/locator.dart` (registros atualizados)
+
+### 🔄 PENDENTES
+
+- [ ] **Ativar e estabilizar testes de integracao de consulta**: Testes atualmente `skip: true` por dependerem de servidor Socket.IO real. Arquivo: `test/data/repositories/expedition_item_print_consultation_repository_integration_test.dart`
+
+- [ ] **Homologar em campo com NP-330N**: Validar QRCode, corte, acentuação, logo e desempenho em impressora física em rede real.
+
+- [ ] **Definir opcao "Salvar e Imprimir"**: Decidir se o produto precisa de opção explícita além do auto print atual.
+
+## 17. Historico de Alterações
+
+### 2026-02-10
+- ✅ Implementados testes adicionais de TCP (host inexistente, desconexão, timeout)
+- ✅ Implementados testes de fluxo completo (salvar + imprimir sem rollback)
+- ✅ Criado `CompanyLogoService` para carregar logo da empresa automaticamente
+- ✅ Integrado logo service com `EscPosTicketBuilderService` e DI
+- 📝 Documentação atualizada com novos testes e implementação de logo

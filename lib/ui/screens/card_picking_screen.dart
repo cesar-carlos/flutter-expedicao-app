@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/picking_actions_bottom_bar.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/picking_card_scan.dart';
@@ -393,9 +393,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
                         ),
                         Text(
                           'Pendentes',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.warning,
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.warning),
                         ),
                       ],
                     ),

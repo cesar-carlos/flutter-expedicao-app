@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
@@ -134,10 +134,9 @@ class PickingItemCard extends StatelessWidget {
                 ),
                 child: Text(
                   item.codigoBarras ?? 'Não informado',
-                  style: AppTextStyles.code(context).copyWith(
-                    fontSize: theme.textTheme.bodyMedium?.fontSize,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: AppTextStyles.code(
+                    context,
+                  ).copyWith(fontSize: theme.textTheme.bodyMedium?.fontSize, fontWeight: FontWeight.w500),
                 ),
               ),
             ],
@@ -209,7 +208,9 @@ class PickingItemCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: isCompleted ? AppColors.success.withValues(alpha: 0.2) : statusColor.withValues(alpha: 0.2),
+                      color: isCompleted
+                          ? AppColors.success.withValues(alpha: 0.2)
+                          : statusColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -308,7 +309,10 @@ class PickingItemCard extends StatelessWidget {
                       border: Border.all(color: AppColors.grey),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Text('$newQuantity', style: AppFonts.inter(fontSize: UIConstants.largeFontSize, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      '$newQuantity',
+                      style: AppFonts.inter(fontSize: UIConstants.largeFontSize, fontWeight: FontWeight.bold),
+                    ),
                   ),
                   IconButton(
                     onPressed: newQuantity < totalQuantity ? () => setState(() => newQuantity++) : null,

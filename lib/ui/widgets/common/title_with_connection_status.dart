@@ -18,12 +18,12 @@ class TitleWithConnectionStatus extends StatelessWidget {
     this.titleBuilder,
     this.dynamicTitleBuilder,
   }) : assert(
-          (title != null && titleWidget == null && titleBuilder == null && dynamicTitleBuilder == null) ||
-              (title == null && titleWidget != null && titleBuilder == null && dynamicTitleBuilder == null) ||
-              (title == null && titleWidget == null && titleBuilder != null && dynamicTitleBuilder == null) ||
-              (title == null && titleWidget == null && titleBuilder == null && dynamicTitleBuilder != null),
-          'Must provide exactly one of: title, titleWidget, titleBuilder, or dynamicTitleBuilder',
-        );
+         (title != null && titleWidget == null && titleBuilder == null && dynamicTitleBuilder == null) ||
+             (title == null && titleWidget != null && titleBuilder == null && dynamicTitleBuilder == null) ||
+             (title == null && titleWidget == null && titleBuilder != null && dynamicTitleBuilder == null) ||
+             (title == null && titleWidget == null && titleBuilder == null && dynamicTitleBuilder != null),
+         'Must provide exactly one of: title, titleWidget, titleBuilder, or dynamicTitleBuilder',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -36,20 +36,13 @@ class TitleWithConnectionStatus extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildTitle(context, theme, connectionState),
-            _buildConnectionStatus(theme, connectionState),
-          ],
+          children: [_buildTitle(context, theme, connectionState), _buildConnectionStatus(theme, connectionState)],
         );
       },
     );
   }
 
-  Widget _buildTitle(
-    BuildContext context,
-    ThemeData theme,
-    SocketConnectionState connectionState,
-  ) {
+  Widget _buildTitle(BuildContext context, ThemeData theme, SocketConnectionState connectionState) {
     if (titleBuilder != null) {
       return titleBuilder!(context, connectionState);
     }
@@ -64,10 +57,7 @@ class TitleWithConnectionStatus extends StatelessWidget {
 
     return Text(
       title!,
-      style: theme.textTheme.titleLarge?.copyWith(
-        fontWeight: FontWeight.bold,
-        color: theme.colorScheme.onPrimary,
-      ),
+      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onPrimary),
     );
   }
 
@@ -110,11 +100,7 @@ class TitleWithConnectionStatus extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             statusText,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: statusColor,
-              fontWeight: FontWeight.w600,
-              fontSize: 10,
-            ),
+            style: theme.textTheme.labelSmall?.copyWith(color: statusColor, fontWeight: FontWeight.w600, fontSize: 10),
           ),
         ],
       ),

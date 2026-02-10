@@ -38,10 +38,8 @@ class ConfigViewModel extends ChangeNotifier {
     PrinterPreferencesService? printerPreferencesService,
     PrinterDiscoveryService? printerDiscoveryService,
     ThermalPrinterRepository? thermalPrinterRepository,
-  ]) : _printerPreferencesService =
-           printerPreferencesService ?? const PrinterPreferencesService(),
-       _printerDiscoveryService =
-           printerDiscoveryService ?? const PrinterDiscoveryService(),
+  ]) : _printerPreferencesService = printerPreferencesService ?? const PrinterPreferencesService(),
+       _printerDiscoveryService = printerDiscoveryService ?? const PrinterDiscoveryService(),
        _thermalPrinterRepository = thermalPrinterRepository;
 
   ApiConfig get currentConfig => _currentConfig;
@@ -110,11 +108,7 @@ class ConfigViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> saveConfig({
-    required String apiUrl,
-    required String apiPort,
-    required bool useHttps,
-  }) async {
+  Future<void> saveConfig({required String apiUrl, required String apiPort, required bool useHttps}) async {
     _setSaving(true);
 
     try {
@@ -196,11 +190,7 @@ class ConfigViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> saveScannerPreferences({
-    required ScannerInputMode mode,
-    String? action,
-    String? extraKey,
-  }) async {
+  Future<void> saveScannerPreferences({required ScannerInputMode mode, String? action, String? extraKey}) async {
     _setSaving(true);
 
     try {
@@ -233,11 +223,7 @@ class ConfigViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> addPrinter({
-    required String name,
-    required String ip,
-    required int port,
-  }) async {
+  Future<void> addPrinter({required String name, required String ip, required int port}) async {
     final normalizedName = name.trim();
     final normalizedIp = ip.trim();
 
@@ -260,23 +246,15 @@ class ConfigViewModel extends ChangeNotifier {
     }
 
     final endpointKey = _buildEndpointKey(normalizedIp, port);
-    final hasDuplicateEndpoint = _printers.any(
-      (item) => _buildEndpointKey(item.ip, item.port) == endpointKey,
-    );
+    final hasDuplicateEndpoint = _printers.any((item) => _buildEndpointKey(item.ip, item.port) == endpointKey);
     if (hasDuplicateEndpoint) {
-      _errorMessage =
-          'Ja existe uma impressora cadastrada para $normalizedIp:$port.';
+      _errorMessage = 'Ja existe uma impressora cadastrada para $normalizedIp:$port.';
       notifyListeners();
       return;
     }
 
     _errorMessage = '';
-    final newPrinter = PrinterConfig(
-      id: _uuid.v4(),
-      name: normalizedName,
-      ip: normalizedIp,
-      port: port,
-    );
+    final newPrinter = PrinterConfig(id: _uuid.v4(), name: normalizedName, ip: normalizedIp, port: port);
 
     _printers = [..._printers, newPrinter];
     _defaultPrinterId ??= newPrinter.id;
@@ -315,13 +293,10 @@ class ConfigViewModel extends ChangeNotifier {
 
     final endpointKey = _buildEndpointKey(normalizedIp, printer.port);
     final hasDuplicateEndpoint = _printers.any(
-      (item) =>
-          item.id != printer.id &&
-          _buildEndpointKey(item.ip, item.port) == endpointKey,
+      (item) => item.id != printer.id && _buildEndpointKey(item.ip, item.port) == endpointKey,
     );
     if (hasDuplicateEndpoint) {
-      _errorMessage =
-          'Ja existe outra impressora cadastrada para $normalizedIp:${printer.port}.';
+      _errorMessage = 'Ja existe outra impressora cadastrada para $normalizedIp:${printer.port}.';
       notifyListeners();
       return;
     }
@@ -360,9 +335,7 @@ class ConfigViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<PrinterDiscoveryUiResult> discoverPrintersInNetwork({
-    int port = 9100,
-  }) async {
+  Future<PrinterDiscoveryUiResult> discoverPrintersInNetwork({int port = 9100}) async {
     if (_isDiscoveringPrinters) {
       return const PrinterDiscoveryUiResult(
         isSuccess: false,
@@ -379,9 +352,7 @@ class ConfigViewModel extends ChangeNotifier {
       _errorMessage = '';
       final report = await _printerDiscoveryService.discover(port: port);
 
-      final existingKeys = _printers
-          .map((item) => '${item.ip}:${item.port}')
-          .toSet();
+      final existingKeys = _printers.map((item) => '${item.ip}:${item.port}').toSet();
 
       var addedCount = 0;
       final updatedPrinters = [..._printers];
@@ -393,12 +364,7 @@ class ConfigViewModel extends ChangeNotifier {
         }
 
         updatedPrinters.add(
-          PrinterConfig(
-            id: _uuid.v4(),
-            name: 'Impressora ${endpoint.ip}',
-            ip: endpoint.ip,
-            port: endpoint.port,
-          ),
+          PrinterConfig(id: _uuid.v4(), name: 'Impressora ${endpoint.ip}', ip: endpoint.ip, port: endpoint.port),
         );
         existingKeys.add(key);
         addedCount++;
@@ -419,8 +385,7 @@ class ConfigViewModel extends ChangeNotifier {
           foundCount: 0,
           addedCount: 0,
           subnet: report.subnet,
-          message:
-              'Nenhum dispositivo respondeu na porta $port em ${report.subnet}.',
+          message: 'Nenhum dispositivo respondeu na porta $port em ${report.subnet}.',
         );
       }
 
@@ -430,8 +395,7 @@ class ConfigViewModel extends ChangeNotifier {
           foundCount: report.endpoints.length,
           addedCount: 0,
           subnet: report.subnet,
-          message:
-              '${report.endpoints.length} dispositivo(s) encontrado(s), mas todos ja estavam cadastrados.',
+          message: '${report.endpoints.length} dispositivo(s) encontrado(s), mas todos ja estavam cadastrados.',
         );
       }
 
@@ -440,31 +404,18 @@ class ConfigViewModel extends ChangeNotifier {
         foundCount: report.endpoints.length,
         addedCount: addedCount,
         subnet: report.subnet,
-        message:
-            '$addedCount nova(s) impressora(s) adicionada(s) em ${report.subnet}.',
+        message: '$addedCount nova(s) impressora(s) adicionada(s) em ${report.subnet}.',
       );
     } on StateError catch (e) {
       final message = e.message;
       _errorMessage = message;
       notifyListeners();
-      return PrinterDiscoveryUiResult(
-        isSuccess: false,
-        foundCount: 0,
-        addedCount: 0,
-        subnet: null,
-        message: message,
-      );
+      return PrinterDiscoveryUiResult(isSuccess: false, foundCount: 0, addedCount: 0, subnet: null, message: message);
     } catch (e) {
       final message = 'Erro ao buscar impressoras: $e';
       _errorMessage = message;
       notifyListeners();
-      return PrinterDiscoveryUiResult(
-        isSuccess: false,
-        foundCount: 0,
-        addedCount: 0,
-        subnet: null,
-        message: message,
-      );
+      return PrinterDiscoveryUiResult(isSuccess: false, foundCount: 0, addedCount: 0, subnet: null, message: message);
     } finally {
       _setDiscoveringPrinters(false);
     }
@@ -497,9 +448,7 @@ class ConfigViewModel extends ChangeNotifier {
         endHost: endHost,
       );
 
-      final existingKeys = _printers
-          .map((item) => '${item.ip}:${item.port}')
-          .toSet();
+      final existingKeys = _printers.map((item) => '${item.ip}:${item.port}').toSet();
 
       var addedCount = 0;
       final updatedPrinters = [..._printers];
@@ -511,12 +460,7 @@ class ConfigViewModel extends ChangeNotifier {
         }
 
         updatedPrinters.add(
-          PrinterConfig(
-            id: _uuid.v4(),
-            name: 'Impressora ${endpoint.ip}',
-            ip: endpoint.ip,
-            port: endpoint.port,
-          ),
+          PrinterConfig(id: _uuid.v4(), name: 'Impressora ${endpoint.ip}', ip: endpoint.ip, port: endpoint.port),
         );
         existingKeys.add(key);
         addedCount++;
@@ -537,8 +481,7 @@ class ConfigViewModel extends ChangeNotifier {
           foundCount: 0,
           addedCount: 0,
           subnet: report.subnet,
-          message:
-              'Nenhum dispositivo respondeu na porta $port em ${report.subnet}.',
+          message: 'Nenhum dispositivo respondeu na porta $port em ${report.subnet}.',
         );
       }
 
@@ -548,8 +491,7 @@ class ConfigViewModel extends ChangeNotifier {
           foundCount: report.endpoints.length,
           addedCount: 0,
           subnet: report.subnet,
-          message:
-              '${report.endpoints.length} dispositivo(s) encontrado(s), mas todos ja estavam cadastrados.',
+          message: '${report.endpoints.length} dispositivo(s) encontrado(s), mas todos ja estavam cadastrados.',
         );
       }
 
@@ -558,31 +500,18 @@ class ConfigViewModel extends ChangeNotifier {
         foundCount: report.endpoints.length,
         addedCount: addedCount,
         subnet: report.subnet,
-        message:
-            '$addedCount nova(s) impressora(s) adicionada(s) em ${report.subnet}.',
+        message: '$addedCount nova(s) impressora(s) adicionada(s) em ${report.subnet}.',
       );
     } on StateError catch (e) {
       final message = e.message;
       _errorMessage = message;
       notifyListeners();
-      return PrinterDiscoveryUiResult(
-        isSuccess: false,
-        foundCount: 0,
-        addedCount: 0,
-        subnet: null,
-        message: message,
-      );
+      return PrinterDiscoveryUiResult(isSuccess: false, foundCount: 0, addedCount: 0, subnet: null, message: message);
     } catch (e) {
       final message = 'Erro ao buscar impressoras: $e';
       _errorMessage = message;
       notifyListeners();
-      return PrinterDiscoveryUiResult(
-        isSuccess: false,
-        foundCount: 0,
-        addedCount: 0,
-        subnet: null,
-        message: message,
-      );
+      return PrinterDiscoveryUiResult(isSuccess: false, foundCount: 0, addedCount: 0, subnet: null, message: message);
     } finally {
       _setDiscoveringPrinters(false);
     }
@@ -594,10 +523,7 @@ class ConfigViewModel extends ChangeNotifier {
 
   Future<PrinterTestUiResult> testPrinter(PrinterConfig printer) async {
     if (_isTestingPrinter) {
-      return const PrinterTestUiResult(
-        isSuccess: false,
-        message: 'Ja existe um teste de impressora em andamento.',
-      );
+      return const PrinterTestUiResult(isSuccess: false, message: 'Ja existe um teste de impressora em andamento.');
     }
 
     _setTestingPrinter(true, printer.id);
@@ -613,16 +539,13 @@ class ConfigViewModel extends ChangeNotifier {
         return const PrinterTestUiResult(isSuccess: false, message: message);
       }
 
-      final result = await thermalPrinterRepository.printTestTicket(
-        printer: printer,
-      );
+      final result = await thermalPrinterRepository.printTestTicket(printer: printer);
       final success = result.getOrNull();
 
       if (success != null) {
         return PrinterTestUiResult(
           isSuccess: true,
-          message:
-              'Teste enviado para ${printer.name} (${printer.ip}:${printer.port}).',
+          message: 'Teste enviado para ${printer.name} (${printer.ip}:${printer.port}).',
           elapsed: success.elapsed,
         );
       }
@@ -644,18 +567,14 @@ class ConfigViewModel extends ChangeNotifier {
 
   Future<void> _loadPrintersInternal() async {
     final loadedPrinters = await _printerPreferencesService.loadPrinters();
-    var loadedDefaultId = await _printerPreferencesService
-        .loadDefaultPrinterId();
+    var loadedDefaultId = await _printerPreferencesService.loadDefaultPrinterId();
 
-    if (loadedDefaultId != null &&
-        !loadedPrinters.any((item) => item.id == loadedDefaultId)) {
+    if (loadedDefaultId != null && !loadedPrinters.any((item) => item.id == loadedDefaultId)) {
       loadedDefaultId = null;
     }
 
     _printers = loadedPrinters;
-    _defaultPrinterId =
-        loadedDefaultId ??
-        (loadedPrinters.isNotEmpty ? loadedPrinters.first.id : null);
+    _defaultPrinterId = loadedDefaultId ?? (loadedPrinters.isNotEmpty ? loadedPrinters.first.id : null);
   }
 
   Future<void> _persistPrinters() async {
@@ -663,20 +582,14 @@ class ConfigViewModel extends ChangeNotifier {
     await _printerPreferencesService.saveDefaultPrinterId(_defaultPrinterId);
   }
 
-  Future<bool> testConnection({
-    String? apiUrl,
-    String? apiPort,
-    bool? useHttps,
-  }) async {
+  Future<bool> testConnection({String? apiUrl, String? apiPort, bool? useHttps}) async {
     _setTesting(true);
 
     try {
       _errorMessage = '';
 
       final testUrl = apiUrl ?? _currentConfig.apiUrl;
-      final testPort = apiPort != null
-          ? int.tryParse(apiPort) ?? _currentConfig.apiPort
-          : _currentConfig.apiPort;
+      final testPort = apiPort != null ? int.tryParse(apiPort) ?? _currentConfig.apiPort : _currentConfig.apiPort;
       final testHttps = useHttps ?? _currentConfig.useHttps;
 
       if (testUrl.trim().isEmpty) {
@@ -691,10 +604,7 @@ class ConfigViewModel extends ChangeNotifier {
 
       final protocol = testHttps ? 'https' : 'http';
       final fullUrl = '$protocol://$testUrl:$testPort/expedicao';
-      AppLogger.debug(
-        'Testing connection to $fullUrl (https=$testHttps)',
-        tag: 'Config',
-      );
+      AppLogger.debug('Testing connection to $fullUrl (https=$testHttps)', tag: 'Config');
 
       final dio = Dio();
 
@@ -702,10 +612,7 @@ class ConfigViewModel extends ChangeNotifier {
       dio.options.receiveTimeout = const Duration(seconds: 10);
 
       final response = await dio.get(fullUrl);
-      AppLogger.debug(
-        'Response status: ${response.statusCode}, data: ${response.data}',
-        tag: 'Config',
-      );
+      AppLogger.debug('Response status: ${response.statusCode}, data: ${response.data}', tag: 'Config');
 
       if (response.statusCode == 200) {
         final data = response.data;
@@ -715,10 +622,7 @@ class ConfigViewModel extends ChangeNotifier {
         } else {
           _connectionTested = false;
           _errorMessage = 'Resposta inválida do servidor';
-          AppLogger.debug(
-            'Unexpected server handshake payload: $data',
-            tag: 'Config',
-          );
+          AppLogger.debug('Unexpected server handshake payload: $data', tag: 'Config');
           return false;
         }
       } else {
@@ -739,25 +643,17 @@ class ConfigViewModel extends ChangeNotifier {
           _errorMessage = 'Erro de conexão - Verifique URL e porta';
           break;
         case DioExceptionType.badResponse:
-          _errorMessage =
-              'Resposta inválida do servidor (${e.response?.statusCode})';
+          _errorMessage = 'Resposta inválida do servidor (${e.response?.statusCode})';
           break;
         default:
           _errorMessage = 'Erro na conexão: ${e.message}';
       }
-      AppLogger.debug(
-        'DioException type=${e.type} code=${e.response?.statusCode} message=${e.message}',
-        tag: 'Config',
-      );
+      AppLogger.debug('DioException type=${e.type} code=${e.response?.statusCode} message=${e.message}', tag: 'Config');
       return false;
     } catch (e) {
       _connectionTested = false;
       _errorMessage = 'Erro inesperado: $e';
-      AppLogger.error(
-        'Unexpected error while testing connection: $e',
-        tag: 'Config',
-        error: e,
-      );
+      AppLogger.error('Unexpected error while testing connection: $e', tag: 'Config', error: e);
       return false;
     } finally {
       _setTesting(false);
@@ -833,16 +729,13 @@ class ConfigViewModel extends ChangeNotifier {
   }
 
   bool _isExpectedApiHandshake(String message) {
-    final compactMessage = _normalizeForComparison(
-      message,
-    ).replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
+    final compactMessage = _normalizeForComparison(message).replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
 
     if (compactMessage.isEmpty) {
       return false;
     }
 
-    return compactMessage.contains('expedicao api') ||
-        compactMessage.contains('expedition api');
+    return compactMessage.contains('expedicao api') || compactMessage.contains('expedition api');
   }
 
   String _normalizeForComparison(String value) {
@@ -899,9 +792,5 @@ class PrinterTestUiResult {
   final String message;
   final Duration? elapsed;
 
-  const PrinterTestUiResult({
-    required this.isSuccess,
-    required this.message,
-    this.elapsed,
-  });
+  const PrinterTestUiResult({required this.isSuccess, required this.message, this.elapsed});
 }

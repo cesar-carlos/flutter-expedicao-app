@@ -43,12 +43,7 @@ class PickingStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateOperationStatus(
-    String itemId,
-    DateTime timestamp,
-    PendingOperationStatus status, {
-    String? errorMessage,
-  }) {
+  void updateOperationStatus(String itemId, DateTime timestamp, PendingOperationStatus status, {String? errorMessage}) {
     _state = _state.updateOperationStatus(itemId, timestamp, status, errorMessage: errorMessage);
     notifyListeners();
   }

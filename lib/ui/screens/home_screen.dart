@@ -49,10 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 8),
                       Text(
                         homeViewModel.subtitleMessage,
-                        style: AppFonts.inter(
-                          fontSize: 16,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                        style: AppFonts.inter(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),

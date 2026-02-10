@@ -386,7 +386,9 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
                   ),
                 ],
               ),
-              actions: [if (widget.onBack != null) TextButton(onPressed: widget.onBack, child: Text(context.l10n.back))],
+              actions: [
+                if (widget.onBack != null) TextButton(onPressed: widget.onBack, child: Text(context.l10n.back)),
+              ],
             ),
           );
         },

@@ -9,7 +9,7 @@ import 'package:data7_expedicao/ui/widgets/picking_products_list/picking_product
 import 'package:data7_expedicao/ui/widgets/separated_products/separated_product_item.dart';
 import 'package:data7_expedicao/ui/widgets/picking_products_list/pending_products_filter_modal.dart';
 import 'package:data7_expedicao/domain/viewmodels/separated_products_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/separated_products/separated_products_cart_status_warning.dart';
 import 'package:data7_expedicao/ui/widgets/separated_products_title_with_connection_status.dart';
 import 'package:data7_expedicao/ui/widgets/pending_products_title_with_connection_status.dart';
@@ -137,10 +137,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
                   child: Container(
                     width: 8,
                     height: 8,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.error,
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: BoxDecoration(color: Theme.of(context).colorScheme.error, shape: BoxShape.circle),
                   ),
                 ),
             ],
@@ -484,10 +481,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
             ),
             child: Text(
               '$itemCount',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onPrimary,
-                fontWeight: FontWeight.bold,
-              ),
+              style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
             ),
           ),
         ],

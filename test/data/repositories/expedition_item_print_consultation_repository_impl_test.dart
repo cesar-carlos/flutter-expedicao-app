@@ -12,10 +12,7 @@ void main() {
   group('ExpeditionItemPrintConsultationRepositoryImpl', () {
     test('deve retornar itens quando socket responder com sucesso', () async {
       final socket = _FakeSocketClient(id: 'session-1', autoRespond: true);
-      final repository = ExpeditionItemPrintConsultationRepositoryImpl(
-        socket: socket,
-        uuid: const Uuid(),
-      );
+      final repository = ExpeditionItemPrintConsultationRepositoryImpl(socket: socket, uuid: const Uuid());
 
       final result = await repository.selectConsultation(QueryBuilder());
 
@@ -24,21 +21,12 @@ void main() {
       expect(result.first.codEmpresa, equals(1));
     });
 
-    test(
-      'deve retornar DataError quando sessao do socket estiver indisponivel',
-      () async {
-        final socket = _FakeSocketClient(id: null, autoRespond: true);
-        final repository = ExpeditionItemPrintConsultationRepositoryImpl(
-          socket: socket,
-          uuid: const Uuid(),
-        );
+    test('deve retornar DataError quando sessao do socket estiver indisponivel', () async {
+      final socket = _FakeSocketClient(id: null, autoRespond: true);
+      final repository = ExpeditionItemPrintConsultationRepositoryImpl(socket: socket, uuid: const Uuid());
 
-        expect(
-          () => repository.selectConsultation(QueryBuilder()),
-          throwsA(isA<DataError>()),
-        );
-      },
-    );
+      expect(() => repository.selectConsultation(QueryBuilder()), throwsA(isA<DataError>()));
+    });
 
     test('deve retornar DataError em timeout de resposta', () async {
       final socket = _FakeSocketClient(id: 'session-1', autoRespond: false);
@@ -50,13 +38,7 @@ void main() {
 
       await expectLater(
         repository.selectConsultation(QueryBuilder()),
-        throwsA(
-          isA<DataError>().having(
-            (error) => error.message,
-            'message',
-            contains('Timeout aguardando retorno'),
-          ),
-        ),
+        throwsA(isA<DataError>().having((error) => error.message, 'message', contains('Timeout aguardando retorno'))),
       );
     });
   });
@@ -82,8 +64,7 @@ class _FakeSocketClient {
       return;
     }
 
-    final decodedPayload =
-        jsonDecode(payload as String) as Map<String, dynamic>;
+    final decodedPayload = jsonDecode(payload as String) as Map<String, dynamic>;
     final responseEvent = decodedPayload['ResponseIn'] as String;
     final callback = _listeners[responseEvent];
 

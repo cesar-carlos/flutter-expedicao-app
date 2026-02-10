@@ -72,7 +72,13 @@ class DetailedInfoCard extends StatelessWidget {
   final IconData icon;
   final Color? statusColor;
 
-  const DetailedInfoCard({super.key, required this.label, required this.value, required this.icon, this.statusColor});
+  const DetailedInfoCard({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.icon,
+    this.statusColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +92,11 @@ class DetailedInfoCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
         boxShadow: [
-          BoxShadow(color: colorScheme.shadow.withValues(alpha: 0.05), offset: const Offset(0, 2), blurRadius: 4),
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.05),
+            offset: const Offset(0, 2),
+            blurRadius: 4,
+          ),
         ],
       ),
       child: Column(

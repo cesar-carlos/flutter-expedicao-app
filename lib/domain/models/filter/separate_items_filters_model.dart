@@ -31,11 +31,15 @@ class SeparateItemsFiltersModel {
               orElse: () => SeparationItemStatus.pendente,
             )
           : null,
-      setorEstoque: json['setorEstoque'] != null ? ExpeditionSectorStockModel.fromJson(json['setorEstoque']) : null,
+      setorEstoque: json['setorEstoque'] != null
+          ? ExpeditionSectorStockModel.fromJson(json['setorEstoque'])
+          : null,
     );
   }
 
-  static Result<SeparateItemsFiltersModel> fromJsonSafe(Map<String, dynamic> json) {
+  static Result<SeparateItemsFiltersModel> fromJsonSafe(
+    Map<String, dynamic> json,
+  ) {
     return safeCallSync(() => SeparateItemsFiltersModel.fromJson(json));
   }
 
@@ -108,6 +112,13 @@ class SeparateItemsFiltersModel {
 
   @override
   int get hashCode {
-    return Object.hash(codProduto, codigoBarras, nomeProduto, enderecoDescricao, situacao, setorEstoque);
+    return Object.hash(
+      codProduto,
+      codigoBarras,
+      nomeProduto,
+      enderecoDescricao,
+      situacao,
+      setorEstoque,
+    );
   }
 }

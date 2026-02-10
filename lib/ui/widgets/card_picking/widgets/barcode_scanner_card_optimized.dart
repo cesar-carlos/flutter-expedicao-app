@@ -81,9 +81,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
   }
 
   Widget _buildHeader(ThemeData theme, ColorScheme colorScheme, bool isEnabled) {
-    final headerColor = isEnabled 
-        ? theme.adaptivePrimary(colorScheme)
-        : AppColors.grey;
+    final headerColor = isEnabled ? theme.adaptivePrimary(colorScheme) : AppColors.grey;
 
     return Row(
       children: [
@@ -91,10 +89,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           'Escaneie o código de barras',
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: headerColor,
-          ),
+          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: headerColor),
         ),
       ],
     );
@@ -201,9 +196,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
       isProcessing
           ? context.l10n.waitProcessing
           : (enabled
-                ? (keyboardEnabled
-                      ? context.l10n.typeBarcodeManually
-                      : context.l10n.positionProductScanner)
+                ? (keyboardEnabled ? context.l10n.typeBarcodeManually : context.l10n.positionProductScanner)
                 : context.l10n.scannerDisabled),
       style: theme.textTheme.bodySmall?.copyWith(
         color: isProcessing ? colorScheme.primary : (enabled ? colorScheme.onSurfaceVariant : AppColors.grey),

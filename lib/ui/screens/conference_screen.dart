@@ -30,19 +30,13 @@ class ConferenceScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Funcionalidade em desenvolvimento',
-              style: AppFonts.inter(
-                fontSize: 16,
-                color: theme.isDark ? AppColors.light : colorScheme.onSurfaceVariant,
-              ),
+              style: AppFonts.inter(fontSize: 16, color: theme.isDark ? AppColors.light : colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
             Text(
               'Aqui será implementada a funcionalidade de conferência de produtos e validação de separação.',
               textAlign: TextAlign.center,
-              style: AppFonts.inter(
-                fontSize: 14,
-                color: theme.isDark ? AppColors.light : colorScheme.onSurfaceVariant,
-              ),
+              style: AppFonts.inter(fontSize: 14, color: theme.isDark ? AppColors.light : colorScheme.onSurfaceVariant),
             ),
           ],
         ),

@@ -39,7 +39,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final theme = Theme.of(context);
 
     final effectiveBackgroundColor = backgroundColor ?? theme.appBarTheme.backgroundColor ?? theme.colorScheme.primary;
-    final effectiveForegroundColor = foregroundColor ?? theme.appBarTheme.foregroundColor ?? theme.colorScheme.onPrimary;
+    final effectiveForegroundColor =
+        foregroundColor ?? theme.appBarTheme.foregroundColor ?? theme.colorScheme.onPrimary;
 
     return AppBar(
       title: replaceWithUserName ? _buildUserTitle(context) : _buildNormalTitle(),
@@ -72,10 +73,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (title is Widget) {
       return title as Widget;
     } else {
-      return Text(
-        title as String,
-        style: AppFonts.inter(color: foregroundColor),
-      );
+      return Text(title as String, style: AppFonts.inter(color: foregroundColor));
     }
   }
 
@@ -84,10 +82,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (context, authViewModel, child) {
         final currentUser = authViewModel.currentUser;
         final userName = currentUser?.nome ?? (title is String ? title as String : 'Usuário');
-        return Text(
-          'Olá ${StringUtils.capitalizeWords(userName)}',
-          style: AppFonts.inter(color: foregroundColor),
-        );
+        return Text('Olá ${StringUtils.capitalizeWords(userName)}', style: AppFonts.inter(color: foregroundColor));
       },
     );
   }

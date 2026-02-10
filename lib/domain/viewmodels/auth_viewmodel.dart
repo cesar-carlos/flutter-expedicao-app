@@ -39,12 +39,7 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners();
       _status = AuthStatus.authenticated;
       _username = 'E2E User';
-      _currentUser = AppUser(
-        codLoginApp: 1,
-        ativo: Situation.ativo,
-        nome: 'E2E User',
-        codUsuario: 1,
-      );
+      _currentUser = AppUser(codLoginApp: 1, ativo: Situation.ativo, nome: 'E2E User', codUsuario: 1);
       notifyListeners();
       return;
     }

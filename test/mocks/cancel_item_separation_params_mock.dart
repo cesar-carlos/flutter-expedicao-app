@@ -15,12 +15,19 @@ CancelItemSeparationParams createDefaultTestCancelItemSeparationParams() {
 }
 
 /// Cria parâmetros com item específico
-CancelItemSeparationParams createTestCancelItemSeparationParamsWithItem(String item) {
-  return CancelItemSeparationParams(codEmpresa: 1, codSepararEstoque: 999999, item: item);
+CancelItemSeparationParams createTestCancelItemSeparationParamsWithItem(
+  String item,
+) {
+  return CancelItemSeparationParams(
+    codEmpresa: 1,
+    codSepararEstoque: 999999,
+    item: item,
+  );
 }
 
 /// Cria parâmetros para item não existente
-CancelItemSeparationParams createTestCancelItemSeparationParamsWithNonExistentItem() {
+CancelItemSeparationParams
+createTestCancelItemSeparationParamsWithNonExistentItem() {
   return CancelItemSeparationParams(
     codEmpresa: 1,
     codSepararEstoque: 999999,
@@ -29,7 +36,8 @@ CancelItemSeparationParams createTestCancelItemSeparationParamsWithNonExistentIt
 }
 
 /// Cria parâmetros para separação não existente
-CancelItemSeparationParams createTestCancelItemSeparationParamsWithNonExistentSeparation() {
+CancelItemSeparationParams
+createTestCancelItemSeparationParamsWithNonExistentSeparation() {
   return CancelItemSeparationParams(
     codEmpresa: 1,
     codSepararEstoque: 999998, // Separação que não existe

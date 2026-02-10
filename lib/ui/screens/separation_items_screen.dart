@@ -358,9 +358,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       }
 
       if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(errorMessage), backgroundColor: AppColors.warning),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: AppColors.warning));
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(

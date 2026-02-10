@@ -8,7 +8,11 @@ class ConfigViewModelMock extends ConfigViewModel {
   bool get isServerReady => true;
 
   @override
-  Future<bool> testConnection({String? apiUrl, String? apiPort, bool? useHttps}) async {
+  Future<bool> testConnection({
+    String? apiUrl,
+    String? apiPort,
+    bool? useHttps,
+  }) async {
     return true;
   }
 

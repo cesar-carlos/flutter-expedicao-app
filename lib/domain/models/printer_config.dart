@@ -4,10 +4,20 @@ class PrinterConfig {
   final String ip;
   final int port;
 
-  const PrinterConfig({required this.id, required this.name, required this.ip, this.port = 9100});
+  const PrinterConfig({
+    required this.id,
+    required this.name,
+    required this.ip,
+    this.port = 9100,
+  });
 
   PrinterConfig copyWith({String? id, String? name, String? ip, int? port}) {
-    return PrinterConfig(id: id ?? this.id, name: name ?? this.name, ip: ip ?? this.ip, port: port ?? this.port);
+    return PrinterConfig(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      ip: ip ?? this.ip,
+      port: port ?? this.port,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -16,7 +26,9 @@ class PrinterConfig {
 
   factory PrinterConfig.fromJson(Map<String, dynamic> json) {
     final rawPort = json['port'];
-    final port = rawPort is int ? rawPort : int.tryParse(rawPort?.toString() ?? '');
+    final port = rawPort is int
+        ? rawPort
+        : int.tryParse(rawPort?.toString() ?? '');
 
     return PrinterConfig(
       id: json['id']?.toString() ?? '',

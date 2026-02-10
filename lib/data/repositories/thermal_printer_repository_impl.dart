@@ -25,13 +25,22 @@ class ThermalPrinterRepositoryImpl implements ThermalPrinterRepository {
        _retryPolicy = retryPolicy;
 
   @override
-  Future<Result<ThermalPrintResult>> printTestTicket({required PrinterConfig printer, bool autoCut = true}) async {
+  Future<Result<ThermalPrintResult>> printTestTicket({
+    required PrinterConfig printer,
+    bool autoCut = true,
+  }) async {
     final validationFailure = _validatePrinter(printer);
     if (validationFailure != null) {
       return failure(validationFailure);
     }
 
-    _logPrintEvent(operation: 'test', status: 'start', ip: printer.ip, port: printer.port, itemCount: 0);
+    _logPrintEvent(
+      operation: 'test',
+      status: 'start',
+      ip: printer.ip,
+      port: printer.port,
+      itemCount: 0,
+    );
 
     try {
       final bytes = await _ticketBuilderService.buildPrinterTestTicketBytes(
@@ -42,7 +51,8 @@ class ThermalPrinterRepositoryImpl implements ThermalPrinterRepository {
       );
 
       final report = await _retryPolicy.execute(
-        () => _tcpService.send(ip: printer.ip, port: printer.port, bytes: bytes),
+        () =>
+            _tcpService.send(ip: printer.ip, port: printer.port, bytes: bytes),
         tag: 'ThermalPrinterRepositoryImpl',
       );
 
@@ -149,7 +159,8 @@ class ThermalPrinterRepositoryImpl implements ThermalPrinterRepository {
       );
 
       final report = await _retryPolicy.execute(
-        () => _tcpService.send(ip: printer.ip, port: printer.port, bytes: bytes),
+        () =>
+            _tcpService.send(ip: printer.ip, port: printer.port, bytes: bytes),
         tag: 'ThermalPrinterRepositoryImpl',
       );
 
@@ -222,11 +233,15 @@ class ThermalPrinterRepositoryImpl implements ThermalPrinterRepository {
 
   AppFailure? _validatePrinter(PrinterConfig printer) {
     if (printer.ip.trim().isEmpty) {
-      return ValidationFailure.fromErrors(['ip/host da impressora nao pode estar vazio']);
+      return ValidationFailure.fromErrors([
+        'ip/host da impressora nao pode estar vazio',
+      ]);
     }
 
     if (printer.port < 1 || printer.port > 65535) {
-      return ValidationFailure.fromErrors(['porta da impressora deve estar entre 1 e 65535']);
+      return ValidationFailure.fromErrors([
+        'porta da impressora deve estar entre 1 e 65535',
+      ]);
     }
 
     return null;

@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:uuid/uuid.dart';
 
 import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
@@ -39,11 +41,11 @@ class AddItemSeparationUseCase {
     required UserSessionService userSessionService,
     MetricsCollector? metricsCollector,
     SocketOperationRetry? socketOperationRetry,
-  })  : _separateItemRepository = separateItemRepository,
-        _separationItemRepository = separationItemRepository,
-        _userSessionService = userSessionService,
-        _metricsCollector = metricsCollector,
-        _socketOperationRetry = socketOperationRetry;
+  }) : _separateItemRepository = separateItemRepository,
+       _separationItemRepository = separationItemRepository,
+       _userSessionService = userSessionService,
+       _metricsCollector = metricsCollector,
+       _socketOperationRetry = socketOperationRetry;
 
   /// Adiciona um item à separação
   ///
@@ -126,6 +128,8 @@ class AddItemSeparationUseCase {
     SeparateItemModel separateItem,
     UserSystemModel userSystem,
   ) async {
+    SeparationItemModel? createdItem;
+
     try {
       // INSERT: Criar e inserir novo item de separação
       final newSeparationItem = _createSeparationItem(params, userSystem.codEmpresa ?? params.codEmpresa);
@@ -135,6 +139,9 @@ class AddItemSeparationUseCase {
         return failure(AddItemSeparationFailure.insertSeparationItemFailed('Falha ao inserir item de separação'));
       }
 
+      // Armazena referência para rollback se necessário
+      createdItem = createdSeparationItems.first;
+
       // UPDATE: Atualizar quantidade de separação no separate_item
       final updatedSeparateItem = separateItem.copyWith(
         quantidadeSeparacao: (separateItem.quantidadeSeparacao + params.quantidade).toDouble(),
@@ -143,8 +150,7 @@ class AddItemSeparationUseCase {
       final updatedSeparateItems = await _separateItemRepository.update(updatedSeparateItem);
 
       if (updatedSeparateItems.isEmpty) {
-        // ROLLBACK: Em caso de falha no UPDATE, idealmente deveríamos desfazer o INSERT
-        // Por limitação da arquitetura atual, apenas retornamos erro
+        await _attemptRollback(createdItem);
         return failure(AddItemSeparationFailure.updateSeparateItemFailed('Falha ao atualizar quantidade de separação'));
       }
 
@@ -156,7 +162,21 @@ class AddItemSeparationUseCase {
         ),
       );
     } catch (e) {
+      if (createdItem != null) {
+        await _attemptRollback(createdItem);
+      }
       rethrow; // Permitir que o catch externo trate a exceção
+    }
+  }
+
+  /// Tenta desfazer (rollback) o INSERT do item de separação em caso de falha
+  Future<void> _attemptRollback(SeparationItemModel itemToDelete) async {
+    try {
+      await _separationItemRepository.delete(itemToDelete);
+    } catch (e) {
+      // Log da falha no rollback - não pode fazer nada além de logar
+      // Em um sistema ideal, teríamos um mecanismo de retry ou compensação
+      developer.log('WARNING: Failed to rollback separation item after operation failure', error: e);
     }
   }
 

@@ -7,7 +7,9 @@ import 'package:data7_expedicao/main.dart' as app;
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('manual update check shows not-configured SnackBar', (WidgetTester tester) async {
+  testWidgets('manual update check shows not-configured SnackBar', (
+    WidgetTester tester,
+  ) async {
     app.main();
 
     await tester.pump(const Duration(seconds: 2));

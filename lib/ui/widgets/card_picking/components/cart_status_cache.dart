@@ -1,4 +1,4 @@
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 
 class CartStatusCache {
   final CardPickingViewModel viewModel;

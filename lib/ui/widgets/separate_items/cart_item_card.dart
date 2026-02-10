@@ -20,7 +20,7 @@ import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separa
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_success.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_failure.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
@@ -30,11 +30,17 @@ import 'package:data7_expedicao/core/theme/app_text_styles.dart';
 import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 
 class CartItemCard extends StatelessWidget {
-  final ExpeditionCartRouteInternshipConsultationModel cartRouteInternshipConsultation;
+  final ExpeditionCartRouteInternshipConsultationModel
+  cartRouteInternshipConsultation;
   final VoidCallback? onCancel;
   final SeparationItemsViewModel? viewModel;
 
-  const CartItemCard({super.key, required this.cartRouteInternshipConsultation, this.onCancel, this.viewModel});
+  const CartItemCard({
+    super.key,
+    required this.cartRouteInternshipConsultation,
+    this.onCancel,
+    this.viewModel,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +49,10 @@ class CartItemCard extends StatelessWidget {
 
     final isActive = cartRouteInternshipConsultation.ativo.code == 'S';
     final isFinalized = cartRouteInternshipConsultation.dataFinalizacao != null;
-    final situationColor = _getSituationColor(cartRouteInternshipConsultation.situacao, colorScheme);
+    final situationColor = _getSituationColor(
+      cartRouteInternshipConsultation.situacao,
+      colorScheme,
+    );
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -52,7 +61,10 @@ class CartItemCard extends StatelessWidget {
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(UIConstants.largeBorderRadius),
-        side: BorderSide(color: situationColor.withValues(alpha: 0.4), width: 2),
+        side: BorderSide(
+          color: situationColor.withValues(alpha: 0.4),
+          width: 2,
+        ),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -60,14 +72,24 @@ class CartItemCard extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [situationColor.withValues(alpha: 0.05), situationColor.withValues(alpha: 0.02)],
+            colors: [
+              situationColor.withValues(alpha: 0.05),
+              situationColor.withValues(alpha: 0.02),
+            ],
           ),
         ),
         padding: const EdgeInsets.all(UIConstants.defaultPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildMainHeader(context, theme, colorScheme, isActive, isFinalized, situationColor),
+            _buildMainHeader(
+              context,
+              theme,
+              colorScheme,
+              isActive,
+              isFinalized,
+              situationColor,
+            ),
 
             const SizedBox(height: UIConstants.defaultPadding),
 
@@ -82,7 +104,9 @@ class CartItemCard extends StatelessWidget {
               _buildSectorInfo(context, theme, colorScheme),
             ],
 
-            if (cartRouteInternshipConsultation.carrinhoAgrupadorCode.isNotEmpty) ...[
+            if (cartRouteInternshipConsultation
+                .carrinhoAgrupadorCode
+                .isNotEmpty) ...[
               const SizedBox(height: UIConstants.smallPadding),
               _buildGroupInfo(context, theme, colorScheme),
             ],
@@ -109,9 +133,15 @@ class CartItemCard extends StatelessWidget {
           padding: const EdgeInsets.all(UIConstants.smallPadding),
           decoration: BoxDecoration(
             color: situationColor.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(UIConstants.defaultBorderRadius),
+            borderRadius: BorderRadius.circular(
+              UIConstants.defaultBorderRadius,
+            ),
           ),
-          child: Icon(Icons.shopping_cart, color: situationColor, size: UIConstants.mediumIconSize),
+          child: Icon(
+            Icons.shopping_cart,
+            color: situationColor,
+            size: UIConstants.mediumIconSize,
+          ),
         ),
         const SizedBox(width: 12),
 
@@ -122,26 +152,43 @@ class CartItemCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: situationColor.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                      borderRadius: BorderRadius.circular(
+                        UIConstants.smallBorderRadius,
+                      ),
                     ),
                     child: Text(
                       '#${cartRouteInternshipConsultation.codCarrinho}',
-                      style: theme.textTheme.labelMedium?.copyWith(color: situationColor, fontWeight: FontWeight.bold),
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: situationColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const Spacer(),
 
-                  _buildStatusChip(context, theme, isFinalized, isActive, situationColor),
+                  _buildStatusChip(
+                    context,
+                    theme,
+                    isFinalized,
+                    isActive,
+                    situationColor,
+                  ),
                 ],
               ),
               const SizedBox(height: 6),
 
               Text(
                 cartRouteInternshipConsultation.nomeCarrinho,
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, color: colorScheme.onSurface),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurface,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -164,7 +211,13 @@ class CartItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: situationColor,
         borderRadius: BorderRadius.circular(UIConstants.extraLargeBorderRadius),
-        boxShadow: [BoxShadow(color: situationColor.withValues(alpha: 0.3), blurRadius: 4, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+            color: situationColor.withValues(alpha: 0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -181,22 +234,34 @@ class CartItemCard extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             cartRouteInternshipConsultation.situacao.description,
-            style: theme.textTheme.labelSmall?.copyWith(color: AppColors.white, fontWeight: FontWeight.w600),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: AppColors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCodeAndSituation(BuildContext context, ThemeData theme, ColorScheme colorScheme, Color situationColor) {
+  Widget _buildCodeAndSituation(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    Color situationColor,
+  ) {
     final barcodeLabelColor = theme.adaptivePrimary(colorScheme);
     final barcodeValueColor = theme.adaptiveSecondary(colorScheme);
 
     final originLabelColor = theme.isDark
-        ? (situationColor == AppColors.warning ? AppColors.orange700 : AppColors.light)
+        ? (situationColor == AppColors.warning
+              ? AppColors.orange700
+              : AppColors.light)
         : situationColor;
     final originValueColor = theme.isDark
-        ? (situationColor == AppColors.warning ? AppColors.orange700 : AppColors.secondary)
+        ? (situationColor == AppColors.warning
+              ? AppColors.orange700
+              : AppColors.secondary)
         : situationColor;
 
     return Container(
@@ -204,18 +269,27 @@ class CartItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: situationColor.withValues(alpha: 0.2), width: 1),
+        border: Border.all(
+          color: situationColor.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
-          if (cartRouteInternshipConsultation.codigoBarrasCarrinho.isNotEmpty) ...[
+          if (cartRouteInternshipConsultation
+              .codigoBarrasCarrinho
+              .isNotEmpty) ...[
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.qr_code_2, size: UIConstants.defaultIconSize, color: barcodeLabelColor),
+                      Icon(
+                        Icons.qr_code_2,
+                        size: UIConstants.defaultIconSize,
+                        color: barcodeLabelColor,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'Código de Barras',
@@ -228,17 +302,26 @@ class CartItemCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                      borderRadius: BorderRadius.circular(
+                        UIConstants.smallBorderRadius,
+                      ),
                     ),
                     child: Text(
                       cartRouteInternshipConsultation.codigoBarrasCarrinho,
-                      style: AppTextStyles.code(
-                        context,
-                        color: barcodeValueColor,
-                      ).copyWith(fontWeight: FontWeight.w600, fontSize: theme.textTheme.bodySmall?.fontSize),
+                      style:
+                          AppTextStyles.code(
+                            context,
+                            color: barcodeValueColor,
+                          ).copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: theme.textTheme.bodySmall?.fontSize,
+                          ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -255,24 +338,39 @@ class CartItemCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.source, size: UIConstants.defaultIconSize, color: originLabelColor),
+                    Icon(
+                      Icons.source,
+                      size: UIConstants.defaultIconSize,
+                      color: originLabelColor,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       'Origem',
-                      style: theme.textTheme.labelSmall?.copyWith(color: originLabelColor, fontWeight: FontWeight.w600),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: originLabelColor,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: situationColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                    borderRadius: BorderRadius.circular(
+                      UIConstants.smallBorderRadius,
+                    ),
                   ),
                   child: Text(
                     '${cartRouteInternshipConsultation.origem.description} #${cartRouteInternshipConsultation.codOrigem}',
-                    style: theme.textTheme.bodySmall?.copyWith(color: originValueColor, fontWeight: FontWeight.w600),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: originValueColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -285,7 +383,12 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTimelineInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme, bool isFinalized) {
+  Widget _buildTimelineInfo(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isFinalized,
+  ) {
     return Container(
       padding: const EdgeInsets.all(UIConstants.smallPadding),
       decoration: BoxDecoration(
@@ -298,8 +401,15 @@ class CartItemCard extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: colorScheme.secondary, shape: BoxShape.circle),
-                child: Icon(Icons.play_arrow, color: AppColors.white, size: UIConstants.smallIconSize),
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.play_arrow,
+                  color: AppColors.white,
+                  size: UIConstants.smallIconSize,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -316,7 +426,9 @@ class CartItemCard extends StatelessWidget {
                     Text(
                       '${_formatDate(cartRouteInternshipConsultation.dataInicio)} às ${cartRouteInternshipConsultation.horaInicio}',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSecondaryContainer.withValues(alpha: 0.8),
+                        color: colorScheme.onSecondaryContainer.withValues(
+                          alpha: 0.8,
+                        ),
                       ),
                     ),
                   ],
@@ -325,14 +437,23 @@ class CartItemCard extends StatelessWidget {
             ],
           ),
 
-          if (isFinalized && cartRouteInternshipConsultation.nomeUsuarioFinalizacao != null) ...[
+          if (isFinalized &&
+              cartRouteInternshipConsultation.nomeUsuarioFinalizacao !=
+                  null) ...[
             const SizedBox(height: 12),
             Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: AppColors.success, shape: BoxShape.circle),
-                  child: Icon(Icons.check, color: AppColors.white, size: UIConstants.smallIconSize),
+                  decoration: BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check,
+                    color: AppColors.white,
+                    size: UIConstants.smallIconSize,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -348,7 +469,9 @@ class CartItemCard extends StatelessWidget {
                       ),
                       Text(
                         '${_formatDate(cartRouteInternshipConsultation.dataFinalizacao!)} às ${cartRouteInternshipConsultation.horaFinalizacao!}',
-                        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.green700),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.green700,
+                        ),
                       ),
                     ],
                   ),
@@ -361,13 +484,20 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSectorInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildSectorInfo(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return Container(
       padding: const EdgeInsets.all(UIConstants.smallPadding),
       decoration: BoxDecoration(
         color: colorScheme.tertiaryContainer.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.tertiary.withValues(alpha: 0.3), width: 1),
+        border: Border.all(
+          color: colorScheme.tertiary.withValues(alpha: 0.3),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
@@ -375,9 +505,15 @@ class CartItemCard extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: colorScheme.tertiary,
-              borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+              borderRadius: BorderRadius.circular(
+                UIConstants.smallBorderRadius,
+              ),
             ),
-            child: Icon(Icons.warehouse, color: AppColors.white, size: UIConstants.defaultIconSize),
+            child: Icon(
+              Icons.warehouse,
+              color: AppColors.white,
+              size: UIConstants.defaultIconSize,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -407,13 +543,20 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildGroupInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildGroupInfo(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return Container(
       padding: const EdgeInsets.all(UIConstants.smallPadding),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3), width: 1),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.3),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
@@ -421,9 +564,15 @@ class CartItemCard extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: colorScheme.outline,
-              borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+              borderRadius: BorderRadius.circular(
+                UIConstants.smallBorderRadius,
+              ),
             ),
-            child: Icon(Icons.group_work, color: AppColors.white, size: UIConstants.defaultIconSize),
+            child: Icon(
+              Icons.group_work,
+              color: AppColors.white,
+              size: UIConstants.defaultIconSize,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -441,16 +590,21 @@ class CartItemCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      cartRouteInternshipConsultation.carrinhoAgrupadorDescription,
+                      cartRouteInternshipConsultation
+                          .carrinhoAgrupadorDescription,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurface,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    if (cartRouteInternshipConsultation.codCarrinhoAgrupador != null) ...[
+                    if (cartRouteInternshipConsultation.codCarrinhoAgrupador !=
+                        null) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: colorScheme.outline.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
@@ -480,13 +634,21 @@ class CartItemCard extends StatelessWidget {
         '${date.year}';
   }
 
-  Widget _buildActionsSection(BuildContext context, ThemeData theme, ColorScheme colorScheme, Color situationColor) {
+  Widget _buildActionsSection(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    Color situationColor,
+  ) {
     return Container(
       padding: const EdgeInsets.all(UIConstants.smallPadding),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: situationColor.withValues(alpha: 0.2), width: 1),
+        border: Border.all(
+          color: situationColor.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
@@ -506,13 +668,24 @@ class CartItemCard extends StatelessWidget {
 
                 _buildViewIconButton(context, theme, colorScheme),
 
-                if (cartRouteInternshipConsultation.situacao == ExpeditionSituation.separando) ...[
+                if (cartRouteInternshipConsultation.situacao ==
+                    ExpeditionSituation.separando) ...[
                   const SizedBox(width: 8),
                   viewModel != null
-                      ? _buildCancelIconButton(context, theme, colorScheme, viewModel!)
+                      ? _buildCancelIconButton(
+                          context,
+                          theme,
+                          colorScheme,
+                          viewModel!,
+                        )
                       : Consumer<SeparationItemsViewModel>(
                           builder: (context, vm, child) {
-                            return _buildCancelIconButton(context, theme, colorScheme, vm);
+                            return _buildCancelIconButton(
+                              context,
+                              theme,
+                              colorScheme,
+                              vm,
+                            );
                           },
                         ),
                 ],
@@ -521,7 +694,8 @@ class CartItemCard extends StatelessWidget {
             const SizedBox(height: 8),
           ],
 
-          if (cartRouteInternshipConsultation.situacao == ExpeditionSituation.separando) ...[
+          if (cartRouteInternshipConsultation.situacao ==
+              ExpeditionSituation.separando) ...[
             SizedBox(
               width: double.infinity,
               child: CustomFlatButtonVariations.outlined(
@@ -557,7 +731,9 @@ class CartItemCard extends StatelessWidget {
     ColorScheme colorScheme,
     SeparationItemsViewModel viewModel,
   ) {
-    final isCancelling = viewModel.isCartBeingCancelled(cartRouteInternshipConsultation.codCarrinho);
+    final isCancelling = viewModel.isCartBeingCancelled(
+      cartRouteInternshipConsultation.codCarrinho,
+    );
 
     return Container(
       width: UIConstants.defaultButtonHeight,
@@ -577,16 +753,27 @@ class CartItemCard extends StatelessWidget {
                 ? SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.error),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colorScheme.error,
+                    ),
                   )
-                : Icon(Icons.delete_outline, color: colorScheme.error, size: UIConstants.defaultIconSize),
+                : Icon(
+                    Icons.delete_outline,
+                    color: colorScheme.error,
+                    size: UIConstants.defaultIconSize,
+                  ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildViewIconButton(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildViewIconButton(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return Container(
       width: UIConstants.defaultButtonHeight,
       height: UIConstants.defaultButtonHeight,
@@ -601,7 +788,11 @@ class CartItemCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
           onTap: () => _onViewCartReadOnly(context),
           child: Center(
-            child: Icon(Icons.visibility, color: colorScheme.tertiary, size: UIConstants.defaultIconSize),
+            child: Icon(
+              Icons.visibility,
+              color: colorScheme.tertiary,
+              size: UIConstants.defaultIconSize,
+            ),
           ),
         ),
       ),
@@ -643,7 +834,10 @@ class CartItemCard extends StatelessWidget {
     if (context.mounted) {
       final result = await context.push(
         '/home/card-picking',
-        extra: {'cart': cartRouteInternshipConsultation, 'userModel': userModel},
+        extra: {
+          'cart': cartRouteInternshipConsultation,
+          'userModel': userModel,
+        },
       );
 
       if (result == 'save_cart' && context.mounted) {
@@ -678,7 +872,9 @@ class CartItemCard extends StatelessWidget {
           children: [
             Icon(Icons.block, color: AppColors.error),
             const SizedBox(width: 8),
-            const Expanded(child: Text('Acesso Negado', overflow: TextOverflow.ellipsis)),
+            const Expanded(
+              child: Text('Acesso Negado', overflow: TextOverflow.ellipsis),
+            ),
           ],
         ),
         content: Column(
@@ -689,18 +885,28 @@ class CartItemCard extends StatelessWidget {
               padding: const EdgeInsets.all(UIConstants.smallPadding),
               decoration: BoxDecoration(
                 color: AppColors.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-                border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                borderRadius: BorderRadius.circular(
+                  UIConstants.smallBorderRadius,
+                ),
+                border: Border.all(
+                  color: AppColors.error.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '❌ Você não pode separar neste carrinho',
-                    style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.red700),
+                    style: AppFonts.inter(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.red700,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  Text('Carrinho incluído por: $cartOwnerName', style: AppFonts.inter(color: AppColors.red600)),
+                  Text(
+                    'Carrinho incluído por: $cartOwnerName',
+                    style: AppFonts.inter(color: AppColors.red600),
+                  ),
                 ],
               ),
             ),
@@ -713,7 +919,12 @@ class CartItemCard extends StatelessWidget {
             ),
           ],
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar'))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fechar'),
+          ),
+        ],
       ),
     );
   }
@@ -726,7 +937,12 @@ class CartItemCard extends StatelessWidget {
           children: [
             Icon(Icons.info_outline, color: AppColors.info),
             const SizedBox(width: 8),
-            const Expanded(child: Text('Sem Itens para Separar', overflow: TextOverflow.ellipsis)),
+            const Expanded(
+              child: Text(
+                'Sem Itens para Separar',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -737,23 +953,35 @@ class CartItemCard extends StatelessWidget {
               padding: const EdgeInsets.all(UIConstants.smallPadding),
               decoration: BoxDecoration(
                 color: AppColors.info.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-                border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
+                borderRadius: BorderRadius.circular(
+                  UIConstants.smallBorderRadius,
+                ),
+                border: Border.all(
+                  color: AppColors.info.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Todos os itens do seu setor já foram separados!',
-                    style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.blue700),
+                    style: AppFonts.inter(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.blue700,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  Text('Seu setor: Setor $userSectorCode', style: AppFonts.inter(color: AppColors.blue600)),
+                  Text(
+                    'Seu setor: Setor $userSectorCode',
+                    style: AppFonts.inter(color: AppColors.blue600),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: UIConstants.defaultPadding),
-            const Text('Não há mais produtos do seu setor neste carrinho para separar.'),
+            const Text(
+              'Não há mais produtos do seu setor neste carrinho para separar.',
+            ),
             const SizedBox(height: 8),
             Text(
               'Os itens restantes pertencem a outros setores e serão separados por outros usuários.',
@@ -761,12 +989,20 @@ class CartItemCard extends StatelessWidget {
             ),
           ],
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar'))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fechar'),
+          ),
+        ],
       ),
     );
   }
 
-  Future<bool> _onFinalizeCart(BuildContext context, {bool skipConfirmation = false}) async {
+  Future<bool> _onFinalizeCart(
+    BuildContext context, {
+    bool skipConfirmation = false,
+  }) async {
     final userModel = await _getUserModel();
 
     if (!context.mounted) return false;
@@ -799,7 +1035,8 @@ class CartItemCard extends StatelessWidget {
 
       final params = SaveSeparationCartParams(
         codEmpresa: cartRouteInternshipConsultation.codEmpresa,
-        codCarrinhoPercurso: cartRouteInternshipConsultation.codCarrinhoPercurso,
+        codCarrinhoPercurso:
+            cartRouteInternshipConsultation.codCarrinhoPercurso,
         itemCarrinhoPercurso: cartRouteInternshipConsultation.item,
         codSepararEstoque: cartRouteInternshipConsultation.codOrigem,
       );
@@ -814,9 +1051,12 @@ class CartItemCard extends StatelessWidget {
         if (context.mounted && failure is AppFailure) {
           _showErrorDialog(context, failure);
         } else if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Erro ao salvar carrinho.'), backgroundColor: AppColors.error));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erro ao salvar carrinho.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
         }
         return false;
       }
@@ -838,15 +1078,21 @@ class CartItemCard extends StatelessWidget {
       if (context.mounted) Navigator.of(context).pop();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erro inesperado: ${e.toString()}'), backgroundColor: AppColors.error));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro inesperado: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
       return false;
     }
   }
 
-  Future<void> _printTicketIfConfigured(BuildContext context, UserSystemModel? userModel) async {
+  Future<void> _printTicketIfConfigured(
+    BuildContext context,
+    UserSystemModel? userModel,
+  ) async {
     try {
       final defaultPrinter = await _loadDefaultPrinter();
       if (defaultPrinter == null) {
@@ -864,7 +1110,9 @@ class CartItemCard extends StatelessWidget {
           codSepararEstoque: cartRouteInternshipConsultation.codOrigem,
           printer: defaultPrinter,
           separatorName: separatorName,
-          codSetorEstoque: (userSectorStock != null && userSectorStock > 0) ? userSectorStock : null,
+          codSetorEstoque: (userSectorStock != null && userSectorStock > 0)
+              ? userSectorStock
+              : null,
         ),
       );
 
@@ -890,10 +1138,12 @@ class CartItemCard extends StatelessWidget {
       String errorMessage;
       if (failure is DataFailure && failure.code == 'NOT_FOUND') {
         if (userSectorStock != null && userSectorStock > 0) {
-          errorMessage = 'Carrinho salvo, mas não existem itens do setor $userSectorStock ($userSectorName) para imprimir.\n'
+          errorMessage =
+              'Carrinho salvo, mas não existem itens do setor $userSectorStock ($userSectorName) para imprimir.\n'
               'Usuário: $separatorName';
         } else {
-          errorMessage = 'Carrinho salvo, mas não existem itens para imprimir.\n'
+          errorMessage =
+              'Carrinho salvo, mas não existem itens para imprimir.\n'
               'Usuário: $separatorName';
         }
       } else {
@@ -911,7 +1161,9 @@ class CartItemCard extends StatelessWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Carrinho salvo, mas houve erro ao iniciar a impressao: $e'),
+          content: Text(
+            'Carrinho salvo, mas houve erro ao iniciar a impressao: $e',
+          ),
           backgroundColor: AppColors.warning,
           duration: UIConstants.snackBarShortDuration,
         ),
@@ -927,7 +1179,8 @@ class CartItemCard extends StatelessWidget {
       return null;
     }
 
-    final defaultPrinterId = await printerPreferencesService.loadDefaultPrinterId();
+    final defaultPrinterId = await printerPreferencesService
+        .loadDefaultPrinterId();
     if (defaultPrinterId == null || defaultPrinterId.isEmpty) {
       return printers.first;
     }
@@ -964,7 +1217,11 @@ class CartItemCard extends StatelessWidget {
 
     context.push(
       AppRouter.pickingProductsList,
-      extra: {'filterType': 'completed', 'viewModel': tempViewModel, 'cart': cartRouteInternshipConsultation},
+      extra: {
+        'filterType': 'completed',
+        'viewModel': tempViewModel,
+        'cart': cartRouteInternshipConsultation,
+      },
     );
   }
 
@@ -985,11 +1242,16 @@ class CartItemCard extends StatelessWidget {
   }
 
   bool _shouldShowSeparateButton() {
-    if (cartRouteInternshipConsultation.situacao == ExpeditionSituation.cancelada ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.separado ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.conferido ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.entregue ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.embalado) {
+    if (cartRouteInternshipConsultation.situacao ==
+            ExpeditionSituation.cancelada ||
+        cartRouteInternshipConsultation.situacao ==
+            ExpeditionSituation.separado ||
+        cartRouteInternshipConsultation.situacao ==
+            ExpeditionSituation.conferido ||
+        cartRouteInternshipConsultation.situacao ==
+            ExpeditionSituation.entregue ||
+        cartRouteInternshipConsultation.situacao ==
+            ExpeditionSituation.embalado) {
       return false;
     }
 
@@ -997,11 +1259,16 @@ class CartItemCard extends StatelessWidget {
   }
 
   bool _shouldShowViewButton() {
-    return cartRouteInternshipConsultation.situacao == ExpeditionSituation.separado ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.conferido ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.entregue ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.embalado ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.cancelada;
+    return cartRouteInternshipConsultation.situacao ==
+            ExpeditionSituation.separado ||
+        cartRouteInternshipConsultation.situacao ==
+            ExpeditionSituation.conferido ||
+        cartRouteInternshipConsultation.situacao ==
+            ExpeditionSituation.entregue ||
+        cartRouteInternshipConsultation.situacao ==
+            ExpeditionSituation.embalado ||
+        cartRouteInternshipConsultation.situacao ==
+            ExpeditionSituation.cancelada;
   }
 
   Future<bool> _showFinalizeConfirmationDialog(BuildContext context) async {
@@ -1011,13 +1278,23 @@ class CartItemCard extends StatelessWidget {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Salvar Carrinho'),
-            content: Text('Deseja realmente salvar o carrinho #${cartRouteInternshipConsultation.codCarrinho}?'),
+            content: Text(
+              'Deseja realmente salvar o carrinho #${cartRouteInternshipConsultation.codCarrinho}?',
+            ),
             actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancelar')),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancelar'),
+              ),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-                child: Text('Salvar', style: AppFonts.inter(color: AppColors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.success,
+                ),
+                child: Text(
+                  'Salvar',
+                  style: AppFonts.inter(color: AppColors.white),
+                ),
               ),
             ],
           ),
@@ -1032,12 +1309,21 @@ class CartItemCard extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder: (context) => const AlertDialog(
-        content: Row(children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Finalizando carrinho...')]),
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Finalizando carrinho...'),
+          ],
+        ),
       ),
     );
   }
 
-  void _showSuccessDialog(BuildContext context, SaveSeparationCartSuccess success) {
+  void _showSuccessDialog(
+    BuildContext context,
+    SaveSeparationCartSuccess success,
+  ) {
     if (!context.mounted) return;
 
     showDialog(
@@ -1054,12 +1340,17 @@ class CartItemCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Carrinho #${cartRouteInternshipConsultation.codCarrinho} finalizado com sucesso!'),
+            Text(
+              'Carrinho #${cartRouteInternshipConsultation.codCarrinho} finalizado com sucesso!',
+            ),
             if (success.details != null) ...[
               const SizedBox(height: 8),
               Text(
                 success.details!,
-                style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: AppColors.grey),
+                style: AppFonts.inter(
+                  fontSize: UIConstants.smallFontSize,
+                  color: AppColors.grey,
+                ),
               ),
             ],
           ],
@@ -1093,11 +1384,15 @@ class CartItemCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(failure.userMessage),
-            if (failure is SaveSeparationCartFailure && failure.details != null) ...[
+            if (failure is SaveSeparationCartFailure &&
+                failure.details != null) ...[
               const SizedBox(height: 8),
               Text(
                 failure.details!,
-                style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: AppColors.grey),
+                style: AppFonts.inter(
+                  fontSize: UIConstants.smallFontSize,
+                  color: AppColors.grey,
+                ),
               ),
             ],
           ],
@@ -1151,25 +1446,39 @@ class CartItemCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(UIConstants.smallPadding),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-                border: Border.all(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3), width: 1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.errorContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(
+                  UIConstants.smallBorderRadius,
+                ),
+                border: Border.all(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.error.withValues(alpha: 0.3),
+                  width: 1,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Carrinho #${cartRouteInternshipConsultation.codCarrinho}',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  Text(cartRouteInternshipConsultation.nomeCarrinho, style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    cartRouteInternshipConsultation.nomeCarrinho,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     'Status: ${cartRouteInternshipConsultation.situacao.description}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -1177,14 +1486,17 @@ class CartItemCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'Esta ação não pode ser desfeita. O carrinho será marcado como CANCELADO.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Não, manter')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Não, manter'),
+          ),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
@@ -1205,13 +1517,17 @@ class CartItemCard extends StatelessWidget {
     try {
       final vm = viewModel ?? context.read<SeparationItemsViewModel>();
 
-      final success = await vm.cancelCart(cartRouteInternshipConsultation.codCarrinho);
+      final success = await vm.cancelCart(
+        cartRouteInternshipConsultation.codCarrinho,
+      );
 
       if (success) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Carrinho #${cartRouteInternshipConsultation.codCarrinho} cancelado com sucesso!'),
+              content: Text(
+                'Carrinho #${cartRouteInternshipConsultation.codCarrinho} cancelado com sucesso!',
+              ),
               backgroundColor: AppColors.success,
             ),
           );
@@ -1220,22 +1536,32 @@ class CartItemCard extends StatelessWidget {
         }
       } else {
         if (context.mounted) {
-          final errorMessage = vm.lastCancelError ?? 'Erro ao cancelar carrinho';
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: Theme.of(context).colorScheme.error));
+          final errorMessage =
+              vm.lastCancelError ?? 'Erro ao cancelar carrinho';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
         }
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro inesperado: $e'), backgroundColor: Theme.of(context).colorScheme.error),
+          SnackBar(
+            content: Text('Erro inesperado: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     }
   }
 
-  Color _getSituationColor(ExpeditionSituation situacao, ColorScheme colorScheme) {
+  Color _getSituationColor(
+    ExpeditionSituation situacao,
+    ColorScheme colorScheme,
+  ) {
     final cardSituation = ExpeditionSituation.fromCode(situacao.code);
     return cardSituation?.color ?? AppColors.grey;
   }

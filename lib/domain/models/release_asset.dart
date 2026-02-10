@@ -4,14 +4,21 @@ class ReleaseAsset {
   final int size;
   final String contentType;
 
-  const ReleaseAsset({required this.name, required this.downloadUrl, required this.size, required this.contentType});
+  const ReleaseAsset({
+    required this.name,
+    required this.downloadUrl,
+    required this.size,
+    required this.contentType,
+  });
 
   bool get isApk => name.toLowerCase().endsWith('.apk');
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is ReleaseAsset && other.name == name && other.downloadUrl == downloadUrl;
+    return other is ReleaseAsset &&
+        other.name == name &&
+        other.downloadUrl == downloadUrl;
   }
 
   @override

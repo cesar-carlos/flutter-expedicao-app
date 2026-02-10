@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
+import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
 import 'package:data7_expedicao/domain/models/picking_state.dart';
 import 'package:data7_expedicao/domain/services/picking_state_manager.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
@@ -49,6 +50,7 @@ class CardPickingViewModel extends ChangeNotifier {
   final SeparateCartInternshipEventRepository _cartEventRepository;
   final ShelfScanningService _shelfScanningService;
   final PickingStateManager _stateManager;
+  final MetricsCollector? _metricsCollector;
 
   ExpeditionCartRouteInternshipConsultationModel? _cart;
   ExpeditionCartRouteInternshipConsultationModel? get cart => _cart;
@@ -73,7 +75,11 @@ class CardPickingViewModel extends ChangeNotifier {
 
   int? _lastScannedCodProduto;
 
+  SeparateItemConsultationModel? _nextItemCache;
+
   String? get lastScannedAddress => _shelfScanningService.lastScannedAddress;
+
+  SeparateItemConsultationModel? get nextItem => _nextItemCache;
 
   final Map<String, List<Future<void>>> _pendingOperations = {};
 
@@ -106,7 +112,24 @@ class CardPickingViewModel extends ChangeNotifier {
 
   bool get requiresShelfScanning => _shelfScanningService.requiresShelfScanning(_userModel);
 
+  bool get hasPendingOperations {
+    if (_items.isEmpty) return false;
+
+    return pickingState.hasAnyPendingOperations();
+  }
+
+  int _countPendingOperations() {
+    if (_items.isEmpty) return 0;
+
+    return pickingState.getTotalPendingOperations();
+  }
+
   bool _disposed = false;
+
+  bool _validateSocketState() {
+    final validation = SocketValidationHelper.validateSocketState();
+    return validation.isValid;
+  }
 
   Future<Result<SaveSeparationCartSuccess>> saveCart() async {
     if (_cart == null) {
@@ -115,6 +138,16 @@ class CardPickingViewModel extends ChangeNotifier {
 
     if (_userModel == null) {
       return Failure(AuthFailure.unauthenticated());
+    }
+
+    if (hasPendingOperations) {
+      final pendingCount = _countPendingOperations();
+      return Failure(
+        BusinessFailure(
+          message:
+              'Existem $pendingCount operação${pendingCount == 1 ? '' : 'es'} pendente${pendingCount == 1 ? '' : 's'} de sincronização. Aguarde a conclusão antes de salvar.',
+        ),
+      );
     }
 
     final validationResult = CartValidationService.validateCartAccess(
@@ -186,7 +219,16 @@ class CardPickingViewModel extends ChangeNotifier {
       _userSessionService = locator<UserSessionService>(),
       _cartEventRepository = locator<SeparateCartInternshipEventRepository>(),
       _shelfScanningService = locator<ShelfScanningService>(),
-      _stateManager = locator<PickingStateManager>();
+      _stateManager = locator<PickingStateManager>(),
+      _metricsCollector = _initMetricsCollector();
+
+  static MetricsCollector? _initMetricsCollector() {
+    try {
+      return locator<MetricsCollector>();
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   void dispose() {
@@ -219,6 +261,10 @@ class CardPickingViewModel extends ChangeNotifier {
       _userModel = userModel;
       _cartStatusChanged = false;
       _shelfScanningService.resetScannedAddress();
+
+      BarcodeValidationService.clearCaches();
+      _clearNextItemCache();
+
       _safeNotifyListeners();
 
       await _loadCartItems();
@@ -246,14 +292,33 @@ class CardPickingViewModel extends ChangeNotifier {
     required int inputQuantity,
     required bool isCartInSeparation,
   }) {
+    final scanStartTime = DateTime.now();
+
     final trimmedBarcode = barcode.trim();
 
     if (trimmedBarcode.isEmpty) {
+      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Código vazio');
       return const ScanProcessResult(status: ScanProcessStatus.ignored);
     }
 
     if (!isCartInSeparation) {
+      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Carrinho não em separação');
       return const ScanProcessResult(status: ScanProcessStatus.cartNotInSeparation);
+    }
+
+    final nextItem = PickingUtils.findNextItemToPick(
+      _items,
+      isItemCompleted,
+      userSectorCode: _userModel?.codSetorEstoque,
+    );
+
+    if (nextItem != null && requiresShelfScanning && shouldScanShelf(nextItem)) {
+      final shelfValidation = _validateShelfScanning(trimmedBarcode, nextItem);
+      if (shelfValidation != null) {
+        final success = shelfValidation.status == ScanProcessStatus.shelfScanned;
+        _recordScanMetrics(trimmedBarcode, scanStartTime, success, success ? null : 'Prateleira incorreta');
+        return shelfValidation;
+      }
     }
 
     final validationResult = BarcodeValidationService.validateScannedBarcode(
@@ -264,18 +329,22 @@ class CardPickingViewModel extends ChangeNotifier {
     );
 
     if (validationResult.isEmpty) {
+      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Validação vazia');
       return const ScanProcessResult(status: ScanProcessStatus.ignored);
     }
 
     if (validationResult.noItemsForSector) {
+      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Sem itens para o setor');
       return ScanProcessResult.noItemsForSector(validationResult.userSectorCode);
     }
 
     if (validationResult.allItemsCompleted) {
+      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Todos os itens completados');
       return const ScanProcessResult(status: ScanProcessStatus.allItemsCompleted);
     }
 
     if (validationResult.isWrongSector && validationResult.scannedItem != null) {
+      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Setor incorreto');
       return ScanProcessResult.wrongSector(validationResult.scannedItem!, validationResult.userSectorCode);
     }
 
@@ -288,17 +357,37 @@ class CardPickingViewModel extends ChangeNotifier {
       final remainingQuantity = totalQuantity - pickedQuantity;
 
       if (convertedQuantity > remainingQuantity) {
+        _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Quantidade excedida');
         return ScanProcessResult.quantityExceeded(item, convertedQuantity, remainingQuantity);
       }
 
+      _recordScanMetrics(trimmedBarcode, scanStartTime, true, null);
       return ScanProcessResult.success(item, convertedQuantity);
     }
 
     if (validationResult.expectedItem != null) {
+      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Produto incorreto');
       return ScanProcessResult.wrongProduct(validationResult.expectedItem!);
     }
 
+    _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Ignorado');
     return const ScanProcessResult(status: ScanProcessStatus.ignored);
+  }
+
+  ScanProcessResult? _validateShelfScanning(String scannedBarcode, SeparateItemConsultationModel expectedItem) {
+    final trimmedCode = scannedBarcode.trim();
+    final expectedShelf = expectedItem.endereco?.trim();
+
+    if (lastScannedAddress == null || lastScannedAddress != expectedShelf) {
+      if (expectedShelf != null && expectedShelf == trimmedCode) {
+        updateScannedAddress(trimmedCode);
+        return ScanProcessResult.shelfScanned(expectedItem, trimmedCode);
+      } else if (expectedShelf != null) {
+        return ScanProcessResult.wrongShelf(expectedItem, trimmedCode, expectedShelf);
+      }
+    }
+
+    return null;
   }
 
   int _convertQuantityWithBarcode(SeparateItemConsultationModel item, String barcode, int inputQuantity) {
@@ -359,10 +448,12 @@ class CardPickingViewModel extends ChangeNotifier {
       final userSystem = appUser.userSystemModel;
       final sessionId = socketValidation.sessionId!;
 
-      if (_lastScannedCodProduto != null && _lastScannedCodProduto != codProduto) {
+      final lastScanned = _lastScannedCodProduto;
+      _lastScannedCodProduto = codProduto;
+
+      if (lastScanned != null && lastScanned != codProduto) {
         await _waitForPendingOperationsAndRefresh();
       }
-      _lastScannedCodProduto = codProduto;
 
       final params = AddItemSeparationParams(
         codEmpresa: _cart!.codEmpresa,
@@ -397,12 +488,16 @@ class CardPickingViewModel extends ChangeNotifier {
   void updatePickedQuantity(String itemId, int quantity) {
     if (_disposed) return;
     _stateManager.updateItemQuantity(itemId, quantity);
+
+    _updateNextItemCache();
     _safeNotifyListeners();
   }
 
   void completeItem(String itemId) {
     if (_disposed) return;
     _stateManager.completeItem(itemId);
+
+    _updateNextItemCache();
     _safeNotifyListeners();
   }
 
@@ -423,10 +518,9 @@ class CardPickingViewModel extends ChangeNotifier {
         return false;
       }
 
-      final socketValidation = SocketValidationHelper.validateSocketState();
-      if (!socketValidation.isValid) {
+      if (!_validateSocketState()) {
         _hasError = true;
-        _errorMessage = 'Socket não está conectado: ${socketValidation.errorMessage}';
+        _errorMessage = 'Socket não está conectado. Verifique sua conexão.';
         return false;
       }
 
@@ -455,10 +549,9 @@ class CardPickingViewModel extends ChangeNotifier {
       _isLoading = true;
       _safeNotifyListeners();
 
-      final socketValidation = SocketValidationHelper.validateSocketState();
-      if (!socketValidation.isValid) {
+      if (!_validateSocketState()) {
         _hasError = true;
-        _errorMessage = 'Socket não está conectado: ${socketValidation.errorMessage}';
+        _errorMessage = 'Socket não está conectado. Verifique sua conexão.';
         return false;
       }
 
@@ -486,6 +579,8 @@ class CardPickingViewModel extends ChangeNotifier {
     _lastScannedCodProduto = null;
     _shelfScanningService.resetScannedAddress();
     _itemsByCodProduto = null;
+
+    _clearNextItemCache();
 
     await initializeCart(_cart!, userModel: _userModel);
   }
@@ -620,6 +715,8 @@ class CardPickingViewModel extends ChangeNotifier {
 
       _stateManager.initial(_items);
 
+      _updateNextItemCache();
+
       _safeNotifyListeners();
     } catch (e) {
       developer.log('Failed to load filtered items', error: e);
@@ -734,6 +831,8 @@ class CardPickingViewModel extends ChangeNotifier {
       _processCartEventData(event);
     } catch (e) {
       developer.log('Failed to process cart event', error: e);
+
+      _setError('Erro ao atualizar carrinho. Toque em atualizar para recarregar os dados.');
     }
   }
 
@@ -876,6 +975,26 @@ class CardPickingViewModel extends ChangeNotifier {
   void _rebuildItemsCache() {
     _itemsByCodProduto = {for (final item in _items) item.codProduto: item};
   }
+
+  void _clearNextItemCache() {
+    _nextItemCache = null;
+  }
+
+  void _updateNextItemCache() {
+    _nextItemCache = PickingUtils.findNextItemToPick(
+      _items,
+      isItemCompleted,
+      userSectorCode: _userModel?.codSetorEstoque,
+    );
+  }
+
+  void _recordScanMetrics(String barcode, DateTime startTime, bool success, String? errorMessage) {
+    final metricsCollector = _metricsCollector;
+    if (metricsCollector == null) return;
+
+    final duration = DateTime.now().difference(startTime);
+    metricsCollector.recordScan(barcode: barcode, duration: duration, success: success, errorMessage: errorMessage);
+  }
 }
 
 class AddItemSeparationResult {
@@ -902,6 +1021,8 @@ enum ScanProcessStatus {
   allItemsCompleted,
   wrongSector,
   wrongProduct,
+  wrongShelf,
+  shelfScanned,
   quantityExceeded,
   success,
 }
@@ -914,6 +1035,8 @@ class ScanProcessResult {
   final int? userSectorCode;
   final int? requestedQuantity;
   final int? availableQuantity;
+  final String? scannedShelf;
+  final String? expectedShelf;
 
   const ScanProcessResult({
     required this.status,
@@ -923,6 +1046,8 @@ class ScanProcessResult {
     this.userSectorCode,
     this.requestedQuantity,
     this.availableQuantity,
+    this.scannedShelf,
+    this.expectedShelf,
   });
 
   const ScanProcessResult.success(SeparateItemConsultationModel item, int convertedQuantity)
@@ -936,6 +1061,20 @@ class ScanProcessResult {
 
   const ScanProcessResult.wrongProduct(SeparateItemConsultationModel expectedItem)
     : this(status: ScanProcessStatus.wrongProduct, expectedItem: expectedItem);
+
+  const ScanProcessResult.shelfScanned(SeparateItemConsultationModel item, String shelf)
+    : this(status: ScanProcessStatus.shelfScanned, expectedItem: item, scannedShelf: shelf);
+
+  const ScanProcessResult.wrongShelf(
+    SeparateItemConsultationModel expectedItem,
+    String scannedShelf,
+    String expectedShelf,
+  ) : this(
+        status: ScanProcessStatus.wrongShelf,
+        expectedItem: expectedItem,
+        scannedShelf: scannedShelf,
+        expectedShelf: expectedShelf,
+      );
 
   const ScanProcessResult.quantityExceeded(
     SeparateItemConsultationModel item,

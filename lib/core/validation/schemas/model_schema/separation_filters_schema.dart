@@ -26,7 +26,9 @@ class SeparationFiltersSchema {
     }
   }
 
-  static Result<Map<String, dynamic>> safeValidate(Map<String, dynamic> filters) {
+  static Result<Map<String, dynamic>> safeValidate(
+    Map<String, dynamic> filters,
+  ) {
     return safeCallSync(() => validate(filters));
   }
 }

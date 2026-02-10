@@ -72,12 +72,7 @@ class PickingDialogManager {
     _showDialogWithFocusReturn(() => PickingDialogs.separationComplete());
   }
 
-  void showQuantityExceededDialog(
-    String barcode,
-    String productName,
-    int requestedQuantity,
-    int availableQuantity,
-  ) {
+  void showQuantityExceededDialog(String barcode, String productName, int requestedQuantity, int availableQuantity) {
     _showDialogWithFocusReturn(
       () => PickingDialogs.quantityExceeded(
         barcode: barcode,
@@ -85,6 +80,12 @@ class PickingDialogManager {
         requestedQuantity: requestedQuantity,
         availableQuantity: availableQuantity,
       ),
+    );
+  }
+
+  void showWrongShelfDialog(String expectedShelf, String scannedShelf) {
+    _showDialogWithFocusReturn(
+      () => PickingDialogs.wrongShelf(expectedShelf: expectedShelf, scannedShelf: scannedShelf),
     );
   }
 
@@ -174,10 +175,7 @@ class PickingDialogManager {
               });
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-            child: Text(
-              'Salvar Carrinho',
-              style: AppFonts.inter(color: Theme.of(context).colorScheme.onPrimary),
-            ),
+            child: Text('Salvar Carrinho', style: AppFonts.inter(color: Theme.of(context).colorScheme.onPrimary)),
           ),
         ],
       ),

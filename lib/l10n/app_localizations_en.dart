@@ -212,8 +212,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get printerConfigTitle => 'Printer Configuration';
 
   @override
-  String get printerConfigDescription =>
-      'Register printers manually or search automatically on the local network.';
+  String get printerConfigDescription => 'Register printers manually or search automatically on the local network.';
 
   @override
   String get printerConfigRefreshTooltip => 'Refresh printers';
@@ -320,8 +319,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get printerConfigSearchAction => 'Search';
 
   @override
-  String get printerConfigHostRangeOrderError =>
-      'Start host cannot be greater than end host.';
+  String get printerConfigHostRangeOrderError => 'Start host cannot be greater than end host.';
 
   @override
   String get apiUrl => 'API URL';
@@ -384,8 +382,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwordChangedSuccess => 'Password changed successfully!';
 
   @override
-  String get profileAndPasswordSaved =>
-      'Profile and password updated successfully!';
+  String get profileAndPasswordSaved => 'Profile and password updated successfully!';
 
   @override
   String get registerError => 'Error creating account';
@@ -409,12 +406,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timeoutError => 'Connection timeout exceeded';
 
   @override
-  String get serverNotConfigured =>
-      'Server not configured! Configure the server before logging in.';
+  String get serverNotConfigured => 'Server not configured! Configure the server before logging in.';
 
   @override
-  String get serverNotTested =>
-      'Server not tested! Test the server connection before logging in.';
+  String get serverNotTested => 'Server not tested! Test the server connection before logging in.';
 
   @override
   String get loadConfigError => 'Error loading configuration';
@@ -458,8 +453,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileError => 'Error updating profile';
 
   @override
-  String get currentPasswordRequired =>
-      'Current password is required to change password';
+  String get currentPasswordRequired => 'Current password is required to change password';
 
   @override
   String get currentPasswordIncorrect => 'Incorrect current password';
@@ -468,12 +462,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newPasswordRequired => 'New password is required';
 
   @override
-  String get passwordMinLengthProfile =>
-      'New password must be at least 4 characters';
+  String get passwordMinLengthProfile => 'New password must be at least 4 characters';
 
   @override
-  String get confirmNewPasswordRequired =>
-      'New password confirmation is required';
+  String get confirmNewPasswordRequired => 'New password confirmation is required';
 
   @override
   String get passwordsDoNotMatchProfile => 'Passwords do not match';
@@ -490,8 +482,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get connectionFailure =>
-      'Connection failure. Check your internet and try again.';
+  String get connectionFailure => 'Connection failure. Check your internet and try again.';
 
   @override
   String get timeoutConnection => 'Connection timeout';
@@ -668,16 +659,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get waitProcessing => 'Please wait, processing item...';
 
   @override
-  String get typeBarcodeManually =>
-      'Type the barcode manually or tap the icon to use the scanner';
+  String get typeBarcodeManually => 'Type the barcode manually or tap the icon to use the scanner';
 
   @override
-  String get positionProductScanner =>
-      'Position the product on the scanner or tap the icon to use the keyboard';
+  String get positionProductScanner => 'Position the product on the scanner or tap the icon to use the keyboard';
 
   @override
-  String get scannerDisabled =>
-      'Scanner disabled - cart is not in separation status';
+  String get scannerDisabled => 'Scanner disabled - cart is not in separation status';
 
   @override
   String get cancelCart => 'Cancel Cart';
@@ -716,8 +704,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appUpdateCheckError => 'Error checking for update';
 
   @override
-  String get appUpdateNotConfigured =>
-      'GITHUB_OWNER or GITHUB_REPO not configured';
+  String get appUpdateNotConfigured => 'GITHUB_OWNER or GITHUB_REPO not configured';
 
   @override
   String get appUpdateNetworkError => 'No internet connection';
@@ -994,8 +981,7 @@ class AppLocalizationsEnUs extends AppLocalizationsEn {
   String get passwordChangedSuccess => 'Password changed successfully!';
 
   @override
-  String get profileAndPasswordSaved =>
-      'Profile and password updated successfully!';
+  String get profileAndPasswordSaved => 'Profile and password updated successfully!';
 
   @override
   String get registerError => 'Error creating account';
@@ -1019,12 +1005,10 @@ class AppLocalizationsEnUs extends AppLocalizationsEn {
   String get timeoutError => 'Connection timeout exceeded';
 
   @override
-  String get serverNotConfigured =>
-      'Server not configured! Configure the server before logging in.';
+  String get serverNotConfigured => 'Server not configured! Configure the server before logging in.';
 
   @override
-  String get serverNotTested =>
-      'Server not tested! Test the server connection before logging in.';
+  String get serverNotTested => 'Server not tested! Test the server connection before logging in.';
 
   @override
   String get loadConfigError => 'Error loading configuration';
@@ -1068,8 +1052,7 @@ class AppLocalizationsEnUs extends AppLocalizationsEn {
   String get profileError => 'Error updating profile';
 
   @override
-  String get currentPasswordRequired =>
-      'Current password is required to change password';
+  String get currentPasswordRequired => 'Current password is required to change password';
 
   @override
   String get currentPasswordIncorrect => 'Incorrect current password';
@@ -1078,12 +1061,10 @@ class AppLocalizationsEnUs extends AppLocalizationsEn {
   String get newPasswordRequired => 'New password is required';
 
   @override
-  String get passwordMinLengthProfile =>
-      'New password must be at least 4 characters';
+  String get passwordMinLengthProfile => 'New password must be at least 4 characters';
 
   @override
-  String get confirmNewPasswordRequired =>
-      'New password confirmation is required';
+  String get confirmNewPasswordRequired => 'New password confirmation is required';
 
   @override
   String get passwordsDoNotMatchProfile => 'Passwords do not match';
@@ -1100,8 +1081,7 @@ class AppLocalizationsEnUs extends AppLocalizationsEn {
   }
 
   @override
-  String get connectionFailure =>
-      'Connection failure. Check your internet and try again.';
+  String get connectionFailure => 'Connection failure. Check your internet and try again.';
 
   @override
   String get timeoutConnection => 'Connection timeout';
@@ -1278,16 +1258,13 @@ class AppLocalizationsEnUs extends AppLocalizationsEn {
   String get waitProcessing => 'Please wait, processing item...';
 
   @override
-  String get typeBarcodeManually =>
-      'Type the barcode manually or tap the icon to use the scanner';
+  String get typeBarcodeManually => 'Type the barcode manually or tap the icon to use the scanner';
 
   @override
-  String get positionProductScanner =>
-      'Position the product on the scanner or tap the icon to use the keyboard';
+  String get positionProductScanner => 'Position the product on the scanner or tap the icon to use the keyboard';
 
   @override
-  String get scannerDisabled =>
-      'Scanner disabled - cart is not in separation status';
+  String get scannerDisabled => 'Scanner disabled - cart is not in separation status';
 
   @override
   String get cancelCart => 'Cancel Cart';

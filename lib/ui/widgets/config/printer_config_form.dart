@@ -29,12 +29,8 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
     final colorScheme = theme.colorScheme;
     final isDark = theme.isDark;
     final accentColor = theme.adaptiveSecondary(colorScheme);
-    final actionButtonForeground = isDark
-        ? colorScheme.onSurface
-        : colorScheme.primary;
-    final actionButtonBorderColor = colorScheme.outline.withValues(
-      alpha: isDark ? 0.8 : 0.6,
-    );
+    final actionButtonForeground = isDark ? colorScheme.onSurface : colorScheme.primary;
+    final actionButtonBorderColor = colorScheme.outline.withValues(alpha: isDark ? 0.8 : 0.6);
     final actionButtonStyle = OutlinedButton.styleFrom(
       foregroundColor: actionButtonForeground,
       side: BorderSide(color: actionButtonBorderColor),
@@ -57,9 +53,7 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
                     Expanded(
                       child: Text(
                         context.l10n.printerConfigTitle,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -72,9 +66,7 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
                               height: 16,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  actionButtonForeground,
-                                ),
+                                valueColor: AlwaysStoppedAnimation<Color>(actionButtonForeground),
                               ),
                             )
                           : Icon(Icons.refresh, color: accentColor),
@@ -85,18 +77,14 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
                 Text(
                   context.l10n.printerConfigDescription,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: isDark
-                        ? colorScheme.onSurface.withValues(alpha: 0.85)
-                        : colorScheme.onSurfaceVariant,
+                    color: isDark ? colorScheme.onSurface.withValues(alpha: 0.85) : colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 12),
                 if (vm.printers.isEmpty)
                   _buildEmptyState(context)
                 else
-                  ...vm.printers.map(
-                    (printer) => _buildPrinterTile(context, vm, printer),
-                  ),
+                  ...vm.printers.map((printer) => _buildPrinterTile(context, vm, printer)),
                 const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerRight,
@@ -107,18 +95,14 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
                     children: [
                       OutlinedButton.icon(
                         style: actionButtonStyle,
-                        onPressed: vm.isDiscoveringPrinters
-                            ? null
-                            : _discoverPrinters,
+                        onPressed: vm.isDiscoveringPrinters ? null : _discoverPrinters,
                         icon: vm.isDiscoveringPrinters
                             ? SizedBox(
                                 width: 14,
                                 height: 14,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    actionButtonForeground,
-                                  ),
+                                  valueColor: AlwaysStoppedAnimation<Color>(actionButtonForeground),
                                 ),
                               )
                             : const Icon(Icons.wifi_find),
@@ -130,9 +114,7 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
                       ),
                       OutlinedButton.icon(
                         style: actionButtonStyle,
-                        onPressed: vm.isDiscoveringPrinters
-                            ? null
-                            : _showAdvancedDiscoveryDialog,
+                        onPressed: vm.isDiscoveringPrinters ? null : _showAdvancedDiscoveryDialog,
                         icon: const Icon(Icons.tune),
                         label: Text(context.l10n.printerConfigAdvancedSearch),
                       ),
@@ -167,18 +149,12 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.info_outline,
-            size: 18,
-            color: colorScheme.onSurfaceVariant,
-          ),
+          Icon(Icons.info_outline, size: 18, color: colorScheme.onSurfaceVariant),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               context.l10n.printerConfigEmpty,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+              style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
           ),
         ],
@@ -186,17 +162,12 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
     );
   }
 
-  Widget _buildPrinterTile(
-    BuildContext context,
-    ConfigViewModel vm,
-    PrinterConfig printer,
-  ) {
+  Widget _buildPrinterTile(BuildContext context, ConfigViewModel vm, PrinterConfig printer) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.isDark;
     final isDefault = vm.defaultPrinterId == printer.id;
-    final isTestingThisPrinter =
-        vm.isTestingPrinter && vm.testingPrinterId == printer.id;
+    final isTestingThisPrinter = vm.isTestingPrinter && vm.testingPrinterId == printer.id;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -207,10 +178,7 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
             Expanded(
               child: Text(
                 printer.name,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: theme.textTheme.titleMedium?.copyWith(color: colorScheme.onSurface, fontWeight: FontWeight.w600),
               ),
             ),
             if (isDefault)
@@ -233,58 +201,35 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
         subtitle: Text(
           '${printer.ip}:${printer.port}',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: isDark
-                ? colorScheme.onSurface.withValues(alpha: 0.82)
-                : colorScheme.onSurfaceVariant,
+            color: isDark ? colorScheme.onSurface.withValues(alpha: 0.82) : colorScheme.onSurfaceVariant,
           ),
         ),
-        leading: Icon(
-          isDefault ? Icons.print : Icons.print_outlined,
-          color: isDark ? colorScheme.onSurface : null,
-        ),
+        leading: Icon(isDefault ? Icons.print : Icons.print_outlined, color: isDark ? colorScheme.onSurface : null),
         trailing: isTestingThisPrinter
             ? SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    isDark ? colorScheme.onSurface : colorScheme.primary,
-                  ),
+                  valueColor: AlwaysStoppedAnimation<Color>(isDark ? colorScheme.onSurface : colorScheme.primary),
                 ),
               )
             : PopupMenuButton<String>(
                 enabled: !vm.isTestingPrinter,
                 iconColor: isDark ? colorScheme.onSurface : null,
-                onSelected: (value) =>
-                    _onMenuSelected(context, vm, printer, value),
+                onSelected: (value) => _onMenuSelected(context, vm, printer, value),
                 itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'test',
-                    child: Text(context.l10n.printerConfigTestPrinter),
-                  ),
-                  if (!isDefault)
-                    PopupMenuItem(
-                      value: 'default',
-                      child: Text(context.l10n.printerConfigSetDefault),
-                    ),
+                  PopupMenuItem(value: 'test', child: Text(context.l10n.printerConfigTestPrinter)),
+                  if (!isDefault) PopupMenuItem(value: 'default', child: Text(context.l10n.printerConfigSetDefault)),
                   PopupMenuItem(value: 'edit', child: Text(context.l10n.edit)),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Text(context.l10n.printerConfigRemoveAction),
-                  ),
+                  PopupMenuItem(value: 'delete', child: Text(context.l10n.printerConfigRemoveAction)),
                 ],
               ),
       ),
     );
   }
 
-  Future<void> _onMenuSelected(
-    BuildContext context,
-    ConfigViewModel vm,
-    PrinterConfig printer,
-    String action,
-  ) async {
+  Future<void> _onMenuSelected(BuildContext context, ConfigViewModel vm, PrinterConfig printer, String action) async {
     switch (action) {
       case 'test':
         await _testPrinter(vm, printer);
@@ -308,16 +253,10 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
     }
 
     final colorScheme = Theme.of(context).colorScheme;
-    final backgroundColor = result.isSuccess
-        ? colorScheme.tertiary
-        : colorScheme.error;
+    final backgroundColor = result.isSuccess ? colorScheme.tertiary : colorScheme.error;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(result.message),
-        backgroundColor: backgroundColor,
-        duration: const Duration(seconds: 4),
-      ),
+      SnackBar(content: Text(result.message), backgroundColor: backgroundColor, duration: const Duration(seconds: 4)),
     );
   }
 
@@ -336,11 +275,7 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
         : colorScheme.error;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(result.message),
-        backgroundColor: backgroundColor,
-        duration: const Duration(seconds: 4),
-      ),
+      SnackBar(content: Text(result.message), backgroundColor: backgroundColor, duration: const Duration(seconds: 4)),
     );
   }
 
@@ -353,8 +288,7 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
 
     final result = await showDialog<_AdvancedDiscoveryResult>(
       context: context,
-      builder: (dialogContext) =>
-          _AdvancedDiscoveryDialog(initialPrefix: suggestedPrefix ?? ''),
+      builder: (dialogContext) => _AdvancedDiscoveryDialog(initialPrefix: suggestedPrefix ?? ''),
     );
 
     if (result == null || !mounted) {
@@ -387,21 +321,14 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
     );
   }
 
-  Future<void> _confirmDelete(
-    BuildContext context,
-    ConfigViewModel vm,
-    PrinterConfig printer,
-  ) async {
+  Future<void> _confirmDelete(BuildContext context, ConfigViewModel vm, PrinterConfig printer) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(context.l10n.printerConfigRemoveTitle),
         content: Text(context.l10n.printerConfigRemoveMessage(printer.name)),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.l10n.cancel),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(context.l10n.cancel)),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(context.l10n.printerConfigRemoveAction),
@@ -415,10 +342,7 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
     }
   }
 
-  Future<void> _showPrinterDialog(
-    BuildContext context, {
-    PrinterConfig? printer,
-  }) async {
+  Future<void> _showPrinterDialog(BuildContext context, {PrinterConfig? printer}) async {
     final vm = context.read<ConfigViewModel>();
     final result = await showDialog<_PrinterDialogResult>(
       context: context,
@@ -434,9 +358,7 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
       return;
     }
 
-    await vm.updatePrinter(
-      printer.copyWith(name: result.name, ip: result.ip, port: result.port),
-    );
+    await vm.updatePrinter(printer.copyWith(name: result.name, ip: result.ip, port: result.port));
   }
 }
 
@@ -460,9 +382,7 @@ class _PrinterDialogState extends State<_PrinterDialog> {
     super.initState();
     _nameController = TextEditingController(text: widget.printer?.name ?? '');
     _ipController = TextEditingController(text: widget.printer?.ip ?? '');
-    _portController = TextEditingController(
-      text: (widget.printer?.port ?? 9100).toString(),
-    );
+    _portController = TextEditingController(text: (widget.printer?.port ?? 9100).toString());
   }
 
   @override
@@ -478,11 +398,7 @@ class _PrinterDialogState extends State<_PrinterDialog> {
     final isEdit = widget.printer != null;
 
     return AlertDialog(
-      title: Text(
-        isEdit
-            ? context.l10n.printerConfigEditTitle
-            : context.l10n.printerConfigAddTitle,
-      ),
+      title: Text(isEdit ? context.l10n.printerConfigEditTitle : context.l10n.printerConfigAddTitle),
       content: Form(
         key: _formKey,
         child: SizedBox(
@@ -538,15 +454,10 @@ class _PrinterDialogState extends State<_PrinterDialog> {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(context.l10n.cancel),
-        ),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.cancel)),
         ElevatedButton(
           onPressed: _submit,
-          child: Text(
-            isEdit ? context.l10n.save : context.l10n.printerConfigAddAction,
-          ),
+          child: Text(isEdit ? context.l10n.save : context.l10n.printerConfigAddAction),
         ),
       ],
     );
@@ -572,11 +483,7 @@ class _PrinterDialogResult {
   final String ip;
   final int port;
 
-  const _PrinterDialogResult({
-    required this.name,
-    required this.ip,
-    required this.port,
-  });
+  const _PrinterDialogResult({required this.name, required this.ip, required this.port});
 }
 
 class _AdvancedDiscoveryDialog extends StatefulWidget {
@@ -585,22 +492,15 @@ class _AdvancedDiscoveryDialog extends StatefulWidget {
   const _AdvancedDiscoveryDialog({required this.initialPrefix});
 
   @override
-  State<_AdvancedDiscoveryDialog> createState() =>
-      _AdvancedDiscoveryDialogState();
+  State<_AdvancedDiscoveryDialog> createState() => _AdvancedDiscoveryDialogState();
 }
 
 class _AdvancedDiscoveryDialogState extends State<_AdvancedDiscoveryDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _prefixController;
-  final TextEditingController _startHostController = TextEditingController(
-    text: '1',
-  );
-  final TextEditingController _endHostController = TextEditingController(
-    text: '254',
-  );
-  final TextEditingController _portController = TextEditingController(
-    text: '9100',
-  );
+  final TextEditingController _startHostController = TextEditingController(text: '1');
+  final TextEditingController _endHostController = TextEditingController(text: '254');
+  final TextEditingController _portController = TextEditingController(text: '9100');
 
   @override
   void initState() {
@@ -656,10 +556,7 @@ class _AdvancedDiscoveryDialogState extends State<_AdvancedDiscoveryDialog> {
                     child: TextFormField(
                       controller: _startHostController,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: context.l10n.printerConfigStartHostLabel,
-                        hintText: '1',
-                      ),
+                      decoration: InputDecoration(labelText: context.l10n.printerConfigStartHostLabel, hintText: '1'),
                       validator: (value) {
                         final n = int.tryParse(value?.trim() ?? '');
                         if (n == null || n < 1 || n > 254) {
@@ -674,10 +571,7 @@ class _AdvancedDiscoveryDialogState extends State<_AdvancedDiscoveryDialog> {
                     child: TextFormField(
                       controller: _endHostController,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: context.l10n.printerConfigEndHostLabel,
-                        hintText: '254',
-                      ),
+                      decoration: InputDecoration(labelText: context.l10n.printerConfigEndHostLabel, hintText: '254'),
                       validator: (value) {
                         final n = int.tryParse(value?.trim() ?? '');
                         if (n == null || n < 1 || n > 254) {
@@ -710,14 +604,8 @@ class _AdvancedDiscoveryDialogState extends State<_AdvancedDiscoveryDialog> {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(context.l10n.cancel),
-        ),
-        ElevatedButton(
-          onPressed: _submit,
-          child: Text(context.l10n.printerConfigSearchAction),
-        ),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.cancel)),
+        ElevatedButton(onPressed: _submit, child: Text(context.l10n.printerConfigSearchAction)),
       ],
     );
   }
@@ -730,9 +618,9 @@ class _AdvancedDiscoveryDialogState extends State<_AdvancedDiscoveryDialog> {
     final startHost = int.parse(_startHostController.text.trim());
     final endHost = int.parse(_endHostController.text.trim());
     if (startHost > endHost) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.printerConfigHostRangeOrderError)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.printerConfigHostRangeOrderError)));
       return;
     }
 

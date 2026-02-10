@@ -234,11 +234,7 @@ class ShipmentSeparateDataSource extends DataGridSource {
       decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(12)),
       child: Text(
         text,
-        style: AppFonts.inter(
-          color: textColor,
-          fontSize: UIConstants.extraSmallFontSize,
-          fontWeight: FontWeight.bold,
-        ),
+        style: AppFonts.inter(color: textColor, fontSize: UIConstants.extraSmallFontSize, fontWeight: FontWeight.bold),
       ),
     );
   }

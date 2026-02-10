@@ -165,8 +165,8 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
                       text: widget.viewModel.isAdding
                           ? 'Adicionando...'
                           : widget.viewModel.isCountdownActive
-                              ? 'Adicionar (${widget.viewModel.countdownSeconds}s)'
-                              : 'Adicionar',
+                          ? 'Adicionar (${widget.viewModel.countdownSeconds}s)'
+                          : 'Adicionar',
                       icon: Icons.add_shopping_cart,
                       onPressed: !widget.viewModel.isAdding ? widget.onAdd : null,
                       isLoading: widget.viewModel.isAdding,

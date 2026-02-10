@@ -59,9 +59,7 @@ class NextItemCard extends StatelessWidget {
 
   Widget _buildHeader(ThemeData theme, ColorScheme colorScheme, int completedCount, int totalCount) {
     final headerColor = theme.adaptivePrimary(colorScheme);
-    final counterColor = completedCount == totalCount
-        ? AppColors.green700
-        : theme.adaptiveSecondary(colorScheme);
+    final counterColor = completedCount == totalCount ? AppColors.green700 : theme.adaptiveSecondary(colorScheme);
 
     return Row(
       children: [
@@ -82,17 +80,19 @@ class NextItemCard extends StatelessWidget {
           ),
           child: Text(
             '$completedCount/$totalCount',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: counterColor,
-              fontWeight: FontWeight.bold,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: counterColor, fontWeight: FontWeight.bold),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildNextItemContent(BuildContext context, ThemeData theme, ColorScheme colorScheme, SeparateItemConsultationModel nextItem) {
+  Widget _buildNextItemContent(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    SeparateItemConsultationModel nextItem,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -224,15 +224,20 @@ class NextItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildBarcodeInfo(BuildContext context, ThemeData theme, ColorScheme colorScheme, SeparateItemConsultationModel nextItem) {
+  Widget _buildBarcodeInfo(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    SeparateItemConsultationModel nextItem,
+  ) {
     // Se tem múltiplas unidades de medida, mostrar dropdown
-      if (nextItem.unidadeMedidas.length > 1) {
+    if (nextItem.unidadeMedidas.length > 1) {
       return _buildBarcodeDropdown(context, theme, colorScheme, nextItem, itemState);
     }
 
     // Caso contrário, mostrar como antes
     final barcodeColor = theme.adaptiveOnSurfaceVariant(colorScheme);
-    
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -247,9 +252,10 @@ class NextItemCard extends StatelessWidget {
           Expanded(
             child: Text(
               nextItem.codigoBarras!,
-              style: AppTextStyles.code(context, color: barcodeColor).copyWith(
-                fontSize: theme.textTheme.bodySmall?.fontSize,
-              ),
+              style: AppTextStyles.code(
+                context,
+                color: barcodeColor,
+              ).copyWith(fontSize: theme.textTheme.bodySmall?.fontSize),
             ),
           ),
           const SizedBox(width: 8),
@@ -289,13 +295,8 @@ class NextItemCard extends StatelessWidget {
                 value: unidadePadrao,
                 isExpanded: true,
                 isDense: true,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.isDark ? AppColors.light : null,
-                ),
-                icon: Icon(
-                  Icons.arrow_drop_down,
-                  color: theme.adaptiveOnSurfaceVariant(colorScheme),
-                ),
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.isDark ? AppColors.light : null),
+                icon: Icon(Icons.arrow_drop_down, color: theme.adaptiveOnSurfaceVariant(colorScheme)),
                 dropdownColor: theme.isDark ? colorScheme.surfaceContainerHighest : colorScheme.surface,
                 items: nextItem.unidadeMedidas.map((unidade) {
                   return DropdownMenuItem<SeparateItemUnidadeMedidaConsultationModel>(
@@ -324,7 +325,7 @@ class NextItemCard extends StatelessWidget {
     SeparateItemUnidadeMedidaConsultationModel unidade,
   ) {
     final isPadrao = unidade.unidadeMedidaPadrao == Situation.ativo;
-    
+
     final baseTextColor = theme.adaptiveOnSurfaceVariant(colorScheme);
     final barcodeColor = theme.adaptiveSecondary(colorScheme);
 

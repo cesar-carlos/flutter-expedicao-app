@@ -116,9 +116,10 @@ class SeparateItemCard extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   'Código: ${item.codigoBarras}',
-                  style: AppTextStyles.code(context, color: colorScheme.onSurfaceVariant).copyWith(
-                    fontSize: theme.textTheme.bodySmall?.fontSize,
-                  ),
+                  style: AppTextStyles.code(
+                    context,
+                    color: colorScheme.onSurfaceVariant,
+                  ).copyWith(fontSize: theme.textTheme.bodySmall?.fontSize),
                 ),
               ],
             ),

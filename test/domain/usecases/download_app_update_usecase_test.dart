@@ -33,46 +33,39 @@ void main() {
 
     test('should return APK path when download succeeds', () async {
       // Arrange
-      when(mockRepository.downloadApk(
-        any,
-        fileName: anyNamed('fileName'),
-        onProgress: anyNamed('onProgress'),
-        isCancelled: anyNamed('isCancelled'),
-      )).thenAnswer((_) async => success(tApkPath));
+      when(
+        mockRepository.downloadApk(
+          any,
+          fileName: anyNamed('fileName'),
+          onProgress: anyNamed('onProgress'),
+          isCancelled: anyNamed('isCancelled'),
+        ),
+      ).thenAnswer((_) async => success(tApkPath));
 
       // Act
-      final result = await useCase(const DownloadAppUpdateParams(
-        downloadUrl: tDownloadUrl,
-        fileName: tFileName,
-      ));
+      final result = await useCase(const DownloadAppUpdateParams(downloadUrl: tDownloadUrl, fileName: tFileName));
 
       // Assert
       expect(result.isSuccess(), true);
       expect(result.get(), tApkPath);
-      verify(mockRepository.downloadApk(
-        tDownloadUrl,
-        fileName: tFileName,
-        onProgress: null,
-        isCancelled: null,
-      )).called(1);
+      verify(
+        mockRepository.downloadApk(tDownloadUrl, fileName: tFileName, onProgress: null, isCancelled: null),
+      ).called(1);
     });
 
     test('should return downloadFailed when download fails', () async {
       // Arrange
-      when(mockRepository.downloadApk(
-        any,
-        fileName: anyNamed('fileName'),
-        onProgress: anyNamed('onProgress'),
-        isCancelled: anyNamed('isCancelled'),
-      )).thenAnswer(
-        (_) async => failure(AppUpdateFailure.downloadFailed('Network error')),
-      );
+      when(
+        mockRepository.downloadApk(
+          any,
+          fileName: anyNamed('fileName'),
+          onProgress: anyNamed('onProgress'),
+          isCancelled: anyNamed('isCancelled'),
+        ),
+      ).thenAnswer((_) async => failure(AppUpdateFailure.downloadFailed('Network error')));
 
       // Act
-      final result = await useCase(const DownloadAppUpdateParams(
-        downloadUrl: tDownloadUrl,
-        fileName: tFileName,
-      ));
+      final result = await useCase(const DownloadAppUpdateParams(downloadUrl: tDownloadUrl, fileName: tFileName));
 
       // Assert
       expect(result.isError(), true);
@@ -88,27 +81,22 @@ void main() {
         lastReceived = received;
       }
 
-      when(mockRepository.downloadApk(
-        any,
-        fileName: anyNamed('fileName'),
-        onProgress: anyNamed('onProgress'),
-        isCancelled: anyNamed('isCancelled'),
-      )).thenAnswer((_) async => success(tApkPath));
+      when(
+        mockRepository.downloadApk(
+          any,
+          fileName: anyNamed('fileName'),
+          onProgress: anyNamed('onProgress'),
+          isCancelled: anyNamed('isCancelled'),
+        ),
+      ).thenAnswer((_) async => success(tApkPath));
 
       // Act
-      await useCase(DownloadAppUpdateParams(
-        downloadUrl: tDownloadUrl,
-        fileName: tFileName,
-        onProgress: onProgress,
-      ));
+      await useCase(DownloadAppUpdateParams(downloadUrl: tDownloadUrl, fileName: tFileName, onProgress: onProgress));
 
       // Assert
-      verify(mockRepository.downloadApk(
-        tDownloadUrl,
-        fileName: tFileName,
-        onProgress: onProgress,
-        isCancelled: null,
-      )).called(1);
+      verify(
+        mockRepository.downloadApk(tDownloadUrl, fileName: tFileName, onProgress: onProgress, isCancelled: null),
+      ).called(1);
       expect(lastReceived, 0);
     });
   });

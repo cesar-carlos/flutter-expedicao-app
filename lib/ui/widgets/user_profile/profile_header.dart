@@ -196,11 +196,7 @@ class ProfileHeader extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: colorScheme.surface, width: 2),
             ),
-            child: Icon(
-              user.isActive ? Icons.check : Icons.close,
-              size: 10,
-              color: colorScheme.onPrimary,
-            ),
+            child: Icon(user.isActive ? Icons.check : Icons.close, size: 10, color: colorScheme.onPrimary),
           ),
         ),
       ],

@@ -4,8 +4,7 @@ import 'package:flutter/services.dart';
 
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
-import 'package:data7_expedicao/domain/viewmodels/card_picking_viewmodel.dart';
-import 'package:data7_expedicao/core/utils/picking_utils.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 
 class QuantitySelectorCard extends StatefulWidget {
   final TextEditingController controller;
@@ -58,9 +57,7 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: widget.enabled
-              ? AppColors.warning.withValues(alpha: 0.3)
-              : colorScheme.outline.withValues(alpha: 0.3),
+          color: widget.enabled ? AppColors.warning.withValues(alpha: 0.3) : colorScheme.outline.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -81,12 +78,8 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
   int get _maxQuantity {
     if (widget.viewModel == null) return 999;
 
-    // Encontrar o próximo item usando o mesmo utilitário do NextItemCard
-    final nextItem = PickingUtils.findNextItemToPick(
-      widget.viewModel!.items,
-      widget.viewModel!.isItemCompleted,
-      userSectorCode: widget.viewModel!.userModel?.codSetorEstoque,
-    );
+    // 🚀 Otimização: Usar nextItem em cache do ViewModel em vez de recalcular
+    final nextItem = widget.viewModel!.nextItem;
 
     if (nextItem == null) return 999;
 
@@ -174,11 +167,7 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
 
     return Row(
       children: [
-        Icon(
-          Icons.inventory_2,
-          color: widget.enabled ? AppColors.warning : colorScheme.onSurfaceVariant,
-          size: 20,
-        ),
+        Icon(Icons.inventory_2, color: widget.enabled ? AppColors.warning : colorScheme.onSurfaceVariant, size: 20),
         const SizedBox(width: 6),
         Text(
           'Quantidade a Separar',
@@ -212,17 +201,12 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
       onLongPressEnd: widget.enabled ? (_) => _stopDecrementing() : null,
       child: Container(
         decoration: BoxDecoration(
-          color: widget.enabled
-              ? AppColors.warning.withValues(alpha: 0.1)
-              : colorScheme.surfaceContainerHighest,
+          color: widget.enabled ? AppColors.warning.withValues(alpha: 0.1) : colorScheme.surfaceContainerHighest,
           shape: BoxShape.circle,
         ),
         child: IconButton(
           onPressed: widget.enabled ? _decrementOnce : null,
-          icon: Icon(
-            Icons.remove,
-            color: widget.enabled ? AppColors.warning : colorScheme.onSurfaceVariant,
-          ),
+          icon: Icon(Icons.remove, color: widget.enabled ? AppColors.warning : colorScheme.onSurfaceVariant),
           style: IconButton.styleFrom(backgroundColor: AppColors.transparent, shape: const CircleBorder()),
         ),
       ),
@@ -252,9 +236,7 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
     final currentQuantity = _currentQuantity;
     final maxQuantity = _maxQuantity;
     final exceedsMax = currentQuantity > maxQuantity;
-    final borderColor = exceedsMax
-        ? AppColors.error
-        : (widget.enabled ? AppColors.warning : colorScheme.outline);
+    final borderColor = exceedsMax ? AppColors.error : (widget.enabled ? AppColors.warning : colorScheme.outline);
 
     return Expanded(
       child: TextField(
@@ -300,9 +282,7 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
         style: AppFonts.inter(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: exceedsMax
-              ? AppColors.error
-              : (widget.enabled ? null : colorScheme.onSurfaceVariant),
+          color: exceedsMax ? AppColors.error : (widget.enabled ? null : colorScheme.onSurfaceVariant),
         ),
       ),
     );
@@ -316,15 +296,8 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
   Widget _buildHelpText(ThemeData theme, ColorScheme colorScheme) {
     final maxQuantity = _maxQuantity;
 
-    // Verificar se há próximo item disponível
-    final hasNextItem =
-        widget.viewModel != null &&
-        PickingUtils.findNextItemToPick(
-              widget.viewModel!.items,
-              widget.viewModel!.isItemCompleted,
-              userSectorCode: widget.viewModel!.userModel?.codSetorEstoque,
-            ) !=
-            null;
+    // 🚀 Otimização: Verificar se há próximo item usando o cache do ViewModel
+    final hasNextItem = widget.viewModel != null && widget.viewModel!.nextItem != null;
 
     final helpText = hasNextItem
         ? 'Quantidade restante a separar: $maxQuantity'

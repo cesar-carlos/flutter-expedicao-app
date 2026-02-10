@@ -15,7 +15,8 @@ class WebSocketMetrics {
   DateTime? lastSuccessfulOperation;
   DateTime? lastFailedOperation;
 
-  List<int> get operationLatenciesMs => List.unmodifiable(_operationLatenciesMs);
+  List<int> get operationLatenciesMs =>
+      List.unmodifiable(_operationLatenciesMs);
 
   int? get averageLatencyMs {
     if (_operationLatenciesMs.isEmpty) return null;
@@ -23,18 +24,23 @@ class WebSocketMetrics {
     return sum ~/ _operationLatenciesMs.length;
   }
 
-  int? get maxLatencyMs =>
-      _operationLatenciesMs.isEmpty ? null : _operationLatenciesMs.reduce((a, b) => a > b ? a : b);
+  int? get maxLatencyMs => _operationLatenciesMs.isEmpty
+      ? null
+      : _operationLatenciesMs.reduce((a, b) => a > b ? a : b);
 
-  int? get minLatencyMs =>
-      _operationLatenciesMs.isEmpty ? null : _operationLatenciesMs.reduce((a, b) => a < b ? a : b);
+  int? get minLatencyMs => _operationLatenciesMs.isEmpty
+      ? null
+      : _operationLatenciesMs.reduce((a, b) => a < b ? a : b);
 
-  Duration? get averageLatency =>
-      averageLatencyMs != null ? Duration(milliseconds: averageLatencyMs!) : null;
+  Duration? get averageLatency => averageLatencyMs != null
+      ? Duration(milliseconds: averageLatencyMs!)
+      : null;
 
-  Duration? get maxLatency => maxLatencyMs != null ? Duration(milliseconds: maxLatencyMs!) : null;
+  Duration? get maxLatency =>
+      maxLatencyMs != null ? Duration(milliseconds: maxLatencyMs!) : null;
 
-  Duration? get minLatency => minLatencyMs != null ? Duration(milliseconds: minLatencyMs!) : null;
+  Duration? get minLatency =>
+      minLatencyMs != null ? Duration(milliseconds: minLatencyMs!) : null;
 
   double get successRate {
     if (totalOperations == 0) return 1.0;
@@ -102,14 +108,20 @@ class WebSocketMetrics {
     m.totalConnections = (json['totalConnections'] as int?) ?? 0;
     m.failedConnections = (json['failedConnections'] as int?) ?? 0;
     final lastConnMs = json['lastConnectionTimeMs'] as int?;
-    m.lastConnectionTime = lastConnMs != null ? Duration(milliseconds: lastConnMs) : null;
+    m.lastConnectionTime = lastConnMs != null
+        ? Duration(milliseconds: lastConnMs)
+        : null;
     m.totalOperations = (json['totalOperations'] as int?) ?? 0;
     m.successfulOperations = (json['successfulOperations'] as int?) ?? 0;
     m.failedOperations = (json['failedOperations'] as int?) ?? 0;
     final lastOk = json['lastSuccessfulOperation'] as String?;
-    m.lastSuccessfulOperation = lastOk != null ? DateTime.tryParse(lastOk) : null;
+    m.lastSuccessfulOperation = lastOk != null
+        ? DateTime.tryParse(lastOk)
+        : null;
     final lastFail = json['lastFailedOperation'] as String?;
-    m.lastFailedOperation = lastFail != null ? DateTime.tryParse(lastFail) : null;
+    m.lastFailedOperation = lastFail != null
+        ? DateTime.tryParse(lastFail)
+        : null;
     final list = json['operationLatenciesMs'];
     if (list is List) {
       for (final e in list) {

@@ -138,7 +138,12 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
           await _userSessionService.saveUserSession(user);
         }
       } catch (e, stackTrace) {
-        AppLogger.warning('Erro ao carregar userSystemModel ou salvar sessão', tag: 'AddCartUseCase', error: e, stackTrace: stackTrace);
+        AppLogger.warning(
+          'Erro ao carregar userSystemModel ou salvar sessão',
+          tag: 'AddCartUseCase',
+          error: e,
+          stackTrace: stackTrace,
+        );
       }
 
       return user;

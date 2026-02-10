@@ -74,7 +74,7 @@ class _LoginFormState extends State<LoginForm> {
   @override
   Widget build(BuildContext context) {
     final validators = FormValidatorsLocalized(context.l10n);
-    
+
     return Consumer<AuthViewModel>(
       builder: (context, authViewModel, child) {
         return Form(

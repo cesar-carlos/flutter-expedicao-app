@@ -26,10 +26,16 @@ class CartsFiltersModel {
       codCarrinho: json['codCarrinho'],
       nomeCarrinho: json['nomeCarrinho'],
       codigoBarrasCarrinho: json['codigoBarrasCarrinho'],
-      situacoes: json['situacoes'] != null ? List<String>.from(json['situacoes']) : null,
+      situacoes: json['situacoes'] != null
+          ? List<String>.from(json['situacoes'])
+          : null,
       nomeUsuarioInicio: json['nomeUsuarioInicio'],
-      dataInicioInicial: json['dataInicioInicial'] != null ? DateTime.parse(json['dataInicioInicial']) : null,
-      dataInicioFinal: json['dataInicioFinal'] != null ? DateTime.parse(json['dataInicioFinal']) : null,
+      dataInicioInicial: json['dataInicioInicial'] != null
+          ? DateTime.parse(json['dataInicioInicial'])
+          : null,
+      dataInicioFinal: json['dataInicioFinal'] != null
+          ? DateTime.parse(json['dataInicioFinal'])
+          : null,
       carrinhoAgrupador: json['carrinhoAgrupador'] != null
           ? Situation.fromCodeWithFallback(json['carrinhoAgrupador'])
           : Situation.inativo,

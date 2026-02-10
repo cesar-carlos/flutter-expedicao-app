@@ -59,7 +59,9 @@ class ExpeditionCheckItemModel {
         codProduto: json['CodProduto'],
         codUnidadeMedida: json['CodUnidadeMedida'],
         quantidade: AppHelper.stringToDouble(json['Quantidade']),
-        quantidadeConferida: AppHelper.stringToDouble(json['QuantidadeConferida']),
+        quantidadeConferida: AppHelper.stringToDouble(
+          json['QuantidadeConferida'],
+        ),
       );
     } catch (_) {
       rethrow;
@@ -68,7 +70,9 @@ class ExpeditionCheckItemModel {
 
   /// Factory method para criação segura com validação de schema
   /// Retorna um Result que pode ser sucesso ou falha
-  static Result<ExpeditionCheckItemModel> fromJsonSafe(Map<String, dynamic> json) {
+  static Result<ExpeditionCheckItemModel> fromJsonSafe(
+    Map<String, dynamic> json,
+  ) {
     return safeCallSync(() => ExpeditionCheckItemModel.fromJson(json));
   }
 
@@ -96,7 +100,8 @@ class ExpeditionCheckItemModel {
   bool get temDiferenca => diferencaQuantidade != 0;
 
   /// Retorna a porcentagem de conferência
-  double get porcentagemConferencia => quantidade > 0 ? (quantidadeConferida / quantidade) * 100 : 0;
+  double get porcentagemConferencia =>
+      quantidade > 0 ? (quantidadeConferida / quantidade) * 100 : 0;
 
   /// Retorna se o item está pendente de conferência
   bool get isPendenteConferencia => quantidadeConferida < quantidade;
@@ -114,7 +119,8 @@ class ExpeditionCheckItemModel {
   }
 
   @override
-  int get hashCode => codEmpresa.hashCode ^ codConferir.hashCode ^ item.hashCode;
+  int get hashCode =>
+      codEmpresa.hashCode ^ codConferir.hashCode ^ item.hashCode;
 
   @override
   String toString() {

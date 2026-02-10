@@ -278,10 +278,12 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       String errorMessage;
       if (failure is DataFailure && failure.code == 'NOT_FOUND') {
         if (userSectorStock != null && userSectorStock > 0) {
-          errorMessage = 'Não existem itens do setor $userSectorStock ($userSectorName) para imprimir nesta separação.\n'
+          errorMessage =
+              'Não existem itens do setor $userSectorStock ($userSectorName) para imprimir nesta separação.\n'
               'Usuário: $separatorName';
         } else {
-          errorMessage = 'Não existem itens para imprimir nesta separação.\n'
+          errorMessage =
+              'Não existem itens para imprimir nesta separação.\n'
               'Usuário: $separatorName';
         }
       } else {
