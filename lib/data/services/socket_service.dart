@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
@@ -14,7 +15,11 @@ class SocketService extends ChangeNotifier {
   SocketConnectionState _connectionState = SocketConnectionState.disconnected;
   final Map<String, StreamController> _eventStreams = {};
   Timer? _heartbeatTimer;
+  Timer? _reconnectTimer;
   String? _userId;
+  int _reconnectAttempts = 0;
+  bool _isReconnecting = false;
+  static const int _maxReconnectAttempts = 10;
 
   SocketConnectionState get connectionState => _connectionState;
 
@@ -53,7 +58,9 @@ class SocketService extends ChangeNotifier {
 
   void disconnect() {
     try {
+      _cancelReconnectTimer();
       _stopHeartbeat();
+      _reconnectAttempts = 0;
       SocketConfig.disconnect();
       _updateConnectionState(SocketConnectionState.disconnected);
     } catch (e, stackTrace) {
@@ -63,12 +70,66 @@ class SocketService extends ChangeNotifier {
   }
 
   Future<void> reconnect() async {
+    if (_isReconnecting) return;
+
     try {
+      _isReconnecting = true;
       _updateConnectionState(SocketConnectionState.reconnecting);
       await SocketConfig.reconnect();
     } catch (e) {
       _updateConnectionState(SocketConnectionState.error);
+      rethrow;
+    } finally {
+      _isReconnecting = false;
     }
+  }
+
+  Future<void> _scheduleReconnect() async {
+    if (_isReconnecting || _reconnectAttempts >= _maxReconnectAttempts) {
+      if (_reconnectAttempts >= _maxReconnectAttempts) {
+        AppLogger.error('Número máximo de tentativas de reconexão atingido', tag: 'SocketService');
+      }
+      return;
+    }
+
+    _isReconnecting = true;
+    _reconnectAttempts++;
+
+    final delay = Duration(seconds: min(512, pow(2, _reconnectAttempts - 1).toInt()));
+
+    AppLogger.connection(
+      'Agendando reconexão em ${delay.inSeconds}s (tentativa $_reconnectAttempts/$_maxReconnectAttempts)',
+      tag: 'SocketService',
+    );
+
+    _reconnectTimer = Timer(delay, () async {
+      if (_connectionState == SocketConnectionState.connected) {
+        _reconnectAttempts = 0;
+        _isReconnecting = false;
+        return;
+      }
+
+      try {
+        await connect();
+        if (isConnected) {
+          _reconnectAttempts = 0;
+          AppLogger.connection('Reconexão bem-sucedida', tag: 'SocketService');
+        } else {
+          await _scheduleReconnect();
+        }
+      } catch (e) {
+        AppLogger.error('Falha na reconexão', tag: 'SocketService', error: e);
+        await _scheduleReconnect();
+      } finally {
+        _isReconnecting = false;
+      }
+    });
+  }
+
+  void _cancelReconnectTimer() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+    _isReconnecting = false;
   }
 
   void emit(String eventName, dynamic data) {
@@ -128,7 +189,9 @@ class SocketService extends ChangeNotifier {
       AppLogger.init('Atualizando config do socket', tag: 'SocketService');
       AppLogger.data('Nova URL: ${newConfig.fullUrl}', tag: 'SocketService');
 
+      _cancelReconnectTimer();
       _stopHeartbeat();
+      _reconnectAttempts = 0;
       _updateConnectionState(SocketConnectionState.disconnected);
 
       SocketConfig.updateConfig(newConfig);
@@ -159,6 +222,8 @@ class SocketService extends ChangeNotifier {
     final socket = SocketConfig.instance;
 
     socket.onConnect((_) {
+      _cancelReconnectTimer();
+      _reconnectAttempts = 0;
       _updateConnectionState(SocketConnectionState.connected);
       _startHeartbeat();
 
@@ -170,10 +235,12 @@ class SocketService extends ChangeNotifier {
     socket.onDisconnect((_) {
       _updateConnectionState(SocketConnectionState.disconnected);
       _stopHeartbeat();
+      _scheduleReconnect();
     });
 
     socket.onConnectError((data) {
       _updateConnectionState(SocketConnectionState.error);
+      _scheduleReconnect();
     });
 
     socket.onError((data) {
@@ -181,6 +248,8 @@ class SocketService extends ChangeNotifier {
     });
 
     socket.onReconnect((_) {
+      _cancelReconnectTimer();
+      _reconnectAttempts = 0;
       _updateConnectionState(SocketConnectionState.connected);
     });
   }
@@ -207,6 +276,7 @@ class SocketService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _cancelReconnectTimer();
     _stopHeartbeat();
 
     for (final stream in _eventStreams.values) {

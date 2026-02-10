@@ -48,6 +48,7 @@ class SeparationViewModel extends ChangeNotifier {
 
   List<ExpeditionSectorStockModel> _availableSectors = [];
   bool _sectorsLoaded = false;
+  bool _isLoadingSectors = false;
 
   int _currentPage = 0;
   final int _pageSize = 20;
@@ -119,7 +120,7 @@ class SeparationViewModel extends ChangeNotifier {
       _setorEstoqueFilter != null;
 
   Future<void> loadSeparations() async {
-    if (_disposed) return;
+    if (_disposed || isLoading) return;
 
     try {
       _setState(SeparationState.loading);
@@ -203,9 +204,10 @@ class SeparationViewModel extends ChangeNotifier {
   }
 
   Future<void> loadAvailableSectors() async {
-    if (_sectorsLoaded || _disposed) return;
+    if (_sectorsLoaded || _disposed || _isLoadingSectors) return;
 
     try {
+      _isLoadingSectors = true;
       final queryBuilder = QueryBuilder()..orderByAsc('Descricao');
 
       final sectors = await _sectorRepository.select(queryBuilder);
@@ -216,8 +218,11 @@ class SeparationViewModel extends ChangeNotifier {
       _sectorsLoaded = true;
       _safeNotifyListeners();
     } catch (e) {
+      if (_disposed) return;
       _availableSectors = [];
       _sectorsLoaded = false;
+    } finally {
+      _isLoadingSectors = false;
     }
   }
 
