@@ -218,25 +218,12 @@ class AddCartViewModel extends ChangeNotifier {
         _stopAutoAddCountdown();
         AppLogger.debug('COUNTDOWN: Executando auto add', tag: 'AddCartViewModel');
         if (!_disposed) {
-          _executeAutoAdd();
+          addCartToSeparation();
         }
       } else {
         notifyListeners();
       }
     });
-  }
-
-  Future<void> _executeAutoAdd() async {
-    AppLogger.debug('AUTO_ADD: Chamando addCartToSeparation', tag: 'AddCartViewModel');
-    final success = await addCartToSeparation();
-
-    if (success && !_disposed) {
-      AppLogger.debug('AUTO_ADD: Sucesso, limpando dados para novo scan', tag: 'AddCartViewModel');
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (!_disposed) {
-        clearScannedData();
-      }
-    }
   }
 
   void _stopAutoAddCountdown() {

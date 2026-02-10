@@ -23,6 +23,7 @@ class AddCartScreen extends StatefulWidget {
 class _AddCartScreenState extends State<AddCartScreen> {
   final _scrollController = ScrollController();
   late AddCartViewModel _viewModel;
+  bool _wasAdding = false;
 
   @override
   void initState() {
@@ -47,6 +48,18 @@ class _AddCartScreenState extends State<AddCartScreen> {
           _scrollToActions();
         }
       });
+    }
+
+    if (_wasAdding && !_viewModel.isAdding && _viewModel.errorMessage == null && mounted) {
+      AppLogger.debug('onAddCart: detectado sucesso no add, fechando tela', tag: 'AddCartScreen');
+      _wasAdding = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.pop(true);
+        }
+      });
+    } else if (_viewModel.isAdding) {
+      _wasAdding = true;
     }
   }
 
@@ -151,31 +164,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
 
     viewModel.cancelAutoAdd();
     AppLogger.debug('onAddCart: chamando addCartToSeparation', tag: 'AddCartScreen');
-    final success = await viewModel.addCartToSeparation();
-
-    AppLogger.debug('onAddCart: resultado=$success, mounted=$mounted', tag: 'AddCartScreen');
-
-    if (success && mounted) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (mounted) {
-        AppLogger.debug('onAddCart: limpando dados para novo scan', tag: 'AddCartScreen');
-        viewModel.clearScannedData();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Carrinho adicionado com sucesso!'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } else if (!success && mounted) {
-      AppLogger.debug('onAddCart: mostrando erro', tag: 'AddCartScreen');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(viewModel.errorMessage ?? 'Erro ao adicionar carrinho'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
+    await viewModel.addCartToSeparation();
+    AppLogger.debug('onAddCart: addCartToSeparation completado', tag: 'AddCartScreen');
   }
 }
