@@ -54,13 +54,15 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
                   children: [
                     Icon(Icons.print, color: accentColor, size: 20),
                     const SizedBox(width: 8),
-                    Text(
-                      context.l10n.printerConfigTitle,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        context.l10n.printerConfigTitle,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Spacer(),
                     IconButton(
                       onPressed: vm.isLoadingPrinters ? null : vm.loadPrinters,
                       tooltip: context.l10n.printerConfigRefreshTooltip,

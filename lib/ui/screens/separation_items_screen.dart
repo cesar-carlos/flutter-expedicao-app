@@ -20,7 +20,6 @@ import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class SeparationItemsScreen extends StatefulWidget {
   final SeparateConsultationModel separation;
@@ -103,7 +102,10 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
                               child: Container(
                                 width: 8,
                                 height: 8,
-                                decoration: BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.error,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
                             ),
                         ],
@@ -134,25 +136,23 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         ],
       ),
       bottomNavigationBar: SeparateItemsBottomNavigation(tabController: _tabController),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       floatingActionButton: Consumer<SeparationItemsViewModel>(
         builder: (context, viewModel, child) {
           if (_tabController.index == 2) return const SizedBox.shrink();
+          if (_tabController.index != 0) return const SizedBox.shrink();
+          if (!_canAddCart(viewModel.separation)) return const SizedBox.shrink();
 
-          if (_tabController.index == 0) {
-            final canAddCart = _canAddCart(viewModel.separation);
-            return FloatingActionButton.extended(
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: FloatingActionButton.extended(
               heroTag: 'addCart',
-              onPressed: canAddCart ? () => _onAddCart(context) : null,
+              onPressed: () => _onAddCart(context),
               icon: const Icon(Icons.add_shopping_cart),
               label: const Text('Incluir Carrinho'),
-              tooltip: canAddCart
-                  ? 'Incluir novo carrinho na separação'
-                  : 'Não é possível adicionar carrinho na situação atual',
-              backgroundColor: canAddCart ? null : Colors.grey,
-            );
-          }
-
-          return const SizedBox.shrink();
+              tooltip: 'Incluir novo carrinho na separação',
+            ),
+          );
         },
       ),
     );
@@ -301,7 +301,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
               'Não é possível adicionar carrinho. Situação atual: ${viewModel.separation?.situacao.description ?? 'Desconhecida'}\n'
               'Permitido apenas em: Aguardando, Separando ou Em Separação',
             ),
-            backgroundColor: AppColors.warning,
+            backgroundColor: Theme.of(context).colorScheme.tertiary,
             duration: UIConstants.snackBarLongDuration,
           ),
         );
@@ -351,12 +351,12 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         AppLogger.debug('Primeira tentativa falhou, tentando novamente após refresh...', tag: 'SeparationItemsScreen');
         await Future.delayed(const Duration(milliseconds: 500));
         await viewModel.refresh();
-        
+
         if (!context.mounted) {
           AppLogger.warning('Context não está mais montado após refresh', tag: 'SeparationItemsScreen');
           return;
         }
-        
+
         final retryOpened = await _openSeparationForNewestCart(context, viewModel);
 
         if (!retryOpened && context.mounted) {
@@ -369,7 +369,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
               content: const Text(
                 'Carrinho adicionado, mas não foi possível abrir automaticamente. Tente abrir manualmente.',
               ),
-              backgroundColor: AppColors.warning,
+              backgroundColor: Theme.of(context).colorScheme.tertiary,
               duration: UIConstants.snackBarMediumDuration,
             ),
           );
@@ -435,13 +435,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         return false;
       }
 
-      context.push(
-        AppRouter.cardPicking,
-        extra: {
-          'cart': newestCart,
-          'userModel': userModel,
-        },
-      );
+      context.push(AppRouter.cardPicking, extra: {'cart': newestCart, 'userModel': userModel});
 
       return true;
     } catch (e, stackTrace) {
