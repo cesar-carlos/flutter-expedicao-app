@@ -57,12 +57,7 @@ void main() {
 
     test('deve retornar ValidationFailure quando porta for invalida', () async {
       final result = await repository.printTestTicket(
-        printer: const PrinterConfig(
-          id: '1',
-          name: 'IMP',
-          ip: '192.168.0.10',
-          port: 70000,
-        ),
+        printer: const PrinterConfig(id: '1', name: 'IMP', ip: '192.168.0.10', port: 70000),
       );
 
       expect(result.isError(), isTrue);
@@ -71,33 +66,20 @@ void main() {
 
     test('deve retornar DataFailure quando itens estiverem vazios', () async {
       final result = await repository.printExpeditionTicket(
-        printer: const PrinterConfig(
-          id: '1',
-          name: 'IMP',
-          ip: '192.168.0.10',
-          port: 9100,
-        ),
+        printer: const PrinterConfig(id: '1', name: 'IMP', ip: '192.168.0.10', port: 9100),
         items: const [],
       );
 
       expect(result.isError(), isTrue);
       expect(result.exceptionOrNull(), isA<DataFailure>());
-      expect(
-        (result.exceptionOrNull() as DataFailure).code,
-        equals('NOT_FOUND'),
-      );
+      expect((result.exceptionOrNull() as DataFailure).code, equals('NOT_FOUND'));
     });
 
     test('deve retornar sucesso na impressao de expedicao', () async {
       tcpService.scriptedResponses = [_buildSendReport()];
 
       final result = await repository.printExpeditionTicket(
-        printer: const PrinterConfig(
-          id: '1',
-          name: 'IMP',
-          ip: '192.168.0.10',
-          port: 9100,
-        ),
+        printer: const PrinterConfig(id: '1', name: 'IMP', ip: '192.168.0.10', port: 9100),
         items: [_buildItem()],
         separatorName: 'JOAO',
       );
@@ -119,12 +101,7 @@ void main() {
       tcpService.scriptedResponses = [_buildSendReport()];
 
       final result = await repository.printTestTicket(
-        printer: const PrinterConfig(
-          id: '1',
-          name: 'IMP TESTE',
-          ip: '192.168.0.10',
-          port: 9100,
-        ),
+        printer: const PrinterConfig(id: '1', name: 'IMP TESTE', ip: '192.168.0.10', port: 9100),
       );
 
       expect(result.isSuccess(), isTrue);
@@ -141,12 +118,7 @@ void main() {
       tcpService.scriptedResponses = [TimeoutException('timeout')];
 
       final result = await repository.printExpeditionTicket(
-        printer: const PrinterConfig(
-          id: '1',
-          name: 'IMP',
-          ip: '192.168.0.10',
-          port: 9100,
-        ),
+        printer: const PrinterConfig(id: '1', name: 'IMP', ip: '192.168.0.10', port: 9100),
         items: [_buildItem()],
       );
 
@@ -160,12 +132,7 @@ void main() {
       tcpService.scriptedResponses = [const SocketException('offline')];
 
       final result = await repository.printExpeditionTicket(
-        printer: const PrinterConfig(
-          id: '1',
-          name: 'IMP',
-          ip: '192.168.0.10',
-          port: 9100,
-        ),
+        printer: const PrinterConfig(id: '1', name: 'IMP', ip: '192.168.0.10', port: 9100),
         items: [_buildItem()],
       );
 
@@ -177,12 +144,7 @@ void main() {
       tcpService.scriptedResponses = [StateError('estado invalido')];
 
       final result = await repository.printExpeditionTicket(
-        printer: const PrinterConfig(
-          id: '1',
-          name: 'IMP',
-          ip: '192.168.0.10',
-          port: 9100,
-        ),
+        printer: const PrinterConfig(id: '1', name: 'IMP', ip: '192.168.0.10', port: 9100),
         items: [_buildItem()],
       );
 
@@ -196,12 +158,7 @@ void main() {
       tcpService.scriptedResponses = [FormatException('erro generico')];
 
       final result = await repository.printExpeditionTicket(
-        printer: const PrinterConfig(
-          id: '1',
-          name: 'IMP',
-          ip: '192.168.0.10',
-          port: 9100,
-        ),
+        printer: const PrinterConfig(id: '1', name: 'IMP', ip: '192.168.0.10', port: 9100),
         items: [_buildItem()],
       );
 
@@ -217,18 +174,10 @@ void main() {
         retryPolicy: retryPolicy,
       );
 
-      tcpService.scriptedResponses = [
-        const SocketException('offline'),
-        _buildSendReport(),
-      ];
+      tcpService.scriptedResponses = [const SocketException('offline'), _buildSendReport()];
 
       final result = await repository.printExpeditionTicket(
-        printer: const PrinterConfig(
-          id: '1',
-          name: 'IMP',
-          ip: '192.168.0.10',
-          port: 9100,
-        ),
+        printer: const PrinterConfig(id: '1', name: 'IMP', ip: '192.168.0.10', port: 9100),
         items: [_buildItem()],
       );
 
@@ -319,6 +268,8 @@ class _FakeEscPosTicketBuilderService extends EscPosTicketBuilderService {
     Uint8List? logoBytes,
     int logoMaxWidthPx = 576,
     bool autoCut = true,
+    int? codSetorEstoque,
+    int? codUsuario,
   }) async {
     expeditionCalls++;
     lastSeparatorName = separatorName;
@@ -399,37 +350,17 @@ class _FakeRetryPolicy extends RetryPolicy {
 
 class _SilentLogger implements ILogger {
   @override
-  void debug(
-    String message, {
-    String? tag,
-    Object? error,
-    StackTrace? stackTrace,
-  }) {}
+  void debug(String message, {String? tag, Object? error, StackTrace? stackTrace}) {}
 
   @override
-  void error(
-    String message, {
-    String? tag,
-    Object? error,
-    StackTrace? stackTrace,
-  }) {}
+  void error(String message, {String? tag, Object? error, StackTrace? stackTrace}) {}
 
   @override
   void info(String message, {String? tag}) {}
 
   @override
-  void severe(
-    String message, {
-    String? tag,
-    Object? error,
-    StackTrace? stackTrace,
-  }) {}
+  void severe(String message, {String? tag, Object? error, StackTrace? stackTrace}) {}
 
   @override
-  void warning(
-    String message, {
-    String? tag,
-    Object? error,
-    StackTrace? stackTrace,
-  }) {}
+  void warning(String message, {String? tag, Object? error, StackTrace? stackTrace}) {}
 }

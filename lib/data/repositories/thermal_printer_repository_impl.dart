@@ -119,6 +119,8 @@ class ThermalPrinterRepositoryImpl implements ThermalPrinterRepository {
     required List<ExpeditionItemPrintConsultationModel> items,
     String? separatorName,
     bool autoCut = true,
+    int? codSetorEstoque,
+    int? codUsuario,
   }) async {
     final validationFailure = _validatePrinter(printer);
     if (validationFailure != null) {
@@ -142,6 +144,8 @@ class ThermalPrinterRepositoryImpl implements ThermalPrinterRepository {
         items: items,
         separatorName: separatorName,
         autoCut: autoCut,
+        codSetorEstoque: codSetorEstoque,
+        codUsuario: codUsuario,
       );
 
       final report = await _retryPolicy.execute(
