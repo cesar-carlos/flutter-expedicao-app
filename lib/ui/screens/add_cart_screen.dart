@@ -51,6 +51,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
     if (_viewModel.lastAddSucceeded) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
+          _viewModel.resetSuccessFlag();
           context.pop(true);
         }
       });

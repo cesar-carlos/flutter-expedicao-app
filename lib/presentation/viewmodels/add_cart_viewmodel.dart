@@ -184,6 +184,10 @@ class AddCartViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void resetSuccessFlag() {
+    _lastAddSucceeded = false;
+  }
+
   void _startAutoAddCountdown() {
     _stopAutoAddCountdown();
 
