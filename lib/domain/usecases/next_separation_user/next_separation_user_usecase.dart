@@ -8,6 +8,7 @@ import 'package:data7_expedicao/domain/models/separation_user_sector_consultatio
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_params.dart';
+import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_success.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
@@ -87,7 +88,14 @@ class NextSeparationUserUseCase {
 
     final newSeparation = await _findNewSeparation(params);
     if (newSeparation != null) {
-      await _registerUserSectorAssignment(params, newSeparation);
+      final registrationResult = await _registerUserSectorAssignment(params, newSeparation);
+      if (registrationResult.isError()) {
+        AppLogger.error(
+          'Usuario ${params.codUsuario} nao pode ser atribuido a separacao ${newSeparation.codSepararEstoque}. '
+          'A separacao nao sera retornada para evitar conflito de atribuicao multipla.',
+        );
+        return null;
+      }
     }
 
     return newSeparation;
@@ -162,7 +170,7 @@ class NextSeparationUserUseCase {
     return await _executeQuery(query);
   }
 
-  Future<void> _registerUserSectorAssignment(
+  Future<Result<RegisterSeparationUserSectorSuccess>> _registerUserSectorAssignment(
     NextSeparationUserParams params,
     SeparationUserSectorConsultationModel separation,
   ) async {
@@ -176,9 +184,25 @@ class NextSeparationUserUseCase {
       );
 
       final registerUseCase = _getRegisterUseCase();
-      await registerUseCase(registerParams);
+      final result = await registerUseCase(registerParams);
+
+      if (result.isError()) {
+        final failure = result.exceptionOrNull();
+        AppLogger.error(
+          'Falha ao registrar atribuição de usuario ${params.codUsuario} '
+          'à separação ${separation.codSepararEstoque}: ${failure?.toString()}',
+        );
+        return result;
+      }
+
+      AppLogger.info(
+        'Usuario ${params.codUsuario} (${params.userSystemModel!.nomeUsuario}) '
+        'atribuído com sucesso à separação ${separation.codSepararEstoque}',
+      );
+      return result;
     } catch (e) {
       AppLogger.error('Erro inesperado ao registrar atribuição: $e');
+      return failure(UnknownFailure.fromException(e));
     }
   }
 }

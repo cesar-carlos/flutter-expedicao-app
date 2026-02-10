@@ -20,6 +20,13 @@ import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/data/datasources/printer_preferences_service.dart';
+import 'package:data7_expedicao/domain/models/printer_config.dart';
+import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_params.dart';
+import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/results/index.dart';
+import 'dart:async';
 
 class SeparationItemsScreen extends StatefulWidget {
   final SeparateConsultationModel separation;
@@ -35,6 +42,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
   final _searchController = TextEditingController();
   final _cartsScrollController = ScrollController();
   final _itemsScrollController = ScrollController();
+  bool _isPrinting = false;
 
   @override
   void initState() {
@@ -89,6 +97,16 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Botão de Imprimir
+                    IconButton(
+                      onPressed: _isPrinting ? null : () => _onPrintTicket(context),
+                      icon: _isPrinting
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Icon(Icons.print_outlined),
+                      tooltip: 'Imprimir lista de separação',
+                    ),
+
+                    // Botão de Filtro
                     IconButton(
                       onPressed: () => _showFilterModal(context),
                       icon: Stack(
@@ -113,6 +131,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
                       tooltip: _tabController.index == 1 ? 'Filtros de Produtos' : 'Filtros de Carrinhos',
                     ),
 
+                    // Botão de Atualizar
                     IconButton(
                       onPressed: () => _refreshData(viewModel),
                       icon: const Icon(Icons.refresh),
@@ -262,6 +281,135 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
 
   void _refreshData(SeparationItemsViewModel viewModel) {
     viewModel.refresh();
+  }
+
+  Future<void> _onPrintTicket(BuildContext context) async {
+    if (_isPrinting) return;
+
+    setState(() => _isPrinting = true);
+
+    // Captura o messenger antes dos awaits para evitar warnings do lint
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      final printer = await _loadDefaultPrinter();
+      if (!mounted) return;
+
+      if (printer == null) {
+        if (!mounted) return;
+        messenger.showSnackBar(
+          SnackBar(
+            content: const Text('Nenhuma impressora padrão configurada para impressão.'),
+            backgroundColor: AppColors.warning,
+            action: SnackBarAction(label: 'Configurar', onPressed: () => context.push(AppRouter.printerConfig)),
+          ),
+        );
+        return;
+      }
+
+      final appUser = await locator<UserSessionService>().loadUserSession();
+      if (!mounted) return;
+
+      final separatorName = appUser?.userSystemModel?.nomeUsuario ?? appUser?.nome;
+      final userSectorStock = appUser?.userSystemModel?.codSetorEstoque;
+      final userSectorName = appUser?.userSystemModel?.nomeSetorEstoque;
+
+      final printUseCase = locator<PrintExpeditionTicketUseCase>();
+      final result = await printUseCase.call(
+        PrintExpeditionTicketParams(
+          codEmpresa: widget.separation.codEmpresa,
+          codSepararEstoque: widget.separation.codSepararEstoque,
+          printer: printer,
+          separatorName: separatorName,
+          codSetorEstoque: (userSectorStock != null && userSectorStock > 0) ? userSectorStock : null,
+        ),
+      );
+
+      if (!mounted) return;
+
+      final success = result.getOrNull();
+      if (success != null) {
+        if (!mounted) return;
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Impressão enviada para ${printer.name} (${printer.ip}:${printer.port}).'),
+            backgroundColor: AppColors.info,
+          ),
+        );
+        return;
+      }
+
+      final failure = result.exceptionOrNull();
+
+      // Mensagem personalizada para NOT_FOUND com informações do usuário
+      String errorMessage;
+      if (failure is DataFailure && failure.code == 'NOT_FOUND') {
+        if (userSectorStock != null && userSectorStock > 0) {
+          errorMessage =
+              'Não existem itens do setor $userSectorStock ($userSectorName) para imprimir nesta separação.\n'
+              'Usuário: $separatorName';
+        } else {
+          errorMessage =
+              'Não existem itens para imprimir nesta separação.\n'
+              'Usuário: $separatorName';
+        }
+      } else {
+        errorMessage = _buildPrintFailureMessage(failure);
+      }
+
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(errorMessage), backgroundColor: AppColors.warning),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('Erro ao imprimir separação: $e'), backgroundColor: AppColors.error),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isPrinting = false);
+      }
+    }
+  }
+
+  Future<PrinterConfig?> _loadDefaultPrinter() async {
+    final printerPreferencesService = locator<PrinterPreferencesService>();
+    final printers = await printerPreferencesService.loadPrinters();
+
+    if (printers.isEmpty) {
+      return null;
+    }
+
+    final defaultPrinterId = await printerPreferencesService.loadDefaultPrinterId();
+
+    if (defaultPrinterId == null || defaultPrinterId.isEmpty) {
+      return printers.first;
+    }
+
+    for (final printer in printers) {
+      if (printer.id == defaultPrinterId) {
+        return printer;
+      }
+    }
+
+    return printers.first;
+  }
+
+  String _buildPrintFailureMessage(Object? failure) {
+    if (failure is DataFailure && failure.code == 'NOT_FOUND') {
+      return 'Não existem itens para imprimir nesta separação.';
+    }
+
+    if (failure is AppFailure) {
+      return 'Falha ao imprimir separação: ${failure.message}';
+    }
+
+    if (failure != null) {
+      return 'Falha ao imprimir separação: $failure';
+    }
+
+    return 'Falha ao imprimir separação.';
   }
 
   void _showFilterModal(BuildContext context) {

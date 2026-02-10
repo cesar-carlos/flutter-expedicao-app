@@ -5,12 +5,15 @@ import 'package:image/image.dart' as img;
 
 import 'package:data7_expedicao/domain/models/expedition_item_print_consultation_model.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/infrastructure/services/company_logo_service.dart';
 
 class EscPosTicketBuilderService {
   static const String _defaultCodeTable = 'CP1252';
   static const int _defaultLogoMaxWidthPx = 576;
 
-  const EscPosTicketBuilderService();
+  final CompanyLogoService? _logoService;
+
+  const EscPosTicketBuilderService({CompanyLogoService? logoService}) : _logoService = logoService;
 
   Future<List<int>> buildPrinterTestTicketBytes({
     required String printerName,
@@ -26,7 +29,15 @@ class EscPosTicketBuilderService {
     final printedAt = DateTime.now();
     bytes.addAll(generator.setGlobalCodeTable(_defaultCodeTable));
 
-    _appendLogoIfProvided(bytes: bytes, generator: generator, logoBytes: logoBytes, logoMaxWidthPx: logoMaxWidthPx);
+    // Carrega logo automaticamente se não fornecido e serviço disponível
+    final effectiveLogoBytes = logoBytes ?? await _loadLogoIfAvailable();
+
+    _appendLogoIfProvided(
+      bytes: bytes,
+      generator: generator,
+      logoBytes: effectiveLogoBytes,
+      logoMaxWidthPx: logoMaxWidthPx,
+    );
 
     bytes.addAll(
       generator.text(
@@ -40,10 +51,10 @@ class EscPosTicketBuilderService {
       ),
     );
     bytes.addAll(generator.hr(ch: '-'));
-    bytes.addAll(generator.text('Nome: $printerName'));
-    bytes.addAll(generator.text('IP: $printerIp'));
-    bytes.addAll(generator.text('Porta: $printerPort'));
-    bytes.addAll(generator.text('Data: ${_formatDateTime(printedAt)}'));
+    bytes.addAll(generator.text('Nome: $printerName', styles: const PosStyles(align: PosAlign.left)));
+    bytes.addAll(generator.text('IP: $printerIp', styles: const PosStyles(align: PosAlign.left)));
+    bytes.addAll(generator.text('Porta: $printerPort', styles: const PosStyles(align: PosAlign.left)));
+    bytes.addAll(generator.text('Data: ${_formatDateTime(printedAt)}', styles: const PosStyles(align: PosAlign.left)));
     bytes.addAll(generator.emptyLines(1));
     bytes.addAll(generator.text('Conexao ESC/POS TCP OK', styles: const PosStyles(align: PosAlign.center, bold: true)));
     bytes.addAll(generator.emptyLines(2));
@@ -61,6 +72,8 @@ class EscPosTicketBuilderService {
     Uint8List? logoBytes,
     int logoMaxWidthPx = _defaultLogoMaxWidthPx,
     bool autoCut = true,
+    int? codSetorEstoque,
+    int? codUsuario,
   }) async {
     if (items.isEmpty) {
       throw StateError('Lista de itens para impressao nao pode estar vazia.');
@@ -74,7 +87,15 @@ class EscPosTicketBuilderService {
     final printedAt = DateTime.now();
     bytes.addAll(generator.setGlobalCodeTable(_defaultCodeTable));
 
-    _appendLogoIfProvided(bytes: bytes, generator: generator, logoBytes: logoBytes, logoMaxWidthPx: logoMaxWidthPx);
+    // Carrega logo automaticamente se não fornecido e serviço disponível
+    final effectiveLogoBytes = logoBytes ?? await _loadLogoIfAvailable();
+
+    _appendLogoIfProvided(
+      bytes: bytes,
+      generator: generator,
+      logoBytes: effectiveLogoBytes,
+      logoMaxWidthPx: logoMaxWidthPx,
+    );
 
     bytes.addAll(
       generator.text(
@@ -89,13 +110,23 @@ class EscPosTicketBuilderService {
     );
     bytes.addAll(generator.hr(ch: '-'));
 
-    _writeLine(bytes, generator, 'DEPOSITO', header.nomeLocalArmazenagem);
-    _writeLine(bytes, generator, 'CLIENTE', '${header.codEntidade} - ${header.nomeEntidade}');
+    // DEPOSITO: DescricaoSetorEstoque
+    _writeLine(bytes, generator, 'DEPOSITO', header.descricaoSetorEstoque);
+
+    // CLIENTE: CodEntidade-NomeEntidade
+    _writeLine(bytes, generator, 'CLIENTE', '${header.codEntidade}-${header.nomeEntidade}');
+
+    // NomeFantasiaCliente
+    if (header.nomeFantasiaCliente?.isNotEmpty == true) {
+      bytes.addAll(generator.text(header.nomeFantasiaCliente!, styles: const PosStyles(align: PosAlign.left)));
+    }
+
     _writeLine(bytes, generator, 'CIDADE', header.nomeMunicipioEntrega);
     _writeLine(bytes, generator, 'VENDEDOR', header.nomeVendedor);
-    _writeLine(bytes, generator, 'PEDIDO', header.codOrigem?.toString() ?? header.itemOrigem);
+    _writeLine(bytes, generator, 'PEDIDO', '${header.origem}-${header.codOrigem}');
     _writeLine(bytes, generator, 'TRANSP', header.nomeFantasiaTransportadora ?? header.razaoSocialTransportadora);
-    _writeLine(bytes, generator, 'PRIORIDADE', '${header.codPrioridade} - ${header.descricaoPrioridade}');
+    _writeLine(bytes, generator, 'PRIORIDADE', '${header.codTipoOperacaoSaida}-${header.descricaoTipoOperacaoSaida}');
+
     _writeLine(bytes, generator, 'DATA IMPRESSAO', _formatDateTime(printedAt));
     _writeLine(
       bytes,
@@ -104,70 +135,63 @@ class EscPosTicketBuilderService {
       '${_formatDate(header.dataSepararEstoque)} ${header.horaSepararEstoque}',
     );
 
-    final observacao = header.observacaoSepararEstoque ?? header.orcamentoObservacao ?? header.historicoSepararEstoque;
-    if (observacao != null && observacao.trim().isNotEmpty) {
+    // Observacao Interna: Apenas OrcamentoObservacao
+    if (header.orcamentoObservacao != null && header.orcamentoObservacao!.trim().isNotEmpty) {
       bytes.addAll(generator.emptyLines(1));
-      bytes.addAll(
-        generator.text(
-          'Observacao Interna:',
-          styles: const PosStyles(
-            bold: true,
-            align: PosAlign.left,
-            height: PosTextSize.size2,
-            width: PosTextSize.size1,
-          ),
-        ),
-      );
-      bytes.addAll(generator.text(observacao.trim(), styles: const PosStyles(bold: true)));
+      bytes.addAll(generator.text(header.orcamentoObservacao!.trim(), styles: const PosStyles(align: PosAlign.left, bold: true)));
     }
 
     bytes.addAll(generator.emptyLines(1));
     bytes.addAll(generator.hr(ch: '-'));
 
     for (final item in items) {
-      _writeLine(
-        bytes,
-        generator,
-        'CODIGO',
-        item.codProduto.toString(),
-        inlineLabel: 'MARCA',
-        inlineValue: item.nomeMarca,
+      // CODIGO (esquerda) + MARCA (direita)
+      bytes.addAll(
+        generator.row([
+          PosColumn(
+            text: 'CODIGO: ${item.codProduto}',
+            width: 6,
+            styles: const PosStyles(align: PosAlign.left),
+          ),
+          PosColumn(
+            text: 'MARCA: ${item.nomeMarca}',
+            width: 6,
+            styles: const PosStyles(align: PosAlign.right),
+          ),
+        ]),
       );
+
+      // Descrição do produto (esquerda)
       bytes.addAll(
         generator.text(
           item.descricaoProduto?.trim().isNotEmpty == true ? item.descricaoProduto! : item.nomeProduto,
           styles: const PosStyles(align: PosAlign.left),
         ),
       );
-      _writeLine(bytes, generator, 'FAB', item.codigoFabricante);
-      _writeLine(bytes, generator, 'END', item.descricaoEnderecoProduto);
 
+      // FAB (esquerda - conforme modelo)
+      bytes.addAll(generator.text('FAB: ${item.codigoFabricante ?? '-'}', styles: const PosStyles(align: PosAlign.left)));
+
+      // END (esquerda - conforme modelo)
+      bytes.addAll(generator.text('END: ${item.descricaoEnderecoProduto ?? '-'}', styles: const PosStyles(align: PosAlign.left)));
+
+      // QTD (esquerda - conforme solicitado)
       bytes.addAll(
-        generator.row([
-          PosColumn(
-            text: 'QTD:',
-            width: 3,
-            styles: const PosStyles(align: PosAlign.left, bold: true),
-          ),
-          PosColumn(
-            text: _formatQuantity(item.quantidade),
-            width: 6,
-            styles: const PosStyles(align: PosAlign.right, bold: true),
-          ),
-          PosColumn(
-            text: item.codUnidadeMedida,
-            width: 3,
-            styles: const PosStyles(align: PosAlign.right, bold: true),
-          ),
-        ]),
+        generator.text(
+          'QTD: ${_formatQuantity(item.quantidade)} ${item.codUnidadeMedida}',
+          styles: const PosStyles(align: PosAlign.left, bold: true),
+        ),
       );
 
       bytes.addAll(generator.hr(ch: '-'));
     }
 
     final normalizedSeparator = separatorName?.trim();
-    if (normalizedSeparator != null && normalizedSeparator.isNotEmpty) {
-      bytes.addAll(generator.text('SEPARADOR: $normalizedSeparator', styles: const PosStyles(bold: true)));
+    if (codUsuario != null || (normalizedSeparator != null && normalizedSeparator.isNotEmpty)) {
+      final separatorText = codUsuario != null && normalizedSeparator != null && normalizedSeparator.isNotEmpty
+          ? '$codUsuario $normalizedSeparator'
+          : (codUsuario?.toString() ?? normalizedSeparator ?? '');
+      bytes.addAll(generator.text('SEPARADOR: $separatorText', styles: const PosStyles(align: PosAlign.left, bold: true)));
       bytes.addAll(generator.emptyLines(1));
     }
 
@@ -196,6 +220,7 @@ class EscPosTicketBuilderService {
     }
 
     if (inlineLabel != null && inlineValue != null && inlineValue.trim().isNotEmpty) {
+      // Para o cabeçalho, mantém alinhado à esquerda
       bytes.addAll(
         generator.row([
           PosColumn(
@@ -270,5 +295,18 @@ class EscPosTicketBuilderService {
     try {
       AppLogger.warning(message, tag: 'EscPosTicketBuilderService');
     } catch (_) {}
+  }
+
+  Future<Uint8List?> _loadLogoIfAvailable() async {
+    if (_logoService == null) {
+      return null;
+    }
+
+    try {
+      return await _logoService.loadDefaultLogo();
+    } catch (e) {
+      _safeWarning('Falha ao carregar logo da empresa: $e');
+      return null;
+    }
   }
 }

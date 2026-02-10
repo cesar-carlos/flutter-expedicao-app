@@ -38,8 +38,7 @@ class SeparationScreen extends StatefulWidget {
   State<SeparationScreen> createState() => _SeparationScreenState();
 }
 
-class _SeparationScreenState extends State<SeparationScreen>
-    with TickerProviderStateMixin, WidgetsBindingObserver {
+class _SeparationScreenState extends State<SeparationScreen> with TickerProviderStateMixin, WidgetsBindingObserver {
   // === CONSTANTES ===
   static const double _scrollThresholdToShowButton = 200.0;
   static const double _scrollThresholdToLoadMore = 200.0;
@@ -74,13 +73,11 @@ class _SeparationScreenState extends State<SeparationScreen>
     _scrollController.addListener(_onScroll);
 
     // Inicializar animação do FAB
-    _fabAnimationController = AnimationController(
-      duration: _fabAnimationDuration,
-      vsync: this,
-    );
-    _fabAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fabAnimationController, curve: Curves.easeInOut),
-    );
+    _fabAnimationController = AnimationController(duration: _fabAnimationDuration, vsync: this);
+    _fabAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _fabAnimationController, curve: Curves.easeInOut));
 
     // Iniciar com o botão "Próxima Separação" visível
     _fabAnimationController.forward();
@@ -175,8 +172,7 @@ class _SeparationScreenState extends State<SeparationScreen>
 
   void _loadMoreIfNeeded() {
     final isNearBottom =
-        _scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - _scrollThresholdToLoadMore;
+        _scrollController.position.pixels >= _scrollController.position.maxScrollExtent - _scrollThresholdToLoadMore;
     if (isNearBottom) {
       context.read<SeparationViewModel>().loadMoreSeparations();
     }
@@ -184,11 +180,7 @@ class _SeparationScreenState extends State<SeparationScreen>
 
   void _scrollToTop() {
     if (!_scrollController.hasClients) return;
-    _scrollController.animateTo(
-      0,
-      duration: _scrollAnimationDuration,
-      curve: Curves.easeInOut,
-    );
+    _scrollController.animateTo(0, duration: _scrollAnimationDuration, curve: Curves.easeInOut);
   }
 
   void _refreshAndScrollToTop(SeparationViewModel viewModel) {
@@ -243,22 +235,18 @@ class _SeparationScreenState extends State<SeparationScreen>
       if (printer == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text(
-              'Nenhuma impressora padrão configurada para impressão.',
-            ),
+            content: const Text('Nenhuma impressora padrão configurada para impressão.'),
             backgroundColor: AppColors.warning,
-            action: SnackBarAction(
-              label: 'Configurar',
-              onPressed: () => context.push(AppRouter.printerConfig),
-            ),
+            action: SnackBarAction(label: 'Configurar', onPressed: () => context.push(AppRouter.printerConfig)),
           ),
         );
         return;
       }
 
       final appUser = await locator<UserSessionService>().loadUserSession();
-      final separatorName =
-          appUser?.userSystemModel?.nomeUsuario ?? appUser?.nome;
+      final separatorName = appUser?.userSystemModel?.nomeUsuario ?? appUser?.nome;
+      final userSectorStock = appUser?.userSystemModel?.codSetorEstoque;
+      final userSectorName = appUser?.userSystemModel?.nomeSetorEstoque;
 
       final printUseCase = locator<PrintExpeditionTicketUseCase>();
       final result = await printUseCase.call(
@@ -267,6 +255,7 @@ class _SeparationScreenState extends State<SeparationScreen>
           codSepararEstoque: separation.codSepararEstoque,
           printer: printer,
           separatorName: separatorName,
+          codSetorEstoque: (userSectorStock != null && userSectorStock > 0) ? userSectorStock : null,
         ),
       );
 
@@ -276,9 +265,7 @@ class _SeparationScreenState extends State<SeparationScreen>
       if (success != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Impressão enviada para ${printer.name} (${printer.ip}:${printer.port}).',
-            ),
+            content: Text('Impressão enviada para ${printer.name} (${printer.ip}:${printer.port}).'),
             backgroundColor: AppColors.info,
           ),
         );
@@ -286,20 +273,29 @@ class _SeparationScreenState extends State<SeparationScreen>
       }
 
       final failure = result.exceptionOrNull();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_buildPrintFailureMessage(failure)),
-          backgroundColor: AppColors.warning,
-        ),
-      );
+
+      // Mensagem personalizada para NOT_FOUND com informações do usuário
+      String errorMessage;
+      if (failure is DataFailure && failure.code == 'NOT_FOUND') {
+        if (userSectorStock != null && userSectorStock > 0) {
+          errorMessage = 'Não existem itens do setor $userSectorStock ($userSectorName) para imprimir nesta separação.\n'
+              'Usuário: $separatorName';
+        } else {
+          errorMessage = 'Não existem itens para imprimir nesta separação.\n'
+              'Usuário: $separatorName';
+        }
+      } else {
+        errorMessage = _buildPrintFailureMessage(failure);
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: AppColors.warning));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao imprimir separação: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao imprimir separação: $e'), backgroundColor: AppColors.error));
     } finally {
       if (mounted) {
         setState(() => _printingTickets.remove(key));
@@ -317,8 +313,7 @@ class _SeparationScreenState extends State<SeparationScreen>
       return null;
     }
 
-    final defaultPrinterId = await printerPreferencesService
-        .loadDefaultPrinterId();
+    final defaultPrinterId = await printerPreferencesService.loadDefaultPrinterId();
 
     if (defaultPrinterId == null || defaultPrinterId.isEmpty) {
       return printers.first;
@@ -334,6 +329,10 @@ class _SeparationScreenState extends State<SeparationScreen>
   }
 
   String _buildPrintFailureMessage(Object? failure) {
+    if (failure is DataFailure && failure.code == 'NOT_FOUND') {
+      return 'Não existem itens para imprimir nesta separação.';
+    }
+
     if (failure is AppFailure) {
       return 'Falha ao imprimir separação: ${failure.message}';
     }
@@ -351,10 +350,7 @@ class _SeparationScreenState extends State<SeparationScreen>
     return AnimatedBuilder(
       animation: _fabAnimation,
       builder: (context, child) {
-        return Stack(
-          alignment: Alignment.bottomRight,
-          children: [_buildNextSeparationFab(), _buildScrollToTopFab()],
-        );
+        return Stack(alignment: Alignment.bottomRight, children: [_buildNextSeparationFab(), _buildScrollToTopFab()]);
       },
     );
   }
@@ -375,9 +371,7 @@ class _SeparationScreenState extends State<SeparationScreen>
               onPressed: _isLoadingNextSeparation ? null : _findNextSeparation,
               tooltip: 'Buscar próxima separação',
               icon: _buildFabIcon(),
-              label: Text(
-                _isLoadingNextSeparation ? 'Buscando...' : 'Próxima Separação',
-              ),
+              label: Text(_isLoadingNextSeparation ? 'Buscando...' : 'Próxima Separação'),
             ),
           ),
         ),
@@ -467,10 +461,7 @@ class _SeparationScreenState extends State<SeparationScreen>
 
     if (!params.hasValidSector) {
       if (mounted) {
-        _showErrorModal(
-          'Configuração Inválida',
-          'Usuário não possui setor estoque configurado',
-        );
+        _showErrorModal('Configuração Inválida', 'Usuário não possui setor estoque configurado');
       }
       return null;
     }
@@ -479,9 +470,7 @@ class _SeparationScreenState extends State<SeparationScreen>
   }
 
   /// Executa o usecase de próxima separação
-  Future<Result<NextSeparationUserSuccess>> _executeNextSeparationUseCase(
-    NextSeparationUserParams params,
-  ) async {
+  Future<Result<NextSeparationUserSuccess>> _executeNextSeparationUseCase(NextSeparationUserParams params) async {
     final usecase = locator<NextSeparationUserUseCase>();
     return await usecase(params);
   }
@@ -497,9 +486,7 @@ class _SeparationScreenState extends State<SeparationScreen>
         }
       },
       (failure) {
-        final errorMessage = failure is NextSeparationUserFailure
-            ? failure.userMessage
-            : failure.toString();
+        final errorMessage = failure is NextSeparationUserFailure ? failure.userMessage : failure.toString();
         _showErrorModal('Erro na Busca', errorMessage);
       },
     );
@@ -526,44 +513,26 @@ class _SeparationScreenState extends State<SeparationScreen>
         codPrioridade: separation.codPrioridade,
         nomePrioridade: separation.descricaoPrioridade,
         codSetoresEstoque: [separation.codSetorEstoque],
-        codUsuariosSeparacao: separation.codUsuario != null
-            ? [separation.codUsuario!]
-            : [],
+        codUsuariosSeparacao: separation.codUsuario != null ? [separation.codUsuario!] : [],
         historico: null,
         observacao: null,
       );
 
       // Navegar para a tela de separação
-      context.push(
-        AppRouter.separateItems,
-        extra: separateConsultation.toJson(),
-      );
+      context.push(AppRouter.separateItems, extra: separateConsultation.toJson());
     } catch (e) {
-      _showErrorModal(
-        'Erro ao Abrir Separação',
-        'Erro ao abrir separação: ${e.toString()}',
-      );
+      _showErrorModal('Erro ao Abrir Separação', 'Erro ao abrir separação: ${e.toString()}');
     }
   }
 
   // ========== Helper Methods ==========
 
   void _showErrorModal(String title, String message) {
-    _showCustomModal(
-      title: title,
-      message: message,
-      icon: Icons.error_outline,
-      color: AppColors.error,
-    );
+    _showCustomModal(title: title, message: message, icon: Icons.error_outline, color: AppColors.error);
   }
 
   void _showInfoModal(String title, String message) {
-    _showCustomModal(
-      title: title,
-      message: message,
-      icon: Icons.info_outline,
-      color: Colors.blue,
-    );
+    _showCustomModal(title: title, message: message, icon: Icons.info_outline, color: Colors.blue);
   }
 
   /// Modal customizado reutilizável
@@ -601,11 +570,7 @@ class _SeparationScreenState extends State<SeparationScreen>
       appBar: CustomAppBar(
         title: const SeparationTitleWithConnectionStatus(),
         showSocketStatus: false,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back),
-          tooltip: 'Voltar',
-        ),
+        leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
         actions: [_buildAppBarActions()],
       ),
       drawer: const AppDrawer(),
@@ -628,10 +593,7 @@ class _SeparationScreenState extends State<SeparationScreen>
     return Consumer<SeparationViewModel>(
       builder: (context, viewModel, child) => Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildFilterButton(viewModel),
-          _buildRefreshButton(viewModel),
-        ],
+        children: [_buildFilterButton(viewModel), _buildRefreshButton(viewModel)],
       ),
     );
   }
@@ -663,11 +625,7 @@ class _SeparationScreenState extends State<SeparationScreen>
     return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Carregando separações...'),
-        ],
+        children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando separações...')],
       ),
     );
   }
@@ -679,17 +637,11 @@ class _SeparationScreenState extends State<SeparationScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: _emptyStateIconSize,
-              color: Theme.of(context).colorScheme.error,
-            ),
+            Icon(Icons.error_outline, size: _emptyStateIconSize, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 16),
             Text(
               'Erro ao carregar separações',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -716,17 +668,11 @@ class _SeparationScreenState extends State<SeparationScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.inventory_2_outlined,
-              size: _emptyStateIconSize,
-              color: Theme.of(context).colorScheme.outline,
-            ),
+            Icon(Icons.inventory_2_outlined, size: _emptyStateIconSize, color: Theme.of(context).colorScheme.outline),
             const SizedBox(height: 16),
             Text(
               'Nenhuma separação encontrada',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -752,8 +698,7 @@ class _SeparationScreenState extends State<SeparationScreen>
       child: ListView.builder(
         key: const PageStorageKey<String>('separations_list'),
         controller: _scrollController,
-        itemCount:
-            viewModel.separations.length + (viewModel.hasMoreData ? 1 : 0),
+        itemCount: viewModel.separations.length + (viewModel.hasMoreData ? 1 : 0),
         itemBuilder: (context, index) => _buildListItem(index, viewModel),
       ),
     );
@@ -812,10 +757,7 @@ class _FilterIconWithBadge extends StatelessWidget {
             child: Container(
               width: 8,
               height: 8,
-              decoration: const BoxDecoration(
-                color: AppColors.error,
-                shape: BoxShape.circle,
-              ),
+              decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
             ),
           ),
       ],
