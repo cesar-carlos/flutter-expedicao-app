@@ -48,6 +48,7 @@ class NotificationService {
         importance: Importance.max,
         priority: Priority.high,
         playSound: true,
+        sound: RawResourceAndroidNotificationSound('notification'),
         enableVibration: true,
       );
 

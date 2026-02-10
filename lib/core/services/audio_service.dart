@@ -6,6 +6,7 @@ import 'package:data7_expedicao/core/utils/app_logger.dart';
 enum SoundType {
   barcodeScan('som/BarcodeScan.wav'),
   success('som/finishi.mp3'),
+  notification('som/Notification.wav'),
   shelfScanSuccess('som/new-notification.mp3'),
   cartAddSuccess('som/new-notification-campainha.mp3'),
   itemCompleted('som/success.wav'),
@@ -58,6 +59,10 @@ class AudioService {
 
   Future<void> playSuccess() async {
     await playSound(SoundType.success);
+  }
+
+  Future<void> playNotification() async {
+    await playSound(SoundType.notification);
   }
 
   Future<void> playItemCompleted() async {

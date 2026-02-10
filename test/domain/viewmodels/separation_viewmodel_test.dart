@@ -11,6 +11,7 @@ import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart
 import 'package:data7_expedicao/domain/models/filter/separation_filters_model.dart';
 import 'package:data7_expedicao/domain/repositories/separate_event_repository.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
+import 'package:data7_expedicao/core/services/notification_service.dart';
 
 import 'separation_viewmodel_test.mocks.dart';
 
@@ -20,6 +21,7 @@ import 'separation_viewmodel_test.mocks.dart';
   FiltersStorageService,
   SeparateEventRepository,
   AudioService,
+  NotificationService,
 ])
 void main() {
   group('SeparationViewModel', () {
@@ -30,6 +32,7 @@ void main() {
     late MockFiltersStorageService mockFiltersStorage;
     late MockSeparateEventRepository mockEventRepository;
     late MockAudioService mockAudioService;
+    late MockNotificationService mockNotificationService;
 
     setUp(() {
       mockRepository =
@@ -38,6 +41,7 @@ void main() {
       mockFiltersStorage = MockFiltersStorageService();
       mockEventRepository = MockSeparateEventRepository();
       mockAudioService = MockAudioService();
+      mockNotificationService = MockNotificationService();
 
       // Configurar stubs para evitar erros
       when(
@@ -57,6 +61,7 @@ void main() {
         mockSectorRepository,
         mockEventRepository,
         mockAudioService,
+        mockNotificationService,
       );
     });
 
@@ -295,6 +300,7 @@ void main() {
           mockSectorRepository,
           mockEventRepository,
           mockAudioService,
+          mockNotificationService,
         );
 
         testViewModel.dispose();

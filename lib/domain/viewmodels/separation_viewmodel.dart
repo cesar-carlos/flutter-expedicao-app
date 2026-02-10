@@ -16,6 +16,7 @@ import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/data/services/filters_storage_service.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
+import 'package:data7_expedicao/core/services/notification_service.dart';
 
 enum SeparationState { initial, loading, loaded, error }
 
@@ -25,13 +26,15 @@ class SeparationViewModel extends ChangeNotifier {
   final BasicRepository<ExpeditionSectorStockModel> _sectorRepository;
   final SeparateEventRepository _eventRepository;
   final AudioService _audioService;
+  final NotificationService _notificationService;
 
   SeparationViewModel()
     : _repository = locator<BasicConsultationRepository<SeparateConsultationModel>>(),
       _filtersStorage = locator<FiltersStorageService>(),
       _sectorRepository = locator<BasicRepository<ExpeditionSectorStockModel>>(),
       _eventRepository = locator<SeparateEventRepository>(),
-      _audioService = locator<AudioService>();
+      _audioService = locator<AudioService>(),
+      _notificationService = NotificationService();
 
   SeparationViewModel.withDependencies(
     this._repository,
@@ -39,6 +42,7 @@ class SeparationViewModel extends ChangeNotifier {
     this._sectorRepository,
     this._eventRepository,
     this._audioService,
+    this._notificationService,
   );
 
   SeparationState _state = SeparationState.initial;
@@ -749,7 +753,14 @@ class SeparationViewModel extends ChangeNotifier {
     _notificationDebounce?.cancel();
     _notificationDebounce = Timer(const Duration(seconds: 5), () {
       if (_disposed) return;
-      _audioService.playSuccess();
+
+      _audioService.playNotification();
+
+      _notificationService.showNewSeparationNotification(
+        codSepararEstoque: separationData.codSepararEstoque,
+        nomeEntidade: separationData.nomeEntidade,
+        codSetoresEstoque: separationData.codSetoresEstoque,
+      );
     });
   }
 
