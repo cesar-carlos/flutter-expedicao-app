@@ -24,9 +24,7 @@ SeparationItemModel createDefaultTestSeparationItem() {
   return createTestSeparationItem();
 }
 
-SeparationItemModel createUpdatedTestSeparationItem(
-  SeparationItemModel originalItem,
-) {
+SeparationItemModel createUpdatedTestSeparationItem(SeparationItemModel originalItem) {
   return originalItem.copyWith(
     situacao: ExpeditionItemSituation.separado,
     nomeSeparador: 'SEPARADOR ATUALIZADO',

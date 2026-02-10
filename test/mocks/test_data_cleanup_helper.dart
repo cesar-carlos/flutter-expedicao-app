@@ -23,18 +23,13 @@ class TestDataCleanupHelper {
       debugPrint('🗑️ Limpando registros de ItemSeparacaoEstoque...');
       for (final codSepararEstoque in testSeparationCodes) {
         final separationItems = await separationItemRepo.select(
-          QueryBuilder()
-              .equals('CodEmpresa', 1)
-              .equals('CodSepararEstoque', codSepararEstoque)
-              .equals('CodProduto', 1),
+          QueryBuilder().equals('CodEmpresa', 1).equals('CodSepararEstoque', codSepararEstoque).equals('CodProduto', 1),
         );
 
         for (final item in separationItems) {
           try {
             await separationItemRepo.delete(item);
-            debugPrint(
-              '   ✅ Removido: ItemSeparacaoEstoque - CodSepararEstoque $codSepararEstoque, Item ${item.item}',
-            );
+            debugPrint('   ✅ Removido: ItemSeparacaoEstoque - CodSepararEstoque $codSepararEstoque, Item ${item.item}');
           } catch (e) {
             debugPrint('   ⚠️ Erro ao remover ItemSeparacaoEstoque: $e');
           }
@@ -45,18 +40,13 @@ class TestDataCleanupHelper {
       debugPrint('🗑️ Limpando registros de ItemSepararEstoque...');
       for (final codSepararEstoque in testSeparationCodes) {
         final separateItems = await separateItemRepo.select(
-          QueryBuilder()
-              .equals('CodEmpresa', 1)
-              .equals('CodSepararEstoque', codSepararEstoque)
-              .equals('CodProduto', 1),
+          QueryBuilder().equals('CodEmpresa', 1).equals('CodSepararEstoque', codSepararEstoque).equals('CodProduto', 1),
         );
 
         for (final item in separateItems) {
           try {
             await separateItemRepo.delete(item);
-            debugPrint(
-              '   ✅ Removido: ItemSepararEstoque - CodSepararEstoque $codSepararEstoque, Item ${item.item}',
-            );
+            debugPrint('   ✅ Removido: ItemSepararEstoque - CodSepararEstoque $codSepararEstoque, Item ${item.item}');
           } catch (e) {
             debugPrint('   ⚠️ Erro ao remover ItemSepararEstoque: $e');
           }
@@ -67,17 +57,13 @@ class TestDataCleanupHelper {
       debugPrint('🗑️ Limpando registros de SepararEstoque...');
       for (final codSepararEstoque in testSeparationCodes) {
         final separates = await separateRepo.select(
-          QueryBuilder()
-              .equals('CodEmpresa', 1)
-              .equals('CodSepararEstoque', codSepararEstoque),
+          QueryBuilder().equals('CodEmpresa', 1).equals('CodSepararEstoque', codSepararEstoque),
         );
 
         for (final separate in separates) {
           try {
             await separateRepo.delete(separate);
-            debugPrint(
-              '   ✅ Removido: SepararEstoque - CodSepararEstoque $codSepararEstoque',
-            );
+            debugPrint('   ✅ Removido: SepararEstoque - CodSepararEstoque $codSepararEstoque');
           } catch (e) {
             debugPrint('   ⚠️ Erro ao remover SepararEstoque: $e');
           }
