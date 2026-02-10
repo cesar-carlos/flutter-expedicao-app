@@ -156,10 +156,17 @@ class _AddCartScreenState extends State<AddCartScreen> {
     AppLogger.debug('onAddCart: resultado=$success, mounted=$mounted', tag: 'AddCartScreen');
 
     if (success && mounted) {
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) {
-        AppLogger.debug('onAddCart: fechando tela com sucesso', tag: 'AddCartScreen');
-        context.pop(true);
+        AppLogger.debug('onAddCart: limpando dados para novo scan', tag: 'AddCartScreen');
+        viewModel.clearScannedData();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Carrinho adicionado com sucesso!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
     } else if (!success && mounted) {
       AppLogger.debug('onAddCart: mostrando erro', tag: 'AddCartScreen');
