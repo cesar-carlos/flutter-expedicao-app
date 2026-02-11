@@ -83,17 +83,20 @@ O sistema está organizado em camadas seguindo Clean Architecture:
 ### 1. Presentation Layer
 
 #### AppUpdateViewModel
+
 **Localização**: `lib/domain/viewmodels/app_update_viewmodel.dart`
 
 Gerencia o estado da UI e coordena as operações de atualização.
 
 **Responsabilidades**:
+
 - Gerenciar estado de verificação, download e instalação
 - Notificar mudanças de estado via `ChangeNotifier`
 - Coordenar chamadas aos use cases
 - Tratar erros e exibir feedback ao usuário
 
 **Estados gerenciados**:
+
 - `isChecking`: Verificando atualizações
 - `isDownloading`: Baixando APK
 - `isInstalling`: Instalando APK
@@ -102,27 +105,32 @@ Gerencia o estado da UI e coordena as operações de atualização.
 - `error`: Erro ocorrido (se houver)
 
 **Métodos principais**:
+
 - `checkForUpdate()`: Verifica se há atualização disponível
 - `downloadAndInstall()`: Baixa e instala a atualização
 - `cancelDownload()`: Cancela o download em andamento
 - `clearError()`: Limpa erros
 
 #### AppUpdateDialog
+
 **Localização**: `lib/ui/widgets/app_update_dialog.dart`
 
 Diálogo que exibe informações sobre a atualização disponível.
 
 **Exibe**:
+
 - Versão nova disponível
 - Notas do release
 - Botões: "Depois" e "Atualizar Agora"
 
 #### AppUpdateProgressDialog
+
 **Localização**: `lib/ui/widgets/app_update_progress_dialog.dart`
 
 Diálogo que exibe o progresso do download e instalação.
 
 **Exibe**:
+
 - Barra de progresso durante download
 - Indicador de carregamento durante instalação
 - Botão "Cancelar" (apenas durante download)
@@ -130,11 +138,13 @@ Diálogo que exibe o progresso do download e instalação.
 ### 2. Application Layer
 
 #### CheckAppUpdateUseCase
+
 **Localização**: `lib/domain/usecases/check_app_update/check_app_update_usecase.dart`
 
 Use case responsável por verificar se há atualização disponível.
 
 **Fluxo**:
+
 1. Obtém versão atual do app
 2. Busca último release no GitHub
 3. Compara versões
@@ -143,11 +153,13 @@ Use case responsável por verificar se há atualização disponível.
 **Retorna**: `Result<GitHubRelease>`
 
 #### DownloadAppUpdateUseCase
+
 **Localização**: `lib/domain/usecases/download_app_update/download_app_update_usecase.dart`
 
 Use case responsável por baixar o APK.
 
 **Fluxo**:
+
 1. Recebe URL do APK e nome do arquivo
 2. Baixa o arquivo com progresso
 3. Retorna caminho do arquivo baixado
@@ -155,11 +167,13 @@ Use case responsável por baixar o APK.
 **Retorna**: `Result<String>` (caminho do APK)
 
 #### InstallAppUpdateUseCase
+
 **Localização**: `lib/domain/usecases/install_app_update/install_app_update_usecase.dart`
 
 Use case responsável por instalar o APK.
 
 **Fluxo**:
+
 1. Recebe caminho do APK
 2. Abre o instalador do Android
 3. Retorna sucesso/falha
@@ -169,11 +183,13 @@ Use case responsável por instalar o APK.
 ### 3. Domain Layer
 
 #### IAppUpdateRepository
+
 **Localização**: `lib/domain/repositories/i_app_update_repository.dart`
 
 Interface que define o contrato para acesso a dados de atualização.
 
 **Métodos**:
+
 - `getCurrentVersion()`: Obtém versão atual do app
 - `getReleases(owner, repo)`: Lista todos os releases
 - `getLatestRelease(owner, repo)`: Obtém último release
@@ -181,25 +197,30 @@ Interface que define o contrato para acesso a dados de atualização.
 - `installApk(apkPath)`: Instala APK
 
 #### AppVersion
+
 **Localização**: `lib/domain/models/app_version.dart`
 
 Modelo que representa uma versão do app.
 
 **Propriedades**:
+
 - `version`: String semântica (ex: "1.0.2")
 - `buildNumber`: Número do build (ex: 3)
 - `releaseDate`: Data do release (opcional)
 
 **Métodos**:
+
 - `isNewerThan(other)`: Compara se esta versão é mais nova
 - `compareTo(other)`: Compara versões
 
 #### GitHubRelease
+
 **Localização**: `lib/domain/models/github_release.dart`
 
 Modelo que representa um release do GitHub.
 
 **Propriedades**:
+
 - `tagName`: Tag do release (ex: "v1.0.2")
 - `name`: Nome do release
 - `body`: Notas do release
@@ -207,15 +228,18 @@ Modelo que representa um release do GitHub.
 - `assets`: Lista de assets (APKs, etc.)
 
 **Métodos**:
+
 - `getVersion()`: Extrai versão da tag
 - `getApkAsset()`: Obtém asset APK do release
 
 #### AppUpdateFailure
+
 **Localização**: `lib/domain/models/app_update_failure.dart`
 
 Modelo de erro específico para atualizações.
 
 **Tipos de erro**:
+
 - `noUpdateAvailable`: Nenhuma atualização disponível
 - `downloadFailed`: Falha ao baixar
 - `installFailed`: Falha ao instalar
@@ -227,17 +251,20 @@ Modelo de erro específico para atualizações.
 ### 4. Infrastructure Layer
 
 #### AppUpdateRepositoryImpl
+
 **Localização**: `lib/data/repositories/app_update_repository_impl.dart`
 
 Implementação do repositório de atualização.
 
 **Dependências**:
+
 - `GitHubApiService`: Para buscar releases do GitHub
 - `Dio`: Para download de APKs
 - `OpenFilex`: Para instalar APKs
 - `PackageInfo`: Para obter versão atual
 
 **Implementação**:
+
 - `getCurrentVersion()`: Usa `PackageInfo.fromPlatform()`
 - `getReleases()`: Usa `GitHubApiService.getReleases()`
 - `getLatestRelease()`: Usa `GitHubApiService.getLatestRelease()`
@@ -245,25 +272,30 @@ Implementação do repositório de atualização.
 - `installApk()`: Usa `OpenFilex.open()` para abrir instalador
 
 #### GitHubApiService
+
 **Localização**: `lib/data/services/github_api_service.dart`
 
 Serviço para comunicação com GitHub API.
 
 **Métodos**:
+
 - `getReleases(owner, repo)`: Lista releases
 - `getLatestRelease(owner, repo)`: Obtém último release
 
 **Configuração**:
+
 - Base URL: `https://api.github.com`
 - Headers: Aceita token de autenticação (opcional)
 - Timeout: 30 segundos
 
 #### GitHubReleaseJsonAdapter
+
 **Localização**: `lib/infrastructure/services/github_release_json_adapter.dart`
 
 Adaptador para converter GitHub Releases para formato JSON.
 
 **Funcionalidades**:
+
 - Converte releases para JSON compatível com flutter_autoupdate
 - Calcula SHA512 checksum dos assets
 - Cria arquivo JSON temporário
@@ -444,6 +476,7 @@ O sistema compara versões usando lógica semântica:
    - Se build do release > build atual → há atualização
 
 **Exemplo**:
+
 ```dart
 // App atual: 1.0.2+3
 // Release: v1.0.3
@@ -539,6 +572,7 @@ O `AndroidManifest.xml` já está configurado com:
 ### FileProvider
 
 O FileProvider está configurado em:
+
 - `android/app/src/main/res/xml/file_paths.xml`
 - `android/app/src/main/AndroidManifest.xml`
 
@@ -563,6 +597,7 @@ locator.registerLazySingleton<CheckAppUpdateUseCase>(
 Para criar um novo release no GitHub:
 
 1. **Atualize a versão no `pubspec.yaml`**:
+
    ```yaml
    version: 1.0.7+2
    ```
@@ -573,15 +608,18 @@ Para criar um novo release no GitHub:
    - Inclua novidades, melhorias, correções e instruções de uso
 
 3. **Crie a tag Git**:
+
    ```bash
    git tag -a v1.0.7+2 -m "Release v1.0.7+2 - Descrição do release"
    git push origin v1.0.7+2
    ```
 
 4. **Gere o APK**:
+
    ```bash
    flutter build apk --release
    ```
+
    O APK será gerado em `build/app/outputs/flutter-apk/app-release.apk`
 
 5. **Crie o release no GitHub**:

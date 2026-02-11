@@ -599,7 +599,6 @@ Para testar a funcionalidade:
 1. Login com usuário que TEM setor de estoque definido
 2. Iniciar separação de carrinho
 3. Verificar ordem dos produtos:
-
    - Produtos sem setor aparecem primeiro
    - Depois produtos do setor do usuário
    - Produtos de outros setores não aparecem

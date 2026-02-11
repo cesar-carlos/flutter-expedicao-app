@@ -20,8 +20,8 @@ import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/data/datasources/printer_preferences_service.dart';
-import 'package:data7_expedicao/domain/models/printer_config.dart';
+import 'package:data7_expedicao/core/utils/print_failure_message_helper.dart';
+import 'package:data7_expedicao/domain/usecases/get_default_printer/get_default_printer_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_params.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
@@ -292,7 +292,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      final printer = await _loadDefaultPrinter();
+      final printer = await locator<GetDefaultPrinterUseCase>().call();
       if (!mounted) return;
 
       if (printer == null) {
@@ -354,7 +354,10 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
               'Usuário: $separatorName';
         }
       } else {
-        errorMessage = _buildPrintFailureMessage(failure);
+        errorMessage = const PrintFailureMessageHelper().build(
+          failure,
+          context: PrintFailureContext.separation,
+        );
       }
 
       if (!mounted) return;
@@ -369,45 +372,6 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         setState(() => _isPrinting = false);
       }
     }
-  }
-
-  Future<PrinterConfig?> _loadDefaultPrinter() async {
-    final printerPreferencesService = locator<PrinterPreferencesService>();
-    final printers = await printerPreferencesService.loadPrinters();
-
-    if (printers.isEmpty) {
-      return null;
-    }
-
-    final defaultPrinterId = await printerPreferencesService.loadDefaultPrinterId();
-
-    if (defaultPrinterId == null || defaultPrinterId.isEmpty) {
-      return printers.first;
-    }
-
-    for (final printer in printers) {
-      if (printer.id == defaultPrinterId) {
-        return printer;
-      }
-    }
-
-    return printers.first;
-  }
-
-  String _buildPrintFailureMessage(Object? failure) {
-    if (failure is DataFailure && failure.code == 'NOT_FOUND') {
-      return 'Não existem itens para imprimir nesta separação.';
-    }
-
-    if (failure is AppFailure) {
-      return 'Falha ao imprimir separação: ${failure.message}';
-    }
-
-    if (failure != null) {
-      return 'Falha ao imprimir separação: $failure';
-    }
-
-    return 'Falha ao imprimir separação.';
   }
 
   void _showFilterModal(BuildContext context) {

@@ -6,7 +6,7 @@ import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/printer_config.dart';
 import 'package:data7_expedicao/domain/models/thermal_print_result.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
-import 'package:data7_expedicao/domain/repositories/thermal_printer_repository.dart';
+import 'package:data7_expedicao/domain/repositories/i_thermal_printer_repository.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_params.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
 
@@ -176,7 +176,7 @@ class _FakeExpeditionItemPrintRepository implements BasicConsultationRepository<
   }
 }
 
-class _FakeThermalPrinterRepository implements ThermalPrinterRepository {
+class _FakeThermalPrinterRepository implements IThermalPrinterRepository {
   Result<ThermalPrintResult> expeditionResult = success(
     ThermalPrintResult(
       printerIp: '127.0.0.1',

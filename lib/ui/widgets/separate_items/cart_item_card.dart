@@ -6,11 +6,12 @@ import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
-import 'package:data7_expedicao/data/datasources/printer_preferences_service.dart';
+import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/core/utils/print_failure_message_helper.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/usecases/get_default_printer/get_default_printer_usecase.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
-import 'package:data7_expedicao/domain/models/printer_config.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_params.dart';
@@ -1094,7 +1095,7 @@ class CartItemCard extends StatelessWidget {
     UserSystemModel? userModel,
   ) async {
     try {
-      final defaultPrinter = await _loadDefaultPrinter();
+      final defaultPrinter = await locator<GetDefaultPrinterUseCase>().call();
       if (defaultPrinter == null) {
         return;
       }
@@ -1147,7 +1148,10 @@ class CartItemCard extends StatelessWidget {
               'Usuário: $separatorName';
         }
       } else {
-        errorMessage = _buildPrintFailureMessage(failure);
+        errorMessage = const PrintFailureMessageHelper().build(
+          failure,
+          context: PrintFailureContext.cartSaved,
+        );
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1169,45 +1173,6 @@ class CartItemCard extends StatelessWidget {
         ),
       );
     }
-  }
-
-  Future<PrinterConfig?> _loadDefaultPrinter() async {
-    final printerPreferencesService = locator<PrinterPreferencesService>();
-    final printers = await printerPreferencesService.loadPrinters();
-
-    if (printers.isEmpty) {
-      return null;
-    }
-
-    final defaultPrinterId = await printerPreferencesService
-        .loadDefaultPrinterId();
-    if (defaultPrinterId == null || defaultPrinterId.isEmpty) {
-      return printers.first;
-    }
-
-    for (final printer in printers) {
-      if (printer.id == defaultPrinterId) {
-        return printer;
-      }
-    }
-
-    return printers.first;
-  }
-
-  String _buildPrintFailureMessage(Object? failure) {
-    if (failure is DataFailure && failure.code == 'NOT_FOUND') {
-      return 'Carrinho salvo, mas não existem itens para imprimir.';
-    }
-
-    if (failure is AppFailure) {
-      return 'Carrinho salvo, mas a impressao falhou: ${failure.message}';
-    }
-
-    if (failure != null) {
-      return 'Carrinho salvo, mas a impressao falhou: $failure';
-    }
-
-    return 'Carrinho salvo, mas a impressao falhou.';
   }
 
   void _onViewCart(BuildContext context) {

@@ -2,8 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 
 import 'package:data7_expedicao/data/datasources/config_service.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
+import 'package:data7_expedicao/domain/repositories/i_printer_preferences_repository.dart';
+import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/domain/models/printer_config.dart';
 
 /// Classe base para testes de integração que usam API
 abstract class ApiIntegrationTestBase {
@@ -17,7 +19,10 @@ abstract class ApiIntegrationTestBase {
     if (!GetIt.I.isRegistered<ConfigService>()) {
       final configService = ConfigService();
       GetIt.I.registerSingleton<ConfigService>(configService);
-      GetIt.I.registerSingleton<ConfigViewModel>(ConfigViewModel(configService));
+      GetIt.I.registerSingleton<IPrinterPreferencesRepository>(_FakePrinterPreferencesRepository());
+      GetIt.I.registerSingleton<ConfigViewModel>(
+        ConfigViewModel(configService, GetIt.I<IPrinterPreferencesRepository>()),
+      );
     }
 
     // Configura a API
@@ -43,4 +48,24 @@ abstract class ApiIntegrationTestBase {
   static Future<void> waitForOperation() async {
     await Future.delayed(const Duration(seconds: 3));
   }
+}
+
+class _FakePrinterPreferencesRepository implements IPrinterPreferencesRepository {
+  @override
+  Future<List<PrinterConfig>> loadPrinters() async => [];
+
+  @override
+  Future<void> savePrinters(List<PrinterConfig> printers) async {}
+
+  @override
+  Future<String?> loadDefaultPrinterId() async => null;
+
+  @override
+  Future<void> saveDefaultPrinterId(String? printerId) async {}
+
+  @override
+  Future<void> clear() async {}
+
+  @override
+  Future<PrinterConfig?> getDefaultPrinter() async => null;
 }

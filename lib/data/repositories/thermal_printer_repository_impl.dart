@@ -7,18 +7,18 @@ import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/expedition_item_print_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/printer_config.dart';
 import 'package:data7_expedicao/domain/models/thermal_print_result.dart';
-import 'package:data7_expedicao/domain/repositories/thermal_printer_repository.dart';
-import 'package:data7_expedicao/infrastructure/services/esc_pos_ticket_builder_service.dart';
-import 'package:data7_expedicao/infrastructure/services/thermal_printer_tcp_service.dart';
+import 'package:data7_expedicao/domain/repositories/i_esc_pos_ticket_builder_service.dart';
+import 'package:data7_expedicao/domain/repositories/i_thermal_printer_repository.dart';
+import 'package:data7_expedicao/domain/repositories/i_thermal_printer_tcp_service.dart';
 
-class ThermalPrinterRepositoryImpl implements ThermalPrinterRepository {
-  final EscPosTicketBuilderService _ticketBuilderService;
-  final ThermalPrinterTcpService _tcpService;
+class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
+  final IEscPosTicketBuilderService _ticketBuilderService;
+  final IThermalPrinterTcpService _tcpService;
   final RetryPolicy _retryPolicy;
 
   const ThermalPrinterRepositoryImpl({
-    required EscPosTicketBuilderService ticketBuilderService,
-    required ThermalPrinterTcpService tcpService,
+    required IEscPosTicketBuilderService ticketBuilderService,
+    required IThermalPrinterTcpService tcpService,
     required RetryPolicy retryPolicy,
   }) : _ticketBuilderService = ticketBuilderService,
        _tcpService = tcpService,

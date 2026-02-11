@@ -105,7 +105,6 @@ O sistema extrai a versão da tag usando regex:
 O sistema compara versões da seguinte forma:
 
 1. **Primeiro compara a versão semântica** (major.minor.patch)
-
    - Se a versão do release for maior → há atualização disponível
    - Se a versão do release for menor → não há atualização
    - Se a versão for igual → vai para o passo 2
@@ -164,18 +163,15 @@ Após criar o release, verifique:
 ### Fluxo de Atualização
 
 1. **Inicialização do App** (modo release):
-
    - O app verifica automaticamente se há atualizações disponíveis
    - Usa as variáveis `GITHUB_OWNER` e `GITHUB_REPO` do `.env`
 
 2. **Verificação de Versão**:
-
    - Obtém a versão atual do app via `package_info_plus`
    - Busca o último release no GitHub via API
    - Compara as versões usando lógica semântica
 
 3. **Se houver atualização**:
-
    - Exibe um diálogo informando sobre a atualização disponível
    - Mostra a versão nova e as notas do release
    - Usuário pode escolher atualizar agora ou depois
@@ -272,17 +268,14 @@ Quando o app (versão `1.0.2+3`) iniciar:
 ## Notas Importantes
 
 1. **Segurança**:
-
    - O sistema usa HTTPS para comunicação com GitHub
    - O APK é baixado diretamente do GitHub (fonte confiável)
    - O usuário precisa confirmar a instalação no Android
 
 2. **Permissões Android**:
-
    - O app precisa da permissão `REQUEST_INSTALL_PACKAGES` (já configurada no `AndroidManifest.xml`)
 
 3. **Versionamento**:
-
    - Sempre incremente a versão no `pubspec.yaml` antes de criar um novo release
    - Use versionamento semântico (major.minor.patch)
    - Build number deve ser incrementado a cada build

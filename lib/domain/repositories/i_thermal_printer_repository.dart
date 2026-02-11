@@ -3,7 +3,7 @@ import 'package:data7_expedicao/domain/models/expedition_item_print_consultation
 import 'package:data7_expedicao/domain/models/printer_config.dart';
 import 'package:data7_expedicao/domain/models/thermal_print_result.dart';
 
-abstract class ThermalPrinterRepository {
+abstract class IThermalPrinterRepository {
   Future<Result<ThermalPrintResult>> printTestTicket({required PrinterConfig printer, bool autoCut = true});
 
   Future<Result<ThermalPrintResult>> printExpeditionTicket({

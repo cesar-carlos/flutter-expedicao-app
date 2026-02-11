@@ -57,16 +57,19 @@
 ### Abordagem 1: Criar AppTextStyles (Similar ao AppColors)
 
 **Vantagens:**
+
 - Consistência com a abordagem de `AppColors`
 - Fácil de usar: `AppTextStyles.headlineLarge`
 - Centralizado e fácil de manter
 - Não requer mudanças no `AppTheme`
 
 **Desvantagens:**
+
 - Não integra com o sistema de tema do Flutter
 - Pode não respeitar mudanças de tema (light/dark)
 
 **Estrutura proposta:**
+
 ```dart
 class AppTextStyles {
   // Headlines
@@ -75,30 +78,30 @@ class AppTextStyles {
     fontWeight: FontWeight.bold,
     letterSpacing: 0.5,
   );
-  
+
   static const TextStyle headlineMedium = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
   );
-  
+
   // Titles
   static const TextStyle titleLarge = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.w600,
   );
-  
+
   // Body
   static const TextStyle bodyLarge = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.normal,
   );
-  
+
   // Labels
   static const TextStyle labelSmall = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w500,
   );
-  
+
   // Monospace (para códigos)
   static const TextStyle code = TextStyle(
     fontSize: 14,
@@ -111,6 +114,7 @@ class AppTextStyles {
 ### Abordagem 2: Configurar textTheme completo no AppTheme (Recomendado)
 
 **Vantagens:**
+
 - Integra com o sistema de tema do Flutter
 - Respeita mudanças de tema (light/dark)
 - Segue as melhores práticas do Flutter
@@ -118,10 +122,12 @@ class AppTextStyles {
 - Pode usar `UIConstants` para tamanhos
 
 **Desvantagens:**
+
 - Requer atualização do `AppTheme`
 - Pode precisar de ajustes em widgets existentes
 
 **Estrutura proposta:**
+
 ```dart
 class AppTheme {
   static ThemeData get lightTheme {
@@ -145,7 +151,7 @@ class AppTheme {
           fontWeight: FontWeight.bold,
           color: AppColors.fontDark,
         ),
-        
+
         // Titles
         titleLarge: TextStyle(
           fontSize: UIConstants.extraLargeFontSize,
@@ -162,7 +168,7 @@ class AppTheme {
           fontWeight: FontWeight.w600,
           color: AppColors.fontDark,
         ),
-        
+
         // Body
         bodyLarge: TextStyle(
           fontSize: UIConstants.mediumFontSize,
@@ -179,7 +185,7 @@ class AppTheme {
           fontWeight: FontWeight.normal,
           color: AppColors.fontDark,
         ),
-        
+
         // Labels
         labelLarge: TextStyle(
           fontSize: UIConstants.defaultFontSize,
@@ -211,6 +217,7 @@ class AppTheme {
 3. **Usar UIConstants** para tamanhos de fonte quando necessário
 
 **Estrutura:**
+
 ```dart
 // AppTheme com textTheme completo
 class AppTheme {
@@ -220,7 +227,7 @@ class AppTheme {
       // ... rest of theme
     );
   }
-  
+
   static TextTheme _buildTextTheme(Color baseColor) {
     return TextTheme(
       // ... usando UIConstants
@@ -237,7 +244,7 @@ class AppTextStyles {
       fontWeight: FontWeight.w500,
     ) ?? const TextStyle(fontFamily: 'monospace');
   }
-  
+
   // Estilos específicos que não se encaixam no textTheme padrão
   static TextStyle button(BuildContext context) {
     return Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -250,21 +257,25 @@ class AppTextStyles {
 ## Plano de Migração
 
 ### Fase 1: Configurar textTheme no AppTheme
+
 1. Adicionar `textTheme` completo no `AppTheme.lightTheme` e `AppTheme.darkTheme`
 2. Usar `UIConstants` para tamanhos de fonte
 3. Usar `AppColors` para cores de texto
 
 ### Fase 2: Criar AppTextStyles para casos especiais
+
 1. Criar `AppTextStyles` para estilos customizados (monospace, etc.)
 2. Adicionar métodos helper quando necessário
 
 ### Fase 3: Migrar widgets gradualmente
+
 1. Priorizar widgets mais usados
 2. Substituir `TextStyle` hardcoded por `theme.textTheme.*`
 3. Usar `AppTextStyles` para casos especiais
 4. Manter `copyWith()` apenas quando necessário para variações específicas
 
 ### Fase 4: Validação
+
 1. Verificar consistência visual
 2. Testar em light e dark theme
 3. Garantir que todos os tamanhos de fonte usem o sistema padronizado

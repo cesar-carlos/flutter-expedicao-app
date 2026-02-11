@@ -1,8 +1,11 @@
+import 'package:data7_expedicao/data/datasources/config_service.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'fake_printer_preferences_repository.dart';
 
 /// Mock do ConfigViewModel para testes
 class ConfigViewModelMock extends ConfigViewModel {
-  ConfigViewModelMock(super.configService);
+  ConfigViewModelMock(ConfigService configService)
+      : super(configService, FakePrinterPreferencesRepository());
 
   @override
   bool get isServerReady => true;

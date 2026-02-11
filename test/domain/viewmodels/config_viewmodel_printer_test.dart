@@ -1,21 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:data7_expedicao/data/datasources/printer_preferences_service.dart';
-import 'package:data7_expedicao/domain/models/printer_config.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/infrastructure/services/printer_discovery_service.dart';
 import '../../mocks/config_service_mock.dart';
+import '../../mocks/fake_printer_preferences_repository.dart';
 
 void main() {
   group('ConfigViewModel printers', () {
     late ConfigServiceMock configService;
-    late _InMemoryPrinterPreferencesService printerPrefs;
+    late FakePrinterPreferencesRepository printerPrefs;
     late ConfigViewModel viewModel;
 
     setUp(() async {
       configService = ConfigServiceMock();
       await configService.initialize();
-      printerPrefs = _InMemoryPrinterPreferencesService();
+      printerPrefs = FakePrinterPreferencesRepository();
       viewModel = ConfigViewModel(
         configService,
         printerPrefs,
@@ -63,31 +62,4 @@ void main() {
       },
     );
   });
-}
-
-class _InMemoryPrinterPreferencesService extends PrinterPreferencesService {
-  List<PrinterConfig> _printers = const [];
-  String? _defaultPrinterId;
-
-  @override
-  Future<List<PrinterConfig>> loadPrinters() async => _printers;
-
-  @override
-  Future<void> savePrinters(List<PrinterConfig> printers) async {
-    _printers = List<PrinterConfig>.from(printers);
-  }
-
-  @override
-  Future<String?> loadDefaultPrinterId() async => _defaultPrinterId;
-
-  @override
-  Future<void> saveDefaultPrinterId(String? printerId) async {
-    _defaultPrinterId = printerId;
-  }
-
-  @override
-  Future<void> clear() async {
-    _printers = const [];
-    _defaultPrinterId = null;
-  }
 }

@@ -502,6 +502,7 @@ Lacunas de teste:
 ## 17. Historico de Alterações
 
 ### 2026-02-10
+
 - ✅ Implementados testes adicionais de TCP (host inexistente, desconexão, timeout)
 - ✅ Implementados testes de fluxo completo (salvar + imprimir sem rollback)
 - ✅ Criado `CompanyLogoService` para carregar logo da empresa automaticamente

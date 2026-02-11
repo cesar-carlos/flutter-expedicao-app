@@ -11,6 +11,7 @@ import 'package:data7_expedicao/data/repositories/thermal_printer_repository_imp
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/expedition_item_print_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/printer_config.dart';
+import 'package:data7_expedicao/domain/models/thermal_printer_tcp_send_report.dart';
 import 'package:data7_expedicao/infrastructure/services/esc_pos_ticket_builder_service.dart';
 import 'package:data7_expedicao/infrastructure/services/thermal_printer_tcp_service.dart';
 

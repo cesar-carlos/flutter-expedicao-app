@@ -2,26 +2,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/domain/models/thermal_printer_tcp_send_report.dart';
+import 'package:data7_expedicao/domain/repositories/i_thermal_printer_tcp_service.dart';
 
-class ThermalPrinterTcpSendReport {
-  final String ip;
-  final int port;
-  final int payloadBytes;
-  final Duration elapsed;
-  final DateTime sentAt;
-
-  const ThermalPrinterTcpSendReport({
-    required this.ip,
-    required this.port,
-    required this.payloadBytes,
-    required this.elapsed,
-    required this.sentAt,
-  });
-}
-
-class ThermalPrinterTcpService {
+class ThermalPrinterTcpService implements IThermalPrinterTcpService {
   const ThermalPrinterTcpService();
 
+  @override
   Future<ThermalPrinterTcpSendReport> send({
     required String ip,
     required int port,
@@ -52,6 +39,9 @@ class ThermalPrinterTcpService {
       socket = await Socket.connect(ip, port, timeout: connectTimeout);
       socket.add(bytes);
       await socket.flush().timeout(writeTimeout);
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      await socket.close();
+      socket = null;
       stopwatch.stop();
 
       _safeInfo(

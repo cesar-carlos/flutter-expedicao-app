@@ -57,7 +57,10 @@ import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_item_print_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_progress_consultation_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
-import 'package:data7_expedicao/domain/repositories/thermal_printer_repository.dart';
+import 'package:data7_expedicao/domain/repositories/i_printer_preferences_repository.dart';
+import 'package:data7_expedicao/domain/repositories/i_thermal_printer_repository.dart';
+import 'package:data7_expedicao/data/repositories/printer_preferences_repository_impl.dart';
+import 'package:data7_expedicao/domain/usecases/get_default_printer/get_default_printer_usecase.dart';
 import 'package:data7_expedicao/data/repositories/expedition_cart_route_internship_gorup_consultation_repository_impl.dart'
     as group_consultation;
 import 'package:data7_expedicao/data/repositories/expedition_cart_route_internship_gorup__impl.dart';
@@ -139,6 +142,12 @@ void setupLocator() {
   locator.registerLazySingleton<ILogger>(() => LoggerService());
   locator.registerLazySingleton(() => ConfigService());
   locator.registerLazySingleton(() => const PrinterPreferencesService());
+  locator.registerLazySingleton<IPrinterPreferencesRepository>(
+    () => PrinterPreferencesRepositoryImpl(service: locator<PrinterPreferencesService>()),
+  );
+  locator.registerLazySingleton<GetDefaultPrinterUseCase>(
+    () => GetDefaultPrinterUseCase(repository: locator<IPrinterPreferencesRepository>()),
+  );
   locator.registerLazySingleton(() => const PrinterDiscoveryService());
   locator.registerLazySingleton(() => UserPreferencesService());
   locator.registerLazySingletonAsync<UpdateCacheService>(() async {
@@ -173,9 +182,9 @@ void setupLocator() {
   locator.registerLazySingleton(
     () => ConfigViewModel(
       locator<ConfigService>(),
-      locator<PrinterPreferencesService>(),
+      locator<IPrinterPreferencesRepository>(),
       locator<PrinterDiscoveryService>(),
-      locator<ThermalPrinterRepository>(),
+      locator<IThermalPrinterRepository>(),
     ),
   );
 
@@ -198,7 +207,7 @@ void setupLocator() {
     () => ExpeditionItemPrintConsultationRepositoryImpl(),
   );
 
-  locator.registerLazySingleton<ThermalPrinterRepository>(
+  locator.registerLazySingleton<IThermalPrinterRepository>(
     () => ThermalPrinterRepositoryImpl(
       ticketBuilderService: locator<EscPosTicketBuilderService>(),
       tcpService: locator<ThermalPrinterTcpService>(),
@@ -444,7 +453,7 @@ void setupLocator() {
   locator.registerLazySingleton<PrintExpeditionTicketUseCase>(
     () => PrintExpeditionTicketUseCase(
       expeditionItemPrintRepository: locator<BasicConsultationRepository<ExpeditionItemPrintConsultationModel>>(),
-      thermalPrinterRepository: locator<ThermalPrinterRepository>(),
+      thermalPrinterRepository: locator<IThermalPrinterRepository>(),
     ),
   );
 

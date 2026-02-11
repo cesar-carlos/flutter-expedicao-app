@@ -8,10 +8,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
+import 'package:data7_expedicao/core/utils/print_failure_message_helper.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
-import 'package:data7_expedicao/data/datasources/printer_preferences_service.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
-import 'package:data7_expedicao/domain/models/printer_config.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/separation/separation_filter_modal.dart';
@@ -27,6 +26,7 @@ import 'package:data7_expedicao/ui/widgets/app_drawer/app_drawer.dart';
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/domain/usecases/get_default_printer/get_default_printer_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_params.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
 
@@ -226,7 +226,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     }
 
     try {
-      final printer = await _loadDefaultPrinter();
+      final printer = await locator<GetDefaultPrinterUseCase>().call();
       if (!mounted) return;
 
       if (printer == null) {
@@ -284,7 +284,10 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
               'Usuário: $separatorName';
         }
       } else {
-        errorMessage = _buildPrintFailureMessage(failure);
+        errorMessage = const PrintFailureMessageHelper().build(
+          failure,
+          context: PrintFailureContext.separation,
+        );
       }
 
       ScaffoldMessenger.of(
@@ -303,46 +306,6 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       }
     }
   }
-
-  Future<PrinterConfig?> _loadDefaultPrinter() async {
-    final printerPreferencesService = locator<PrinterPreferencesService>();
-    final printers = await printerPreferencesService.loadPrinters();
-
-    if (printers.isEmpty) {
-      return null;
-    }
-
-    final defaultPrinterId = await printerPreferencesService.loadDefaultPrinterId();
-
-    if (defaultPrinterId == null || defaultPrinterId.isEmpty) {
-      return printers.first;
-    }
-
-    for (final printer in printers) {
-      if (printer.id == defaultPrinterId) {
-        return printer;
-      }
-    }
-
-    return printers.first;
-  }
-
-  String _buildPrintFailureMessage(Object? failure) {
-    if (failure is DataFailure && failure.code == 'NOT_FOUND') {
-      return 'Não existem itens para imprimir nesta separação.';
-    }
-
-    if (failure is AppFailure) {
-      return 'Falha ao imprimir separação: ${failure.message}';
-    }
-
-    if (failure != null) {
-      return 'Falha ao imprimir separação: $failure';
-    }
-
-    return 'Falha ao imprimir separação.';
-  }
-
 
   Widget _buildFloatingActionButton() {
     return AnimatedBuilder(

@@ -3,11 +3,12 @@ import 'dart:typed_data';
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:image/image.dart' as img;
 
-import 'package:data7_expedicao/domain/models/expedition_item_print_consultation_model.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/domain/models/expedition_item_print_consultation_model.dart';
+import 'package:data7_expedicao/domain/repositories/i_esc_pos_ticket_builder_service.dart';
 import 'package:data7_expedicao/infrastructure/services/company_logo_service.dart';
 
-class EscPosTicketBuilderService {
+class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
   static const String _defaultCodeTable = 'CP1252';
   static const int _defaultLogoMaxWidthPx = 576;
 
@@ -15,6 +16,7 @@ class EscPosTicketBuilderService {
 
   const EscPosTicketBuilderService({CompanyLogoService? logoService}) : _logoService = logoService;
 
+  @override
   Future<List<int>> buildPrinterTestTicketBytes({
     required String printerName,
     required String printerIp,
@@ -43,7 +45,7 @@ class EscPosTicketBuilderService {
       generator.text(
         'TESTE DE IMPRESSORA',
         styles: const PosStyles(
-          align: PosAlign.center,
+          align: PosAlign.left,
           bold: true,
           height: PosTextSize.size2,
           width: PosTextSize.size1,
@@ -66,6 +68,7 @@ class EscPosTicketBuilderService {
     return bytes;
   }
 
+  @override
   Future<List<int>> buildExpeditionTicketBytes({
     required List<ExpeditionItemPrintConsultationModel> items,
     String? separatorName,
@@ -101,7 +104,7 @@ class EscPosTicketBuilderService {
       generator.text(
         'LISTA DE SEPARACAO',
         styles: const PosStyles(
-          align: PosAlign.center,
+          align: PosAlign.left,
           bold: true,
           height: PosTextSize.size2,
           width: PosTextSize.size1,
@@ -147,7 +150,6 @@ class EscPosTicketBuilderService {
     bytes.addAll(generator.hr(ch: '-'));
 
     for (final item in items) {
-      // CODIGO (esquerda) + MARCA (direita)
       bytes.addAll(
         generator.row([
           PosColumn(
@@ -158,7 +160,7 @@ class EscPosTicketBuilderService {
           PosColumn(
             text: 'MARCA: ${item.nomeMarca}',
             width: 6,
-            styles: const PosStyles(align: PosAlign.right),
+            styles: const PosStyles(align: PosAlign.left),
           ),
         ]),
       );
@@ -198,7 +200,7 @@ class EscPosTicketBuilderService {
           ? '$codUsuario $normalizedSeparator'
           : (codUsuario?.toString() ?? normalizedSeparator ?? '');
       bytes.addAll(
-        generator.text('SEPARADOR: $separatorText', styles: const PosStyles(align: PosAlign.left, bold: true)),
+        generator.text('SEPARADOR: $separatorText', styles: const PosStyles(align: PosAlign.center, bold: true)),
       );
       bytes.addAll(generator.emptyLines(1));
     }
@@ -292,7 +294,7 @@ class EscPosTicketBuilderService {
           ? img.copyResize(decodedLogo, width: normalizedLogoWidth, interpolation: img.Interpolation.average)
           : decodedLogo;
 
-      bytes.addAll(generator.imageRaster(preparedLogo, align: PosAlign.center, imageFn: PosImageFn.graphics));
+      bytes.addAll(generator.imageRaster(preparedLogo, align: PosAlign.left, imageFn: PosImageFn.graphics));
       bytes.addAll(generator.emptyLines(1));
     } catch (e) {
       _safeWarning('Falha ao converter logo para ESC/POS: $e');

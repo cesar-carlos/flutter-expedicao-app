@@ -5,19 +5,19 @@ import 'package:uuid/uuid.dart';
 import 'package:data7_expedicao/core/network/network_initializer.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/data/datasources/config_service.dart';
-import 'package:data7_expedicao/data/datasources/printer_preferences_service.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
+import 'package:data7_expedicao/domain/repositories/i_printer_preferences_repository.dart';
 import 'package:data7_expedicao/domain/models/printer_config.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
-import 'package:data7_expedicao/domain/repositories/thermal_printer_repository.dart';
+import 'package:data7_expedicao/domain/repositories/i_thermal_printer_repository.dart';
 import 'package:data7_expedicao/infrastructure/services/printer_discovery_service.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class ConfigViewModel extends ChangeNotifier {
   final ConfigService _configService;
-  final PrinterPreferencesService _printerPreferencesService;
+  final IPrinterPreferencesRepository _printerPreferencesRepository;
   final PrinterDiscoveryService _printerDiscoveryService;
-  final ThermalPrinterRepository? _thermalPrinterRepository;
+  final IThermalPrinterRepository? _thermalPrinterRepository;
   final Uuid _uuid = const Uuid();
   ApiConfig _currentConfig = ApiConfig.defaultConfig;
   List<PrinterConfig> _printers = const [];
@@ -34,11 +34,11 @@ class ConfigViewModel extends ChangeNotifier {
   String _errorMessage = '';
 
   ConfigViewModel(
-    this._configService, [
-    PrinterPreferencesService? printerPreferencesService,
+    this._configService,
+    IPrinterPreferencesRepository printerPreferencesRepository, [
     PrinterDiscoveryService? printerDiscoveryService,
-    ThermalPrinterRepository? thermalPrinterRepository,
-  ]) : _printerPreferencesService = printerPreferencesService ?? const PrinterPreferencesService(),
+    IThermalPrinterRepository? thermalPrinterRepository,
+  ]) : _printerPreferencesRepository = printerPreferencesRepository,
        _printerDiscoveryService = printerDiscoveryService ?? const PrinterDiscoveryService(),
        _thermalPrinterRepository = thermalPrinterRepository;
 
@@ -163,7 +163,7 @@ class ConfigViewModel extends ChangeNotifier {
     try {
       _errorMessage = '';
       await _configService.clearConfig();
-      await _printerPreferencesService.clear();
+      await _printerPreferencesRepository.clear();
       _currentConfig = ApiConfig.defaultConfig;
       _printers = const [];
       _defaultPrinterId = null;
@@ -566,8 +566,8 @@ class ConfigViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadPrintersInternal() async {
-    final loadedPrinters = await _printerPreferencesService.loadPrinters();
-    var loadedDefaultId = await _printerPreferencesService.loadDefaultPrinterId();
+    final loadedPrinters = await _printerPreferencesRepository.loadPrinters();
+    var loadedDefaultId = await _printerPreferencesRepository.loadDefaultPrinterId();
 
     if (loadedDefaultId != null && !loadedPrinters.any((item) => item.id == loadedDefaultId)) {
       loadedDefaultId = null;
@@ -578,8 +578,8 @@ class ConfigViewModel extends ChangeNotifier {
   }
 
   Future<void> _persistPrinters() async {
-    await _printerPreferencesService.savePrinters(_printers);
-    await _printerPreferencesService.saveDefaultPrinterId(_defaultPrinterId);
+    await _printerPreferencesRepository.savePrinters(_printers);
+    await _printerPreferencesRepository.saveDefaultPrinterId(_defaultPrinterId);
   }
 
   Future<bool> testConnection({String? apiUrl, String? apiPort, bool? useHttps}) async {

@@ -7,10 +7,12 @@ import 'package:data7_expedicao/core/utils/i_logger.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import '../../mocks/config_service_mock.dart';
+import '../../mocks/fake_printer_preferences_repository.dart';
 
 void main() {
   group('ConfigViewModel.testConnection', () {
     late ConfigServiceMock configService;
+    late FakePrinterPreferencesRepository printerPrefs;
     late ConfigViewModel viewModel;
 
     setUp(() async {
@@ -20,7 +22,8 @@ void main() {
 
       configService = ConfigServiceMock();
       await configService.initialize();
-      viewModel = ConfigViewModel(configService);
+      printerPrefs = FakePrinterPreferencesRepository();
+      viewModel = ConfigViewModel(configService, printerPrefs);
     });
 
     test('deve aceitar handshake em portugues', () async {
