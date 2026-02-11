@@ -7,9 +7,7 @@ import 'package:data7_expedicao/main.dart' as app;
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('manual update check shows not-configured SnackBar', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('manual update check shows not-configured SnackBar', (WidgetTester tester) async {
     app.main();
 
     await tester.pump(const Duration(seconds: 2));
@@ -17,10 +15,7 @@ void main() {
 
     expect(find.textContaining('Olá'), findsOneWidget);
 
-    final scaffoldFinder = find.ancestor(
-      of: find.textContaining('Olá'),
-      matching: find.byType(Scaffold),
-    );
+    final scaffoldFinder = find.ancestor(of: find.textContaining('Olá'), matching: find.byType(Scaffold));
     expect(scaffoldFinder, findsOneWidget);
     final scaffoldState = tester.state<ScaffoldState>(scaffoldFinder);
     scaffoldState.openDrawer();
@@ -30,9 +25,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(
-      find.text('GITHUB_OWNER ou GITHUB_REPO não configurados'),
-      findsOneWidget,
-    );
+    expect(find.text('GITHUB_OWNER ou GITHUB_REPO não configurados'), findsOneWidget);
   });
 }
