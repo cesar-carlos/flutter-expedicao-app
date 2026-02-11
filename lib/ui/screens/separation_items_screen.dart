@@ -354,10 +354,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
               'Usuário: $separatorName';
         }
       } else {
-        errorMessage = const PrintFailureMessageHelper().build(
-          failure,
-          context: PrintFailureContext.separation,
-        );
+        errorMessage = const PrintFailureMessageHelper().build(failure, context: PrintFailureContext.separation);
       }
 
       if (!mounted) return;

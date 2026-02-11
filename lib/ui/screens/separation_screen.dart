@@ -64,7 +64,6 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
 
   // === LIFECYCLE ===
 
-
   @override
   void initState() {
     super.initState();
@@ -141,11 +140,9 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     }
   }
 
-
   void _loadInitialData() {
     context.read<SeparationViewModel>().loadSeparations();
   }
-
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
@@ -195,7 +192,6 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   bool _isPrintingTicket(SeparateConsultationModel separation) {
     return _printingTickets.contains(_buildPrintKey(separation));
   }
-
 
   void _onSeparationTap(SeparateConsultationModel separation) {
     context.push(AppRouter.separateItems, extra: separation.toJson());
@@ -284,10 +280,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
               'Usuário: $separatorName';
         }
       } else {
-        errorMessage = const PrintFailureMessageHelper().build(
-          failure,
-          context: PrintFailureContext.separation,
-        );
+        errorMessage = const PrintFailureMessageHelper().build(failure, context: PrintFailureContext.separation);
       }
 
       ScaffoldMessenger.of(
@@ -486,7 +479,6 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     }
   }
 
-
   void _showErrorModal(String title, String message) {
     _showCustomModal(title: title, message: message, icon: Icons.error_outline, color: AppColors.error);
   }
@@ -521,7 +513,6 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
