@@ -139,7 +139,9 @@ import 'package:data7_expedicao/infrastructure/services/thermal_printer_tcp_serv
 final GetIt locator = GetIt.instance;
 
 void setupLocator() {
-  locator.registerLazySingleton<ILogger>(() => LoggerService());
+  if (!locator.isRegistered<ILogger>()) {
+    locator.registerLazySingleton<ILogger>(() => LoggerService());
+  }
   locator.registerLazySingleton(() => ConfigService());
   locator.registerLazySingleton(() => const PrinterPreferencesService());
   locator.registerLazySingleton<IPrinterPreferencesRepository>(
@@ -447,6 +449,7 @@ void setupLocator() {
     () => NextSeparationUserUseCase(
       separationUserSectorRepository: locator<BasicConsultationRepository<SeparationUserSectorConsultationModel>>(),
       getRegisterUseCase: () => locator<RegisterSeparationUserSectorUseCase>(),
+      logger: locator<ILogger>(),
     ),
   );
 

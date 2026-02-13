@@ -193,7 +193,9 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     return _printingTickets.contains(_buildPrintKey(separation));
   }
 
-  void _onSeparationTap(SeparateConsultationModel separation) {
+  Future<void> _onSeparationTap(SeparateConsultationModel separation) async {
+    // Usuários podem navegar diretamente para a tela de separação
+    // Usuários com setor estoque null ou zero têm permissão administrativa
     context.push(AppRouter.separateItems, extra: separation.toJson());
   }
 
@@ -376,7 +378,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
 
     try {
       final params = await _getUserParams();
-      if (params == null) return; // Erro já foi tratado
+      if (params == null || !mounted) return;
 
       final result = await _executeNextSeparationUseCase(params);
       if (!mounted) return;
@@ -432,9 +434,10 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   /// Processa o resultado da busca de próxima separação
   void _handleNextSeparationResult(Result<NextSeparationUserSuccess> result) {
     result.fold(
-      (success) {
+      (success) async {
         if (success.hasSeparation) {
-          _openNextSeparation(success.separation!);
+          final params = await _getUserParams();
+          if (params != null) _openNextSeparation(success.separation!, params);
         } else {
           _showInfoModal('Nenhuma Separação', success.message);
         }
@@ -448,7 +451,17 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
 
   /// Converte SeparationUserSectorConsultationModel para SeparateConsultationModel
   /// e navega para a tela de separação
-  void _openNextSeparation(SeparationUserSectorConsultationModel separation) {
+  void _openNextSeparation(SeparationUserSectorConsultationModel separation, NextSeparationUserParams params) {
+    // Verificar se a separação está atribuída ao usuário atual
+    if (separation.codUsuario != params.codUsuario) {
+      _showErrorModal(
+        'Erro de Atribuição',
+        'A separação ${separation.codSepararEstoque} não está atribuída ao usuário atual. '
+            'Por favor, tente novamente.',
+      );
+      return;
+    }
+
     try {
       // Converter para SeparateConsultationModel
       final separateConsultation = SeparateConsultationModel(

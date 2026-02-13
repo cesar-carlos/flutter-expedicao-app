@@ -11,16 +11,20 @@ import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_success.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/core/utils/i_logger.dart';
 
 class NextSeparationUserUseCase {
   final BasicConsultationRepository<SeparationUserSectorConsultationModel> _separationUserSectorConsultationRepository;
   final RegisterSeparationUserSectorUseCase Function() _getRegisterUseCase;
+  final ILogger _logger;
 
   NextSeparationUserUseCase({
     required BasicConsultationRepository<SeparationUserSectorConsultationModel> separationUserSectorRepository,
     required RegisterSeparationUserSectorUseCase Function() getRegisterUseCase,
+    required ILogger logger,
   }) : _separationUserSectorConsultationRepository = separationUserSectorRepository,
-       _getRegisterUseCase = getRegisterUseCase;
+       _getRegisterUseCase = getRegisterUseCase,
+       _logger = logger;
 
   static const String _blockedSituation = 'BLOQUEADA';
 
@@ -30,8 +34,6 @@ class NextSeparationUserUseCase {
   static const String _fieldCodUsuario = 'CodUsuario';
   static const String _fieldCodSetorEstoque = 'CodSetorEstoque';
   static const String _fieldSituacao = 'SepararEstoqueSituacao';
-  static const String _fieldQuantidadeItens = 'QuantidadeItens';
-  static const String _fieldQuantidadeItensSeparacao = 'QuantidadeItensSeparacao';
   static const String _fieldQuantidadeItensSetor = 'QuantidadeItensSetor';
   static const String _fieldQuantidadeItensSeparacaoSetor = 'QuantidadeItensSeparacaoSetor';
   static const String _fieldCarrinhosAbertos = 'CarrinhosAbertosUsuario';
@@ -80,40 +82,55 @@ class NextSeparationUserUseCase {
   }
 
   Future<SeparationUserSectorConsultationModel?> _findNextSeparation(NextSeparationUserParams params) async {
-    final pendingSeparation = await _findPendingCompletedSeparation(params);
-    if (pendingSeparation != null) return pendingSeparation;
+    // PRIORIDADE 1: Buscar separação 100% completada pelo usuário atual
+    // (todos itens do setor separados E todos carrinhos salvos)
+    final completedSeparation = await _findCompletedSeparationByUser(params);
+    if (completedSeparation != null) return completedSeparation;
 
-    final existingSeparation = await _findExistingSeparation(params);
+    // PRIORIDADE 2: Buscar separação do usuário com itens pendentes no setor
+    final existingSeparation = await _findExistingSeparationWithPendingItems(params);
     if (existingSeparation != null) return existingSeparation;
 
+    // PRIORIDADE 3: Buscar nova separação disponível (CodUsuario IS NULL)
     final newSeparation = await _findNewSeparation(params);
     if (newSeparation != null) {
       final registrationResult = await _registerUserSectorAssignment(params, newSeparation);
       if (registrationResult.isError()) {
-        AppLogger.error(
-          'Usuario ${params.codUsuario} nao pode ser atribuido a separacao ${newSeparation.codSepararEstoque}. '
-          'A separacao nao sera retornada para evitar conflito de atribuicao multipla.',
-        );
-        return null;
+        // Tentar buscar outra separação em vez de desistir
+        AppLogger.warning('Atribuição falhou, buscando próxima separação (tentativa 1/3)...');
+        return await _findNextSeparationWithRetry(params, retryCount: 1);
       }
     }
 
     return newSeparation;
   }
 
-  Future<SeparationUserSectorConsultationModel?> _findPendingCompletedSeparation(
-    NextSeparationUserParams params,
-  ) async {
-    final query = _buildBaseQuery(params)
+  /// PRIORIDADE 1: Busca separação 100% completada pelo usuário atual
+  /// Critérios:
+  /// - Situacao = 'SEPARANDO'
+  /// - CodUsuario = usuário atual
+  /// - QuantidadeItensSetor = QuantidadeItensSeparacaoSetor (todos itens do setor separados)
+  /// - CarrinhosAbertosUsuario != 'S' (todos carrinhos salvos)
+  Future<SeparationUserSectorConsultationModel?> _findCompletedSeparationByUser(NextSeparationUserParams params) async {
+    final baseQuery = _buildBaseQuery(params); // CodUsuario = usuário atual
+    baseQuery
       ..equals(_fieldSituacao, ExpeditionSituation.separando.code)
-      ..fieldEquals(_fieldQuantidadeItens, _fieldQuantidadeItensSeparacao);
+      ..fieldEquals(_fieldQuantidadeItensSetor, _fieldQuantidadeItensSeparacaoSetor) // Setor 100% separado
+      ..notEquals(_fieldCarrinhosAbertos, _cartOpenValue); // Sem carrinhos abertos
 
-    _addStandardOrderBy(query);
+    _addStandardOrderBy(baseQuery);
 
-    return await _executeQuery(query);
+    return await _executeQuery(baseQuery);
   }
 
-  Future<SeparationUserSectorConsultationModel?> _findExistingSeparation(NextSeparationUserParams params) async {
+  /// PRIORIDADE 2: Busca separação do usuário com itens pendentes no setor
+  /// Critérios:
+  /// - CodUsuario = usuário atual
+  /// - Situacao NOT IN (CANCELADA, SEPARADO, EM PAUSA, BLOQUEADA)
+  /// - QuantidadeItensSetor > QuantidadeItensSeparacaoSetor (ainda há itens no setor)
+  Future<SeparationUserSectorConsultationModel?> _findExistingSeparationWithPendingItems(
+    NextSeparationUserParams params,
+  ) async {
     final baseQuery = _buildBaseQuery(params);
     _addExcludedSituations(baseQuery);
 
@@ -138,6 +155,37 @@ class NextSeparationUserUseCase {
     final completeWhere = '$baseWhere AND $_fieldCodUsuario IS NULL';
 
     return await _executeRawQuery(completeWhere);
+  }
+
+  /// Busca próxima separação com mecanismo de retry
+  Future<SeparationUserSectorConsultationModel?> _findNextSeparationWithRetry(
+    NextSeparationUserParams params, {
+    int retryCount = 0,
+    int maxRetries = 3,
+  }) async {
+    if (retryCount >= maxRetries) {
+      AppLogger.warning('Máximo de tentativas ($maxRetries) atingido ao buscar próxima separação');
+      return null;
+    }
+
+    final newSeparation = await _findNewSeparation(params);
+    if (newSeparation == null) return null;
+
+    final registrationResult = await _registerUserSectorAssignment(params, newSeparation);
+    if (registrationResult.isError()) {
+      AppLogger.warning(
+        'Atribuição falhou (tentativa ${retryCount + 1}/$maxRetries), '
+        'buscando próxima separação após delay...',
+      );
+
+      // Delay exponencial entre tentativas
+      final delayMs = Duration(milliseconds: 100 * (retryCount + 1));
+      await Future.delayed(delayMs);
+
+      return await _findNextSeparationWithRetry(params, retryCount: retryCount + 1, maxRetries: maxRetries);
+    }
+
+    return newSeparation;
   }
 
   QueryBuilder _buildBaseQuery(NextSeparationUserParams params) {
@@ -188,14 +236,14 @@ class NextSeparationUserUseCase {
 
       if (result.isError()) {
         final failure = result.exceptionOrNull();
-        AppLogger.error(
+        _logger.error(
           'Falha ao registrar atribuição de usuario ${params.codUsuario} '
           'à separação ${separation.codSepararEstoque}: ${failure?.toString()}',
         );
         return result;
       }
 
-      AppLogger.info(
+      _logger.info(
         'Usuario ${params.codUsuario} (${params.userSystemModel!.nomeUsuario}) '
         'atribuído com sucesso à separação ${separation.codSepararEstoque}',
       );

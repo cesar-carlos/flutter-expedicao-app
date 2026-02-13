@@ -53,8 +53,34 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       setState(() {});
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final viewModel = context.read<SeparationItemsViewModel>();
+
+      final userSessionService = locator<UserSessionService>();
+      final appUser = await userSessionService.loadUserSession();
+      final currentUserId = appUser?.userSystemModel?.codUsuario;
+      final userSectorStock = appUser?.userSystemModel?.codSetorEstoque;
+
+      if (currentUserId == null) {
+        _showErrorAndGoBack('Usuário não identificado');
+        return;
+      }
+
+      // Usuários com setor estoque null ou zero podem acessar qualquer separação (permissão administrativa)
+      // Usuários com setor estoque configurado só podem acessar separações atribuídas a eles
+      if (userSectorStock != null && userSectorStock > 0) {
+        final codUsuariosSeparacao = widget.separation.codUsuariosSeparacao;
+        final isAssigned = codUsuariosSeparacao.contains(currentUserId);
+
+        if (!isAssigned && mounted) {
+          _showErrorAndGoBack(
+            'Esta separação não está atribuída ao usuário atual. '
+            'Por favor, utilize a opção "Próxima Separação".',
+          );
+          return;
+        }
+      }
+
       viewModel.loadSeparationItems(widget.separation);
       viewModel.loadSeparationCarts(widget.separation);
 
@@ -83,6 +109,16 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
     super.dispose();
   }
 
+  void _showErrorAndGoBack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: AppColors.error, duration: const Duration(seconds: 3)),
+    );
+    if (mounted) {
+      context.pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,7 +133,6 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Botão de Imprimir
                     IconButton(
                       onPressed: _isPrinting ? null : () => _onPrintTicket(context),
                       icon: _isPrinting
@@ -106,7 +141,6 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
                       tooltip: 'Imprimir lista de separação',
                     ),
 
-                    // Botão de Filtro
                     IconButton(
                       onPressed: () => _showFilterModal(context),
                       icon: Stack(
@@ -131,7 +165,6 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
                       tooltip: _tabController.index == 1 ? 'Filtros de Produtos' : 'Filtros de Carrinhos',
                     ),
 
-                    // Botão de Atualizar
                     IconButton(
                       onPressed: () => _refreshData(viewModel),
                       icon: const Icon(Icons.refresh),
@@ -288,7 +321,6 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
 
     setState(() => _isPrinting = true);
 
-    // Captura o messenger antes dos awaits para evitar warnings do lint
     final messenger = ScaffoldMessenger.of(context);
 
     try {
@@ -341,7 +373,6 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
 
       final failure = result.exceptionOrNull();
 
-      // Mensagem personalizada para NOT_FOUND com informações do usuário
       String errorMessage;
       if (failure is DataFailure && failure.code == 'NOT_FOUND') {
         if (userSectorStock != null && userSectorStock > 0) {
