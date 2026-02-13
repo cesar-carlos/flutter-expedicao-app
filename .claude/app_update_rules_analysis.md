@@ -17,7 +17,7 @@
 
 ### 1. Core importando Domain (**clean_architecture**)
 
-**Regra**: *Core → Não importa de outras camadas de negócio.*
+**Regra**: _Core → Não importa de outras camadas de negócio._
 
 **Onde**: `lib/core/results/result_extensions.dart` importa `domain/models/app_update_failure.dart`.
 
@@ -31,19 +31,19 @@
 
 ### 2. Domain importando Data (**clean_architecture**)
 
-**Regra**: *Domain → NUNCA importar de application, infrastructure ou presentation.*
+**Regra**: _Domain → NUNCA importar de application, infrastructure ou presentation._
 
 **Onde**: `lib/domain/viewmodels/app_update_viewmodel.dart` importa `data/datasources/update_cache_service.dart`.
 
 **Motivo**: ViewModel está no domain mas depende de serviço de dados (cache com `SharedPreferences`). Domain não deve depender de camada de dados.
 
-**Correção (estrutural)**: Introduzir interface no domain (ex.: `IUpdateCheckCache`) com `shouldCheckForUpdates()` e `markAsChecked()`. Implementação em `data/` (`UpdateCacheService`). ViewModel depender da interface, não do serviço concreto. Opcionalmente mover ViewModels para `ui/` (ou `presentation/`), já que lidam com estado de UI e Flutter; as regras colocam *controllers/providers* na camada de apresentação.
+**Correção (estrutural)**: Introduzir interface no domain (ex.: `IUpdateCheckCache`) com `shouldCheckForUpdates()` e `markAsChecked()`. Implementação em `data/` (`UpdateCacheService`). ViewModel depender da interface, não do serviço concreto. Opcionalmente mover ViewModels para `ui/` (ou `presentation/`), já que lidam com estado de UI e Flutter; as regras colocam _controllers/providers_ na camada de apresentação.
 
 ---
 
 ### 3. Domain importando Flutter (**domain_layer**)
 
-**Regra**: *Domain → NUNCA importar Flutter, HTTP ou frameworks.*
+**Regra**: _Domain → NUNCA importar Flutter, HTTP ou frameworks._
 
 **Onde**: `AppUpdateViewModel` importa `package:flutter/foundation.dart` (`ChangeNotifier`).
 
@@ -55,7 +55,7 @@
 
 ### 4. Lógica específica de feature em Core
 
-**Regra**: *Core = componentes centrais compartilhados.*
+**Regra**: _Core = componentes centrais compartilhados._
 
 **Onde**: `mapFailureToAppUpdate` e `ResultVoidAppUpdateExtensions` em `core/results/result_extensions.dart`.
 
@@ -67,10 +67,11 @@
 
 ### 5. Documentação automática (**general_rules**)
 
-**Regra**: *Não criar documentação (///, README, etc.) automaticamente; apenas quando solicitado.*
+**Regra**: _Não criar documentação (///, README, etc.) automaticamente; apenas quando solicitado._
 
-**Onde**:  
-- `UpdateCacheService`: vários `///` em classes e métodos.  
+**Onde**:
+
+- `UpdateCacheService`: vários `///` em classes e métodos.
 - `core/results/index.dart`: comentários de módulo.
 
 **Correção**: Remover `///` e comentários de módulo não solicitados, mantendo o código autoexplicativo.
@@ -79,20 +80,20 @@
 
 ### 6. Uso de `Navigator` (**dependencies_patterns**)
 
-**Regra**: *SEMPRE usar `go_router` para navegação; NUNCA usar `Navigator.push`.*
+**Regra**: _SEMPRE usar `go_router` para navegação; NUNCA usar `Navigator.push`._
 
 **Onde**: `AppUpdateDialog` usa `Navigator.of(context).pop()` para fechar o diálogo.
 
-**Observação**: A regra cita explicitamente `Navigator.push`. `pop()` em diálogo modal é um caso limite (fechar overlay vs. rota). Mantém-se aderente ao *spirit* do projeto priorizando `go_router` para rotas; para modais, `pop` é uso comum e pode ser aceito como exceção, a menos que o projeto padronize outro mecanismo para fechar diálogos.
+**Observação**: A regra cita explicitamente `Navigator.push`. `pop()` em diálogo modal é um caso limite (fechar overlay vs. rota). Mantém-se aderente ao _spirit_ do projeto priorizando `go_router` para rotas; para modais, `pop` é uso comum e pode ser aceito como exceção, a menos que o projeto padronize outro mecanismo para fechar diálogos.
 
 ---
 
 ## Reflexão
 
-- **Estrutura real vs. regras**: O projeto usa `data/` e `ui/` em vez de `infrastructure/` e `presentation/`. ViewModels estão em `domain/`. As regras sugerem *controllers/providers* em *presentation*. O desvio importante não é o nome da pasta, e sim **ViewModel no domain dependendo de data + Flutter**, o que fere Clean Architecture e **domain_layer**.
+- **Estrutura real vs. regras**: O projeto usa `data/` e `ui/` em vez de `infrastructure/` e `presentation/`. ViewModels estão em `domain/`. As regras sugerem _controllers/providers_ em _presentation_. O desvio importante não é o nome da pasta, e sim **ViewModel no domain dependendo de data + Flutter**, o que fere Clean Architecture e **domain_layer**.
 
-- **Prioridade de ajustes**:  
-  1. **Core → Domain**: Mover extensões de app-update para o domain (impacto baixo, alinha com regras).  
+- **Prioridade de ajustes**:
+  1. **Core → Domain**: Mover extensões de app-update para o domain (impacto baixo, alinha com regras).
   2. **Domain → Data/Flutter**: Abstrair cache (`IUpdateCheckCache`) e, se possível, mover ViewModels para UI; isso exige refactor maior mas corrige a inversão de dependências.
 
 - **Migration gradual**: As regras incentivam migração incremental. Corrigir primeiro o que está em `core` (item 1) e, em seguida, planejar a abstração do cache e a realocação dos ViewModels (itens 2 e 3) evita mudanças bruscas e mantém o ritmo de entrega.

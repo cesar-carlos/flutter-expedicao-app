@@ -7,13 +7,16 @@
 #### 1. **Travamento da UI no Check Manual (Drawer)**
 
 **Problema Original:**
+
 ```dart
 // app_drawer.dart linha 321
 await appUpdateViewModel.checkForUpdate(owner: owner, repo: repo);
 ```
+
 O `await` bloqueava a UI por até **15 segundos** em caso de timeout ou rede lenta.
 
 **Solução Implementada:**
+
 ```dart
 // Check em background sem bloquear UI
 appUpdateViewModel.checkForUpdate(owner: owner, repo: repo, forceCheck: true);
@@ -23,6 +26,7 @@ while (appUpdateViewModel.isChecking && scaffoldContext.mounted) {
   await Future.delayed(const Duration(milliseconds: 200));
 }
 ```
+
 - ✅ UI não trava
 - ✅ Usuário vê indicador de progresso via `isChecking`
 - ✅ Polling leve (200ms) para aguardar resultado
@@ -33,6 +37,7 @@ while (appUpdateViewModel.isChecking && scaffoldContext.mounted) {
 O `UpdateCacheService` existia mas **não era usado** - o app checava update toda vez que abria.
 
 **Solução Implementada:**
+
 - ✅ `UpdateCacheService` injetado no `AppUpdateViewModel`
 - ✅ Verifica cache antes de checar (evita checks frequentes)
 - ✅ Cache válido por **1 hora** (configurável)
@@ -42,6 +47,7 @@ O `UpdateCacheService` existia mas **não era usado** - o app checava update tod
 #### 3. **Timeouts Reduzidos**
 
 **Antes:**
+
 ```dart
 connectTimeout: const Duration(seconds: 10),
 receiveTimeout: const Duration(seconds: 15),
@@ -49,11 +55,13 @@ sendTimeout: const Duration(seconds: 10),
 ```
 
 **Depois:**
+
 ```dart
 connectTimeout: const Duration(seconds: 5),
 receiveTimeout: const Duration(seconds: 7),
 sendTimeout: const Duration(seconds: 5),
 ```
+
 - ✅ Timeouts reduzidos de 10/15s para 5/7s
 - ✅ Melhor experiência em caso de rede lenta/bloqueio
 - ✅ Ainda suficiente para GitHub API responder
@@ -61,6 +69,7 @@ sendTimeout: const Duration(seconds: 5),
 #### 4. **Tratamento de Erros de Rede**
 
 **Melhorias:**
+
 - ✅ Erros de rede/timeout no check **automático** (startup) são **silenciosos** - não incomodam o usuário
 - ✅ Erros no check **manual** (drawer) são **exibidos** - usuário precisa saber
 - ✅ Tratamento específico para `networkError` e timeouts
@@ -97,6 +106,7 @@ if (failure.type == AppUpdateFailureType.networkError ||
 3. **Async/await é suficiente**: Flutter já trata operações async de forma não-bloqueante
 
 **Quando usar compute/isolate:**
+
 - Parsing de JSON **muito grande** (>1MB)
 - Processamento pesado de dados (ex: compressão, criptografia)
 - Operações síncronas custosas
@@ -106,6 +116,7 @@ Para este caso, **async/await é a solução correta**.
 ## 📊 Fluxo Atual
 
 ### Check Automático (Startup)
+
 ```
 main.dart (linha 93-103)
   ↓ Future.delayed(2s) - não bloqueia init
@@ -119,6 +130,7 @@ main.dart (linha 93-103)
 ```
 
 ### Check Manual (Drawer)
+
 ```
 app_drawer.dart (linha 295-334)
   ↓ checkForUpdate(forceCheck: true)
