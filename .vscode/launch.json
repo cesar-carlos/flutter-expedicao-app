@@ -11,13 +11,6 @@
       "flutterMode": "debug"
     },
     {
-      "name": "expedicao (debug mode) - TC60",
-      "request": "launch",
-      "type": "dart",
-      "flutterMode": "debug",
-      "deviceId": "TC60002025052600044"
-    },
-    {
       "name": "expedicao (debug mode) - Emulador",
       "request": "launch",
       "type": "dart",
@@ -25,18 +18,11 @@
       "deviceId": "emulator-5554"
     },
     {
-      "name": "expedicao (debug mode) - Device 192.168.3.163",
-      "request": "launch",
-      "type": "dart",
-      "flutterMode": "debug",
-      "deviceId": "192.168.3.163:42957"
-    },
-    {
       "name": "expedicao (debug mode) - Q900 wireless",
       "request": "launch",
       "type": "dart",
       "flutterMode": "debug",
-      "deviceId": "adb-NT000025082500448-BllH1J._adb-tls-connect._tcp"
+      "deviceId": "adb-NT000025082500015-8Ny5QE._adb-tls-connect._tcp"
     },
     {
       "name": "expedicao (profile mode)",
@@ -49,15 +35,6 @@
       "request": "launch",
       "type": "dart",
       "flutterMode": "release"
-    }
-  ],
-  "compounds": [
-    {
-      "name": "expedicao - TC60 + Emulador",
-      "configurations": [
-        "expedicao (debug mode) - TC60",
-        "expedicao (debug mode) - Emulador"
-      ]
     }
   ]
 }

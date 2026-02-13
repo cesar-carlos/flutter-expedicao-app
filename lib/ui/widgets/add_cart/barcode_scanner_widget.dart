@@ -131,10 +131,11 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _focusNode.unfocus();
-        _focusNode.requestFocus();
-      }
+      if (!mounted) return;
+      _focusNode.unfocus();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focusNode.requestFocus();
+      });
     });
   }
 

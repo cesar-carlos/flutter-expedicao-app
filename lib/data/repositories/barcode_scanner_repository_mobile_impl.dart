@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:result_dart/result_dart.dart';
 import 'package:flutter/material.dart';
@@ -67,7 +69,7 @@ class BarcodeScannerScreen extends StatefulWidget {
   State<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
 }
 
-class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
+class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with WidgetsBindingObserver {
   MobileScannerController? _controller;
   bool _isProcessing = false;
   String? _errorMessage;
@@ -76,6 +78,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _disableSystemSounds();
     _initializeController();
   }
@@ -97,21 +100,15 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     }
   }
 
-  Future<void> _stopScanner() async {
-    if (_controller == null || _isDisposed) return;
-
+  Future<void> _releaseControllerAsync(MobileScannerController ctrl) async {
     try {
-      await _controller!.stop();
-    } catch (e) {
-      developer.log('Erro ao parar scanner: $e');
-    }
+      await ctrl.stop();
+    } catch (_) {}
+    await ctrl.dispose();
   }
 
   Future<void> _closeWithResult(String? result) async {
     if (_isDisposed || !mounted) return;
-
-    await _stopScanner();
-
     if (mounted) {
       Navigator.of(context).pop(result);
     }
@@ -120,9 +117,31 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   @override
   void dispose() {
     _isDisposed = true;
-    _stopScanner();
-    _controller?.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    final ctrl = _controller;
+    _controller = null;
+    if (ctrl != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(_releaseControllerAsync(ctrl));
+      });
+    }
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      unawaited(_handleAppBackground());
+    }
+  }
+
+  Future<void> _handleAppBackground() async {
+    if (mounted) {
+      Navigator.of(context).pop(null);
+    }
   }
 
   void _onDetect(BarcodeCapture barcodeCapture) {
@@ -148,10 +167,10 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   Widget build(BuildContext context) {
     if (_errorMessage != null) {
       return PopScope(
-        canPop: true,
+        canPop: false,
         onPopInvokedWithResult: (didPop, result) async {
-          if (didPop) {
-            await _stopScanner();
+          if (!didPop) {
+            await _closeWithResult(null);
           }
         },
         child: Scaffold(
@@ -191,10 +210,10 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     }
 
     return PopScope(
-      canPop: !_isProcessing,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) {
-          await _stopScanner();
+        if (!didPop) {
+          await _closeWithResult(null);
         }
       },
       child: Scaffold(
@@ -213,8 +232,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                 },
               ),
               onPressed: () {
+                if (_isDisposed || _controller == null) return;
                 try {
-                  _controller?.toggleTorch();
+                  _controller!.toggleTorch();
                 } catch (e) {
                   developer.log('Failed to toggle torch', error: e);
                 }

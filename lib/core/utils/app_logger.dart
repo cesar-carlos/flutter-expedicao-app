@@ -1,11 +1,12 @@
 import 'package:data7_expedicao/core/utils/i_logger.dart';
+import 'package:data7_expedicao/core/utils/no_op_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
 
 class AppLogger {
   static ILogger? _logger;
 
   static ILogger get _instance {
-    _logger ??= locator<ILogger>();
+    _logger ??= locator.isRegistered<ILogger>() ? locator<ILogger>() : const NoOpLogger();
     return _logger!;
   }
 
