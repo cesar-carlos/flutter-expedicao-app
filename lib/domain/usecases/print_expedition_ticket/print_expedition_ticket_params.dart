@@ -8,6 +8,7 @@ class PrintExpeditionTicketParams {
   final bool autoCut;
   final int? codSetorEstoque;
   final int? codUsuario;
+  final int? leftMarginMm;
 
   const PrintExpeditionTicketParams({
     required this.codEmpresa,
@@ -17,6 +18,7 @@ class PrintExpeditionTicketParams {
     this.autoCut = true,
     this.codSetorEstoque,
     this.codUsuario,
+    this.leftMarginMm,
   });
 
   bool get isValid => validationErrors.isEmpty;
@@ -67,10 +69,11 @@ class PrintExpeditionTicketParams {
         other.separatorName == separatorName &&
         other.autoCut == autoCut &&
         other.codSetorEstoque == codSetorEstoque &&
-        other.codUsuario == codUsuario;
+        other.codUsuario == codUsuario &&
+        other.leftMarginMm == leftMarginMm;
   }
 
   @override
   int get hashCode =>
-      Object.hash(codEmpresa, codSepararEstoque, printer, separatorName, autoCut, codSetorEstoque, codUsuario);
+      Object.hash(codEmpresa, codSepararEstoque, printer, separatorName, autoCut, codSetorEstoque, codUsuario, leftMarginMm);
 }

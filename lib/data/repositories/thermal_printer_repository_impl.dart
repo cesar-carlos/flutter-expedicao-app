@@ -48,6 +48,7 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
         printerIp: printer.ip,
         printerPort: printer.port,
         autoCut: autoCut,
+        leftMarginMm: printer.leftMarginMm,
       );
 
       final report = await _retryPolicy.execute(
@@ -131,6 +132,7 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
     bool autoCut = true,
     int? codSetorEstoque,
     int? codUsuario,
+    int? leftMarginMm,
   }) async {
     final validationFailure = _validatePrinter(printer);
     if (validationFailure != null) {
@@ -156,6 +158,7 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
         autoCut: autoCut,
         codSetorEstoque: codSetorEstoque,
         codUsuario: codUsuario,
+        leftMarginMm: leftMarginMm ?? printer.leftMarginMm,
       );
 
       final report = await _retryPolicy.execute(

@@ -95,7 +95,10 @@ void main() {
       expect(capturedQuery, isNotNull);
       expect(capturedQuery!.buildSqlWhere(), contains("CodEmpresa = '1'"));
       expect(capturedQuery.buildSqlWhere(), contains("CodSepararEstoque = '2'"));
-      expect(capturedQuery.buildOrderByQuery(), equals('order_by=Item&order_direction=ASC'));
+      expect(
+        capturedQuery.buildOrderByQuery(),
+        equals('order_by=CodEmpresa,CodSepararEstoque,DescricaoEnderecoProduto&order_direction=ASC,ASC,ASC'),
+      );
     });
   });
 }
@@ -205,6 +208,7 @@ class _FakeThermalPrinterRepository implements IThermalPrinterRepository {
     bool autoCut = true,
     int? codSetorEstoque,
     int? codUsuario,
+    int? leftMarginMm,
   }) async {
     lastPrinter = printer;
     lastItems = items;

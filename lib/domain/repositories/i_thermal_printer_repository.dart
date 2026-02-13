@@ -13,5 +13,6 @@ abstract class IThermalPrinterRepository {
     bool autoCut = true,
     int? codSetorEstoque,
     int? codUsuario,
+    int? leftMarginMm,
   });
 }

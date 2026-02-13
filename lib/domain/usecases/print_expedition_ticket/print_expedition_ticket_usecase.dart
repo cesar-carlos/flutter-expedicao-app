@@ -32,7 +32,10 @@ class PrintExpeditionTicketUseCase {
         queryBuilder.equals('CodSetorEstoque', params.codSetorEstoque.toString());
       }
 
-      queryBuilder.orderByAsc('Item');
+      queryBuilder
+        ..orderByAsc('CodEmpresa')
+        ..orderByAsc('CodSepararEstoque')
+        ..orderByAsc('DescricaoEnderecoProduto');
 
       final items = await _expeditionItemPrintRepository.selectConsultation(queryBuilder);
       if (items.isEmpty) {
@@ -46,6 +49,7 @@ class PrintExpeditionTicketUseCase {
         autoCut: params.autoCut,
         codSetorEstoque: params.codSetorEstoque,
         codUsuario: params.codUsuario,
+        leftMarginMm: params.leftMarginMm ?? params.printer.leftMarginMm,
       );
     } on DataError catch (e) {
       return failure(NetworkFailure(message: e.message));

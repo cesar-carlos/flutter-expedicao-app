@@ -71,16 +71,12 @@ class ExpeditionCheckModel {
       hora: hora ?? this.hora,
       historico: historico ?? this.historico,
       observacao: observacao ?? this.observacao,
-      codMotivoCancelamento:
-          codMotivoCancelamento ?? this.codMotivoCancelamento,
+      codMotivoCancelamento: codMotivoCancelamento ?? this.codMotivoCancelamento,
       dataCancelamento: dataCancelamento ?? this.dataCancelamento,
       horaCancelamento: horaCancelamento ?? this.horaCancelamento,
-      codUsuarioCancelamento:
-          codUsuarioCancelamento ?? this.codUsuarioCancelamento,
-      nomeUsuarioCancelamento:
-          nomeUsuarioCancelamento ?? this.nomeUsuarioCancelamento,
-      observacaoCancelamento:
-          observacaoCancelamento ?? this.observacaoCancelamento,
+      codUsuarioCancelamento: codUsuarioCancelamento ?? this.codUsuarioCancelamento,
+      nomeUsuarioCancelamento: nomeUsuarioCancelamento ?? this.nomeUsuarioCancelamento,
+      observacaoCancelamento: observacaoCancelamento ?? this.observacaoCancelamento,
     );
   }
 
@@ -92,17 +88,13 @@ class ExpeditionCheckModel {
         origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
         codOrigem: json['CodOrigem'],
         codPrioridade: json['CodPrioridade'],
-        situacao:
-            ExpeditionCartRouterSituation.fromCode(json['Situacao']) ??
-            ExpeditionCartRouterSituation.vazio,
+        situacao: ExpeditionCartRouterSituation.fromCode(json['Situacao']) ?? ExpeditionCartRouterSituation.vazio,
         data: DateHelper.tryStringToDate(json['Data']),
         hora: json['Hora'],
         historico: json['Historico'],
         observacao: json['Observacao'],
         codMotivoCancelamento: json['CodMotivoCancelamento'],
-        dataCancelamento: DateHelper.tryStringToDateOrNull(
-          json['DataCancelamento'],
-        ),
+        dataCancelamento: DateHelper.tryStringToDateOrNull(json['DataCancelamento']),
         horaCancelamento: json['HoraCancelamento'],
         codUsuarioCancelamento: json['CodUsuarioCancelamento'],
         nomeUsuarioCancelamento: json['NomeUsuarioCancelamento'],
@@ -151,8 +143,7 @@ class ExpeditionCheckModel {
   /// Retorna a cor da situação
   Color get situacaoColor => situacao.color;
 
-  bool isSituacao(String situacaoToCheck) =>
-      situacao.code.toLowerCase() == situacaoToCheck.toLowerCase();
+  bool isSituacao(String situacaoToCheck) => situacao.code.toLowerCase() == situacaoToCheck.toLowerCase();
 
   String? get cancelInfo {
     if (!isCancelled) return null;
@@ -179,9 +170,7 @@ class ExpeditionCheckModel {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is ExpeditionCheckModel &&
-        other.codEmpresa == codEmpresa &&
-        other.codConferir == codConferir;
+    return other is ExpeditionCheckModel && other.codEmpresa == codEmpresa && other.codConferir == codConferir;
   }
 
   @override

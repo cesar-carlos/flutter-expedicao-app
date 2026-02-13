@@ -203,6 +203,7 @@ class _FakeThermalPrinterRepository implements IThermalPrinterRepository {
     bool autoCut = true,
     int? codSetorEstoque,
     int? codUsuario,
+    int? leftMarginMm,
   }) async {
     lastPrinter = printer;
     lastItems = items;

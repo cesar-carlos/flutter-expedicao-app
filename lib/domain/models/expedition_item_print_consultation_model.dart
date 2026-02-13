@@ -172,8 +172,7 @@ class ExpeditionItemPrintConsultationModel {
       horaSepararEstoque: horaSepararEstoque ?? this.horaSepararEstoque,
       situacao: situacao ?? this.situacao,
       codTipoOperacaoSaida: codTipoOperacaoSaida ?? this.codTipoOperacaoSaida,
-      descricaoTipoOperacaoSaida:
-          descricaoTipoOperacaoSaida ?? this.descricaoTipoOperacaoSaida,
+      descricaoTipoOperacaoSaida: descricaoTipoOperacaoSaida ?? this.descricaoTipoOperacaoSaida,
       codVendedor: codVendedor ?? this.codVendedor,
       nomeVendedor: nomeVendedor ?? this.nomeVendedor,
       tipoEntidade: tipoEntidade ?? this.tipoEntidade,
@@ -185,17 +184,14 @@ class ExpeditionItemPrintConsultationModel {
       nomeCliente: nomeCliente ?? this.nomeCliente,
       nomeFantasiaCliente: nomeFantasiaCliente ?? this.nomeFantasiaCliente,
       codTransportadora: codTransportadora ?? this.codTransportadora,
-      nomeFantasiaTransportadora:
-          nomeFantasiaTransportadora ?? this.nomeFantasiaTransportadora,
-      razaoSocialTransportadora:
-          razaoSocialTransportadora ?? this.razaoSocialTransportadora,
+      nomeFantasiaTransportadora: nomeFantasiaTransportadora ?? this.nomeFantasiaTransportadora,
+      razaoSocialTransportadora: razaoSocialTransportadora ?? this.razaoSocialTransportadora,
       codMunicipioEntrega: codMunicipioEntrega ?? this.codMunicipioEntrega,
       nomeMunicipioEntrega: nomeMunicipioEntrega ?? this.nomeMunicipioEntrega,
       codLocalArmazenagem: codLocalArmazenagem ?? this.codLocalArmazenagem,
       nomeLocalArmazenagem: nomeLocalArmazenagem ?? this.nomeLocalArmazenagem,
       codSetorEstoque: codSetorEstoque ?? this.codSetorEstoque,
-      descricaoSetorEstoque:
-          descricaoSetorEstoque ?? this.descricaoSetorEstoque,
+      descricaoSetorEstoque: descricaoSetorEstoque ?? this.descricaoSetorEstoque,
       codProduto: codProduto ?? this.codProduto,
       nomeProduto: nomeProduto ?? this.nomeProduto,
       descricaoProduto: descricaoProduto ?? this.descricaoProduto,
@@ -207,65 +203,47 @@ class ExpeditionItemPrintConsultationModel {
       codigoFornecedor: codigoFornecedor ?? this.codigoFornecedor,
       codigoReferencia: codigoReferencia ?? this.codigoReferencia,
       codigoBarras: codigoBarras ?? this.codigoBarras,
-      descricaoEnderecoProduto:
-          descricaoEnderecoProduto ?? this.descricaoEnderecoProduto,
+      descricaoEnderecoProduto: descricaoEnderecoProduto ?? this.descricaoEnderecoProduto,
       codUnidadeMedida: codUnidadeMedida ?? this.codUnidadeMedida,
-      descricaoUnidadeMedida:
-          descricaoUnidadeMedida ?? this.descricaoUnidadeMedida,
+      descricaoUnidadeMedida: descricaoUnidadeMedida ?? this.descricaoUnidadeMedida,
       quantidade: quantidade ?? this.quantidade,
       quantidadeInterna: quantidadeInterna ?? this.quantidadeInterna,
       quantidadeExterna: quantidadeExterna ?? this.quantidadeExterna,
       quantidadeSeparacao: quantidadeSeparacao ?? this.quantidadeSeparacao,
-      historicoSepararEstoque:
-          historicoSepararEstoque ?? this.historicoSepararEstoque,
-      observacaoSepararEstoque:
-          observacaoSepararEstoque ?? this.observacaoSepararEstoque,
+      historicoSepararEstoque: historicoSepararEstoque ?? this.historicoSepararEstoque,
+      observacaoSepararEstoque: observacaoSepararEstoque ?? this.observacaoSepararEstoque,
       orcamentoObservacao: orcamentoObservacao ?? this.orcamentoObservacao,
     );
   }
 
-  factory ExpeditionItemPrintConsultationModel.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory ExpeditionItemPrintConsultationModel.fromJson(Map<String, dynamic> json) {
     try {
       return ExpeditionItemPrintConsultationModel(
         codEmpresa: AppHelper.stringToInt(json['CodEmpresa']),
         codSepararEstoque: AppHelper.stringToInt(json['CodSepararEstoque']),
         item: json['Item'] as String? ?? '',
         origem: json['Origem'] as String?,
-        codOrigem: json['CodOrigem'] != null
-            ? AppHelper.stringToInt(json['CodOrigem'])
-            : null,
+        codOrigem: json['CodOrigem'] != null ? AppHelper.stringToInt(json['CodOrigem']) : null,
         itemOrigem: json['ItemOrigem'] as String?,
-        dataSepararEstoque: AppHelper.tryStringToDate(
-          json['DataSepararEstoque'],
-        ),
+        dataSepararEstoque: AppHelper.tryStringToDate(json['DataSepararEstoque']),
         horaSepararEstoque: json['HoraSepararEstoque'] as String? ?? '',
         situacao: json['Situacao'] as String? ?? '',
         codTipoOperacaoSaida: json['CodTipoOperacaoSaida'] != null
             ? AppHelper.stringToInt(json['CodTipoOperacaoSaida'])
             : null,
-        descricaoTipoOperacaoSaida:
-            json['DescricaoTipoOperacaoSaida'] as String?,
-        codVendedor: json['CodVendedor'] != null
-            ? AppHelper.stringToInt(json['CodVendedor'])
-            : null,
+        descricaoTipoOperacaoSaida: json['DescricaoTipoOperacaoSaida'] as String?,
+        codVendedor: json['CodVendedor'] != null ? AppHelper.stringToInt(json['CodVendedor']) : null,
         nomeVendedor: json['NomeVendedor'] as String?,
         tipoEntidade: json['TipoEntidade'] as String? ?? '',
         codEntidade: json['CodEntidade']?.toString() ?? '',
         nomeEntidade: json['NomeEntidade'] as String? ?? '',
         codPrioridade: AppHelper.stringToInt(json['CodPrioridade']),
         descricaoPrioridade: json['DescricaoPrioridade'] as String? ?? '',
-        codCliente: json['CodCliente'] != null
-            ? AppHelper.stringToInt(json['CodCliente'])
-            : null,
+        codCliente: json['CodCliente'] != null ? AppHelper.stringToInt(json['CodCliente']) : null,
         nomeCliente: json['NomeCliente'] as String?,
         nomeFantasiaCliente: json['NomeFantasiaCliente'] as String?,
-        codTransportadora: json['CodTransportadora'] != null
-            ? AppHelper.stringToInt(json['CodTransportadora'])
-            : null,
-        nomeFantasiaTransportadora:
-            json['NomeFantasiaTransportadora'] as String?,
+        codTransportadora: json['CodTransportadora'] != null ? AppHelper.stringToInt(json['CodTransportadora']) : null,
+        nomeFantasiaTransportadora: json['NomeFantasiaTransportadora'] as String?,
         razaoSocialTransportadora: json['RazaoSocialTransportadora'] as String?,
         codMunicipioEntrega: json['CodMunicipioEntrega'] != null
             ? AppHelper.stringToInt(json['CodMunicipioEntrega'])
@@ -273,20 +251,14 @@ class ExpeditionItemPrintConsultationModel {
         nomeMunicipioEntrega: json['NomeMunicipioEntrega'] as String?,
         codLocalArmazenagem: AppHelper.stringToInt(json['CodLocalArmazenagem']),
         nomeLocalArmazenagem: json['NomeLocalArmazenagem'] as String? ?? '',
-        codSetorEstoque: json['CodSetorEstoque'] != null
-            ? AppHelper.stringToInt(json['CodSetorEstoque'])
-            : null,
+        codSetorEstoque: json['CodSetorEstoque'] != null ? AppHelper.stringToInt(json['CodSetorEstoque']) : null,
         descricaoSetorEstoque: json['DescricaoSetorEstoque'] as String?,
         codProduto: AppHelper.stringToInt(json['CodProduto']),
         nomeProduto: json['NomeProduto'] as String? ?? '',
         descricaoProduto: json['DescricaoProduto'] as String?,
-        codGrupoProduto: json['CodGrupoProduto'] != null
-            ? AppHelper.stringToInt(json['CodGrupoProduto'])
-            : null,
+        codGrupoProduto: json['CodGrupoProduto'] != null ? AppHelper.stringToInt(json['CodGrupoProduto']) : null,
         nomeGrupoProduto: json['NomeGrupoProduto'] as String?,
-        codMarca: json['CodMarca'] != null
-            ? AppHelper.stringToInt(json['CodMarca'])
-            : null,
+        codMarca: json['CodMarca'] != null ? AppHelper.stringToInt(json['CodMarca']) : null,
         nomeMarca: json['NomeMarca'] as String?,
         codigoFabricante: json['CodigoFabricante'] as String?,
         codigoFornecedor: json['CodigoFornecedor'] as String?,
@@ -298,9 +270,7 @@ class ExpeditionItemPrintConsultationModel {
         quantidade: AppHelper.stringToDouble(json['Quantidade']),
         quantidadeInterna: AppHelper.stringToDouble(json['QuantidadeInterna']),
         quantidadeExterna: AppHelper.stringToDouble(json['QuantidadeExterna']),
-        quantidadeSeparacao: AppHelper.stringToDouble(
-          json['QuantidadeSeparacao'],
-        ),
+        quantidadeSeparacao: AppHelper.stringToDouble(json['QuantidadeSeparacao']),
         historicoSepararEstoque: json['HistoricoSepararEstoque'] as String?,
         observacaoSepararEstoque: json['ObservacaoSepararEstoque'] as String?,
         orcamentoObservacao: json['OrcamentoObservacao'] as String?,
@@ -310,12 +280,8 @@ class ExpeditionItemPrintConsultationModel {
     }
   }
 
-  static Result<ExpeditionItemPrintConsultationModel> fromJsonSafe(
-    Map<String, dynamic> json,
-  ) {
-    return safeCallSync(
-      () => ExpeditionItemPrintConsultationModel.fromJson(json),
-    );
+  static Result<ExpeditionItemPrintConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => ExpeditionItemPrintConsultationModel.fromJson(json));
   }
 
   Map<String, dynamic> toJson() {
@@ -384,8 +350,7 @@ class ExpeditionItemPrintConsultationModel {
   }
 
   @override
-  int get hashCode =>
-      codEmpresa.hashCode ^ codSepararEstoque.hashCode ^ item.hashCode;
+  int get hashCode => codEmpresa.hashCode ^ codSepararEstoque.hashCode ^ item.hashCode;
 
   @override
   String toString() {

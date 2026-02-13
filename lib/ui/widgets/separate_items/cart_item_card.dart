@@ -7,15 +7,11 @@ import 'package:go_router/go_router.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/results/index.dart';
-import 'package:data7_expedicao/core/utils/print_failure_message_helper.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
-import 'package:data7_expedicao/domain/usecases/get_default_printer/get_default_printer_usecase.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_params.dart';
-import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_success.dart';
@@ -1072,8 +1068,6 @@ class CartItemCard extends StatelessWidget {
         unawaited(viewModel!.refresh());
       }
 
-      unawaited(_printTicketIfConfigured(context, userModel));
-
       return true;
     } catch (e) {
       if (context.mounted) Navigator.of(context).pop();
@@ -1087,91 +1081,6 @@ class CartItemCard extends StatelessWidget {
         );
       }
       return false;
-    }
-  }
-
-  Future<void> _printTicketIfConfigured(
-    BuildContext context,
-    UserSystemModel? userModel,
-  ) async {
-    try {
-      final defaultPrinter = await locator<GetDefaultPrinterUseCase>().call();
-      if (defaultPrinter == null) {
-        return;
-      }
-
-      final printUseCase = locator<PrintExpeditionTicketUseCase>();
-      final userSectorStock = userModel?.codSetorEstoque;
-      final userSectorName = userModel?.nomeSetorEstoque;
-      final separatorName = userModel?.nomeUsuario;
-
-      final printResult = await printUseCase.call(
-        PrintExpeditionTicketParams(
-          codEmpresa: cartRouteInternshipConsultation.codEmpresa,
-          codSepararEstoque: cartRouteInternshipConsultation.codOrigem,
-          printer: defaultPrinter,
-          separatorName: separatorName,
-          codSetorEstoque: (userSectorStock != null && userSectorStock > 0)
-              ? userSectorStock
-              : null,
-        ),
-      );
-
-      if (!context.mounted) return;
-
-      final printSuccess = printResult.getOrNull();
-      if (printSuccess != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Impressao enviada para ${defaultPrinter.name} (${defaultPrinter.ip}:${defaultPrinter.port}).',
-            ),
-            backgroundColor: AppColors.info,
-            duration: UIConstants.snackBarShortDuration,
-          ),
-        );
-        return;
-      }
-
-      final failure = printResult.exceptionOrNull();
-
-      // Mensagem personalizada para NOT_FOUND com informações do usuário
-      String errorMessage;
-      if (failure is DataFailure && failure.code == 'NOT_FOUND') {
-        if (userSectorStock != null && userSectorStock > 0) {
-          errorMessage =
-              'Carrinho salvo, mas não existem itens do setor $userSectorStock ($userSectorName) para imprimir.\n'
-              'Usuário: $separatorName';
-        } else {
-          errorMessage =
-              'Carrinho salvo, mas não existem itens para imprimir.\n'
-              'Usuário: $separatorName';
-        }
-      } else {
-        errorMessage = const PrintFailureMessageHelper().build(
-          failure,
-          context: PrintFailureContext.cartSaved,
-        );
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: AppColors.warning,
-          duration: UIConstants.snackBarShortDuration,
-        ),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Carrinho salvo, mas houve erro ao iniciar a impressao: $e',
-          ),
-          backgroundColor: AppColors.warning,
-          duration: UIConstants.snackBarShortDuration,
-        ),
-      );
     }
   }
 

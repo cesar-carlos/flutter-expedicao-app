@@ -11,6 +11,8 @@ import 'package:data7_expedicao/infrastructure/services/company_logo_service.dar
 class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
   static const String _defaultCodeTable = 'CP1252';
   static const int _defaultLogoMaxWidthPx = 576;
+  static const int _defaultLeftMarginMm = 5;
+  static const int _maxPrintLength = 80;
 
   final CompanyLogoService? _logoService;
 
@@ -24,12 +26,14 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     Uint8List? logoBytes,
     int logoMaxWidthPx = _defaultLogoMaxWidthPx,
     bool autoCut = true,
+    int? leftMarginMm,
   }) async {
     final profile = await CapabilityProfile.load();
     final generator = Generator(PaperSize.mm80, profile);
     final bytes = <int>[];
     final printedAt = DateTime.now();
     bytes.addAll(generator.setGlobalCodeTable(_defaultCodeTable));
+    _appendLeftMarginIfNeeded(bytes, generator, leftMarginMm);
 
     // Carrega logo automaticamente se não fornecido e serviço disponível
     final effectiveLogoBytes = logoBytes ?? await _loadLogoIfAvailable();
@@ -44,17 +48,16 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     bytes.addAll(
       generator.text(
         'TESTE DE IMPRESSORA',
-        styles: const PosStyles(
-          align: PosAlign.left,
-          bold: true,
-          height: PosTextSize.size2,
-          width: PosTextSize.size1,
-        ),
+        styles: const PosStyles(align: PosAlign.left, bold: true, height: PosTextSize.size2, width: PosTextSize.size1),
       ),
     );
     bytes.addAll(generator.hr(ch: '-'));
-    bytes.addAll(generator.text('Nome: $printerName', styles: const PosStyles(align: PosAlign.left)));
-    bytes.addAll(generator.text('IP: $printerIp', styles: const PosStyles(align: PosAlign.left)));
+    bytes.addAll(
+      generator.text('Nome: ${_sanitizeForPrint(printerName)}', styles: const PosStyles(align: PosAlign.left)),
+    );
+    bytes.addAll(
+      generator.text('IP: ${_sanitizeForPrint(printerIp)}', styles: const PosStyles(align: PosAlign.left)),
+    );
     bytes.addAll(generator.text('Porta: $printerPort', styles: const PosStyles(align: PosAlign.left)));
     bytes.addAll(generator.text('Data: ${_formatDateTime(printedAt)}', styles: const PosStyles(align: PosAlign.left)));
     bytes.addAll(generator.emptyLines(1));
@@ -77,6 +80,7 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     bool autoCut = true,
     int? codSetorEstoque,
     int? codUsuario,
+    int? leftMarginMm,
   }) async {
     if (items.isEmpty) {
       throw StateError('Lista de itens para impressao nao pode estar vazia.');
@@ -89,6 +93,7 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     final header = items.first;
     final printedAt = DateTime.now();
     bytes.addAll(generator.setGlobalCodeTable(_defaultCodeTable));
+    _appendLeftMarginIfNeeded(bytes, generator, leftMarginMm);
 
     // Carrega logo automaticamente se não fornecido e serviço disponível
     final effectiveLogoBytes = logoBytes ?? await _loadLogoIfAvailable();
@@ -103,12 +108,7 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     bytes.addAll(
       generator.text(
         'LISTA DE SEPARACAO',
-        styles: const PosStyles(
-          align: PosAlign.left,
-          bold: true,
-          height: PosTextSize.size2,
-          width: PosTextSize.size1,
-        ),
+        styles: const PosStyles(align: PosAlign.left, bold: true, height: PosTextSize.size2, width: PosTextSize.size1),
       ),
     );
     bytes.addAll(generator.hr(ch: '-'));
@@ -120,8 +120,9 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     _writeLine(bytes, generator, 'CLIENTE', '${header.codEntidade}-${header.nomeEntidade}');
 
     // NomeFantasiaCliente
-    if (header.nomeFantasiaCliente?.isNotEmpty == true) {
-      bytes.addAll(generator.text(header.nomeFantasiaCliente!, styles: const PosStyles(align: PosAlign.left)));
+    final nomeFantasia = _truncateForPrint(header.nomeFantasiaCliente, _maxPrintLength);
+    if (nomeFantasia != null && nomeFantasia.isNotEmpty) {
+      bytes.addAll(generator.text(nomeFantasia, styles: const PosStyles(align: PosAlign.left)));
     }
 
     _writeLine(bytes, generator, 'CIDADE', header.nomeMunicipioEntrega);
@@ -139,10 +140,11 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     );
 
     // Observacao Interna: Apenas OrcamentoObservacao
-    if (header.orcamentoObservacao != null && header.orcamentoObservacao!.trim().isNotEmpty) {
+    final observacao = _truncateForPrint(header.orcamentoObservacao?.trim(), _maxPrintLength);
+    if (observacao != null && observacao.isNotEmpty) {
       bytes.addAll(generator.emptyLines(1));
       bytes.addAll(
-        generator.text(header.orcamentoObservacao!.trim(), styles: const PosStyles(align: PosAlign.left, bold: true)),
+        generator.text(observacao, styles: const PosStyles(align: PosAlign.left, bold: true)),
       );
     }
 
@@ -158,7 +160,7 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
             styles: const PosStyles(align: PosAlign.left),
           ),
           PosColumn(
-            text: 'MARCA: ${item.nomeMarca}',
+            text: 'MARCA: ${_sanitizeForPrint(item.nomeMarca ?? '')}',
             width: 6,
             styles: const PosStyles(align: PosAlign.left),
           ),
@@ -166,21 +168,25 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
       );
 
       // Descrição do produto (esquerda)
+      final nomeProduto = _truncateForPrint(item.nomeProduto, _maxPrintLength) ?? item.nomeProduto;
       bytes.addAll(
-        generator.text(
-          item.descricaoProduto?.trim().isNotEmpty == true ? item.descricaoProduto! : item.nomeProduto,
-          styles: const PosStyles(align: PosAlign.left),
-        ),
+        generator.text(nomeProduto, styles: const PosStyles(align: PosAlign.left)),
       );
 
       // FAB (esquerda - conforme modelo)
       bytes.addAll(
-        generator.text('FAB: ${item.codigoFabricante ?? '-'}', styles: const PosStyles(align: PosAlign.left)),
+        generator.text(
+          'FAB: ${_sanitizeForPrint(item.codigoFabricante ?? '-')}',
+          styles: const PosStyles(align: PosAlign.left),
+        ),
       );
 
       // END (esquerda - conforme modelo)
       bytes.addAll(
-        generator.text('END: ${item.descricaoEnderecoProduto ?? '-'}', styles: const PosStyles(align: PosAlign.left)),
+        generator.text(
+          'END: ${_sanitizeForPrint(item.descricaoEnderecoProduto ?? '-')}',
+          styles: const PosStyles(align: PosAlign.left),
+        ),
       );
 
       // QTD (esquerda - conforme solicitado)
@@ -197,8 +203,8 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     final normalizedSeparator = separatorName?.trim();
     if (codUsuario != null || (normalizedSeparator != null && normalizedSeparator.isNotEmpty)) {
       final separatorText = codUsuario != null && normalizedSeparator != null && normalizedSeparator.isNotEmpty
-          ? '$codUsuario $normalizedSeparator'
-          : (codUsuario?.toString() ?? normalizedSeparator ?? '');
+          ? '$codUsuario ${_sanitizeForPrint(normalizedSeparator)}'
+          : (codUsuario?.toString() ?? _sanitizeForPrint(normalizedSeparator ?? ''));
       bytes.addAll(
         generator.text('SEPARADOR: $separatorText', styles: const PosStyles(align: PosAlign.center, bold: true)),
       );
@@ -217,6 +223,22 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     return bytes;
   }
 
+  String _sanitizeForPrint(String text) {
+    return text.replaceAllMapped(
+      RegExp(r'[\x00-\x1F\x7F]'),
+      (_) => ' ',
+    );
+  }
+
+  String? _truncateForPrint(String? text, int maxLength) {
+    if (text == null) return null;
+    final sanitized = _sanitizeForPrint(text);
+    final trimmed = sanitized.trim();
+    if (trimmed.isEmpty) return null;
+    if (trimmed.length <= maxLength) return trimmed;
+    return '${trimmed.substring(0, maxLength)}...';
+  }
+
   void _writeLine(
     List<int> bytes,
     Generator generator,
@@ -225,21 +247,22 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     String? inlineLabel,
     String? inlineValue,
   }) {
-    if (value == null || value.trim().isEmpty) {
+    final truncatedValue = _truncateForPrint(value, _maxPrintLength);
+    if (truncatedValue == null || truncatedValue.isEmpty) {
       return;
     }
 
-    if (inlineLabel != null && inlineValue != null && inlineValue.trim().isNotEmpty) {
-      // Para o cabeçalho, mantém alinhado à esquerda
+    final truncatedInline = inlineValue != null ? _truncateForPrint(inlineValue, _maxPrintLength) : null;
+    if (inlineLabel != null && truncatedInline != null && truncatedInline.isNotEmpty) {
       bytes.addAll(
         generator.row([
           PosColumn(
-            text: '$label: $value',
+            text: '$label: $truncatedValue',
             width: 7,
             styles: const PosStyles(align: PosAlign.left),
           ),
           PosColumn(
-            text: '$inlineLabel: $inlineValue',
+            text: '$inlineLabel: $truncatedInline',
             width: 5,
             styles: const PosStyles(align: PosAlign.left),
           ),
@@ -248,7 +271,7 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
       return;
     }
 
-    bytes.addAll(generator.text('$label: $value', styles: const PosStyles(align: PosAlign.left)));
+    bytes.addAll(generator.text('$label: $truncatedValue', styles: const PosStyles(align: PosAlign.left)));
   }
 
   String _formatDateTime(DateTime value) {
@@ -271,6 +294,18 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     final rounded = value.toStringAsFixed(3);
     final withoutTrailingZero = rounded.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
     return withoutTrailingZero;
+  }
+
+  void _appendLeftMarginIfNeeded(List<int> bytes, Generator generator, int? leftMarginMm) {
+    final marginMm = leftMarginMm ?? _defaultLeftMarginMm;
+    if (marginMm <= 0) {
+      return;
+    }
+    final dotsPerMm = 8;
+    final leftMarginDots = (marginMm * dotsPerMm).round().clamp(0, 65535);
+    final nL = leftMarginDots & 0xFF;
+    final nH = (leftMarginDots >> 8) & 0xFF;
+    bytes.addAll(generator.rawBytes([0x1D, 0x4C, nL, nH]));
   }
 
   void _appendLogoIfProvided({

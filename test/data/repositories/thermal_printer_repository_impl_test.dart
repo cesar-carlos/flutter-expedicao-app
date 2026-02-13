@@ -271,6 +271,7 @@ class _FakeEscPosTicketBuilderService extends EscPosTicketBuilderService {
     bool autoCut = true,
     int? codSetorEstoque,
     int? codUsuario,
+    int? leftMarginMm,
   }) async {
     expeditionCalls++;
     lastSeparatorName = separatorName;
@@ -288,6 +289,7 @@ class _FakeEscPosTicketBuilderService extends EscPosTicketBuilderService {
     Uint8List? logoBytes,
     int logoMaxWidthPx = 576,
     bool autoCut = true,
+    int? leftMarginMm,
   }) async {
     testCalls++;
     if (testError != null) {
