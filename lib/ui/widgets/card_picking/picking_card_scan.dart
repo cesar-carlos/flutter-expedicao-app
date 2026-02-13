@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
-//import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
+
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
@@ -88,7 +88,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   late final ScannerActivationController _scannerActivationController;
 
   final AudioService _audioService = locator<AudioService>();
-  //final BarcodeScannerService _barcodeScannerService = locator<BarcodeScannerService>();
 
   StreamSubscription<OperationError>? _errorSubscription;
 
@@ -405,18 +404,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     if (barcode.trim().isEmpty) return;
 
     if (_scanState.isProcessingScan) return;
-
-    // Validação de formato de código de barras comentada
-    // if (!_barcodeScannerService.isValidBarcodeFormat(barcode)) {
-    //   AppLogger.warning('Formato de código de barras inválido: "$barcode"', tag: 'PickingCardScan');
-    //   _audioService.playError();
-    //   _dialogManager.showErrorDialog(
-    //     barcode,
-    //     'Formato inválido',
-    //     'O código de barras deve ter entre 7 e 16 dígitos numéricos',
-    //   );
-    //   return;
-    // }
 
     final nextItem = PickingUtils.findNextItemToPick(
       widget.viewModel.items,

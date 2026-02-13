@@ -186,7 +186,6 @@ class NextItemCard extends StatelessWidget {
     String tooltip;
 
     if (itemState == null || !itemState.hasPendingSync) {
-      // Estado normal: conectado e sincronizado
       icon = Icons.cloud_done;
       color = AppColors.success;
       tooltip = 'Conectado';
@@ -230,12 +229,10 @@ class NextItemCard extends StatelessWidget {
     ColorScheme colorScheme,
     SeparateItemConsultationModel nextItem,
   ) {
-    // Se tem múltiplas unidades de medida, mostrar dropdown
     if (nextItem.unidadeMedidas.length > 1) {
       return _buildBarcodeDropdown(context, theme, colorScheme, nextItem, itemState);
     }
 
-    // Caso contrário, mostrar como antes
     final barcodeColor = theme.adaptiveOnSurfaceVariant(colorScheme);
 
     return Container(
@@ -272,7 +269,6 @@ class NextItemCard extends StatelessWidget {
     SeparateItemConsultationModel nextItem,
     PickingItemState? itemState,
   ) {
-    // Encontrar a unidade padrão primeiro
     final unidadePadrao = nextItem.unidadeMedidas.firstWhere(
       (unidade) => unidade.unidadeMedidaPadrao == Situation.ativo,
       orElse: () => nextItem.unidadeMedidas.first,
@@ -304,10 +300,7 @@ class NextItemCard extends StatelessWidget {
                     child: _buildDropdownItem(context, theme, colorScheme, unidade),
                   );
                 }).toList(),
-                onChanged: (value) {
-                  // Por enquanto, não implementamos ação ao trocar o dropdown
-                  // Isso pode ser implementado posteriormente se necessário
-                },
+                onChanged: (value) {},
               ),
             ),
           ),
@@ -351,7 +344,6 @@ class NextItemCard extends StatelessWidget {
 
   Widget _buildCompletionMessage(ThemeData theme) {
     if (!hasItemsForUserSector && userSectorCode != null) {
-      // Usuário tem setor definido mas não há itens para ele
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -384,7 +376,6 @@ class NextItemCard extends StatelessWidget {
       );
     }
 
-    // Todos os itens foram separados
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(

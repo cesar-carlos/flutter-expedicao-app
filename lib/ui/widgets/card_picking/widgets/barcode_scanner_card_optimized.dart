@@ -8,16 +8,11 @@ import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 
-/// Card de scanner de código de barras otimizado com Provider
-///
-/// Este widget usa Consumer do Provider para atualizar APENAS o scanner
-/// quando o estado muda, evitando rebuilds desnecessários de outros componentes.
 class BarcodeScannerCardOptimized extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final VoidCallback onToggleKeyboard;
   final ValueChanged<String> onSubmitted;
-  // Habilitação agora é lida do Provider (PickingScanState.enabled)
 
   const BarcodeScannerCardOptimized({
     super.key,
@@ -49,7 +44,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
         children: [
           _buildHeader(theme, colorScheme, isEnabled),
           const SizedBox(height: 6),
-          // 🚀 CONSUMER ESPECÍFICO - Atualiza APENAS o campo do scanner
+
           Consumer<PickingScanState>(
             builder: (context, scanState, child) {
               return _buildScannerField(
@@ -62,7 +57,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
             },
           ),
           const SizedBox(height: 6),
-          // 🚀 CONSUMER ESPECÍFICO - Atualiza APENAS o texto de ajuda
+
           Consumer<PickingScanState>(
             builder: (context, scanState, child) {
               return _buildHelpText(
@@ -102,7 +97,6 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
     bool keyboardEnabled,
     bool isProcessing,
   ) {
-    // 🔒 Bloquear campo quando estiver processando
     final isFieldEnabled = enabled && !isProcessing;
 
     return TextField(
@@ -110,9 +104,7 @@ class BarcodeScannerCardOptimized extends StatelessWidget {
       focusNode: focusNode,
       enabled: isFieldEnabled,
       onSubmitted: isFieldEnabled ? onSubmitted : null,
-      // Permitir entrada do scanner embutido sempre, mas controlar seleção interativa
-      // No modo scanner ocultamos o teclado virtual (TextInputType.none),
-      // mas mantemos o campo focado e com cursor visível para receber entrada do leitor (wedge).
+
       enableInteractiveSelection: isFieldEnabled && keyboardEnabled,
       showCursor: true,
       keyboardType: keyboardEnabled ? const TextInputType.numberWithOptions(decimal: false) : TextInputType.none,

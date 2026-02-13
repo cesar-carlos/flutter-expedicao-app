@@ -30,13 +30,10 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
   bool _isIncrementing = false;
   bool _isDecrementing = false;
 
-  /// Delay inicial antes de começar o incremento contínuo
   static const Duration _initialDelay = Duration(milliseconds: 500);
 
-  /// Intervalo entre incrementos durante o hold
   static const Duration _repeatInterval = Duration(milliseconds: 100);
 
-  /// Quantidade mínima permitida
   static const int _minQuantity = 1;
 
   @override
@@ -74,11 +71,9 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
     );
   }
 
-  /// Obtém a quantidade máxima permitida baseada no item atual
   int get _maxQuantity {
     if (widget.viewModel == null) return 999;
 
-    // 🚀 Otimização: Usar nextItem em cache do ViewModel em vez de recalcular
     final nextItem = widget.viewModel!.nextItem;
 
     if (nextItem == null) return 999;
@@ -90,10 +85,8 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
     return remainingQuantity > 0 ? remainingQuantity : _minQuantity;
   }
 
-  /// Obtém a quantidade atual do campo
   int get _currentQuantity => int.tryParse(widget.controller.text) ?? _minQuantity;
 
-  /// Incrementa a quantidade uma vez
   void _incrementOnce() {
     final current = _currentQuantity;
     final max = _maxQuantity;
@@ -103,7 +96,6 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
     }
   }
 
-  /// Decrementa a quantidade uma vez
   void _decrementOnce() {
     final current = _currentQuantity;
 
@@ -112,7 +104,6 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
     }
   }
 
-  /// Inicia o incremento contínuo
   void _startIncrementing() {
     if (!widget.enabled || _isIncrementing) return;
 
@@ -130,14 +121,12 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
     });
   }
 
-  /// Para o incremento contínuo
   void _stopIncrementing() {
     _isIncrementing = false;
     _incrementTimer?.cancel();
     _incrementTimer = null;
   }
 
-  /// Inicia o decremento contínuo
   void _startDecrementing() {
     if (!widget.enabled || _isDecrementing) return;
 
@@ -155,7 +144,6 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
     });
   }
 
-  /// Para o decremento contínuo
   void _stopDecrementing() {
     _isDecrementing = false;
     _decrementTimer?.cancel();
@@ -296,7 +284,6 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
   Widget _buildHelpText(ThemeData theme, ColorScheme colorScheme) {
     final maxQuantity = _maxQuantity;
 
-    // 🚀 Otimização: Verificar se há próximo item usando o cache do ViewModel
     final hasNextItem = widget.viewModel != null && widget.viewModel!.nextItem != null;
 
     final helpText = hasNextItem

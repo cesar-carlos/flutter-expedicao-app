@@ -69,7 +69,6 @@ class BarcodeScannerCard extends StatelessWidget {
   }
 
   Widget _buildScannerField(ThemeData theme, ColorScheme colorScheme) {
-    // 🔒 Bloquear campo quando estiver processando
     final isFieldEnabled = enabled && !isProcessing;
 
     return TextField(
@@ -77,9 +76,9 @@ class BarcodeScannerCard extends StatelessWidget {
       focusNode: focusNode,
       enabled: isFieldEnabled,
       onSubmitted: isFieldEnabled ? onSubmitted : null,
-      // Permitir entrada do scanner embutido sempre, mas controlar seleção interativa
+
       enableInteractiveSelection: isFieldEnabled && keyboardEnabled,
-      // Permitir teclado no modo manual, suprimir apenas no modo scanner
+
       keyboardType: isFieldEnabled && keyboardEnabled
           ? TextInputType.numberWithOptions(decimal: false)
           : TextInputType.none,
