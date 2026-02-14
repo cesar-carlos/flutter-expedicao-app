@@ -19,6 +19,8 @@ import 'package:data7_expedicao/ui/widgets/separation_title_with_connection_stat
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_params.dart';
+import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_params.dart';
 import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_usecase.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
@@ -26,8 +28,8 @@ import 'package:data7_expedicao/core/utils/print_failure_message_helper.dart';
 import 'package:data7_expedicao/domain/usecases/get_default_printer/get_default_printer_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_params.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
-import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'dart:async';
 
 class SeparationItemsScreen extends StatefulWidget {
@@ -45,6 +47,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
   final _cartsScrollController = ScrollController();
   final _itemsScrollController = ScrollController();
   bool _isPrinting = false;
+  bool _isValidatingAddCart = false;
 
   @override
   void initState() {
@@ -210,9 +213,15 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
               hint: 'Adicionar novo carrinho à separação',
               child: FloatingActionButton.extended(
                 heroTag: 'addCart',
-                onPressed: () => _onAddCart(context),
-                icon: const Icon(Icons.add_shopping_cart),
-                label: const Text('Incluir Carrinho'),
+                onPressed: _isValidatingAddCart ? null : () => _onAddCart(context),
+                icon: _isValidatingAddCart
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.add_shopping_cart),
+                label: Text(_isValidatingAddCart ? 'Verificando...' : 'Incluir Carrinho'),
                 tooltip: 'Incluir novo carrinho na separação',
               ),
             ),
@@ -444,75 +453,116 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
   Future<void> _onAddCart(BuildContext context) async {
     final viewModel = context.read<SeparationItemsViewModel>();
 
-    if (!_canAddCart(viewModel.separation)) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Não é possível adicionar carrinho. Situação atual: ${viewModel.separation?.situacao.description ?? 'Desconhecida'}\n'
-              'Permitido apenas em: Aguardando, Separando ou Em Separação',
-            ),
-            backgroundColor: Theme.of(context).colorScheme.tertiary,
-            duration: UIConstants.snackBarLongDuration,
-          ),
-        );
-      }
-      return;
-    }
-
-    if (!context.mounted) return;
-
-    final userSessionService = locator<IUserSessionService>();
-    final appUser = await userSessionService.loadUserSession();
-    final codUsuario = appUser?.userSystemModel?.codUsuario;
-    final codSetorEstoque = appUser?.userSystemModel?.codSetorEstoque;
     final separation = viewModel.separation;
+    if (separation == null) return;
 
-    if (codSetorEstoque != null && codSetorEstoque > 0 && codUsuario != null && separation != null) {
-      final resolveUseCase = locator<ResolveSeparationUserLinkUseCase>();
-      final result = await resolveUseCase.call(
-        ResolveSeparationUserLinkParams(
-          separation: separation,
-          codUsuario: codUsuario,
-          codSetorEstoque: codSetorEstoque,
+    setState(() => _isValidatingAddCart = true);
+
+    try {
+      final getSeparationUseCase = locator<GetSeparationConsultationUseCase>();
+      final freshResult = await getSeparationUseCase.call(
+        GetSeparationConsultationParams(
+          codEmpresa: separation.codEmpresa,
+          codSepararEstoque: separation.codSepararEstoque,
         ),
       );
+
       if (!context.mounted) return;
-      if (result.isError()) {
+
+      if (freshResult.isError()) {
+        final failure = freshResult.exceptionOrNull();
+        final message = failure is AppFailure ? failure.userMessage : (failure?.toString() ?? 'Erro ao consultar separação');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text(UIConstants.separationLinkCheckFailedMessage),
+            content: Text(message),
             backgroundColor: AppColors.error,
             duration: UIConstants.snackBarLongDuration,
           ),
         );
         return;
       }
-      if (result.getOrNull() != true) {
+
+      final freshSeparation = freshResult.getOrNull();
+      if (freshSeparation == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Separação não encontrada'),
+            backgroundColor: AppColors.error,
+            duration: UIConstants.snackBarLongDuration,
+          ),
+        );
+        return;
+      }
+
+      if (!_canAddCart(freshSeparation)) {
+        viewModel.updateSeparation(freshSeparation);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text(UIConstants.separationNotAssignedToUserMessage),
-              backgroundColor: AppColors.error,
+              content: Text(
+                'Não é possível adicionar carrinho. Situação atual: ${freshSeparation.situacao.description}\n'
+                'Permitido apenas em: Aguardando, Separando ou Em Separação',
+              ),
+              backgroundColor: Theme.of(context).colorScheme.tertiary,
               duration: UIConstants.snackBarLongDuration,
             ),
           );
         }
         return;
       }
-    }
 
-    if (!context.mounted) return;
+      final userSessionService = locator<IUserSessionService>();
+      final appUser = await userSessionService.loadUserSession();
+      final codUsuario = appUser?.userSystemModel?.codUsuario;
+      final codSetorEstoque = appUser?.userSystemModel?.codSetorEstoque;
 
-    final result = await context.push<bool>(
-      AppRouter.addCart,
-      extra: {
-        'codEmpresa': viewModel.separation?.codEmpresa ?? 1,
-        'codSepararEstoque': viewModel.separation?.codSepararEstoque ?? 0,
-      },
-    );
+      if (codSetorEstoque != null && codSetorEstoque > 0 && codUsuario != null) {
+        final resolveUseCase = locator<ResolveSeparationUserLinkUseCase>();
+        final resolveResult = await resolveUseCase.call(
+          ResolveSeparationUserLinkParams(
+            separation: freshSeparation,
+            codUsuario: codUsuario,
+            codSetorEstoque: codSetorEstoque,
+          ),
+        );
+        if (!context.mounted) return;
+        if (resolveResult.isError()) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(UIConstants.separationLinkCheckFailedMessage),
+              backgroundColor: AppColors.error,
+              duration: UIConstants.snackBarLongDuration,
+            ),
+          );
+          return;
+        }
+        if (resolveResult.getOrNull() != true) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(UIConstants.separationNotAssignedToUserMessage),
+                backgroundColor: AppColors.error,
+                duration: UIConstants.snackBarLongDuration,
+              ),
+            );
+          }
+          return;
+        }
+      }
 
-    if (result == true) {
+      if (!context.mounted) return;
+
+      viewModel.updateSeparation(freshSeparation);
+
+      final result = await context.push<bool>(
+        AppRouter.addCart,
+        extra: {
+          'codEmpresa': freshSeparation.codEmpresa,
+          'codSepararEstoque': freshSeparation.codSepararEstoque,
+        },
+      );
+
+      if (result == true) {
       AppLogger.debug(
         'Carrinho adicionado com sucesso, iniciando processo de abertura...',
         tag: 'SeparationItemsScreen',
@@ -567,6 +617,11 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
             ),
           );
         }
+      }
+    }
+    } finally {
+      if (mounted) {
+        setState(() => _isValidatingAddCart = false);
       }
     }
   }

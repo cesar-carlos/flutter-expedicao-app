@@ -112,6 +112,7 @@ import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separa
 import 'package:data7_expedicao/domain/usecases/save_separation/save_separation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/check_separation_user_sector_link/check_separation_user_sector_link_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_usecase.dart';
@@ -463,6 +464,12 @@ void setupLocator() {
   locator.registerLazySingleton<CheckSeparationUserSectorLinkUseCase>(
     () => CheckSeparationUserSectorLinkUseCase(
       repository: locator<BasicConsultationRepository<SeparationUserSectorConsultationModel>>(),
+    ),
+  );
+
+  locator.registerLazySingleton<GetSeparationConsultationUseCase>(
+    () => GetSeparationConsultationUseCase(
+      repository: locator<BasicConsultationRepository<SeparateConsultationModel>>(),
     ),
   );
 

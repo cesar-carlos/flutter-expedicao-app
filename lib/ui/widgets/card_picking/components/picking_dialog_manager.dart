@@ -123,35 +123,38 @@ class PickingDialogManager {
             const Text('Setor Concluído!'),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(UIConstants.smallPadding),
-              decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-                border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(UIConstants.smallPadding),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                  border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '✓ Todos os itens do seu setor foram separados!',
+                      style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.green700),
+                    ),
+                    const SizedBox(height: UIConstants.smallPadding),
+                    Text('Seu setor: Setor $userSectorCode', style: AppFonts.inter(color: AppColors.green600)),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '✓ Todos os itens do seu setor foram separados!',
-                    style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.green700),
-                  ),
-                  const SizedBox(height: UIConstants.smallPadding),
-                  Text('Seu setor: Setor $userSectorCode', style: AppFonts.inter(color: AppColors.green600)),
-                ],
+              const SizedBox(height: UIConstants.defaultPadding),
+              Text(
+                'Deseja salvar o carrinho agora ou continuar separando itens de outros setores?',
+                style: AppFonts.inter(fontSize: UIConstants.defaultFontSize),
               ),
-            ),
-            const SizedBox(height: UIConstants.defaultPadding),
-            Text(
-              'Deseja salvar o carrinho agora ou continuar separando itens de outros setores?',
-              style: AppFonts.inter(fontSize: UIConstants.defaultFontSize),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(

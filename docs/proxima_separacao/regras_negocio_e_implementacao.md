@@ -89,10 +89,13 @@ Ou seja: o processo considera apenas separações “em andamento” ou “aguar
 - **Usuário sem setor:** Se o usuário não possui setor (null ou zero), mantém-se permissão administrativa: pode abrir qualquer separação da lista.
 - **Verificação centralizada:** A checagem é feita através do use case **ResolveSeparationUserLinkUseCase**: quando `codUsuariosSeparacao` não está vazio, usa-se os dados da listagem (`contains(codUsuario)`); quando está vazio, o use case chama o **CheckSeparationUserSectorLinkUseCase** (consulta `separar.usuario.setor.consulta`) como fallback para decidir se permite abrir.
 
-### 2.8 Incluir Carrinho apenas em separações vinculadas
+### 2.8 Incluir Carrinho
 
-- **Usuário com setor:** Se o usuário possui `codSetorEstoque` (não nulo e maior que zero), ele **só pode incluir carrinho** em separações em que esteja participando (vinculado), ou seja, cujo `codUsuariosSeparacao` contenha o `codUsuario` dele. A verificação é feita antes de navegar para a tela de incluir carrinho (`SeparationItemsScreen._onAddCart`).
-- **Usuário sem setor:** Se o usuário não possui setor (null ou zero), mantém-se permissão administrativa: pode incluir carrinho em qualquer separação.
+As regras abaixo aplicam-se em conjunto (todas devem ser atendidas):
+
+- **Situação da separação:** Só é permitido incluir carrinho quando a separação estiver em situação **AGUARDANDO** ou **SEPARANDO**. Outras situações (ex.: SEPARADO, CANCELADA, EM PAUSA, BLOQUEADA) impedem a ação. A verificação usa dados consultados no servidor no momento do clique (`SeparationItemsScreen._onAddCart` → `GetSeparationConsultationUseCase` → `_canAddCart`).
+- **Usuário com setor (vínculo):** Se o usuário possui `codSetorEstoque` (não nulo e maior que zero), ele **só pode incluir carrinho** em separações em que esteja participando (vinculado), ou seja, cujo `codUsuariosSeparacao` contenha o `codUsuario` dele. A verificação é feita antes de navegar para a tela de incluir carrinho (`SeparationItemsScreen._onAddCart`).
+- **Usuário sem setor:** Se o usuário não possui setor (null ou zero), mantém-se permissão administrativa: pode incluir carrinho em qualquer separação (respeitando a situação AGUARDANDO/SEPARANDO).
 - **Verificação centralizada:** O **ResolveSeparationUserLinkUseCase** é usado também em Incluir Carrinho: quando `codUsuariosSeparacao` não está vazio usa os dados da listagem; quando está vazio usa o **CheckSeparationUserSectorLinkUseCase** (evento `separar.usuario.setor.consulta`) como fallback antes de permitir incluir carrinho.
 
 ### 2.9 Permissões para carrinho de outro usuário (Separar / Salvar / Cancelar)
@@ -219,7 +222,7 @@ Antes de navegar para a tela de itens, a `SeparationScreen` verifica se `separat
 - Setor do usuário obrigatório; todas as buscas de separação do usuário filtradas por CodSetorEstoque.
 - Abertura (botão "Abrir Separação"): usuário com setor só abre separações em que `codUsuariosSeparacao` contenha seu `codUsuario`; usuário sem setor tem permissão administrativa.
 - Verificação de vínculo (abrir separação / entrada na tela de itens / incluir carrinho) centralizada no use case **ResolveSeparationUserLinkUseCase** (listagem quando `codUsuariosSeparacao` não vazio, fallback CheckSeparationUserSectorLinkUseCase quando vazio).
-- Incluir Carrinho: usuário com setor só pode incluir carrinho em separações em que `codUsuariosSeparacao` contenha seu `codUsuario`; usuário sem setor tem permissão administrativa. Checagem em `SeparationItemsScreen._onAddCart` antes de navegar via ResolveSeparationUserLinkUseCase.
+- Incluir Carrinho (todas as regras devem ser atendidas): (1) situação da separação deve ser AGUARDANDO ou SEPARANDO; (2) usuário com setor só pode incluir carrinho em separações vinculadas (`codUsuariosSeparacao` contenha seu `codUsuario`); usuário sem setor tem permissão administrativa (respeitando a situação). Checagem em `SeparationItemsScreen._onAddCart` (GetSeparationConsultationUseCase + ResolveSeparationUserLinkUseCase).
 - Carrinho de outro usuário: Separar/Salvar/Cancelar permitidos apenas se o usuário for o dono do carrinho ou tiver a permissão correspondente no UserSystemModel (editaCarrinhoOutroUsuario, salvaCarrinhoOutroUsuario, excluiCarrinhoOutroUsuario); validação via CartValidationService antes de cada ação.
 
 Este documento reflete o comportamento implementado no use case `NextSeparationUserUseCase` e nas telas `SeparationScreen` e `SeparationItemsScreen` conforme o código em `lib/`.
@@ -239,6 +242,7 @@ Este documento reflete o comportamento implementado no use case `NextSeparationU
 | Verificação de vínculo centralizada                                          | ResolveSeparationUserLinkUseCase usado em Abrir Separação, entrada na tela de itens e Incluir Carrinho; listagem quando `codUsuariosSeparacao` não vazio, CheckSeparationUserSectorLinkUseCase como fallback | Consistente |
 | Usuário sem setor: permissão administrativa                                  | Em ambos os pontos: só aplica bloqueio quando `codSetorEstoque != null && codSetorEstoque > 0`                                                                                      | Consistente |
 | Mensagem alinhada entre listagem e tela de itens                             | Mesmo texto: "Esta separação não está atribuída ao usuário atual. Por favor, utilize a opção 'Próxima Separação'."                                                                  | Consistente |
+| Incluir Carrinho: situação AGUARDANDO ou SEPARANDO                           | `SeparationItemsScreen._canAddCart`; consulta servidor via GetSeparationConsultationUseCase; SnackBar e updateSeparation se situação inválida                                      | Consistente |
 | Incluir Carrinho: usuário com setor só em separações vinculadas              | `SeparationItemsScreen._onAddCart`: antes do `context.push`, chama ResolveSeparationUserLinkUseCase; SnackBar e retorno sem navegar se não vinculado                                | Consistente |
 | Fallback quando CodUsuariosSeparacao vazio                                   | ResolveSeparationUserLinkUseCase chama `CheckSeparationUserSectorLinkUseCase` quando a lista está vazia; consulta `separar.usuario.setor.consulta`                                | Consistente |
 | Permissões carrinho outro usuário (Separar/Salvar/Cancelar)                  | `CartValidationService` (DIP: repositório injetado no construtor) usado em `cart_item_card.dart` e `card_picking_viewmodel.dart` via instância do locator; bloqueio e diálogo "Acesso Negado" quando sem permissão | Consistente |

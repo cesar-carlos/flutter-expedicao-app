@@ -205,6 +205,12 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
+  void updateSeparation(SeparateConsultationModel separation) {
+    if (_disposed) return;
+    _separation = separation;
+    notifyListeners();
+  }
+
   Future<void> loadAvailableSectors() async {
     if (_disposed || _sectorsLoaded) return;
 
