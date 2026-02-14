@@ -90,14 +90,6 @@ class PickingFlowController {
     try {
       final result = await viewModel.saveCart();
 
-      if (navigator.mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (navigator.mounted) {
-            Navigator.of(navigator).pop();
-          }
-        });
-      }
-
       result.fold(
         (_) {
           audioService.playSuccess();
@@ -120,6 +112,7 @@ class PickingFlowController {
           if (navigator.mounted) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (navigator.mounted) {
+                Navigator.of(navigator).pop();
                 _showErrorDialog(navigator, message, details: details);
               }
             });

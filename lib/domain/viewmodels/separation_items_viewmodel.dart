@@ -74,6 +74,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
   static const String _cartUpdateListenerId = 'separation_items_viewmodel_cart_update';
   static const String _cartDeleteListenerId = 'separation_items_viewmodel_cart_delete';
   bool _cartEventListenersRegistered = false;
+  bool _isRefreshing = false;
 
   SeparateItemsState get state => _state;
   String? get errorMessage => _errorMessage;
@@ -195,13 +196,44 @@ class SeparationItemsViewModel extends ChangeNotifier {
   }
 
   Future<void> refresh() async {
-    if (_separation != null) {
-      await loadSeparationItems(_separation!);
-      await loadSeparationCarts(_separation!);
-    }
+    if (_isRefreshing || _disposed) return;
+    _isRefreshing = true;
+    try {
+      if (_separation != null) {
+        final sep = _separation!;
+        await Future.wait([
+          loadSeparationItems(sep),
+          loadSeparationCarts(sep),
+        ]);
+      }
 
-    if (!_sectorsLoaded) {
-      await loadAvailableSectors();
+      if (!_sectorsLoaded) {
+        await loadAvailableSectors();
+      }
+    } finally {
+      if (!_disposed) _isRefreshing = false;
+    }
+  }
+
+  Future<void> refreshWithSeparation(SeparateConsultationModel? fresh) async {
+    if (_isRefreshing || _disposed) return;
+    _isRefreshing = true;
+    try {
+      if (fresh != null) _separation = fresh;
+
+      if (_separation != null) {
+        final sep = _separation!;
+        await Future.wait([
+          loadSeparationItems(sep),
+          loadSeparationCarts(sep),
+        ]);
+      }
+
+      if (!_sectorsLoaded) {
+        await loadAvailableSectors();
+      }
+    } finally {
+      if (!_disposed) _isRefreshing = false;
     }
   }
 

@@ -12,6 +12,9 @@ import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
+import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_params.dart';
+import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_success.dart';
@@ -32,6 +35,10 @@ class CartItemCard extends StatelessWidget {
   final SeparationItemsViewModel? viewModel;
 
   const CartItemCard({super.key, required this.cartRouteInternshipConsultation, this.onCancel, this.viewModel});
+
+  static DateTime? _lastSyncTime;
+  static String? _lastSyncKey;
+  static const _minSyncInterval = Duration(seconds: 2);
 
   @override
   Widget build(BuildContext context) {
@@ -644,20 +651,48 @@ class CartItemCard extends StatelessWidget {
         extra: {'cart': cartRouteInternshipConsultation, 'userModel': userModel},
       );
 
-      if (result == 'save_cart' && context.mounted) {
-        final saved = await _onFinalizeCart(context, skipConfirmation: true);
+      if (context.mounted && viewModel != null) {
+        unawaited(_syncSeparationFromServer(context));
+      }
 
-        if (saved && context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Carrinho salvo com sucesso!'),
-              backgroundColor: AppColors.success,
-              duration: UIConstants.snackBarShortDuration,
-            ),
-          );
-        }
+      if (result == 'save_cart' && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Carrinho salvo com sucesso!'),
+            backgroundColor: AppColors.success,
+            duration: UIConstants.snackBarShortDuration,
+          ),
+        );
       }
     }
+  }
+
+  Future<void> _syncSeparationFromServer(BuildContext context) async {
+    if (viewModel == null) return;
+
+    final syncKey =
+        '${cartRouteInternshipConsultation.codEmpresa}_${cartRouteInternshipConsultation.codOrigem}';
+    final now = DateTime.now();
+    if (_lastSyncKey == syncKey &&
+        _lastSyncTime != null &&
+        now.difference(_lastSyncTime!) < _minSyncInterval) {
+      return;
+    }
+    _lastSyncKey = syncKey;
+    _lastSyncTime = now;
+
+    final useCase = locator<GetSeparationConsultationUseCase>();
+    final syncResult = await useCase.call(
+      GetSeparationConsultationParams(
+        codEmpresa: cartRouteInternshipConsultation.codEmpresa,
+        codSepararEstoque: cartRouteInternshipConsultation.codOrigem,
+      ),
+    );
+    if (!context.mounted) return;
+
+    SeparateConsultationModel? fresh;
+    syncResult.fold((value) => fresh = value, (_) => {});
+    if (context.mounted) unawaited(viewModel!.refreshWithSeparation(fresh));
   }
 
   Future<UserSystemModel?> _getUserModel() async {
