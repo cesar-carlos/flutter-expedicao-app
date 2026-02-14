@@ -160,10 +160,12 @@ class PickingDialogManager {
           TextButton(
             onPressed: () {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  onContinue();
-                }
+                Future.delayed(Duration.zero, () {
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    onContinue();
+                  }
+                });
               });
             },
             child: Text('Continuar Separando'),
@@ -171,10 +173,12 @@ class PickingDialogManager {
           ElevatedButton(
             onPressed: () {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  onSaveCart();
-                }
+                Future.delayed(Duration.zero, () {
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    onSaveCart();
+                  }
+                });
               });
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),

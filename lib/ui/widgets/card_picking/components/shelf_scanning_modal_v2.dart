@@ -238,9 +238,9 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
         widget.viewModel.updateScannedAddress(input);
         _audioService.playShelfScanSuccess();
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            Navigator.of(context).pop();
-          }
+          Future.delayed(Duration.zero, () {
+            if (mounted) Navigator.of(context).pop();
+          });
         });
       } else {
         _showValidationError();
@@ -346,10 +346,11 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
         if (widget.onBack != null) {
           widget.onBack!();
         } else {
+          final navigator = Navigator.of(context);
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
+            Future.delayed(Duration.zero, () {
+              if (navigator.mounted) navigator.pop();
+            });
           });
         }
       },
@@ -423,10 +424,12 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
                   TextButton(
                     onPressed: () {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-                          widget.onBack!();
-                        }
+                        Future.delayed(Duration.zero, () {
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                            widget.onBack!();
+                          }
+                        });
                       });
                     },
                     child: Text(context.l10n.back),

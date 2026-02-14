@@ -842,7 +842,11 @@ class CartItemCard extends StatelessWidget {
 
       final result = await saveSeparationCartUseCase.call(params);
 
-      if (context.mounted) Navigator.of(context).pop();
+      if (context.mounted) {
+        Future.delayed(Duration.zero, () {
+          if (context.mounted) Navigator.of(context).pop();
+        });
+      }
 
       final success = result.getOrNull();
       if (success == null) {
@@ -870,7 +874,11 @@ class CartItemCard extends StatelessWidget {
       return true;
     } catch (e, stackTrace) {
       AppLogger.error('Erro inesperado ao salvar carrinho', tag: 'CartItemCard', error: e, stackTrace: stackTrace);
-      if (context.mounted) Navigator.of(context).pop();
+      if (context.mounted) {
+        Future.delayed(Duration.zero, () {
+          if (context.mounted) Navigator.of(context).pop();
+        });
+      }
 
       if (context.mounted) {
         ScaffoldMessenger.of(

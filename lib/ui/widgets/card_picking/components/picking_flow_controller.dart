@@ -42,7 +42,9 @@ class PickingFlowController {
         viewModel: viewModel,
         onBack: () {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) Navigator.of(context).pop();
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) Navigator.of(context).pop();
+            });
           });
         },
       ),
@@ -97,7 +99,7 @@ class PickingFlowController {
         (_) {
           audioService.playSuccess();
           if (navigator.mounted) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
+            void doPops() {
               if (!navigator.mounted) {
                 _isFinishing = false;
                 return;
@@ -105,14 +107,19 @@ class PickingFlowController {
               if (loadingShown) Navigator.of(navigator).pop();
               if (navigator.mounted) Navigator.of(navigator).pop('save_cart');
               _isFinishing = false;
+            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Future.delayed(Duration.zero, doPops);
             });
+          } else {
+            _isFinishing = false;
           }
         },
         (failure) {
           final message = failure is AppFailure ? failure.userMessage : 'Erro ao salvar carrinho. Tente novamente.';
           final details = failure is SaveSeparationCartFailure ? failure.details : null;
           if (navigator.mounted) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
+            void doPopsAndDialog() {
               if (!navigator.mounted) {
                 _isFinishing = false;
                 return;
@@ -120,7 +127,12 @@ class PickingFlowController {
               if (loadingShown) Navigator.of(navigator).pop();
               if (navigator.mounted) _showErrorDialog(navigator, message, details: details);
               _isFinishing = false;
+            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Future.delayed(Duration.zero, doPopsAndDialog);
             });
+          } else {
+            _isFinishing = false;
           }
         },
       );
@@ -132,7 +144,7 @@ class PickingFlowController {
         stackTrace: stackTrace,
       );
       if (navigator.mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        void doPopsAndDialog() {
           if (!navigator.mounted) {
             _isFinishing = false;
             return;
@@ -140,7 +152,12 @@ class PickingFlowController {
           if (loadingShown) Navigator.of(navigator).pop();
           if (navigator.mounted) _showErrorDialog(navigator, 'Erro inesperado ao salvar carrinho. Tente novamente.');
           _isFinishing = false;
+        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Future.delayed(Duration.zero, doPopsAndDialog);
         });
+      } else {
+        _isFinishing = false;
       }
     }
   }
@@ -188,9 +205,9 @@ class PickingFlowController {
           TextButton(
             onPressed: () {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
+                Future.delayed(Duration.zero, () {
+                  if (context.mounted) Navigator.of(context).pop();
+                });
               });
             },
             child: const Text('Fechar'),
