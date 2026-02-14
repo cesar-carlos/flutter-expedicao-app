@@ -41,6 +41,31 @@ class SeparationUserSectorConsultationModel {
     this.estacaoSeparacao,
   });
 
+  SeparationUserSectorConsultationModel copyWith({
+    int? codUsuario,
+    String? nomeUsuario,
+    String? estacaoSeparacao,
+  }) {
+    return SeparationUserSectorConsultationModel(
+      codEmpresa: codEmpresa,
+      codSepararEstoque: codSepararEstoque,
+      separarEstoqueSituacao: separarEstoqueSituacao,
+      codSetorEstoque: codSetorEstoque,
+      descricaoSetorEstoque: descricaoSetorEstoque,
+      codPrioridade: codPrioridade,
+      descricaoPrioridade: descricaoPrioridade,
+      prioridade: prioridade,
+      quantidadeItens: quantidadeItens,
+      quantidadeItensSeparacao: quantidadeItensSeparacao,
+      quantidadeItensSetor: quantidadeItensSetor,
+      quantidadeItensSeparacaoSetor: quantidadeItensSeparacaoSetor,
+      carrinhosAbertosUsuario: carrinhosAbertosUsuario,
+      codUsuario: codUsuario ?? this.codUsuario,
+      nomeUsuario: nomeUsuario ?? this.nomeUsuario,
+      estacaoSeparacao: estacaoSeparacao ?? this.estacaoSeparacao,
+    );
+  }
+
   factory SeparationUserSectorConsultationModel.fromJson(Map<String, dynamic> json) {
     try {
       return SeparationUserSectorConsultationModel(

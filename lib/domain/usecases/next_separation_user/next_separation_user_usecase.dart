@@ -96,6 +96,10 @@ class NextSeparationUserUseCase {
         );
         return await _findNextSeparationWithRetry(params, retryCount: 1);
       }
+      return newSeparation.copyWith(
+        codUsuario: params.codUsuario,
+        nomeUsuario: params.userSystemModel?.nomeUsuario,
+      );
     }
 
     return newSeparation;
@@ -160,7 +164,10 @@ class NextSeparationUserUseCase {
       return await _findNextSeparationWithRetry(params, retryCount: retryCount + 1);
     }
 
-    return newSeparation;
+    return newSeparation.copyWith(
+      codUsuario: params.codUsuario,
+      nomeUsuario: params.userSystemModel?.nomeUsuario,
+    );
   }
 
   QueryBuilder _buildBaseQuery(NextSeparationUserParams params) {

@@ -93,14 +93,8 @@ class PickingFlowController {
           audioService.playSuccess();
           if (navigator.mounted) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (navigator.mounted) {
-                Navigator.of(navigator).pop();
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (navigator.mounted) {
-                    GoRouter.of(navigator).pop('save_cart');
-                  }
-                });
-              }
+              if (navigator.mounted) Navigator.of(navigator).pop();
+              if (navigator.mounted) GoRouter.of(navigator).pop('save_cart');
             });
           }
         },

@@ -647,11 +647,11 @@ class CartItemCard extends StatelessWidget {
 
     if (context.mounted) {
       final result = await context.push(
-        '/home/card-picking',
+        AppRouter.cardPicking,
         extra: {'cart': cartRouteInternshipConsultation, 'userModel': userModel},
       );
 
-      if (context.mounted && viewModel != null) {
+      if (context.mounted && viewModel != null && result != 'save_cart') {
         unawaited(_syncSeparationFromServer(context));
       }
 
@@ -663,6 +663,7 @@ class CartItemCard extends StatelessWidget {
             duration: UIConstants.snackBarShortDuration,
           ),
         );
+        context.go(AppRouter.separation);
       }
     }
   }
