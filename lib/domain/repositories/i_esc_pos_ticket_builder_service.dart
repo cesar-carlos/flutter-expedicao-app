@@ -19,7 +19,6 @@ abstract class IEscPosTicketBuilderService {
     Uint8List? logoBytes,
     int logoMaxWidthPx = 576,
     bool autoCut = true,
-    int? codSetorEstoque,
     int? codUsuario,
     int? leftMarginMm,
   });

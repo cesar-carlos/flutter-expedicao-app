@@ -78,7 +78,6 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     Uint8List? logoBytes,
     int logoMaxWidthPx = _defaultLogoMaxWidthPx,
     bool autoCut = true,
-    int? codSetorEstoque,
     int? codUsuario,
     int? leftMarginMm,
   }) async {
@@ -127,9 +126,10 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
 
     _writeLine(bytes, generator, 'CIDADE', header.nomeMunicipioEntrega);
     _writeLine(bytes, generator, 'VENDEDOR', header.nomeVendedor);
-    _writeLine(bytes, generator, 'PEDIDO', '${header.origem}-${header.codOrigem}');
+    _writeLine(bytes, generator, 'ORIGEM', _formatPair(header.origem, header.codOrigem));
+    _writeLine(bytes, generator, 'PEDIDO', header.codProdutoVendido?.toString());
     _writeLine(bytes, generator, 'TRANSP', header.nomeFantasiaTransportadora ?? header.razaoSocialTransportadora);
-    _writeLine(bytes, generator, 'PRIORIDADE', '${header.codTipoOperacaoSaida}-${header.descricaoTipoOperacaoSaida}');
+    _writeLine(bytes, generator, 'PRIORIDADE', _formatPair(header.codTipoOperacaoSaida, header.descricaoTipoOperacaoSaida));
 
     _writeLine(bytes, generator, 'DATA IMPRESSAO', _formatDateTime(printedAt));
     _writeLine(
@@ -239,38 +239,22 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     return '${trimmed.substring(0, maxLength)}...';
   }
 
+  String? _formatPair(Object? part1, Object? part2) {
+    final s = '${part1 ?? ''}-${part2 ?? ''}'.trim();
+    if (s.isEmpty || s == '-' || s == 'null' || s == 'null-null') return null;
+    return s;
+  }
+
   void _writeLine(
     List<int> bytes,
     Generator generator,
     String label,
-    String? value, {
-    String? inlineLabel,
-    String? inlineValue,
-  }) {
+    String? value,
+  ) {
     final truncatedValue = _truncateForPrint(value, _maxPrintLength);
     if (truncatedValue == null || truncatedValue.isEmpty) {
       return;
     }
-
-    final truncatedInline = inlineValue != null ? _truncateForPrint(inlineValue, _maxPrintLength) : null;
-    if (inlineLabel != null && truncatedInline != null && truncatedInline.isNotEmpty) {
-      bytes.addAll(
-        generator.row([
-          PosColumn(
-            text: '$label: $truncatedValue',
-            width: 7,
-            styles: const PosStyles(align: PosAlign.left),
-          ),
-          PosColumn(
-            text: '$inlineLabel: $truncatedInline',
-            width: 5,
-            styles: const PosStyles(align: PosAlign.left),
-          ),
-        ]),
-      );
-      return;
-    }
-
     bytes.addAll(generator.text('$label: $truncatedValue', styles: const PosStyles(align: PosAlign.left)));
   }
 

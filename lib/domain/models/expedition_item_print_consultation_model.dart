@@ -8,6 +8,7 @@ class ExpeditionItemPrintConsultationModel {
   final String? origem;
   final int? codOrigem;
   final String? itemOrigem;
+  final int? codProdutoVendido;
   final DateTime dataSepararEstoque;
   final String horaSepararEstoque;
   final String situacao;
@@ -61,6 +62,7 @@ class ExpeditionItemPrintConsultationModel {
     this.origem,
     this.codOrigem,
     this.itemOrigem,
+    this.codProdutoVendido,
     required this.dataSepararEstoque,
     required this.horaSepararEstoque,
     required this.situacao,
@@ -115,6 +117,7 @@ class ExpeditionItemPrintConsultationModel {
     String? origem,
     int? codOrigem,
     String? itemOrigem,
+    int? codProdutoVendido,
     DateTime? dataSepararEstoque,
     String? horaSepararEstoque,
     String? situacao,
@@ -168,6 +171,7 @@ class ExpeditionItemPrintConsultationModel {
       origem: origem ?? this.origem,
       codOrigem: codOrigem ?? this.codOrigem,
       itemOrigem: itemOrigem ?? this.itemOrigem,
+      codProdutoVendido: codProdutoVendido ?? this.codProdutoVendido,
       dataSepararEstoque: dataSepararEstoque ?? this.dataSepararEstoque,
       horaSepararEstoque: horaSepararEstoque ?? this.horaSepararEstoque,
       situacao: situacao ?? this.situacao,
@@ -225,6 +229,7 @@ class ExpeditionItemPrintConsultationModel {
         origem: json['Origem'] as String?,
         codOrigem: json['CodOrigem'] != null ? AppHelper.stringToInt(json['CodOrigem']) : null,
         itemOrigem: json['ItemOrigem'] as String?,
+        codProdutoVendido: json['CodProdutoVendido'] != null ? AppHelper.stringToInt(json['CodProdutoVendido']) : null,
         dataSepararEstoque: AppHelper.tryStringToDate(json['DataSepararEstoque']),
         horaSepararEstoque: json['HoraSepararEstoque'] as String? ?? '',
         situacao: json['Situacao'] as String? ?? '',
@@ -292,6 +297,7 @@ class ExpeditionItemPrintConsultationModel {
       'Origem': origem,
       'CodOrigem': codOrigem,
       'ItemOrigem': itemOrigem,
+      'CodProdutoVendido': codProdutoVendido,
       'DataSepararEstoque': dataSepararEstoque.toIso8601String(),
       'HoraSepararEstoque': horaSepararEstoque,
       'Situacao': situacao,

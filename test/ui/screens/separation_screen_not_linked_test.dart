@@ -14,7 +14,6 @@ import 'package:data7_expedicao/domain/models/user/app_user.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_params.dart';
 import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_usecase.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';

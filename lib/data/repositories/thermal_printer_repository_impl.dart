@@ -29,11 +29,6 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
     required PrinterConfig printer,
     bool autoCut = true,
   }) async {
-    final validationFailure = _validatePrinter(printer);
-    if (validationFailure != null) {
-      return failure(validationFailure);
-    }
-
     _logPrintEvent(
       operation: 'test',
       status: 'start',
@@ -130,15 +125,9 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
     required List<ExpeditionItemPrintConsultationModel> items,
     String? separatorName,
     bool autoCut = true,
-    int? codSetorEstoque,
     int? codUsuario,
     int? leftMarginMm,
   }) async {
-    final validationFailure = _validatePrinter(printer);
-    if (validationFailure != null) {
-      return failure(validationFailure);
-    }
-
     if (items.isEmpty) {
       return failure(DataFailure.notFound('Itens para impressao'));
     }
@@ -156,7 +145,6 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
         items: items,
         separatorName: separatorName,
         autoCut: autoCut,
-        codSetorEstoque: codSetorEstoque,
         codUsuario: codUsuario,
         leftMarginMm: leftMarginMm ?? printer.leftMarginMm,
       );
@@ -232,22 +220,6 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
       );
       return failure(UnknownFailure.fromException(e));
     }
-  }
-
-  AppFailure? _validatePrinter(PrinterConfig printer) {
-    if (printer.ip.trim().isEmpty) {
-      return ValidationFailure.fromErrors([
-        'ip/host da impressora nao pode estar vazio',
-      ]);
-    }
-
-    if (printer.port < 1 || printer.port > 65535) {
-      return ValidationFailure.fromErrors([
-        'porta da impressora deve estar entre 1 e 65535',
-      ]);
-    }
-
-    return null;
   }
 
   void _logPrintEvent({

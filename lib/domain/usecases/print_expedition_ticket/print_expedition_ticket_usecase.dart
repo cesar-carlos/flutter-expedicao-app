@@ -47,7 +47,6 @@ class PrintExpeditionTicketUseCase {
         items: items,
         separatorName: params.separatorName,
         autoCut: params.autoCut,
-        codSetorEstoque: params.codSetorEstoque,
         codUsuario: params.codUsuario,
         leftMarginMm: params.leftMarginMm ?? params.printer.leftMarginMm,
       );

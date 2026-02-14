@@ -366,6 +366,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
           printer: printer,
           separatorName: separatorName,
           codSetorEstoque: (userSectorStock != null && userSectorStock > 0) ? userSectorStock : null,
+          codUsuario: appUser?.userSystemModel?.codUsuario,
         ),
       );
 

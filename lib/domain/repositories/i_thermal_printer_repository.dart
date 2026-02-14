@@ -11,7 +11,6 @@ abstract class IThermalPrinterRepository {
     required List<ExpeditionItemPrintConsultationModel> items,
     String? separatorName,
     bool autoCut = true,
-    int? codSetorEstoque,
     int? codUsuario,
     int? leftMarginMm,
   });
