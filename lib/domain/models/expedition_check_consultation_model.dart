@@ -84,14 +84,11 @@ class ExpeditionCheckConsultationModel {
         codConferir: json['CodConferir'],
         origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
         codOrigem: json['CodOrigem'],
-        situacao:
-            ExpeditionCartRouterSituation.fromCode(json['Situacao']) ??
-            ExpeditionCartRouterSituation.vazio,
+        situacao: ExpeditionCartRouterSituation.fromCode(json['Situacao']) ?? ExpeditionCartRouterSituation.vazio,
         codCarrinhoPercurso: json['CodCarrinhoPercurso'],
         dataLancamento: DateHelper.tryStringToDate(json['DataLancamento']),
         horaLancamento: json['HoraLancamento'],
-        tipoEntidade:
-            EntityType.fromCode(json['TipoEntidade']) ?? EntityType.cliente,
+        tipoEntidade: EntityType.fromCode(json['TipoEntidade']) ?? EntityType.cliente,
         codEntidade: json['CodEntidade'],
         nomeEntidade: json['NomeEntidade'],
         codPrioridade: json['CodPrioridade'],
@@ -106,9 +103,7 @@ class ExpeditionCheckConsultationModel {
 
   /// Factory method para criação segura com validação de schema
   /// Retorna um Result que pode ser sucesso ou falha
-  static Result<ExpeditionCheckConsultationModel> fromJsonSafe(
-    Map<String, dynamic> json,
-  ) {
+  static Result<ExpeditionCheckConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
     return safeCallSync(() => ExpeditionCheckConsultationModel.fromJson(json));
   }
 
@@ -141,8 +136,7 @@ class ExpeditionCheckConsultationModel {
   /// Retorna a cor da situação
   Color get situacaoColor => situacao.color;
 
-  bool isSituacao(String situacaoToCheck) =>
-      situacao.code.toLowerCase() == situacaoToCheck.toLowerCase();
+  bool isSituacao(String situacaoToCheck) => situacao.code.toLowerCase() == situacaoToCheck.toLowerCase();
 
   /// Retorna o código do tipo de entidade
   String get tipoEntidadeCode => tipoEntidade.code;

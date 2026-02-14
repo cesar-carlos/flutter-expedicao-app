@@ -108,8 +108,7 @@ class ExpeditionCheckItemConsultationModel {
       codOrigem: codOrigem ?? this.codOrigem,
       codCarrinhoPercurso: codCarrinhoPercurso ?? this.codCarrinhoPercurso,
       itemCarrinhoPercurso: itemCarrinhoPercurso ?? this.itemCarrinhoPercurso,
-      situacaoCarrinhoPercurso:
-          situacaoCarrinhoPercurso ?? this.situacaoCarrinhoPercurso,
+      situacaoCarrinhoPercurso: situacaoCarrinhoPercurso ?? this.situacaoCarrinhoPercurso,
       codCarrinho: codCarrinho ?? this.codCarrinho,
       codProduto: codProduto ?? this.codProduto,
       nomeProduto: nomeProduto ?? this.nomeProduto,
@@ -134,9 +133,7 @@ class ExpeditionCheckItemConsultationModel {
     );
   }
 
-  factory ExpeditionCheckItemConsultationModel.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory ExpeditionCheckItemConsultationModel.fromJson(Map<String, dynamic> json) {
     try {
       return ExpeditionCheckItemConsultationModel(
         codEmpresa: json['CodEmpresa'],
@@ -147,10 +144,7 @@ class ExpeditionCheckItemConsultationModel {
         codCarrinhoPercurso: json['CodCarrinhoPercurso'],
         itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
         situacaoCarrinhoPercurso:
-            ExpeditionCartSituation.fromCode(
-              json['SituacaoCarrinhoPercurso'],
-            ) ??
-            ExpeditionCartSituation.vazio,
+            ExpeditionCartSituation.fromCode(json['SituacaoCarrinhoPercurso']) ?? ExpeditionCartSituation.vazio,
         codCarrinho: json['CodCarrinho'],
         codProduto: json['CodProduto'],
         nomeProduto: json['NomeProduto'],
@@ -171,9 +165,7 @@ class ExpeditionCheckItemConsultationModel {
         endereco: json['Endereco'],
         enderecoDescricao: json['EnderecoDescricao'],
         quantidade: AppHelper.stringToDouble(json['Quantidade']),
-        quantidadeConferida: AppHelper.stringToDouble(
-          json['QuantidadeConferida'],
-        ),
+        quantidadeConferida: AppHelper.stringToDouble(json['QuantidadeConferida']),
       );
     } catch (_) {
       rethrow;
@@ -182,12 +174,8 @@ class ExpeditionCheckItemConsultationModel {
 
   /// Factory method para criação segura com validação de schema
   /// Retorna um Result que pode ser sucesso ou falha
-  static Result<ExpeditionCheckItemConsultationModel> fromJsonSafe(
-    Map<String, dynamic> json,
-  ) {
-    return safeCallSync(
-      () => ExpeditionCheckItemConsultationModel.fromJson(json),
-    );
+  static Result<ExpeditionCheckItemConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => ExpeditionCheckItemConsultationModel.fromJson(json));
   }
 
   Map<String, dynamic> toJson() {
@@ -234,8 +222,7 @@ class ExpeditionCheckItemConsultationModel {
   bool get temDiferenca => diferencaQuantidade != 0;
 
   /// Retorna a porcentagem de conferência
-  double get porcentagemConferencia =>
-      quantidade > 0 ? (quantidadeConferida / quantidade) * 100 : 0;
+  double get porcentagemConferencia => quantidade > 0 ? (quantidadeConferida / quantidade) * 100 : 0;
 
   /// Retorna se o item está pendente de conferência
   bool get isPendenteConferencia => quantidadeConferida < quantidade;
@@ -247,15 +234,13 @@ class ExpeditionCheckItemConsultationModel {
   String get situacaoCarrinhoPercursoCode => situacaoCarrinhoPercurso.code;
 
   /// Retorna a descrição da situação do carrinho percurso
-  String get situacaoCarrinhoPercursoDescription =>
-      situacaoCarrinhoPercurso.description;
+  String get situacaoCarrinhoPercursoDescription => situacaoCarrinhoPercurso.description;
 
   /// Retorna a cor da situação do carrinho percurso
   Color get situacaoCarrinhoPercursoColor => situacaoCarrinhoPercurso.color;
 
   bool isSituacaoCarrinhoPercurso(String situacaoToCheck) =>
-      situacaoCarrinhoPercurso.code.toLowerCase() ==
-      situacaoToCheck.toLowerCase();
+      situacaoCarrinhoPercurso.code.toLowerCase() == situacaoToCheck.toLowerCase();
 
   /// Método legado - mantido para compatibilidade
   @Deprecated('Use isTotalmenteConferido em vez disso')
@@ -273,8 +258,7 @@ class ExpeditionCheckItemConsultationModel {
   }
 
   @override
-  int get hashCode =>
-      codEmpresa.hashCode ^ codConferir.hashCode ^ item.hashCode;
+  int get hashCode => codEmpresa.hashCode ^ codConferir.hashCode ^ item.hashCode;
 
   @override
   String toString() {

@@ -45,11 +45,7 @@ class ExpeditionCartModel {
         descricao: json['Descricao'],
         ativo: Situation.fromCodeWithFallback(json['Ativo'] as String? ?? ''),
         codigoBarras: json['CodigoBarras'],
-        situacao:
-            ExpeditionCartSituation.fromCode(
-              json['Situacao'] as String? ?? '',
-            ) ??
-            ExpeditionCartSituation.vazio,
+        situacao: ExpeditionCartSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionCartSituation.vazio,
       );
     } catch (_) {
       rethrow;
@@ -76,9 +72,7 @@ class ExpeditionCartModel {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is ExpeditionCartModel &&
-        other.codEmpresa == codEmpresa &&
-        other.codCarrinho == codCarrinho;
+    return other is ExpeditionCartModel && other.codEmpresa == codEmpresa && other.codCarrinho == codCarrinho;
   }
 
   @override

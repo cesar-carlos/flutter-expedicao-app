@@ -19,7 +19,7 @@ import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_params.d
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/filter/carts_filters_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
-import 'package:data7_expedicao/data/services/filters_storage_service.dart';
+import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
@@ -31,7 +31,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
   late final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
   late final BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel> _cartRepository;
   late final BasicRepository<ExpeditionSectorStockModel> _sectorStockRepository;
-  late final FiltersStorageService _filtersStorage;
+  late final IFiltersStorageService _filtersStorage;
   late final SeparateCartInternshipEventRepository _cartEventRepository;
 
   SeparationItemsViewModel() {
@@ -39,7 +39,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
       _repository = locator<BasicConsultationRepository<SeparateItemConsultationModel>>();
       _cartRepository = locator<BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel>>();
       _sectorStockRepository = locator<BasicRepository<ExpeditionSectorStockModel>>();
-      _filtersStorage = locator<FiltersStorageService>();
+      _filtersStorage = locator<IFiltersStorageService>();
       _cartEventRepository = locator<SeparateCartInternshipEventRepository>();
     } catch (e) {
       if (kDebugMode) {

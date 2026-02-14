@@ -10,13 +10,14 @@ import 'package:data7_expedicao/domain/repositories/i_printer_preferences_reposi
 import 'package:data7_expedicao/domain/models/printer_config.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/repositories/i_thermal_printer_repository.dart';
-import 'package:data7_expedicao/infrastructure/services/printer_discovery_service.dart';
+import 'package:data7_expedicao/domain/repositories/i_printer_discovery_service.dart';
+import 'package:data7_expedicao/domain/services/no_op_printer_discovery_service.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class ConfigViewModel extends ChangeNotifier {
   final ConfigService _configService;
   final IPrinterPreferencesRepository _printerPreferencesRepository;
-  final PrinterDiscoveryService _printerDiscoveryService;
+  final IPrinterDiscoveryService _printerDiscoveryService;
   final IThermalPrinterRepository? _thermalPrinterRepository;
   final Uuid _uuid = const Uuid();
   ApiConfig _currentConfig = ApiConfig.defaultConfig;
@@ -35,12 +36,11 @@ class ConfigViewModel extends ChangeNotifier {
 
   ConfigViewModel(
     this._configService,
-    IPrinterPreferencesRepository printerPreferencesRepository, [
-    PrinterDiscoveryService? printerDiscoveryService,
+    this._printerPreferencesRepository, [
+    IPrinterDiscoveryService? printerDiscoveryService,
     IThermalPrinterRepository? thermalPrinterRepository,
-  ]) : _printerPreferencesRepository = printerPreferencesRepository,
-       _printerDiscoveryService = printerDiscoveryService ?? const PrinterDiscoveryService(),
-       _thermalPrinterRepository = thermalPrinterRepository;
+  ])  : _printerDiscoveryService = printerDiscoveryService ?? const NoOpPrinterDiscoveryService(),
+        _thermalPrinterRepository = thermalPrinterRepository;
 
   ApiConfig get currentConfig => _currentConfig;
   bool get isLoading => _isLoading;

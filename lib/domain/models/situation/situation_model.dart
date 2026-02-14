@@ -9,9 +9,7 @@ enum Situation {
 
   static Situation? fromCode(String code) {
     try {
-      return Situation.values.firstWhere(
-        (situation) => situation.code.toUpperCase() == code.toUpperCase(),
-      );
+      return Situation.values.firstWhere((situation) => situation.code.toUpperCase() == code.toUpperCase());
     } catch (e) {
       return null;
     }
@@ -33,10 +31,7 @@ enum Situation {
     return fromCode(code)?.description ?? code;
   }
 
-  static Situation fromCodeWithFallback(
-    String code, {
-    Situation fallback = Situation.inativo,
-  }) {
+  static Situation fromCodeWithFallback(String code, {Situation fallback = Situation.inativo}) {
     return fromCode(code) ?? fallback;
   }
 }
@@ -56,18 +51,11 @@ class SituationModel {
   static List<String> getAllDescriptions() => Situation.getAllDescriptions();
   static List<Situation> getAllSituations() => Situation.values;
 
-  static Situation fromCodeWithFallback(
-    String code, {
-    Situation fallback = Situation.inativo,
-  }) {
+  static Situation fromCodeWithFallback(String code, {Situation fallback = Situation.inativo}) {
     return Situation.fromCodeWithFallback(code, fallback: fallback);
   }
 
   static Map<String, String> get situationMap {
-    return Map.fromEntries(
-      Situation.values.map(
-        (situation) => MapEntry(situation.code, situation.description),
-      ),
-    );
+    return Map.fromEntries(Situation.values.map((situation) => MapEntry(situation.code, situation.description)));
   }
 }

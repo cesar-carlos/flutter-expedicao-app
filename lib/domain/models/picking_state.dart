@@ -73,10 +73,7 @@ class PickingItemState {
 
   /// Atualiza a quantidade separada e recalcula se está completo
   PickingItemState updateQuantity(int newQuantity) {
-    return copyWith(
-      pickedQuantity: newQuantity,
-      isCompleted: newQuantity >= totalQuantity,
-    );
+    return copyWith(pickedQuantity: newQuantity, isCompleted: newQuantity >= totalQuantity);
   }
 
   /// Marca o item como completo com a quantidade total
@@ -93,17 +90,12 @@ class PickingItemState {
       status: PendingOperationStatus.pending,
     );
 
-    final updatedOperations = List<PendingOperation>.from(pendingOperations)
-      ..add(newOperation);
+    final updatedOperations = List<PendingOperation>.from(pendingOperations)..add(newOperation);
     return copyWith(pendingOperations: updatedOperations);
   }
 
   /// Atualiza o status de uma operação pendente específica
-  PickingItemState updateOperationStatus(
-    DateTime timestamp,
-    PendingOperationStatus status, {
-    String? errorMessage,
-  }) {
+  PickingItemState updateOperationStatus(DateTime timestamp, PendingOperationStatus status, {String? errorMessage}) {
     final updatedOperations = pendingOperations.map((op) {
       if (op.timestamp == timestamp) {
         return op.copyWith(status: status, errorMessage: errorMessage);
@@ -116,9 +108,7 @@ class PickingItemState {
 
   /// Remove operações que foram sincronizadas com sucesso
   PickingItemState clearSyncedOperations() {
-    final filteredOperations = pendingOperations
-        .where((op) => op.status != PendingOperationStatus.synced)
-        .toList();
+    final filteredOperations = pendingOperations.where((op) => op.status != PendingOperationStatus.synced).toList();
     return copyWith(pendingOperations: filteredOperations);
   }
 }
@@ -160,19 +150,12 @@ class PickingState {
   }
 
   /// Adiciona uma operação pendente a um item
-  PickingState addPendingOperation(
-    String itemId,
-    int quantity,
-    DateTime timestamp,
-  ) {
+  PickingState addPendingOperation(String itemId, int quantity, DateTime timestamp) {
     final currentState = _itemStates[itemId];
     if (currentState == null) return this;
 
     final updatedStates = Map<String, PickingItemState>.from(_itemStates);
-    updatedStates[itemId] = currentState.addPendingOperation(
-      quantity,
-      timestamp,
-    );
+    updatedStates[itemId] = currentState.addPendingOperation(quantity, timestamp);
 
     return PickingState(updatedStates);
   }
@@ -188,11 +171,7 @@ class PickingState {
     if (currentState == null) return this;
 
     final updatedStates = Map<String, PickingItemState>.from(_itemStates);
-    updatedStates[itemId] = currentState.updateOperationStatus(
-      timestamp,
-      status,
-      errorMessage: errorMessage,
-    );
+    updatedStates[itemId] = currentState.updateOperationStatus(timestamp, status, errorMessage: errorMessage);
 
     return PickingState(updatedStates);
   }
@@ -230,8 +209,7 @@ class PickingState {
   }
 
   /// Conta itens completados
-  int get completedItems =>
-      _itemStates.values.where((state) => state.isCompleted).length;
+  int get completedItems => _itemStates.values.where((state) => state.isCompleted).length;
 
   /// Conta total de itens
   int get totalItems => _itemStates.length;
@@ -247,10 +225,7 @@ class PickingState {
 
   /// Retorna o total de operações pendentes em todos os itens
   int getTotalPendingOperations() {
-    return _itemStates.values.fold(
-      0,
-      (sum, state) => sum + state.pendingOperations.length,
-    );
+    return _itemStates.values.fold(0, (sum, state) => sum + state.pendingOperations.length);
   }
 
   /// Retorna as operações pendentes de um item específico

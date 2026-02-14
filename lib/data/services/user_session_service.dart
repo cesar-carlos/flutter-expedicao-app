@@ -2,11 +2,13 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:data7_expedicao/domain/models/user/app_user.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 
-class UserSessionService {
+class UserSessionService implements IUserSessionService {
   static const String _appUserKey = 'current_app_user';
   static const String _isLoggedInKey = 'is_logged_in';
 
+  @override
   Future<void> saveUserSession(AppUser appUser) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -18,6 +20,7 @@ class UserSessionService {
     }
   }
 
+  @override
   Future<AppUser?> loadUserSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -36,6 +39,7 @@ class UserSessionService {
     return null;
   }
 
+  @override
   Future<void> updateUserSession(AppUser appUser) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -45,6 +49,7 @@ class UserSessionService {
     }
   }
 
+  @override
   Future<bool> hasActiveSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -54,6 +59,7 @@ class UserSessionService {
     }
   }
 
+  @override
   Future<bool> isUserLoggedIn() async {
     try {
       final hasSession = await hasActiveSession();
@@ -66,6 +72,7 @@ class UserSessionService {
     }
   }
 
+  @override
   Future<void> clearUserSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();

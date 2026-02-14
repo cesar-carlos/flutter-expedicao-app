@@ -16,7 +16,7 @@ import 'package:data7_expedicao/ui/widgets/separate_items/separation_info_view.d
 import 'package:data7_expedicao/ui/widgets/separate_items/carts_filter_modal.dart';
 import 'package:data7_expedicao/ui/widgets/separate_items/carts_list_view.dart';
 import 'package:data7_expedicao/ui/widgets/separation_title_with_connection_status.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_params.dart';
@@ -58,7 +58,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final viewModel = context.read<SeparationItemsViewModel>();
 
-      final userSessionService = locator<UserSessionService>();
+      final userSessionService = locator<IUserSessionService>();
       final appUser = await userSessionService.loadUserSession();
       final currentUserId = appUser?.userSystemModel?.codUsuario;
       final userSectorStock = appUser?.userSystemModel?.codSetorEstoque;
@@ -351,7 +351,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         return;
       }
 
-      final appUser = await locator<UserSessionService>().loadUserSession();
+      final appUser = await locator<IUserSessionService>().loadUserSession();
       if (!mounted) return;
 
       final separatorName = appUser?.userSystemModel?.nomeUsuario ?? appUser?.nome;
@@ -462,7 +462,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
 
     if (!context.mounted) return;
 
-    final userSessionService = locator<UserSessionService>();
+    final userSessionService = locator<IUserSessionService>();
     final appUser = await userSessionService.loadUserSession();
     final codUsuario = appUser?.userSystemModel?.codUsuario;
     final codSetorEstoque = appUser?.userSystemModel?.codSetorEstoque;
@@ -580,7 +580,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
 
   Future<bool> _openSeparationForNewestCart(BuildContext context, SeparationItemsViewModel viewModel) async {
     try {
-      final userSessionService = locator<UserSessionService>();
+      final userSessionService = locator<IUserSessionService>();
       final appUser = await userSessionService.loadUserSession();
       final userModel = appUser?.userSystemModel;
 

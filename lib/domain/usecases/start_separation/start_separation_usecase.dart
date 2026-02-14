@@ -9,7 +9,7 @@ import 'package:data7_expedicao/domain/usecases/start_separation/start_separatio
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_failure.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
@@ -17,12 +17,12 @@ import 'package:data7_expedicao/core/utils/app_logger.dart';
 class StartSeparationUseCase {
   final BasicRepository<SeparateModel> _separateRepository;
   final BasicRepository<ExpeditionCartRouteModel> _cartRouteRepository;
-  final UserSessionService _userSessionService;
+  final IUserSessionService _userSessionService;
 
   StartSeparationUseCase({
     required BasicRepository<SeparateModel> separateRepository,
     required BasicRepository<ExpeditionCartRouteModel> cartRouteRepository,
-    required UserSessionService userSessionService,
+    required IUserSessionService userSessionService,
   }) : _separateRepository = separateRepository,
        _cartRouteRepository = cartRouteRepository,
        _userSessionService = userSessionService;

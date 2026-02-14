@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/user/app_user.dart';
 import 'package:data7_expedicao/domain/repositories/user_repository.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 
@@ -14,9 +14,9 @@ enum ProfileState { idle, loading, success, error }
 class ProfileViewModel extends ChangeNotifier {
   final UserRepository _userRepository;
   final AuthViewModel _authViewModel;
-  final UserSessionService _userSessionService;
+  final IUserSessionService _userSessionService;
 
-  ProfileViewModel(this._userRepository, this._authViewModel) : _userSessionService = locator<UserSessionService>();
+  ProfileViewModel(this._userRepository, this._authViewModel) : _userSessionService = locator<IUserSessionService>();
 
   ProfileState _state = ProfileState.idle;
   String? _errorMessage;

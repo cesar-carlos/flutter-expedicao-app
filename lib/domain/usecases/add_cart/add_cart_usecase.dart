@@ -14,7 +14,7 @@ import 'package:data7_expedicao/domain/models/expedition_internship_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/domain/models/user/app_user.dart';
 import 'package:data7_expedicao/core/utils/app_helper.dart';
@@ -29,7 +29,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
   final BasicConsultationRepository<ExpeditionCartConsultationModel> _cartConsultationRepository;
   final BasicRepository<ExpeditionInternshipModel> _expeditionInternshipRepository;
   final UserSystemRepository _userSystemRepository;
-  final UserSessionService _userSessionService;
+  final IUserSessionService _userSessionService;
 
   AddCartUseCase({
     required BasicRepository<ExpeditionCartModel> cartRepository,
@@ -38,7 +38,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     required BasicConsultationRepository<ExpeditionCartConsultationModel> cartConsultationRepository,
     required BasicRepository<ExpeditionInternshipModel> expeditionInternshipRepository,
     required UserSystemRepository userSystemRepository,
-    required UserSessionService userSessionService,
+    required IUserSessionService userSessionService,
   }) : _cartRepository = cartRepository,
        _cartRouteRepository = cartRouteRepository,
        _cartRouteInternshipRepository = cartRouteInternshipRepository,

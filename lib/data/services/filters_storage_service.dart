@@ -5,13 +5,15 @@ import 'package:data7_expedicao/domain/models/filter/separation_filters_model.da
 import 'package:data7_expedicao/domain/models/filter/separate_items_filters_model.dart';
 import 'package:data7_expedicao/domain/models/filter/carts_filters_model.dart';
 import 'package:data7_expedicao/domain/models/filter/pending_products_filters_model.dart';
+import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
 
-class FiltersStorageService {
+class FiltersStorageService implements IFiltersStorageService {
   static const String _separationFiltersKey = 'separation_filters';
   static const String _separateItemsFiltersKey = 'separate_items_filters';
   static const String _cartsFiltersKey = 'carts_filters';
   static const String _pendingProductsFiltersKey = 'pending_products_filters';
 
+  @override
   Future<void> saveSeparationFilters(SeparationFiltersModel filters) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -22,6 +24,7 @@ class FiltersStorageService {
     }
   }
 
+  @override
   Future<SeparationFiltersModel> loadSeparationFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -38,6 +41,7 @@ class FiltersStorageService {
     return const SeparationFiltersModel();
   }
 
+  @override
   Future<void> clearSeparationFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -47,6 +51,7 @@ class FiltersStorageService {
     }
   }
 
+  @override
   Future<bool> hasSavedSeparationFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -56,6 +61,7 @@ class FiltersStorageService {
     }
   }
 
+  @override
   Future<void> saveSeparateItemsFilters(SeparateItemsFiltersModel filters) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -66,6 +72,7 @@ class FiltersStorageService {
     }
   }
 
+  @override
   Future<SeparateItemsFiltersModel> loadSeparateItemsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -82,6 +89,7 @@ class FiltersStorageService {
     return const SeparateItemsFiltersModel();
   }
 
+  @override
   Future<void> clearSeparateItemsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -91,6 +99,7 @@ class FiltersStorageService {
     }
   }
 
+  @override
   Future<bool> hasSavedSeparateItemsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -100,6 +109,7 @@ class FiltersStorageService {
     }
   }
 
+  @override
   Future<void> saveCartsFilters(CartsFiltersModel filters) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -110,6 +120,7 @@ class FiltersStorageService {
     }
   }
 
+  @override
   Future<CartsFiltersModel> loadCartsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -126,6 +137,7 @@ class FiltersStorageService {
     return const CartsFiltersModel();
   }
 
+  @override
   Future<void> clearCartsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -135,6 +147,7 @@ class FiltersStorageService {
     }
   }
 
+  @override
   Future<bool> hasSavedCartsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -144,6 +157,7 @@ class FiltersStorageService {
     }
   }
 
+  @override
   Future<void> savePendingProductsFilters(PendingProductsFiltersModel filters) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -154,6 +168,7 @@ class FiltersStorageService {
     }
   }
 
+  @override
   Future<PendingProductsFiltersModel?> loadPendingProductsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -170,6 +185,7 @@ class FiltersStorageService {
     return null;
   }
 
+  @override
   Future<void> clearPendingProductsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -179,6 +195,7 @@ class FiltersStorageService {
     }
   }
 
+  @override
   Future<bool> hasSavedPendingProductsFilters() async {
     try {
       final prefs = await SharedPreferences.getInstance();

@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/results/index.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
@@ -661,7 +661,7 @@ class CartItemCard extends StatelessWidget {
   }
 
   Future<UserSystemModel?> _getUserModel() async {
-    final userSessionService = locator<UserSessionService>();
+    final userSessionService = locator<IUserSessionService>();
     final appUser = await userSessionService.loadUserSession();
     return appUser?.userSystemModel;
   }

@@ -10,6 +10,7 @@ import 'package:data7_expedicao/ui/widgets/card_picking/components/keyboard_togg
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_dialog_manager.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal_v2.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class PickingFlowController {
@@ -144,7 +145,11 @@ class PickingFlowController {
       builder: (context) => const AlertDialog(
         content: Row(
           mainAxisSize: MainAxisSize.min,
-          children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Salvando carrinho...')],
+          children: [
+          CircularProgressIndicator(),
+          SizedBox(width: UIConstants.defaultPadding),
+          Text('Salvando carrinho...'),
+        ],
         ),
       ),
     );
@@ -161,8 +166,8 @@ class PickingFlowController {
           children: [
             Text(message),
             if (details != null) ...[
-              const SizedBox(height: 8),
-              Text(details, style: AppFonts.inter(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              SizedBox(height: UIConstants.smallPadding),
+              Text(details, style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ],
           ],
         ),
@@ -203,8 +208,8 @@ class PickingFlowController {
       builder: (dialogContext) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.check_circle, color: AppColors.success, size: 28),
-            const SizedBox(width: 8),
+            Icon(Icons.check_circle, color: AppColors.success, size: UIConstants.mediumIconSize),
+            SizedBox(width: UIConstants.smallPadding),
             const Expanded(child: Text('Finalizar Separação', overflow: TextOverflow.ellipsis)),
           ],
         ),
@@ -213,15 +218,15 @@ class PickingFlowController {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Confirma finalização do carrinho ${cart.nomeCarrinho}?'),
-            const SizedBox(height: 16),
+            SizedBox(height: UIConstants.defaultPadding),
             _buildInfoRow('Código', '#${cart.codCarrinho}'),
             _buildInfoRow('Itens totais', '$totalItems'),
             _buildInfoRow('Itens separados', '$completedItems'),
             _buildInfoRow('Progresso', '${(progress * 100).toInt()}%'),
             if (pendingOps > 0) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: UIConstants.smallFontSize),
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(UIConstants.smallPadding),
                 decoration: BoxDecoration(
                   color: AppColors.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
@@ -229,12 +234,12 @@ class PickingFlowController {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.warning, color: AppColors.warning, size: 16),
+                    Icon(Icons.warning, color: AppColors.warning, size: UIConstants.smallIconSize),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         'Há $pendingOps operação${pendingOps == 1 ? '' : 'es'} sincronizando',
-                        style: AppFonts.inter(fontSize: 11, color: AppColors.warning),
+                        style: AppFonts.inter(fontSize: UIConstants.tinyFontSize, color: AppColors.warning),
                       ),
                     ),
                   ],
@@ -264,9 +269,9 @@ class PickingFlowController {
         children: [
           SizedBox(
             width: 100,
-            child: Text('$label:', style: AppFonts.inter(fontWeight: FontWeight.bold, fontSize: 12)),
+            child: Text('$label:', style: AppFonts.inter(fontWeight: FontWeight.bold, fontSize: UIConstants.smallFontSize)),
           ),
-          Expanded(child: Text(value, style: AppFonts.inter(fontSize: 12))),
+          Expanded(child: Text(value, style: AppFonts.inter(fontSize: UIConstants.smallFontSize))),
         ],
       ),
     );

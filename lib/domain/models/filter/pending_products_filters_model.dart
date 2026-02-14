@@ -31,15 +31,11 @@ class PendingProductsFiltersModel {
               orElse: () => SeparationItemStatus.pendente,
             )
           : null,
-      setorEstoque: json['setorEstoque'] != null
-          ? ExpeditionSectorStockModel.fromJson(json['setorEstoque'])
-          : null,
+      setorEstoque: json['setorEstoque'] != null ? ExpeditionSectorStockModel.fromJson(json['setorEstoque']) : null,
     );
   }
 
-  static Result<PendingProductsFiltersModel> fromJsonSafe(
-    Map<String, dynamic> json,
-  ) {
+  static Result<PendingProductsFiltersModel> fromJsonSafe(Map<String, dynamic> json) {
     return safeCallSync(() => PendingProductsFiltersModel.fromJson(json));
   }
 
@@ -112,13 +108,6 @@ class PendingProductsFiltersModel {
 
   @override
   int get hashCode {
-    return Object.hash(
-      codProduto,
-      codigoBarras,
-      nomeProduto,
-      enderecoDescricao,
-      situacao,
-      setorEstoque,
-    );
+    return Object.hash(codProduto, codigoBarras, nomeProduto, enderecoDescricao, situacao, setorEstoque);
   }
 }

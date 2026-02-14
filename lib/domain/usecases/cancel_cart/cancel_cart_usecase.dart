@@ -11,7 +11,7 @@ import 'package:data7_expedicao/domain/models/situation/expedition_cart_situatio
 import 'package:data7_expedicao/domain/models/expedition_cancellation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 
@@ -19,13 +19,13 @@ class CancelCartUseCase {
   final BasicRepository<ExpeditionCartModel> _cartRepository;
   final BasicRepository<ExpeditionCancellationModel> _cancellationRepository;
   final BasicRepository<ExpeditionCartRouteInternshipModel> _cartInternshipRouteRepository;
-  final UserSessionService _userSessionService;
+  final IUserSessionService _userSessionService;
 
   CancelCartUseCase({
     required BasicRepository<ExpeditionCartModel> cartRepository,
     required BasicRepository<ExpeditionCancellationModel> cancellationRepository,
     required BasicRepository<ExpeditionCartRouteInternshipModel> cartInternshipRouteRepository,
-    required UserSessionService userSessionService,
+    required IUserSessionService userSessionService,
   }) : _cartRepository = cartRepository,
        _cancellationRepository = cancellationRepository,
        _cartInternshipRouteRepository = cartInternshipRouteRepository,

@@ -13,7 +13,7 @@ import 'package:data7_expedicao/domain/models/event_model/event_listener_model.d
 import 'package:data7_expedicao/domain/repositories/separate_event_repository.dart';
 import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
-import 'package:data7_expedicao/data/services/filters_storage_service.dart';
+import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/services/notification_service.dart';
@@ -22,7 +22,7 @@ enum SeparationState { initial, loading, loaded, error }
 
 class SeparationViewModel extends ChangeNotifier {
   final BasicConsultationRepository<SeparateConsultationModel> _repository;
-  final FiltersStorageService _filtersStorage;
+  final IFiltersStorageService _filtersStorage;
   final BasicRepository<ExpeditionSectorStockModel> _sectorRepository;
   final SeparateEventRepository _eventRepository;
   final AudioService _audioService;
@@ -30,7 +30,7 @@ class SeparationViewModel extends ChangeNotifier {
 
   SeparationViewModel()
     : _repository = locator<BasicConsultationRepository<SeparateConsultationModel>>(),
-      _filtersStorage = locator<FiltersStorageService>(),
+      _filtersStorage = locator<IFiltersStorageService>(),
       _sectorRepository = locator<BasicRepository<ExpeditionSectorStockModel>>(),
       _eventRepository = locator<SeparateEventRepository>(),
       _audioService = locator<AudioService>(),

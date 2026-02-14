@@ -26,9 +26,9 @@ import 'package:data7_expedicao/core/services/barcode_validation_service.dart';
 import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
 import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
-import 'package:data7_expedicao/data/services/filters_storage_service.dart';
+import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 
@@ -40,12 +40,12 @@ class CardPickingViewModel extends ChangeNotifier {
 
   final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
   final BasicRepository<ExpeditionSectorStockModel> _sectorStockRepository;
-  final FiltersStorageService _filtersStorage;
+  final IFiltersStorageService _filtersStorage;
 
   final AddItemSeparationUseCase _addItemSeparationUseCase;
   final SaveSeparationCartUseCase _saveSeparationCartUseCase;
 
-  final UserSessionService _userSessionService;
+  final IUserSessionService _userSessionService;
 
   final SeparateCartInternshipEventRepository _cartEventRepository;
   final ShelfScanningService _shelfScanningService;
@@ -214,10 +214,10 @@ class CardPickingViewModel extends ChangeNotifier {
   CardPickingViewModel()
     : _repository = locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
       _sectorStockRepository = locator<BasicRepository<ExpeditionSectorStockModel>>(),
-      _filtersStorage = locator<FiltersStorageService>(),
+      _filtersStorage = locator<IFiltersStorageService>(),
       _addItemSeparationUseCase = locator<AddItemSeparationUseCase>(),
       _saveSeparationCartUseCase = locator<SaveSeparationCartUseCase>(),
-      _userSessionService = locator<UserSessionService>(),
+      _userSessionService = locator<IUserSessionService>(),
       _cartEventRepository = locator<SeparateCartInternshipEventRepository>(),
       _shelfScanningService = locator<ShelfScanningService>(),
       _stateManager = locator<PickingStateManager>(),
@@ -270,6 +270,7 @@ class CardPickingViewModel extends ChangeNotifier {
       _safeNotifyListeners();
 
       await _loadCartItems();
+      if (_disposed) return;
 
       startCartEventMonitoring();
     } catch (e) {
@@ -472,6 +473,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
       final timestamp = DateTime.now();
       _updateLocalPickingStateOptimistic(item.item, quantity, timestamp);
+      _updateNextItemCache();
 
       _executeAsyncAddItem(params, userSystem, item.item, quantity, timestamp);
 
@@ -507,6 +509,15 @@ class CardPickingViewModel extends ChangeNotifier {
 
   bool isItemCompleted(String itemId) => _stateManager.isItemCompleted(itemId);
 
+  int get maxQuantityForNextItem {
+    final nextItem = _nextItemCache;
+    if (nextItem == null) return 999;
+    final totalQuantity = nextItem.quantidade.toInt();
+    final pickedQuantity = getPickedQuantity(nextItem.item);
+    final remainingQuantity = totalQuantity - pickedQuantity;
+    return remainingQuantity > 0 ? remainingQuantity : 1;
+  }
+
   Future<bool> finalizePicking() async {
     if (_disposed) return false;
 
@@ -527,6 +538,7 @@ class CardPickingViewModel extends ChangeNotifier {
       }
 
       final appUser = await _userSessionService.loadUserSession();
+      if (_disposed) return false;
       if (appUser?.userSystemModel == null) {
         _hasError = true;
         _errorMessage = 'Usuário não autenticado';
@@ -558,6 +570,7 @@ class CardPickingViewModel extends ChangeNotifier {
       }
 
       final appUser = await _userSessionService.loadUserSession();
+      if (_disposed) return false;
       if (appUser?.userSystemModel == null) {
         _hasError = true;
         _errorMessage = 'Usuário não autenticado';
@@ -656,6 +669,7 @@ class CardPickingViewModel extends ChangeNotifier {
       _filters = filters;
       await _saveFilters();
       await _loadFilteredItems();
+      if (_disposed) return;
       _safeNotifyListeners();
     } catch (e) {
       _setError('Erro ao aplicar filtros: ${e.toString()}');
@@ -669,6 +683,7 @@ class CardPickingViewModel extends ChangeNotifier {
       _filters = const PendingProductsFiltersModel();
       await _clearFilters();
       await _loadFilteredItems();
+      if (_disposed) return;
       _safeNotifyListeners();
     } catch (e) {
       _setError('Erro ao limpar filtros: ${e.toString()}');
@@ -960,6 +975,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
     final allOperations = _pendingOperations.values.expand((list) => list).toList();
     await Future.wait(allOperations, eagerError: false);
+    if (_disposed) return;
 
     await refresh();
   }

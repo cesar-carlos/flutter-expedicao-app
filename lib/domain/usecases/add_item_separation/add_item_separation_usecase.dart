@@ -13,7 +13,7 @@ import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_sep
 import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_failure.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/core/results/index.dart';
@@ -30,7 +30,7 @@ import 'package:data7_expedicao/core/results/index.dart';
 class AddItemSeparationUseCase {
   final BasicRepository<SeparateItemModel> _separateItemRepository;
   final BasicRepository<SeparationItemModel> _separationItemRepository;
-  final UserSessionService _userSessionService;
+  final IUserSessionService _userSessionService;
   final MetricsCollector? _metricsCollector;
   final SocketOperationRetry? _socketOperationRetry;
   static const _uuid = Uuid();
@@ -38,7 +38,7 @@ class AddItemSeparationUseCase {
   AddItemSeparationUseCase({
     required BasicRepository<SeparateItemModel> separateItemRepository,
     required BasicRepository<SeparationItemModel> separationItemRepository,
-    required UserSessionService userSessionService,
+    required IUserSessionService userSessionService,
     MetricsCollector? metricsCollector,
     SocketOperationRetry? socketOperationRetry,
   }) : _separateItemRepository = separateItemRepository,

@@ -13,7 +13,7 @@ import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/res
 import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_usecase.dart';
 import 'package:data7_expedicao/core/utils/print_failure_message_helper.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/separation/separation_filter_modal.dart';
@@ -199,7 +199,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   /// Usuários com codSetorEstoque só podem abrir separações em que estejam vinculados.
   /// Verificação centralizada em ResolveSeparationUserLinkUseCase (listagem ou fallback).
   Future<void> _onSeparationTap(SeparateConsultationModel separation) async {
-    final userSessionService = locator<UserSessionService>();
+    final userSessionService = locator<IUserSessionService>();
     final appUser = await userSessionService.loadUserSession();
     final codSetorEstoque = appUser?.userSystemModel?.codSetorEstoque;
     final codUsuario = appUser?.userSystemModel?.codUsuario;
@@ -279,7 +279,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         return;
       }
 
-      final appUser = await locator<UserSessionService>().loadUserSession();
+      final appUser = await locator<IUserSessionService>().loadUserSession();
       final separatorName = appUser?.userSystemModel?.nomeUsuario ?? appUser?.nome;
       final userSectorStock = appUser?.userSystemModel?.codSetorEstoque;
       final userSectorName = appUser?.userSystemModel?.nomeSetorEstoque;
@@ -444,7 +444,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
 
   /// Obtém parâmetros do usuário logado
   Future<NextSeparationUserParams?> _getUserParams() async {
-    final userSessionService = locator<UserSessionService>();
+    final userSessionService = locator<IUserSessionService>();
     final appUser = await userSessionService.loadUserSession();
 
     if (appUser?.userSystemModel == null) {

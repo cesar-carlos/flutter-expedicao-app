@@ -29,12 +29,33 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
   Timer? _decrementTimer;
   bool _isIncrementing = false;
   bool _isDecrementing = false;
+  String? _lastNextItemId;
 
   static const Duration _initialDelay = Duration(milliseconds: 500);
 
   static const Duration _repeatInterval = Duration(milliseconds: 100);
 
   static const int _minQuantity = 1;
+
+  @override
+  void didUpdateWidget(covariant QuantitySelectorCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final vm = widget.viewModel;
+    final newNextItemId = vm?.nextItem?.item;
+    if (newNextItemId != _lastNextItemId) {
+      _lastNextItemId = newNextItemId;
+      if (!mounted) return;
+      if (vm != null && widget.controller.text.isNotEmpty) {
+        final current = int.tryParse(widget.controller.text) ?? _minQuantity;
+        final max = vm.maxQuantityForNextItem;
+        final clamped = current.clamp(_minQuantity, max);
+        widget.controller.text = clamped.toString();
+        widget.controller.selection = TextSelection.fromPosition(
+          TextPosition(offset: widget.controller.text.length),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -71,23 +92,12 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
     );
   }
 
-  int get _maxQuantity {
-    if (widget.viewModel == null) return 999;
-
-    final nextItem = widget.viewModel!.nextItem;
-
-    if (nextItem == null) return 999;
-
-    final totalQuantity = nextItem.quantidade.toInt();
-    final pickedQuantity = widget.viewModel!.getPickedQuantity(nextItem.item);
-    final remainingQuantity = totalQuantity - pickedQuantity;
-
-    return remainingQuantity > 0 ? remainingQuantity : _minQuantity;
-  }
+  int get _maxQuantity => widget.viewModel?.maxQuantityForNextItem ?? 999;
 
   int get _currentQuantity => int.tryParse(widget.controller.text) ?? _minQuantity;
 
   void _incrementOnce() {
+    if (!mounted) return;
     final current = _currentQuantity;
     final max = _maxQuantity;
 
@@ -97,6 +107,7 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
   }
 
   void _decrementOnce() {
+    if (!mounted) return;
     final current = _currentQuantity;
 
     if (current > _minQuantity) {
@@ -109,8 +120,16 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
 
     _isIncrementing = true;
     _incrementTimer = Timer(_initialDelay, () {
+      if (!mounted) {
+        _stopIncrementing();
+        return;
+      }
       if (_isIncrementing) {
         _incrementTimer = Timer.periodic(_repeatInterval, (_) {
+          if (!mounted) {
+            _stopIncrementing();
+            return;
+          }
           if (_isIncrementing && _currentQuantity < _maxQuantity) {
             _incrementOnce();
           } else {
@@ -132,8 +151,16 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
 
     _isDecrementing = true;
     _decrementTimer = Timer(_initialDelay, () {
+      if (!mounted) {
+        _stopDecrementing();
+        return;
+      }
       if (_isDecrementing) {
         _decrementTimer = Timer.periodic(_repeatInterval, (_) {
+          if (!mounted) {
+            _stopDecrementing();
+            return;
+          }
           if (_isDecrementing && _currentQuantity > _minQuantity) {
             _decrementOnce();
           } else {
@@ -184,18 +211,21 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
-      onTapDown: widget.enabled ? (_) => _decrementOnce() : null,
       onLongPressStart: widget.enabled ? (_) => _startDecrementing() : null,
       onLongPressEnd: widget.enabled ? (_) => _stopDecrementing() : null,
+      onLongPressCancel: widget.enabled ? _stopDecrementing : null,
       child: Container(
         decoration: BoxDecoration(
           color: widget.enabled ? AppColors.warning.withValues(alpha: 0.1) : colorScheme.surfaceContainerHighest,
           shape: BoxShape.circle,
         ),
-        child: IconButton(
-          onPressed: widget.enabled ? _decrementOnce : null,
-          icon: Icon(Icons.remove, color: widget.enabled ? AppColors.warning : colorScheme.onSurfaceVariant),
-          style: IconButton.styleFrom(backgroundColor: AppColors.transparent, shape: const CircleBorder()),
+        child: Semantics(
+          label: 'Diminuir quantidade',
+          child: IconButton(
+            onPressed: widget.enabled ? _decrementOnce : null,
+            icon: Icon(Icons.remove, color: widget.enabled ? AppColors.warning : colorScheme.onSurfaceVariant),
+            style: IconButton.styleFrom(backgroundColor: AppColors.transparent, shape: const CircleBorder()),
+          ),
         ),
       ),
     );
@@ -203,18 +233,21 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
 
   Widget _buildIncrementButton() {
     return GestureDetector(
-      onTapDown: widget.enabled ? (_) => _incrementOnce() : null,
       onLongPressStart: widget.enabled ? (_) => _startIncrementing() : null,
       onLongPressEnd: widget.enabled ? (_) => _stopIncrementing() : null,
+      onLongPressCancel: widget.enabled ? _stopIncrementing : null,
       child: Container(
         decoration: BoxDecoration(
           color: widget.enabled ? AppColors.warning.withValues(alpha: 0.1) : AppColors.grey.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
-        child: IconButton(
-          onPressed: widget.enabled ? _incrementOnce : null,
-          icon: Icon(Icons.add, color: widget.enabled ? AppColors.warning : AppColors.grey),
-          style: IconButton.styleFrom(backgroundColor: AppColors.transparent, shape: const CircleBorder()),
+        child: Semantics(
+          label: 'Aumentar quantidade',
+          child: IconButton(
+            onPressed: widget.enabled ? _incrementOnce : null,
+            icon: Icon(Icons.add, color: widget.enabled ? AppColors.warning : AppColors.grey),
+            style: IconButton.styleFrom(backgroundColor: AppColors.transparent, shape: const CircleBorder()),
+          ),
         ),
       ),
     );
@@ -235,6 +268,13 @@ class _QuantitySelectorCardState extends State<QuantitySelectorCard> {
         textAlign: TextAlign.center,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(3)],
         onChanged: (value) {
+          if (value.isEmpty) {
+            widget.controller.text = _minQuantity.toString();
+            widget.controller.selection = TextSelection.fromPosition(
+              TextPosition(offset: widget.controller.text.length),
+            );
+            return;
+          }
           final intValue = int.tryParse(value);
           if (intValue != null && intValue > _maxQuantity) {
             widget.controller.text = _maxQuantity.toString();

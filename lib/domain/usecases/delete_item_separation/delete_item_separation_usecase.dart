@@ -8,7 +8,7 @@ import 'package:data7_expedicao/domain/usecases/delete_item_separation/delete_it
 import 'package:data7_expedicao/domain/usecases/delete_item_separation/delete_item_separation_success.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 
 class DeleteItemSeparationUseCase {
   static const String _deleteFailedCode = 'DELETE_FAILED';
@@ -17,13 +17,13 @@ class DeleteItemSeparationUseCase {
   final BasicRepository<SeparateItemModel> _separateItemRepository;
   final BasicRepository<SeparationItemModel> _separationItemRepository;
   final BasicRepository<SeparateModel> _separateRepository;
-  final UserSessionService _userSessionService;
+  final IUserSessionService _userSessionService;
 
   DeleteItemSeparationUseCase({
     required BasicRepository<SeparateItemModel> separateItemRepository,
     required BasicRepository<SeparationItemModel> separationItemRepository,
     required BasicRepository<SeparateModel> separateRepository,
-    required UserSessionService userSessionService,
+    required IUserSessionService userSessionService,
   }) : _separateItemRepository = separateItemRepository,
        _separationItemRepository = separationItemRepository,
        _separateRepository = separateRepository,

@@ -22,6 +22,7 @@ class UIConstants {
   static const double smallPadding = 8.0;
   static const double largePadding = 24.0;
   static const double extraLargePadding = 32.0;
+  static const double keyboardOverlayPadding = 60.0;
 
   // Border radius
   static const double defaultBorderRadius = 12.0;
@@ -108,19 +109,8 @@ class UIConstants {
   // Configurações de arquivo
   static const int maxFileSizeMB = 10;
   static const int maxImageSizeMB = 5;
-  static const List<String> allowedImageExtensions = [
-    'jpg',
-    'jpeg',
-    'png',
-    'gif',
-    'webp',
-  ];
-  static const List<String> allowedDocumentExtensions = [
-    'pdf',
-    'doc',
-    'docx',
-    'txt',
-  ];
+  static const List<String> allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+  static const List<String> allowedDocumentExtensions = ['pdf', 'doc', 'docx', 'txt'];
 
   // Configurações de notificação
   static const Duration notificationDuration = Duration(seconds: 3);
@@ -183,12 +173,9 @@ class UIConstants {
   static const Duration scannerActivationDelay = Duration(milliseconds: 200);
   static const Duration scannerReactivationDelay = Duration(milliseconds: 300);
   static const Duration scannerDisplayDelay = Duration(milliseconds: 500);
-  static const Duration scannerBroadcastRecreateDelay = Duration(
-    milliseconds: 300,
-  );
+  static const Duration scannerBroadcastRecreateDelay = Duration(milliseconds: 300);
 
   static const String separationNotAssignedToUserMessage =
       'Esta separação não está atribuída ao usuário atual. Por favor, utilize a opção \'Próxima Separação\'.';
-  static const String separationLinkCheckFailedMessage =
-      'Não foi possível verificar a atribuição. Tente novamente.';
+  static const String separationLinkCheckFailedMessage = 'Não foi possível verificar a atribuição. Tente novamente.';
 }

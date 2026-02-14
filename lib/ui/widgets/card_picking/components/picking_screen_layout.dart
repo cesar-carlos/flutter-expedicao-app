@@ -8,36 +8,23 @@ import 'package:data7_expedicao/ui/widgets/card_picking/widgets/barcode_scanner_
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_scan_state.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
-import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/domain/models/picking_state.dart';
 
-/// Layout principal da tela de picking com otimizações de performance
-///
-/// Responsável por organizar os cards de picking em uma estrutura scrollável,
-/// utilizando [RepaintBoundary] para otimizar a performance.
 class PickingScreenLayout extends StatelessWidget {
-  /// Carrinho em processo de separação
   final ExpeditionCartRouteInternshipConsultationModel cart;
 
-  /// ViewModel com a lógica de negócio do picking
   final CardPickingViewModel viewModel;
 
-  /// Controller para o campo de quantidade
   final TextEditingController quantityController;
 
-  /// FocusNode para o campo de quantidade
   final FocusNode quantityFocusNode;
 
-  /// Controller para o campo de scanner
   final TextEditingController scanController;
 
-  /// FocusNode para o campo de scanner
   final FocusNode scanFocusNode;
 
-  /// Callback para alternar entre modo scanner e teclado
   final VoidCallback onToggleKeyboard;
 
-  /// Callback executado quando um código de barras é escaneado
   final void Function(String) onBarcodeScanned;
 
   const PickingScreenLayout({
@@ -52,14 +39,9 @@ class PickingScreenLayout extends StatelessWidget {
     required this.onBarcodeScanned,
   });
 
-  /// Espaçamento vertical entre os cards
   static const double _cardSpacing = UIConstants.smallPadding;
 
-  /// Padding padrão da tela
   static const double _defaultPadding = UIConstants.smallPadding;
-
-  /// Padding extra quando o teclado está aberto
-  static const double _keyboardPadding = 60.0;
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +53,7 @@ class PickingScreenLayout extends StatelessWidget {
         _defaultPadding,
         _defaultPadding,
         _defaultPadding,
-        _defaultPadding + (hasKeyboard ? _keyboardPadding : 0),
+        _defaultPadding + (hasKeyboard ? UIConstants.keyboardOverlayPadding : 0),
       ),
       child: RefreshIndicator(
         onRefresh: () async {
@@ -95,7 +77,6 @@ class PickingScreenLayout extends StatelessWidget {
     );
   }
 
-  /// Constrói o card do próximo item com RepaintBoundary para otimização
   Widget _buildNextItemCard() {
     return Selector<CardPickingViewModel, _NextItemViewData>(
       selector: (_, vm) => _NextItemViewData.fromViewModel(vm),
@@ -115,28 +96,27 @@ class PickingScreenLayout extends StatelessWidget {
     );
   }
 
-  /// Constrói o card de seleção de quantidade
   Widget _buildQuantitySelector() {
     return Selector<PickingScanState, bool>(
       selector: (_, s) => s.enabled,
       builder: (context, isEnabled, _) {
-        // 🚀 RepaintBoundary para isolar rebuilds do seletor de quantidade
-        return RepaintBoundary(
-          child: QuantitySelectorCard(
-            controller: quantityController,
-            focusNode: quantityFocusNode,
-            enabled: isEnabled,
-            viewModel: viewModel,
-          ),
+        return Selector<CardPickingViewModel, _QuantitySelectorViewData>(
+          selector: (_, vm) => _QuantitySelectorViewData.fromViewModel(vm),
+          builder: (context, data, child) {
+            return RepaintBoundary(
+              child: QuantitySelectorCard(
+                controller: quantityController,
+                focusNode: quantityFocusNode,
+                enabled: isEnabled,
+                viewModel: viewModel,
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  /// Constrói o card do scanner de código de barras com Provider otimizado
-  ///
-  /// Este componente usa Consumer granular para atualizar APENAS o scanner
-  /// quando necessário, evitando rebuilds de toda a tela.
   Widget _buildBarcodeScanner() {
     return RepaintBoundary(
       child: BarcodeScannerCardOptimized(
@@ -169,11 +149,7 @@ class _NextItemViewData {
   });
 
   factory _NextItemViewData.fromViewModel(CardPickingViewModel vm) {
-    final nextItem = PickingUtils.findNextItemToPick(
-      vm.items,
-      vm.isItemCompleted,
-      userSectorCode: vm.userModel?.codSetorEstoque,
-    );
+    final nextItem = vm.nextItem;
 
     return _NextItemViewData(
       nextItem: nextItem,
@@ -185,4 +161,61 @@ class _NextItemViewData {
       hasItemsForUserSector: vm.hasItemsForUserSector,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _NextItemViewData &&
+          nextItem?.item == other.nextItem?.item &&
+          completedCount == other.completedCount &&
+          totalCount == other.totalCount &&
+          userSectorCode == other.userSectorCode &&
+          pickedQuantity == other.pickedQuantity &&
+          hasItemsForUserSector == other.hasItemsForUserSector &&
+          _itemStateEquals(itemState, other.itemState);
+
+  static bool _itemStateEquals(PickingItemState? a, PickingItemState? b) {
+    if (a == b) return true;
+    if (a == null || b == null) return false;
+    return a.itemId == b.itemId &&
+        a.pickedQuantity == b.pickedQuantity &&
+        a.isCompleted == b.isCompleted &&
+        a.totalQuantity == b.totalQuantity &&
+        a.pendingOperations.length == b.pendingOperations.length;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    nextItem?.item,
+    completedCount,
+    totalCount,
+    userSectorCode,
+    pickedQuantity,
+    hasItemsForUserSector,
+    itemState?.itemId,
+    itemState?.pickedQuantity,
+    itemState?.isCompleted,
+    itemState?.totalQuantity,
+    itemState?.pendingOperations.length ?? 0,
+  );
+}
+
+class _QuantitySelectorViewData {
+  final String? nextItemId;
+  final int maxQuantity;
+
+  _QuantitySelectorViewData({this.nextItemId, required this.maxQuantity});
+
+  factory _QuantitySelectorViewData.fromViewModel(CardPickingViewModel vm) {
+    final nextItem = vm.nextItem;
+    return _QuantitySelectorViewData(nextItemId: nextItem?.item, maxQuantity: vm.maxQuantityForNextItem);
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _QuantitySelectorViewData && nextItemId == other.nextItemId && maxQuantity == other.maxQuantity;
+
+  @override
+  int get hashCode => Object.hash(nextItemId, maxQuantity);
 }

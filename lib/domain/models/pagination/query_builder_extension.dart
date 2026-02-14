@@ -1,11 +1,7 @@
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 
 extension QueryBuilderExtension on QueryBuilder {
-  static QueryBuilder withDefaultPagination({
-    int limit = 20,
-    int offset = 0,
-    int page = 1,
-  }) {
+  static QueryBuilder withDefaultPagination({int limit = 20, int offset = 0, int page = 1}) {
     return QueryBuilder().paginate(limit: limit, offset: offset, page: page);
   }
 

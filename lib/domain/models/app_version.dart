@@ -3,11 +3,7 @@ class AppVersion {
   final int buildNumber;
   final DateTime? releaseDate;
 
-  const AppVersion({
-    required this.version,
-    required this.buildNumber,
-    this.releaseDate,
-  });
+  const AppVersion({required this.version, required this.buildNumber, this.releaseDate});
 
   /// Cria uma [AppVersion] validando o formato da string de versão.
   ///
@@ -19,9 +15,7 @@ class AppVersion {
     final parts = versionString.split('.');
 
     if (parts.length != 3) {
-      throw FormatException(
-        'Invalid version format. Expected X.Y.Z, got $versionString',
-      );
+      throw FormatException('Invalid version format. Expected X.Y.Z, got $versionString');
     }
 
     final major = int.tryParse(parts[0]);
@@ -29,15 +23,11 @@ class AppVersion {
     final patch = int.tryParse(parts[2]);
 
     if (major == null || minor == null || patch == null) {
-      throw FormatException(
-        'Version parts must be numbers. Got $versionString',
-      );
+      throw FormatException('Version parts must be numbers. Got $versionString');
     }
 
     if (major < 0 || minor < 0 || patch < 0) {
-      throw FormatException(
-        'Version parts must be non-negative. Got $versionString',
-      );
+      throw FormatException('Version parts must be non-negative. Got $versionString');
     }
 
     return AppVersion(version: versionString, buildNumber: buildNumber);
@@ -57,16 +47,12 @@ class AppVersion {
     final versionMatch = RegExp(r'(\d+\.\d+\.\d+)').firstMatch(cleanTag);
 
     if (versionMatch == null) {
-      throw FormatException(
-        'Invalid tag format. Expected v1.0.2 or 1.0.2, got $tag',
-      );
+      throw FormatException('Invalid tag format. Expected v1.0.2 or 1.0.2, got $tag');
     }
 
     final version = versionMatch.group(1)!;
     final buildMatch = RegExp(r'\+(\d+)').firstMatch(cleanTag);
-    final buildNumber = buildMatch != null
-        ? int.tryParse(buildMatch.group(1)!) ?? 0
-        : 0;
+    final buildNumber = buildMatch != null ? int.tryParse(buildMatch.group(1)!) ?? 0 : 0;
 
     return AppVersion.parse(version, buildNumber: buildNumber);
   }
@@ -101,9 +87,7 @@ class AppVersion {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is AppVersion &&
-        other.version == version &&
-        other.buildNumber == buildNumber;
+    return other is AppVersion && other.version == version && other.buildNumber == buildNumber;
   }
 
   @override

@@ -1,7 +1,7 @@
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/utils/app_helper.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_consultation_model.dart';
@@ -25,7 +25,7 @@ class SaveSeparationCartUseCase {
   final BasicConsultationRepository<SeparateProgressConsultationModel> _separateProgressRepository;
   final BasicRepository<ExpeditionCartModel> _cartRepository;
   final BasicRepository<SeparationItemModel> _separationItemModelRepository;
-  final UserSessionService _userSessionService;
+  final IUserSessionService _userSessionService;
 
   SaveSeparationCartUseCase({
     required BasicRepository<ExpeditionCartRouteInternshipModel> cartRouteInternshipRepository,
@@ -34,7 +34,7 @@ class SaveSeparationCartUseCase {
     required BasicConsultationRepository<SeparateProgressConsultationModel> separateProgressRepository,
     required BasicRepository<SeparationItemModel> separationItemModelRepository,
     required BasicRepository<ExpeditionCartModel> cartRepository,
-    required UserSessionService userSessionService,
+    required IUserSessionService userSessionService,
   }) : _cartRouteInternshipRepository = cartRouteInternshipRepository,
        _separationItemRepository = separationItemConsultationRepository,
        _separateItemRepository = separateItemRepository,

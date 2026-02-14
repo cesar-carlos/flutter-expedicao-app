@@ -1,24 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
-class PrinterDiscoveryEndpoint {
-  final String ip;
-  final int port;
-  final int responseTimeMs;
+import 'package:data7_expedicao/domain/models/printer_discovery_report.dart';
+import 'package:data7_expedicao/domain/repositories/i_printer_discovery_service.dart';
 
-  const PrinterDiscoveryEndpoint({required this.ip, required this.port, required this.responseTimeMs});
-}
-
-class PrinterDiscoveryReport {
-  final String subnet;
-  final List<PrinterDiscoveryEndpoint> endpoints;
-
-  const PrinterDiscoveryReport({required this.subnet, required this.endpoints});
-}
-
-class PrinterDiscoveryService {
+class PrinterDiscoveryService implements IPrinterDiscoveryService {
   const PrinterDiscoveryService();
 
+  @override
   Future<String?> detectLocalSubnetPrefix() async {
     final localIp = await _resolveLocalPrivateIp();
     if (localIp == null) {
@@ -27,6 +16,7 @@ class PrinterDiscoveryService {
     return _extractPrefix(localIp);
   }
 
+  @override
   Future<PrinterDiscoveryReport> discover({
     int port = 9100,
     Duration connectTimeout = const Duration(milliseconds: 250),

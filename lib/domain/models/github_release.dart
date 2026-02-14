@@ -32,15 +32,9 @@ class GitHubRelease {
 
       final version = versionMatch.group(1)!;
       final buildMatch = RegExp(r'\+(\d+)').firstMatch(cleanTag);
-      final buildNumber = buildMatch != null
-          ? int.tryParse(buildMatch.group(1)!) ?? 0
-          : 0;
+      final buildNumber = buildMatch != null ? int.tryParse(buildMatch.group(1)!) ?? 0 : 0;
 
-      return AppVersion(
-        version: version,
-        buildNumber: buildNumber,
-        releaseDate: publishedAt,
-      );
+      return AppVersion(version: version, buildNumber: buildNumber, releaseDate: publishedAt);
     } catch (e) {
       return null;
     }

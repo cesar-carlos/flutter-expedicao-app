@@ -81,11 +81,9 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
       situacao: situacao ?? this.situacao,
       situacaoPercurso: situacaoPercurso ?? this.situacaoPercurso,
       codPercursoEstagio: codPercursoEstagio ?? this.codPercursoEstagio,
-      descricaoPercursoEstagio:
-          descricaoPercursoEstagio ?? this.descricaoPercursoEstagio,
+      descricaoPercursoEstagio: descricaoPercursoEstagio ?? this.descricaoPercursoEstagio,
       codCarrinhoAgrupador: codCarrinhoAgrupador ?? this.codCarrinhoAgrupador,
-      nomeCarrinhoAgrupador:
-          nomeCarrinhoAgrupador ?? this.nomeCarrinhoAgrupador,
+      nomeCarrinhoAgrupador: nomeCarrinhoAgrupador ?? this.nomeCarrinhoAgrupador,
       codCarrinho: codCarrinho ?? this.codCarrinho,
       nomeCarrinho: nomeCarrinho ?? this.nomeCarrinho,
       codigoBarrasCarrinho: codigoBarrasCarrinho ?? this.codigoBarrasCarrinho,
@@ -97,9 +95,7 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
     );
   }
 
-  factory ExpeditionCartRouteInternshipGroupConsultationModel.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory ExpeditionCartRouteInternshipGroupConsultationModel.fromJson(Map<String, dynamic> json) {
     try {
       return ExpeditionCartRouteInternshipGroupConsultationModel(
         codEmpresa: json['CodEmpresa'],
@@ -108,12 +104,8 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
         itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
         origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
         codOrigem: json['CodOrigem'],
-        situacao:
-            ExpeditionCartRouterSituation.fromCode(json['Situacao']) ??
-            ExpeditionCartRouterSituation.vazio,
-        situacaoPercurso:
-            ExpeditionSituation.fromCode(json['SituacaoPercurso']) ??
-            ExpeditionSituation.aguardando,
+        situacao: ExpeditionCartRouterSituation.fromCode(json['Situacao']) ?? ExpeditionCartRouterSituation.vazio,
+        situacaoPercurso: ExpeditionSituation.fromCode(json['SituacaoPercurso']) ?? ExpeditionSituation.aguardando,
         codPercursoEstagio: json['CodPercursoEstagio'],
         descricaoPercursoEstagio: json['DescricaoPercursoEstagio'],
         codCarrinhoAgrupador: json['CodCarrinhoAgrupador'],
@@ -136,11 +128,8 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
 
   /// Factory method para criação segura com validação de schema
   /// Retorna um Result que pode ser sucesso ou falha
-  static Result<ExpeditionCartRouteInternshipGroupConsultationModel>
-  fromJsonSafe(Map<String, dynamic> json) {
-    return safeCallSync(
-      () => ExpeditionCartRouteInternshipGroupConsultationModel.fromJson(json),
-    );
+  static Result<ExpeditionCartRouteInternshipGroupConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => ExpeditionCartRouteInternshipGroupConsultationModel.fromJson(json));
   }
 
   Map<String, dynamic> toJson() {
@@ -180,10 +169,7 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
 
   @override
   int get hashCode =>
-      codEmpresa.hashCode ^
-      codCarrinhoPercurso.hashCode ^
-      itemAgrupamento.hashCode ^
-      itemCarrinhoPercurso.hashCode;
+      codEmpresa.hashCode ^ codCarrinhoPercurso.hashCode ^ itemAgrupamento.hashCode ^ itemCarrinhoPercurso.hashCode;
 
   @override
   String toString() {

@@ -18,9 +18,7 @@ enum ExpeditionOrigem {
 
   static ExpeditionOrigem? fromCode(String code) {
     try {
-      return ExpeditionOrigem.values.firstWhere(
-        (origem) => origem.code.toUpperCase() == code.toUpperCase(),
-      );
+      return ExpeditionOrigem.values.firstWhere((origem) => origem.code.toUpperCase() == code.toUpperCase());
     } catch (e) {
       return null;
     }
@@ -42,27 +40,19 @@ enum ExpeditionOrigem {
     return fromCode(code)?.description ?? code;
   }
 
-  static ExpeditionOrigem fromCodeWithFallback(
-    String code, {
-    ExpeditionOrigem fallback = ExpeditionOrigem.vazio,
-  }) {
+  static ExpeditionOrigem fromCodeWithFallback(String code, {ExpeditionOrigem fallback = ExpeditionOrigem.vazio}) {
     return fromCode(code) ?? fallback;
   }
 
   static Map<String, String> get origemMap {
-    return Map.fromEntries(
-      ExpeditionOrigem.values.map(
-        (origem) => MapEntry(origem.code, origem.description),
-      ),
-    );
+    return Map.fromEntries(ExpeditionOrigem.values.map((origem) => MapEntry(origem.code, origem.description)));
   }
 }
 
 extension ExpeditionOrigemExtension on String {
   ExpeditionOrigem? get asExpeditionOrigem => ExpeditionOrigem.fromCode(this);
 
-  String get expeditionOrigemDescription =>
-      ExpeditionOrigem.getDescription(this);
+  String get expeditionOrigemDescription => ExpeditionOrigem.getDescription(this);
 
   bool get isValidExpeditionOrigem => ExpeditionOrigem.isValidOrigem(this);
 }
@@ -70,23 +60,17 @@ extension ExpeditionOrigemExtension on String {
 class ExpeditionOrigemModel {
   ExpeditionOrigemModel._();
 
-  static String getDescription(String code) =>
-      ExpeditionOrigem.getDescription(code);
+  static String getDescription(String code) => ExpeditionOrigem.getDescription(code);
 
-  static bool isValidOrigem(String code) =>
-      ExpeditionOrigem.isValidOrigem(code);
+  static bool isValidOrigem(String code) => ExpeditionOrigem.isValidOrigem(code);
 
   static List<String> getAllCodes() => ExpeditionOrigem.getAllCodes();
 
-  static List<String> getAllDescriptions() =>
-      ExpeditionOrigem.getAllDescriptions();
+  static List<String> getAllDescriptions() => ExpeditionOrigem.getAllDescriptions();
 
   static List<ExpeditionOrigem> getAllOrigens() => ExpeditionOrigem.values;
 
-  static ExpeditionOrigem fromCodeWithFallback(
-    String code, {
-    ExpeditionOrigem fallback = ExpeditionOrigem.vazio,
-  }) {
+  static ExpeditionOrigem fromCodeWithFallback(String code, {ExpeditionOrigem fallback = ExpeditionOrigem.vazio}) {
     return ExpeditionOrigem.fromCodeWithFallback(code, fallback: fallback);
   }
 

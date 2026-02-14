@@ -10,19 +10,19 @@ import 'package:data7_expedicao/domain/usecases/cancel_item_separation/cancel_it
 import 'package:data7_expedicao/domain/usecases/cancel_item_separation/cancel_item_separation_failure.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 
 class CancelItemSeparationUseCase {
   final BasicRepository<SeparateItemModel> _separateItemRepository;
   final BasicRepository<SeparationItemModel> _separationItemRepository;
   final BasicRepository<SeparateModel> _separateRepository;
-  final UserSessionService _userSessionService;
+  final IUserSessionService _userSessionService;
 
   CancelItemSeparationUseCase({
     required BasicRepository<SeparateItemModel> separateItemRepository,
     required BasicRepository<SeparationItemModel> separationItemRepository,
     required BasicRepository<SeparateModel> separateRepository,
-    required UserSessionService userSessionService,
+    required IUserSessionService userSessionService,
   }) : _separateItemRepository = separateItemRepository,
        _separationItemRepository = separationItemRepository,
        _separateRepository = separateRepository,

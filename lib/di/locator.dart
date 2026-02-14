@@ -23,6 +23,8 @@ import 'package:data7_expedicao/data/datasources/user_preferences_service.dart';
 import 'package:data7_expedicao/data/datasources/update_cache_service.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
 import 'package:data7_expedicao/data/services/filters_storage_service.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
@@ -57,6 +59,7 @@ import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_item_print_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_progress_consultation_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
+import 'package:data7_expedicao/domain/repositories/i_printer_discovery_service.dart';
 import 'package:data7_expedicao/domain/repositories/i_printer_preferences_repository.dart';
 import 'package:data7_expedicao/domain/repositories/i_thermal_printer_repository.dart';
 import 'package:data7_expedicao/data/repositories/printer_preferences_repository_impl.dart';
@@ -153,7 +156,8 @@ void setupLocator() {
   locator.registerLazySingleton<GetDefaultPrinterUseCase>(
     () => GetDefaultPrinterUseCase(repository: locator<IPrinterPreferencesRepository>()),
   );
-  locator.registerLazySingleton(() => const PrinterDiscoveryService());
+  locator.registerLazySingleton<PrinterDiscoveryService>(() => const PrinterDiscoveryService());
+  locator.registerLazySingleton<IPrinterDiscoveryService>(() => locator<PrinterDiscoveryService>());
   locator.registerLazySingleton(() => UserPreferencesService());
   locator.registerLazySingletonAsync<UpdateCacheService>(() async {
     final prefs = await SharedPreferences.getInstance();
@@ -188,7 +192,7 @@ void setupLocator() {
     () => ConfigViewModel(
       locator<ConfigService>(),
       locator<IPrinterPreferencesRepository>(),
-      locator<PrinterDiscoveryService>(),
+      locator<IPrinterDiscoveryService>(),
       locator<IThermalPrinterRepository>(),
     ),
   );
@@ -310,7 +314,7 @@ void setupLocator() {
     () => RegisterViaQRCodeUseCase(
       userRepository: locator<UserRepository>(),
       userSystemRepository: locator<UserSystemRepository>(),
-      userSessionService: locator<UserSessionService>(),
+      userSessionService: locator<IUserSessionService>(),
     ),
   );
 
@@ -358,7 +362,9 @@ void setupLocator() {
   locator.registerFactory(() => HomeViewModel());
 
   locator.registerLazySingleton<FiltersStorageService>(() => FiltersStorageService());
+  locator.registerLazySingleton<IFiltersStorageService>(() => locator<FiltersStorageService>());
   locator.registerLazySingleton<UserSessionService>(() => UserSessionService());
+  locator.registerLazySingleton<IUserSessionService>(() => locator<UserSessionService>());
 
   locator.registerLazySingleton<AddCartUseCase>(
     () => AddCartUseCase(
@@ -368,7 +374,7 @@ void setupLocator() {
       cartConsultationRepository: locator<BasicConsultationRepository<ExpeditionCartConsultationModel>>(),
       expeditionInternshipRepository: locator<BasicRepository<ExpeditionInternshipModel>>(),
       userSystemRepository: locator<UserSystemRepository>(),
-      userSessionService: locator<UserSessionService>(),
+      userSessionService: locator<IUserSessionService>(),
     ),
   );
 
@@ -382,7 +388,7 @@ void setupLocator() {
       cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
       cancellationRepository: locator<BasicRepository<ExpeditionCancellationModel>>(),
       cartInternshipRouteRepository: locator<BasicRepository<ExpeditionCartRouteInternshipModel>>(),
-      userSessionService: locator<UserSessionService>(),
+      userSessionService: locator<IUserSessionService>(),
     ),
   );
 
@@ -390,7 +396,7 @@ void setupLocator() {
     () => CancelCardItemSeparationUseCase(
       separateItemRepository: locator<BasicRepository<SeparateItemModel>>(),
       separationItemRepository: locator<BasicRepository<SeparationItemModel>>(),
-      userSessionService: locator<UserSessionService>(),
+      userSessionService: locator<IUserSessionService>(),
     ),
   );
 
@@ -398,7 +404,7 @@ void setupLocator() {
     () => AddItemSeparationUseCase(
       separateItemRepository: locator<BasicRepository<SeparateItemModel>>(),
       separationItemRepository: locator<BasicRepository<SeparationItemModel>>(),
-      userSessionService: locator<UserSessionService>(),
+      userSessionService: locator<IUserSessionService>(),
       metricsCollector: locator<MetricsCollector>(),
       socketOperationRetry: locator<SocketOperationRetry>(),
     ),
@@ -409,7 +415,7 @@ void setupLocator() {
       separateItemRepository: locator<BasicRepository<SeparateItemModel>>(),
       separationItemRepository: locator<BasicRepository<SeparationItemModel>>(),
       separateRepository: locator<BasicRepository<SeparateModel>>(),
-      userSessionService: locator<UserSessionService>(),
+      userSessionService: locator<IUserSessionService>(),
     ),
   );
 
@@ -418,7 +424,7 @@ void setupLocator() {
       separateItemRepository: locator<BasicRepository<SeparateItemModel>>(),
       separationItemRepository: locator<BasicRepository<SeparationItemModel>>(),
       separateRepository: locator<BasicRepository<SeparateModel>>(),
-      userSessionService: locator<UserSessionService>(),
+      userSessionService: locator<IUserSessionService>(),
     ),
   );
 
@@ -430,7 +436,7 @@ void setupLocator() {
       separateProgressRepository: locator<BasicConsultationRepository<SeparateProgressConsultationModel>>(),
       separationItemModelRepository: locator<BasicRepository<SeparationItemModel>>(),
       cartRepository: locator<BasicRepository<ExpeditionCartModel>>(),
-      userSessionService: locator<UserSessionService>(),
+      userSessionService: locator<IUserSessionService>(),
     ),
   );
 
@@ -446,7 +452,7 @@ void setupLocator() {
     () => StartSeparationUseCase(
       separateRepository: locator<BasicRepository<SeparateModel>>(),
       cartRouteRepository: locator<BasicRepository<ExpeditionCartRouteModel>>(),
-      userSessionService: locator<UserSessionService>(),
+      userSessionService: locator<IUserSessionService>(),
     ),
   );
 

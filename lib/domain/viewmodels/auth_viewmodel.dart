@@ -5,7 +5,7 @@ import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/user/user_models.dart';
 import 'package:data7_expedicao/domain/usecases/user/login_user_usecase.dart';
 import 'package:data7_expedicao/domain/repositories/user_system_repository.dart';
-import 'package:data7_expedicao/data/services/user_session_service.dart';
+import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error, needsUserSelection }
@@ -17,7 +17,7 @@ class AuthViewModel extends ChangeNotifier {
   bool _isLoginLoading = false;
   AppUser? _currentUser;
   LoginUserUseCase? _loginUserUseCase;
-  final _userSessionService = locator<UserSessionService>();
+  final _userSessionService = locator<IUserSessionService>();
   final _userSystemRepository = locator<UserSystemRepository>();
 
   AuthStatus get status => _status;

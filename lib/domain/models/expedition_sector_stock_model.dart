@@ -6,17 +6,9 @@ class ExpeditionSectorStockModel {
   final String descricao;
   final Situation ativo;
 
-  ExpeditionSectorStockModel({
-    required this.codSetorEstoque,
-    required this.descricao,
-    required this.ativo,
-  });
+  ExpeditionSectorStockModel({required this.codSetorEstoque, required this.descricao, required this.ativo});
 
-  ExpeditionSectorStockModel copyWith({
-    int? codSetorEstoque,
-    String? descricao,
-    Situation? ativo,
-  }) {
+  ExpeditionSectorStockModel copyWith({int? codSetorEstoque, String? descricao, Situation? ativo}) {
     return ExpeditionSectorStockModel(
       codSetorEstoque: codSetorEstoque ?? this.codSetorEstoque,
       descricao: descricao ?? this.descricao,
@@ -37,26 +29,19 @@ class ExpeditionSectorStockModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'CodSetorEstoque': codSetorEstoque,
-      'Descricao': descricao,
-      'Ativo': ativo.code,
-    };
+    return {'CodSetorEstoque': codSetorEstoque, 'Descricao': descricao, 'Ativo': ativo.code};
   }
 
   /// Factory method para criação segura com validação de schema
   /// Retorna um Result que pode ser sucesso ou falha
-  static Result<ExpeditionSectorStockModel> fromJsonSafe(
-    Map<String, dynamic> json,
-  ) {
+  static Result<ExpeditionSectorStockModel> fromJsonSafe(Map<String, dynamic> json) {
     return safeCallSync(() => ExpeditionSectorStockModel.fromJson(json));
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is ExpeditionSectorStockModel &&
-        other.codSetorEstoque == codSetorEstoque;
+    return other is ExpeditionSectorStockModel && other.codSetorEstoque == codSetorEstoque;
   }
 
   @override

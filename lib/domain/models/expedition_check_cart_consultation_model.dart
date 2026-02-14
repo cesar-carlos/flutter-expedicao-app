@@ -109,26 +109,19 @@ class ExpeditionCheckCartConsultationModel {
         codCarrinho: codCarrinho ?? this.codCarrinho,
         nomeCarrinho: nomeCarrinho ?? this.nomeCarrinho,
         codigoBarrasCarrinho: codigoBarrasCarrinho ?? this.codigoBarrasCarrinho,
-        situacaoCarrinhoConferencia:
-            situacaoCarrinhoConferencia ?? this.situacaoCarrinhoConferencia,
+        situacaoCarrinhoConferencia: situacaoCarrinhoConferencia ?? this.situacaoCarrinhoConferencia,
         dataInicioPercurso: dataInicioPercurso ?? this.dataInicioPercurso,
         horaInicioPercurso: horaInicioPercurso ?? this.horaInicioPercurso,
         codPercursoEstagio: codPercursoEstagio ?? this.codPercursoEstagio,
         nomePercursoEstagio: nomePercursoEstagio ?? this.nomePercursoEstagio,
-        codUsuarioInicioEstagio:
-            codUsuarioInicioEstagio ?? this.codUsuarioInicioEstagio,
-        nomeUsuarioInicioEstagio:
-            nomeUsuarioInicioEstagio ?? this.nomeUsuarioInicioEstagio,
+        codUsuarioInicioEstagio: codUsuarioInicioEstagio ?? this.codUsuarioInicioEstagio,
+        nomeUsuarioInicioEstagio: nomeUsuarioInicioEstagio ?? this.nomeUsuarioInicioEstagio,
         dataInicioEstagio: dataInicioEstagio ?? this.dataInicioEstagio,
         horaInicioEstagio: horaInicioEstagio ?? this.horaInicioEstagio,
-        codUsuarioFinalizacaoEstagio:
-            codUsuarioFinalizacaoEstagio ?? this.codUsuarioFinalizacaoEstagio,
-        nomeUsuarioFinalizacaoEstagio:
-            nomeUsuarioFinalizacaoEstagio ?? this.nomeUsuarioFinalizacaoEstagio,
-        dataFinalizacaoEstagio:
-            dataFinalizacaoEstagio ?? this.dataFinalizacaoEstagio,
-        horaFinalizacaoEstagio:
-            horaFinalizacaoEstagio ?? this.horaFinalizacaoEstagio,
+        codUsuarioFinalizacaoEstagio: codUsuarioFinalizacaoEstagio ?? this.codUsuarioFinalizacaoEstagio,
+        nomeUsuarioFinalizacaoEstagio: nomeUsuarioFinalizacaoEstagio ?? this.nomeUsuarioFinalizacaoEstagio,
+        dataFinalizacaoEstagio: dataFinalizacaoEstagio ?? this.dataFinalizacaoEstagio,
+        horaFinalizacaoEstagio: horaFinalizacaoEstagio ?? this.horaFinalizacaoEstagio,
         totalItemConferir: totalItemConferir ?? this.totalItemConferir,
         totalItemConferido: totalItemConferido ?? this.totalItemConferido,
       );
@@ -137,17 +130,13 @@ class ExpeditionCheckCartConsultationModel {
     }
   }
 
-  factory ExpeditionCheckCartConsultationModel.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory ExpeditionCheckCartConsultationModel.fromJson(Map<String, dynamic> json) {
     return ExpeditionCheckCartConsultationModel(
       codEmpresa: json['CodEmpresa'],
       codConferir: json['CodConferir'],
       origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
       codOrigem: json['CodOrigem'],
-      situacao:
-          ExpeditionCartRouterSituation.fromCode(json['Situacao']) ??
-          ExpeditionCartRouterSituation.vazio,
+      situacao: ExpeditionCartRouterSituation.fromCode(json['Situacao']) ?? ExpeditionCartRouterSituation.vazio,
       codCarrinhoPercurso: json['CodCarrinhoPercurso'],
       itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
       codPrioridade: json['CodPrioridade'],
@@ -156,13 +145,8 @@ class ExpeditionCheckCartConsultationModel {
       nomeCarrinho: json['NomeCarrinho'],
       codigoBarrasCarrinho: json['CodigoBarrasCarrinho'],
       situacaoCarrinhoConferencia:
-          ExpeditionCartSituation.fromCode(
-            json['SituacaoCarrinhoConferencia'],
-          ) ??
-          ExpeditionCartSituation.vazio,
-      dataInicioPercurso: DateHelper.tryStringToDate(
-        json['DataInicioPercurso'],
-      ),
+          ExpeditionCartSituation.fromCode(json['SituacaoCarrinhoConferencia']) ?? ExpeditionCartSituation.vazio,
+      dataInicioPercurso: DateHelper.tryStringToDate(json['DataInicioPercurso']),
       horaInicioPercurso: json['HoraInicioPercurso'],
       codPercursoEstagio: json['CodPercursoEstagio'],
       nomePercursoEstagio: json['NomePercursoEstagio'],
@@ -172,9 +156,7 @@ class ExpeditionCheckCartConsultationModel {
       horaInicioEstagio: json['HoraInicioEstagio'],
       codUsuarioFinalizacaoEstagio: json['CodUsuarioFinalizacaoEstagio'],
       nomeUsuarioFinalizacaoEstagio: json['NomeUsuarioFinalizacaoEstagio'],
-      dataFinalizacaoEstagio: DateHelper.tryStringToDate(
-        json['DataFinalizacaoEstagio'],
-      ),
+      dataFinalizacaoEstagio: DateHelper.tryStringToDate(json['DataFinalizacaoEstagio']),
       horaFinalizacaoEstagio: json['HoraFinalizacaoEstagio'],
       totalItemConferir: AppHelper.stringToDouble(json['TotalItemConferir']),
       totalItemConferido: AppHelper.stringToDouble(json['TotalItemConferido']),
@@ -183,12 +165,8 @@ class ExpeditionCheckCartConsultationModel {
 
   /// Factory method para criação segura com validação de schema
   /// Retorna um Result que pode ser sucesso ou falha
-  static Result<ExpeditionCheckCartConsultationModel> fromJsonSafe(
-    Map<String, dynamic> json,
-  ) {
-    return safeCallSync(
-      () => ExpeditionCheckCartConsultationModel.fromJson(json),
-    );
+  static Result<ExpeditionCheckCartConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
+    return safeCallSync(() => ExpeditionCheckCartConsultationModel.fromJson(json));
   }
 
   Map<String, dynamic> toJson() {
@@ -233,23 +211,18 @@ class ExpeditionCheckCartConsultationModel {
   Color get situacaoColor => situacao.color;
 
   /// Retorna o código da situação do carrinho de conferência
-  String get situacaoCarrinhoConferenciaCode =>
-      situacaoCarrinhoConferencia.code;
+  String get situacaoCarrinhoConferenciaCode => situacaoCarrinhoConferencia.code;
 
   /// Retorna a descrição da situação do carrinho de conferência
-  String get situacaoCarrinhoConferenciaDescription =>
-      situacaoCarrinhoConferencia.description;
+  String get situacaoCarrinhoConferenciaDescription => situacaoCarrinhoConferencia.description;
 
   /// Retorna a cor da situação do carrinho de conferência
-  Color get situacaoCarrinhoConferenciaColor =>
-      situacaoCarrinhoConferencia.color;
+  Color get situacaoCarrinhoConferenciaColor => situacaoCarrinhoConferencia.color;
 
-  bool isSituacao(String situacaoToCheck) =>
-      situacao.code.toLowerCase() == situacaoToCheck.toLowerCase();
+  bool isSituacao(String situacaoToCheck) => situacao.code.toLowerCase() == situacaoToCheck.toLowerCase();
 
   bool isSituacaoCarrinhoConferencia(String situacaoToCheck) =>
-      situacaoCarrinhoConferencia.code.toLowerCase() ==
-      situacaoToCheck.toLowerCase();
+      situacaoCarrinhoConferencia.code.toLowerCase() == situacaoToCheck.toLowerCase();
 
   @override
   bool operator ==(Object other) {
