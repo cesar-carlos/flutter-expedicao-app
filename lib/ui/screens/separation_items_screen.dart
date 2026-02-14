@@ -19,6 +19,8 @@ import 'package:data7_expedicao/ui/widgets/separation_title_with_connection_stat
 import 'package:data7_expedicao/data/services/user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_params.dart';
+import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_usecase.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/utils/print_failure_message_helper.dart';
 import 'package:data7_expedicao/domain/usecases/get_default_printer/get_default_printer_usecase.dart';
@@ -66,17 +68,22 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         return;
       }
 
-      // Usuários com setor estoque null ou zero podem acessar qualquer separação (permissão administrativa)
-      // Usuários com setor estoque configurado só podem acessar separações atribuídas a eles
       if (userSectorStock != null && userSectorStock > 0) {
-        final codUsuariosSeparacao = widget.separation.codUsuariosSeparacao;
-        final isAssigned = codUsuariosSeparacao.contains(currentUserId);
-
-        if (!isAssigned && mounted) {
-          _showErrorAndGoBack(
-            'Esta separação não está atribuída ao usuário atual. '
-            'Por favor, utilize a opção "Próxima Separação".',
-          );
+        final resolveUseCase = locator<ResolveSeparationUserLinkUseCase>();
+        final result = await resolveUseCase.call(
+          ResolveSeparationUserLinkParams(
+            separation: widget.separation,
+            codUsuario: currentUserId,
+            codSetorEstoque: userSectorStock,
+          ),
+        );
+        if (!mounted) return;
+        if (result.isError()) {
+          _showErrorAndGoBack(UIConstants.separationLinkCheckFailedMessage);
+          return;
+        }
+        if (result.getOrNull() != true && mounted) {
+          _showErrorAndGoBack(UIConstants.separationNotAssignedToUserMessage);
           return;
         }
       }
@@ -197,12 +204,17 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 24),
-            child: FloatingActionButton.extended(
-              heroTag: 'addCart',
-              onPressed: () => _onAddCart(context),
-              icon: const Icon(Icons.add_shopping_cart),
-              label: const Text('Incluir Carrinho'),
-              tooltip: 'Incluir novo carrinho na separação',
+            child: Semantics(
+              button: true,
+              label: 'Incluir Carrinho',
+              hint: 'Adicionar novo carrinho à separação',
+              child: FloatingActionButton.extended(
+                heroTag: 'addCart',
+                onPressed: () => _onAddCart(context),
+                icon: const Icon(Icons.add_shopping_cart),
+                label: const Text('Incluir Carrinho'),
+                tooltip: 'Incluir novo carrinho na separação',
+              ),
             ),
           );
         },
@@ -445,6 +457,48 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         );
       }
       return;
+    }
+
+    if (!context.mounted) return;
+
+    final userSessionService = locator<UserSessionService>();
+    final appUser = await userSessionService.loadUserSession();
+    final codUsuario = appUser?.userSystemModel?.codUsuario;
+    final codSetorEstoque = appUser?.userSystemModel?.codSetorEstoque;
+    final separation = viewModel.separation;
+
+    if (codSetorEstoque != null && codSetorEstoque > 0 && codUsuario != null && separation != null) {
+      final resolveUseCase = locator<ResolveSeparationUserLinkUseCase>();
+      final result = await resolveUseCase.call(
+        ResolveSeparationUserLinkParams(
+          separation: separation,
+          codUsuario: codUsuario,
+          codSetorEstoque: codSetorEstoque,
+        ),
+      );
+      if (!context.mounted) return;
+      if (result.isError()) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(UIConstants.separationLinkCheckFailedMessage),
+            backgroundColor: AppColors.error,
+            duration: UIConstants.snackBarLongDuration,
+          ),
+        );
+        return;
+      }
+      if (result.getOrNull() != true) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(UIConstants.separationNotAssignedToUserMessage),
+              backgroundColor: AppColors.error,
+              duration: UIConstants.snackBarLongDuration,
+            ),
+          );
+        }
+        return;
+      }
     }
 
     if (!context.mounted) return;

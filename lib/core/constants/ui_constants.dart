@@ -186,4 +186,9 @@ class UIConstants {
   static const Duration scannerBroadcastRecreateDelay = Duration(
     milliseconds: 300,
   );
+
+  static const String separationNotAssignedToUserMessage =
+      'Esta separação não está atribuída ao usuário atual. Por favor, utilize a opção \'Próxima Separação\'.';
+  static const String separationLinkCheckFailedMessage =
+      'Não foi possível verificar a atribuição. Tente novamente.';
 }

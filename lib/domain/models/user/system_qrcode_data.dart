@@ -84,30 +84,20 @@ class SystemQRCodeData {
       nomeCaixaOperador: json['NomeCaixaOperador'] as String?,
       codSetorEstoque: json['CodSetorEstoque'] as int?,
       nomeSetorEstoque: json['NomeSetorEstoque'] as String?,
-      permiteSepararForaSequencia:
-          json['PermiteSepararForaSequencia'] as String? ?? 'N',
-      visualizaTodasSeparacoes:
-          json['VisualizaTodasSeparacoes'] as String? ?? 'N',
+      permiteSepararForaSequencia: json['PermiteSepararForaSequencia'] as String? ?? 'N',
+      visualizaTodasSeparacoes: json['VisualizaTodasSeparacoes'] as String? ?? 'N',
       codSetorConferencia: json['CodSetorConferencia'] as int?,
       nomeSetorConferencia: json['NomeSetorConferencia'] as String?,
-      permiteConferirForaSequencia:
-          json['PermiteConferirForaSequencia'] as String? ?? 'N',
-      visualizaTodasConferencias:
-          json['VisualizaTodasConferencias'] as String? ?? 'N',
+      permiteConferirForaSequencia: json['PermiteConferirForaSequencia'] as String? ?? 'N',
+      visualizaTodasConferencias: json['VisualizaTodasConferencias'] as String? ?? 'N',
       codSetorArmazenagem: json['CodSetorArmazenagem'] as int?,
       nomeSetorArmazenagem: json['NomeSetorArmazenagem'] as String?,
-      permiteArmazenarForaSequencia:
-          json['PermiteArmazenarForaSequencia'] as String? ?? 'N',
-      visualizaTodasArmazenagem:
-          json['VisualizaTodasArmazenagem'] as String? ?? 'N',
-      editaCarrinhoOutroUsuario:
-          json['EditaCarrinhoOutroUsuario'] as String? ?? 'N',
-      salvaCarrinhoOutroUsuario:
-          json['SalvaCarrinhoOutroUsuario'] as String? ?? 'N',
-      excluiCarrinhoOutroUsuario:
-          json['ExcluiCarrinhoOutroUsuario'] as String? ?? 'N',
-      expedicaoEntregaBalcaoPreVenda:
-          json['ExpedicaoEntregaBalcaoPreVenda'] as String? ?? 'N',
+      permiteArmazenarForaSequencia: json['PermiteArmazenarForaSequencia'] as String? ?? 'N',
+      visualizaTodasArmazenagem: json['VisualizaTodasArmazenagem'] as String? ?? 'N',
+      editaCarrinhoOutroUsuario: json['EditaCarrinhoOutroUsuario'] as String? ?? 'N',
+      salvaCarrinhoOutroUsuario: json['SalvaCarrinhoOutroUsuario'] as String? ?? 'N',
+      excluiCarrinhoOutroUsuario: json['ExcluiCarrinhoOutroUsuario'] as String? ?? 'N',
+      expedicaoEntregaBalcaoPreVenda: json['ExpedicaoEntregaBalcaoPreVenda'] as String? ?? 'N',
     );
   }
 
@@ -126,27 +116,16 @@ class SystemQRCodeData {
 
       if (missingFields.isNotEmpty) {
         return Failure(
-          ValidationFailure(
-            message:
-                'QR Code inválido: campos obrigatórios ausentes: ${missingFields.join(', ')}',
-          ),
+          ValidationFailure(message: 'QR Code inválido: campos obrigatórios ausentes: ${missingFields.join(', ')}'),
         );
       }
 
       final data = SystemQRCodeData.fromJson(json);
       return Success(data);
     } on FormatException catch (e) {
-      return Failure(
-        ValidationFailure(
-          message: 'QR Code com formato JSON inválido: ${e.message}',
-        ),
-      );
+      return Failure(ValidationFailure(message: 'QR Code com formato JSON inválido: ${e.message}'));
     } catch (e) {
-      return Failure(
-        ValidationFailure(
-          message: 'Erro ao processar QR Code: ${e.toString()}',
-        ),
-      );
+      return Failure(ValidationFailure(message: 'Erro ao processar QR Code: ${e.toString()}'));
     }
   }
 

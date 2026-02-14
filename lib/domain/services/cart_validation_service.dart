@@ -1,82 +1,65 @@
-import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
-import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
-import 'package:data7_expedicao/di/locator.dart';
 
-/// Serviço para validações relacionadas a carrinhos de separação
 class CartValidationService {
-  /// Verifica se o usuário tem permissão para editar/separar carrinho de outro usuário
-  static bool canEditOtherUserCart(UserSystemModel? userModel) {
+  final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
+
+  CartValidationService({
+    required BasicConsultationRepository<SeparateItemConsultationModel> repository,
+  }) : _repository = repository;
+
+  bool canEditOtherUserCart(UserSystemModel? userModel) {
     return userModel?.editaCarrinhoOutroUsuario == Situation.ativo;
   }
 
-  /// Verifica se o usuário tem permissão para salvar carrinho de outro usuário
-  static bool canSaveOtherUserCart(UserSystemModel? userModel) {
+  bool canSaveOtherUserCart(UserSystemModel? userModel) {
     return userModel?.salvaCarrinhoOutroUsuario == Situation.ativo;
   }
 
-  /// Verifica se o usuário tem permissão para excluir carrinho de outro usuário
-  static bool canDeleteOtherUserCart(UserSystemModel? userModel) {
+  bool canDeleteOtherUserCart(UserSystemModel? userModel) {
     return userModel?.excluiCarrinhoOutroUsuario == Situation.ativo;
   }
 
-  /// Verifica se o usuário é o dono do carrinho ou tem permissão especial
-  ///
-  /// [currentUserCode] - Código do usuário atual
-  /// [cartOwnerCode] - Código do usuário que incluiu o carrinho
-  /// [hasPermission] - Se o usuário tem permissão especial (editar/salvar/excluir)
-  ///
-  /// Retorna true se o usuário pode acessar o carrinho, false caso contrário
-  static bool canAccessCart({required int? currentUserCode, required int cartOwnerCode, required bool hasPermission}) {
+  bool canAccessCart({required int? currentUserCode, required int cartOwnerCode, required bool hasPermission}) {
     if (currentUserCode == null) return false;
-
-    // Usuário é o dono do carrinho
     if (currentUserCode == cartOwnerCode) return true;
-
-    // Usuário tem permissão especial
     return hasPermission;
   }
 
-  /// Verifica se há itens disponíveis para o setor do usuário
-  ///
-  /// [codEmpresa] - Código da empresa
-  /// [codOrigem] - Código da origem (separação)
-  /// [userSectorCode] - Código do setor do usuário
-  ///
-  /// Retorna true se há itens disponíveis, false caso contrário
-  static Future<bool> hasItemsForUserSector({
+  Future<bool> hasItemsForUserSector({
     required int codEmpresa,
     required int codOrigem,
     required int userSectorCode,
   }) async {
     try {
-      final repository = locator<BasicConsultationRepository<SeparateItemConsultationModel>>();
-
-      // Buscar todos os itens da separação
       final queryBuilder = QueryBuilder()
         ..equals('CodEmpresa', codEmpresa.toString())
         ..equals('CodSepararEstoque', codOrigem.toString());
 
-      final items = await repository.selectConsultation(queryBuilder);
+      final items = await _repository.selectConsultation(queryBuilder);
 
-      // Verificar se há itens sem setor ou do setor do usuário
-      // Considera apenas itens que não foram completamente separados
       return items.any(
         (item) =>
             item.quantidadeSeparacao < item.quantidade &&
             (item.codSetorEstoque == null || item.codSetorEstoque == userSectorCode),
       );
-    } catch (e) {
-      // Em caso de erro, permitir acesso (evitar bloquear usuário por erro)
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Falha ao verificar itens por setor; acesso permitido por fallback.',
+        tag: 'CartValidationService',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return true;
     }
   }
 
-  /// Resultado da validação de acesso ao carrinho
-  static CartAccessValidationResult validateCartAccess({
+  CartAccessValidationResult validateCartAccess({
     required int? currentUserCode,
     required ExpeditionCartRouteInternshipConsultationModel cart,
     required UserSystemModel? userModel,
@@ -86,7 +69,6 @@ class CartValidationService {
       return CartAccessValidationResult(canAccess: false, reason: CartAccessDeniedReason.userNotFound);
     }
 
-    // Verificar permissão baseada no tipo de acesso
     bool hasPermission = false;
     switch (accessType) {
       case CartAccessType.edit:
@@ -100,8 +82,7 @@ class CartValidationService {
         break;
     }
 
-    // Verificar se pode acessar
-    final canAccess = CartValidationService.canAccessCart(
+    final canAccess = canAccessCart(
       currentUserCode: currentUserCode,
       cartOwnerCode: cart.codUsuarioInicio,
       hasPermission: hasPermission,
@@ -119,21 +100,18 @@ class CartValidationService {
   }
 }
 
-/// Tipo de acesso ao carrinho
 enum CartAccessType {
-  edit, // Separar/Editar
-  save, // Salvar/Finalizar
-  delete, // Cancelar/Excluir
+  edit,
+  save,
+  delete,
 }
 
-/// Motivo da negação de acesso
 enum CartAccessDeniedReason {
-  userNotFound, // Usuário não encontrado
-  differentUser, // Usuário diferente do dono
-  noItemsForSector, // Sem itens para o setor
+  userNotFound,
+  differentUser,
+  noItemsForSector,
 }
 
-/// Resultado da validação de acesso ao carrinho
 class CartAccessValidationResult {
   final bool canAccess;
   final CartAccessDeniedReason? reason;

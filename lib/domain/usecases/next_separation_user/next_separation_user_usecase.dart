@@ -56,9 +56,7 @@ class NextSeparationUserUseCase {
 
       final separation = await _findNextSeparation(params);
 
-      if (separation == null) {
-        return success(NextSeparationUserSuccess.notFound());
-      }
+      if (separation == null) return success(NextSeparationUserSuccess.notFound());
 
       return success(NextSeparationUserSuccess.found(separation));
     } on DataError catch (e) {
@@ -82,14 +80,13 @@ class NextSeparationUserUseCase {
   }
 
   Future<SeparationUserSectorConsultationModel?> _findNextSeparation(NextSeparationUserParams params) async {
-    // PRIORIDADE 1: Buscar separação 100% completada pelo usuário atual
-    // (todos itens do setor separados E todos carrinhos salvos)
-    final completedSeparation = await _findCompletedSeparationByUser(params);
-    if (completedSeparation != null) return completedSeparation;
-
-    // PRIORIDADE 2: Buscar separação do usuário com itens pendentes no setor
+    // PRIORIDADE 1: Buscar separação do usuário (no setor) com itens pendentes ou carrinhos abertos
     final existingSeparation = await _findExistingSeparationWithPendingItems(params);
     if (existingSeparation != null) return existingSeparation;
+
+    // PRIORIDADE 2: Buscar separação 100% completada pelo usuário (no setor) para finalizar
+    final completedSeparation = await _findCompletedSeparationByUser(params);
+    if (completedSeparation != null) return completedSeparation;
 
     // PRIORIDADE 3: Buscar nova separação disponível (CodUsuario IS NULL)
     final newSeparation = await _findNewSeparation(params);
@@ -105,10 +102,10 @@ class NextSeparationUserUseCase {
     return newSeparation;
   }
 
-  /// PRIORIDADE 1: Busca separação 100% completada pelo usuário atual
+  /// PRIORIDADE 2: Busca separação 100% completada pelo usuário atual (no setor do usuário)
   /// Critérios:
   /// - Situacao = 'SEPARANDO'
-  /// - CodUsuario = usuário atual
+  /// - CodUsuario = usuário atual, CodSetorEstoque = setor do usuário
   /// - QuantidadeItensSetor = QuantidadeItensSeparacaoSetor (todos itens do setor separados)
   /// - CarrinhosAbertosUsuario != 'S' (todos carrinhos salvos)
   Future<SeparationUserSectorConsultationModel?> _findCompletedSeparationByUser(NextSeparationUserParams params) async {
@@ -123,11 +120,11 @@ class NextSeparationUserUseCase {
     return await _executeQuery(baseQuery);
   }
 
-  /// PRIORIDADE 2: Busca separação do usuário com itens pendentes no setor
+  /// PRIORIDADE 1: Busca separação já atribuída ao usuário (no setor) com itens pendentes ou carrinhos abertos
   /// Critérios:
-  /// - CodUsuario = usuário atual
+  /// - CodUsuario = usuário atual, CodSetorEstoque = setor do usuário
   /// - Situacao NOT IN (CANCELADA, SEPARADO, EM PAUSA, BLOQUEADA)
-  /// - QuantidadeItensSetor > QuantidadeItensSeparacaoSetor (ainda há itens no setor)
+  /// - QuantidadeItensSetor > QuantidadeItensSeparacaoSetor OU CarrinhosAbertosUsuario = 'S'
   Future<SeparationUserSectorConsultationModel?> _findExistingSeparationWithPendingItems(
     NextSeparationUserParams params,
   ) async {
@@ -189,9 +186,13 @@ class NextSeparationUserUseCase {
   }
 
   QueryBuilder _buildBaseQuery(NextSeparationUserParams params) {
-    return QueryBuilder()
+    final query = QueryBuilder()
       ..equals(_fieldCodEmpresa, params.codEmpresa)
       ..equals(_fieldCodUsuario, params.codUsuario);
+    if (params.hasValidSector) {
+      query.equals(_fieldCodSetorEstoque, params.codSetorEstoque!);
+    }
+    return query;
   }
 
   void _addExcludedSituations(QueryBuilder query) {

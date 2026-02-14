@@ -8,6 +8,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_params.dart';
+import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_usecase.dart';
 import 'package:data7_expedicao/core/utils/print_failure_message_helper.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
@@ -193,9 +196,47 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     return _printingTickets.contains(_buildPrintKey(separation));
   }
 
+  /// Usuários com codSetorEstoque só podem abrir separações em que estejam vinculados.
+  /// Verificação centralizada em ResolveSeparationUserLinkUseCase (listagem ou fallback).
   Future<void> _onSeparationTap(SeparateConsultationModel separation) async {
-    // Usuários podem navegar diretamente para a tela de separação
-    // Usuários com setor estoque null ou zero têm permissão administrativa
+    final userSessionService = locator<UserSessionService>();
+    final appUser = await userSessionService.loadUserSession();
+    final codSetorEstoque = appUser?.userSystemModel?.codSetorEstoque;
+    final codUsuario = appUser?.userSystemModel?.codUsuario;
+
+    if (codSetorEstoque != null && codSetorEstoque > 0 && codUsuario != null) {
+      final resolveUseCase = locator<ResolveSeparationUserLinkUseCase>();
+      final result = await resolveUseCase.call(
+        ResolveSeparationUserLinkParams(
+          separation: separation,
+          codUsuario: codUsuario,
+          codSetorEstoque: codSetorEstoque,
+        ),
+      );
+      if (!mounted) return;
+      if (result.isError()) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(UIConstants.separationLinkCheckFailedMessage),
+            backgroundColor: AppColors.error,
+            duration: UIConstants.snackBarLongDuration,
+          ),
+        );
+        return;
+      }
+      if (result.getOrNull() != true && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(UIConstants.separationNotAssignedToUserMessage),
+            backgroundColor: AppColors.error,
+            duration: UIConstants.snackBarLongDuration,
+          ),
+        );
+        return;
+      }
+    }
+
+    if (!mounted) return;
     context.push(AppRouter.separateItems, extra: separation.toJson());
   }
 
@@ -320,14 +361,19 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         scale: _fabAnimation.value,
         child: Opacity(
           opacity: _fabAnimation.value,
-          child: IgnorePointer(
+            child: IgnorePointer(
             ignoring: _showScrollToTop,
-            child: FloatingActionButton.extended(
-              heroTag: "next_separation_fab",
-              onPressed: _isLoadingNextSeparation ? null : _findNextSeparation,
-              tooltip: 'Buscar próxima separação',
-              icon: _buildFabIcon(),
-              label: Text(_isLoadingNextSeparation ? 'Buscando...' : 'Próxima Separação'),
+            child: Semantics(
+              button: true,
+              label: _isLoadingNextSeparation ? 'Buscando...' : 'Próxima Separação',
+              hint: 'Busca a próxima separação atribuída ao seu setor',
+              child: FloatingActionButton.extended(
+                heroTag: "next_separation_fab",
+                onPressed: _isLoadingNextSeparation ? null : _findNextSeparation,
+                tooltip: 'Buscar próxima separação',
+                icon: _buildFabIcon(),
+                label: Text(_isLoadingNextSeparation ? 'Buscando...' : 'Próxima Separação'),
+              ),
             ),
           ),
         ),

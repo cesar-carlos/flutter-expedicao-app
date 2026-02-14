@@ -108,6 +108,8 @@ import 'package:data7_expedicao/domain/usecases/delete_item_separation/delete_it
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation/save_separation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/check_separation_user_sector_link/check_separation_user_sector_link_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
@@ -127,6 +129,7 @@ import 'package:data7_expedicao/core/network/retry_policy.dart';
 import 'package:data7_expedicao/core/network/socket_connection_manager.dart';
 import 'package:data7_expedicao/core/network/socket_operation_retry.dart';
 import 'package:data7_expedicao/core/utils/i_logger.dart';
+import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 import 'package:data7_expedicao/domain/services/picking_state_manager.dart';
 import 'package:data7_expedicao/infrastructure/services/logger_service.dart';
 import 'package:data7_expedicao/infrastructure/services/esc_pos_ticket_builder_service.dart';
@@ -247,6 +250,12 @@ void setupLocator() {
 
   locator.registerLazySingleton<BasicConsultationRepository<SeparateItemConsultationModel>>(
     () => SeparateItemConsultationRepositoryImpl(),
+  );
+
+  locator.registerLazySingleton<CartValidationService>(
+    () => CartValidationService(
+      repository: locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
+    ),
   );
 
   locator.registerLazySingleton<BasicConsultationRepository<SeparateItemUnidadeMedidaConsultationModel>>(
@@ -443,6 +452,18 @@ void setupLocator() {
 
   locator.registerLazySingleton<RegisterSeparationUserSectorUseCase>(
     () => RegisterSeparationUserSectorUseCase(repository: locator<BasicRepository<SeparationUserSectorModel>>()),
+  );
+
+  locator.registerLazySingleton<CheckSeparationUserSectorLinkUseCase>(
+    () => CheckSeparationUserSectorLinkUseCase(
+      repository: locator<BasicConsultationRepository<SeparationUserSectorConsultationModel>>(),
+    ),
+  );
+
+  locator.registerLazySingleton<ResolveSeparationUserLinkUseCase>(
+    () => ResolveSeparationUserLinkUseCase(
+      checkLinkUseCase: locator<CheckSeparationUserSectorLinkUseCase>(),
+    ),
   );
 
   locator.registerLazySingleton<NextSeparationUserUseCase>(

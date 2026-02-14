@@ -260,10 +260,15 @@ class SeparationCard extends StatelessWidget {
   }
 
   Widget _buildSeparateButton(BuildContext context) {
-    return CustomSimpleButtonVariations.primary(
-      text: 'Abrir Separação',
-      icon: Icons.inventory_2,
-      onPressed: () => _onSeparatePressed(context),
+    return Semantics(
+      button: true,
+      label: 'Abrir Separação',
+      hint: 'Abre esta separação para separar itens',
+      child: CustomSimpleButtonVariations.primary(
+        text: 'Abrir Separação',
+        icon: Icons.inventory_2,
+        onPressed: () => _onSeparatePressed(context),
+      ),
     );
   }
 

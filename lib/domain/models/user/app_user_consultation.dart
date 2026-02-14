@@ -51,27 +51,15 @@ class AppUserConsultation {
       permiteConferirForaSequencia: Situation.fromCodeWithFallback(
         json['PermiteConferirForaSequencia'] as String? ?? 'N',
       ),
-      visualizaTodasSeparacoes: Situation.fromCodeWithFallback(
-        json['VisualizaTodasSeparacoes'] as String? ?? 'N',
-      ),
-      visualizaTodasConferencias: Situation.fromCodeWithFallback(
-        json['VisualizaTodasConferencias'] as String? ?? 'N',
-      ),
-      visualizaTodasArmazenagem: Situation.fromCodeWithFallback(
-        json['VisualizaTodasArmazenagem'] as String? ?? 'N',
-      ),
+      visualizaTodasSeparacoes: Situation.fromCodeWithFallback(json['VisualizaTodasSeparacoes'] as String? ?? 'N'),
+      visualizaTodasConferencias: Situation.fromCodeWithFallback(json['VisualizaTodasConferencias'] as String? ?? 'N'),
+      visualizaTodasArmazenagem: Situation.fromCodeWithFallback(json['VisualizaTodasArmazenagem'] as String? ?? 'N'),
       codSetorEstoque: json['CodSetorEstoque'],
       codSetorConferencia: json['CodSetorConferencia'],
       codSetorArmazenagem: json['CodSetorArmazenagem'],
-      salvaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(
-        json['SalvaCarrinhoOutroUsuario'] as String? ?? 'N',
-      ),
-      editaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(
-        json['EditaCarrinhoOutroUsuario'] as String? ?? 'N',
-      ),
-      excluiCarrinhoOutroUsuario: Situation.fromCodeWithFallback(
-        json['ExcluiCarrinhoOutroUsuario'] as String? ?? 'N',
-      ),
+      salvaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(json['SalvaCarrinhoOutroUsuario'] as String? ?? 'N'),
+      editaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(json['EditaCarrinhoOutroUsuario'] as String? ?? 'N'),
+      excluiCarrinhoOutroUsuario: Situation.fromCodeWithFallback(json['ExcluiCarrinhoOutroUsuario'] as String? ?? 'N'),
       permiteDevolverItemEntregaBalcao: Situation.fromCodeWithFallback(
         json['PermiteDevolverItemEntregaBalcao'] as String? ?? 'N',
       ),
@@ -85,16 +73,13 @@ class AppUserConsultation {
 
   bool get hasSystemUser => codUsuario != null;
 
-  bool get canSeparateOutOfSequence =>
-      permiteSepararForaSequencia == Situation.ativo;
+  bool get canSeparateOutOfSequence => permiteSepararForaSequencia == Situation.ativo;
 
-  bool get canCheckOutOfSequence =>
-      permiteConferirForaSequencia == Situation.ativo;
+  bool get canCheckOutOfSequence => permiteConferirForaSequencia == Situation.ativo;
 
   bool get canViewAllSeparations => visualizaTodasSeparacoes == Situation.ativo;
 
-  bool get canViewAllConferences =>
-      visualizaTodasConferencias == Situation.ativo;
+  bool get canViewAllConferences => visualizaTodasConferencias == Situation.ativo;
 
   bool get canViewAllStorage => visualizaTodasArmazenagem == Situation.ativo;
 
@@ -102,14 +87,11 @@ class AppUserConsultation {
 
   bool get canEditOtherUserCart => editaCarrinhoOutroUsuario == Situation.ativo;
 
-  bool get canDeleteOtherUserCart =>
-      excluiCarrinhoOutroUsuario == Situation.ativo;
+  bool get canDeleteOtherUserCart => excluiCarrinhoOutroUsuario == Situation.ativo;
 
-  bool get canReturnCounterDeliveryItem =>
-      permiteDevolverItemEntregaBalcao == Situation.ativo;
+  bool get canReturnCounterDeliveryItem => permiteDevolverItemEntregaBalcao == Situation.ativo;
 
-  bool get canReturnPackagingItem =>
-      permiteDevolverItemEmbalagem == Situation.ativo;
+  bool get canReturnPackagingItem => permiteDevolverItemEmbalagem == Situation.ativo;
 
   Map<String, dynamic> toJson() {
     return {

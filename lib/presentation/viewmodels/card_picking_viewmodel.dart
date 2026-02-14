@@ -50,6 +50,7 @@ class CardPickingViewModel extends ChangeNotifier {
   final SeparateCartInternshipEventRepository _cartEventRepository;
   final ShelfScanningService _shelfScanningService;
   final PickingStateManager _stateManager;
+  final CartValidationService _cartValidationService;
   final MetricsCollector? _metricsCollector;
 
   ExpeditionCartRouteInternshipConsultationModel? _cart;
@@ -150,7 +151,7 @@ class CardPickingViewModel extends ChangeNotifier {
       );
     }
 
-    final validationResult = CartValidationService.validateCartAccess(
+    final validationResult = _cartValidationService.validateCartAccess(
       currentUserCode: _userModel!.codUsuario,
       cart: _cart!,
       userModel: _userModel!,
@@ -220,6 +221,7 @@ class CardPickingViewModel extends ChangeNotifier {
       _cartEventRepository = locator<SeparateCartInternshipEventRepository>(),
       _shelfScanningService = locator<ShelfScanningService>(),
       _stateManager = locator<PickingStateManager>(),
+      _cartValidationService = locator<CartValidationService>(),
       _metricsCollector = _initMetricsCollector();
 
   static MetricsCollector? _initMetricsCollector() {

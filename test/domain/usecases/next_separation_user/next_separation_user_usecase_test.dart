@@ -101,7 +101,7 @@ void main() {
       });
     });
 
-    group('PRIORIDADE 1: Separação 100% Completada', () {
+    group('PRIORIDADE 2: Separação 100% Completada', () {
       test('deve retornar separação 100% completada pelo usuário atual', () async {
         final completedSeparation = createMockCompletedSeparation(codUsuario: 1, nomeUsuario: 'Test User');
         consultationRepository.setCompletedSeparation(completedSeparation);
@@ -127,7 +127,7 @@ void main() {
       });
     });
 
-    group('PRIORIDADE 2: Separação com Itens Pendentes', () {
+    group('PRIORIDADE 1: Separação com itens/carrinhos pendentes', () {
       test('deve retornar separação com itens pendentes no setor', () async {
         final pendingSeparation = createMockSeparationWithPendingItems(codUsuario: 1, nomeUsuario: 'Test User');
         consultationRepository.setPendingItemsSeparation(pendingSeparation);
@@ -257,10 +257,10 @@ void main() {
         final result = await useCase.call(params);
 
         final success = result.getOrNull()!;
-        expect(success.separation!.codSepararEstoque, equals(100)); // PRIORIDADE 1
+        expect(success.separation!.codSepararEstoque, equals(200)); // PRIORIDADE 1 (pendentes)
       });
 
-      test('PRIORIDADE 2 tem precedência sobre PRIORIDADE 3', () async {
+      test('PRIORIDADE 1 (pendentes) tem precedência sobre PRIORIDADE 3', () async {
         final pendingSeparation = createMockSeparationWithPendingItems(
           codUsuario: 1,
           nomeUsuario: 'Test User',
@@ -275,7 +275,7 @@ void main() {
         final result = await useCase.call(params);
 
         final success = result.getOrNull()!;
-        expect(success.separation!.codSepararEstoque, equals(200)); // PRIORIDADE 2
+        expect(success.separation!.codSepararEstoque, equals(200)); // PRIORIDADE 1 (pendentes)
       });
 
       test('quando PRIORIDADE 1 não existe, usa PRIORIDADE 2', () async {
@@ -512,16 +512,16 @@ class _FakeSeparationUserSectorConsultationRepository
       throw _error!;
     }
 
-    // PRIORIDADE 1: Primeira consulta (busca separação completada pelo usuário)
-    // PRIORIDADE 2: Segunda consulta (busca separação com itens pendentes)
+    // PRIORIDADE 1: Primeira consulta (busca separação com itens/carrinhos pendentes)
+    // PRIORIDADE 2: Segunda consulta (busca separação 100% completada)
     // PRIORIDADE 3: Terceira consulta em diante (busca nova separação)
 
-    if (_callCount == 1 && _completedSeparation != null) {
-      return [_completedSeparation!];
+    if (_callCount == 1 && _pendingItemsSeparation != null) {
+      return [_pendingItemsSeparation!];
     }
 
-    if (_callCount == 2 && _pendingItemsSeparation != null) {
-      return [_pendingItemsSeparation!];
+    if (_callCount == 2 && _completedSeparation != null) {
+      return [_completedSeparation!];
     }
 
     if (_callCount >= 3 && _newSeparations.isNotEmpty) {
