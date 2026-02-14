@@ -516,6 +516,80 @@ class CardPickingViewModel extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
+  Future<AddItemSeparationResult> updatePickedQuantityWithSync(String itemId, int newQuantity) async {
+    if (_disposed) return AddItemSeparationResult.error('ViewModel foi descartado');
+    if (_cart == null) return AddItemSeparationResult.error('Carrinho não inicializado');
+
+    final item = _findItemByItemId(itemId);
+    if (item == null) return AddItemSeparationResult.error('Item não encontrado');
+
+    final currentQuantity = _stateManager.getPickedQuantity(itemId);
+    if (newQuantity == currentQuantity) {
+      return AddItemSeparationResult.success('Quantidade mantida', addedQuantity: 0);
+    }
+
+    if (newQuantity < currentQuantity) {
+      _stateManager.updateItemQuantity(itemId, newQuantity);
+      _updateNextItemCache();
+      _safeNotifyListeners();
+      return AddItemSeparationResult.success('Redução aplicada localmente', addedQuantity: 0);
+    }
+
+    final delta = newQuantity - currentQuantity;
+    try {
+      final futures = <Future<dynamic>>[
+        _userSessionService.loadUserSession(),
+        Future(() => SocketValidationHelper.validateSocketState()),
+      ];
+      final results = await Future.wait(futures);
+      final appUser = results[0] as dynamic;
+      final socketValidation = results[1] as SocketValidationResult;
+
+      if (appUser?.userSystemModel == null) {
+        return AddItemSeparationResult.error('Usuário não autenticado');
+      }
+      if (!socketValidation.isValid) {
+        return AddItemSeparationResult.error('Socket não está pronto: ${socketValidation.errorMessage}');
+      }
+
+      final userSystem = appUser.userSystemModel;
+      final sessionId = socketValidation.sessionId!;
+
+      _stateManager.updateItemQuantity(itemId, newQuantity);
+      _updateNextItemCache();
+      _safeNotifyListeners();
+
+      final params = AddItemSeparationParams(
+        codEmpresa: _cart!.codEmpresa,
+        codSepararEstoque: _cart!.codOrigem,
+        sessionId: sessionId,
+        codCarrinhoPercurso: _cart!.codCarrinhoPercurso,
+        itemCarrinhoPercurso: _cart!.item,
+        codSeparador: userSystem.codUsuario,
+        nomeSeparador: userSystem.nomeUsuario,
+        codProduto: item.codProduto,
+        codUnidadeMedida: item.codUnidadeMedida,
+        quantidade: delta.toDouble(),
+      );
+
+      final timestamp = DateTime.now();
+      _stateManager.addPendingOperation(itemId, delta, timestamp);
+      _safeNotifyListeners();
+
+      _executeAsyncAddItem(params, userSystem, itemId, delta, timestamp);
+
+      return AddItemSeparationResult.success(
+        'Quantidade atualizada: +$delta unidades',
+        addedQuantity: delta.toDouble(),
+      );
+    } catch (e) {
+      _stateManager.updateItemQuantity(itemId, currentQuantity);
+      _updateNextItemCache();
+      _safeNotifyListeners();
+      return AddItemSeparationResult.error('Erro ao sincronizar: ${e.toString()}');
+    }
+  }
+
   void completeItem(String itemId) {
     if (_disposed) return;
     _stateManager.completeItem(itemId);
@@ -1046,6 +1120,13 @@ class CardPickingViewModel extends ChangeNotifier {
 
   SeparateItemConsultationModel? _findItemByCodProduto(int codProduto) {
     return _itemsByCodProduto?[codProduto];
+  }
+
+  SeparateItemConsultationModel? _findItemByItemId(String itemId) {
+    for (final i in _items) {
+      if (i.item == itemId) return i;
+    }
+    return null;
   }
 
   void _rebuildItemsCache() {

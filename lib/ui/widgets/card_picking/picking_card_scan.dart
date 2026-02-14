@@ -454,12 +454,11 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         );
 
         unawaited(
-          Future.wait([
-            _checkNextItemShelfScanAsync(),
-            Future.delayed(UIConstants.mediumDelay).then((_) async {
-              if (mounted) await _checkAndShowSaveCartModal();
-            }),
-          ]),
+          _checkNextItemShelfScanAsync().then((_) async {
+            if (!mounted) return;
+            await Future.delayed(UIConstants.mediumDelay);
+            if (mounted) await _checkAndShowSaveCartModal();
+          }),
         );
 
         _keyboardController.forceFocusAndCloseKeyboard();
@@ -506,7 +505,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
       await _pauseScannerForShelf();
       if (!mounted) return;
-      _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
+      await _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
     }
   }
 

@@ -324,29 +324,27 @@ class PickingItemCard extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                });
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('Cancelar'),
             ),
             ElevatedButton(
-              onPressed: () {
-                viewModel.updatePickedQuantity(itemId, newQuantity);
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                });
-              },
+              onPressed: () => _confirmQuantityChange(context, itemId, newQuantity),
               child: const Text('Confirmar'),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _confirmQuantityChange(BuildContext context, String itemId, int newQuantity) async {
+    final result = await viewModel.updatePickedQuantityWithSync(itemId, newQuantity);
+    if (!context.mounted) return;
+    Navigator.of(context).pop();
+    final message = result.isSuccess ? result.message : result.message;
+    final color = result.isSuccess ? AppColors.success : AppColors.error;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: color, duration: UIConstants.snackBarShortDuration),
     );
   }
 }

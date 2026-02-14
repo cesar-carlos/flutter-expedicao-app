@@ -296,15 +296,16 @@ class PickingProductListItem extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final newQuantity = int.tryParse(controller.text) ?? 0;
               if (newQuantity >= 0 && newQuantity <= item.quantidade.toInt()) {
-                viewModel.updatePickedQuantity(item.item, newQuantity);
+                final result = await viewModel.updatePickedQuantityWithSync(item.item, newQuantity);
+                if (!context.mounted) return;
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Quantidade atualizada para $newQuantity ${item.codUnidadeMedida}'),
-                    backgroundColor: Colors.green,
+                    content: Text(result.message),
+                    backgroundColor: result.isSuccess ? Colors.green : AppColors.error,
                   ),
                 );
               } else {
@@ -338,12 +339,16 @@ class PickingProductListItem extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
           ElevatedButton(
-            onPressed: () {
-              viewModel.updatePickedQuantity(item.item, 0);
+            onPressed: () async {
+              final result = await viewModel.updatePickedQuantityWithSync(item.item, 0);
+              if (!context.mounted) return;
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Separação removida'), backgroundColor: AppColors.warning));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(result.message),
+                  backgroundColor: result.isSuccess ? AppColors.warning : AppColors.error,
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: Text('Remover', style: AppFonts.inter(color: AppColors.white)),

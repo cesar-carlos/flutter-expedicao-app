@@ -26,12 +26,12 @@ class PickingFlowController {
     required this.keyboardController,
   });
 
-  void showShelfScanDialog(
+  Future<void> showShelfScanDialog(
     BuildContext context,
     SeparateItemConsultationModel nextItem, {
     VoidCallback? onShelfScanCompleted,
   }) {
-    showDialog(
+    return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) => ShelfScanningModalV2(
@@ -40,9 +40,7 @@ class PickingFlowController {
         viewModel: viewModel,
         onBack: () {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) {
-              Navigator.of(context).pop();
-            }
+            if (context.mounted) Navigator.of(context).pop();
           });
         },
       ),
