@@ -330,11 +330,12 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: AppColors.warning));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao imprimir separação', tag: 'SeparationScreen', error: e, stackTrace: stackTrace);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Erro ao imprimir separação: $e'), backgroundColor: AppColors.error));
+      ).showSnackBar(const SnackBar(content: Text('Erro ao imprimir separação. Tente novamente.'), backgroundColor: AppColors.error));
     } finally {
       if (mounted) {
         setState(() => _printingTickets.remove(key));
@@ -431,9 +432,10 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       if (!mounted) return;
 
       _handleNextSeparationResult(result);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro inesperado em Próxima Separação', tag: 'SeparationScreen', error: e, stackTrace: stackTrace);
       if (mounted) {
-        _showErrorModal('Erro Inesperado', 'Erro inesperado: ${e.toString()}');
+        _showErrorModal('Erro Inesperado', 'Erro inesperado. Tente novamente.');
       }
     } finally {
       if (mounted) {
@@ -534,8 +536,9 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
 
       // Navegar para a tela de separação
       context.push(AppRouter.separateItems, extra: separateConsultation.toJson());
-    } catch (e) {
-      _showErrorModal('Erro ao Abrir Separação', 'Erro ao abrir separação: ${e.toString()}');
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao abrir separação', tag: 'SeparationScreen', error: e, stackTrace: stackTrace);
+      if (mounted) _showErrorModal('Erro ao Abrir Separação', 'Erro ao abrir separação. Tente novamente.');
     }
   }
 

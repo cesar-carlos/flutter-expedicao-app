@@ -467,9 +467,11 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         _dialogManager.showErrorDialog(barcode, item.nomeProduto, result.message);
         _keyboardController.forceFocusAndCloseKeyboard();
       }
-    } catch (e) {
-      _scanProcessor.handleFailedItemAddition(item, 'Erro inesperado: ${e.toString()}');
-      _dialogManager.showErrorDialog(barcode, item.nomeProduto, 'Erro inesperado: ${e.toString()}');
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro inesperado ao processar scan', tag: 'PickingCardScan', error: e, stackTrace: stackTrace);
+      const message = 'Erro inesperado. Tente novamente.';
+      _scanProcessor.handleFailedItemAddition(item, message);
+      _dialogManager.showErrorDialog(barcode, item.nomeProduto, message);
       _keyboardController.forceFocusAndCloseKeyboard();
     }
   }

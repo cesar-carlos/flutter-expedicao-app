@@ -28,6 +28,7 @@ import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/theme/app_text_styles.dart';
 import 'package:data7_expedicao/core/theme/theme_extensions.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class CartItemCard extends StatelessWidget {
   final ExpeditionCartRouteInternshipConsultationModel cartRouteInternshipConsultation;
@@ -867,13 +868,14 @@ class CartItemCard extends StatelessWidget {
       }
 
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro inesperado ao salvar carrinho', tag: 'CartItemCard', error: e, stackTrace: stackTrace);
       if (context.mounted) Navigator.of(context).pop();
 
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erro inesperado: ${e.toString()}'), backgroundColor: AppColors.error));
+        ).showSnackBar(const SnackBar(content: Text('Erro inesperado ao salvar carrinho. Tente novamente.'), backgroundColor: AppColors.error));
       }
       return false;
     }
@@ -1149,10 +1151,11 @@ class CartItemCard extends StatelessWidget {
           ).showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: Theme.of(context).colorScheme.error));
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro inesperado ao cancelar carrinho', tag: 'CartItemCard', error: e, stackTrace: stackTrace);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro inesperado: $e'), backgroundColor: Theme.of(context).colorScheme.error),
+          SnackBar(content: const Text('Erro inesperado. Tente novamente.'), backgroundColor: Theme.of(context).colorScheme.error),
         );
       }
     }

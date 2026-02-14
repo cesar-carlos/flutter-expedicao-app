@@ -17,6 +17,7 @@ import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_usecase.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class AddCartViewModel extends ChangeNotifier {
   final int codEmpresa;
@@ -77,8 +78,9 @@ class AddCartViewModel extends ChangeNotifier {
         _errorMessage = 'Carrinho não encontrado com o código de barras informado.';
         _audioService.playError();
       }
-    } catch (e) {
-      _errorMessage = 'Erro ao buscar carrinho: ${e.toString()}';
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao buscar carrinho', tag: 'AddCartViewModel', error: e, stackTrace: stackTrace);
+      _errorMessage = 'Erro ao buscar carrinho. Tente novamente.';
       _audioService.playError();
     } finally {
       _isScanning = false;
@@ -124,14 +126,15 @@ class AddCartViewModel extends ChangeNotifier {
           return true;
         },
         (failure) {
-          final message = failure is AppFailure ? failure.userMessage : failure.toString();
+          final message = failure is AppFailure ? failure.userMessage : 'Erro ao adicionar carrinho. Tente novamente.';
           _setError(message);
           _audioService.playError();
           return false;
         },
       );
-    } catch (e) {
-      _setError('Erro inesperado: ${e.toString()}');
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro inesperado ao adicionar carrinho', tag: 'AddCartViewModel', error: e, stackTrace: stackTrace);
+      _setError('Erro inesperado. Tente novamente.');
       _audioService.playError();
       return false;
     } finally {
@@ -150,8 +153,9 @@ class AddCartViewModel extends ChangeNotifier {
       );
 
       return cartRoutes.isNotEmpty ? cartRoutes.first : null;
-    } catch (e) {
-      _setError('Erro ao verificar carrinho percurso existente: ${e.toString()}');
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao verificar carrinho percurso existente', tag: 'AddCartViewModel', error: e, stackTrace: stackTrace);
+      _setError('Erro ao verificar carrinho. Tente novamente.');
       return null;
     }
   }
@@ -166,12 +170,13 @@ class AddCartViewModel extends ChangeNotifier {
 
       final result = await _startSeparationUseCase.call(params);
       return result.fold((success) => true, (failure) {
-        final message = failure is AppFailure ? failure.userMessage : failure.toString();
-        _setError('Erro ao iniciar separação: $message');
+        final message = failure is AppFailure ? failure.userMessage : 'Erro ao iniciar separação. Tente novamente.';
+        _setError(message);
         return false;
       });
-    } catch (e) {
-      _setError('Erro inesperado ao iniciar separação: ${e.toString()}');
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro inesperado ao iniciar separação', tag: 'AddCartViewModel', error: e, stackTrace: stackTrace);
+      _setError('Erro inesperado. Tente novamente.');
       return false;
     }
   }

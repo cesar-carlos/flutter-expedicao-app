@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/core/results/app_failure.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
@@ -18,6 +18,8 @@ class PickingFlowController {
   final PickingDialogManager dialogManager;
   final AudioService audioService;
   final KeyboardToggleController keyboardController;
+
+  bool _isFinishing = false;
 
   PickingFlowController({
     required this.viewModel,
@@ -76,14 +78,17 @@ class PickingFlowController {
   }
 
   Future<void> finishPicking() async {
+    if (_isFinishing) return;
+
     final navigator = dialogManager.context;
 
     final confirmed = await _showFinishConfirmationDialog(navigator);
     if (!confirmed) return;
+    if (!navigator.mounted) return;
 
-    if (navigator.mounted) {
-      _showLoadingDialog(navigator);
-    }
+    _isFinishing = true;
+    final loadingShown = true;
+    _showLoadingDialog(navigator);
 
     try {
       final result = await viewModel.saveCart();
@@ -93,31 +98,48 @@ class PickingFlowController {
           audioService.playSuccess();
           if (navigator.mounted) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (navigator.mounted) Navigator.of(navigator).pop();
-              if (navigator.mounted) GoRouter.of(navigator).pop('save_cart');
+              if (!navigator.mounted) {
+                _isFinishing = false;
+                return;
+              }
+              if (loadingShown) Navigator.of(navigator).pop();
+              if (navigator.mounted) Navigator.of(navigator).pop('save_cart');
+              _isFinishing = false;
             });
           }
         },
         (failure) {
-          final message = failure is AppFailure ? failure.userMessage : 'Erro ao salvar carrinho: $failure';
+          final message = failure is AppFailure ? failure.userMessage : 'Erro ao salvar carrinho. Tente novamente.';
           final details = failure is SaveSeparationCartFailure ? failure.details : null;
           if (navigator.mounted) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (navigator.mounted) {
-                Navigator.of(navigator).pop();
-                _showErrorDialog(navigator, message, details: details);
+              if (!navigator.mounted) {
+                _isFinishing = false;
+                return;
               }
+              if (loadingShown) Navigator.of(navigator).pop();
+              if (navigator.mounted) _showErrorDialog(navigator, message, details: details);
+              _isFinishing = false;
             });
           }
         },
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Erro inesperado ao salvar carrinho',
+        tag: 'PickingFlowController',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (navigator.mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (navigator.mounted) {
-            Navigator.of(navigator).pop();
-            _showErrorDialog(navigator, 'Erro inesperado ao salvar carrinho: $e');
+          if (!navigator.mounted) {
+            _isFinishing = false;
+            return;
           }
+          if (loadingShown) Navigator.of(navigator).pop();
+          if (navigator.mounted) _showErrorDialog(navigator, 'Erro inesperado ao salvar carrinho. Tente novamente.');
+          _isFinishing = false;
         });
       }
     }
@@ -131,10 +153,10 @@ class PickingFlowController {
         content: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-          CircularProgressIndicator(),
-          SizedBox(width: UIConstants.defaultPadding),
-          Text('Salvando carrinho...'),
-        ],
+            CircularProgressIndicator(),
+            SizedBox(width: UIConstants.defaultPadding),
+            Text('Salvando carrinho...'),
+          ],
         ),
       ),
     );
@@ -152,7 +174,13 @@ class PickingFlowController {
             Text(message),
             if (details != null) ...[
               SizedBox(height: UIConstants.smallPadding),
-              Text(details, style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text(
+                details,
+                style: AppFonts.inter(
+                  fontSize: UIConstants.smallFontSize,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ],
         ),
@@ -254,9 +282,14 @@ class PickingFlowController {
         children: [
           SizedBox(
             width: 100,
-            child: Text('$label:', style: AppFonts.inter(fontWeight: FontWeight.bold, fontSize: UIConstants.smallFontSize)),
+            child: Text(
+              '$label:',
+              style: AppFonts.inter(fontWeight: FontWeight.bold, fontSize: UIConstants.smallFontSize),
+            ),
           ),
-          Expanded(child: Text(value, style: AppFonts.inter(fontSize: UIConstants.smallFontSize))),
+          Expanded(
+            child: Text(value, style: AppFonts.inter(fontSize: UIConstants.smallFontSize)),
+          ),
         ],
       ),
     );

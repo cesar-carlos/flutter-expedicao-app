@@ -412,10 +412,11 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
 
       if (!mounted) return;
       messenger.showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: AppColors.warning));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Erro ao imprimir separação', tag: 'SeparationItemsScreen', error: e, stackTrace: stackTrace);
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text('Erro ao imprimir separação: $e'), backgroundColor: AppColors.error),
+        const SnackBar(content: Text('Erro ao imprimir separação. Tente novamente.'), backgroundColor: AppColors.error),
       );
     } finally {
       if (mounted) {
@@ -696,7 +697,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao abrir separação: ${e.toString()}'),
+            content: const Text('Erro ao abrir separação. Tente novamente.'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
