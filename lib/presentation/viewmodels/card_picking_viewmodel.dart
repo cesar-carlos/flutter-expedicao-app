@@ -12,6 +12,9 @@ import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
 import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/tipo_fator_conversao_model.dart';
 import 'package:data7_expedicao/domain/models/filter/pending_products_filters_model.dart';
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
@@ -37,6 +40,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
   static const String _cartInSeparationCode = 'EM SEPARACAO';
   static const String _cartSeparatingCode = 'SEPARANDO';
+  static const int _maxCodProdutoScanLength = 6;
 
   final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
   final BasicRepository<ExpeditionSectorStockModel> _sectorStockRepository;
@@ -69,7 +73,13 @@ class CardPickingViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   List<SeparateItemConsultationModel> _items = [];
-  List<SeparateItemConsultationModel> get items => List.unmodifiable(_items);
+  List<SeparateItemConsultationModel>? _itemsUnmodifiable;
+
+  List<SeparateItemConsultationModel> get items {
+    _itemsUnmodifiable ??= List.unmodifiable(_items);
+    return _itemsUnmodifiable!;
+  }
+
   bool get hasItems => _items.isNotEmpty;
 
   Map<int, SeparateItemConsultationModel>? _itemsByCodProduto;
@@ -188,8 +198,14 @@ class CardPickingViewModel extends ChangeNotifier {
   bool get hasActiveFilters => _filters.isNotEmpty;
 
   List<ExpeditionSectorStockModel> _availableSectors = [];
+  List<ExpeditionSectorStockModel>? _availableSectorsUnmodifiable;
   bool _sectorsLoaded = false;
-  List<ExpeditionSectorStockModel> get availableSectors => List.unmodifiable(_availableSectors);
+
+  List<ExpeditionSectorStockModel> get availableSectors {
+    _availableSectorsUnmodifiable ??= List.unmodifiable(_availableSectors);
+    return _availableSectorsUnmodifiable!;
+  }
+
   bool get sectorsLoaded => _sectorsLoaded;
 
   List<SeparationItemStatus> get situacaoFilterOptions => [
@@ -354,18 +370,21 @@ class CardPickingViewModel extends ChangeNotifier {
     if (validationResult.isValid && validationResult.expectedItem != null) {
       final item = validationResult.expectedItem!;
       final convertedQuantity = _convertQuantityWithBarcode(item, trimmedBarcode, inputQuantity);
+      final isCodProdutoShortScan = trimmedBarcode == item.codProduto.toString() &&
+          trimmedBarcode.length <= _maxCodProdutoScanLength;
+      final effectiveQuantity = isCodProdutoShortScan ? 1 : convertedQuantity;
 
       final totalQuantity = item.quantidade.toInt();
       final pickedQuantity = _stateManager.getPickedQuantity(item.item);
       final remainingQuantity = totalQuantity - pickedQuantity;
 
-      if (convertedQuantity > remainingQuantity) {
+      if (effectiveQuantity > remainingQuantity) {
         _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Quantidade excedida');
-        return ScanProcessResult.quantityExceeded(item, convertedQuantity, remainingQuantity);
+        return ScanProcessResult.quantityExceeded(item, effectiveQuantity, remainingQuantity);
       }
 
       _recordScanMetrics(trimmedBarcode, scanStartTime, true, null);
-      return ScanProcessResult.success(item, convertedQuantity);
+      return ScanProcessResult.success(item, effectiveQuantity);
     }
 
     if (validationResult.expectedItem != null) {
@@ -653,10 +672,12 @@ class CardPickingViewModel extends ChangeNotifier {
       final sectors = await _sectorStockRepository.select(QueryBuilder());
       if (_disposed) return;
 
+      _availableSectorsUnmodifiable = null;
       _availableSectors = sectors;
       _sectorsLoaded = true;
       _safeNotifyListeners();
     } catch (e) {
+      _availableSectorsUnmodifiable = null;
       _availableSectors = [];
       _sectorsLoaded = false;
     }
@@ -726,6 +747,9 @@ class CardPickingViewModel extends ChangeNotifier {
 
       items = _applyLocalFilters(items);
 
+      items = _addSyntheticCodProdutoUnitsForScan(items);
+
+      _itemsUnmodifiable = null;
       _items = _sortItemsByAddress(items);
 
       _rebuildItemsCache();
@@ -738,6 +762,47 @@ class CardPickingViewModel extends ChangeNotifier {
     } catch (e) {
       developer.log('Failed to load filtered items', error: e);
     }
+  }
+
+  List<SeparateItemConsultationModel> _addSyntheticCodProdutoUnitsForScan(
+    List<SeparateItemConsultationModel> items,
+  ) {
+    return items.map((item) {
+      final str = item.codProduto.toString();
+      if (str.length > _maxCodProdutoScanLength) return item;
+      final alreadyHasUnit = item.unidadeMedidas.any(
+        (u) => u.codigoBarras?.trim() == str,
+      );
+      if (alreadyHasUnit) return item;
+
+      final SeparateItemUnidadeMedidaConsultationModel synthetic;
+      if (item.unidadeMedidas.isNotEmpty) {
+        final base = item.unidadeMedidas.first;
+        synthetic = base.copyWith(
+          codigoBarras: str,
+          itemUnidadeMedida: '${base.itemUnidadeMedida}_cod${item.codProduto}',
+          tipoFatorConversao: TipoFatorConversao.multiplicacao,
+          fatorConversao: 1.0,
+        );
+      } else {
+        synthetic = SeparateItemUnidadeMedidaConsultationModel(
+          codEmpresa: item.codEmpresa,
+          codSepararEstoque: item.codSepararEstoque,
+          item: item.item,
+          codProduto: item.codProduto,
+          itemUnidadeMedida: '${item.item}_${item.codUnidadeMedida}_cod',
+          codUnidadeMedida: item.codUnidadeMedida,
+          unidadeMedidaDescricao: item.nomeUnidadeMedida,
+          unidadeMedidaPadrao: Situation.inativo,
+          tipoFatorConversao: TipoFatorConversao.multiplicacao,
+          fatorConversao: 1.0,
+          codigoBarras: str,
+        );
+      }
+      return item.copyWith(
+        unidadeMedidas: [...item.unidadeMedidas, synthetic],
+      );
+    }).toList();
   }
 
   List<SeparateItemConsultationModel> _applyLocalFilters(List<SeparateItemConsultationModel> items) {
@@ -799,7 +864,7 @@ class CardPickingViewModel extends ChangeNotifier {
       final savedFilters = await _filtersStorage.loadPendingProductsFilters();
       if (savedFilters != null) {
         _filters = savedFilters;
-        notifyListeners();
+        _safeNotifyListeners();
       }
     } catch (e, s) {
       developer.log('Failed to load pending products filters', error: e, stackTrace: s);

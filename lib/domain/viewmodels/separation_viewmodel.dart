@@ -51,6 +51,7 @@ class SeparationViewModel extends ChangeNotifier {
   bool _disposed = false;
 
   List<ExpeditionSectorStockModel> _availableSectors = [];
+  List<ExpeditionSectorStockModel>? _availableSectorsUnmodifiable;
   bool _sectorsLoaded = false;
   bool _isLoadingSectors = false;
 
@@ -112,7 +113,11 @@ class SeparationViewModel extends ChangeNotifier {
   DateTime? get dataEmissaoFilter => _dataEmissaoFilter;
   ExpeditionSectorStockModel? get setorEstoqueFilter => _setorEstoqueFilter;
 
-  List<ExpeditionSectorStockModel> get availableSectors => List.unmodifiable(_availableSectors);
+  List<ExpeditionSectorStockModel> get availableSectors {
+    _availableSectorsUnmodifiable ??= List.unmodifiable(_availableSectors);
+    return _availableSectorsUnmodifiable!;
+  }
+
   bool get sectorsLoaded => _sectorsLoaded;
 
   bool get hasActiveFilters =>
@@ -218,11 +223,13 @@ class SeparationViewModel extends ChangeNotifier {
 
       if (_disposed) return;
 
+      _availableSectorsUnmodifiable = null;
       _availableSectors = sectors;
       _sectorsLoaded = true;
       _safeNotifyListeners();
     } catch (e) {
       if (_disposed) return;
+      _availableSectorsUnmodifiable = null;
       _availableSectors = [];
       _sectorsLoaded = false;
     } finally {

@@ -60,6 +60,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
   bool _cartsLoaded = false;
 
   List<ExpeditionSectorStockModel> _availableSectors = [];
+  List<ExpeditionSectorStockModel>? _availableSectorsUnmodifiable;
   bool _sectorsLoaded = false;
 
   bool _isCancelling = false;
@@ -103,7 +104,11 @@ class SeparationItemsViewModel extends ChangeNotifier {
 
   List<SeparationItemStatus> get situacaoFilterOptions => SeparationItemStatus.availableForFilter;
 
-  List<ExpeditionSectorStockModel> get availableSectors => List.unmodifiable(_availableSectors);
+  List<ExpeditionSectorStockModel> get availableSectors {
+    _availableSectorsUnmodifiable ??= List.unmodifiable(_availableSectors);
+    return _availableSectorsUnmodifiable!;
+  }
+
   bool get sectorsLoaded => _sectorsLoaded;
 
   Future<void> loadSeparationItems(SeparateConsultationModel separation) async {
@@ -211,6 +216,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
       final sectors = await _sectorStockRepository.select(queryBuilder);
 
       if (_disposed) return;
+      _availableSectorsUnmodifiable = null;
       _availableSectors = sectors;
       _sectorsLoaded = true;
       notifyListeners();
