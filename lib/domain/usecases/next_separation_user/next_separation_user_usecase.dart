@@ -30,6 +30,8 @@ class NextSeparationUserUseCase {
 
   static const String _cartOpenValue = 'S';
 
+  static const int _maxRetries = 3;
+
   static const String _fieldCodEmpresa = 'CodEmpresa';
   static const String _fieldCodUsuario = 'CodUsuario';
   static const String _fieldCodSetorEstoque = 'CodSetorEstoque';
@@ -84,40 +86,19 @@ class NextSeparationUserUseCase {
     final existingSeparation = await _findExistingSeparationWithPendingItems(params);
     if (existingSeparation != null) return existingSeparation;
 
-    // PRIORIDADE 2: Buscar separação 100% completada pelo usuário (no setor) para finalizar
-    final completedSeparation = await _findCompletedSeparationByUser(params);
-    if (completedSeparation != null) return completedSeparation;
-
-    // PRIORIDADE 3: Buscar nova separação disponível (CodUsuario IS NULL)
+    // PRIORIDADE 2: Buscar nova separação disponível (CodUsuario IS NULL)
     final newSeparation = await _findNewSeparation(params);
     if (newSeparation != null) {
       final registrationResult = await _registerUserSectorAssignment(params, newSeparation);
       if (registrationResult.isError()) {
-        // Tentar buscar outra separação em vez de desistir
-        AppLogger.warning('Atribuição falhou, buscando próxima separação (tentativa 1/3)...');
+        AppLogger.warning(
+          'Atribuição falhou, buscando próxima separação (tentativa 1/$_maxRetries)...',
+        );
         return await _findNextSeparationWithRetry(params, retryCount: 1);
       }
     }
 
     return newSeparation;
-  }
-
-  /// PRIORIDADE 2: Busca separação 100% completada pelo usuário atual (no setor do usuário)
-  /// Critérios:
-  /// - Situacao = 'SEPARANDO'
-  /// - CodUsuario = usuário atual, CodSetorEstoque = setor do usuário
-  /// - QuantidadeItensSetor = QuantidadeItensSeparacaoSetor (todos itens do setor separados)
-  /// - CarrinhosAbertosUsuario != 'S' (todos carrinhos salvos)
-  Future<SeparationUserSectorConsultationModel?> _findCompletedSeparationByUser(NextSeparationUserParams params) async {
-    final baseQuery = _buildBaseQuery(params); // CodUsuario = usuário atual
-    baseQuery
-      ..equals(_fieldSituacao, ExpeditionSituation.separando.code)
-      ..fieldEquals(_fieldQuantidadeItensSetor, _fieldQuantidadeItensSeparacaoSetor) // Setor 100% separado
-      ..notEquals(_fieldCarrinhosAbertos, _cartOpenValue); // Sem carrinhos abertos
-
-    _addStandardOrderBy(baseQuery);
-
-    return await _executeQuery(baseQuery);
   }
 
   /// PRIORIDADE 1: Busca separação já atribuída ao usuário (no setor) com itens pendentes ou carrinhos abertos
@@ -154,14 +135,12 @@ class NextSeparationUserUseCase {
     return await _executeRawQuery(completeWhere);
   }
 
-  /// Busca próxima separação com mecanismo de retry
   Future<SeparationUserSectorConsultationModel?> _findNextSeparationWithRetry(
     NextSeparationUserParams params, {
     int retryCount = 0,
-    int maxRetries = 3,
   }) async {
-    if (retryCount >= maxRetries) {
-      AppLogger.warning('Máximo de tentativas ($maxRetries) atingido ao buscar próxima separação');
+    if (retryCount >= _maxRetries) {
+      AppLogger.warning('Máximo de tentativas ($_maxRetries) atingido ao buscar próxima separação');
       return null;
     }
 
@@ -171,15 +150,14 @@ class NextSeparationUserUseCase {
     final registrationResult = await _registerUserSectorAssignment(params, newSeparation);
     if (registrationResult.isError()) {
       AppLogger.warning(
-        'Atribuição falhou (tentativa ${retryCount + 1}/$maxRetries), '
+        'Atribuição falhou (tentativa ${retryCount + 1}/$_maxRetries), '
         'buscando próxima separação após delay...',
       );
 
-      // Delay exponencial entre tentativas
       final delayMs = Duration(milliseconds: 100 * (retryCount + 1));
       await Future.delayed(delayMs);
 
-      return await _findNextSeparationWithRetry(params, retryCount: retryCount + 1, maxRetries: maxRetries);
+      return await _findNextSeparationWithRetry(params, retryCount: retryCount + 1);
     }
 
     return newSeparation;

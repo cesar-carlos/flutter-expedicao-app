@@ -40,7 +40,6 @@ class CardPickingViewModel extends ChangeNotifier {
 
   static const String _cartInSeparationCode = 'EM SEPARACAO';
   static const String _cartSeparatingCode = 'SEPARANDO';
-  static const int _maxCodProdutoScanLength = 6;
 
   final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
   final BasicRepository<ExpeditionSectorStockModel> _sectorStockRepository;
@@ -370,9 +369,10 @@ class CardPickingViewModel extends ChangeNotifier {
     if (validationResult.isValid && validationResult.expectedItem != null) {
       final item = validationResult.expectedItem!;
       final convertedQuantity = _convertQuantityWithBarcode(item, trimmedBarcode, inputQuantity);
-      final isCodProdutoShortScan = trimmedBarcode == item.codProduto.toString() &&
-          trimmedBarcode.length <= _maxCodProdutoScanLength;
-      final effectiveQuantity = isCodProdutoShortScan ? 1 : convertedQuantity;
+      final matchedUnit = item.buscarUnidadeMedidaPorCodigoBarras(trimmedBarcode);
+      final isSyntheticCodProdutoMatch =
+          matchedUnit != null && matchedUnit.itemUnidadeMedida.endsWith('_cod${item.codProduto}');
+      final effectiveQuantity = isSyntheticCodProdutoMatch ? 1 : convertedQuantity;
 
       final totalQuantity = item.quantidade.toInt();
       final pickedQuantity = _stateManager.getPickedQuantity(item.item);
@@ -764,15 +764,10 @@ class CardPickingViewModel extends ChangeNotifier {
     }
   }
 
-  List<SeparateItemConsultationModel> _addSyntheticCodProdutoUnitsForScan(
-    List<SeparateItemConsultationModel> items,
-  ) {
+  List<SeparateItemConsultationModel> _addSyntheticCodProdutoUnitsForScan(List<SeparateItemConsultationModel> items) {
     return items.map((item) {
       final str = item.codProduto.toString();
-      if (str.length > _maxCodProdutoScanLength) return item;
-      final alreadyHasUnit = item.unidadeMedidas.any(
-        (u) => u.codigoBarras?.trim() == str,
-      );
+      final alreadyHasUnit = item.unidadeMedidas.any((u) => u.codigoBarras?.trim() == str);
       if (alreadyHasUnit) return item;
 
       final SeparateItemUnidadeMedidaConsultationModel synthetic;
@@ -790,7 +785,7 @@ class CardPickingViewModel extends ChangeNotifier {
           codSepararEstoque: item.codSepararEstoque,
           item: item.item,
           codProduto: item.codProduto,
-          itemUnidadeMedida: '${item.item}_${item.codUnidadeMedida}_cod',
+          itemUnidadeMedida: '${item.item}_${item.codUnidadeMedida}_cod${item.codProduto}',
           codUnidadeMedida: item.codUnidadeMedida,
           unidadeMedidaDescricao: item.nomeUnidadeMedida,
           unidadeMedidaPadrao: Situation.inativo,
@@ -799,9 +794,7 @@ class CardPickingViewModel extends ChangeNotifier {
           codigoBarras: str,
         );
       }
-      return item.copyWith(
-        unidadeMedidas: [...item.unidadeMedidas, synthetic],
-      );
+      return item.copyWith(unidadeMedidas: [...item.unidadeMedidas, synthetic]);
     }).toList();
   }
 

@@ -39,8 +39,8 @@ class ConfigViewModel extends ChangeNotifier {
     this._printerPreferencesRepository, [
     IPrinterDiscoveryService? printerDiscoveryService,
     IThermalPrinterRepository? thermalPrinterRepository,
-  ])  : _printerDiscoveryService = printerDiscoveryService ?? const NoOpPrinterDiscoveryService(),
-        _thermalPrinterRepository = thermalPrinterRepository;
+  ]) : _printerDiscoveryService = printerDiscoveryService ?? const NoOpPrinterDiscoveryService(),
+       _thermalPrinterRepository = thermalPrinterRepository;
 
   ApiConfig get currentConfig => _currentConfig;
   bool get isLoading => _isLoading;

@@ -101,8 +101,8 @@ void main() {
       });
     });
 
-    group('PRIORIDADE 2: Separação 100% Completada', () {
-      test('deve retornar separação 100% completada pelo usuário atual', () async {
+    group('Separação 100% completada (setor finalizado) NÃO deve ser retornada', () {
+      test('deve retornar notFound quando só existe separação já finalizada pelo setor do usuário', () async {
         final completedSeparation = createMockCompletedSeparation(codUsuario: 1, nomeUsuario: 'Test User');
         consultationRepository.setCompletedSeparation(completedSeparation);
 
@@ -111,19 +111,8 @@ void main() {
 
         expect(result.isSuccess(), isTrue);
         final success = result.getOrNull()!;
-        expect(success.hasSeparation, isTrue);
-        expect(success.separation!.codSepararEstoque, equals(completedSeparation.codSepararEstoque));
-        expect(success.separation!.codUsuario, equals(1));
-      });
-
-      test('não deve registrar atribuição quando retornar separação completada', () async {
-        final completedSeparation = createMockCompletedSeparation(codUsuario: 1, nomeUsuario: 'Test User');
-        consultationRepository.setCompletedSeparation(completedSeparation);
-
-        final params = _createValidParams();
-        await useCase.call(params);
-
-        expect(registrationRepository.insertCount, equals(0));
+        expect(success.hasSeparation, isFalse);
+        expect(success.message, equals('Não existe separação pendente para este usuário'));
       });
     });
 
@@ -154,7 +143,7 @@ void main() {
       });
     });
 
-    group('PRIORIDADE 3: Nova Separação', () {
+    group('PRIORIDADE 2: Nova Separação', () {
       test('deve buscar nova separação disponível e registrar atribuição', () async {
         final newSeparation = createMockNewSeparation();
         consultationRepository.setNewSeparation(newSeparation);
@@ -238,29 +227,7 @@ void main() {
     });
 
     group('Precedência de Prioridades', () {
-      test('PRIORIDADE 1 tem precedência sobre PRIORIDADE 2', () async {
-        final completedSeparation = createMockCompletedSeparation(
-          codUsuario: 1,
-          nomeUsuario: 'Test User',
-          codSepararEstoque: 100,
-        );
-        final pendingSeparation = createMockSeparationWithPendingItems(
-          codUsuario: 1,
-          nomeUsuario: 'Test User',
-          codSepararEstoque: 200,
-        );
-
-        consultationRepository.setCompletedSeparation(completedSeparation);
-        consultationRepository.setPendingItemsSeparation(pendingSeparation);
-
-        final params = _createValidParams();
-        final result = await useCase.call(params);
-
-        final success = result.getOrNull()!;
-        expect(success.separation!.codSepararEstoque, equals(200)); // PRIORIDADE 1 (pendentes)
-      });
-
-      test('PRIORIDADE 1 (pendentes) tem precedência sobre PRIORIDADE 3', () async {
+      test('PRIORIDADE 1 (pendentes) tem precedência sobre PRIORIDADE 2 (nova)', () async {
         final pendingSeparation = createMockSeparationWithPendingItems(
           codUsuario: 1,
           nomeUsuario: 'Test User',
@@ -278,19 +245,7 @@ void main() {
         expect(success.separation!.codSepararEstoque, equals(200)); // PRIORIDADE 1 (pendentes)
       });
 
-      test('quando PRIORIDADE 1 não existe, usa PRIORIDADE 2', () async {
-        final pendingSeparation = createMockSeparationWithPendingItems(codUsuario: 1, nomeUsuario: 'Test User');
-
-        consultationRepository.setPendingItemsSeparation(pendingSeparation);
-
-        final params = _createValidParams();
-        final result = await useCase.call(params);
-
-        final success = result.getOrNull()!;
-        expect(success.separation!.codSepararEstoque, equals(pendingSeparation.codSepararEstoque));
-      });
-
-      test('quando PRIORIDADE 1 e 2 não existem, usa PRIORIDADE 3', () async {
+      test('quando PRIORIDADE 1 não existe, usa PRIORIDADE 2 (nova separação)', () async {
         final newSeparation = createMockNewSeparation();
         consultationRepository.setNewSeparation(newSeparation);
 
@@ -473,14 +428,13 @@ SeparationUserSectorConsultationModel createMockNewSeparation({int codSepararEst
 
 class _FakeSeparationUserSectorConsultationRepository
     implements BasicConsultationRepository<SeparationUserSectorConsultationModel> {
-  SeparationUserSectorConsultationModel? _completedSeparation;
   SeparationUserSectorConsultationModel? _pendingItemsSeparation;
   final List<SeparationUserSectorConsultationModel> _newSeparations = [];
   Object? _error;
   int _callCount = 0;
 
-  void setCompletedSeparation(SeparationUserSectorConsultationModel separation) {
-    _completedSeparation = separation;
+  void setCompletedSeparation(SeparationUserSectorConsultationModel _) {
+    // Separação finalizada não retorna em P1 nem P2; fake retorna [] sem configuração extra
   }
 
   void setPendingItemsSeparation(SeparationUserSectorConsultationModel separation) {
@@ -513,18 +467,13 @@ class _FakeSeparationUserSectorConsultationRepository
     }
 
     // PRIORIDADE 1: Primeira consulta (busca separação com itens/carrinhos pendentes)
-    // PRIORIDADE 2: Segunda consulta (busca separação 100% completada)
-    // PRIORIDADE 3: Terceira consulta em diante (busca nova separação)
+    // PRIORIDADE 2: Segunda consulta em diante (busca nova separação)
 
     if (_callCount == 1 && _pendingItemsSeparation != null) {
       return [_pendingItemsSeparation!];
     }
 
-    if (_callCount == 2 && _completedSeparation != null) {
-      return [_completedSeparation!];
-    }
-
-    if (_callCount >= 3 && _newSeparations.isNotEmpty) {
+    if (_callCount >= 2 && _newSeparations.isNotEmpty) {
       final result = _newSeparations.first;
       _newSeparations.removeAt(0);
       return [result];
