@@ -12,6 +12,8 @@ import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scannin
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'dart:async';
+import 'package:data7_expedicao/core/validation/common/socket_validation_helper.dart';
 
 class PickingFlowController {
   final CardPickingViewModel viewModel;
@@ -20,6 +22,7 @@ class PickingFlowController {
   final KeyboardToggleController keyboardController;
 
   bool _isFinishing = false;
+  BuildContext? _loadingDialogContext;
 
   PickingFlowController({
     required this.viewModel,
@@ -83,38 +86,57 @@ class PickingFlowController {
     if (_isFinishing) return;
 
     final navigator = dialogManager.context;
+    if (!navigator.mounted) return;
+
+    AppLogger.info('Iniciando finalização do picking', tag: 'PickingFlowController');
+
+    final socketValidation = SocketValidationHelper.validateSocketState();
+    if (!socketValidation.isValid) {
+      AppLogger.warning('Socket inválido ao salvar carrinho: ${socketValidation.errorMessage}', tag: 'PickingFlowController');
+      if (navigator.mounted) {
+        _showErrorDialog(navigator, 'Conexão não está pronta. Verifique o indicador de conexão e tente novamente.');
+      }
+      return;
+    }
+
+    AppLogger.progress('Socket validado com sucesso', tag: 'PickingFlowController');
 
     final confirmed = await _showFinishConfirmationDialog(navigator);
     if (!confirmed) return;
     if (!navigator.mounted) return;
 
     _isFinishing = true;
-    final loadingShown = true;
     _showLoadingDialog(navigator);
 
+    AppLogger.progress('Iniciando salvamento com timeout de ${UIConstants.networkTimeout.inSeconds}s', tag: 'PickingFlowController');
+
     try {
-      final result = await viewModel.saveCart();
+      final result = await viewModel.saveCart().timeout(
+        UIConstants.networkTimeout,
+        onTimeout: () {
+          AppLogger.error('Timeout ao salvar carrinho (${UIConstants.networkTimeout.inSeconds}s)', tag: 'PickingFlowController');
+          throw TimeoutException('Operação excedeu o tempo limite de ${UIConstants.networkTimeout.inSeconds} segundos');
+        },
+      );
 
       result.fold(
         (_) {
           audioService.playSuccess();
+          AppLogger.success('Carrinho salvo com sucesso', tag: 'PickingFlowController');
           if (navigator.mounted) {
             void doPops() {
               if (!navigator.mounted) {
-                _isFinishing = false;
                 return;
               }
-              if (loadingShown) Navigator.of(navigator).pop();
+              _ensureLoadingDialogClosed();
               if (navigator.mounted) Navigator.of(navigator).pop('save_cart');
-              _isFinishing = false;
             }
 
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Future.delayed(Duration.zero, doPops);
             });
-          } else {
-            _isFinishing = false;
           }
+          AppLogger.info('Retornando para tela anterior', tag: 'PickingFlowController');
         },
         (failure) {
           final message = failure is AppFailure ? failure.userMessage : 'Erro ao salvar carrinho. Tente novamente.';
@@ -122,22 +144,21 @@ class PickingFlowController {
           if (navigator.mounted) {
             void doPopsAndDialog() {
               if (!navigator.mounted) {
-                _isFinishing = false;
                 return;
               }
-              if (loadingShown) Navigator.of(navigator).pop();
+              _ensureLoadingDialogClosed();
               if (navigator.mounted) _showErrorDialog(navigator, message, details: details);
-              _isFinishing = false;
             }
 
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Future.delayed(Duration.zero, doPopsAndDialog);
             });
-          } else {
-            _isFinishing = false;
           }
         },
       );
+    } on TimeoutException catch (e) {
+      AppLogger.error('TimeoutException ao salvar carrinho', tag: 'PickingFlowController', error: e);
+      _handleTimeoutError(navigator, e);
     } catch (e, stackTrace) {
       AppLogger.error(
         'Erro inesperado ao salvar carrinho',
@@ -148,38 +169,85 @@ class PickingFlowController {
       if (navigator.mounted) {
         void doPopsAndDialog() {
           if (!navigator.mounted) {
-            _isFinishing = false;
             return;
           }
-          if (loadingShown) Navigator.of(navigator).pop();
+          _ensureLoadingDialogClosed();
           if (navigator.mounted) _showErrorDialog(navigator, 'Erro inesperado ao salvar carrinho. Tente novamente.');
-          _isFinishing = false;
         }
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Future.delayed(Duration.zero, doPopsAndDialog);
         });
-      } else {
-        _isFinishing = false;
       }
+    } finally {
+      _isFinishing = false;
     }
   }
 
   void _showLoadingDialog(BuildContext context) {
+    if (!context.mounted) return;
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: UIConstants.defaultPadding),
-            Text('Salvando carrinho...'),
-          ],
-        ),
-      ),
+      builder: (dialogContext) {
+        _loadingDialogContext = dialogContext;
+        return const AlertDialog(
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: UIConstants.defaultPadding),
+              Text('Salvando carrinho...'),
+            ],
+          ),
+        );
+      },
     );
+  }
+
+  void _ensureLoadingDialogClosed() {
+    if (_loadingDialogContext == null) return;
+
+    if (!_loadingDialogContext!.mounted) {
+      _loadingDialogContext = null;
+      return;
+    }
+
+    try {
+      Navigator.of(_loadingDialogContext!).pop();
+    } catch (e) {
+      AppLogger.warning('Erro ao fechar loading: $e', tag: 'PickingFlowController');
+    } finally {
+      _loadingDialogContext = null;
+    }
+  }
+
+  void _handleTimeoutError(BuildContext navigator, TimeoutException e) {
+    audioService.playError();
+
+    if (!navigator.mounted) {
+      AppLogger.warning('Navigator desmontado ao tratar timeout', tag: 'PickingFlowController');
+      return;
+    }
+
+    void showErrorAndCleanup() {
+      if (!navigator.mounted) {
+        return;
+      }
+
+      _ensureLoadingDialogClosed();
+
+      _showErrorDialog(
+        navigator,
+        'A operação demorou muito tempo. Verifique sua conexão e tente novamente.',
+        details: 'Timeout após ${UIConstants.networkTimeout.inSeconds} segundos',
+      );
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(Duration.zero, showErrorAndCleanup);
+    });
   }
 
   void _showErrorDialog(BuildContext context, String message, {String? details}) {

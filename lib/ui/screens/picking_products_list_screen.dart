@@ -10,7 +10,6 @@ import 'package:data7_expedicao/ui/widgets/separated_products/separated_product_
 import 'package:data7_expedicao/ui/widgets/picking_products_list/pending_products_filter_modal.dart';
 import 'package:data7_expedicao/domain/viewmodels/separated_products_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
-import 'package:data7_expedicao/ui/widgets/separated_products/separated_products_cart_status_warning.dart';
 import 'package:data7_expedicao/ui/widgets/separated_products_title_with_connection_status.dart';
 import 'package:data7_expedicao/ui/widgets/pending_products_title_with_connection_status.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
@@ -411,8 +410,6 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
 
     return Column(
       children: [
-        const SeparatedProductsCartStatusWarning(),
-
         _buildHeader(context, theme, colorScheme, icon, iconColor, viewModel.items.length),
 
         Expanded(
