@@ -201,10 +201,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
     try {
       if (_separation != null) {
         final sep = _separation!;
-        await Future.wait([
-          loadSeparationItems(sep),
-          loadSeparationCarts(sep),
-        ]);
+        await Future.wait([loadSeparationItems(sep), loadSeparationCarts(sep)]);
       }
 
       if (!_sectorsLoaded) {
@@ -223,10 +220,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
 
       if (_separation != null) {
         final sep = _separation!;
-        await Future.wait([
-          loadSeparationItems(sep),
-          loadSeparationCarts(sep),
-        ]);
+        await Future.wait([loadSeparationItems(sep), loadSeparationCarts(sep)]);
       }
 
       if (!_sectorsLoaded) {
