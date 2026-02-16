@@ -252,6 +252,7 @@ class CardPickingViewModel extends ChangeNotifier {
     _disposed = true;
     stopCartEventMonitoring();
     _errorController.close();
+    BarcodeValidationService.clearCaches();
     super.dispose();
   }
 
@@ -417,7 +418,7 @@ class CardPickingViewModel extends ChangeNotifier {
       final convertedQuantity = item.converterQuantidadePorCodigoBarras(barcode, inputQuantity.toDouble());
 
       if (convertedQuantity != null && convertedQuantity > 0) {
-        return convertedQuantity.round();
+        return convertedQuantity.toInt();
       }
 
       return inputQuantity;

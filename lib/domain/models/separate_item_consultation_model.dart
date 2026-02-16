@@ -302,7 +302,7 @@ class SeparateItemConsultationModel {
     try {
       // Procura pela unidade de medida que corresponde ao código de barras
       final unidadeMedida = unidadeMedidas.firstWhere(
-        (unidade) => unidade.codigoBarras == codigoBarras,
+        (unidade) => unidade.codigoBarras != null && unidade.codigoBarras!.trim() == codigoBarras.trim(),
         orElse: () => throw StateError('Código de barras não encontrado: $codigoBarras'),
       );
 
@@ -327,7 +327,9 @@ class SeparateItemConsultationModel {
   /// Retorna a unidade de medida correspondente ou null se não encontrada
   SeparateItemUnidadeMedidaConsultationModel? buscarUnidadeMedidaPorCodigoBarras(String codigoBarras) {
     try {
-      return unidadeMedidas.firstWhere((unidade) => unidade.codigoBarras == codigoBarras);
+      return unidadeMedidas.firstWhere(
+        (unidade) => unidade.codigoBarras != null && unidade.codigoBarras!.trim() == codigoBarras.trim(),
+      );
     } catch (e) {
       return null;
     }
