@@ -11,8 +11,9 @@ import 'package:data7_expedicao/domain/repositories/basic_consultation_repositor
 import 'package:data7_expedicao/domain/models/expedition_cart_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_router_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
-import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_failure.dart';
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_params.dart';
+import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_usecase.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
@@ -59,6 +60,7 @@ class AddCartViewModel extends ChangeNotifier {
 
   Future<void> scanBarcode(String barcode) async {
     if (barcode.isEmpty) return;
+    if (_isScanning) return;
 
     _isScanning = true;
     _errorMessage = null;
@@ -100,6 +102,11 @@ class AddCartViewModel extends ChangeNotifier {
       return false;
     }
 
+    if (!canAddCart) {
+      _setError('Carrinho deve estar na situação LIBERADO para ser adicionado à separação.');
+      return false;
+    }
+
     if (_isAdding) return false;
 
     _stopAutoAddCountdown();
@@ -109,28 +116,38 @@ class AddCartViewModel extends ChangeNotifier {
     try {
       final existingCartRouteResult = await _checkExistingCartRoute();
 
-      if (existingCartRouteResult.isSuccess()) {
-        _setError('Já existe um percurso em andamento para esta separação.');
-        _audioService.playError();
-        return false;
+      if (!existingCartRouteResult.isSuccess()) {
+        final failure = existingCartRouteResult.exceptionOrNull();
+        if (failure == null) {
+          _setError('Erro ao verificar percurso. Tente novamente.');
+          _audioService.playError();
+          return false;
+        }
+        if (failure is AppFailure) {
+          if (failure is DataFailure && failure.code == 'NOT_FOUND') {
+            final startResult = await _startSeparation();
+            if (!startResult) return false;
+          } else {
+            _setError(failure.userMessage);
+            _audioService.playError();
+            return false;
+          }
+        } else {
+          AppLogger.error('Falha inesperada ao verificar percurso', tag: 'AddCartViewModel', error: failure);
+          _setError('Erro ao verificar percurso. Tente novamente.');
+          _audioService.playError();
+          return false;
+        }
       }
 
-      final failure = existingCartRouteResult.exceptionOrNull() as AppFailure;
-      if (failure is DataFailure && failure.code == 'NOT_FOUND') {
-        final startResult = await _startSeparation();
-        if (!startResult) return false;
-      } else {
-        _setError(failure.userMessage);
-        _audioService.playError();
-        return false;
-      }
-
+      final existingRoute = existingCartRouteResult.getOrNull();
       final params = AddCartParams(
         codEmpresa: codEmpresa,
         origem: ExpeditionOrigem.separacaoEstoque,
         codOrigem: codSepararEstoque,
         codCarrinho: _scannedCart!.codCarrinho,
         scannedCart: _scannedCart,
+        codCarrinhoPercurso: existingRoute?.codCarrinhoPercurso,
       );
 
       final result = await _addCartUseCase.call(params);
@@ -189,7 +206,10 @@ class AddCartViewModel extends ChangeNotifier {
 
       final result = await _startSeparationUseCase.call(params);
       return result.fold((success) => true, (failure) {
-        final message = failure is AppFailure ? failure.userMessage : 'Erro ao iniciar separação. Tente novamente.';
+        final message = failure is StartSeparationFailure &&
+                failure.type == StartSeparationFailureType.separationAlreadyStarted
+            ? 'Outro setor já iniciou esta separação. Toque em Adicionar novamente para incluir seu carrinho.'
+            : (failure is AppFailure ? failure.userMessage : 'Erro ao iniciar separação. Tente novamente.');
         _setError(message);
         return false;
       });

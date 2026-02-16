@@ -19,7 +19,8 @@ enum ExpeditionCartSituation {
   final Color color;
   static ExpeditionCartSituation? fromCode(String code) {
     try {
-      return ExpeditionCartSituation.values.firstWhere((situation) => situation.code == code.toUpperCase());
+      final normalized = (code.trim()).toUpperCase();
+      return ExpeditionCartSituation.values.firstWhere((situation) => situation.code == normalized);
     } catch (e) {
       return null;
     }

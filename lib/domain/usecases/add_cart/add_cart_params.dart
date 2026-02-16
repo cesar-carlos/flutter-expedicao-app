@@ -7,6 +7,7 @@ class AddCartParams {
   final int codOrigem;
   final int codCarrinho;
   final ExpeditionCartConsultationModel? scannedCart;
+  final int? codCarrinhoPercurso;
 
   const AddCartParams({
     required this.codEmpresa,
@@ -14,6 +15,7 @@ class AddCartParams {
     required this.codOrigem,
     required this.codCarrinho,
     this.scannedCart,
+    this.codCarrinhoPercurso,
   });
 
   @override

@@ -13,7 +13,8 @@
       "Bash(flutter pub:*)",
       "Bash(dart fix:*)",
       "Bash(git push:*)",
-      "Bash(flutter run:*)"
+      "Bash(flutter run:*)",
+      "Bash(flutter clean:*)"
     ]
   }
 }

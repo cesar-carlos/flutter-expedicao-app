@@ -11,6 +11,7 @@ import 'package:data7_expedicao/domain/models/situation/expedition_cart_situatio
 import 'package:data7_expedicao/domain/repositories/user_system_repository.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_internship_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_cart_router_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
@@ -81,16 +82,23 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
         );
       }
 
-      final routeResult = await _findRoute(params);
-      final routeCode = routeResult.fold((success) => success, (failure) => null);
-      if (routeCode == null) {
-        return routeResult.fold(
-          (success) => failure(AddCartFailure.generic('Percurso não encontrado')),
-          (failure) => Failure(failure),
-        );
+      int? routeCode;
+      if (params.origem == ExpeditionOrigem.separacaoEstoque &&
+          params.codCarrinhoPercurso != null &&
+          params.codCarrinhoPercurso! > 0) {
+        routeCode = params.codCarrinhoPercurso;
+      } else {
+        final routeResult = await _findRoute(params);
+        routeCode = routeResult.fold((success) => success, (failure) => null);
+        if (routeCode == null) {
+          return routeResult.fold(
+            (success) => failure(AddCartFailure.generic('Percurso não encontrado')),
+            (failure) => Failure(failure),
+          );
+        }
       }
 
-      codCarrinhoPercurso = routeCode;
+      codCarrinhoPercurso = routeCode!;
       final internshipResult = await _findInternship(params.origem);
       final internshipCode = internshipResult.fold((success) => success, (failure) => null);
       if (internshipCode == null) {
@@ -185,7 +193,8 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
           QueryBuilder()
               .equals('CodEmpresa', params.codEmpresa)
               .equals('CodOrigem', params.codOrigem)
-              .equals('Origem', params.origem.code),
+              .equals('Origem', params.origem.code)
+              .notEquals('Situacao', ExpeditionCartRouterSituation.cancelada.code),
         );
 
         if (cartRouteModels.isEmpty) {

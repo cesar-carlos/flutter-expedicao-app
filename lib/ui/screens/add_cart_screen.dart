@@ -22,24 +22,24 @@ class AddCartScreen extends StatefulWidget {
 class _AddCartScreenState extends State<AddCartScreen> {
   final _scrollController = ScrollController();
   int _lastSuccessCounter = 0;
+  late final AddCartViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    final viewModel = context.read<AddCartViewModel>();
-    viewModel.addListener(_onViewModelChanged);
+    _viewModel = context.read<AddCartViewModel>();
+    _viewModel.addListener(_onViewModelChanged);
   }
 
   @override
   void dispose() {
-    context.read<AddCartViewModel>().removeListener(_onViewModelChanged);
+    _viewModel.removeListener(_onViewModelChanged);
     _scrollController.dispose();
     super.dispose();
   }
 
   void _onViewModelChanged() {
-    final viewModel = context.read<AddCartViewModel>();
-    if (viewModel.hasCartData && !viewModel.isScanning) {
+    if (_viewModel.hasCartData && !_viewModel.isScanning) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _scrollToActions();
@@ -47,8 +47,8 @@ class _AddCartScreenState extends State<AddCartScreen> {
       });
     }
 
-    if (viewModel.successCounter > _lastSuccessCounter && mounted) {
-      _lastSuccessCounter = viewModel.successCounter;
+    if (_viewModel.successCounter > _lastSuccessCounter && mounted) {
+      _lastSuccessCounter = _viewModel.successCounter;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.pop(true);
@@ -110,7 +110,8 @@ class _AddCartScreenState extends State<AddCartScreen> {
                     ),
                   ],
 
-                  if (viewModel.hasError && !viewModel.hasCartData)
+                  if (viewModel.hasError) ...[
+                    const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -132,6 +133,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
                         ],
                       ),
                     ),
+                  ],
                 ],
               ),
             ),

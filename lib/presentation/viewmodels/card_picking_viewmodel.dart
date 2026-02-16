@@ -368,11 +368,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
     if (validationResult.isValid && validationResult.expectedItem != null) {
       final item = validationResult.expectedItem!;
-      final convertedQuantity = _convertQuantityWithBarcode(item, trimmedBarcode, inputQuantity);
-      final matchedUnit = item.buscarUnidadeMedidaPorCodigoBarras(trimmedBarcode);
-      final isSyntheticCodProdutoMatch =
-          matchedUnit != null && matchedUnit.itemUnidadeMedida.endsWith('_cod${item.codProduto}');
-      final effectiveQuantity = isSyntheticCodProdutoMatch ? 1 : convertedQuantity;
+      final effectiveQuantity = _convertQuantityWithBarcode(item, trimmedBarcode, inputQuantity);
 
       final totalQuantity = item.quantidade.toInt();
       final pickedQuantity = _stateManager.getPickedQuantity(item.item);
