@@ -10,8 +10,7 @@ import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/separation_user_sector_model.dart';
 import 'package:data7_expedicao/core/network/socket_config.dart';
 
-class SeparationUserSectorRepositoryImpl
-    implements BasicRepository<SeparationUserSectorModel> {
+class SeparationUserSectorRepositoryImpl implements BasicRepository<SeparationUserSectorModel> {
   final selectEvent = 'separar.usuario.setor.select';
   final insertEvent = 'separar.usuario.setor.insert';
   final updateEvent = 'separar.usuario.setor.update';
@@ -20,9 +19,7 @@ class SeparationUserSectorRepositoryImpl
   final uuid = const Uuid();
 
   @override
-  Future<List<SeparationUserSectorModel>> select(
-    QueryBuilder queryBuilder,
-  ) async {
+  Future<List<SeparationUserSectorModel>> select(QueryBuilder queryBuilder) async {
     final event = '${socket.id} $selectEvent';
     final completer = Completer<List<SeparationUserSectorModel>>();
     final responseId = uuid.v4();
@@ -38,6 +35,10 @@ class SeparationUserSectorRepositoryImpl
     );
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {
@@ -71,20 +72,18 @@ class SeparationUserSectorRepositoryImpl
   }
 
   @override
-  Future<List<SeparationUserSectorModel>> insert(
-    SeparationUserSectorModel entity,
-  ) async {
+  Future<List<SeparationUserSectorModel>> insert(SeparationUserSectorModel entity) async {
     final event = '${socket.id} $insertEvent';
     final completer = Completer<List<SeparationUserSectorModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {
@@ -118,20 +117,18 @@ class SeparationUserSectorRepositoryImpl
   }
 
   @override
-  Future<List<SeparationUserSectorModel>> update(
-    SeparationUserSectorModel entity,
-  ) async {
+  Future<List<SeparationUserSectorModel>> update(SeparationUserSectorModel entity) async {
     final event = '${socket.id} $updateEvent';
     final completer = Completer<List<SeparationUserSectorModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {
@@ -165,20 +162,18 @@ class SeparationUserSectorRepositoryImpl
   }
 
   @override
-  Future<List<SeparationUserSectorModel>> delete(
-    SeparationUserSectorModel entity,
-  ) async {
+  Future<List<SeparationUserSectorModel>> delete(SeparationUserSectorModel entity) async {
     final event = '${socket.id} $deleteEvent';
     final completer = Completer<List<SeparationUserSectorModel>>();
     final responseId = uuid.v4();
 
-    final send = SendMutationSocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      mutation: entity.toJson(),
-    );
+    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {

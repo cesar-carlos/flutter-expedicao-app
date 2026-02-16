@@ -25,17 +25,8 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
        _retryPolicy = retryPolicy;
 
   @override
-  Future<Result<ThermalPrintResult>> printTestTicket({
-    required PrinterConfig printer,
-    bool autoCut = true,
-  }) async {
-    _logPrintEvent(
-      operation: 'test',
-      status: 'start',
-      ip: printer.ip,
-      port: printer.port,
-      itemCount: 0,
-    );
+  Future<Result<ThermalPrintResult>> printTestTicket({required PrinterConfig printer, bool autoCut = true}) async {
+    _logPrintEvent(operation: 'test', status: 'start', ip: printer.ip, port: printer.port, itemCount: 0);
 
     try {
       final bytes = await _ticketBuilderService.buildPrinterTestTicketBytes(
@@ -47,8 +38,7 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
       );
 
       final report = await _retryPolicy.execute(
-        () =>
-            _tcpService.send(ip: printer.ip, port: printer.port, bytes: bytes),
+        () => _tcpService.send(ip: printer.ip, port: printer.port, bytes: bytes),
         tag: 'ThermalPrinterRepositoryImpl',
       );
 
@@ -150,8 +140,7 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
       );
 
       final report = await _retryPolicy.execute(
-        () =>
-            _tcpService.send(ip: printer.ip, port: printer.port, bytes: bytes),
+        () => _tcpService.send(ip: printer.ip, port: printer.port, bytes: bytes),
         tag: 'ThermalPrinterRepositoryImpl',
       );
 

@@ -16,7 +16,6 @@ class CheckSeparationUserSectorCompletionUseCase {
   static const String _fieldCodSepararEstoque = 'CodSepararEstoque';
   static const String _fieldCodSetorEstoque = 'CodSetorEstoque';
   static const String _fieldCodUsuario = 'CodUsuario';
-  static const String _cartOpenValue = 'S';
 
   Future<Result<bool>> call(CheckSeparationUserSectorCompletionParams params) async {
     if (!params.isValid) {
@@ -45,9 +44,14 @@ class CheckSeparationUserSectorCompletionUseCase {
     }
   }
 
-  bool _hasPendingWork(SeparationUserSectorConsultationModel item) {
+  static bool hasPendingItems(SeparationUserSectorConsultationModel item) {
+    const cartOpenValue = 'S';
     final hasPendingItems = item.quantidadeItensSetor > item.quantidadeItensSeparacaoSetor;
-    final hasOpenCarts = item.carrinhosAbertosUsuario == _cartOpenValue;
+    final hasOpenCarts = item.carrinhosAbertosUsuario == cartOpenValue;
     return hasPendingItems || hasOpenCarts;
+  }
+
+  bool _hasPendingWork(SeparationUserSectorConsultationModel item) {
+    return hasPendingItems(item);
   }
 }

@@ -16,7 +16,9 @@
       "Bash(flutter run:*)",
       "Bash(flutter clean:*)",
       "Bash(gh:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)"
     ]
   }
 }

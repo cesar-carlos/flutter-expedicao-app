@@ -5,24 +5,19 @@ import 'package:data7_expedicao/domain/repositories/i_printer_preferences_reposi
 class PrinterPreferencesRepositoryImpl implements IPrinterPreferencesRepository {
   final PrinterPreferencesService _service;
 
-  const PrinterPreferencesRepositoryImpl({
-    required PrinterPreferencesService service,
-  }) : _service = service;
+  const PrinterPreferencesRepositoryImpl({required PrinterPreferencesService service}) : _service = service;
 
   @override
   Future<List<PrinterConfig>> loadPrinters() => _service.loadPrinters();
 
   @override
-  Future<void> savePrinters(List<PrinterConfig> printers) =>
-      _service.savePrinters(printers);
+  Future<void> savePrinters(List<PrinterConfig> printers) => _service.savePrinters(printers);
 
   @override
-  Future<String?> loadDefaultPrinterId() async =>
-      _service.loadDefaultPrinterId();
+  Future<String?> loadDefaultPrinterId() async => _service.loadDefaultPrinterId();
 
   @override
-  Future<void> saveDefaultPrinterId(String? printerId) async =>
-      _service.saveDefaultPrinterId(printerId);
+  Future<void> saveDefaultPrinterId(String? printerId) async => _service.saveDefaultPrinterId(printerId);
 
   @override
   Future<void> clear() => _service.clear();

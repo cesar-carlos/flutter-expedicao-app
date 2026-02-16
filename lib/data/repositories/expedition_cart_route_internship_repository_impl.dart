@@ -35,6 +35,10 @@ class ExpeditionCartRouteInternshipRepositoryImpl implements BasicRepository<Exp
     );
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {
@@ -76,6 +80,10 @@ class ExpeditionCartRouteInternshipRepositoryImpl implements BasicRepository<Exp
     final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {
@@ -117,6 +125,10 @@ class ExpeditionCartRouteInternshipRepositoryImpl implements BasicRepository<Exp
     final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {
@@ -158,6 +170,10 @@ class ExpeditionCartRouteInternshipRepositoryImpl implements BasicRepository<Exp
     final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {

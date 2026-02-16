@@ -22,8 +22,7 @@ class UserSystemRepositoryImpl implements UserSystemRepository {
   /// Cria uma instância do repositório
   ///
   /// [apiService] - Serviço de API para comunicação HTTP (opcional para testes)
-  UserSystemRepositoryImpl({UserSystemApiService? apiService})
-    : _apiService = apiService ?? UserSystemApiService();
+  UserSystemRepositoryImpl({UserSystemApiService? apiService}) : _apiService = apiService ?? UserSystemApiService();
   @override
   Future<Map<String, dynamic>> getUserSystemInfo(int codUsuario) async {
     final user = await getUserById(codUsuario);
@@ -34,17 +33,9 @@ class UserSystemRepositoryImpl implements UserSystemRepository {
   }
 
   @override
-  Future<UserSystemListResponseDto> getUsers({
-    int? codEmpresa,
-    Situation? apenasAtivos,
-    Pagination? pagination,
-  }) async {
+  Future<UserSystemListResponseDto> getUsers({int? codEmpresa, Situation? apenasAtivos, Pagination? pagination}) async {
     try {
-      return await _apiService.getUsers(
-        codEmpresa: codEmpresa,
-        apenasAtivos: apenasAtivos,
-        pagination: pagination,
-      );
+      return await _apiService.getUsers(codEmpresa: codEmpresa, apenasAtivos: apenasAtivos, pagination: pagination);
     } on UserApiException {
       // Preservar exceção específica da API
       rethrow;

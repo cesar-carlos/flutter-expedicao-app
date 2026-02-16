@@ -29,6 +29,10 @@ class ExpeditionCartConsultationRepositoryImpl implements BasicConsultationRepos
     );
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {
@@ -63,9 +67,7 @@ class ExpeditionCartConsultationRepositoryImpl implements BasicConsultationRepos
           if (completer.isCompleted) return completer.future;
 
           socket.off(responseId);
-          completer.completeError(
-            DataError(message: 'Tempo limite de consulta excedido'),
-          );
+          completer.completeError(DataError(message: 'Tempo limite de consulta excedido'));
           return completer.future;
         },
       );

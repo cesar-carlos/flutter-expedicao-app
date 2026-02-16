@@ -9,6 +9,7 @@ import 'package:data7_expedicao/domain/repositories/basic_consultation_repositor
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_params.dart';
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_success.dart';
+import 'package:data7_expedicao/domain/usecases/check_separation_user_sector_completion/check_separation_user_sector_completion_usecase.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/utils/i_logger.dart';
@@ -28,8 +29,6 @@ class NextSeparationUserUseCase {
 
   static const String _blockedSituation = 'BLOQUEADA';
 
-  static const String _cartOpenValue = 'S';
-
   static const int _maxRetries = 3;
 
   static const String _fieldCodEmpresa = 'CodEmpresa';
@@ -38,7 +37,6 @@ class NextSeparationUserUseCase {
   static const String _fieldSituacao = 'SepararEstoqueSituacao';
   static const String _fieldQuantidadeItensSetor = 'QuantidadeItensSetor';
   static const String _fieldQuantidadeItensSeparacaoSetor = 'QuantidadeItensSeparacaoSetor';
-  static const String _fieldCarrinhosAbertos = 'CarrinhosAbertosUsuario';
   static const String _fieldPrioridade = 'Prioridade';
   static const String _fieldCodSepararEstoque = 'CodSepararEstoque';
 
@@ -62,6 +60,13 @@ class NextSeparationUserUseCase {
 
       return success(NextSeparationUserSuccess.found(separation));
     } on DataError catch (e) {
+      final msg = e.message.trim().toLowerCase();
+      if (msg.contains('socket') && msg.contains('conectado')) {
+        return failure(NextSeparationUserFailure.socketDisconnected());
+      }
+      if (msg.contains('fetch') || msg.contains('sql') || msg.contains('statement')) {
+        return failure(NextSeparationUserFailure.serverError(e.message));
+      }
       return failure(NextSeparationUserFailure.networkError(e.message, Exception(e.message)));
     } on Exception catch (e) {
       return failure(NextSeparationUserFailure.unknown(e.toString(), e));
@@ -83,27 +88,50 @@ class NextSeparationUserUseCase {
 
   Future<SeparationUserSectorConsultationModel?> _findNextSeparation(NextSeparationUserParams params) async {
     // PRIORIDADE 1: Buscar separação do usuário (no setor) com itens pendentes ou carrinhos abertos
-    final existingSeparation = await _findExistingSeparationWithPendingItems(params);
-    if (existingSeparation != null) return existingSeparation;
-
-    // PRIORIDADE 2: Buscar nova separação disponível (CodUsuario IS NULL)
-    final newSeparation = await _findNewSeparation(params);
-    if (newSeparation != null) {
-      final registrationResult = await _registerUserSectorAssignment(params, newSeparation);
-      if (registrationResult.isError()) {
-        AppLogger.warning(
-          'Atribuição falhou, buscando próxima separação (tentativa 1/$_maxRetries)...',
-        );
-        return await _findNextSeparationWithRetry(params, retryCount: 1);
+    try {
+      final existingSeparation = await _findExistingSeparationWithPendingItems(params);
+      if (existingSeparation != null) return existingSeparation;
+    } on DataError catch (e) {
+      final msg = e.message.trim().toLowerCase();
+      if (_isSqlError(msg)) {
+        AppLogger.warning('Erro SQL ao buscar separação existente, tentando sem paginação: $msg');
+        return await _findExistingSeparationWithPendingItemsNoPagination(params);
       }
-      return newSeparation.copyWith(
-        codUsuario: params.codUsuario,
-        nomeUsuario: params.userSystemModel?.nomeUsuario,
-      );
+      rethrow;
     }
 
-    return newSeparation;
+    // PRIORIDADE 2: Buscar nova separação disponível (CodUsuario IS NULL)
+    try {
+      final newSeparation = await _findNewSeparation(params);
+      if (newSeparation != null) {
+        final registrationResult = await _registerUserSectorAssignment(params, newSeparation);
+        if (registrationResult.isError()) {
+          AppLogger.warning('Atribuição falhou, buscando próxima separação (tentativa 1/$_maxRetries)...');
+          return await _findNextSeparationWithRetry(params, retryCount: 1);
+        }
+        return newSeparation.copyWith(codUsuario: params.codUsuario, nomeUsuario: params.userSystemModel?.nomeUsuario);
+      }
+      return newSeparation;
+    } on DataError catch (e) {
+      final msg = e.message.trim().toLowerCase();
+      if (_isSqlError(msg)) {
+        AppLogger.warning('Erro SQL ao buscar nova separação, tentando sem paginação: $msg');
+        return await _findNewSeparationNoPagination(params);
+      }
+      rethrow;
+    }
   }
+
+  bool _isSqlError(String message) {
+    return message.contains('fetch') ||
+        message.contains('sql') ||
+        message.contains('statement') ||
+        message.contains('offset') ||
+        message.contains('next');
+  }
+
+  static const int _queryLimitExisting = 100;
+  static const int _queryLimitNew = 50;
 
   /// PRIORIDADE 1: Busca separação já atribuída ao usuário (no setor) com itens pendentes ou carrinhos abertos
   /// Critérios:
@@ -115,28 +143,56 @@ class NextSeparationUserUseCase {
   ) async {
     final baseQuery = _buildBaseQuery(params);
     _addExcludedSituations(baseQuery);
+    _addStandardOrderBy(baseQuery);
+    baseQuery.paginate(limit: _queryLimitExisting, offset: 0, page: 1);
 
-    final baseWhere = baseQuery.buildSqlWhere();
-    final orCondition =
-        '($_fieldQuantidadeItensSetor > $_fieldQuantidadeItensSeparacaoSetor '
-        'OR $_fieldCarrinhosAbertos = \'$_cartOpenValue\')';
-    final completeWhere = '$baseWhere AND $orCondition';
+    final results = await _separationUserSectorConsultationRepository.selectConsultation(baseQuery);
 
-    return await _executeRawQuery(completeWhere);
+    final separation = results.where(CheckSeparationUserSectorCompletionUseCase.hasPendingItems).firstOrNull;
+    return separation;
   }
 
   Future<SeparationUserSectorConsultationModel?> _findNewSeparation(NextSeparationUserParams params) async {
-    final baseQuery = QueryBuilder()
+    final query = QueryBuilder()
       ..equals(_fieldCodEmpresa, params.codEmpresa)
       ..equals(_fieldCodSetorEstoque, params.codSetorEstoque!)
-      ..fieldGreaterThan(_fieldQuantidadeItensSetor, _fieldQuantidadeItensSeparacaoSetor);
+      ..fieldGreaterThan(_fieldQuantidadeItensSetor, _fieldQuantidadeItensSeparacaoSetor)
+      ..addParam(_fieldCodUsuario, null, operator: 'IS');
 
+    _addExcludedSituations(query);
+    _addStandardOrderBy(query);
+    query.paginate(limit: _queryLimitNew, offset: 0, page: 1);
+
+    return await _executeQuery(query);
+  }
+
+  /// Fallback sem paginação para erro SQL no servidor
+  Future<SeparationUserSectorConsultationModel?> _findExistingSeparationWithPendingItemsNoPagination(
+    NextSeparationUserParams params,
+  ) async {
+    final baseQuery = _buildBaseQuery(params);
     _addExcludedSituations(baseQuery);
+    _addStandardOrderBy(baseQuery);
+    // Não adiciona paginação
 
-    final baseWhere = baseQuery.buildSqlWhere();
-    final completeWhere = '$baseWhere AND $_fieldCodUsuario IS NULL';
+    final results = await _separationUserSectorConsultationRepository.selectConsultation(baseQuery);
 
-    return await _executeRawQuery(completeWhere);
+    return results.where(CheckSeparationUserSectorCompletionUseCase.hasPendingItems).firstOrNull;
+  }
+
+  /// Fallback sem paginação para erro SQL no servidor
+  Future<SeparationUserSectorConsultationModel?> _findNewSeparationNoPagination(NextSeparationUserParams params) async {
+    final query = QueryBuilder()
+      ..equals(_fieldCodEmpresa, params.codEmpresa)
+      ..equals(_fieldCodSetorEstoque, params.codSetorEstoque!)
+      ..fieldGreaterThan(_fieldQuantidadeItensSetor, _fieldQuantidadeItensSeparacaoSetor)
+      ..addParam(_fieldCodUsuario, null, operator: 'IS');
+
+    _addExcludedSituations(query);
+    _addStandardOrderBy(query);
+    // Não adiciona paginação
+
+    return await _executeQuery(query);
   }
 
   Future<SeparationUserSectorConsultationModel?> _findNextSeparationWithRetry(
@@ -164,10 +220,7 @@ class NextSeparationUserUseCase {
       return await _findNextSeparationWithRetry(params, retryCount: retryCount + 1);
     }
 
-    return newSeparation.copyWith(
-      codUsuario: params.codUsuario,
-      nomeUsuario: params.userSystemModel?.nomeUsuario,
-    );
+    return newSeparation.copyWith(codUsuario: params.codUsuario, nomeUsuario: params.userSystemModel?.nomeUsuario);
   }
 
   QueryBuilder _buildBaseQuery(NextSeparationUserParams params) {
@@ -196,12 +249,6 @@ class NextSeparationUserUseCase {
   Future<SeparationUserSectorConsultationModel?> _executeQuery(QueryBuilder query) async {
     final results = await _separationUserSectorConsultationRepository.selectConsultation(query);
     return results.isNotEmpty ? results.first : null;
-  }
-
-  Future<SeparationUserSectorConsultationModel?> _executeRawQuery(String whereClause) async {
-    final query = QueryBuilder()..addParam('where', whereClause, operator: 'RAW');
-    _addStandardOrderBy(query);
-    return await _executeQuery(query);
   }
 
   Future<Result<RegisterSeparationUserSectorSuccess>> _registerUserSectorAssignment(

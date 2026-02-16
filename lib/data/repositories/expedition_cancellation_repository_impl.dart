@@ -35,6 +35,10 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
     );
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {
@@ -81,6 +85,10 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
     final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {
@@ -127,6 +135,10 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
     final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {
@@ -173,6 +185,10 @@ class ExpeditionCancellationRepositoryImpl implements BasicRepository<Expedition
     final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {

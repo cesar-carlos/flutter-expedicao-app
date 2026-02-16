@@ -1,22 +1,29 @@
-import 'dart:async';
 import 'package:flutter/foundation.dart';
 
+import 'package:data7_expedicao/core/network/socket_config.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
 import 'package:data7_expedicao/di/locator.dart';
 
 class SocketViewModel extends ChangeNotifier {
   SocketService? _socketService;
-  StreamSubscription? _connectionStateSubscription;
+  VoidCallback? _connectionListener;
 
   SocketService get socketService {
     _socketService ??= locator<SocketService>();
     return _socketService!;
   }
 
-  SocketConnectionState get connectionState => socketService.connectionState;
+  /// Retorna o estado físico de conexão baseado no socket_io_client
+  /// Isso garante que a UI mostre o mesmo estado que o repository verifica
+  SocketConnectionState get connectionState {
+    if (SocketConfig.isConnected) {
+      return SocketConnectionState.connected;
+    }
+    return SocketConnectionState.disconnected;
+  }
 
-  bool get isConnected => socketService.isConnected;
+  bool get isConnected => SocketConfig.isConnected;
 
   String? get userId => socketService.userId;
 
@@ -105,11 +112,8 @@ class SocketViewModel extends ChangeNotifier {
   }
 
   void _setupConnectionListener() {
-    _connectionStateSubscription =
-        socketService.addListener(() {
-              notifyListeners();
-            })
-            as StreamSubscription?;
+    _connectionListener = notifyListeners;
+    socketService.addListener(_connectionListener!);
   }
 
   String get connectionStateDescription {
@@ -143,7 +147,10 @@ class SocketViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    _connectionStateSubscription?.cancel();
+    if (_socketService != null && _connectionListener != null) {
+      _socketService!.removeListener(_connectionListener!);
+      _connectionListener = null;
+    }
     super.dispose();
   }
 }

@@ -30,11 +30,7 @@ class UserRepositoryImpl implements UserRepository {
     );
 
     if (!createUserDto.isValid) {
-      throw UserApiException(
-        'Dados de usuário inválidos',
-        statusCode: 400,
-        isValidationError: true,
-      );
+      throw UserApiException('Dados de usuário inválidos', statusCode: 400, isValidationError: true);
     }
 
     return await _createUserWithDto(createUserDto);
@@ -52,10 +48,7 @@ class UserRepositoryImpl implements UserRepository {
         final loginResponseDto = LoginResponseDto.fromJson(response.data);
         return loginResponseDto.toDomain();
       } else {
-        throw UserApiException(
-          'Erro inesperado no login',
-          statusCode: response.statusCode,
-        );
+        throw UserApiException('Erro inesperado no login', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
@@ -63,17 +56,9 @@ class UserRepositoryImpl implements UserRepository {
       }
 
       final errorDto = ApiErrorDto.connectionError(_getErrorMessage(e));
-      throw UserApiException(
-        errorDto.message,
-        statusCode: e.response?.statusCode,
-        originalException: e,
-      );
+      throw UserApiException(errorDto.message, statusCode: e.response?.statusCode, originalException: e);
     } catch (e) {
-      throw UserApiException(
-        'Erro interno: $e',
-        statusCode: 500,
-        originalException: e,
-      );
+      throw UserApiException('Erro interno: $e', statusCode: 500, originalException: e);
     }
   }
 
@@ -86,33 +71,20 @@ class UserRepositoryImpl implements UserRepository {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         try {
-          final responseDto = CreateUserResponseDto.fromApiResponse(
-            response.data,
-          );
-          final userResponse = CreateUserResponse.fromJson(
-            responseDto.toDomain(),
-          );
+          final responseDto = CreateUserResponseDto.fromApiResponse(response.data);
+          final userResponse = CreateUserResponse.fromJson(responseDto.toDomain());
 
           return userResponse;
         } catch (e) {
-          throw UserApiException(
-            'Erro ao processar resposta da API: $e',
-            statusCode: response.statusCode,
-          );
+          throw UserApiException('Erro ao processar resposta da API: $e', statusCode: response.statusCode);
         }
       } else {
-        throw UserApiException(
-          'Erro inesperado: Status ${response.statusCode}',
-          statusCode: response.statusCode,
-        );
+        throw UserApiException('Erro inesperado: Status ${response.statusCode}', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 400) {
         try {
-          final errorDto = ApiErrorDto.fromApiResponse(
-            e.response!.data,
-            e.response!.statusCode,
-          );
+          final errorDto = ApiErrorDto.fromApiResponse(e.response!.data, e.response!.statusCode);
           throw errorDto.toException();
         } catch (parseError, stackTrace) {
           AppLogger.warning(
@@ -121,20 +93,13 @@ class UserRepositoryImpl implements UserRepository {
             error: parseError,
             stackTrace: stackTrace,
           );
-          final errorDto = ApiErrorDto.validationError(
-            'Erro de validação',
-            e.response?.data,
-          );
+          final errorDto = ApiErrorDto.validationError('Erro de validação', e.response?.data);
           throw errorDto.toException();
         }
       }
 
       final errorDto = ApiErrorDto.connectionError(_getErrorMessage(e));
-      throw UserApiException(
-        errorDto.message,
-        statusCode: e.response?.statusCode,
-        originalException: e,
-      );
+      throw UserApiException(errorDto.message, statusCode: e.response?.statusCode, originalException: e);
     } catch (e) {
       final errorDto = ApiErrorDto.connectionError('Erro inesperado: $e');
       throw UserApiException(errorDto.message, originalException: e);
@@ -145,10 +110,7 @@ class UserRepositoryImpl implements UserRepository {
   Future<AppUserConsultation> getAppUser(int codLoginApp) async {
     try {
       final url = '$_baseUrl/expedicao/consult-login-app';
-      final response = await _dio.get(
-        url,
-        queryParameters: {'CodLoginApp': codLoginApp},
-      );
+      final response = await _dio.get(url, queryParameters: {'CodLoginApp': codLoginApp});
 
       if (response.statusCode == 200) {
         final responseData = response.data;
@@ -160,22 +122,13 @@ class UserRepositoryImpl implements UserRepository {
           if (userData != null) {
             return AppUserConsultation.fromJson(userData);
           } else {
-            throw UserApiException(
-              'Dados do usuário não encontrados na resposta',
-              statusCode: 200,
-            );
+            throw UserApiException('Dados do usuário não encontrados na resposta', statusCode: 200);
           }
         } else {
-          throw UserApiException(
-            'Formato de resposta inválido',
-            statusCode: 200,
-          );
+          throw UserApiException('Formato de resposta inválido', statusCode: 200);
         }
       } else {
-        throw UserApiException(
-          'Erro inesperado: Status ${response.statusCode}',
-          statusCode: response.statusCode,
-        );
+        throw UserApiException('Erro inesperado: Status ${response.statusCode}', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
@@ -187,21 +140,13 @@ class UserRepositoryImpl implements UserRepository {
       }
 
       final errorDto = ApiErrorDto.connectionError(_getErrorMessage(e));
-      throw UserApiException(
-        errorDto.message,
-        statusCode: e.response?.statusCode,
-        originalException: e,
-      );
+      throw UserApiException(errorDto.message, statusCode: e.response?.statusCode, originalException: e);
     } catch (e) {
       if (e is UserApiException) {
         rethrow;
       }
 
-      throw UserApiException(
-        'Erro interno ao consultar usuário: $e',
-        statusCode: 500,
-        originalException: e,
-      );
+      throw UserApiException('Erro interno ao consultar usuário: $e', statusCode: 500, originalException: e);
     }
   }
 
@@ -224,22 +169,13 @@ class UserRepositoryImpl implements UserRepository {
           if (userData != null) {
             return AppUserConsultation.fromJson(userData);
           } else {
-            throw UserApiException(
-              'Dados do usuário não encontrados na resposta',
-              statusCode: 200,
-            );
+            throw UserApiException('Dados do usuário não encontrados na resposta', statusCode: 200);
           }
         } else {
-          throw UserApiException(
-            'Formato de resposta inválido',
-            statusCode: 200,
-          );
+          throw UserApiException('Formato de resposta inválido', statusCode: 200);
         }
       } else {
-        throw UserApiException(
-          'Erro inesperado: Status ${response.statusCode}',
-          statusCode: response.statusCode,
-        );
+        throw UserApiException('Erro inesperado: Status ${response.statusCode}', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 400) {
@@ -247,10 +183,7 @@ class UserRepositoryImpl implements UserRepository {
         String errorMessage = 'Erro ao atualizar usuário';
 
         if (errorData is Map<String, dynamic>) {
-          errorMessage =
-              errorData['message'] ??
-              errorData['error'] ??
-              'Dados inválidos enviados para o servidor';
+          errorMessage = errorData['message'] ?? errorData['error'] ?? 'Dados inválidos enviados para o servidor';
         } else if (errorData is String) {
           errorMessage = errorData;
         }
@@ -259,29 +192,18 @@ class UserRepositoryImpl implements UserRepository {
       }
 
       final errorDto = ApiErrorDto.connectionError(_getErrorMessage(e));
-      throw UserApiException(
-        errorDto.message,
-        statusCode: e.response?.statusCode,
-        originalException: e,
-      );
+      throw UserApiException(errorDto.message, statusCode: e.response?.statusCode, originalException: e);
     } catch (e) {
       if (e is UserApiException) {
         rethrow;
       }
 
-      throw UserApiException(
-        'Erro interno ao atualizar usuário: $e',
-        statusCode: 500,
-        originalException: e,
-      );
+      throw UserApiException('Erro interno ao atualizar usuário: $e', statusCode: 500, originalException: e);
     }
   }
 
   @override
-  Future<bool> validateCurrentPassword({
-    required String nome,
-    required String currentPassword,
-  }) async {
+  Future<bool> validateCurrentPassword({required String nome, required String currentPassword}) async {
     try {
       // Usar o endpoint de login para validar a senha atual
       // A senha já será convertida para lowercase no LoginDto
@@ -307,17 +229,10 @@ class UserRepositoryImpl implements UserRepository {
   }) async {
     try {
       // Primeiro, validar a senha atual
-      final isCurrentPasswordValid = await validateCurrentPassword(
-        nome: nome,
-        currentPassword: currentPassword,
-      );
+      final isCurrentPasswordValid = await validateCurrentPassword(nome: nome, currentPassword: currentPassword);
 
       if (!isCurrentPasswordValid) {
-        throw UserApiException(
-          'Senha atual incorreta',
-          statusCode: 401,
-          isValidationError: true,
-        );
+        throw UserApiException('Senha atual incorreta', statusCode: 401, isValidationError: true);
       }
 
       // Usar o endpoint PUT /expedicao/login-app para alterar a senha
@@ -341,19 +256,12 @@ class UserRepositoryImpl implements UserRepository {
       if (response.statusCode == 200) {
         return true;
       } else {
-        throw UserApiException(
-          'Erro ao alterar senha: Status ${response.statusCode}',
-          statusCode: response.statusCode,
-        );
+        throw UserApiException('Erro ao alterar senha: Status ${response.statusCode}', statusCode: response.statusCode);
       }
     } on UserApiException {
       rethrow;
     } catch (e) {
-      throw UserApiException(
-        'Erro ao alterar senha: $e',
-        statusCode: 500,
-        originalException: e,
-      );
+      throw UserApiException('Erro ao alterar senha: $e', statusCode: 500, originalException: e);
     }
   }
 

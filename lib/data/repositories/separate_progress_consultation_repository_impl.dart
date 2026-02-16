@@ -16,9 +16,7 @@ class SeparateProgressConsultationRepositoryImpl
   final selectEvent = 'separar.progresso.consulta';
 
   @override
-  Future<List<SeparateProgressConsultationModel>> selectConsultation(
-    QueryBuilder queryBuilder,
-  ) async {
+  Future<List<SeparateProgressConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
     final event = '${socket.id} $selectEvent';
     final completer = Completer<List<SeparateProgressConsultationModel>>();
     final responseId = uuid.v4();
@@ -32,6 +30,10 @@ class SeparateProgressConsultationRepositoryImpl
     );
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {

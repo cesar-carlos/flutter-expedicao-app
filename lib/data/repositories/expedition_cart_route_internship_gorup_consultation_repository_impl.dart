@@ -31,6 +31,10 @@ class ExpeditionCartRouteInternshipConsultationRepositoryImpl
     );
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {

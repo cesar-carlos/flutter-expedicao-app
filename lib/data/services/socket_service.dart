@@ -7,8 +7,6 @@ import 'package:data7_expedicao/core/network/socket_config.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
 
-enum SocketEvent { userLocationUpdate, scannerResult, notification, statusUpdate, chatMessage }
-
 enum SocketConnectionState { disconnected, connecting, connected, reconnecting, error }
 
 class SocketService extends ChangeNotifier {
@@ -133,8 +131,8 @@ class SocketService extends ChangeNotifier {
   }
 
   void emit(String eventName, dynamic data) {
-    if (!isConnected) {
-      return;
+    if (!SocketConfig.isConnected) {
+      throw StateError('Socket não está conectado');
     }
 
     try {

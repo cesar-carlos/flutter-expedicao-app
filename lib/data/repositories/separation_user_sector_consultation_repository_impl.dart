@@ -16,21 +16,31 @@ class SeparationUserSectorConsultationRepositoryImpl
   var socket = SocketConfig.instance;
   final selectEvent = 'separar.usuario.setor.consulta';
 
+  static const Duration _waitBeforeSocketCheck = Duration(milliseconds: 1500);
+
   @override
   Future<List<SeparationUserSectorConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
-    final event = '${socket.id} $selectEvent';
     final completer = Completer<List<SeparationUserSectorConsultationModel>>();
     final responseId = uuid.v4();
 
-    final send = SendQuerySocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      where: queryBuilder.buildSqlWhere(),
-      pagination: queryBuilder.buildPagination(),
-      orderBy: queryBuilder.buildOrderByQuery(),
-    );
-
     try {
+      if (!SocketConfig.isConnected) {
+        await Future.delayed(_waitBeforeSocketCheck);
+        if (!SocketConfig.isConnected) {
+          throw DataError(message: 'Socket não está conectado');
+        }
+      }
+
+      socket = SocketConfig.instance;
+      final event = '${socket.id} $selectEvent';
+      final send = SendQuerySocketDto(
+        session: socket.id!,
+        responseIn: responseId,
+        where: queryBuilder.buildSqlWhere(),
+        pagination: queryBuilder.buildPagination(),
+        orderBy: queryBuilder.buildOrderByQuery(),
+      );
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {
@@ -65,14 +75,13 @@ class SeparationUserSectorConsultationRepositoryImpl
           if (completer.isCompleted) return completer.future;
 
           socket.off(responseId);
-          completer.completeError(
-            DataError(message: 'Tempo limite de consulta excedido'),
-          );
+          completer.completeError(DataError(message: 'Tempo limite de consulta excedido'));
           return completer.future;
         },
       );
     } catch (e) {
       socket.off(responseId);
+      if (e is DataError) rethrow;
       throw DataError(message: e.toString());
     }
   }

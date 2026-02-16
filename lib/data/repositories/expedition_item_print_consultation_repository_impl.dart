@@ -44,6 +44,10 @@ class ExpeditionItemPrintConsultationRepositoryImpl
     );
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       _socket.on(responseId, (receiver) {
         try {
           if (completer.isCompleted) {

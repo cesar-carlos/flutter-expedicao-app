@@ -9,16 +9,13 @@ import 'package:data7_expedicao/domain/repositories/basic_consultation_repositor
 import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
 import 'package:data7_expedicao/core/network/socket_config.dart';
 
-class StockProductConsultationRepositoryImpl
-    implements BasicConsultationRepository<StockProductConsultationModel> {
+class StockProductConsultationRepositoryImpl implements BasicConsultationRepository<StockProductConsultationModel> {
   final uuid = const Uuid();
   var socket = SocketConfig.instance;
   final selectEvent = 'estoque.produto.consulta';
 
   @override
-  Future<List<StockProductConsultationModel>> selectConsultation(
-    QueryBuilder queryBuilder,
-  ) async {
+  Future<List<StockProductConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
     final event = '${socket.id} $selectEvent';
     final completer = Completer<List<StockProductConsultationModel>>();
     final responseId = uuid.v4();
@@ -31,6 +28,10 @@ class StockProductConsultationRepositoryImpl
     );
 
     try {
+      if (!SocketConfig.isConnected) {
+        throw DataError(message: 'Socket não está conectado');
+      }
+
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {

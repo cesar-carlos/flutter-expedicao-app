@@ -22,41 +22,26 @@ class BarcodeScannerRepositoryMobileImpl implements BarcodeScannerRepository {
     try {
       if (_context == null) {
         return Failure(
-          DataFailure(
-            message:
-                'Contexto não configurado. Chame setContext() antes de usar.',
-            code: 'NO_CONTEXT',
-          ),
+          DataFailure(message: 'Contexto não configurado. Chame setContext() antes de usar.', code: 'NO_CONTEXT'),
         );
       }
 
-      final result = await Navigator.of(_context!).push<String>(
-        MaterialPageRoute(builder: (context) => const BarcodeScannerScreen()),
-      );
+      final result = await Navigator.of(
+        _context!,
+      ).push<String>(MaterialPageRoute(builder: (context) => const BarcodeScannerScreen()));
 
       if (result == null) {
-        return Failure(
-          DataFailure(
-            message: 'Scan cancelado pelo usuário',
-            code: 'SCAN_CANCELLED',
-          ),
-        );
+        return Failure(DataFailure(message: 'Scan cancelado pelo usuário', code: 'SCAN_CANCELLED'));
       }
 
       if (result.trim().isEmpty) {
-        return Failure(
-          DataFailure(message: 'Código de barras vazio', code: 'EMPTY_BARCODE'),
-        );
+        return Failure(DataFailure(message: 'Código de barras vazio', code: 'EMPTY_BARCODE'));
       }
 
       return Success(result);
     } catch (e) {
       return Failure(
-        DataFailure(
-          message: 'Erro ao escanear código de barras: ${e.toString()}',
-          code: 'SCANNER_ERROR',
-          exception: e,
-        ),
+        DataFailure(message: 'Erro ao escanear código de barras: ${e.toString()}', code: 'SCANNER_ERROR', exception: e),
       );
     }
   }
@@ -148,9 +133,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
     if (_isProcessing || _isDisposed) return;
 
     final barcode = barcodeCapture.barcodes.firstOrNull;
-    if (barcode != null &&
-        barcode.rawValue != null &&
-        barcode.rawValue!.isNotEmpty) {
+    if (barcode != null && barcode.rawValue != null && barcode.rawValue!.isNotEmpty) {
       setState(() {
         _isProcessing = true;
       });
@@ -181,22 +164,11 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: AppColors.error,
-                  ),
+                  const Icon(Icons.error_outline, size: 64, color: AppColors.error),
                   const SizedBox(height: 16),
-                  Text(
-                    _errorMessage!,
-                    textAlign: TextAlign.center,
-                    style: AppFonts.inter(fontSize: 16),
-                  ),
+                  Text(_errorMessage!, textAlign: TextAlign.center, style: AppFonts.inter(fontSize: 16)),
                   const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () => _closeWithResult(null),
-                    child: const Text('Voltar'),
-                  ),
+                  ElevatedButton(onPressed: () => _closeWithResult(null), child: const Text('Voltar')),
                 ],
               ),
             ),
@@ -224,11 +196,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
               icon: ValueListenableBuilder(
                 valueListenable: _controller!,
                 builder: (context, state, child) {
-                  return Icon(
-                    state.torchState == TorchState.on
-                        ? Icons.flash_on
-                        : Icons.flash_off,
-                  );
+                  return Icon(state.torchState == TorchState.on ? Icons.flash_on : Icons.flash_off);
                 },
               ),
               onPressed: () {
@@ -255,15 +223,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
                     children: [
                       const Icon(Icons.error, size: 64, color: AppColors.error),
                       const SizedBox(height: 16),
-                      Text(
-                        'Erro: ${error.errorCode}',
-                        textAlign: TextAlign.center,
-                      ),
+                      Text('Erro: ${error.errorCode}', textAlign: TextAlign.center),
                       const SizedBox(height: 8),
-                      Text(
-                        error.errorDetails?.message ?? 'Erro desconhecido',
-                        textAlign: TextAlign.center,
-                      ),
+                      Text(error.errorDetails?.message ?? 'Erro desconhecido', textAlign: TextAlign.center),
                     ],
                   ),
                 );
@@ -272,9 +234,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
             if (_isProcessing)
               Container(
                 color: AppColors.black54,
-                child: const Center(
-                  child: CircularProgressIndicator(color: AppColors.white),
-                ),
+                child: const Center(child: CircularProgressIndicator(color: AppColors.white)),
               ),
           ],
         ),
