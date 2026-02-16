@@ -145,7 +145,6 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
     _barcodeController.dispose();
     _focusNode.dispose();
     _stopBroadcastListener();
-    _scannerService.dispose();
     super.dispose();
   }
 

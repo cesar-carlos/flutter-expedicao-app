@@ -21,6 +21,8 @@ import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_params.dart';
 import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/check_separation_user_sector_completion/check_separation_user_sector_completion_params.dart';
+import 'package:data7_expedicao/domain/usecases/check_separation_user_sector_completion/check_separation_user_sector_completion_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_params.dart';
 import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_usecase.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
@@ -215,11 +217,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
                 heroTag: 'addCart',
                 onPressed: _isValidatingAddCart ? null : () => _onAddCart(context),
                 icon: _isValidatingAddCart
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
+                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.add_shopping_cart),
                 label: Text(_isValidatingAddCart ? 'Verificando...' : 'Incluir Carrinho'),
                 tooltip: 'Incluir novo carrinho na separação',
@@ -472,7 +470,9 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
 
       if (freshResult.isError()) {
         final failure = freshResult.exceptionOrNull();
-        final message = failure is AppFailure ? failure.userMessage : (failure?.toString() ?? 'Erro ao consultar separação');
+        final message = failure is AppFailure
+            ? failure.userMessage
+            : (failure?.toString() ?? 'Erro ao consultar separação');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
@@ -502,7 +502,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
             SnackBar(
               content: Text(
                 'Não é possível adicionar carrinho. Situação atual: ${freshSeparation.situacao.description}\n'
-                'Permitido apenas em: Aguardando, Separando ou Em Separação',
+                'Permitido apenas em: Aguardando ou Separando',
               ),
               backgroundColor: Theme.of(context).colorScheme.tertiary,
               duration: UIConstants.snackBarLongDuration,
@@ -517,7 +517,20 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       final codUsuario = appUser?.userSystemModel?.codUsuario;
       final codSetorEstoque = appUser?.userSystemModel?.codSetorEstoque;
 
-      if (codSetorEstoque != null && codSetorEstoque > 0 && codUsuario != null) {
+      if (codUsuario == null || codUsuario <= 0) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Usuário não identificado. Por favor, faça login novamente.'),
+              backgroundColor: AppColors.error,
+              duration: UIConstants.snackBarLongDuration,
+            ),
+          );
+        }
+        return;
+      }
+
+      if (codSetorEstoque != null && codSetorEstoque > 0) {
         final resolveUseCase = locator<ResolveSeparationUserLinkUseCase>();
         final resolveResult = await resolveUseCase.call(
           ResolveSeparationUserLinkParams(
@@ -549,6 +562,40 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
           }
           return;
         }
+
+        final completionUseCase = locator<CheckSeparationUserSectorCompletionUseCase>();
+        final completionResult = await completionUseCase.call(
+          CheckSeparationUserSectorCompletionParams(
+            codEmpresa: freshSeparation.codEmpresa,
+            codSepararEstoque: freshSeparation.codSepararEstoque,
+            codSetorEstoque: codSetorEstoque,
+            codUsuario: codUsuario,
+          ),
+        );
+        if (!context.mounted) return;
+        if (completionResult.isError()) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Nao foi possivel validar se o setor ja foi concluido. Tente novamente.'),
+              backgroundColor: AppColors.error,
+              duration: UIConstants.snackBarLongDuration,
+            ),
+          );
+          return;
+        }
+
+        if (completionResult.getOrNull() == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                'Seu setor de estoque ja esta concluido nesta separacao. Nao e permitido incluir novos carrinhos.',
+              ),
+              backgroundColor: AppColors.warning,
+              duration: UIConstants.snackBarLongDuration,
+            ),
+          );
+          return;
+        }
       }
 
       if (!context.mounted) return;
@@ -557,69 +604,69 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
 
       final result = await context.push<bool>(
         AppRouter.addCart,
-        extra: {
-          'codEmpresa': freshSeparation.codEmpresa,
-          'codSepararEstoque': freshSeparation.codSepararEstoque,
-        },
+        extra: {'codEmpresa': freshSeparation.codEmpresa, 'codSepararEstoque': freshSeparation.codSepararEstoque},
       );
 
       if (result == true) {
-      AppLogger.debug(
-        'Carrinho adicionado com sucesso, iniciando processo de abertura...',
-        tag: 'SeparationItemsScreen',
-      );
+        AppLogger.debug(
+          'Carrinho adicionado com sucesso, iniciando processo de abertura...',
+          tag: 'SeparationItemsScreen',
+        );
 
-      await viewModel.refresh();
-
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      int retryCount = 0;
-      while (!viewModel.cartsLoaded && retryCount < 5 && context.mounted) {
-        await Future.delayed(const Duration(milliseconds: 200));
-        retryCount++;
-      }
-
-      if (!context.mounted) {
-        AppLogger.warning('Context não está mais montado, abortando navegação', tag: 'SeparationItemsScreen');
-        return;
-      }
-
-      AppLogger.debug(
-        'Carrinhos carregados: ${viewModel.carts.length}, tentando abrir o mais recente...',
-        tag: 'SeparationItemsScreen',
-      );
-
-      final cartOpened = await _openSeparationForNewestCart(context, viewModel);
-
-      if (!cartOpened && context.mounted) {
-        AppLogger.debug('Primeira tentativa falhou, tentando novamente após refresh...', tag: 'SeparationItemsScreen');
-        await Future.delayed(const Duration(milliseconds: 500));
         await viewModel.refresh();
 
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        int retryCount = 0;
+        while (!viewModel.cartsLoaded && retryCount < 5 && context.mounted) {
+          await Future.delayed(const Duration(milliseconds: 200));
+          retryCount++;
+        }
+
         if (!context.mounted) {
-          AppLogger.warning('Context não está mais montado após refresh', tag: 'SeparationItemsScreen');
+          AppLogger.warning('Context não está mais montado, abortando navegação', tag: 'SeparationItemsScreen');
           return;
         }
 
-        final retryOpened = await _openSeparationForNewestCart(context, viewModel);
+        AppLogger.debug(
+          'Carrinhos carregados: ${viewModel.carts.length}, tentando abrir o mais recente...',
+          tag: 'SeparationItemsScreen',
+        );
 
-        if (!retryOpened && context.mounted) {
-          AppLogger.warning(
-            'Não foi possível abrir o carrinho após múltiplas tentativas',
+        final cartOpened = await _openSeparationForNewestCart(context, viewModel);
+
+        if (!cartOpened && context.mounted) {
+          AppLogger.debug(
+            'Primeira tentativa falhou, tentando novamente após refresh...',
             tag: 'SeparationItemsScreen',
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text(
-                'Carrinho adicionado, mas não foi possível abrir automaticamente. Tente abrir manualmente.',
+          await Future.delayed(const Duration(milliseconds: 500));
+          await viewModel.refresh();
+
+          if (!context.mounted) {
+            AppLogger.warning('Context não está mais montado após refresh', tag: 'SeparationItemsScreen');
+            return;
+          }
+
+          final retryOpened = await _openSeparationForNewestCart(context, viewModel);
+
+          if (!retryOpened && context.mounted) {
+            AppLogger.warning(
+              'Não foi possível abrir o carrinho após múltiplas tentativas',
+              tag: 'SeparationItemsScreen',
+            );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'Carrinho adicionado, mas não foi possível abrir automaticamente. Tente abrir manualmente.',
+                ),
+                backgroundColor: Theme.of(context).colorScheme.tertiary,
+                duration: UIConstants.snackBarMediumDuration,
               ),
-              backgroundColor: Theme.of(context).colorScheme.tertiary,
-              duration: UIConstants.snackBarMediumDuration,
-            ),
-          );
+            );
+          }
         }
       }
-    }
     } finally {
       if (mounted) {
         setState(() => _isValidatingAddCart = false);
@@ -684,7 +731,15 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
         return false;
       }
 
-      context.push(AppRouter.cardPicking, extra: {'cart': newestCart, 'userModel': userModel});
+      unawaited(
+        context.push<Object?>(AppRouter.cardPicking, extra: {'cart': newestCart, 'userModel': userModel}).then((
+          result,
+        ) {
+          if (result == 'save_cart' && context.mounted) {
+            context.go(AppRouter.separation);
+          }
+        }),
+      );
 
       return true;
     } catch (e, stackTrace) {

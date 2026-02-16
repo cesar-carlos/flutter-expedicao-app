@@ -21,27 +21,25 @@ class AddCartScreen extends StatefulWidget {
 
 class _AddCartScreenState extends State<AddCartScreen> {
   final _scrollController = ScrollController();
-  late AddCartViewModel _viewModel;
   int _lastSuccessCounter = 0;
 
   @override
   void initState() {
     super.initState();
-    _viewModel = AddCartViewModel(codEmpresa: widget.codEmpresa, codSepararEstoque: widget.codSepararEstoque);
-
-    _viewModel.addListener(_onViewModelChanged);
+    final viewModel = context.read<AddCartViewModel>();
+    viewModel.addListener(_onViewModelChanged);
   }
 
   @override
   void dispose() {
-    _viewModel.removeListener(_onViewModelChanged);
-    _viewModel.dispose();
+    context.read<AddCartViewModel>().removeListener(_onViewModelChanged);
     _scrollController.dispose();
     super.dispose();
   }
 
   void _onViewModelChanged() {
-    if (_viewModel.hasCartData && !_viewModel.isScanning) {
+    final viewModel = context.read<AddCartViewModel>();
+    if (viewModel.hasCartData && !viewModel.isScanning) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _scrollToActions();
@@ -49,8 +47,8 @@ class _AddCartScreenState extends State<AddCartScreen> {
       });
     }
 
-    if (_viewModel.successCounter > _lastSuccessCounter && mounted) {
-      _lastSuccessCounter = _viewModel.successCounter;
+    if (viewModel.successCounter > _lastSuccessCounter && mounted) {
+      _lastSuccessCounter = viewModel.successCounter;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.pop(true);
@@ -71,78 +69,75 @@ class _AddCartScreenState extends State<AddCartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _viewModel,
-      child: Consumer<AddCartViewModel>(
-        builder: (context, viewModel, child) {
-          return Scaffold(
-            appBar: CustomAppBar.withoutSocket(
-              title: 'Incluir Carrinho',
-              leading: IconButton(
-                onPressed: () {
-                  viewModel.cancelAutoAdd();
-                  context.pop();
-                },
-                icon: const Icon(Icons.arrow_back),
-                tooltip: 'Voltar',
-              ),
+    return Consumer<AddCartViewModel>(
+      builder: (context, viewModel, child) {
+        return Scaffold(
+          appBar: CustomAppBar.withoutSocket(
+            title: 'Incluir Carrinho',
+            leading: IconButton(
+              onPressed: () {
+                viewModel.cancelAutoAdd();
+                context.pop();
+              },
+              icon: const Icon(Icons.arrow_back),
+              tooltip: 'Voltar',
             ),
-            body: SafeArea(
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    BarcodeScanner(onBarcodeScanned: viewModel.scanBarcode, isLoading: viewModel.isScanning),
+          ),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  BarcodeScanner(onBarcodeScanned: viewModel.scanBarcode, isLoading: viewModel.isScanning),
+
+                  const SizedBox(height: 24),
+
+                  if (viewModel.hasCartData) ...[
+                    CartDetailsWidget(cart: viewModel.scannedCart!),
 
                     const SizedBox(height: 24),
 
-                    if (viewModel.hasCartData) ...[
-                      CartDetailsWidget(cart: viewModel.scannedCart!),
-
-                      const SizedBox(height: 24),
-
-                      CartActionsWidget(
-                        viewModel: viewModel,
-                        onCancel: () {
-                          viewModel.cancelAutoAdd();
-                          context.pop();
-                        },
-                        onAdd: () => _onAddCart(viewModel),
-                        onNewQuery: () => _onNewQuery(viewModel),
-                      ),
-                    ],
-
-                    if (viewModel.hasError && !viewModel.hasCartData)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.errorContainer,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error, size: 48),
-                            const SizedBox(height: 8),
-                            Text(
-                              viewModel.errorMessage ?? 'Erro desconhecido',
-                              style: AppFonts.inter(
-                                color: Theme.of(context).colorScheme.error,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
+                    CartActionsWidget(
+                      viewModel: viewModel,
+                      onCancel: () {
+                        viewModel.cancelAutoAdd();
+                        context.pop();
+                      },
+                      onAdd: () => _onAddCart(viewModel),
+                      onNewQuery: () => _onNewQuery(viewModel),
+                    ),
                   ],
-                ),
+
+                  if (viewModel.hasError && !viewModel.hasCartData)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error, size: 48),
+                          const SizedBox(height: 8),
+                          Text(
+                            viewModel.errorMessage ?? 'Erro desconhecido',
+                            style: AppFonts.inter(
+                              color: Theme.of(context).colorScheme.error,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 

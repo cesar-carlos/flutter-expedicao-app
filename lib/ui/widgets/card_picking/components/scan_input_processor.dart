@@ -16,8 +16,6 @@ class ScanInputProcessor {
   ScanInputProcessor({required this.viewModel});
 
   void dispose() {
-    _scannerService.dispose();
-
     BarcodeValidationService.clearCaches();
   }
 

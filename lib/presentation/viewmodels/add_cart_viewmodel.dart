@@ -75,11 +75,15 @@ class AddCartViewModel extends ChangeNotifier {
         _audioService.playBarcodeScan();
         _startAutoAddCountdown();
       } else {
+        _scannedCart = null;
+        _stopAutoAddCountdown();
         _errorMessage = 'Carrinho não encontrado com o código de barras informado.';
         _audioService.playError();
       }
     } catch (e, stackTrace) {
       AppLogger.error('Erro ao buscar carrinho', tag: 'AddCartViewModel', error: e, stackTrace: stackTrace);
+      _scannedCart = null;
+      _stopAutoAddCountdown();
       _errorMessage = 'Erro ao buscar carrinho. Tente novamente.';
       _audioService.playError();
     } finally {
@@ -103,10 +107,22 @@ class AddCartViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      final existingCartRoute = await _checkExistingCartRoute();
-      if (existingCartRoute == null) {
+      final existingCartRouteResult = await _checkExistingCartRoute();
+
+      if (existingCartRouteResult.isSuccess()) {
+        _setError('Já existe um percurso em andamento para esta separação.');
+        _audioService.playError();
+        return false;
+      }
+
+      final failure = existingCartRouteResult.exceptionOrNull() as AppFailure;
+      if (failure is DataFailure && failure.code == 'NOT_FOUND') {
         final startResult = await _startSeparation();
         if (!startResult) return false;
+      } else {
+        _setError(failure.userMessage);
+        _audioService.playError();
+        return false;
       }
 
       final params = AddCartParams(
@@ -142,7 +158,7 @@ class AddCartViewModel extends ChangeNotifier {
     }
   }
 
-  Future<ExpeditionCartRouteModel?> _checkExistingCartRoute() async {
+  Future<Result<ExpeditionCartRouteModel>> _checkExistingCartRoute() async {
     try {
       final cartRoutes = await _cartRouteRepository.select(
         QueryBuilder()
@@ -152,11 +168,14 @@ class AddCartViewModel extends ChangeNotifier {
             .notEquals('Situacao', ExpeditionCartRouterSituation.cancelada.code),
       );
 
-      return cartRoutes.isNotEmpty ? cartRoutes.first : null;
+      if (cartRoutes.isNotEmpty) {
+        return Success(cartRoutes.first);
+      }
+
+      return Failure(DataFailure.notFound('Percurso de carrinho'));
     } catch (e, stackTrace) {
       AppLogger.error('Erro ao verificar carrinho percurso existente', tag: 'AddCartViewModel', error: e, stackTrace: stackTrace);
-      _setError('Erro ao verificar carrinho. Tente novamente.');
-      return null;
+      return Failure(DataFailure.repository(e));
     }
   }
 

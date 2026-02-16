@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/separation_user_sector_consultation_model.dart';
@@ -33,6 +34,8 @@ class SeparationUserSectorConsultationRepositoryImpl
       socket.emit(event, jsonEncode(send.toJson()));
 
       socket.on(responseId, (receiver) {
+        if (completer.isCompleted) return;
+
         try {
           final response = jsonDecode(receiver);
           final error = response?['Error'];
@@ -40,6 +43,7 @@ class SeparationUserSectorConsultationRepositoryImpl
 
           if (error != null) {
             completer.completeError(DataError(message: error.toString()));
+            socket.off(responseId);
             return;
           }
 
@@ -48,14 +52,25 @@ class SeparationUserSectorConsultationRepositoryImpl
           }).toList();
 
           completer.complete(list);
+          socket.off(responseId);
         } catch (e) {
           completer.completeError(DataError(message: e.toString()));
-        } finally {
           socket.off(responseId);
         }
       });
 
-      return completer.future;
+      return completer.future.timeout(
+        UIConstants.shortNetworkTimeout,
+        onTimeout: () {
+          if (completer.isCompleted) return completer.future;
+
+          socket.off(responseId);
+          completer.completeError(
+            DataError(message: 'Tempo limite de consulta excedido'),
+          );
+          return completer.future;
+        },
+      );
     } catch (e) {
       socket.off(responseId);
       throw DataError(message: e.toString());

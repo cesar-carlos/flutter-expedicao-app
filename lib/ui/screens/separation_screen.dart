@@ -24,14 +24,14 @@ import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separa
 import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_success.dart';
 import 'package:data7_expedicao/domain/models/separation_user_sector_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/separation/separation_card.dart';
-import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/ui/widgets/app_drawer/app_drawer.dart';
-import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/usecases/get_default_printer/get_default_printer_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_params.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_params.dart';
 
 /// Tela principal de listagem de separações
 class SeparationScreen extends StatefulWidget {
@@ -204,7 +204,20 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     final codSetorEstoque = appUser?.userSystemModel?.codSetorEstoque;
     final codUsuario = appUser?.userSystemModel?.codUsuario;
 
-    if (codSetorEstoque != null && codSetorEstoque > 0 && codUsuario != null) {
+    if (codUsuario == null || codUsuario <= 0) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Usuário não identificado. Por favor, faça login novamente.'),
+            backgroundColor: AppColors.error,
+            duration: UIConstants.snackBarLongDuration,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (codSetorEstoque != null && codSetorEstoque > 0) {
       final resolveUseCase = locator<ResolveSeparationUserLinkUseCase>();
       final result = await resolveUseCase.call(
         ResolveSeparationUserLinkParams(
@@ -431,7 +444,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       final result = await _executeNextSeparationUseCase(params);
       if (!mounted) return;
 
-      _handleNextSeparationResult(result);
+      _handleNextSeparationResult(result, params);
     } catch (e, stackTrace) {
       AppLogger.error('Erro inesperado em Próxima Separação', tag: 'SeparationScreen', error: e, stackTrace: stackTrace);
       if (mounted) {
@@ -481,12 +494,11 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   }
 
   /// Processa o resultado da busca de próxima separação
-  void _handleNextSeparationResult(Result<NextSeparationUserSuccess> result) {
+  void _handleNextSeparationResult(Result<NextSeparationUserSuccess> result, NextSeparationUserParams params) {
     result.fold(
       (success) async {
         if (success.hasSeparation) {
-          final params = await _getUserParams();
-          if (params != null) _openNextSeparation(success.separation!, params);
+          _openNextSeparation(success.separation!, params);
         } else {
           _showInfoModal('Nenhuma Separação', success.message);
         }
@@ -498,9 +510,10 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     );
   }
 
-  /// Converte SeparationUserSectorConsultationModel para SeparateConsultationModel
-  /// e navega para a tela de separação
-  void _openNextSeparation(SeparationUserSectorConsultationModel separation, NextSeparationUserParams params) {
+  /// Consulta a separação completa e navega para a tela de separação
+  Future<void> _openNextSeparation(SeparationUserSectorConsultationModel separation, NextSeparationUserParams params) async {
+    if (!mounted) return;
+
     // Verificar se a separação está atribuída ao usuário atual
     if (separation.codUsuario != params.codUsuario) {
       _showErrorModal(
@@ -511,34 +524,33 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       return;
     }
 
-    try {
-      // Converter para SeparateConsultationModel
-      final separateConsultation = SeparateConsultationModel(
+    // Consultar a separação completa
+    final getSeparationUseCase = locator<GetSeparationConsultationUseCase>();
+    final result = await getSeparationUseCase.call(
+      GetSeparationConsultationParams(
         codEmpresa: separation.codEmpresa,
         codSepararEstoque: separation.codSepararEstoque,
-        origem: ExpeditionOrigem.vazio, // Valor padrão
-        codOrigem: 0, // Valor padrão
-        codTipoOperacaoExpedicao: 0, // Valor padrão
-        nomeTipoOperacaoExpedicao: 'Operação Padrão', // Valor padrão
-        situacao: separation.separarEstoqueSituacao,
-        tipoEntidade: EntityType.cliente, // Valor padrão
-        dataEmissao: DateTime.now(), // Valor padrão
-        horaEmissao: '00:00:00', // Valor padrão
-        codEntidade: 0, // Valor padrão
-        nomeEntidade: separation.nomeUsuario ?? 'Entidade Padrão',
-        codPrioridade: separation.codPrioridade,
-        nomePrioridade: separation.descricaoPrioridade,
-        codSetoresEstoque: [separation.codSetorEstoque],
-        codUsuariosSeparacao: separation.codUsuario != null ? [separation.codUsuario!] : [],
-        historico: null,
-        observacao: null,
-      );
+      ),
+    );
 
-      // Navegar para a tela de separação
+    if (!mounted) return;
+
+    if (result.isError()) {
+      final failure = result.exceptionOrNull();
+      final message = failure is AppFailure ? failure.userMessage : 'Erro ao consultar separação';
+      _showErrorModal('Erro na Consulta', message);
+      return;
+    }
+
+    final separateConsultation = result.getOrNull();
+    if (separateConsultation == null) {
+      _showErrorModal('Separação Não Encontrada', 'A separação ${separation.codSepararEstoque} não foi encontrada.');
+      return;
+    }
+
+    // Navegar para a tela de separação com dados reais
+    if (mounted) {
       context.push(AppRouter.separateItems, extra: separateConsultation.toJson());
-    } catch (e, stackTrace) {
-      AppLogger.error('Erro ao abrir separação', tag: 'SeparationScreen', error: e, stackTrace: stackTrace);
-      if (mounted) _showErrorModal('Erro ao Abrir Separação', 'Erro ao abrir separação. Tente novamente.');
     }
   }
 

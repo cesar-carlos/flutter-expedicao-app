@@ -1,0 +1,50 @@
+Vou fazer uma varredura objetiva nos pontos críticos do fluxo (separation_screen -> separation_items -> add_cart -> card_picking) e te devolver sugestões priorizadas de confiabilidade/performance com referência exata de arquivo.
+Vou validar também o fluxo AddCart (tela + rota + ViewModel) para te apontar melhorias concretas que ainda faltam, porque é um dos maiores pontos de risco de confiabilidade/performance.
+
+
+Sim. Analisando o fluxo atual, ainda há melhorias importantes de confiabilidade e desempenho.
+
+Prioridade Alta
+
+Consultas socket sem timeout podem travar a UI indefinidamente.
+separation_user_sector_consultation_repository_impl.dart (line 21), expedition_cart_consultation_repository_impl.dart (line 20), separate_progress_consultation_repository_impl.dart (line 23)
+Sugestão: aplicar timeout no completer.future, garantir socket.off(responseId) em todos os caminhos e proteger com if (!completer.isCompleted).
+
+AddCart pode operar com estado stale e iniciar separação em erro de consulta.
+add_cart_viewmodel.dart (line 73), add_cart_viewmodel.dart (line 107), add_cart_viewmodel.dart (line 156)
+Sugestão: limpar _scannedCart em scan inválido/erro; _checkExistingCartRoute retornar estado tri-state (found, notFound, error) em vez de null para tudo.
+
+Dupla instanciação de AddCartViewModel.
+app_router.dart (line 257), add_cart_screen.dart (line 30)
+Sugestão: manter uma única origem (rota OU tela), para evitar estado divergente e custo extra.
+
+BarcodeScannerService é singleton e está sendo dispose() por widgets.
+locator.dart (line 187), barcode_scanner_widget.dart (line 148), scan_input_processor.dart (line 19)
+Sugestão: não chamar dispose() de singleton no widget; usar método de limpeza local (clearValidationCache) quando necessário.
+
+Prioridade Média
+5. Fluxo “Próxima Separação” ainda navega com modelo parcial/default.
+separation_screen.dart (line 520), separation_screen.dart (line 522)
+Sugestão: consultar separação completa antes de push para evitar inconsistência funcional.
+
+Leitura duplicada de sessão no mesmo fluxo.
+separation_screen.dart (line 428), separation_screen.dart (line 488)
+Sugestão: reutilizar params já carregado (menos I/O e menor risco de divergência entre chamadas).
+
+Polling de carrinhos com flag que não é resetada antes de nova carga.
+separation_items_screen.dart (line 608), separation_items_viewmodel.dart (line 171), separation_items_viewmodel.dart (line 189)
+Sugestão: setar _cartsLoaded = false no início de loadSeparationCarts e substituir polling por await explícito/completer.
+
+Auto-abertura considera carrinho já finalizado.
+separation_items_screen.dart (line 685)
+Sugestão: para auto-open, filtrar apenas AGUARDANDO/SEPARANDO.
+
+Prioridade Baixa (UX/perf)
+9. Mensagem de status permitido diverge da regra implementada.
+separation_items_screen.dart (line 505) vs separation_items_screen.dart (line 667)
+Sugestão: alinhar texto para evitar confusão operacional.
+
+Muitos notifyListeners() em sequência em eventos de carrinho podem causar rebuild excessivo.
+separation_items_viewmodel.dart (line 817)
+Sugestão: agrupar atualizações (microtask/debounce curto) em burst de eventos.
+Se quiser, eu implemento agora os itens 1 + 2 + 4 primeiro (maior ganho imediato de confiabilidade).
