@@ -672,12 +672,9 @@ class CartItemCard extends StatelessWidget {
   Future<void> _syncSeparationFromServer(BuildContext context) async {
     if (viewModel == null) return;
 
-    final syncKey =
-        '${cartRouteInternshipConsultation.codEmpresa}_${cartRouteInternshipConsultation.codOrigem}';
+    final syncKey = '${cartRouteInternshipConsultation.codEmpresa}_${cartRouteInternshipConsultation.codOrigem}';
     final now = DateTime.now();
-    if (_lastSyncKey == syncKey &&
-        _lastSyncTime != null &&
-        now.difference(_lastSyncTime!) < _minSyncInterval) {
+    if (_lastSyncKey == syncKey && _lastSyncTime != null && now.difference(_lastSyncTime!) < _minSyncInterval) {
       return;
     }
     _lastSyncKey = syncKey;
@@ -881,9 +878,12 @@ class CartItemCard extends StatelessWidget {
       }
 
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Erro inesperado ao salvar carrinho. Tente novamente.'), backgroundColor: AppColors.error));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro inesperado ao salvar carrinho. Tente novamente.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
       return false;
     }
@@ -1163,7 +1163,10 @@ class CartItemCard extends StatelessWidget {
       AppLogger.error('Erro inesperado ao cancelar carrinho', tag: 'CartItemCard', error: e, stackTrace: stackTrace);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('Erro inesperado. Tente novamente.'), backgroundColor: Theme.of(context).colorScheme.error),
+          SnackBar(
+            content: const Text('Erro inesperado. Tente novamente.'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     }

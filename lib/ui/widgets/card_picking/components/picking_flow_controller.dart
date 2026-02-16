@@ -108,6 +108,7 @@ class PickingFlowController {
               if (navigator.mounted) Navigator.of(navigator).pop('save_cart');
               _isFinishing = false;
             }
+
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Future.delayed(Duration.zero, doPops);
             });
@@ -128,6 +129,7 @@ class PickingFlowController {
               if (navigator.mounted) _showErrorDialog(navigator, message, details: details);
               _isFinishing = false;
             }
+
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Future.delayed(Duration.zero, doPopsAndDialog);
             });
@@ -153,6 +155,7 @@ class PickingFlowController {
           if (navigator.mounted) _showErrorDialog(navigator, 'Erro inesperado ao salvar carrinho. Tente novamente.');
           _isFinishing = false;
         }
+
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Future.delayed(Duration.zero, doPopsAndDialog);
         });
