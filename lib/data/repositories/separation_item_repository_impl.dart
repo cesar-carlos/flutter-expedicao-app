@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/data/dtos/send_mutation_socket_dto.dart';
 import 'package:data7_expedicao/domain/models/separation_item_model.dart';
@@ -64,7 +65,15 @@ class SeparationItemRepositoryImpl implements BasicRepository<SeparationItemMode
         }
       });
 
-      return completer.future;
+      return completer.future.timeout(
+        UIConstants.shortNetworkTimeout,
+        onTimeout: () {
+          if (completer.isCompleted) return completer.future;
+          socket.off(responseId);
+          completer.completeError(DataError(message: 'Tempo limite de consulta excedido'));
+          return completer.future;
+        },
+      );
     } catch (e) {
       socket.off(responseId);
       throw DataError(message: e.toString());
@@ -109,7 +118,15 @@ class SeparationItemRepositoryImpl implements BasicRepository<SeparationItemMode
         }
       });
 
-      return completer.future;
+      return completer.future.timeout(
+        UIConstants.networkTimeout,
+        onTimeout: () {
+          if (completer.isCompleted) return completer.future;
+          socket.off(responseId);
+          completer.completeError(DataError(message: 'Tempo limite de operação excedido'));
+          return completer.future;
+        },
+      );
     } catch (e) {
       socket.off(responseId);
       throw DataError(message: e.toString());
@@ -154,7 +171,15 @@ class SeparationItemRepositoryImpl implements BasicRepository<SeparationItemMode
         }
       });
 
-      return completer.future;
+      return completer.future.timeout(
+        UIConstants.networkTimeout,
+        onTimeout: () {
+          if (completer.isCompleted) return completer.future;
+          socket.off(responseId);
+          completer.completeError(DataError(message: 'Tempo limite de operação excedido'));
+          return completer.future;
+        },
+      );
     } catch (e) {
       socket.off(responseId);
       throw DataError(message: e.toString());
@@ -199,7 +224,15 @@ class SeparationItemRepositoryImpl implements BasicRepository<SeparationItemMode
         }
       });
 
-      return completer.future;
+      return completer.future.timeout(
+        UIConstants.networkTimeout,
+        onTimeout: () {
+          if (completer.isCompleted) return completer.future;
+          socket.off(responseId);
+          completer.completeError(DataError(message: 'Tempo limite de operação excedido'));
+          return completer.future;
+        },
+      );
     } catch (e) {
       socket.off(responseId);
       throw DataError(message: e.toString());

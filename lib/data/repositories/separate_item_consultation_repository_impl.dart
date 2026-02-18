@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
@@ -62,7 +63,15 @@ class SeparateItemConsultationRepositoryImpl implements BasicConsultationReposit
         }
       });
 
-      return completer.future;
+      return completer.future.timeout(
+        UIConstants.shortNetworkTimeout,
+        onTimeout: () {
+          if (completer.isCompleted) return completer.future;
+          socket.off(responseId);
+          completer.completeError(DataError(message: 'Tempo limite de consulta excedido'));
+          return completer.future;
+        },
+      );
     } catch (e) {
       socket.off(responseId);
       throw DataError(message: e.toString());

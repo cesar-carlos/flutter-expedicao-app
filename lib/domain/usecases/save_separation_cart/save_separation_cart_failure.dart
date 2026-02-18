@@ -68,7 +68,10 @@ class SaveSeparationCartFailure extends AppFailure {
   }
 
   factory SaveSeparationCartFailure.unexpected(Object error) {
-    return SaveSeparationCartFailure(message: 'Erro inesperado ao salvar carrinho', details: error.toString());
+    return SaveSeparationCartFailure(
+      message: error.toString(),
+      details: null,
+    );
   }
 
   factory SaveSeparationCartFailure.excessSeparatedQuantity({

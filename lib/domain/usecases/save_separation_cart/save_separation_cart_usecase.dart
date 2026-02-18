@@ -7,6 +7,7 @@ import 'package:data7_expedicao/domain/models/separate_item_consultation_model.d
 import 'package:data7_expedicao/domain/models/separation_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
+import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_query_fields.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_success.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_failure.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
@@ -62,13 +63,15 @@ class SaveSeparationCartUseCase {
         return Failure(SaveSeparationCartFailure.userNotAuthenticated());
       }
 
-      final results = await Future.wait([
+      final (separateProgress, itemsSeparation, cartRouteInternship) = await _wait3(
         _findSeparateProgress(params),
         _findItemsSeparation(params.codEmpresa, params.codCarrinhoPercurso, params.itemCarrinhoPercurso),
-      ]);
-
-      final separateProgress = results[0] as SeparateProgressConsultationModel?;
-      final itemsSeparation = results[1] as List<SeparationItemConsultationModel>;
+        _findCartRouteInternship(
+          params.codEmpresa,
+          params.codCarrinhoPercurso,
+          params.itemCarrinhoPercurso,
+        ),
+      );
 
       if (separateProgress == null) {
         AppLogger.warning(
@@ -104,23 +107,6 @@ class SaveSeparationCartUseCase {
         return Failure(SaveSeparationCartFailure.noSeparatedItems());
       }
 
-      AppLogger.debug('Validando quantidades separadas antes de salvar carrinho', tag: 'SaveSeparationCartUseCase');
-
-      final validationResult = await _validateSeparatedQuantities(params);
-      if (validationResult != null) {
-        AppLogger.warning(
-          'Validação de quantidades falhou: ${validationResult.message}',
-          tag: 'SaveSeparationCartUseCase',
-        );
-        return Failure(validationResult);
-      }
-
-      final cartRouteInternship = await _findCartRouteInternship(
-        params.codEmpresa,
-        params.codCarrinhoPercurso,
-        params.itemCarrinhoPercurso,
-      );
-
       if (cartRouteInternship == null) {
         AppLogger.warning(
           'Carrinho percurso não encontrado: codCarrinhoPercurso=${params.codCarrinhoPercurso}, item=${params.itemCarrinhoPercurso}',
@@ -137,7 +123,20 @@ class SaveSeparationCartUseCase {
         return Failure(SaveSeparationCartFailure.invalidStatus(cartRouteInternship));
       }
 
-      final cartModel = await _findCart(params.codEmpresa, cartRouteInternship.codCarrinho);
+      AppLogger.debug('Validando quantidades separadas antes de salvar carrinho', tag: 'SaveSeparationCartUseCase');
+
+      final (validationResult, cartModel) = await _wait2(
+        _validateSeparatedQuantities(params, itemsSeparation),
+        _findCart(params.codEmpresa, cartRouteInternship.codCarrinho),
+      );
+
+      if (validationResult != null) {
+        AppLogger.warning(
+          'Validação de quantidades falhou: ${validationResult.message}',
+          tag: 'SaveSeparationCartUseCase',
+        );
+        return Failure(validationResult);
+      }
       if (cartModel == null) {
         AppLogger.warning(
           'Carrinho não encontrado: codCarrinho=${cartRouteInternship.codCarrinho}',
@@ -168,8 +167,10 @@ class SaveSeparationCartUseCase {
         params.itemCarrinhoPercurso,
       );
 
-      await _cartRouteInternshipRepository.update(copyWithCartRouteInternship);
-      await _cartRepository.update(copyWithCart);
+      await Future.wait([
+        _cartRouteInternshipRepository.update(copyWithCartRouteInternship),
+        _cartRepository.update(copyWithCart),
+      ]);
 
       AppLogger.success(
         'Carrinho salvo com sucesso: codCarrinhoPercurso=${params.codCarrinhoPercurso}',
@@ -198,8 +199,8 @@ class SaveSeparationCartUseCase {
 
   Future<ExpeditionCartModel?> _findCart(int codEmpresa, int codCarrinho) async {
     final query = QueryBuilder()
-      ..equals('CodEmpresa', codEmpresa.toString())
-      ..equals('CodCarrinho', codCarrinho.toString());
+      ..equals(SaveCartQueryFields.codEmpresa, codEmpresa.toString())
+      ..equals(SaveCartQueryFields.codCarrinho, codCarrinho.toString());
 
     final carts = await _cartRepository.select(query);
     if (carts.isEmpty) return null;
@@ -212,9 +213,9 @@ class SaveSeparationCartUseCase {
     String item,
   ) async {
     final query = QueryBuilder()
-      ..equals('CodEmpresa', codEmpresa.toString())
-      ..equals('CodCarrinhoPercurso', codCarrinhoPercurso.toString())
-      ..equals('Item', item);
+      ..equals(SaveCartQueryFields.codEmpresa, codEmpresa.toString())
+      ..equals(SaveCartQueryFields.codCarrinhoPercurso, codCarrinhoPercurso.toString())
+      ..equals(SaveCartQueryFields.item, item);
 
     final cartRoutes = await _cartRouteInternshipRepository.select(query);
     if (cartRoutes.isEmpty) return null;
@@ -227,9 +228,9 @@ class SaveSeparationCartUseCase {
     String itemCarrinhoPercurso,
   ) async {
     final query = QueryBuilder()
-      ..equals('CodEmpresa', codEmpresa.toString())
-      ..equals('CodCarrinhoPercurso', codCarrinhoPercurso.toString())
-      ..equals('ItemCarrinhoPercurso', itemCarrinhoPercurso);
+      ..equals(SaveCartQueryFields.codEmpresa, codEmpresa.toString())
+      ..equals(SaveCartQueryFields.codCarrinhoPercurso, codCarrinhoPercurso.toString())
+      ..equals(SaveCartQueryFields.itemCarrinhoPercurso, itemCarrinhoPercurso);
 
     final items = await _separationItemRepository.selectConsultation(query);
     return items;
@@ -237,8 +238,8 @@ class SaveSeparationCartUseCase {
 
   Future<SeparateProgressConsultationModel?> _findSeparateProgress(SaveSeparationCartParams params) async {
     final query = QueryBuilder()
-      ..equals('CodEmpresa', params.codEmpresa.toString())
-      ..equals('CodSepararEstoque', params.codSepararEstoque.toString());
+      ..equals(SaveCartQueryFields.codEmpresa, params.codEmpresa.toString())
+      ..equals(SaveCartQueryFields.codSepararEstoque, params.codSepararEstoque.toString());
 
     final separateProgresses = await _separateProgressRepository.selectConsultation(query);
     if (separateProgresses.isEmpty) return null;
@@ -251,48 +252,41 @@ class SaveSeparationCartUseCase {
     String itemCarrinhoPercurso,
   ) async {
     final query = QueryBuilder()
-      ..equals('CodEmpresa', codEmpresa.toString())
-      ..equals('CodCarrinhoPercurso', codCarrinhoPercurso.toString())
-      ..equals('ItemCarrinhoPercurso', itemCarrinhoPercurso)
-      ..notEquals('Situacao', ExpeditionItemSituation.cancelado.code);
+      ..equals(SaveCartQueryFields.codEmpresa, codEmpresa.toString())
+      ..equals(SaveCartQueryFields.codCarrinhoPercurso, codCarrinhoPercurso.toString())
+      ..equals(SaveCartQueryFields.itemCarrinhoPercurso, itemCarrinhoPercurso)
+      ..notEquals(SaveCartQueryFields.situacao, ExpeditionItemSituation.cancelado.code);
 
     final separationItems = await _separationItemModelRepository.select(query);
 
-    for (final item in separationItems) {
-      final updatedItem = item.copyWith(situacao: ExpeditionItemSituation.finalizado);
-      await _separationItemModelRepository.update(updatedItem);
-    }
+    await Future.wait(
+      separationItems.map(
+        (item) => _separationItemModelRepository.update(
+          item.copyWith(situacao: ExpeditionItemSituation.finalizado),
+        ),
+      ),
+    );
   }
 
-  Future<SaveSeparationCartFailure?> _validateSeparatedQuantities(SaveSeparationCartParams params) async {
+  Future<SaveSeparationCartFailure?> _validateSeparatedQuantities(
+    SaveSeparationCartParams params,
+    List<SeparationItemConsultationModel> itemsSeparation,
+  ) async {
     try {
       AppLogger.debug('Iniciando validação de quantidades separadas', tag: 'SaveSeparationCartUseCase');
 
       final separateItemsQuery = QueryBuilder()
-        ..equals('CodEmpresa', params.codEmpresa.toString())
-        ..equals('CodSepararEstoque', params.codSepararEstoque.toString());
+        ..equals(SaveCartQueryFields.codEmpresa, params.codEmpresa.toString())
+        ..equals(SaveCartQueryFields.codSepararEstoque, params.codSepararEstoque.toString());
 
-      final separationItemsQuery = QueryBuilder()
-        ..equals('CodEmpresa', params.codEmpresa.toString())
-        ..equals('CodCarrinhoPercurso', params.codCarrinhoPercurso.toString())
-        ..equals('ItemCarrinhoPercurso', params.itemCarrinhoPercurso);
-
-      AppLogger.debug('Sincronizando dados do servidor antes da validação', tag: 'SaveSeparationCartUseCase');
-
-      final syncResults = await Future.wait([
-        _separateItemRepository.selectConsultation(separateItemsQuery),
-        _separationItemRepository.selectConsultation(separationItemsQuery),
-      ]);
-
-      final separateItems = syncResults[0] as List<SeparateItemConsultationModel>;
-      final separationItems = syncResults[1] as List<SeparationItemConsultationModel>;
+      final separateItems = await _separateItemRepository.selectConsultation(separateItemsQuery);
 
       if (separateItems.isEmpty) {
         AppLogger.debug('Nenhum item de separação encontrado para validação', tag: 'SaveSeparationCartUseCase');
         return null;
       }
 
-      final validSeparationItems = separationItems
+      final validSeparationItems = itemsSeparation
           .where((item) => item.situacao != ExpeditionItemSituation.cancelado)
           .toList();
 
@@ -310,15 +304,15 @@ class SaveSeparationCartUseCase {
         quantidadesSeparadasPorProduto[codProduto] = (quantidadesSeparadasPorProduto[codProduto] ?? 0.0) + quantidade;
       }
 
+      AppLogger.debug(
+        'Validando ${separateItems.length} produto(s)',
+        tag: 'SaveSeparationCartUseCase',
+      );
+
       for (final separateItem in separateItems) {
         final codProduto = separateItem.codProduto;
         final quantidadeSolicitada = separateItem.quantidade;
         final quantidadeSeparada = quantidadesSeparadasPorProduto[codProduto] ?? 0.0;
-
-        AppLogger.debug(
-          'Validando produto: ${separateItem.nomeProduto} (Cod: $codProduto) - Solicitado: $quantidadeSolicitada, Separado: $quantidadeSeparada',
-          tag: 'SaveSeparationCartUseCase',
-        );
 
         if (quantidadeSeparada > quantidadeSolicitada) {
           AppLogger.warning(
@@ -346,5 +340,15 @@ class SaveSeparationCartUseCase {
       );
       return SaveSeparationCartFailure.unexpected(e);
     }
+  }
+
+  static Future<(A, B, C)> _wait3<A, B, C>(Future<A> a, Future<B> b, Future<C> c) async {
+    final r = await Future.wait([a, b, c]);
+    return (r[0] as A, r[1] as B, r[2] as C);
+  }
+
+  static Future<(A, B)> _wait2<A, B>(Future<A> a, Future<B> b) async {
+    final r = await Future.wait([a, b]);
+    return (r[0] as A, r[1] as B);
   }
 }

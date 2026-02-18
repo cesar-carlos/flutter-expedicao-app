@@ -9,40 +9,30 @@ import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_c
 /// - Interface no domínio (SeparateCartInternshipEventRepository)
 /// - Implementação na camada de dados (SeparateCartInternshipEventRepositoryImpl)
 /// - Delegação para implementação genérica (EventGenericRepositoryImpl)
-class SeparateCartInternshipEventRepositoryImpl
-    implements SeparateCartInternshipEventRepository {
-  final EventGenericRepositoryImpl<
-    ExpeditionCartRouteInternshipConsultationModel
-  >
-  _genericRepository;
+class SeparateCartInternshipEventRepositoryImpl implements SeparateCartInternshipEventRepository {
+  final EventGenericRepositoryImpl<ExpeditionCartRouteInternshipConsultationModel> _genericRepository;
 
   SeparateCartInternshipEventRepositoryImpl(
-    EventGenericRepositoryImpl<ExpeditionCartRouteInternshipConsultationModel>
-    genericRepository,
+    EventGenericRepositoryImpl<ExpeditionCartRouteInternshipConsultationModel> genericRepository,
   ) : _genericRepository = genericRepository;
 
   @override
-  void addListener(EventListenerModel listener) =>
-      _genericRepository.addListener(listener);
+  void addListener(EventListenerModel listener) => _genericRepository.addListener(listener);
 
   @override
-  void removeListener(String listenerId) =>
-      _genericRepository.removeListener(listenerId);
+  void removeListener(String listenerId) => _genericRepository.removeListener(listenerId);
 
   @override
-  void removeListeners(List<String> listenerIds) =>
-      _genericRepository.removeListeners(listenerIds);
+  void removeListeners(List<String> listenerIds) => _genericRepository.removeListeners(listenerIds);
 
   @override
   void removeAllListeners() => _genericRepository.removeAllListeners();
 
   @override
-  bool hasListener(String listenerId) =>
-      _genericRepository.hasListener(listenerId);
+  bool hasListener(String listenerId) => _genericRepository.hasListener(listenerId);
 
   @override
-  EventListenerModel? getListenerById(String listenerId) =>
-      _genericRepository.getListenerById(listenerId);
+  EventListenerModel? getListenerById(String listenerId) => _genericRepository.getListenerById(listenerId);
 
   @override
   List<EventListenerModel> get listeners => _genericRepository.listeners;

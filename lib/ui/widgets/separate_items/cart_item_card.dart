@@ -7,7 +7,9 @@ import 'package:go_router/go_router.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/core/validation/common/socket_validation_helper.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
+import 'package:data7_expedicao/domain/services/picking_state_manager.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_flat_button.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
@@ -30,25 +32,32 @@ import 'package:data7_expedicao/core/theme/app_text_styles.dart';
 import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
-class CartItemCard extends StatelessWidget {
+class CartItemCard extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cartRouteInternshipConsultation;
   final VoidCallback? onCancel;
   final SeparationItemsViewModel? viewModel;
 
   const CartItemCard({super.key, required this.cartRouteInternshipConsultation, this.onCancel, this.viewModel});
 
-  static DateTime? _lastSyncTime;
-  static String? _lastSyncKey;
+  @override
+  State<CartItemCard> createState() => _CartItemCardState();
+}
+
+class _CartItemCardState extends State<CartItemCard> {
+  DateTime? _lastSyncTime;
+  String? _lastSyncKey;
   static const _minSyncInterval = Duration(seconds: 2);
+  bool _isSaving = false;
+  BuildContext? _loadingDialogContext;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final isActive = cartRouteInternshipConsultation.ativo.code == 'S';
-    final isFinalized = cartRouteInternshipConsultation.dataFinalizacao != null;
-    final situationColor = _getSituationColor(cartRouteInternshipConsultation.situacao, colorScheme);
+    final isActive = widget.cartRouteInternshipConsultation.ativo.code == 'S';
+    final isFinalized = widget.cartRouteInternshipConsultation.dataFinalizacao != null;
+    final situationColor = _getSituationColor(widget.cartRouteInternshipConsultation.situacao, colorScheme);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -82,12 +91,12 @@ class CartItemCard extends StatelessWidget {
 
             _buildTimelineInfo(context, theme, colorScheme, isFinalized),
 
-            if (cartRouteInternshipConsultation.nomeSetorEstoque != null) ...[
+            if (widget.cartRouteInternshipConsultation.nomeSetorEstoque != null) ...[
               const SizedBox(height: UIConstants.smallPadding),
               _buildSectorInfo(context, theme, colorScheme),
             ],
 
-            if (cartRouteInternshipConsultation.carrinhoAgrupadorCode.isNotEmpty) ...[
+            if (widget.cartRouteInternshipConsultation.carrinhoAgrupadorCode.isNotEmpty) ...[
               const SizedBox(height: UIConstants.smallPadding),
               _buildGroupInfo(context, theme, colorScheme),
             ],
@@ -133,7 +142,7 @@ class CartItemCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
                     ),
                     child: Text(
-                      '#${cartRouteInternshipConsultation.codCarrinho}',
+                      '#${widget.cartRouteInternshipConsultation.codCarrinho}',
                       style: theme.textTheme.labelMedium?.copyWith(color: situationColor, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -145,7 +154,7 @@ class CartItemCard extends StatelessWidget {
               const SizedBox(height: 6),
 
               Text(
-                cartRouteInternshipConsultation.nomeCarrinho,
+                widget.cartRouteInternshipConsultation.nomeCarrinho,
                 style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, color: colorScheme.onSurface),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -185,7 +194,7 @@ class CartItemCard extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            cartRouteInternshipConsultation.situacao.description,
+            widget.cartRouteInternshipConsultation.situacao.description,
             style: theme.textTheme.labelSmall?.copyWith(color: AppColors.white, fontWeight: FontWeight.w600),
           ),
         ],
@@ -213,7 +222,7 @@ class CartItemCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          if (cartRouteInternshipConsultation.codigoBarrasCarrinho.isNotEmpty) ...[
+          if (widget.cartRouteInternshipConsultation.codigoBarrasCarrinho.isNotEmpty) ...[
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,7 +248,7 @@ class CartItemCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
                     ),
                     child: Text(
-                      cartRouteInternshipConsultation.codigoBarrasCarrinho,
+                      widget.cartRouteInternshipConsultation.codigoBarrasCarrinho,
                       style: AppTextStyles.code(
                         context,
                         color: barcodeValueColor,
@@ -276,7 +285,7 @@ class CartItemCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
                   ),
                   child: Text(
-                    '${cartRouteInternshipConsultation.origem.description} #${cartRouteInternshipConsultation.codOrigem}',
+                    '${widget.cartRouteInternshipConsultation.origem.description} #${widget.cartRouteInternshipConsultation.codOrigem}',
                     style: theme.textTheme.bodySmall?.copyWith(color: originValueColor, fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -312,14 +321,14 @@ class CartItemCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Iniciado por ${cartRouteInternshipConsultation.nomeUsuarioInicio}',
+                      'Iniciado por ${widget.cartRouteInternshipConsultation.nomeUsuarioInicio}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: colorScheme.onSecondaryContainer,
                       ),
                     ),
                     Text(
-                      '${_formatDate(cartRouteInternshipConsultation.dataInicio)} às ${cartRouteInternshipConsultation.horaInicio}',
+                      '${_formatDate(widget.cartRouteInternshipConsultation.dataInicio)} às ${widget.cartRouteInternshipConsultation.horaInicio}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSecondaryContainer.withValues(alpha: 0.8),
                       ),
@@ -330,7 +339,7 @@ class CartItemCard extends StatelessWidget {
             ],
           ),
 
-          if (isFinalized && cartRouteInternshipConsultation.nomeUsuarioFinalizacao != null) ...[
+          if (isFinalized && widget.cartRouteInternshipConsultation.nomeUsuarioFinalizacao != null) ...[
             const SizedBox(height: 12),
             Row(
               children: [
@@ -345,14 +354,14 @@ class CartItemCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Finalizado por ${cartRouteInternshipConsultation.nomeUsuarioFinalizacao!}',
+                        'Finalizado por ${widget.cartRouteInternshipConsultation.nomeUsuarioFinalizacao!}',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: AppColors.green800,
                         ),
                       ),
                       Text(
-                        '${_formatDate(cartRouteInternshipConsultation.dataFinalizacao!)} às ${cartRouteInternshipConsultation.horaFinalizacao!}',
+                        '${_formatDate(widget.cartRouteInternshipConsultation.dataFinalizacao!)} às ${widget.cartRouteInternshipConsultation.horaFinalizacao!}',
                         style: theme.textTheme.bodySmall?.copyWith(color: AppColors.green700),
                       ),
                     ],
@@ -398,7 +407,7 @@ class CartItemCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  cartRouteInternshipConsultation.nomeSetorEstoque!,
+                  widget.cartRouteInternshipConsultation.nomeSetorEstoque!,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onTertiaryContainer,
                     fontWeight: FontWeight.w700,
@@ -446,13 +455,13 @@ class CartItemCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      cartRouteInternshipConsultation.carrinhoAgrupadorDescription,
+                      widget.cartRouteInternshipConsultation.carrinhoAgrupadorDescription,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurface,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    if (cartRouteInternshipConsultation.codCarrinhoAgrupador != null) ...[
+                    if (widget.cartRouteInternshipConsultation.codCarrinhoAgrupador != null) ...[
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -461,7 +470,7 @@ class CartItemCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          '#${cartRouteInternshipConsultation.codCarrinhoAgrupador}',
+                          '#${widget.cartRouteInternshipConsultation.codCarrinhoAgrupador}',
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: colorScheme.outline,
                             fontWeight: FontWeight.w600,
@@ -511,10 +520,10 @@ class CartItemCard extends StatelessWidget {
 
                 _buildViewIconButton(context, theme, colorScheme),
 
-                if (cartRouteInternshipConsultation.situacao == ExpeditionSituation.separando) ...[
+                if (widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.separando) ...[
                   const SizedBox(width: 8),
-                  viewModel != null
-                      ? _buildCancelIconButton(context, theme, colorScheme, viewModel!)
+                  widget.viewModel != null
+                      ? _buildCancelIconButton(context, theme, colorScheme, widget.viewModel!)
                       : Consumer<SeparationItemsViewModel>(
                           builder: (context, vm, child) {
                             return _buildCancelIconButton(context, theme, colorScheme, vm);
@@ -526,7 +535,7 @@ class CartItemCard extends StatelessWidget {
             const SizedBox(height: 8),
           ],
 
-          if (cartRouteInternshipConsultation.situacao == ExpeditionSituation.separando) ...[
+          if (widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.separando) ...[
             SizedBox(
               width: double.infinity,
               child: CustomFlatButtonVariations.outlined(
@@ -534,7 +543,7 @@ class CartItemCard extends StatelessWidget {
                 icon: Icons.check_circle,
                 textColor: AppColors.success,
                 borderColor: AppColors.success.withValues(alpha: 0.3),
-                onPressed: () => _onFinalizeCart(context),
+                onPressed: _isSaving ? null : () => _onFinalizeCart(context),
               ),
             ),
           ],
@@ -562,7 +571,7 @@ class CartItemCard extends StatelessWidget {
     ColorScheme colorScheme,
     SeparationItemsViewModel viewModel,
   ) {
-    final isCancelling = viewModel.isCartBeingCancelled(cartRouteInternshipConsultation.codCarrinho);
+    final isCancelling = viewModel.isCartBeingCancelled(widget.cartRouteInternshipConsultation.codCarrinho);
 
     return Container(
       width: UIConstants.defaultButtonHeight,
@@ -621,7 +630,7 @@ class CartItemCard extends StatelessWidget {
 
     final accessValidation = cartValidation.validateCartAccess(
       currentUserCode: currentUserCode,
-      cart: cartRouteInternshipConsultation,
+      cart: widget.cartRouteInternshipConsultation,
       userModel: userModel,
       accessType: CartAccessType.edit,
     );
@@ -635,8 +644,8 @@ class CartItemCard extends StatelessWidget {
 
     if (userSectorCode != null) {
       final hasItems = await cartValidation.hasItemsForUserSector(
-        codEmpresa: cartRouteInternshipConsultation.codEmpresa,
-        codOrigem: cartRouteInternshipConsultation.codOrigem,
+        codEmpresa: widget.cartRouteInternshipConsultation.codEmpresa,
+        codOrigem: widget.cartRouteInternshipConsultation.codOrigem,
         userSectorCode: userSectorCode,
       );
 
@@ -649,10 +658,10 @@ class CartItemCard extends StatelessWidget {
     if (context.mounted) {
       final result = await context.push(
         AppRouter.cardPicking,
-        extra: {'cart': cartRouteInternshipConsultation, 'userModel': userModel},
+        extra: {'cart': widget.cartRouteInternshipConsultation, 'userModel': userModel},
       );
 
-      if (context.mounted && viewModel != null && result != 'save_cart') {
+      if (context.mounted && widget.viewModel != null && result != 'save_cart') {
         unawaited(_syncSeparationFromServer(context));
       }
 
@@ -670,9 +679,10 @@ class CartItemCard extends StatelessWidget {
   }
 
   Future<void> _syncSeparationFromServer(BuildContext context) async {
-    if (viewModel == null) return;
+    if (widget.viewModel == null) return;
 
-    final syncKey = '${cartRouteInternshipConsultation.codEmpresa}_${cartRouteInternshipConsultation.codOrigem}';
+    final syncKey =
+        '${widget.cartRouteInternshipConsultation.codEmpresa}_${widget.cartRouteInternshipConsultation.codOrigem}';
     final now = DateTime.now();
     if (_lastSyncKey == syncKey && _lastSyncTime != null && now.difference(_lastSyncTime!) < _minSyncInterval) {
       return;
@@ -683,15 +693,15 @@ class CartItemCard extends StatelessWidget {
     final useCase = locator<GetSeparationConsultationUseCase>();
     final syncResult = await useCase.call(
       GetSeparationConsultationParams(
-        codEmpresa: cartRouteInternshipConsultation.codEmpresa,
-        codSepararEstoque: cartRouteInternshipConsultation.codOrigem,
+        codEmpresa: widget.cartRouteInternshipConsultation.codEmpresa,
+        codSepararEstoque: widget.cartRouteInternshipConsultation.codOrigem,
       ),
     );
     if (!context.mounted) return;
 
     SeparateConsultationModel? fresh;
     syncResult.fold((value) => fresh = value, (_) => {});
-    if (context.mounted) unawaited(viewModel!.refreshWithSeparation(fresh));
+    if (context.mounted) unawaited(widget.viewModel!.refreshWithSeparation(fresh));
   }
 
   Future<UserSystemModel?> _getUserModel() async {
@@ -798,20 +808,57 @@ class CartItemCard extends StatelessWidget {
     );
   }
 
+  void _ensureLoadingDialogClosed() {
+    if (_loadingDialogContext == null) return;
+    if (!mounted || !_loadingDialogContext!.mounted) {
+      _loadingDialogContext = null;
+      return;
+    }
+    try {
+      Navigator.of(_loadingDialogContext!).pop();
+    } catch (e) {
+      AppLogger.warning('Erro ao fechar loading: $e', tag: 'CartItemCard');
+    } finally {
+      _loadingDialogContext = null;
+    }
+  }
+
   Future<bool> _onFinalizeCart(BuildContext context, {bool skipConfirmation = false}) async {
+    if (_isSaving) return false;
+    setState(() => _isSaving = true);
+
+    final socketValidation = SocketValidationHelper.validateSocketState();
+    if (!socketValidation.isValid) {
+      if (mounted) setState(() => _isSaving = false);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(socketValidation.errorMessage ?? 'Conexão não está pronta. Tente novamente.'),
+            backgroundColor: AppColors.error,
+            duration: UIConstants.snackBarMediumDuration,
+          ),
+        );
+      }
+      return false;
+    }
+
     final userModel = await _getUserModel();
 
-    if (!context.mounted) return false;
+    if (!context.mounted) {
+      if (mounted) setState(() => _isSaving = false);
+      return false;
+    }
 
     final cartValidation = locator<CartValidationService>();
     final accessValidation = cartValidation.validateCartAccess(
       currentUserCode: userModel?.codUsuario,
-      cart: cartRouteInternshipConsultation,
+      cart: widget.cartRouteInternshipConsultation,
       userModel: userModel,
       accessType: CartAccessType.save,
     );
 
     if (!accessValidation.canAccess) {
+      if (mounted) setState(() => _isSaving = false);
       if (context.mounted && accessValidation.cartOwnerName != null) {
         _showDifferentUserDialog(context, accessValidation.cartOwnerName!);
       }
@@ -820,10 +867,16 @@ class CartItemCard extends StatelessWidget {
 
     if (!skipConfirmation) {
       final confirmed = await _showFinalizeConfirmationDialog(context);
-      if (!confirmed || !context.mounted) return false;
+      if (!confirmed || !context.mounted) {
+        if (mounted) setState(() => _isSaving = false);
+        return false;
+      }
     }
 
-    if (!context.mounted) return false;
+    if (!context.mounted) {
+      if (mounted) setState(() => _isSaving = false);
+      return false;
+    }
 
     _showLoadingDialog(context);
 
@@ -831,18 +884,25 @@ class CartItemCard extends StatelessWidget {
       final saveSeparationCartUseCase = locator<SaveSeparationCartUseCase>();
 
       final params = SaveSeparationCartParams(
-        codEmpresa: cartRouteInternshipConsultation.codEmpresa,
-        codCarrinhoPercurso: cartRouteInternshipConsultation.codCarrinhoPercurso,
-        itemCarrinhoPercurso: cartRouteInternshipConsultation.item,
-        codSepararEstoque: cartRouteInternshipConsultation.codOrigem,
+        codEmpresa: widget.cartRouteInternshipConsultation.codEmpresa,
+        codCarrinhoPercurso: widget.cartRouteInternshipConsultation.codCarrinhoPercurso,
+        itemCarrinhoPercurso: widget.cartRouteInternshipConsultation.item,
+        codSepararEstoque: widget.cartRouteInternshipConsultation.codOrigem,
       );
 
-      final result = await saveSeparationCartUseCase.call(params);
+      final result = await saveSeparationCartUseCase
+          .call(params)
+          .timeout(
+            UIConstants.networkTimeout,
+            onTimeout: () {
+              throw TimeoutException(
+                'Operação excedeu o tempo limite de ${UIConstants.networkTimeout.inSeconds} segundos',
+              );
+            },
+          );
 
       if (context.mounted) {
-        Future.delayed(Duration.zero, () {
-          if (context.mounted) Navigator.of(context).pop();
-        });
+        _ensureLoadingDialogClosed();
       }
 
       final success = result.getOrNull();
@@ -864,18 +924,27 @@ class CartItemCard extends StatelessWidget {
         _showSuccessDialog(context, success);
       }
 
-      if (viewModel != null) {
-        unawaited(viewModel!.refresh());
+      if (widget.viewModel != null) {
+        unawaited(widget.viewModel!.refresh());
       }
 
       return true;
+    } on TimeoutException catch (e) {
+      AppLogger.error('Timeout ao salvar carrinho', tag: 'CartItemCard', error: e);
+      if (context.mounted) _ensureLoadingDialogClosed();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Tempo esgotado. Verifique sua conexão e tente novamente.'),
+            backgroundColor: AppColors.error,
+            duration: UIConstants.snackBarMediumDuration,
+          ),
+        );
+      }
+      return false;
     } catch (e, stackTrace) {
       AppLogger.error('Erro inesperado ao salvar carrinho', tag: 'CartItemCard', error: e, stackTrace: stackTrace);
-      if (context.mounted) {
-        Future.delayed(Duration.zero, () {
-          if (context.mounted) Navigator.of(context).pop();
-        });
-      }
+      if (context.mounted) _ensureLoadingDialogClosed();
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -886,6 +955,8 @@ class CartItemCard extends StatelessWidget {
         );
       }
       return false;
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -896,7 +967,7 @@ class CartItemCard extends StatelessWidget {
 
     context.push(
       AppRouter.pickingProductsList,
-      extra: {'filterType': 'completed', 'viewModel': tempViewModel, 'cart': cartRouteInternshipConsultation},
+      extra: {'filterType': 'completed', 'viewModel': tempViewModel, 'cart': widget.cartRouteInternshipConsultation},
     );
   }
 
@@ -910,18 +981,18 @@ class CartItemCard extends StatelessWidget {
       extra: {
         'filterType': 'completed',
         'viewModel': tempViewModel,
-        'cart': cartRouteInternshipConsultation,
+        'cart': widget.cartRouteInternshipConsultation,
         'isReadOnly': true,
       },
     );
   }
 
   bool _shouldShowSeparateButton() {
-    if (cartRouteInternshipConsultation.situacao == ExpeditionSituation.cancelada ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.separado ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.conferido ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.entregue ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.embalado) {
+    if (widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.cancelada ||
+        widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.separado ||
+        widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.conferido ||
+        widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.entregue ||
+        widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.embalado) {
       return false;
     }
 
@@ -929,11 +1000,11 @@ class CartItemCard extends StatelessWidget {
   }
 
   bool _shouldShowViewButton() {
-    return cartRouteInternshipConsultation.situacao == ExpeditionSituation.separado ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.conferido ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.entregue ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.embalado ||
-        cartRouteInternshipConsultation.situacao == ExpeditionSituation.cancelada;
+    return widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.separado ||
+        widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.conferido ||
+        widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.entregue ||
+        widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.embalado ||
+        widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.cancelada;
   }
 
   Future<bool> _showFinalizeConfirmationDialog(BuildContext context) async {
@@ -941,18 +1012,23 @@ class CartItemCard extends StatelessWidget {
 
     return await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Salvar Carrinho'),
-            content: Text('Deseja realmente salvar o carrinho #${cartRouteInternshipConsultation.codCarrinho}?'),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancelar')),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-                child: Text('Salvar', style: AppFonts.inter(color: AppColors.white)),
-              ),
-            ],
-          ),
+          builder: (dialogContext) {
+            return ListenableBuilder(
+              listenable: locator<PickingStateManager>(),
+              builder: (context, _) {
+                final pickingState = locator<PickingStateManager>().pickingState;
+                final hasPending = pickingState.hasAnyPendingOperations();
+                final pendingCount = pickingState.getTotalPendingOperations();
+                return _FinalizeConfirmationDialogContent(
+                  codCarrinho: widget.cartRouteInternshipConsultation.codCarrinho,
+                  hasPending: hasPending,
+                  pendingCount: pendingCount,
+                  onCancel: () => Navigator.of(dialogContext).pop(false),
+                  onConfirm: () => Navigator.of(dialogContext).pop(true),
+                );
+              },
+            );
+          },
         ) ??
         false;
   }
@@ -963,9 +1039,12 @@ class CartItemCard extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Row(children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Finalizando carrinho...')]),
-      ),
+      builder: (dialogContext) {
+        _loadingDialogContext = dialogContext;
+        return const AlertDialog(
+          content: Row(children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Finalizando carrinho...')]),
+        );
+      },
     );
   }
 
@@ -986,7 +1065,7 @@ class CartItemCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Carrinho #${cartRouteInternshipConsultation.codCarrinho} finalizado com sucesso!'),
+            Text('Carrinho #${widget.cartRouteInternshipConsultation.codCarrinho} finalizado com sucesso!'),
             if (success.details != null) ...[
               const SizedBox(height: 8),
               Text(
@@ -1051,7 +1130,7 @@ class CartItemCard extends StatelessWidget {
 
     final accessValidation = cartValidation.validateCartAccess(
       currentUserCode: userModel?.codUsuario,
-      cart: cartRouteInternshipConsultation,
+      cart: widget.cartRouteInternshipConsultation,
       userModel: userModel,
       accessType: CartAccessType.delete,
     );
@@ -1092,14 +1171,17 @@ class CartItemCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Carrinho #${cartRouteInternshipConsultation.codCarrinho}',
+                    'Carrinho #${widget.cartRouteInternshipConsultation.codCarrinho}',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
-                  Text(cartRouteInternshipConsultation.nomeCarrinho, style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    widget.cartRouteInternshipConsultation.nomeCarrinho,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                   const SizedBox(height: 4),
                   Text(
-                    'Status: ${cartRouteInternshipConsultation.situacao.description}',
+                    'Status: ${widget.cartRouteInternshipConsultation.situacao.description}',
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -1136,20 +1218,20 @@ class CartItemCard extends StatelessWidget {
 
   Future<void> _cancelCart(BuildContext context) async {
     try {
-      final vm = viewModel ?? context.read<SeparationItemsViewModel>();
+      final vm = widget.viewModel ?? context.read<SeparationItemsViewModel>();
 
-      final success = await vm.cancelCart(cartRouteInternshipConsultation.codCarrinho);
+      final success = await vm.cancelCart(widget.cartRouteInternshipConsultation.codCarrinho);
 
       if (success) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Carrinho #${cartRouteInternshipConsultation.codCarrinho} cancelado com sucesso!'),
+              content: Text('Carrinho #${widget.cartRouteInternshipConsultation.codCarrinho} cancelado com sucesso!'),
               backgroundColor: AppColors.success,
             ),
           );
 
-          onCancel?.call();
+          widget.onCancel?.call();
         }
       } else {
         if (context.mounted) {
@@ -1175,5 +1257,66 @@ class CartItemCard extends StatelessWidget {
   Color _getSituationColor(ExpeditionSituation situacao, ColorScheme colorScheme) {
     final cardSituation = ExpeditionSituation.fromCode(situacao.code);
     return cardSituation?.color ?? AppColors.grey;
+  }
+}
+
+class _FinalizeConfirmationDialogContent extends StatelessWidget {
+  final int codCarrinho;
+  final bool hasPending;
+  final int pendingCount;
+  final VoidCallback onCancel;
+  final VoidCallback onConfirm;
+
+  const _FinalizeConfirmationDialogContent({
+    required this.codCarrinho,
+    required this.hasPending,
+    required this.pendingCount,
+    required this.onCancel,
+    required this.onConfirm,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Salvar Carrinho'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Deseja realmente salvar o carrinho #$codCarrinho?'),
+          if (hasPending) ...[
+            const SizedBox(height: UIConstants.defaultPadding),
+            Container(
+              padding: const EdgeInsets.all(UIConstants.smallPadding),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.sync, color: AppColors.warning, size: UIConstants.defaultIconSize),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Há $pendingCount operação(ões) sincronizando. Aguarde concluir antes de salvar.',
+                      style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: AppColors.orange800),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: onCancel, child: const Text('Cancelar')),
+        ElevatedButton(
+          onPressed: hasPending ? null : onConfirm,
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+          child: Text('Salvar', style: AppFonts.inter(color: AppColors.white)),
+        ),
+      ],
+    );
   }
 }
