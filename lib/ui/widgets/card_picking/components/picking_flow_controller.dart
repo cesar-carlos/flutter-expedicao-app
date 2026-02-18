@@ -92,7 +92,10 @@ class PickingFlowController {
 
     final socketValidation = SocketValidationHelper.validateSocketState();
     if (!socketValidation.isValid) {
-      AppLogger.warning('Socket inválido ao salvar carrinho: ${socketValidation.errorMessage}', tag: 'PickingFlowController');
+      AppLogger.warning(
+        'Socket inválido ao salvar carrinho: ${socketValidation.errorMessage}',
+        tag: 'PickingFlowController',
+      );
       if (navigator.mounted) {
         _showErrorDialog(navigator, 'Conexão não está pronta. Verifique o indicador de conexão e tente novamente.');
       }
@@ -108,13 +111,19 @@ class PickingFlowController {
     _isFinishing = true;
     _showLoadingDialog(navigator);
 
-    AppLogger.progress('Iniciando salvamento com timeout de ${UIConstants.networkTimeout.inSeconds}s', tag: 'PickingFlowController');
+    AppLogger.progress(
+      'Iniciando salvamento com timeout de ${UIConstants.networkTimeout.inSeconds}s',
+      tag: 'PickingFlowController',
+    );
 
     try {
       final result = await viewModel.saveCart().timeout(
         UIConstants.networkTimeout,
         onTimeout: () {
-          AppLogger.error('Timeout ao salvar carrinho (${UIConstants.networkTimeout.inSeconds}s)', tag: 'PickingFlowController');
+          AppLogger.error(
+            'Timeout ao salvar carrinho (${UIConstants.networkTimeout.inSeconds}s)',
+            tag: 'PickingFlowController',
+          );
           throw TimeoutException('Operação excedeu o tempo limite de ${UIConstants.networkTimeout.inSeconds} segundos');
         },
       );
@@ -158,7 +167,7 @@ class PickingFlowController {
       );
     } on TimeoutException catch (e) {
       AppLogger.error('TimeoutException ao salvar carrinho', tag: 'PickingFlowController', error: e);
-      _handleTimeoutError(navigator, e);
+      if (navigator.mounted) _handleTimeoutError(navigator, e);
     } catch (e, stackTrace) {
       AppLogger.error(
         'Erro inesperado ao salvar carrinho',
