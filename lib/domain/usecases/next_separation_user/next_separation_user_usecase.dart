@@ -10,6 +10,7 @@ import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_params.dart';
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_success.dart';
 import 'package:data7_expedicao/domain/usecases/check_separation_user_sector_completion/check_separation_user_sector_completion_usecase.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_order_by.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/utils/i_logger.dart';
@@ -37,7 +38,7 @@ class NextSeparationUserUseCase {
   static const String _fieldSituacao = 'SepararEstoqueSituacao';
   static const String _fieldQuantidadeItensSetor = 'QuantidadeItensSetor';
   static const String _fieldQuantidadeItensSeparacaoSetor = 'QuantidadeItensSeparacaoSetor';
-  static const String _fieldPrioridade = 'Prioridade';
+  static const String _fieldCodPrioridade = 'CodPrioridade';
   static const String _fieldCodSepararEstoque = 'CodSepararEstoque';
 
   static final List<String> _excludedSituations = [
@@ -55,9 +56,7 @@ class NextSeparationUserUseCase {
       }
 
       final separation = await _findNextSeparation(params);
-
       if (separation == null) return success(NextSeparationUserSuccess.notFound());
-
       return success(NextSeparationUserSuccess.found(separation));
     } on DataError catch (e) {
       final msg = e.message.trim().toLowerCase();
@@ -79,10 +78,7 @@ class NextSeparationUserUseCase {
       return NextSeparationUserFailure.invalidParams(errors.join(', '));
     }
 
-    if (!params.hasValidSector) {
-      return NextSeparationUserFailure.userWithoutSector();
-    }
-
+    if (!params.hasValidSector) return NextSeparationUserFailure.userWithoutSector();
     return null;
   }
 
@@ -130,8 +126,8 @@ class NextSeparationUserUseCase {
         message.contains('next');
   }
 
-  static const int _queryLimitExisting = 100;
-  static const int _queryLimitNew = 50;
+  static const int _queryLimitExisting = 20;
+  static const int _queryLimitNew = 20;
 
   /// PRIORIDADE 1: Busca separação já atribuída ao usuário (no setor) com itens pendentes ou carrinhos abertos
   /// Critérios:
@@ -241,9 +237,9 @@ class NextSeparationUserUseCase {
 
   void _addStandardOrderBy(QueryBuilder query) {
     query
-      ..orderByAsc(_fieldCodEmpresa)
-      ..orderByAsc(_fieldPrioridade)
-      ..orderByAsc(_fieldCodSepararEstoque);
+      ..orderBy(_fieldCodEmpresa, direction: OrderDirection.asc)
+      ..orderBy(_fieldCodPrioridade, direction: OrderDirection.asc)
+      ..orderBy(_fieldCodSepararEstoque, direction: OrderDirection.asc);
   }
 
   Future<SeparationUserSectorConsultationModel?> _executeQuery(QueryBuilder query) async {

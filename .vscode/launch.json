@@ -23,7 +23,7 @@
       "request": "launch",
       "type": "dart",
       "flutterMode": "debug",
-      "deviceId": "adb-NT000025082500015-8Ny5QE._adb-tls-connect._tcp"
+      "deviceId": "192.168.3.206:38419"
     },
     {
       "name": "expedicao (profile mode)",

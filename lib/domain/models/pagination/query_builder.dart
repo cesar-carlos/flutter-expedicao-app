@@ -97,7 +97,10 @@ class QueryBuilder {
 
   String buildOrderBySql() {
     if (_orderBy.isEmpty) return '';
-    return 'ORDER BY ${_orderBy.map((o) => o.toSqlString()).join(', ')}';
+    final fields = _orderBy.map((o) => o.field).join(',');
+    final directions = _orderBy.map((o) => o.direction.value).join(',');
+
+    return 'order_by=$fields&order_direction=$directions';
   }
 
   String buildOrderByQuery() {
