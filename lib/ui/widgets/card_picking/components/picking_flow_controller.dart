@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
@@ -104,18 +105,28 @@ class PickingFlowController {
 
     AppLogger.progress('Socket validado com sucesso', tag: 'PickingFlowController');
 
-    final confirmed = await _showFinishConfirmationDialog(navigator);
-    if (!confirmed) return;
-    if (!navigator.mounted) return;
-
     _isFinishing = true;
+    final confirmed = await _showFinishConfirmationDialog(navigator);
+    if (!confirmed) {
+      _isFinishing = false;
+      return;
+    }
+    if (!navigator.mounted) {
+      _isFinishing = false;
+      return;
+    }
+
+    viewModel.stopCartEventMonitoring();
     _showLoadingDialog(navigator);
+    // yield one event-loop tick so the dialog builder executes before saveCart starts
+    await Future<void>.delayed(Duration.zero);
 
     AppLogger.progress(
       'Iniciando salvamento com timeout de ${UIConstants.networkTimeout.inSeconds}s',
       tag: 'PickingFlowController',
     );
 
+    bool savedSuccessfully = false;
     try {
       final result = await viewModel.saveCart().timeout(
         UIConstants.networkTimeout,
@@ -130,20 +141,17 @@ class PickingFlowController {
 
       result.fold(
         (_) {
+          savedSuccessfully = true;
           audioService.playSuccess();
           AppLogger.success('Carrinho salvo com sucesso', tag: 'PickingFlowController');
           if (navigator.mounted) {
             void doPops() {
-              if (!navigator.mounted) {
-                return;
-              }
+              if (!navigator.mounted) return;
               _ensureLoadingDialogClosed();
-              if (navigator.mounted) Navigator.of(navigator).pop('save_cart');
+              if (navigator.mounted) GoRouter.of(navigator).pop('save_cart');
             }
 
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Future.delayed(Duration.zero, doPops);
-            });
+            WidgetsBinding.instance.addPostFrameCallback((_) => doPops());
           }
           AppLogger.info('Retornando para tela anterior', tag: 'PickingFlowController');
         },
@@ -152,16 +160,12 @@ class PickingFlowController {
           final details = failure is SaveSeparationCartFailure ? failure.details : null;
           if (navigator.mounted) {
             void doPopsAndDialog() {
-              if (!navigator.mounted) {
-                return;
-              }
+              if (!navigator.mounted) return;
               _ensureLoadingDialogClosed();
               if (navigator.mounted) _showErrorDialog(navigator, message, details: details);
             }
 
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Future.delayed(Duration.zero, doPopsAndDialog);
-            });
+            WidgetsBinding.instance.addPostFrameCallback((_) => doPopsAndDialog());
           }
         },
       );
@@ -177,19 +181,18 @@ class PickingFlowController {
       );
       if (navigator.mounted) {
         void doPopsAndDialog() {
-          if (!navigator.mounted) {
-            return;
-          }
+          if (!navigator.mounted) return;
           _ensureLoadingDialogClosed();
           if (navigator.mounted) _showErrorDialog(navigator, 'Erro inesperado ao salvar carrinho. Tente novamente.');
         }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Future.delayed(Duration.zero, doPopsAndDialog);
-        });
+        WidgetsBinding.instance.addPostFrameCallback((_) => doPopsAndDialog());
       }
     } finally {
       _isFinishing = false;
+      if (!savedSuccessfully) {
+        viewModel.startCartEventMonitoring();
+      }
     }
   }
 
@@ -241,12 +244,8 @@ class PickingFlowController {
     }
 
     void showErrorAndCleanup() {
-      if (!navigator.mounted) {
-        return;
-      }
-
+      if (!navigator.mounted) return;
       _ensureLoadingDialogClosed();
-
       _showErrorDialog(
         navigator,
         'A operação demorou muito tempo. Verifique sua conexão e tente novamente.',
@@ -254,9 +253,7 @@ class PickingFlowController {
       );
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(Duration.zero, showErrorAndCleanup);
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => showErrorAndCleanup());
   }
 
   void _showErrorDialog(BuildContext context, String message, {String? details}) {

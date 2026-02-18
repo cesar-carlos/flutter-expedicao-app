@@ -22,7 +22,6 @@ class AppUpdateRepositoryImpl implements IAppUpdateRepository {
   AppUpdateRepositoryImpl({GitHubApiService? githubApiService})
     : _githubApiService = githubApiService ?? GitHubApiService(token: dotenv.env['GITHUB_TOKEN']);
 
-  /// Trata exceções do Dio e retorna [AppFailure] apropriado.
   AppFailure _handleDioException(DioException e) {
     switch (e.type) {
       case DioExceptionType.connectionTimeout:

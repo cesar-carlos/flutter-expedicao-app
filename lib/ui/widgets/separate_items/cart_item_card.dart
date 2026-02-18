@@ -919,14 +919,8 @@ class _CartItemCardState extends State<CartItemCard> {
       }
 
       if (!context.mounted) return true;
-
-      if (!skipConfirmation) {
-        _showSuccessDialog(context, success);
-      }
-
-      if (widget.viewModel != null) {
-        unawaited(widget.viewModel!.refresh());
-      }
+      if (!skipConfirmation) _showSuccessDialog(context, success);
+      if (widget.viewModel != null) unawaited(widget.viewModel!.refresh());
 
       return true;
     } on TimeoutException catch (e) {

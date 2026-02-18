@@ -259,13 +259,18 @@ class SaveSeparationCartUseCase {
 
     final separationItems = await _separationItemModelRepository.select(query);
 
-    await Future.wait(
-      separationItems.map(
-        (item) => _separationItemModelRepository.update(
-          item.copyWith(situacao: ExpeditionItemSituation.finalizado),
+    const batchSize = 5;
+    const itemTimeout = Duration(seconds: 10);
+    for (int i = 0; i < separationItems.length; i += batchSize) {
+      final batch = separationItems.skip(i).take(batchSize).toList();
+      await Future.wait(
+        batch.map(
+          (item) => _separationItemModelRepository
+              .update(item.copyWith(situacao: ExpeditionItemSituation.finalizado))
+              .timeout(itemTimeout),
         ),
-      ),
-    );
+      );
+    }
   }
 
   Future<SaveSeparationCartFailure?> _validateSeparatedQuantities(
@@ -279,7 +284,9 @@ class SaveSeparationCartUseCase {
         ..equals(SaveCartQueryFields.codEmpresa, params.codEmpresa.toString())
         ..equals(SaveCartQueryFields.codSepararEstoque, params.codSepararEstoque.toString());
 
-      final separateItems = await _separateItemRepository.selectConsultation(separateItemsQuery);
+      final separateItems = await _separateItemRepository
+          .selectConsultation(separateItemsQuery)
+          .timeout(const Duration(seconds: 10));
 
       if (separateItems.isEmpty) {
         AppLogger.debug('Nenhum item de separação encontrado para validação', tag: 'SaveSeparationCartUseCase');

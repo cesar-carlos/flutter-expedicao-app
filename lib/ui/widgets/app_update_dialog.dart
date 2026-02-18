@@ -43,10 +43,9 @@ class AppUpdateDialog extends StatelessWidget {
         ElevatedButton(
           key: const Key('app_update_now'),
           onPressed: () {
-            // Mostra o diálogo de progresso imediatamente
             Navigator.of(context).pop();
             showDialog(context: context, barrierDismissible: false, builder: (_) => const AppUpdateProgressDialog());
-            // Inicia o download em background
+
             viewModel.downloadAndInstall();
           },
           child: Text(context.l10n.appUpdateNowButton),
