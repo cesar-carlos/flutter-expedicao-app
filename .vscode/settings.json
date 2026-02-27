@@ -4,6 +4,9 @@
   "dart.flutterSdkPath": null,
   "dart.enableSdkFormatter": true,
 
+    // Explorer settings
+    "explorer.compactFolders": false,
+
   // Editor settings
   "editor.rulers": [120],
   "editor.wordWrap": "off",

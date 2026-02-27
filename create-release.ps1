@@ -3,12 +3,12 @@
 
 param(
     [string]$Token = "",
-    [string]$Tag = "v1.0.8+2",
+    [string]$Tag = "v1.1.0+2",
     [string]$Owner = "cesar-carlos",
     [string]$Repo = "flutter-expedicao-app"
 )
 
-$releaseNotes = Get-Content -Path "docs\release\RELEASE_NOTES_v1.0.8+2.md" -Raw
+$releaseNotes = Get-Content -Path "docs\release\RELEASE_NOTES_v1.1.0+2.md" -Raw
 
 if ([string]::IsNullOrEmpty($Token)) {
     Write-Host "❌ Token do GitHub não fornecido!" -ForegroundColor Red
@@ -24,14 +24,14 @@ if ([string]::IsNullOrEmpty($Token)) {
 
 $headers = @{
     "Authorization" = "token $Token"
-    "Accept" = "application/vnd.github.v3+json"
+    "Accept"        = "application/vnd.github.v3+json"
 }
 
 $body = @{
-    tag_name = $Tag
-    name = "Release $Tag"
-    body = $releaseNotes
-    draft = $false
+    tag_name   = $Tag
+    name       = "Release $Tag"
+    body       = $releaseNotes
+    draft      = $false
     prerelease = $false
 } | ConvertTo-Json
 
@@ -51,7 +51,8 @@ try {
     Write-Host "1. Faça o build do APK: flutter build apk --release" -ForegroundColor White
     Write-Host "2. Faça upload do APK no release: $($response.html_url)" -ForegroundColor White
     
-} catch {
+}
+catch {
     Write-Host "❌ Erro ao criar release: $($_.Exception.Message)" -ForegroundColor Red
     if ($_.Exception.Response) {
         $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
