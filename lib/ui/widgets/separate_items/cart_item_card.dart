@@ -537,10 +537,22 @@ class _CartItemCardState extends State<CartItemCard> {
                 if (widget.cartRouteInternshipConsultation.situacao == ExpeditionSituation.separando) ...[
                   const SizedBox(width: 8),
                   widget.viewModel != null
-                      ? _buildCancelIconButton(context, theme, colorScheme, widget.viewModel!)
+                      ? _buildCancelIconButton(
+                          context,
+                          theme,
+                          colorScheme,
+                          widget.viewModel!,
+                          isSaveInProgress: _isSaving,
+                        )
                       : Consumer<SeparationItemsViewModel>(
                           builder: (context, vm, child) {
-                            return _buildCancelIconButton(context, theme, colorScheme, vm);
+                            return _buildCancelIconButton(
+                              context,
+                              theme,
+                              colorScheme,
+                              vm,
+                              isSaveInProgress: _isSaving,
+                            );
                           },
                         ),
                 ],
@@ -584,8 +596,10 @@ class _CartItemCardState extends State<CartItemCard> {
     ThemeData theme,
     ColorScheme colorScheme,
     SeparationItemsViewModel viewModel,
+    {required bool isSaveInProgress}
   ) {
     final isCancelling = viewModel.isCartBeingCancelled(widget.cartRouteInternshipConsultation.codCarrinho);
+    final isBusy = isCancelling || isSaveInProgress;
 
     return Container(
       width: UIConstants.defaultButtonHeight,
@@ -599,13 +613,16 @@ class _CartItemCardState extends State<CartItemCard> {
         color: AppColors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-          onTap: isCancelling ? null : () => _showCancelDialog(context),
+          onTap: isBusy ? null : () => _showCancelDialog(context),
           child: Center(
-            child: isCancelling
+            child: isBusy
                 ? SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.error),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: isCancelling ? colorScheme.error : colorScheme.primary,
+                    ),
                   )
                 : Icon(Icons.delete_outline, color: colorScheme.error, size: UIConstants.defaultIconSize),
           ),
