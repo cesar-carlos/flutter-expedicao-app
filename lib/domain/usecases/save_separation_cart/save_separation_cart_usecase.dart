@@ -66,11 +66,7 @@ class SaveSeparationCartUseCase {
       final (separateProgress, itemsSeparation, cartRouteInternship) = await _wait3(
         _findSeparateProgress(params),
         _findItemsSeparation(params.codEmpresa, params.codCarrinhoPercurso, params.itemCarrinhoPercurso),
-        _findCartRouteInternship(
-          params.codEmpresa,
-          params.codCarrinhoPercurso,
-          params.itemCarrinhoPercurso,
-        ),
+        _findCartRouteInternship(params.codEmpresa, params.codCarrinhoPercurso, params.itemCarrinhoPercurso),
       );
 
       if (separateProgress == null) {
@@ -161,16 +157,46 @@ class SaveSeparationCartUseCase {
 
       AppLogger.debug('Atualizando carrinho e itens para situação SEPARADO', tag: 'SaveSeparationCartUseCase');
 
-      await _updateSeparationItemsToFinalized(
+      final finalizationResult = await _updateSeparationItemsToFinalized(
         params.codEmpresa,
         params.codCarrinhoPercurso,
         params.itemCarrinhoPercurso,
       );
 
-      await Future.wait([
-        _cartRouteInternshipRepository.update(copyWithCartRouteInternship),
-        _cartRepository.update(copyWithCart),
-      ]);
+      bool routeUpdated = false;
+      bool cartUpdated = false;
+      try {
+        await _cartRouteInternshipRepository.update(copyWithCartRouteInternship);
+        routeUpdated = true;
+        await _cartRepository.update(copyWithCart);
+        cartUpdated = true;
+      } catch (e, stackTrace) {
+        AppLogger.error(
+          'Falha ao atualizar entidades de carrinho durante salvamento',
+          tag: 'SaveSeparationCartUseCase',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        final rollbackItemsResult = await _rollbackSeparationItemsToOriginal(finalizationResult.originalItems);
+        bool rollbackRouteResult = true;
+        bool rollbackCartResult = true;
+        if (routeUpdated) {
+          rollbackRouteResult = await _rollbackCartRouteToOriginal(cartRouteInternship);
+        }
+        if (cartUpdated) {
+          rollbackCartResult = await _rollbackCartToOriginal(cartModel);
+        }
+        final rollbackStatus =
+            'rollbackItens=${rollbackItemsResult ? 'ok' : 'falhou'}, '
+            'rollbackPercurso=${rollbackRouteResult ? 'ok' : 'falhou'}, '
+            'rollbackCarrinho=${rollbackCartResult ? 'ok' : 'falhou'}';
+        return Failure(
+          SaveSeparationCartFailure(
+            message: 'Falha ao finalizar carrinho',
+            details: 'Operação revertida parcialmente ($rollbackStatus).',
+          ),
+        );
+      }
 
       AppLogger.success(
         'Carrinho salvo com sucesso: codCarrinhoPercurso=${params.codCarrinhoPercurso}',
@@ -246,7 +272,7 @@ class SaveSeparationCartUseCase {
     return separateProgresses.first;
   }
 
-  Future<void> _updateSeparationItemsToFinalized(
+  Future<_SeparationItemsFinalizationResult> _updateSeparationItemsToFinalized(
     int codEmpresa,
     int codCarrinhoPercurso,
     String itemCarrinhoPercurso,
@@ -258,18 +284,68 @@ class SaveSeparationCartUseCase {
       ..notEquals(SaveCartQueryFields.situacao, ExpeditionItemSituation.cancelado.code);
 
     final separationItems = await _separationItemModelRepository.select(query);
+    final originalItems = List<SeparationItemModel>.from(separationItems);
+    final finalizedItems = separationItems
+        .map((item) => item.copyWith(situacao: ExpeditionItemSituation.finalizado))
+        .toList();
 
     const batchSize = 5;
     const itemTimeout = Duration(seconds: 10);
-    for (int i = 0; i < separationItems.length; i += batchSize) {
-      final batch = separationItems.skip(i).take(batchSize).toList();
-      await Future.wait(
-        batch.map(
-          (item) => _separationItemModelRepository
-              .update(item.copyWith(situacao: ExpeditionItemSituation.finalizado))
-              .timeout(itemTimeout),
-        ),
+    for (int i = 0; i < finalizedItems.length; i += batchSize) {
+      final batch = finalizedItems.skip(i).take(batchSize).toList();
+      await Future.wait(batch.map((item) => _separationItemModelRepository.update(item).timeout(itemTimeout)));
+    }
+    return _SeparationItemsFinalizationResult(originalItems: originalItems, finalizedItems: finalizedItems);
+  }
+
+  Future<bool> _rollbackSeparationItemsToOriginal(List<SeparationItemModel> originalItems) async {
+    try {
+      if (originalItems.isEmpty) return true;
+      const batchSize = 5;
+      const itemTimeout = Duration(seconds: 10);
+      for (int i = 0; i < originalItems.length; i += batchSize) {
+        final batch = originalItems.skip(i).take(batchSize).toList();
+        await Future.wait(batch.map((item) => _separationItemModelRepository.update(item).timeout(itemTimeout)));
+      }
+      return true;
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Falha no rollback dos itens de separação',
+        tag: 'SaveSeparationCartUseCase',
+        error: e,
+        stackTrace: stackTrace,
       );
+      return false;
+    }
+  }
+
+  Future<bool> _rollbackCartRouteToOriginal(ExpeditionCartRouteInternshipModel originalRoute) async {
+    try {
+      await _cartRouteInternshipRepository.update(originalRoute);
+      return true;
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Falha no rollback do carrinho percurso',
+        tag: 'SaveSeparationCartUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return false;
+    }
+  }
+
+  Future<bool> _rollbackCartToOriginal(ExpeditionCartModel originalCart) async {
+    try {
+      await _cartRepository.update(originalCart);
+      return true;
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Falha no rollback do carrinho',
+        tag: 'SaveSeparationCartUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return false;
     }
   }
 
@@ -311,10 +387,7 @@ class SaveSeparationCartUseCase {
         quantidadesSeparadasPorProduto[codProduto] = (quantidadesSeparadasPorProduto[codProduto] ?? 0.0) + quantidade;
       }
 
-      AppLogger.debug(
-        'Validando ${separateItems.length} produto(s)',
-        tag: 'SaveSeparationCartUseCase',
-      );
+      AppLogger.debug('Validando ${separateItems.length} produto(s)', tag: 'SaveSeparationCartUseCase');
 
       for (final separateItem in separateItems) {
         final codProduto = separateItem.codProduto;
@@ -358,4 +431,11 @@ class SaveSeparationCartUseCase {
     final r = await Future.wait([a, b]);
     return (r[0] as A, r[1] as B);
   }
+}
+
+class _SeparationItemsFinalizationResult {
+  final List<SeparationItemModel> originalItems;
+  final List<SeparationItemModel> finalizedItems;
+
+  const _SeparationItemsFinalizationResult({required this.originalItems, required this.finalizedItems});
 }

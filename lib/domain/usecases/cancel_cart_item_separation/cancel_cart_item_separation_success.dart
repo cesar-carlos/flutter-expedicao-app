@@ -3,23 +3,31 @@ import 'package:data7_expedicao/domain/models/separation_item_model.dart';
 
 class CancelCardItemSeparationSuccess {
   final List<SeparateItemModel> updatedSeparateItems;
+  final List<SeparateItemModel> originalSeparateItems;
   final List<SeparationItemModel> cancelledSeparationItems;
+  final List<SeparationItemModel> originalSeparationItems;
   final Map<int, double> cancelledQuantitiesByProduct;
 
   const CancelCardItemSeparationSuccess({
     required this.updatedSeparateItems,
+    required this.originalSeparateItems,
     required this.cancelledSeparationItems,
+    required this.originalSeparationItems,
     required this.cancelledQuantitiesByProduct,
   });
 
   factory CancelCardItemSeparationSuccess.create({
     required List<SeparateItemModel> updatedSeparateItems,
+    required List<SeparateItemModel> originalSeparateItems,
     required List<SeparationItemModel> cancelledSeparationItems,
+    required List<SeparationItemModel> originalSeparationItems,
     required Map<int, double> cancelledQuantitiesByProduct,
   }) {
     return CancelCardItemSeparationSuccess(
       updatedSeparateItems: updatedSeparateItems,
+      originalSeparateItems: originalSeparateItems,
       cancelledSeparationItems: cancelledSeparationItems,
+      originalSeparationItems: originalSeparationItems,
       cancelledQuantitiesByProduct: cancelledQuantitiesByProduct,
     );
   }

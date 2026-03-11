@@ -39,11 +39,12 @@ class CancelCardItemSeparationUseCase {
       if (separationItems.isEmpty) {
         return failure(CancelCardItemSeparationFailure.itemsNotFound());
       }
+      final originalSeparationItems = List<SeparationItemModel>.from(separationItems);
 
       final cancelledQuantitiesByProduct = _calculateCancelledQuantitiesByProduct(separationItems);
 
-      final updatedSeparateItems = await _updateSeparateItemQuantities(params, cancelledQuantitiesByProduct);
-      if (updatedSeparateItems.isEmpty) {
+      final updateSeparateItemsResult = await _updateSeparateItemQuantities(params, cancelledQuantitiesByProduct);
+      if (updateSeparateItemsResult.updatedItems.isEmpty) {
         return failure(
           CancelCardItemSeparationFailure.updateSeparateItemFailed('Falha ao atualizar quantidades de separação'),
         );
@@ -58,8 +59,10 @@ class CancelCardItemSeparationUseCase {
 
       return success(
         CancelCardItemSeparationSuccess.create(
-          updatedSeparateItems: updatedSeparateItems,
+          updatedSeparateItems: updateSeparateItemsResult.updatedItems,
+          originalSeparateItems: updateSeparateItemsResult.originalItems,
           cancelledSeparationItems: cancelledSeparationItems,
+          originalSeparationItems: originalSeparationItems,
           cancelledQuantitiesByProduct: cancelledQuantitiesByProduct,
         ),
       );
@@ -100,40 +103,46 @@ class CancelCardItemSeparationUseCase {
     return quantitiesByProduct;
   }
 
-  Future<List<SeparateItemModel>> _updateSeparateItemQuantities(
+  Future<_SeparateItemsUpdateResult> _updateSeparateItemQuantities(
     CancelCardItemSeparationParams params,
     Map<int, double> cancelledQuantitiesByProduct,
   ) async {
     try {
       final List<SeparateItemModel> updatedItems = [];
+      final List<SeparateItemModel> originalItems = [];
+      final separateItems = await _separateItemRepository.select(
+        QueryBuilder().equals('CodEmpresa', params.codEmpresa).equals('CodSepararEstoque', params.codSepararEstoque),
+      );
+      final separateItemsByProduct = <int, SeparateItemModel>{
+        for (final separateItem in separateItems) separateItem.codProduto: separateItem,
+      };
+      final updates = <Future<List<SeparateItemModel>>>[];
 
       for (final codProduto in cancelledQuantitiesByProduct.keys) {
         final cancelledQuantity = cancelledQuantitiesByProduct[codProduto]!;
+        final separateItem = separateItemsByProduct[codProduto];
+        if (separateItem == null) continue;
+        originalItems.add(separateItem);
+        final newQuantidadeSeparacao = separateItem.quantidadeSeparacao - cancelledQuantity;
+        final finalQuantidadeSeparacao = newQuantidadeSeparacao < 0 ? 0.0 : newQuantidadeSeparacao;
+        final updatedItem = separateItem.copyWith(quantidadeSeparacao: finalQuantidadeSeparacao);
+        updates.add(_separateItemRepository.update(updatedItem));
+      }
 
-        final separateItems = await _separateItemRepository.select(
-          QueryBuilder()
-              .equals('CodEmpresa', params.codEmpresa)
-              .equals('CodSepararEstoque', params.codSepararEstoque)
-              .equals('CodProduto', codProduto),
-        );
-
-        if (separateItems.isNotEmpty) {
-          final separateItem = separateItems.first;
-
-          final newQuantidadeSeparacao = separateItem.quantidadeSeparacao - cancelledQuantity;
-
-          final finalQuantidadeSeparacao = newQuantidadeSeparacao < 0 ? 0.0 : newQuantidadeSeparacao;
-
-          final updatedItem = separateItem.copyWith(quantidadeSeparacao: finalQuantidadeSeparacao);
-
-          final updateResult = await _separateItemRepository.update(updatedItem);
-          if (updateResult.isNotEmpty) {
-            updatedItems.addAll(updateResult);
+      if (updates.isNotEmpty) {
+        const batchSize = 10;
+        for (int i = 0; i < updates.length; i += batchSize) {
+          final batch = updates.skip(i).take(batchSize);
+          final results = await Future.wait(batch);
+          for (final updateResult in results) {
+            if (updateResult.isNotEmpty) {
+              updatedItems.addAll(updateResult);
+            }
           }
         }
       }
 
-      return updatedItems;
+      return _SeparateItemsUpdateResult(updatedItems: updatedItems, originalItems: originalItems);
     } catch (e) {
       rethrow;
     }
@@ -142,13 +151,20 @@ class CancelCardItemSeparationUseCase {
   Future<List<SeparationItemModel>> _updateSeparationItemsToCancel(List<SeparationItemModel> separationItems) async {
     try {
       final List<SeparationItemModel> updatedItems = [];
+      final updates = separationItems
+          .map((item) => _separationItemRepository.update(item.copyWith(situacao: ExpeditionItemSituation.cancelado)))
+          .toList();
 
-      for (final item in separationItems) {
-        final updatedItem = item.copyWith(situacao: ExpeditionItemSituation.cancelado);
-
-        final updateResult = await _separationItemRepository.update(updatedItem);
-        if (updateResult.isNotEmpty) {
-          updatedItems.addAll(updateResult);
+      if (updates.isNotEmpty) {
+        const batchSize = 10;
+        for (int i = 0; i < updates.length; i += batchSize) {
+          final batch = updates.skip(i).take(batchSize);
+          final results = await Future.wait(batch);
+          for (final updateResult in results) {
+            if (updateResult.isNotEmpty) {
+              updatedItems.addAll(updateResult);
+            }
+          }
         }
       }
 
@@ -177,4 +193,33 @@ class CancelCardItemSeparationUseCase {
       return {};
     }
   }
+
+  Future<bool> rollbackCancellation(CancelCardItemSeparationSuccess success) async {
+    try {
+      final separateUpdates = success.originalSeparateItems.map(_separateItemRepository.update).toList();
+      final separationUpdates = success.originalSeparationItems.map(_separationItemRepository.update).toList();
+
+      await _runInBatches(separateUpdates);
+      await _runInBatches(separationUpdates);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> _runInBatches(List<Future<List<dynamic>>> operations) async {
+    if (operations.isEmpty) return;
+    const batchSize = 10;
+    for (int i = 0; i < operations.length; i += batchSize) {
+      final batch = operations.skip(i).take(batchSize);
+      await Future.wait(batch);
+    }
+  }
+}
+
+class _SeparateItemsUpdateResult {
+  final List<SeparateItemModel> updatedItems;
+  final List<SeparateItemModel> originalItems;
+
+  const _SeparateItemsUpdateResult({required this.updatedItems, required this.originalItems});
 }

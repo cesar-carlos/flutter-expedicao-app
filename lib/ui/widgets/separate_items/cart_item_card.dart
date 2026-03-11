@@ -50,6 +50,20 @@ class _CartItemCardState extends State<CartItemCard> {
   bool _isSaving = false;
   BuildContext? _loadingDialogContext;
 
+  ExpeditionCartRouteInternshipConsultationModel _resolveCurrentCart() {
+    final viewModel = widget.viewModel;
+    if (viewModel == null) {
+      return widget.cartRouteInternshipConsultation;
+    }
+
+    return viewModel.getCartSnapshot(
+          codEmpresa: widget.cartRouteInternshipConsultation.codEmpresa,
+          codCarrinhoPercurso: widget.cartRouteInternshipConsultation.codCarrinhoPercurso,
+          item: widget.cartRouteInternshipConsultation.item,
+        ) ??
+        widget.cartRouteInternshipConsultation;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -623,6 +637,7 @@ class _CartItemCardState extends State<CartItemCard> {
   }
 
   Future<void> _onSeparateCart(BuildContext context) async {
+    final currentCart = _resolveCurrentCart();
     final userModel = await _getUserModel();
     final currentUserCode = userModel?.codUsuario;
     final userSectorCode = userModel?.codSetorEstoque;
@@ -630,14 +645,14 @@ class _CartItemCardState extends State<CartItemCard> {
 
     final accessValidation = cartValidation.validateCartAccess(
       currentUserCode: currentUserCode,
-      cart: widget.cartRouteInternshipConsultation,
+      cart: currentCart,
       userModel: userModel,
       accessType: CartAccessType.edit,
     );
 
     if (!accessValidation.canAccess) {
       if (context.mounted && accessValidation.cartOwnerName != null) {
-        _showDifferentUserDialog(context, accessValidation.cartOwnerName!);
+        _showDifferentUserDialog(context, accessValidation.cartOwnerName!, actionLabel: 'separar');
       }
       return;
     }
@@ -656,10 +671,7 @@ class _CartItemCardState extends State<CartItemCard> {
     }
 
     if (context.mounted) {
-      final result = await context.push(
-        AppRouter.cardPicking,
-        extra: {'cart': widget.cartRouteInternshipConsultation, 'userModel': userModel},
-      );
+      final result = await context.push(AppRouter.cardPicking, extra: {'cart': currentCart, 'userModel': userModel});
 
       if (context.mounted && widget.viewModel != null && result != 'save_cart') {
         unawaited(_syncSeparationFromServer(context));
@@ -710,7 +722,7 @@ class _CartItemCardState extends State<CartItemCard> {
     return appUser?.userSystemModel;
   }
 
-  void _showDifferentUserDialog(BuildContext context, String cartOwnerName) {
+  void _showDifferentUserDialog(BuildContext context, String cartOwnerName, {required String actionLabel}) {
     if (!context.mounted) return;
 
     showDialog(
@@ -738,7 +750,7 @@ class _CartItemCardState extends State<CartItemCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '❌ Você não pode separar neste carrinho',
+                    '❌ Você não pode $actionLabel neste carrinho',
                     style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.red700),
                   ),
                   const SizedBox(height: 8),
@@ -750,7 +762,7 @@ class _CartItemCardState extends State<CartItemCard> {
             const Text('Este carrinho foi incluído por outro usuário.'),
             const SizedBox(height: 8),
             Text(
-              'Apenas o usuário que incluiu o carrinho pode realizar a separação.',
+              'Apenas o usuário que incluiu o carrinho pode realizar esta ação.',
               style: AppFonts.inter(fontSize: UIConstants.smallFontSize),
             ),
           ],
@@ -842,6 +854,7 @@ class _CartItemCardState extends State<CartItemCard> {
       return false;
     }
 
+    final currentCart = _resolveCurrentCart();
     final userModel = await _getUserModel();
 
     if (!context.mounted) {
@@ -852,7 +865,7 @@ class _CartItemCardState extends State<CartItemCard> {
     final cartValidation = locator<CartValidationService>();
     final accessValidation = cartValidation.validateCartAccess(
       currentUserCode: userModel?.codUsuario,
-      cart: widget.cartRouteInternshipConsultation,
+      cart: currentCart,
       userModel: userModel,
       accessType: CartAccessType.save,
     );
@@ -860,7 +873,7 @@ class _CartItemCardState extends State<CartItemCard> {
     if (!accessValidation.canAccess) {
       if (mounted) setState(() => _isSaving = false);
       if (context.mounted && accessValidation.cartOwnerName != null) {
-        _showDifferentUserDialog(context, accessValidation.cartOwnerName!);
+        _showDifferentUserDialog(context, accessValidation.cartOwnerName!, actionLabel: 'salvar');
       }
       return false;
     }
@@ -884,10 +897,10 @@ class _CartItemCardState extends State<CartItemCard> {
       final saveSeparationCartUseCase = locator<SaveSeparationCartUseCase>();
 
       final params = SaveSeparationCartParams(
-        codEmpresa: widget.cartRouteInternshipConsultation.codEmpresa,
-        codCarrinhoPercurso: widget.cartRouteInternshipConsultation.codCarrinhoPercurso,
-        itemCarrinhoPercurso: widget.cartRouteInternshipConsultation.item,
-        codSepararEstoque: widget.cartRouteInternshipConsultation.codOrigem,
+        codEmpresa: currentCart.codEmpresa,
+        codCarrinhoPercurso: currentCart.codCarrinhoPercurso,
+        itemCarrinhoPercurso: currentCart.item,
+        codSepararEstoque: currentCart.codOrigem,
       );
 
       final result = await saveSeparationCartUseCase
@@ -1119,19 +1132,20 @@ class _CartItemCardState extends State<CartItemCard> {
   }
 
   Future<void> _showCancelDialog(BuildContext context) async {
+    final currentCart = _resolveCurrentCart();
     final userModel = await _getUserModel();
     final cartValidation = locator<CartValidationService>();
 
     final accessValidation = cartValidation.validateCartAccess(
       currentUserCode: userModel?.codUsuario,
-      cart: widget.cartRouteInternshipConsultation,
+      cart: currentCart,
       userModel: userModel,
       accessType: CartAccessType.delete,
     );
 
     if (!accessValidation.canAccess) {
       if (context.mounted && accessValidation.cartOwnerName != null) {
-        _showDifferentUserDialog(context, accessValidation.cartOwnerName!);
+        _showDifferentUserDialog(context, accessValidation.cartOwnerName!, actionLabel: 'cancelar');
       }
       return;
     }

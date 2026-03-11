@@ -10,12 +10,10 @@ import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/filter/separate_items_filters_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
-import 'package:data7_expedicao/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_success.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_params.dart';
-import 'package:data7_expedicao/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_usecase.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_params.dart';
+import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_with_consistency_usecase.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/filter/carts_filters_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
@@ -111,6 +109,19 @@ class SeparationItemsViewModel extends ChangeNotifier {
   }
 
   bool get sectorsLoaded => _sectorsLoaded;
+
+  ExpeditionCartRouteInternshipConsultationModel? getCartSnapshot({
+    required int codEmpresa,
+    required int codCarrinhoPercurso,
+    required String item,
+  }) {
+    for (final cart in _carts) {
+      if (cart.codEmpresa == codEmpresa && cart.codCarrinhoPercurso == codCarrinhoPercurso && cart.item == item) {
+        return cart;
+      }
+    }
+    return null;
+  }
 
   Future<void> loadSeparationItems(SeparateConsultationModel separation) async {
     if (_disposed) return;
@@ -640,12 +651,22 @@ class SeparationItemsViewModel extends ChangeNotifier {
     try {
       _isCancelling = true;
       _cancellingCartId = codCarrinho;
+      _lastCancelError = null;
       _safeNotifyListeners();
 
-      final cartConsultation = _carts.firstWhere((c) => c.codCarrinho == codCarrinho);
+      ExpeditionCartRouteInternshipConsultationModel? cartConsultation;
+      for (final cart in _carts) {
+        if (cart.codCarrinho == codCarrinho) {
+          cartConsultation = cart;
+          break;
+        }
+      }
+      if (cartConsultation == null) {
+        _lastCancelError = 'Carrinho não encontrado para cancelamento.';
+        return false;
+      }
 
-      final cancelCartUseCase = locator<CancelCartUseCase>();
-      final cancelItemSeparationUseCase = locator<CancelCardItemSeparationUseCase>();
+      final cancelWithConsistencyUseCase = locator<CancelCartWithConsistencyUseCase>();
 
       final paramsCartUseCase = CancelCartParams(
         codEmpresa: cartConsultation.codEmpresa,
@@ -660,23 +681,10 @@ class SeparationItemsViewModel extends ChangeNotifier {
         itemCarrinhoPercurso: cartConsultation.item,
       );
 
-      final hasItemsToCancel = await cancelItemSeparationUseCase.canCancelItems(paramsItemSeparationUseCase);
-
-      CancelCardItemSeparationSuccess? itemSeparationSuccess;
-
-      if (hasItemsToCancel) {
-        final resultItemSeparation = await cancelItemSeparationUseCase.call(paramsItemSeparationUseCase);
-
-        itemSeparationSuccess = resultItemSeparation.fold((success) => success, (failure) {
-          return null;
-        });
-
-        if (itemSeparationSuccess == null) {
-          return false;
-        }
-      }
-
-      final resultCancelCart = await cancelCartUseCase.call(paramsCartUseCase);
+      final resultCancelCart = await cancelWithConsistencyUseCase.call(
+        cancelCartParams: paramsCartUseCase,
+        cancelItemParams: paramsItemSeparationUseCase,
+      );
 
       return resultCancelCart.fold(
         (success) async {
@@ -693,6 +701,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
         },
       );
     } catch (e) {
+      _lastCancelError = 'Erro inesperado ao cancelar carrinho.';
       return false;
     } finally {
       _isCancelling = false;

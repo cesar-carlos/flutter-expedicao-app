@@ -42,6 +42,7 @@ import 'package:data7_expedicao/data/repositories/event_repository/separate_even
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/data/repositories/event_repository/separate_cart_internship_event_repository_impl.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_with_consistency_usecase.dart';
 import 'package:data7_expedicao/data/repositories/expedition_cancellation_repository_impl.dart';
 import 'package:data7_expedicao/data/repositories/expedition_cart_route_internship_repository_impl.dart';
 import 'package:data7_expedicao/domain/models/expedition_cancellation_model.dart';
@@ -397,6 +398,13 @@ void setupLocator() {
       separateItemRepository: locator<BasicRepository<SeparateItemModel>>(),
       separationItemRepository: locator<BasicRepository<SeparationItemModel>>(),
       userSessionService: locator<IUserSessionService>(),
+    ),
+  );
+
+  locator.registerLazySingleton<CancelCartWithConsistencyUseCase>(
+    () => CancelCartWithConsistencyUseCase(
+      cancelCartUseCase: locator<CancelCartUseCase>(),
+      cancelCardItemSeparationUseCase: locator<CancelCardItemSeparationUseCase>(),
     ),
   );
 
