@@ -143,9 +143,10 @@ class SeparationViewModel extends ChangeNotifier {
       final queryBuilder = _buildQueryWithFilters(0);
 
       final separations = await _repository.selectConsultation(queryBuilder);
+      final filteredSeparations = _applyExactSetorFilter(separations);
 
       if (_disposed) return;
-      _separations = separations;
+      _separations = filteredSeparations;
       _hasMoreData = separations.length == _pageSize;
       _setState(SeparationState.loaded);
     } catch (e) {
@@ -253,11 +254,12 @@ class SeparationViewModel extends ChangeNotifier {
       final queryBuilder = _buildQueryWithFilters(_currentPage);
 
       final moreSeparations = await _repository.selectConsultation(queryBuilder);
+      final filteredSeparations = _applyExactSetorFilter(moreSeparations);
 
       if (_disposed) return;
 
       if (moreSeparations.isNotEmpty) {
-        _separations.addAll(moreSeparations);
+        _separations.addAll(filteredSeparations);
         _hasMoreData = moreSeparations.length == _pageSize;
       } else {
         _hasMoreData = false;
@@ -337,6 +339,17 @@ class SeparationViewModel extends ChangeNotifier {
     }
 
     return queryBuilder;
+  }
+
+  List<SeparateConsultationModel> _applyExactSetorFilter(List<SeparateConsultationModel> separations) {
+    final setorEstoqueFilter = _setorEstoqueFilter;
+    if (setorEstoqueFilter == null) {
+      return separations;
+    }
+
+    return separations
+        .where((separation) => separation.codSetoresEstoque.contains(setorEstoqueFilter.codSetorEstoque))
+        .toList();
   }
 
   String _getErrorMessage(dynamic error) {
@@ -608,6 +621,16 @@ class SeparationViewModel extends ChangeNotifier {
   }
 
   void _handleNewSeparation(SeparateConsultationModel separationData) {
+    final index = _findSeparationIndex(separationData);
+    if (index != -1) {
+      _separations[index] = separationData;
+      return;
+    }
+
+    if (!_shouldAddToCurrentList(separationData)) {
+      return;
+    }
+
     if (!_isScreenVisible) {
       _playNotificationIfNeeded(separationData);
     }

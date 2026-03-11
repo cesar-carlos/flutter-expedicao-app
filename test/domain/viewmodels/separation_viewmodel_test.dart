@@ -10,6 +10,12 @@ import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/filter/separation_filters_model.dart';
 import 'package:data7_expedicao/domain/repositories/separate_event_repository.dart';
+import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
+import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/models/entity_type_model.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/services/notification_service.dart';
 
@@ -24,6 +30,32 @@ import 'separation_viewmodel_test.mocks.dart';
   NotificationService,
 ])
 void main() {
+  SeparateConsultationModel buildSeparation({
+    required int codSepararEstoque,
+    required List<int> codSetoresEstoque,
+    String observacao = '',
+  }) {
+    return SeparateConsultationModel(
+      codEmpresa: 1,
+      codSepararEstoque: codSepararEstoque,
+      origem: ExpeditionOrigem.orcamentoBalcao,
+      codOrigem: 1,
+      codTipoOperacaoExpedicao: 10,
+      nomeTipoOperacaoExpedicao: 'Entrega Balcão',
+      situacao: ExpeditionSituation.aguardando,
+      tipoEntidade: EntityType.cliente,
+      dataEmissao: DateTime(2026, 2, 24),
+      horaEmissao: '14:45:17',
+      codEntidade: 123,
+      nomeEntidade: 'Cliente Teste',
+      codPrioridade: 1,
+      nomePrioridade: 'PRIORIDADE 1',
+      codSetoresEstoque: codSetoresEstoque,
+      codUsuariosSeparacao: const [99],
+      observacao: observacao,
+    );
+  }
+
   group('SeparationViewModel', () {
     late SeparationViewModel viewModel;
     late MockBasicConsultationRepository<SeparateConsultationModel>
@@ -165,6 +197,30 @@ void main() {
     });
 
     group('Filters', () {
+      test('should apply setor filter with exact match only', () async {
+        // Arrange
+        final setorFilter = ExpeditionSectorStockModel(
+          codSetorEstoque: 1,
+          descricao: 'Setor 1',
+          ativo: Situation.ativo,
+        );
+        final separations = [
+          buildSeparation(codSepararEstoque: 1001, codSetoresEstoque: const [11]),
+          buildSeparation(codSepararEstoque: 1002, codSetoresEstoque: const [1]),
+        ];
+
+        when(mockRepository.selectConsultation(any)).thenAnswer((_) async => separations);
+
+        // Act
+        viewModel.setSetorEstoqueFilter(setorFilter);
+        await viewModel.loadSeparations();
+
+        // Assert
+        expect(viewModel.state, SeparationState.loaded);
+        expect(viewModel.separations.length, 1);
+        expect(viewModel.separations.first.codSepararEstoque, 1002);
+      });
+
       test('should set and get codSepararEstoque filter', () {
         // Act
         viewModel.setCodSepararEstoqueFilter('12345');
@@ -271,6 +327,33 @@ void main() {
     });
 
     group('Event Monitoring', () {
+      test('should not duplicate separation on repeated insert event', () {
+        // Arrange
+        viewModel.startEventMonitoring();
+        final capturedListeners = verify(mockEventRepository.addListener(captureAny)).captured;
+        final listeners = capturedListeners.cast<EventListenerModel>();
+        final insertListener = listeners.firstWhere((listener) => listener.id == 'separation_viewmodel_insert');
+
+        final separation = buildSeparation(
+          codSepararEstoque: 2001,
+          codSetoresEstoque: const [1, 2],
+          observacao: 'primeiro evento',
+        );
+        final updatedSeparation = buildSeparation(
+          codSepararEstoque: 2001,
+          codSetoresEstoque: const [1, 2],
+          observacao: 'evento repetido',
+        );
+
+        // Act
+        insertListener.callback(BasicEventModel.create(data: separation.toJson(), eventType: Event.insert));
+        insertListener.callback(BasicEventModel.create(data: updatedSeparation.toJson(), eventType: Event.insert));
+
+        // Assert
+        expect(viewModel.separations.length, 1);
+        expect(viewModel.separations.first.observacao, 'evento repetido');
+      });
+
       test('should start event monitoring', () {
         // Act
         viewModel.startEventMonitoring();
