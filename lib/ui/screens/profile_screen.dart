@@ -22,6 +22,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _isNavigatingAway = false;
 
+  /// Bug DDDDDDD: rastreia a ultima mensagem de erro mostrada para
+  /// evitar dialog duplicado.
+  ///
+  /// `_handleViewModelState` e chamado SINCRONAMENTE no builder do
+  /// Consumer (anti-pattern, mas envolto em addPostFrameCallback).
+  /// O ProfileViewModel pode notificar varias vezes mesmo enquanto
+  /// state == ProfileState.error (ex.: campos sendo digitados, foto
+  /// removida, etc.). Cada notificacao re-disparava o ErrorDialog,
+  /// causando dialogs empilhados na tela. O usuario tinha que fechar
+  /// N dialogs para ver o conteudo.
+  ///
+  /// Agora so mostramos o dialog se `errorMessage` mudou desde a
+  /// ultima vez que mostramos.
+  String? _lastShownErrorMessage;
+
   @override
   void initState() {
     super.initState();
@@ -160,16 +175,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
           });
           break;
         case ProfileState.error:
-          if (viewModel.errorMessage != null) {
+          final errorMsg = viewModel.errorMessage;
+          if (errorMsg != null && errorMsg != _lastShownErrorMessage) {
+            _lastShownErrorMessage = errorMsg;
             ErrorDialog.showServerError(
               context,
               message: context.l10n.profileError,
-              details: viewModel.errorMessage!,
+              details: errorMsg,
               showRetryButton: false,
             );
           }
           break;
         default:
+          // Quando o estado deixa de ser error, limpamos o tracking
+          // para que um proximo erro IGUAL ao anterior possa ser mostrado.
+          _lastShownErrorMessage = null;
           break;
       }
     });

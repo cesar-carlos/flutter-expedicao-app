@@ -38,6 +38,21 @@ class _CardPickingBodyState {
 }
 
 class _CardPickingScreenState extends State<CardPickingScreen> {
+  /// Bug WWWWWW: cache do viewModel para uso no dispose().
+  ///
+  /// Antes, dispose() chamava `context.read<CardPickingViewModel>()` que
+  /// PODIA falhar com ProviderNotFoundException quando o
+  /// ChangeNotifierProvider ja havia sido desmontado da arvore. O
+  /// try/catch escondia o erro mas o resultado era pior: o listener
+  /// de eventos do carrinho ficava VAZADO no socket — cada navegacao
+  /// para outra tela e volta acumulava listeners, e cada evento de
+  /// carrinho era processado N vezes.
+  ///
+  /// Capturamos a referencia em didChangeDependencies (que roda APOS
+  /// o tree estar pronto) e usamos a referencia direta no dispose,
+  /// garantindo que stopCartEventMonitoring sempre execute.
+  CardPickingViewModel? _vmRef;
+
   @override
   void initState() {
     super.initState();
@@ -49,13 +64,19 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _vmRef = context.read<CardPickingViewModel>();
+  }
+
+  @override
   void dispose() {
     try {
-      final viewModel = context.read<CardPickingViewModel>();
-      viewModel.stopCartEventMonitoring();
+      _vmRef?.stopCartEventMonitoring();
     } catch (e) {
       AppLogger.error('Error stopping cart event monitoring: $e', tag: 'CardPickingScreen');
     }
+    _vmRef = null;
     super.dispose();
   }
 

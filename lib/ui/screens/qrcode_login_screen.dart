@@ -216,6 +216,11 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
   }
 
   void _showSuccessMessage(String message) {
+    // Bug BBBBBBB: ScaffoldMessenger.of(context) sem check de mounted.
+    // O try/catch escondia o erro mas a mensagem nao aparecia. Pior:
+    // logava como warning sem indicar que o widget ja estava desmontado
+    // (poluindo o log com falsos positivos).
+    if (!mounted) return;
     try {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: AppColors.success, duration: const Duration(seconds: 2)),
@@ -231,6 +236,11 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
   }
 
   Future<void> _updateAuthStatus() async {
+    // Bug CCCCCCC: context.read sem mounted check. Se o usuario
+    // navegar para outra tela enquanto o registro acontece, o context
+    // pode estar deactivated e ProviderNotFoundException seria
+    // capturada e re-lancada com mensagem confusa.
+    if (!mounted) return;
     try {
       final authViewModel = context.read<AuthViewModel>();
       await authViewModel.checkAuthStatus();
