@@ -142,7 +142,16 @@ class PickingFlowController {
       result.fold(
         (_) {
           savedSuccessfully = true;
-          audioService.playSuccess();
+          unawaited(
+            audioService.playSuccess().catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha ao reproduzir som de sucesso',
+                tag: 'PickingFlowController',
+                error: e,
+                stackTrace: s,
+              );
+            }),
+          );
           AppLogger.success('Carrinho salvo com sucesso', tag: 'PickingFlowController');
           if (navigator.mounted) {
             void doPops() {
@@ -199,22 +208,31 @@ class PickingFlowController {
   void _showLoadingDialog(BuildContext context) {
     if (!context.mounted) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        _loadingDialogContext = dialogContext;
-        return const AlertDialog(
-          content: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(width: UIConstants.defaultPadding),
-              Text('Salvando carrinho...'),
-            ],
-          ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          _loadingDialogContext = dialogContext;
+          return const AlertDialog(
+            content: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: UIConstants.defaultPadding),
+                Text('Salvando carrinho...'),
+              ],
+            ),
+          );
+        },
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de salvamento',
+          tag: 'PickingFlowController',
+          error: e,
+          stackTrace: s,
         );
-      },
+      }),
     );
   }
 
@@ -236,7 +254,16 @@ class PickingFlowController {
   }
 
   void _handleTimeoutError(BuildContext navigator, TimeoutException e) {
-    audioService.playError();
+    unawaited(
+      audioService.playError().catchError((Object err, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao reproduzir som de erro (timeout)',
+          tag: 'PickingFlowController',
+          error: err,
+          stackTrace: s,
+        );
+      }),
+    );
 
     if (!navigator.mounted) {
       AppLogger.warning('Navigator desmontado ao tratar timeout', tag: 'PickingFlowController');
@@ -257,40 +284,49 @@ class PickingFlowController {
   }
 
   void _showErrorDialog(BuildContext context, String message, {String? details}) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Erro'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(message),
-            if (details != null) ...[
-              SizedBox(height: UIConstants.smallPadding),
-              Text(
-                details,
-                style: AppFonts.inter(
-                  fontSize: UIConstants.smallFontSize,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Erro'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(message),
+              if (details != null) ...[
+                SizedBox(height: UIConstants.smallPadding),
+                Text(
+                  details,
+                  style: AppFonts.inter(
+                    fontSize: UIConstants.smallFontSize,
+                    color: Theme.of(dialogContext).colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
+              ],
             ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Future.delayed(Duration.zero, () {
+                    if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                  });
+                });
+              },
+              child: const Text('Fechar'),
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Future.delayed(Duration.zero, () {
-                  if (context.mounted) Navigator.of(context).pop();
-                });
-              });
-            },
-            child: const Text('Fechar'),
-          ),
-        ],
-      ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de erro',
+          tag: 'PickingFlowController',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 

@@ -101,7 +101,20 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
     _focusNode.removeListener(_onFocusChange);
     _scanController.dispose();
     _focusNode.dispose();
-    _stopBroadcastListener();
+    final sub = _broadcastSub;
+    _broadcastSub = null;
+    if (sub != null) {
+      unawaited(
+        sub.cancel().catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Erro ao cancelar inscrição broadcast no dispose',
+            tag: 'ShelfScanningModalV2',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
+    }
     _validationTimer?.cancel();
     super.dispose();
   }
@@ -236,7 +249,16 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
       if (isValid) {
         _isClosingFromSuccess = true;
         widget.viewModel.updateScannedAddress(input);
-        _audioService.playShelfScanSuccess();
+        unawaited(
+          _audioService.playShelfScanSuccess().catchError((Object e, StackTrace s) {
+            AppLogger.warning(
+              'Falha ao reproduzir som de sucesso (prateleira)',
+              tag: 'ShelfScanningModalV2',
+              error: e,
+              stackTrace: s,
+            );
+          }),
+        );
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Future.delayed(Duration.zero, () {
             if (mounted) Navigator.of(context).pop();
@@ -260,17 +282,31 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
       ),
     );
 
-    _audioService.playError();
+    unawaited(
+      _audioService.playError().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao reproduzir som de erro (validação prateleira)',
+          tag: 'ShelfScanningModalV2',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
-  void _toggleInputMode() {
-    AppLogger.debug('Toggling input mode: manual=${!_isManualMode}', tag: 'ShelfScanningModalV2');
+  Future<void> _toggleInputMode() async {
+    final willBeManual = !_isManualMode;
+    AppLogger.debug('Toggling input mode: manual=$willBeManual', tag: 'ShelfScanningModalV2');
+
+    if (willBeManual && _isBroadcastConfigured) {
+      _manualOverrideBroadcast = true;
+      await _stopBroadcastListener();
+      if (!mounted) return;
+    }
+
     setState(() {
-      _isManualMode = !_isManualMode;
-      if (_isManualMode && _isBroadcastConfigured) {
-        _manualOverrideBroadcast = true;
-        _stopBroadcastListener();
-      } else if (!_isManualMode && _isBroadcastConfigured) {
+      _isManualMode = willBeManual;
+      if (!_isManualMode && _isBroadcastConfigured) {
         _manualOverrideBroadcast = false;
         _startBroadcastListener();
       }
@@ -403,7 +439,18 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
                       labelText: context.l10n.shelfCode,
                       border: const OutlineInputBorder(),
                       prefixIcon: GestureDetector(
-                        onTap: _toggleInputMode,
+                        onTap: () {
+                          unawaited(
+                            _toggleInputMode().catchError((Object e, StackTrace s) {
+                              AppLogger.warning(
+                                'Falha ao alternar modo de entrada (prateleira)',
+                                tag: 'ShelfScanningModalV2',
+                                error: e,
+                                stackTrace: s,
+                              );
+                            }),
+                          );
+                        },
                         child: Icon(_isManualMode ? Icons.keyboard : Icons.qr_code_scanner, color: AppColors.warning),
                       ),
                     ),
