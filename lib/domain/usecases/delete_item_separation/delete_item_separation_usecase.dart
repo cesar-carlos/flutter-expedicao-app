@@ -1,5 +1,6 @@
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/separate_item_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
@@ -58,6 +59,9 @@ class DeleteItemSeparationUseCase {
       return failure(NetworkFailure(message: e.message, exception: Exception(e.message)));
     } on Exception catch (e) {
       return failure(UnknownFailure.fromException(e));
+    } catch (e) {
+      // Bug H: catch generico para `Error`s (NullCheckOperator, etc.)
+      return failure(UnknownFailure(message: 'Erro inesperado: $e'));
     }
   }
 
@@ -90,20 +94,45 @@ class DeleteItemSeparationUseCase {
       final clampedQuantity = newQuantity.clamp(0.0, separateItem.quantidade);
       final updatedItem = separateItem.copyWith(quantidadeSeparacao: clampedQuantity);
 
-      final updatedItems = await _separateItemRepository.update(updatedItem);
-      if (updatedItems.isEmpty) {
-        return failure(DataFailure(message: 'Falha ao atualizar quantidade de separação', code: _updateFailedCode));
-      }
+      try {
+        final updatedItems = await _separateItemRepository.update(updatedItem);
+        if (updatedItems.isEmpty) {
+          // Bug G: rollback do delete (re-insert) se update da quantidade
+          // falhar. Sem isso, o item ficava deletado mas o separateItem
+          // mantinha quantidade antiga, gerando inconsistencia.
+          await _rollbackSeparationItemDeletion(originalItem: separationItem);
+          return failure(DataFailure(message: 'Falha ao atualizar quantidade de separação', code: _updateFailedCode));
+        }
 
-      return success(
-        DeleteItemSeparationSuccess.create(
-          deletedSeparationItem: deletedItems.first,
-          updatedSeparateItem: updatedItems.first,
-          deletedQuantity: separationItem.quantidade,
-        ),
-      );
+        return success(
+          DeleteItemSeparationSuccess.create(
+            deletedSeparationItem: deletedItems.first,
+            updatedSeparateItem: updatedItems.first,
+            deletedQuantity: separationItem.quantidade,
+          ),
+        );
+      } catch (e) {
+        // Bug G: rollback do delete se a segunda etapa lancar
+        await _rollbackSeparationItemDeletion(originalItem: separationItem);
+        rethrow;
+      }
     } catch (e) {
       rethrow;
+    }
+  }
+
+  /// Bug G: rollback best-effort — re-insere o item deletado se a
+  /// atualizacao da quantidade falhar. Erros silenciados (so logam).
+  Future<void> _rollbackSeparationItemDeletion({required SeparationItemModel originalItem}) async {
+    try {
+      await _separationItemRepository.insert(originalItem);
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Falha no rollback do delete de item de separacao — estado pode estar inconsistente',
+        tag: 'DeleteItemSeparationUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 

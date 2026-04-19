@@ -23,7 +23,6 @@ import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
 class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
-  late int codCarrinhoPercurso;
   final BasicRepository<ExpeditionCartModel> _cartRepository;
   final BasicRepository<ExpeditionCartRouteModel> _cartRouteRepository;
   final BasicRepository<ExpeditionCartRouteInternshipModel> _cartRouteInternshipRepository;
@@ -98,7 +97,10 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
         }
       }
 
-      codCarrinhoPercurso = routeCode!;
+      // Bug A corrigido: variavel local em vez de campo de instancia
+      // (que causaria race entre chamadas concorrentes ao singleton).
+      final int resolvedCodCarrinhoPercurso = routeCode!;
+
       final internshipResult = await _findInternship(params.origem);
       final internshipCode = internshipResult.fold((success) => success, (failure) => null);
       if (internshipCode == null) {
@@ -108,19 +110,60 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
         );
       }
 
+      // Bug B corrigido: rollback se insert do cartRouteInternship falhar
+      // apos atualizar o cart para EM_SEPARACAO. Sem isso, o cart ficava
+      // marcado EM_SEPARACAO no servidor mas sem rota correspondente,
+      // bloqueando futuras tentativas (que viam o cart como nao-LIBERADO).
       await _updateCartSituation(cart);
-      final cartRouteInternshipModel = await _createCartRoute(params, cart, user!.userSystemModel!, internshipCode);
-      await _cartRouteInternshipRepository.insert(cartRouteInternshipModel);
+      final cartRouteInternshipModel = await _createCartRoute(
+        params,
+        cart,
+        user!.userSystemModel!,
+        internshipCode,
+        resolvedCodCarrinhoPercurso,
+      );
+
+      try {
+        await _cartRouteInternshipRepository.insert(cartRouteInternshipModel);
+      } catch (e) {
+        await _rollbackCartSituation(cart);
+        rethrow;
+      }
 
       return success(
         AddCartSuccess(
           addedCart: cart,
           message: 'Carrinho ${cart.codCarrinho} adicionado com sucesso à separação',
-          codCarrinhoPercurso: codCarrinhoPercurso,
+          codCarrinhoPercurso: resolvedCodCarrinhoPercurso,
         ),
       );
     } catch (e) {
       return failure(AddCartFailure.repositoryError(e));
+    }
+  }
+
+  /// Bug B: rollback do cart situation para LIBERADO se a criacao da
+  /// rota falhar apos o update. Best-effort: se este rollback tambem
+  /// falhar, o erro original eh propagado e o operador vera mensagem
+  /// generica (estado pode ficar inconsistente — caso raro).
+  Future<void> _rollbackCartSituation(ExpeditionCartConsultationModel cart) async {
+    try {
+      final restoredCart = ExpeditionCartModel(
+        codEmpresa: cart.codEmpresa,
+        codCarrinho: cart.codCarrinho,
+        descricao: cart.descricaoCarrinho,
+        ativo: cart.ativo,
+        codigoBarras: cart.codigoBarras,
+        situacao: ExpeditionCartSituation.liberado,
+      );
+      await _cartRepository.update(restoredCart);
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Falha no rollback do cart apos erro na criacao da rota — estado pode estar inconsistente',
+        tag: 'AddCartUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -259,6 +302,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     ExpeditionCartConsultationModel cart,
     UserSystemModel userSystem,
     int internshipCode,
+    int codCarrinhoPercurso,
   ) async {
     final now = DateTime.now();
 

@@ -1,5 +1,6 @@
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/separate_item_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
@@ -68,6 +69,10 @@ class CancelItemSeparationUseCase {
       return failure(CancelItemSeparationFailure.networkError(e.message, Exception(e.message)));
     } on Exception catch (e) {
       return failure(CancelItemSeparationFailure.unknown(e.toString(), e));
+    } catch (e) {
+      // Bug H corrigido: catch generico para Errors (NullCheckOperator,
+      // StateError) que `on Exception` nao captura.
+      return failure(CancelItemSeparationFailure.unknown('Erro inesperado: $e', Exception(e.toString())));
     }
   }
 
@@ -89,23 +94,47 @@ class CancelItemSeparationUseCase {
         quantidadeSeparacao: newSeparationQuantity.clamp(0.0, separateItem.quantidade),
       );
 
-      final updatedSeparateItems = await _separateItemRepository.update(updatedSeparateItem);
+      try {
+        final updatedSeparateItems = await _separateItemRepository.update(updatedSeparateItem);
 
-      if (updatedSeparateItems.isEmpty) {
-        return failure(
-          CancelItemSeparationFailure.updateSeparateItemFailed('Falha ao atualizar quantidade de separação'),
+        if (updatedSeparateItems.isEmpty) {
+          // Bug F: rollback do separationItem (reverte cancelamento)
+          await _rollbackSeparationItemCancellation(originalItem: separationItem);
+          return failure(
+            CancelItemSeparationFailure.updateSeparateItemFailed('Falha ao atualizar quantidade de separação'),
+          );
+        }
+
+        return success(
+          CancelItemSeparationSuccess.create(
+            cancelledSeparationItem: updatedSeparationItems.first,
+            updatedSeparateItem: updatedSeparateItems.first,
+            cancelledQuantity: separationItem.quantidade,
+          ),
         );
+      } catch (e) {
+        // Bug F: rollback do separationItem se a segunda etapa lancar
+        await _rollbackSeparationItemCancellation(originalItem: separationItem);
+        rethrow;
       }
-
-      return success(
-        CancelItemSeparationSuccess.create(
-          cancelledSeparationItem: updatedSeparationItems.first,
-          updatedSeparateItem: updatedSeparateItems.first,
-          cancelledQuantity: separationItem.quantidade,
-        ),
-      );
     } catch (e) {
       rethrow;
+    }
+  }
+
+  /// Bug F: rollback best-effort do cancelamento do separationItem se a
+  /// atualizacao do separateItem (quantidade) falhar. Erros silenciados
+  /// (so logam) para nao mascarar o erro original.
+  Future<void> _rollbackSeparationItemCancellation({required SeparationItemModel originalItem}) async {
+    try {
+      await _separationItemRepository.update(originalItem);
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Falha no rollback do cancelamento de item de separacao — estado pode estar inconsistente',
+        tag: 'CancelItemSeparationUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 

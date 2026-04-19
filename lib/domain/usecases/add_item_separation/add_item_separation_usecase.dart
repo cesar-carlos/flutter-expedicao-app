@@ -105,6 +105,11 @@ class AddItemSeparationUseCase {
     } on Exception catch (e) {
       _recordOperationEnd(operationId, started, false);
       return failure(AddItemSeparationFailure.unknown(e.toString(), e));
+    } catch (e) {
+      // Bug H: catch generico para `Error`s (NullCheckOperator, StateError)
+      // que `on Exception` nao captura, evitando crash do app.
+      _recordOperationEnd(operationId, started, false);
+      return failure(AddItemSeparationFailure.unknown('Erro inesperado: $e', Exception(e.toString())));
     }
   }
 

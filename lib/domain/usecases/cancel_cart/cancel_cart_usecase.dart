@@ -14,6 +14,7 @@ import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class CancelCartUseCase {
   final BasicRepository<ExpeditionCartModel> _cartRepository;
@@ -77,8 +78,20 @@ class CancelCartUseCase {
         codEmpresa: updatedCartInternshipRoute.codEmpresa,
         codCarrinho: updatedCartInternshipRoute.codCarrinho,
       );
-      final updatedCart = await _updateCartStatus(cart: cart!);
+      // Bug C corrigido: null check explicito (era `cart!` que podia
+      // crashar se o cart sumisse entre as queries).
+      if (cart == null) {
+        // Bug E corrigido: rollback da rota antes de retornar erro.
+        await _rollbackCartInternshipRoute(originalRoute: cartInternshipRoute);
+        return failure(
+          CancelCartFailure.updateFailed('Carrinho base nao encontrado apos atualizar a rota'),
+        );
+      }
+
+      final updatedCart = await _updateCartStatus(cart: cart);
       if (updatedCart == null) {
+        // Bug E corrigido: rollback da rota se a atualizacao do cart falhar.
+        await _rollbackCartInternshipRoute(originalRoute: cartInternshipRoute);
         return failure(CancelCartFailure.updateFailed('Falha ao atualizar status do carrinho'));
       }
 
@@ -89,6 +102,27 @@ class CancelCartUseCase {
       return failure(CancelCartFailure.networkError(e.message, Exception(e.message)));
     } on Exception catch (e) {
       return failure(CancelCartFailure.unknown(e.toString(), e));
+    } catch (e) {
+      // Bug D corrigido: catch generico para `Error`s (ex.: NullCheckOperator,
+      // StateError) que `on Exception` nao captura, evitando crash do app.
+      return failure(CancelCartFailure.unknown('Erro inesperado: $e', Exception(e.toString())));
+    }
+  }
+
+  /// Bug E: rollback best-effort da rota de volta para SEPARANDO se
+  /// algum passo posterior do happy-path falhar. Erros silenciados
+  /// (so logam) — restaurar 100% do estado nem sempre eh possivel,
+  /// mas tentamos minimizar inconsistencia.
+  Future<void> _rollbackCartInternshipRoute({required ExpeditionCartRouteInternshipModel originalRoute}) async {
+    try {
+      await _cartInternshipRouteRepository.update(originalRoute);
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Falha no rollback da rota de carrinho durante cancelamento — estado pode estar inconsistente',
+        tag: 'CancelCartUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
