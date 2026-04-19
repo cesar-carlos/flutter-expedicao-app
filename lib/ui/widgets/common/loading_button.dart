@@ -31,6 +31,17 @@ class LoadingButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Bug latente anterior: `strokeWidth!` e `loadingColor!` (null
+    // assertions) crashavam com TypeError se o caller passasse
+    // `strokeWidth: null` ou `loadingColor: null` explicitamente.
+    // Defaults na assinatura so se aplicam para argumentos OMITIDOS,
+    // nao para nulls passados de forma deliberada (ex.: spread de
+    // configuracao opcional). Agora usamos fallback explicito que
+    // tolera null sem crash.
+    final effectiveStrokeWidth = strokeWidth ?? 2.0;
+    final effectiveLoadingColor = loadingColor ?? AppColors.white;
+    final effectiveLoadingSize = loadingSize ?? 20.0;
+
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
@@ -41,11 +52,11 @@ class LoadingButton extends StatelessWidget {
       ),
       child: isLoading
           ? SizedBox(
-              height: loadingSize,
-              width: loadingSize,
+              height: effectiveLoadingSize,
+              width: effectiveLoadingSize,
               child: CircularProgressIndicator(
-                strokeWidth: strokeWidth!,
-                valueColor: AlwaysStoppedAnimation<Color>(loadingColor!),
+                strokeWidth: effectiveStrokeWidth,
+                valueColor: AlwaysStoppedAnimation<Color>(effectiveLoadingColor),
               ),
             )
           : Text(text, style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.w700)),

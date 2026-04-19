@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +11,7 @@ import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 import 'package:data7_expedicao/core/utils/string_utils.dart';
 import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
@@ -46,7 +49,27 @@ class AppDrawer extends StatelessWidget {
                     top: 0,
                     right: 0,
                     child: IconButton(
-                      onPressed: () => themeViewModel.toggleTheme(),
+                      // Bug latente anterior: `toggleTheme()` retorna Future
+                      // e na rodada de auditoria do tema (commit d80709c)
+                      // foi alterado para `rethrow` em caso de falha de
+                      // persistencia. Sem catch aqui, isso virava
+                      // "Unhandled Exception" no IconButton onPressed.
+                      // Agora capturamos via `unawaited` + catchError com
+                      // log — o usuario nao precisa ser notificado de
+                      // erro de persistencia de preferencia (UI ja foi
+                      // revertida pelo ViewModel).
+                      onPressed: () {
+                        unawaited(
+                          themeViewModel.toggleTheme().catchError((Object e, StackTrace s) {
+                            AppLogger.warning(
+                              'Falha ao alternar tema (estado revertido)',
+                              tag: 'AppDrawer',
+                              error: e,
+                              stackTrace: s,
+                            );
+                          }),
+                        );
+                      },
                       icon: Icon(themeViewModel.themeIcon, color: theme.colorScheme.onPrimary),
                       tooltip: themeViewModel.themeTooltip,
                     ),
@@ -335,7 +358,22 @@ class AppDrawer extends StatelessWidget {
       return;
     }
 
-    appUpdateViewModel.checkForUpdate(owner: owner, repo: repo, forceCheck: true);
+    // Bug latente anterior: `checkForUpdate(...)` retorna Future
+    // mas era chamado sem await/unawaited/catch. Erros nao
+    // tratados viravam "Unhandled Future error" silencioso. O
+    // ViewModel ja loga internamente, entao usamos unawaited
+    // + catchError defensivo para satisfazer o lint
+    // `discarded_futures`.
+    unawaited(
+      appUpdateViewModel.checkForUpdate(owner: owner, repo: repo, forceCheck: true).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao verificar atualizacao (sera tratado pelo viewmodel)',
+          tag: 'AppDrawer',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
 
     await Future.delayed(const Duration(milliseconds: 500));
 
@@ -402,7 +440,22 @@ class AppDrawer extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
-              context.read<AuthViewModel>().logout();
+              // Bug latente anterior: `logout()` retorna Future. Sem
+              // await/catch, qualquer erro durante o logout (ex.: falha
+              // de I/O ao limpar sessao) virava "Unhandled Future error".
+              // Logamos via AppLogger e seguimos — o usuario ja foi
+              // navegado para fora do drawer e o estado de auth ficou
+              // limpo na memoria.
+              unawaited(
+                context.read<AuthViewModel>().logout().catchError((Object e, StackTrace s) {
+                  AppLogger.warning(
+                    'Falha ao executar logout',
+                    tag: 'AppDrawer',
+                    error: e,
+                    stackTrace: s,
+                  );
+                }),
+              );
             },
             child: Text('Sair', style: AppFonts.inter(color: Theme.of(context).colorScheme.error)),
           ),
