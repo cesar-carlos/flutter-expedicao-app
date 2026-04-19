@@ -207,10 +207,24 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     return '${trimmed.substring(0, maxLength)}...';
   }
 
+  /// Concatena duas partes com hifen como separador, omitindo o
+  /// separador quando uma das partes esta ausente/vazia.
+  ///
+  /// Bug latente anterior:
+  ///   `_formatPair(null, 'ABC')` retornava `'-ABC'` (hifen
+  ///   vazio no inicio era impresso no ticket).
+  ///   `_formatPair('ABC', null)` retornava `'ABC-'` (hifen
+  ///   vazio no fim).
+  ///
+  /// Casos como `header.codTipoOperacaoSaida=null` com descricao
+  /// presente, ou vice-versa, geravam tickets feios com `-` solto.
   String? _formatPair(Object? part1, Object? part2) {
-    final s = '${part1 ?? ''}-${part2 ?? ''}'.trim();
-    if (s.isEmpty || s == '-' || s == 'null' || s == 'null-null') return null;
-    return s;
+    final p1 = part1?.toString().trim() ?? '';
+    final p2 = part2?.toString().trim() ?? '';
+    if (p1.isEmpty && p2.isEmpty) return null;
+    if (p1.isEmpty) return p2;
+    if (p2.isEmpty) return p1;
+    return '$p1-$p2';
   }
 
   void _writeLine(
