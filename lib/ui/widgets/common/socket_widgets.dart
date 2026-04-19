@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
-import 'package:data7_expedicao/data/services/socket_service.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/data/services/socket_service.dart';
+import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
 
 /// Indicador visual do status do socket.
 ///
@@ -307,7 +310,24 @@ class SocketStatusCard extends StatelessWidget {
                     if (socketViewModel.connectionState == SocketConnectionState.error)
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () => socketViewModel.reconnect(),
+                          // Bug latente anterior: `reconnect()` retorna
+                          // Future. Sem await/catch, qualquer erro
+                          // durante reconnect virava "Unhandled Future
+                          // error" silencioso. O ViewModel ja loga
+                          // internamente, entao envolvemos em
+                          // `unawaited` + catchError defensivo.
+                          onPressed: () {
+                            unawaited(
+                              socketViewModel.reconnect().catchError((Object e, StackTrace s) {
+                                AppLogger.warning(
+                                  'Falha ao reconectar socket',
+                                  tag: 'SocketStatusCard',
+                                  error: e,
+                                  stackTrace: s,
+                                );
+                              }),
+                            );
+                          },
                           icon: const Icon(Icons.refresh),
                           label: const Text('Tentar Novamente'),
                         ),

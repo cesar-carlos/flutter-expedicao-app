@@ -66,11 +66,23 @@ class AdaptiveLogoContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(borderRadius),
+        // Bug latente anterior: a `BoxShadow` era criada com
+        // `alpha: 0.0` (totalmente invisivel). O parametro
+        // `showShadow` existia mas era no-op visual. Agora aplica
+        // sombra real (alpha 0.15) quando solicitado, mantendo a
+        // API publica intacta.
         boxShadow: showShadow
-            ? [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.0), offset: const Offset(0, 8))]
+            ? [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ]
             : null,
-
-        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.0), width: 0.0),
+        // Bug similar removido: `Border.all(width: 0.0)` era invisivel.
+        // Como nunca foi configuravel, removido completamente do
+        // BoxDecoration (sem regressao visual — antes ja era 0px).
       ),
       child: AdaptiveLogo(
         width: width != null ? width! * 0.3 : null,

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
+import 'package:data7_expedicao/domain/models/user/app_user.dart';
 import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/photo_options_modal.dart';
-import 'package:data7_expedicao/core/theme/app_fonts.dart';
-import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
 class EditableAvatar extends StatelessWidget {
   final ProfileViewModel viewModel;
@@ -88,7 +89,14 @@ class EditableAvatar extends StatelessWidget {
     return _buildDefaultAvatar(colorScheme, user);
   }
 
-  Widget _buildDefaultAvatar(ColorScheme colorScheme, dynamic user) {
+  /// Bug latente anterior: o parametro `user` era declarado como
+  /// `dynamic`, silenciando type errors em compile time. Se algum
+  /// caller futuro passasse outro tipo (Map de DTO, etc), o
+  /// `user?.nome` causaria `NoSuchMethodError` em runtime sem
+  /// warning de analyzer. Agora tipado explicitamente como
+  /// `AppUser?` (que ja era o tipo real vindo de
+  /// `viewModel.currentUser`).
+  Widget _buildDefaultAvatar(ColorScheme colorScheme, AppUser? user) {
     return Container(
       width: 120,
       height: 120,
