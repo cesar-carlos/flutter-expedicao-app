@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+// ignore: unused_import
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import 'package:data7_expedicao/core/network/socket_config.dart';
@@ -18,6 +19,19 @@ class SocketService extends ChangeNotifier {
   int _reconnectAttempts = 0;
   bool _isReconnecting = false;
   static const int _maxReconnectAttempts = 10;
+
+  /// Bug MMMMM: guard contra duplo-registro de listeners do socket.io.
+  /// `socket.onConnect/onDisconnect/...` ADICIONA callbacks (nao
+  /// substitui), entao chamar `_setupSocketListeners()` duas vezes
+  /// causava cada evento ser processado N+1 vezes — vazamento de
+  /// listeners + heartbeats duplicados + state changes em cadeia.
+  ///
+  /// SocketConfig nao expoe `clearListeners()` no momento, entao a
+  /// solucao mais segura sem refatorar SocketConfig e nao re-registrar
+  /// se ja registramos uma vez. Em `updateConfig`, NAO chamamos mais
+  /// _setupSocketListeners pois os listeners ja foram registrados na
+  /// instancia compartilhada do socket.io (que sobrevive a re-config).
+  bool _listenersRegistered = false;
 
   SocketConnectionState get connectionState => _connectionState;
 
@@ -194,7 +208,12 @@ class SocketService extends ChangeNotifier {
 
       SocketConfig.updateConfig(newConfig);
 
-      _setupSocketListeners();
+      // Bug MMMMM: NAO re-registrar listeners aqui. Eles ja foram
+      // registrados na primeira inicializacao. Re-registrar duplicava
+      // todos os callbacks (cada onConnect rodava 2x, _startHeartbeat
+      // criava 2 timers, etc). O socket.io interno sobrevive ao
+      // updateConfig — basta a nova config tomar efeito na proxima
+      // conexao.
 
       if (wasConnected) {
         Future.delayed(const Duration(milliseconds: 100), () {
@@ -217,6 +236,11 @@ class SocketService extends ChangeNotifier {
   }
 
   void _setupSocketListeners() {
+    // Idempotencia: ja registramos antes — nao registra de novo.
+    // Ver Bug MMMMM no campo _listenersRegistered.
+    if (_listenersRegistered) return;
+    _listenersRegistered = true;
+
     final socket = SocketConfig.instance;
 
     socket.onConnect((_) {
@@ -253,6 +277,12 @@ class SocketService extends ChangeNotifier {
   }
 
   void _startHeartbeat() {
+    // Bug RRRRR: idempotencia — se ja temos heartbeat ativo, nao cria
+    // outro. Antes, dois `onConnect` em sucessao (sem onDisconnect entre
+    // eles) criavam 2 Timer.periodic em paralelo e o cancel do dispose
+    // so cancelava o ULTIMO criado (referencia em _heartbeatTimer foi
+    // sobrescrita), vazando o timer anterior.
+    _stopHeartbeat();
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       if (isConnected) {
         emit('heartbeat', {'timestamp': DateTime.now().toIso8601String()});
