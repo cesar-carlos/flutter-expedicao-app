@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
@@ -44,35 +45,26 @@ class ExpeditionCartConsultationModel {
   });
 
   factory ExpeditionCartConsultationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return ExpeditionCartConsultationModel(
-        codEmpresa: json['CodEmpresa'],
-        codCarrinho: json['CodCarrinho'],
-        descricaoCarrinho: json['Descricao'],
-        ativo: Situation.fromCodeWithFallback(json['Ativo'] as String? ?? ''),
-        situacao:
-            ExpeditionCartSituation.fromCode(
-              json['Situacao'] as String? ?? '',
-            ) ??
-            ExpeditionCartSituation.vazio,
-        codigoBarras: json['CodigoBarras'],
-        codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-        codPercursoEstagio: json['CodPercursoEstagio'],
-        descricaoPercursoEstagio: json['DescricaoPercursoEstagio'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(
-          json['Origem'] as String? ?? '',
-        ),
-        codOrigem: json['CodOrigem'],
-        dataInicio: AppHelper.tryStringToDateOrNull(json['DataInicio']),
-        horaInicio: json['HoraInicio'],
-        codUsuarioInicio: json['CodUsuarioInicio'],
-        nomeUsuarioInicio: json['NomeUsuarioInicio'],
-        codSetorEstoque: json['CodSetorEstoque'],
-        nomeSetorEstoque: json['NomeSetorEstoque'],
-      );
-    } catch (_) {
-      rethrow;
-    }
+    return ExpeditionCartConsultationModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codCarrinho: JsonParse.parseIntOr(json['CodCarrinho'], 0),
+      descricaoCarrinho: JsonParse.parseStringOr(json['Descricao'], ''),
+      ativo: Situation.fromCodeWithFallback(JsonParse.parseStringOr(json['Ativo'], '')),
+      situacao: ExpeditionCartSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionCartSituation.vazio,
+      codigoBarras: JsonParse.parseStringOr(json['CodigoBarras'], ''),
+      codCarrinhoPercurso: JsonParse.parseInt(json['CodCarrinhoPercurso']),
+      codPercursoEstagio: JsonParse.parseInt(json['CodPercursoEstagio']),
+      descricaoPercursoEstagio: JsonParse.parseStringOrNull(json['DescricaoPercursoEstagio']),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseInt(json['CodOrigem']),
+      dataInicio: AppHelper.tryStringToDateOrNull(json['DataInicio']),
+      horaInicio: JsonParse.parseStringOrNull(json['HoraInicio']),
+      codUsuarioInicio: JsonParse.parseInt(json['CodUsuarioInicio']),
+      nomeUsuarioInicio: JsonParse.parseStringOrNull(json['NomeUsuarioInicio']),
+      codSetorEstoque: JsonParse.parseInt(json['CodSetorEstoque']),
+      nomeSetorEstoque: JsonParse.parseStringOrNull(json['NomeSetorEstoque']),
+    );
   }
 
   /// Factory method para criação segura com validação de schema

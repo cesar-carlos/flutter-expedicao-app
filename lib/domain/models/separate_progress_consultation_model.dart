@@ -1,3 +1,4 @@
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
@@ -20,19 +21,18 @@ class SeparateProgressConsultationModel {
   });
 
   factory SeparateProgressConsultationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return SeparateProgressConsultationModel(
-        codEmpresa: json['CodEmpresa'] ?? 0,
-        codSepararEstoque: json['CodSepararEstoque'] ?? 0,
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String),
-        codOrigem: json['CodOrigem'] ?? 0,
-        situacao: ExpeditionSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionSituation.aguardando,
-        processoSeparacao:
-            ExpeditionSituation.fromCode(json['ProcessoSeparacao'] as String? ?? '') ?? ExpeditionSituation.aguardando,
-      );
-    } catch (e) {
-      rethrow;
-    }
+    // Bug anterior: `json['Origem'] as String` direto crashava com
+    // TypeError se viesse null. Agora usa parseStringOr.
+    return SeparateProgressConsultationModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codSepararEstoque: JsonParse.parseIntOr(json['CodSepararEstoque'], 0),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      situacao: ExpeditionSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionSituation.aguardando,
+      processoSeparacao: ExpeditionSituation.fromCode(JsonParse.parseStringOr(json['ProcessoSeparacao'], '')) ??
+          ExpeditionSituation.aguardando,
+    );
   }
 
   Map<String, dynamic> toJson() {

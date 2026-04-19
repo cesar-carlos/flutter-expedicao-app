@@ -1,4 +1,6 @@
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/tipo_fator_conversao_model.dart';
@@ -155,53 +157,71 @@ class SeparateItemConsultationModel {
   }
 
   factory SeparateItemConsultationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return SeparateItemConsultationModel(
-        codEmpresa: json['CodEmpresa'],
-        codSepararEstoque: json['CodSepararEstoque'],
-        item: json['Item'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] ?? ''),
-        codOrigem: json['CodOrigem'],
-        itemOrigem: json['ItemOrigem'],
-        codProduto: json['CodProduto'],
-        nomeProduto: json['NomeProduto'],
-        ativo: Situation.fromCodeWithFallback(json['Ativo'] ?? 'N'),
-        codTipoProduto: json['CodTipoProduto'],
-        codUnidadeMedida: json['CodUnidadeMedida'],
-        nomeUnidadeMedida: json['NomeUnidadeMedida'],
-        codGrupoProduto: json['CodGrupoProduto'],
-        nomeGrupoProduto: json['NomeGrupoProduto'],
-        codMarca: json['CodMarca'],
-        nomeMarca: json['NomeMarca'],
-        codSetorEstoque: json['CodSetorEstoque'],
-        nomeSetorEstoque: json['NomeSetorEstoque'],
-        ncm: json['NCM'] ?? '00000000',
-        codigoBarras: json['CodigoBarras'],
-        codigoBarras2: json['CodigoBarras2'],
-        codigoReferencia: json['CodigoReferencia'],
-        codigoFornecedor: json['CodigoFornecedor'],
-        codigoFabricante: json['CodigoFabricante'],
-        codigoOriginal: json['CodigoOriginal'],
-        endereco: json['Endereco'],
-        enderecoDescricao: json['EnderecoDescricao'],
-        codLocalArmazenagem: json['CodLocalArmazenagem'],
-        nomeLocaArmazenagem: json['NomeLocaArmazenagem'],
-        quantidade: AppHelper.stringToDouble(json['Quantidade']),
-        quantidadeInterna: AppHelper.stringToDouble(json['QuantidadeInterna']),
-        quantidadeExterna: AppHelper.stringToDouble(json['QuantidadeExterna']),
-        quantidadeSeparacao: AppHelper.stringToDouble(json['QuantidadeSeparacao']),
-        unidadeMedidas: json['UnidadeMedidas'] != null
-            ? (json['UnidadeMedidas'] as List)
-                  .map<SeparateItemUnidadeMedidaConsultationModel>(
-                    (unidadeJson) =>
-                        SeparateItemUnidadeMedidaConsultationModel.fromJson(unidadeJson as Map<String, dynamic>),
-                  )
-                  .toList()
-            : throw Exception('UnidadeMedidas é obrigatório'),
-      );
-    } catch (_) {
-      rethrow;
+    // Bug anterior critico: parseamento da lista UnidadeMedidas
+    // crashava inteira se UM item viesse mal-formado
+    // (`map().toList()` propaga). Agora parsing item-by-item:
+    // logamos e ignoramos itens invalidos, mantendo o restante.
+    final unidadesRaw = json['UnidadeMedidas'];
+    final unidades = <SeparateItemUnidadeMedidaConsultationModel>[];
+    if (unidadesRaw is List) {
+      for (var i = 0; i < unidadesRaw.length; i++) {
+        final entry = unidadesRaw[i];
+        if (entry is! Map) {
+          AppLogger.warning(
+            'SeparateItemConsultationModel: UnidadeMedidas[$i] nao e Map (${entry.runtimeType}); ignorando',
+            tag: 'SeparateItemConsultationModel',
+          );
+          continue;
+        }
+        try {
+          unidades.add(SeparateItemUnidadeMedidaConsultationModel.fromJson(Map<String, dynamic>.from(entry)));
+        } catch (e, st) {
+          AppLogger.warning(
+            'SeparateItemConsultationModel: falha ao parsear UnidadeMedidas[$i]; ignorando',
+            tag: 'SeparateItemConsultationModel',
+            error: e,
+            stackTrace: st,
+          );
+        }
+      }
     }
+
+    return SeparateItemConsultationModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codSepararEstoque: JsonParse.parseIntOr(json['CodSepararEstoque'], 0),
+      item: JsonParse.parseStringOr(json['Item'], ''),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      itemOrigem: JsonParse.parseStringOrNull(json['ItemOrigem']),
+      codProduto: JsonParse.parseIntOr(json['CodProduto'], 0),
+      nomeProduto: JsonParse.parseStringOr(json['NomeProduto'], ''),
+      ativo: Situation.fromCodeWithFallback(JsonParse.parseStringOr(json['Ativo'], 'N')),
+      codTipoProduto: JsonParse.parseStringOr(json['CodTipoProduto'], ''),
+      codUnidadeMedida: JsonParse.parseStringOr(json['CodUnidadeMedida'], ''),
+      nomeUnidadeMedida: JsonParse.parseStringOr(json['NomeUnidadeMedida'], ''),
+      codGrupoProduto: JsonParse.parseIntOr(json['CodGrupoProduto'], 0),
+      nomeGrupoProduto: JsonParse.parseStringOr(json['NomeGrupoProduto'], ''),
+      codMarca: JsonParse.parseInt(json['CodMarca']),
+      nomeMarca: JsonParse.parseStringOrNull(json['NomeMarca']),
+      codSetorEstoque: JsonParse.parseInt(json['CodSetorEstoque']),
+      nomeSetorEstoque: JsonParse.parseStringOrNull(json['NomeSetorEstoque']),
+      ncm: JsonParse.parseStringOr(json['NCM'], '00000000'),
+      codigoBarras: JsonParse.parseStringOrNull(json['CodigoBarras']),
+      codigoBarras2: JsonParse.parseStringOrNull(json['CodigoBarras2']),
+      codigoReferencia: JsonParse.parseStringOrNull(json['CodigoReferencia']),
+      codigoFornecedor: JsonParse.parseStringOrNull(json['CodigoFornecedor']),
+      codigoFabricante: JsonParse.parseStringOrNull(json['CodigoFabricante']),
+      codigoOriginal: JsonParse.parseStringOrNull(json['CodigoOriginal']),
+      endereco: JsonParse.parseStringOrNull(json['Endereco']),
+      enderecoDescricao: JsonParse.parseStringOrNull(json['EnderecoDescricao']),
+      codLocalArmazenagem: JsonParse.parseIntOr(json['CodLocalArmazenagem'], 0),
+      nomeLocaArmazenagem: JsonParse.parseStringOr(json['NomeLocaArmazenagem'], ''),
+      quantidade: AppHelper.stringToDouble(json['Quantidade']),
+      quantidadeInterna: AppHelper.stringToDouble(json['QuantidadeInterna']),
+      quantidadeExterna: AppHelper.stringToDouble(json['QuantidadeExterna']),
+      quantidadeSeparacao: AppHelper.stringToDouble(json['QuantidadeSeparacao']),
+      unidadeMedidas: unidades,
+    );
   }
 
   /// Factory method para criação segura com validação de schema

@@ -1,3 +1,4 @@
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
@@ -47,32 +48,28 @@ class StockProductConsultationModel {
   });
 
   factory StockProductConsultationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return StockProductConsultationModel(
-        codProduto: json['CodProduto'],
-        nomeProduto: json['NomeProduto'],
-        ativo: Situation.fromCodeWithFallback(json['Ativo']),
-        codTipoProduto: json['CodTipoProduto'],
-        codUnidadeMedida: json['CodUnidadeMedida'],
-        nomeUnidadeMedida: json['NomeUnidadeMedida'],
-        codGrupoProduto: json['CodGrupoProduto'],
-        nomeGrupoProduto: json['NomeGrupoProduto'],
-        codMarca: json['CodMarca'],
-        nomeMarca: json['NomeMarca'],
-        codSetorEstoque: json['CodSetorEstoque'],
-        ncm: json['NCM'],
-        codigoBarras: json['CodigoBarras'],
-        codigoBarras2: json['CodigoBarras2'],
-        codigoReferencia: json['CodigoReferencia'],
-        codigoFornecedor: json['CodigoFornecedor'],
-        codigoFabricante: json['CodigoFabricante'],
-        codigoOriginal: json['CodigoOriginal'],
-        endereco: json['Endereco'],
-        enderecoDescricao: json['EnderecoDescricao'],
-      );
-    } catch (_) {
-      rethrow;
-    }
+    return StockProductConsultationModel(
+      codProduto: JsonParse.parseIntOr(json['CodProduto'], 0),
+      nomeProduto: JsonParse.parseStringOr(json['NomeProduto'], ''),
+      ativo: Situation.fromCodeWithFallback(JsonParse.parseStringOr(json['Ativo'], '')),
+      codTipoProduto: JsonParse.parseStringOr(json['CodTipoProduto'], ''),
+      codUnidadeMedida: JsonParse.parseStringOr(json['CodUnidadeMedida'], ''),
+      nomeUnidadeMedida: JsonParse.parseStringOr(json['NomeUnidadeMedida'], ''),
+      codGrupoProduto: JsonParse.parseIntOr(json['CodGrupoProduto'], 0),
+      nomeGrupoProduto: JsonParse.parseStringOr(json['NomeGrupoProduto'], ''),
+      codMarca: JsonParse.parseInt(json['CodMarca']),
+      nomeMarca: JsonParse.parseStringOrNull(json['NomeMarca']),
+      codSetorEstoque: JsonParse.parseInt(json['CodSetorEstoque']),
+      ncm: JsonParse.parseStringOrNull(json['NCM']),
+      codigoBarras: JsonParse.parseStringOrNull(json['CodigoBarras']),
+      codigoBarras2: JsonParse.parseStringOrNull(json['CodigoBarras2']),
+      codigoReferencia: JsonParse.parseStringOrNull(json['CodigoReferencia']),
+      codigoFornecedor: JsonParse.parseStringOrNull(json['CodigoFornecedor']),
+      codigoFabricante: JsonParse.parseStringOrNull(json['CodigoFabricante']),
+      codigoOriginal: JsonParse.parseStringOrNull(json['CodigoOriginal']),
+      endereco: JsonParse.parseStringOrNull(json['Endereco']),
+      enderecoDescricao: JsonParse.parseStringOrNull(json['EnderecoDescricao']),
+    );
   }
 
   Map<String, dynamic> toJson() {

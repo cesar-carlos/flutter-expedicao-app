@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/utils/date_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_router_situation_model.dart';
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
@@ -78,27 +79,24 @@ class ExpeditionCheckConsultationModel {
   }
 
   factory ExpeditionCheckConsultationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return ExpeditionCheckConsultationModel(
-        codEmpresa: json['CodEmpresa'],
-        codConferir: json['CodConferir'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
-        codOrigem: json['CodOrigem'],
-        situacao: ExpeditionCartRouterSituation.fromCode(json['Situacao']) ?? ExpeditionCartRouterSituation.vazio,
-        codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-        dataLancamento: DateHelper.tryStringToDate(json['DataLancamento']),
-        horaLancamento: json['HoraLancamento'],
-        tipoEntidade: EntityType.fromCode(json['TipoEntidade']) ?? EntityType.cliente,
-        codEntidade: json['CodEntidade'],
-        nomeEntidade: json['NomeEntidade'],
-        codPrioridade: json['CodPrioridade'],
-        nomePrioridade: json['NomePrioridade'],
-        historico: json['Historico'],
-        observacao: json['Observacao'],
-      );
-    } catch (_) {
-      rethrow;
-    }
+    return ExpeditionCheckConsultationModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codConferir: JsonParse.parseIntOr(json['CodConferir'], 0),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      situacao: ExpeditionCartRouterSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionCartRouterSituation.vazio,
+      codCarrinhoPercurso: JsonParse.parseIntOr(json['CodCarrinhoPercurso'], 0),
+      dataLancamento: DateHelper.tryStringToDate(json['DataLancamento']),
+      horaLancamento: JsonParse.parseStringOr(json['HoraLancamento'], '00:00:00'),
+      tipoEntidade: EntityType.fromCode(JsonParse.parseStringOr(json['TipoEntidade'], '')) ?? EntityType.cliente,
+      codEntidade: JsonParse.parseIntOr(json['CodEntidade'], 0),
+      nomeEntidade: JsonParse.parseStringOr(json['NomeEntidade'], ''),
+      codPrioridade: JsonParse.parseIntOr(json['CodPrioridade'], 0),
+      nomePrioridade: JsonParse.parseStringOr(json['NomePrioridade'], ''),
+      historico: JsonParse.parseStringOrNull(json['Historico']),
+      observacao: JsonParse.parseStringOrNull(json['Observacao']),
+    );
   }
 
   /// Factory method para criação segura com validação de schema

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_router_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
@@ -132,32 +133,34 @@ class ExpeditionCheckCartConsultationModel {
 
   factory ExpeditionCheckCartConsultationModel.fromJson(Map<String, dynamic> json) {
     return ExpeditionCheckCartConsultationModel(
-      codEmpresa: json['CodEmpresa'],
-      codConferir: json['CodConferir'],
-      origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
-      codOrigem: json['CodOrigem'],
-      situacao: ExpeditionCartRouterSituation.fromCode(json['Situacao']) ?? ExpeditionCartRouterSituation.vazio,
-      codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-      itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
-      codPrioridade: json['CodPrioridade'],
-      nomePrioridade: json['NomePrioridade'],
-      codCarrinho: json['CodCarrinho'],
-      nomeCarrinho: json['NomeCarrinho'],
-      codigoBarrasCarrinho: json['CodigoBarrasCarrinho'],
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codConferir: JsonParse.parseIntOr(json['CodConferir'], 0),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      situacao: ExpeditionCartRouterSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionCartRouterSituation.vazio,
+      codCarrinhoPercurso: JsonParse.parseIntOr(json['CodCarrinhoPercurso'], 0),
+      itemCarrinhoPercurso: JsonParse.parseStringOr(json['ItemCarrinhoPercurso'], ''),
+      codPrioridade: JsonParse.parseIntOr(json['CodPrioridade'], 0),
+      nomePrioridade: JsonParse.parseStringOr(json['NomePrioridade'], ''),
+      codCarrinho: JsonParse.parseIntOr(json['CodCarrinho'], 0),
+      nomeCarrinho: JsonParse.parseStringOr(json['NomeCarrinho'], ''),
+      codigoBarrasCarrinho: JsonParse.parseStringOr(json['CodigoBarrasCarrinho'], ''),
       situacaoCarrinhoConferencia:
-          ExpeditionCartSituation.fromCode(json['SituacaoCarrinhoConferencia']) ?? ExpeditionCartSituation.vazio,
+          ExpeditionCartSituation.fromCode(JsonParse.parseStringOr(json['SituacaoCarrinhoConferencia'], '')) ??
+              ExpeditionCartSituation.vazio,
       dataInicioPercurso: DateHelper.tryStringToDate(json['DataInicioPercurso']),
-      horaInicioPercurso: json['HoraInicioPercurso'],
-      codPercursoEstagio: json['CodPercursoEstagio'],
-      nomePercursoEstagio: json['NomePercursoEstagio'],
-      codUsuarioInicioEstagio: json['CodUsuarioInicioEstagio'],
-      nomeUsuarioInicioEstagio: json['NomeUsuarioInicioEstagio'],
+      horaInicioPercurso: JsonParse.parseStringOr(json['HoraInicioPercurso'], '00:00:00'),
+      codPercursoEstagio: JsonParse.parseIntOr(json['CodPercursoEstagio'], 0),
+      nomePercursoEstagio: JsonParse.parseStringOr(json['NomePercursoEstagio'], ''),
+      codUsuarioInicioEstagio: JsonParse.parseIntOr(json['CodUsuarioInicioEstagio'], 0),
+      nomeUsuarioInicioEstagio: JsonParse.parseStringOr(json['NomeUsuarioInicioEstagio'], ''),
       dataInicioEstagio: DateHelper.tryStringToDate(json['DataInicioEstagio']),
-      horaInicioEstagio: json['HoraInicioEstagio'],
-      codUsuarioFinalizacaoEstagio: json['CodUsuarioFinalizacaoEstagio'],
-      nomeUsuarioFinalizacaoEstagio: json['NomeUsuarioFinalizacaoEstagio'],
+      horaInicioEstagio: JsonParse.parseStringOr(json['HoraInicioEstagio'], '00:00:00'),
+      codUsuarioFinalizacaoEstagio: JsonParse.parseIntOr(json['CodUsuarioFinalizacaoEstagio'], 0),
+      nomeUsuarioFinalizacaoEstagio: JsonParse.parseStringOr(json['NomeUsuarioFinalizacaoEstagio'], ''),
       dataFinalizacaoEstagio: DateHelper.tryStringToDate(json['DataFinalizacaoEstagio']),
-      horaFinalizacaoEstagio: json['HoraFinalizacaoEstagio'],
+      horaFinalizacaoEstagio: JsonParse.parseStringOr(json['HoraFinalizacaoEstagio'], '00:00:00'),
       totalItemConferir: AppHelper.stringToDouble(json['TotalItemConferir']),
       totalItemConferido: AppHelper.stringToDouble(json['TotalItemConferido']),
     );
