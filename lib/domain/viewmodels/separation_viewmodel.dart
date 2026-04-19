@@ -805,12 +805,31 @@ class SeparationViewModel extends ChangeNotifier {
     _notificationDebounce = Timer(const Duration(seconds: 5), () {
       if (_disposed) return;
 
-      _audioService.playNotification();
-
-      _notificationService.showNewSeparationNotification(
-        codSepararEstoque: separationData.codSepararEstoque,
-        nomeEntidade: separationData.nomeEntidade,
-        codSetoresEstoque: separationData.codSetoresEstoque,
+      unawaited(
+        _audioService.playNotification().catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao reproduzir notificação sonora (nova separação)',
+            tag: 'SeparationViewModel',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
+      unawaited(
+        _notificationService
+            .showNewSeparationNotification(
+              codSepararEstoque: separationData.codSepararEstoque,
+              nomeEntidade: separationData.nomeEntidade,
+              codSetoresEstoque: separationData.codSetoresEstoque,
+            )
+            .catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha ao exibir notificação de nova separação',
+                tag: 'SeparationViewModel',
+                error: e,
+                stackTrace: s,
+              );
+            }),
       );
     });
   }
