@@ -1,7 +1,4 @@
-import 'dart:typed_data';
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:image/image.dart' as img;
 
 import 'package:data7_expedicao/domain/models/expedition_item_print_consultation_model.dart';
 import 'package:data7_expedicao/infrastructure/services/esc_pos_ticket_builder_service.dart';
@@ -21,31 +18,6 @@ void main() {
 
       expect(bytes, isNotEmpty);
       expect(bytes.length, greaterThan(20));
-    });
-
-    test('deve gerar ticket com logo quando imagem for valida', () async {
-      final logo = img.Image(width: 32, height: 16);
-      img.fill(logo, color: img.ColorRgb8(0, 0, 0));
-      final logoBytes = Uint8List.fromList(img.encodePng(logo));
-
-      final bytes = await service.buildPrinterTestTicketBytes(
-        printerName: 'Impressora Expedicao',
-        printerIp: '192.168.0.200',
-        printerPort: 9100,
-        logoBytes: logoBytes,
-      );
-
-      expect(bytes, isNotEmpty);
-      expect(bytes.length, greaterThan(20));
-    });
-
-    test('deve ignorar logo invalida sem falhar o ticket', () async {
-      final bytes = await service.buildExpeditionTicketBytes(
-        items: [_buildItem()],
-        logoBytes: Uint8List.fromList([1, 2, 3, 4, 5]),
-      );
-
-      expect(bytes, isNotEmpty);
     });
 
     test('deve gerar bytes para ticket de expedicao com itens reais', () async {

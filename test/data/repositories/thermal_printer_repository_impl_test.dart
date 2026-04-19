@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -266,10 +265,7 @@ class _FakeEscPosTicketBuilderService extends EscPosTicketBuilderService {
   Future<List<int>> buildExpeditionTicketBytes({
     required List<ExpeditionItemPrintConsultationModel> items,
     String? separatorName,
-    Uint8List? logoBytes,
-    int logoMaxWidthPx = 576,
     bool autoCut = true,
-    int? codSetorEstoque,
     int? codUsuario,
     int? leftMarginMm,
   }) async {
@@ -286,8 +282,6 @@ class _FakeEscPosTicketBuilderService extends EscPosTicketBuilderService {
     required String printerName,
     required String printerIp,
     required int printerPort,
-    Uint8List? logoBytes,
-    int logoMaxWidthPx = 576,
     bool autoCut = true,
     int? leftMarginMm,
   }) async {

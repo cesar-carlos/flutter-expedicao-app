@@ -486,20 +486,30 @@ Lacunas de teste:
 
 - [x] **Criar testes de fluxo completo**: Implementados testes que demonstram que falhas na impressão não afetam o salvamento do carrinho, com uso de `unawaited()` e tratamento de múltiplos cenários de falha. Arquivo: `test/domain/usecases/save_cart_with_print_test.dart`
 
-- [x] **Definir fonte/configuracao de logo**: Implementado `CompanyLogoService` que carrega automaticamente o logo da empresa (`assets/images/log_se7e_black.png`). Integrado com `EscPosTicketBuilderService` via DI. Arquivos:
-  - `lib/infrastructure/services/company_logo_service.dart`
-  - `lib/infrastructure/services/esc_pos_ticket_builder_service.dart` (atualizado)
-  - `lib/di/locator.dart` (registros atualizados)
+- [x] **Definir fonte/configuracao de logo**: ~~Implementado `CompanyLogoService` que carrega automaticamente o logo da empresa (`assets/images/log_se7e_black.png`). Integrado com `EscPosTicketBuilderService` via DI.~~ **REVERTIDO em 2026-04-18** — o logo (1440x750 px → ~37,5 mm de altura no papel 80 mm) gerava ~5 cm de espaço no topo do ticket. A renderização do logo foi removida por completo da pipeline de impressão. Os assets de logo continuam disponíveis em `assets/images/` para uso em outras telas (`adaptive_logo.dart`).
+  - `lib/infrastructure/services/company_logo_service.dart` (excluído)
+  - `lib/infrastructure/services/esc_pos_ticket_builder_service.dart` (sem logo)
+  - `lib/domain/repositories/i_esc_pos_ticket_builder_service.dart` (interface sem `logoBytes`/`logoMaxWidthPx`)
+  - `lib/di/locator.dart` (registro de `CompanyLogoService` removido)
+  - `pubspec.yaml` (dependência direta `image: ^4.5.4` removida; segue como transitiva via `esc_pos_utils_plus`)
 
 ### 🔄 PENDENTES
 
 - [ ] **Ativar e estabilizar testes de integracao de consulta**: Testes atualmente `skip: true` por dependerem de servidor Socket.IO real. Arquivo: `test/data/repositories/expedition_item_print_consultation_repository_integration_test.dart`
 
-- [ ] **Homologar em campo com NP-330N**: Validar QRCode, corte, acentuação, logo e desempenho em impressora física em rede real.
+- [ ] **Homologar em campo com NP-330N**: Validar QRCode, corte, acentuação e desempenho em impressora física em rede real.
 
 - [ ] **Definir opcao "Salvar e Imprimir"**: Decidir se o produto precisa de opção explícita além do auto print atual.
 
 ## 17. Historico de Alterações
+
+### 2026-04-18
+
+- 🗑️ **Removida renderização de logo da impressão térmica** — o logo `log_se7e_black.png` (1440x750 px) ocupava ~37,5 mm de altura no papel 80 mm, causando ~5 cm de espaço aparente no topo do ticket reportado por usuários
+- 🗑️ Excluído `lib/infrastructure/services/company_logo_service.dart`
+- 🗑️ Removidos `logoBytes` e `logoMaxWidthPx` da interface `IEscPosTicketBuilderService`
+- 🗑️ Removida dependência direta `image: ^4.5.4` do `pubspec.yaml` (segue transitiva)
+- 🧪 Atualizados testes de `EscPosTicketBuilderService` e `_FakeEscPosTicketBuilderService`
 
 ### 2026-02-10
 

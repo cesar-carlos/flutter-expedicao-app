@@ -1,30 +1,20 @@
-import 'dart:typed_data';
-
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
-import 'package:image/image.dart' as img;
 
-import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/expedition_item_print_consultation_model.dart';
 import 'package:data7_expedicao/domain/repositories/i_esc_pos_ticket_builder_service.dart';
-import 'package:data7_expedicao/infrastructure/services/company_logo_service.dart';
 
 class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
   static const String _defaultCodeTable = 'CP1252';
-  static const int _defaultLogoMaxWidthPx = 576;
   static const int _defaultLeftMarginMm = 5;
   static const int _maxPrintLength = 80;
 
-  final CompanyLogoService? _logoService;
-
-  const EscPosTicketBuilderService({CompanyLogoService? logoService}) : _logoService = logoService;
+  const EscPosTicketBuilderService();
 
   @override
   Future<List<int>> buildPrinterTestTicketBytes({
     required String printerName,
     required String printerIp,
     required int printerPort,
-    Uint8List? logoBytes,
-    int logoMaxWidthPx = _defaultLogoMaxWidthPx,
     bool autoCut = true,
     int? leftMarginMm,
   }) async {
@@ -34,16 +24,6 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     final printedAt = DateTime.now();
     bytes.addAll(generator.setGlobalCodeTable(_defaultCodeTable));
     _appendLeftMarginIfNeeded(bytes, generator, leftMarginMm);
-
-    // Carrega logo automaticamente se não fornecido e serviço disponível
-    final effectiveLogoBytes = logoBytes ?? await _loadLogoIfAvailable();
-
-    _appendLogoIfProvided(
-      bytes: bytes,
-      generator: generator,
-      logoBytes: effectiveLogoBytes,
-      logoMaxWidthPx: logoMaxWidthPx,
-    );
 
     bytes.addAll(
       generator.text(
@@ -75,8 +55,6 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
   Future<List<int>> buildExpeditionTicketBytes({
     required List<ExpeditionItemPrintConsultationModel> items,
     String? separatorName,
-    Uint8List? logoBytes,
-    int logoMaxWidthPx = _defaultLogoMaxWidthPx,
     bool autoCut = true,
     int? codUsuario,
     int? leftMarginMm,
@@ -93,16 +71,6 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     final printedAt = DateTime.now();
     bytes.addAll(generator.setGlobalCodeTable(_defaultCodeTable));
     _appendLeftMarginIfNeeded(bytes, generator, leftMarginMm);
-
-    // Carrega logo automaticamente se não fornecido e serviço disponível
-    final effectiveLogoBytes = logoBytes ?? await _loadLogoIfAvailable();
-
-    _appendLogoIfProvided(
-      bytes: bytes,
-      generator: generator,
-      logoBytes: effectiveLogoBytes,
-      logoMaxWidthPx: logoMaxWidthPx,
-    );
 
     bytes.addAll(
       generator.text(
@@ -290,52 +258,5 @@ class EscPosTicketBuilderService implements IEscPosTicketBuilderService {
     final nL = leftMarginDots & 0xFF;
     final nH = (leftMarginDots >> 8) & 0xFF;
     bytes.addAll(generator.rawBytes([0x1D, 0x4C, nL, nH]));
-  }
-
-  void _appendLogoIfProvided({
-    required List<int> bytes,
-    required Generator generator,
-    required Uint8List? logoBytes,
-    required int logoMaxWidthPx,
-  }) {
-    if (logoBytes == null || logoBytes.isEmpty) {
-      return;
-    }
-
-    try {
-      final decodedLogo = img.decodeImage(logoBytes);
-      if (decodedLogo == null) {
-        return;
-      }
-
-      final normalizedLogoWidth = logoMaxWidthPx.clamp(1, _defaultLogoMaxWidthPx);
-      final preparedLogo = decodedLogo.width > normalizedLogoWidth
-          ? img.copyResize(decodedLogo, width: normalizedLogoWidth, interpolation: img.Interpolation.average)
-          : decodedLogo;
-
-      bytes.addAll(generator.imageRaster(preparedLogo, align: PosAlign.left, imageFn: PosImageFn.graphics));
-      bytes.addAll(generator.emptyLines(1));
-    } catch (e) {
-      _safeWarning('Falha ao converter logo para ESC/POS: $e');
-    }
-  }
-
-  void _safeWarning(String message) {
-    try {
-      AppLogger.warning(message, tag: 'EscPosTicketBuilderService');
-    } catch (_) {}
-  }
-
-  Future<Uint8List?> _loadLogoIfAvailable() async {
-    if (_logoService == null) {
-      return null;
-    }
-
-    try {
-      return await _logoService.loadDefaultLogo();
-    } catch (e) {
-      _safeWarning('Falha ao carregar logo da empresa: $e');
-      return null;
-    }
   }
 }

@@ -139,7 +139,6 @@ import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 import 'package:data7_expedicao/domain/services/picking_state_manager.dart';
 import 'package:data7_expedicao/infrastructure/services/logger_service.dart';
 import 'package:data7_expedicao/infrastructure/services/esc_pos_ticket_builder_service.dart';
-import 'package:data7_expedicao/infrastructure/services/company_logo_service.dart';
 import 'package:data7_expedicao/core/network/network_service.dart';
 import 'package:data7_expedicao/infrastructure/network/internet_address_network_service.dart';
 import 'package:data7_expedicao/infrastructure/services/printer_discovery_service.dart';
@@ -187,8 +186,7 @@ void setupLocator() {
   locator.registerLazySingleton<PickingStateManager>(() => PickingStateManager());
   locator.registerLazySingleton(() => BarcodeScannerService());
   locator.registerLazySingleton(() => ShelfScanningService());
-  locator.registerLazySingleton(() => CompanyLogoService());
-  locator.registerLazySingleton(() => EscPosTicketBuilderService(logoService: locator<CompanyLogoService>()));
+  locator.registerLazySingleton(() => const EscPosTicketBuilderService());
   locator.registerLazySingleton(() => const ThermalPrinterTcpService());
 
   locator.registerLazySingleton(
