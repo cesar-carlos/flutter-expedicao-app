@@ -5,12 +5,66 @@ import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
-class SocketStatusIndicator extends StatelessWidget {
+/// Indicador visual do status do socket.
+///
+/// Bug TTTTTTTT (refatoracao): a versao anterior usava
+/// `TweenAnimationBuilder` com hack de `(context as Element).markNeedsBuild()`
+/// no `onEnd` para criar um pseudo-loop de pulsacao enquanto isConnecting.
+/// Problemas:
+/// 1. Cast forçado `as Element` e `markNeedsBuild()` em widget tree e
+///    extremamente custoso (re-anima todo o subtree do Consumer).
+/// 2. Cada ciclo provocava 1 rebuild completo + addPostFrameCallback,
+///    multiplicando o trabalho do framework.
+/// 3. Em cenarios de rede ruim onde isConnecting fica true por muito
+///    tempo, o efeito poluia o thread de UI causando jank visivel.
+///
+/// Refatorado para `StatefulWidget` com `AnimationController` proprio
+/// que gerencia o loop de pulso de forma eficiente:
+/// * O controller so existe enquanto isConnecting=true
+/// * `repeat()` nativo do AnimationController e otimizado
+/// * Quando volta a connected/disconnected/error, o controller e
+///   parado e a animacao some sem rebuilds desnecessarios
+class SocketStatusIndicator extends StatefulWidget {
   final bool showLabel;
   final double size;
   final EdgeInsetsGeometry? padding;
 
   const SocketStatusIndicator({super.key, this.showLabel = true, this.size = 12.0, this.padding});
+
+  @override
+  State<SocketStatusIndicator> createState() => _SocketStatusIndicatorState();
+}
+
+class _SocketStatusIndicatorState extends State<SocketStatusIndicator> with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  void _syncAnimationWithState(bool isConnecting) {
+    if (isConnecting) {
+      if (!_pulseController.isAnimating) {
+        _pulseController.repeat();
+      }
+    } else {
+      if (_pulseController.isAnimating) {
+        _pulseController.stop();
+        _pulseController.reset();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +74,17 @@ class SocketStatusIndicator extends StatelessWidget {
             socketViewModel.connectionState == SocketConnectionState.connecting ||
             socketViewModel.connectionState == SocketConnectionState.reconnecting;
 
+        // Sincroniza o controller com o estado APOS o build (nao podemos
+        // chamar repeat()/stop() durante build).
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _syncAnimationWithState(isConnecting);
+        });
+
+        final stateColor = Color(socketViewModel.connectionStateColor);
+
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          padding: padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: AppColors.black.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
@@ -34,41 +96,32 @@ class SocketStatusIndicator extends StatelessWidget {
                 alignment: Alignment.center,
                 children: [
                   Container(
-                    width: size,
-                    height: size,
+                    width: widget.size,
+                    height: widget.size,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Color(socketViewModel.connectionStateColor),
+                      color: stateColor,
                     ),
                   ),
 
                   if (isConnecting)
-                    TweenAnimationBuilder<double>(
-                      duration: const Duration(milliseconds: 1000),
-                      tween: Tween(begin: 0.0, end: 1.0),
-                      builder: (context, value, child) {
+                    AnimatedBuilder(
+                      animation: _pulseController,
+                      builder: (context, _) {
+                        final value = _pulseController.value;
                         return Container(
-                          width: size * (1.0 + (value * 0.5)),
-                          height: size * (1.0 + (value * 0.5)),
+                          width: widget.size * (1.0 + (value * 0.5)),
+                          height: widget.size * (1.0 + (value * 0.5)),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Color(socketViewModel.connectionStateColor).withValues(alpha: 0.3 * (1.0 - value)),
+                            color: stateColor.withValues(alpha: 0.3 * (1.0 - value)),
                           ),
                         );
-                      },
-                      onEnd: () {
-                        if (isConnecting) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (context.mounted) {
-                              (context as Element).markNeedsBuild();
-                            }
-                          });
-                        }
                       },
                     ),
                 ],
               ),
-              if (showLabel) ...[
+              if (widget.showLabel) ...[
                 const SizedBox(width: 6),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
@@ -77,7 +130,7 @@ class SocketStatusIndicator extends StatelessWidget {
                     key: ValueKey(socketViewModel.connectionStateDescription),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w500,
-                      color: Color(socketViewModel.connectionStateColor),
+                      color: stateColor,
                     ),
                   ),
                 ),

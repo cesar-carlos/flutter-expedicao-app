@@ -44,6 +44,11 @@ class CartsListView extends StatelessWidget {
   void _onCartCancel(BuildContext context, ExpeditionCartRouteInternshipConsultationModel cart) {
     viewModel.refresh();
 
+    // Bug EEEEEEEEE: callback pode rodar APOS o widget ser desmontado
+    // (cancel async lento). ScaffoldMessenger.of(context) em context
+    // invalido lanca, e como callback nao tem try/catch, propagaria.
+    if (!context.mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Lista de carrinhos atualizada'),

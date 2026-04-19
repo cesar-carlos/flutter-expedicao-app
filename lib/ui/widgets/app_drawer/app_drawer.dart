@@ -215,10 +215,17 @@ class AppDrawer extends StatelessWidget {
                       icon: socketViewModel.isConnected ? Icons.wifi : Icons.wifi_off,
                       title: socketViewModel.isConnected ? 'Conectado' : 'Desconectado',
                       onTap: () {
+                        // Bug JJJJJJJJJ: connect() retorna Future. Antes era
+                        // fire-and-forget sem catch — qualquer erro virava
+                        // uncaught exception silenciosa em release. Agora
+                        // logamos o erro pelo proprio SocketViewModel/Service
+                        // (ja tem AppLogger) e ignoramos o future via unawaited.
                         if (socketViewModel.isConnected) {
                           socketViewModel.disconnect();
                         } else {
-                          socketViewModel.connect();
+                          socketViewModel.connect().catchError((Object _) {
+                            // Erro ja logado em SocketViewModel.connect.
+                          });
                         }
                       },
                     );
@@ -334,7 +341,29 @@ class AppDrawer extends StatelessWidget {
 
     if (!scaffoldContext.mounted) return;
 
+    // Bug IIIIIIIII: busy loop sem timeout. Antes:
+    //   while (appUpdateViewModel.isChecking && scaffoldContext.mounted) {
+    //     await Future.delayed(const Duration(milliseconds: 200));
+    //   }
+    // Se isChecking ficar true para sempre (bug em checkForUpdate, race,
+    // erro nao tratado no ViewModel), o loop nunca terminava ate o widget
+    // ser desmontado — desperdicio de bateria + bloqueava feedback ao usuario.
+    //
+    // Adicionado timeout de 30s. Se exceder, assumimos que algo travou e
+    // saimos com snackbar de erro em vez de loop infinito.
+    final pollDeadline = DateTime.now().add(const Duration(seconds: 30));
     while (appUpdateViewModel.isChecking && scaffoldContext.mounted) {
+      if (DateTime.now().isAfter(pollDeadline)) {
+        if (scaffoldContext.mounted) {
+          ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+            const SnackBar(
+              content: Text('Verificação de atualização demorou muito. Tente novamente mais tarde.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
       await Future.delayed(const Duration(milliseconds: 200));
     }
 
