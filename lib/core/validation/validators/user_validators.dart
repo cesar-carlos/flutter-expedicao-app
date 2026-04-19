@@ -80,7 +80,14 @@ class UserValidators {
   /// Valida se o email é válido
   static bool isValidEmail(String? email) {
     if (email == null || email.trim().isEmpty) return true; // Opcional
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    // Bug EEEEEEEEEEE: regex anterior `^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$`
+    // limitava o TLD a 4 caracteres — rejeitava emails legitimos com
+    // TLDs modernos (.travel, .museum, .technology, .photography, etc).
+    // Tambem nao permitia TLDs com mais de 1 segmento (.com.br, .co.uk).
+    // Regex atualizado:
+    // - TLDs de 2 ate 24 chars (cobre todos os TLDs registrados)
+    // - Suporta multiplos segmentos no dominio (a.b.c.d)
+    final emailRegex = RegExp(r'^[\w.\-]+@[\w\-]+(\.[\w\-]+)*\.[a-zA-Z]{2,24}$');
     return emailRegex.hasMatch(email.trim());
   }
 

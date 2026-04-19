@@ -15,11 +15,17 @@ class ReleaseAssetDto {
   });
 
   factory ReleaseAssetDto.fromJson(Map<String, dynamic> json) {
+    // Bug FFFFFFFFFFF: casts diretos em 'name' e 'browser_download_url'
+    // crashavam com TypeError se a API GitHub retornasse formato
+    // diferente (ou erro com body inesperado). Agora usamos
+    // toString()/'' como fallback defensivo. Se algum asset estiver
+    // realmente quebrado, ele aparece com URL vazia (e GetApkAsset
+    // ja filtra entries invalidas).
     return ReleaseAssetDto(
-      name: json['name'] as String,
-      browserDownloadUrl: json['browser_download_url'] as String,
-      size: json['size'] as int? ?? 0,
-      contentType: json['content_type'] as String? ?? 'application/vnd.android.package-archive',
+      name: json['name']?.toString() ?? '',
+      browserDownloadUrl: json['browser_download_url']?.toString() ?? '',
+      size: json['size'] is int ? json['size'] as int : 0,
+      contentType: json['content_type']?.toString() ?? 'application/vnd.android.package-archive',
     );
   }
 
@@ -44,22 +50,51 @@ class GitHubReleaseDto {
   });
 
   factory GitHubReleaseDto.fromJson(Map<String, dynamic> json) {
+    // Bug GGGGGGGGGGG: parsing defensivo (mesma motivacao do
+    // ReleaseAssetDto.fromJson acima). API GitHub raramente muda mas
+    // erros pontuais (rate-limit, manutencao) podem retornar shape
+    // inesperado.
+    final tagName = json['tag_name']?.toString() ?? '';
     return GitHubReleaseDto(
-      tagName: json['tag_name'] as String,
-      name: json['name'] as String? ?? json['tag_name'] as String,
-      body: json['body'] as String?,
-      publishedAt: json['published_at'] as String,
-      assets: json['assets'] as List<dynamic>? ?? [],
+      tagName: tagName,
+      name: json['name']?.toString() ?? tagName,
+      body: json['body']?.toString(),
+      publishedAt: json['published_at']?.toString() ?? '',
+      assets: json['assets'] is List ? json['assets'] as List<dynamic> : const <dynamic>[],
     );
   }
 
   GitHubRelease toDomain() {
+    // Bug HHHHHHHHHHH: `DateTime.parse(publishedAt)` sem try/catch
+    // crashava se a string viesse mal formatada (ex.: '' no caso
+    // do parsing defensivo acima). Fallback para epoch 0 (data
+    // claramente invalida que outras camadas podem detectar).
+    DateTime parsedDate;
+    try {
+      parsedDate = DateTime.parse(publishedAt);
+    } catch (_) {
+      parsedDate = DateTime.fromMillisecondsSinceEpoch(0);
+    }
+
+    // Bug IIIIIIIIIII: parse item-por-item dos assets em vez de
+    // crashar lista inteira se algum asset for invalido (ex.: null
+    // entry no array da API).
+    final parsedAssets = <ReleaseAsset>[];
+    for (final asset in assets) {
+      if (asset is! Map) continue;
+      try {
+        parsedAssets.add(ReleaseAssetDto.fromJson(Map<String, dynamic>.from(asset)).toDomain());
+      } catch (_) {
+        // ignore item invalido — outros assets continuam
+      }
+    }
+
     return GitHubRelease(
       tagName: tagName,
       name: name,
       body: body,
-      publishedAt: DateTime.parse(publishedAt),
-      assets: assets.map((asset) => ReleaseAssetDto.fromJson(asset as Map<String, dynamic>).toDomain()).toList(),
+      publishedAt: parsedDate,
+      assets: parsedAssets,
     );
   }
 }

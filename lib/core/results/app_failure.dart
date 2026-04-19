@@ -15,11 +15,21 @@ abstract class AppFailure implements Exception {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is AppFailure && other.message == message && other.code == code;
+    // Bug VVVVVVVVVV: antes era `other is AppFailure` (classe abstrata),
+    // que sempre era true para QUALQUER subclasse. Significa que
+    // `NetworkFailure(message: 'X', code: 'Y')` era considerado IGUAL
+    // a `DataFailure(message: 'X', code: 'Y')` — quebrando comparacoes
+    // em testes (ex.: expect(failure, isA<NetworkFailure>()) passa,
+    // mas equals para um DataFailure tambem passava). Agora exige
+    // mesmo tipo concreto.
+    return other.runtimeType == runtimeType &&
+        other is AppFailure &&
+        other.message == message &&
+        other.code == code;
   }
 
   @override
-  int get hashCode => message.hashCode ^ code.hashCode;
+  int get hashCode => Object.hash(runtimeType, message, code);
 }
 
 class ValidationFailure extends AppFailure {
