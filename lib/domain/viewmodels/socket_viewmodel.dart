@@ -8,6 +8,7 @@ import 'package:data7_expedicao/di/locator.dart';
 class SocketViewModel extends ChangeNotifier {
   SocketService? _socketService;
   VoidCallback? _connectionListener;
+  bool _disposed = false;
 
   SocketService get socketService {
     _socketService ??= locator<SocketService>();
@@ -35,6 +36,10 @@ class SocketViewModel extends ChangeNotifier {
 
   void _autoConnect() {
     Future.delayed(const Duration(seconds: 2), () {
+      // Bug AAAA: se o ViewModel foi disposto durante a janela de 2s,
+      // nao tentamos conectar (o socketService e singleton, mas evitamos
+      // trabalho desnecessario e potenciais notifications em VM disposta).
+      if (_disposed) return;
       if (connectionState == SocketConnectionState.disconnected) {
         connect();
       }
@@ -112,7 +117,15 @@ class SocketViewModel extends ChangeNotifier {
   }
 
   void _setupConnectionListener() {
-    _connectionListener = notifyListeners;
+    // Bug BBBB: antes era `_connectionListener = notifyListeners` que,
+    // mesmo com remove no dispose, podia ser invocado em race com
+    // super.dispose() (callback rodando entre threads/event loop) →
+    // FlutterError "A SocketViewModel was used after being disposed".
+    // Wrap em closure com guard de _disposed elimina a janela de risco.
+    _connectionListener = () {
+      if (_disposed) return;
+      notifyListeners();
+    };
     socketService.addListener(_connectionListener!);
   }
 
@@ -147,6 +160,7 @@ class SocketViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     if (_socketService != null && _connectionListener != null) {
       _socketService!.removeListener(_connectionListener!);
       _connectionListener = null;

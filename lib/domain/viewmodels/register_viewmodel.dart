@@ -9,6 +9,7 @@ class RegisterViewModel extends ChangeNotifier {
   String _errorMessage = '';
   File? _profileImage;
   RegisterUserUseCase? _registerUserUseCase;
+  bool _disposed = false;
 
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
@@ -20,22 +21,26 @@ class RegisterViewModel extends ChangeNotifier {
 
   void setProfileImage(File? image) {
     _profileImage = image;
-    notifyListeners();
+    _safeNotify();
   }
 
   void removeProfileImage() {
     _profileImage = null;
-    notifyListeners();
+    _safeNotify();
   }
 
   void clearError() {
     _errorMessage = '';
-    notifyListeners();
+    _safeNotify();
   }
 
   void setError(String message) {
     _errorMessage = message;
-    notifyListeners();
+    _safeNotify();
+  }
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
   }
 
   Future<bool> register({
@@ -44,6 +49,10 @@ class RegisterViewModel extends ChangeNotifier {
     required String confirmPassword,
     File? profileImage,
   }) async {
+    // Bug WWW: lock anti-race — duplo-clique no botao "Criar conta"
+    // criava 2 usuarios identicos no servidor.
+    if (_isLoading) return false;
+
     if (!validateForm(name: name, password: password, confirmPassword: confirmPassword)) {
       return false;
     }
@@ -55,7 +64,7 @@ class RegisterViewModel extends ChangeNotifier {
 
     _isLoading = true;
     clearError();
-    notifyListeners();
+    _safeNotify();
 
     try {
       final params = RegisterUserParams(nome: name.trim(), senha: password, profileImage: profileImage);
@@ -71,7 +80,7 @@ class RegisterViewModel extends ChangeNotifier {
       return false;
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -120,6 +129,12 @@ class RegisterViewModel extends ChangeNotifier {
     _isLoading = false;
     _errorMessage = '';
     _profileImage = null;
-    notifyListeners();
+    _safeNotify();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

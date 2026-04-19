@@ -228,8 +228,17 @@ class SeparationViewModel extends ChangeNotifier {
       _availableSectors = sectors;
       _sectorsLoaded = true;
       _safeNotifyListeners();
-    } catch (e) {
+    } catch (e, s) {
       if (_disposed) return;
+      // Bug NNN: antes era catch silencioso. Sem log, falha em
+      // loadAvailableSectors deixava a lista vazia sem nenhum
+      // feedback (nem para o usuario, nem para o desenvolvedor).
+      AppLogger.error(
+        'Erro ao carregar setores disponiveis para filtro',
+        tag: 'SeparationVM',
+        error: e,
+        stackTrace: s,
+      );
       _availableSectorsUnmodifiable = null;
       _availableSectors = [];
       _sectorsLoaded = false;
@@ -267,8 +276,17 @@ class SeparationViewModel extends ChangeNotifier {
 
       _isLoadingMore = false;
       _safeNotifyListeners();
-    } catch (e) {
+    } catch (e, s) {
       if (_disposed) return;
+      // Bug OOO: antes era catch silencioso. Sem log, paginacao
+      // falha era invisivel (usuario via skeleton infinito ou lista
+      // que nao crescia, sem nenhuma pista do motivo).
+      AppLogger.warning(
+        'Erro ao carregar mais separacoes (pagina ${_currentPage + 1})',
+        tag: 'SeparationVM',
+        error: e,
+        stackTrace: s,
+      );
       _currentPage--;
       _isLoadingMore = false;
       _safeNotifyListeners();
@@ -387,7 +405,10 @@ class SeparationViewModel extends ChangeNotifier {
         _dataEmissaoFilter = savedFilters.dataEmissao;
         _setorEstoqueFilter = savedFilters.setorEstoque;
 
-        notifyListeners();
+        // Bug SSS: usar _safeNotifyListeners para nao chamar
+        // notifyListeners apos dispose (esta funcao roda dentro de
+        // loadSeparations que e async, e a tela pode ter sido fechada).
+        _safeNotifyListeners();
       }
     } catch (e) {
       if (kDebugMode) {

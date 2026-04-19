@@ -21,21 +21,30 @@ class ScannerViewModel extends ChangeNotifier {
   final List<ScannerData> _scanHistory = [];
   bool _isProcessing = false;
   Timer? _debounceTimer;
+  bool _disposed = false;
 
   String get scannedCode => _scannedCode;
   List<ScannerData> get scanHistory => List.unmodifiable(_scanHistory);
   bool get hasCode => _scannedCode.isNotEmpty;
 
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
   void addCharacter(String character) {
+    if (_disposed) return;
     if (character.isNotEmpty) {
       _scannedCode += character;
 
       _debounceTimer?.cancel();
       _debounceTimer = Timer(_debounceDuration, () {
+        // Bug ZZZ: debounce de 150ms pode disparar APOS dispose
+        // (usuario navega para outra tela enquanto o timer esta ativo).
+        if (_disposed) return;
         _processDebouncedInput();
       });
 
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -72,7 +81,7 @@ class ScannerViewModel extends ChangeNotifier {
 
     _scannedCode = "";
 
-    notifyListeners();
+    _safeNotify();
 
     _isProcessing = false;
   }
@@ -106,18 +115,18 @@ class ScannerViewModel extends ChangeNotifier {
 
   void clearCurrentCode() {
     _scannedCode = "";
-    notifyListeners();
+    _safeNotify();
   }
 
   void clearHistory() {
     _scanHistory.clear();
-    notifyListeners();
+    _safeNotify();
   }
 
   void removeFromHistory(int index) {
     if (index >= 0 && index < _scanHistory.length) {
       _scanHistory.removeAt(index);
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -129,6 +138,7 @@ class ScannerViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _debounceTimer?.cancel();
     super.dispose();
   }
