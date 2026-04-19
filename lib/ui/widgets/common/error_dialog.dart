@@ -34,7 +34,7 @@ class ErrorDialog extends StatelessWidget {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return ErrorDialog(
           title: 'Erro do Servidor',
           message: message,
@@ -51,7 +51,7 @@ class ErrorDialog extends StatelessWidget {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return ErrorDialog(
           title: 'Erro de Conexão',
           message:
@@ -74,7 +74,7 @@ class ErrorDialog extends StatelessWidget {
     return showDialog<void>(
       context: context,
       barrierDismissible: true,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return ErrorDialog(title: 'Erro', message: message, details: details, onClose: onClose, showRetryButton: false);
       },
     );
@@ -84,7 +84,7 @@ class ErrorDialog extends StatelessWidget {
     return showDialog<void>(
       context: context,
       barrierDismissible: true,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return ErrorDialog(title: 'Dados Inválidos', message: message, details: details, showRetryButton: false);
       },
     );

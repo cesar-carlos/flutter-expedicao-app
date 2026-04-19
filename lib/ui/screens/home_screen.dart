@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/ui/widgets/app_drawer/index.dart';
 import 'package:data7_expedicao/domain/viewmodels/home_viewmodel.dart';
@@ -21,7 +24,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return ChangeNotifierProvider(
       create: (_) {
         final viewModel = locator<HomeViewModel>();
-        viewModel.initialize();
+        unawaited(
+          viewModel.initialize().catchError((Object e, StackTrace s) {
+            AppLogger.warning(
+              'Falha ao inicializar HomeViewModel',
+              tag: 'HomeScreen',
+              error: e,
+              stackTrace: s,
+            );
+          }),
+        );
         return viewModel;
       },
       child: Scaffold(

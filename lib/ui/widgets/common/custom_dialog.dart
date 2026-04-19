@@ -161,7 +161,7 @@ extension CustomDialogExtension on BuildContext {
     return showDialog<T>(
       context: this,
       barrierDismissible: barrierDismissible,
-      builder: (context) => CustomDialog.responsive(
+      builder: (dialogContext) => CustomDialog.responsive(
         title: title,
         titleIcon: titleIcon,
         content: content,
@@ -192,7 +192,7 @@ extension CustomDialogExtension on BuildContext {
     return showDialog<T>(
       context: this,
       barrierDismissible: barrierDismissible,
-      builder: (context) => CustomDialog.fixed(
+      builder: (dialogContext) => CustomDialog.fixed(
         title: title,
         titleIcon: titleIcon,
         content: content,
@@ -223,7 +223,7 @@ extension CustomDialogExtension on BuildContext {
     return showDialog<T>(
       context: this,
       barrierDismissible: barrierDismissible,
-      builder: (context) => CustomDialog.custom(
+      builder: (dialogContext) => CustomDialog.custom(
         title: title,
         titleIcon: titleIcon,
         content: content,
