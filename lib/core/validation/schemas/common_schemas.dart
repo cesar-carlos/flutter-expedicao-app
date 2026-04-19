@@ -20,6 +20,8 @@ class CommonSchemas {
       .refine((value) => int.tryParse(value) != null, message: 'Código deve ser numérico');
 
   /// Schema para códigos opcionais
+  ///
+  /// Nota: Zard filtra null antes de chamar o transform.
   static final optionalCodeSchema = z
       .string()
       .optional()
@@ -40,6 +42,9 @@ class CommonSchemas {
       .refine((value) => value.length <= 255, message: 'Descrição deve ter no máximo 255 caracteres');
 
   /// Schema para descrições opcionais
+  ///
+  /// Nota: Zard ja filtra null antes de chamar transform/refine
+  /// (callbacks recebem String non-null mesmo em optional()).
   static final optionalDescriptionSchema = z
       .string()
       .optional()
@@ -67,6 +72,8 @@ class CommonSchemas {
       .refine((value) => DateTime.tryParse(value) != null, message: 'Data deve estar em formato válido (ISO 8601)');
 
   /// Schema para datas opcionais
+  ///
+  /// Nota: Zard filtra null antes de chamar o refine.
   static final optionalDateTimeSchema = z.string().optional().refine((value) {
     if (value.isEmpty) return true;
     return DateTime.tryParse(value) != null;
@@ -85,6 +92,8 @@ class CommonSchemas {
       .transform((value) => value.trim());
 
   /// Schema para strings opcionais
+  ///
+  /// Nota: Zard filtra null antes de chamar o transform.
   static final optionalStringSchema = z.string().optional().transform((value) => value.trim());
 
   // === SCHEMAS DE VALIDAÇÃO DE FORMATO ===
@@ -154,9 +163,14 @@ class CommonSchemas {
   }
 
   /// Cria schema para enum opcional
+  ///
+  /// Bug latente anterior: `validValues.contains(value)` rejeitava
+  /// strings vazias sempre, gerando erro em campos opcionais
+  /// "limpos" pelo usuario. Agora empty e aceito como "nao
+  /// filtrado" (consistente com optionalDateTimeSchema).
   static Schema<String?> optionalEnumSchema(List<String> validValues, String fieldName) {
     return z.string().optional().refine(
-      (value) => validValues.contains(value),
+      (value) => value.isEmpty || validValues.contains(value),
       message: '$fieldName deve ser um dos valores: ${validValues.join(', ')}',
     );
   }

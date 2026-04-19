@@ -138,6 +138,55 @@ void main() {
       });
     });
 
+    group('Edge Cases - Guards manuais antes do schema', () {
+      test('maxLength should accept null and empty (campo opcional)', () {
+        expect(FormValidators.maxLength(null, 10), isNull);
+        expect(FormValidators.maxLength('', 10), isNull);
+      });
+
+      test('maxLength should reject string acima do limite', () {
+        expect(FormValidators.maxLength('a' * 11, 10), isNotNull);
+      });
+
+      test('maxLength should accept string dentro do limite', () {
+        expect(FormValidators.maxLength('hello', 10), isNull);
+      });
+
+      test('apiUrl should return mensagem amigavel para null/empty', () {
+        expect(FormValidators.apiUrl(null), contains('URL'));
+        expect(FormValidators.apiUrl(''), contains('URL'));
+        expect(FormValidators.apiUrl('   '), contains('URL'));
+      });
+
+      test('apiPort should return mensagem amigavel para null/empty', () {
+        expect(FormValidators.apiPort(null), contains('porta'));
+        expect(FormValidators.apiPort(''), contains('porta'));
+      });
+
+      test('apiPort should reject porta fora do range', () {
+        expect(FormValidators.apiPort('0'), contains('1 e 65535'));
+        expect(FormValidators.apiPort('65536'), contains('1 e 65535'));
+        expect(FormValidators.apiPort('abc'), contains('1 e 65535'));
+      });
+
+      test('apiPort should accept porta valida', () {
+        expect(FormValidators.apiPort('80'), isNull);
+        expect(FormValidators.apiPort('8080'), isNull);
+      });
+
+      test('email should return mensagem amigavel para null/empty', () {
+        expect(FormValidators.email(null), contains('email'));
+        expect(FormValidators.email(''), contains('email'));
+      });
+
+      test('password should return mensagens amigaveis estaveis', () {
+        expect(FormValidators.password(null), contains('senha'));
+        expect(FormValidators.password(''), contains('senha'));
+        expect(FormValidators.password('123'), contains('4 caracteres'));
+        expect(FormValidators.password('a' * 61), contains('60 caracteres'));
+      });
+    });
+
     group('Utility Functions', () {
       test('parseIntSafely should work correctly', () {
         expect(FormValidators.parseIntSafely('123'), equals(123));

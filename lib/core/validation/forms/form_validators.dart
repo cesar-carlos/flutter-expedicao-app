@@ -88,7 +88,7 @@ class FormValidators {
 
   // === SCHEMAS DE NEGÓCIO ===
 
-  /// Schema para código de separação
+  /// Schema para código de separação (Zard filtra null antes do transform)
   static final _codSepararEstoqueSchema = z
       .string()
       .optional()
@@ -101,13 +101,13 @@ class FormValidators {
         return int.tryParse(value) != null;
       }, message: 'Código deve ser numérico');
 
-  /// Schema para origem
+  /// Schema para origem (Zard filtra null antes do refine)
   static final _origemSchema = z.string().optional().refine((value) {
     if (value.isEmpty) return true;
     return ExpeditionOrigem.isValidOrigem(value);
   }, message: 'Origem inválida');
 
-  /// Schema para situação
+  /// Schema para situação (Zard filtra null antes do refine)
   static final _situacaoSchema = z.string().optional().refine((value) {
     if (value.isEmpty) return true;
     return ExpeditionSituation.isValidSituation(value);
@@ -136,7 +136,19 @@ class FormValidators {
 
   /// Validador para campo de senha
   /// Verifica se a senha não está vazia e tem pelo menos 4 caracteres
+  ///
+  /// Guard manual antes do schema garante mensagens i18n-friendly
+  /// para os casos null/vazio (consistente com username/name).
   static String? password(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, digite sua senha';
+    }
+    if (value.length < 4) {
+      return 'A senha deve ter pelo menos 4 caracteres';
+    }
+    if (value.length > 60) {
+      return 'Senha deve ter no máximo 60 caracteres';
+    }
     try {
       _passwordSchema.parse(value);
       return null;
@@ -182,7 +194,13 @@ class FormValidators {
 
   /// Validador para URL da API
   /// Verifica se a URL não está vazia
+  ///
+  /// Guard manual antes do schema garante mensagem i18n-friendly
+  /// para o caso null/vazio.
   static String? apiUrl(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Por favor, digite a URL da API';
+    }
     try {
       _apiUrlSchema.parse(value);
       return null;
@@ -193,7 +211,16 @@ class FormValidators {
 
   /// Validador para porta da API
   /// Verifica se a porta é um número válido entre 1 e 65535
+  ///
+  /// Guard manual antes do schema garante mensagens i18n-friendly.
   static String? apiPort(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Por favor, digite a porta';
+    }
+    final port = int.tryParse(value.trim());
+    if (port == null || port < 1 || port > 65535) {
+      return 'Porta deve ser um número entre 1 e 65535';
+    }
     try {
       _apiPortSchema.parse(value);
       return null;
@@ -204,7 +231,13 @@ class FormValidators {
 
   /// Validador para email
   /// Verifica se o email tem formato válido
+  ///
+  /// Guard manual antes do schema garante mensagem i18n-friendly
+  /// para o caso null/vazio.
   static String? email(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Por favor, digite um email';
+    }
     try {
       _emailSchema.parse(value);
       return null;
@@ -258,20 +291,17 @@ class FormValidators {
 
   /// Validador para tamanho máximo de texto
   /// Verifica se o texto não excede o tamanho máximo especificado
+  ///
+  /// Bug latente anterior: `value.length` em null crashava com
+  /// TypeError, capturado em try/catch e exposto como mensagem
+  /// tecnica feia ao usuario. Agora null/vazio sao tratados como
+  /// validos (consistente com semantica de campo opcional).
   static String? maxLength(String? value, int maxLength, {String? fieldName}) {
-    try {
-      z
-          .string()
-          .optional()
-          .refine(
-            (value) => value.length <= maxLength,
-            message: '${fieldName ?? 'Este campo'} deve ter no máximo $maxLength caracteres',
-          )
-          .parse(value);
-      return null;
-    } catch (e) {
-      return e.toString();
+    if (value == null || value.isEmpty) return null;
+    if (value.length > maxLength) {
+      return '${fieldName ?? 'Este campo'} deve ter no máximo $maxLength caracteres';
     }
+    return null;
   }
 
   /// Validador combinado para senha com critérios específicos
