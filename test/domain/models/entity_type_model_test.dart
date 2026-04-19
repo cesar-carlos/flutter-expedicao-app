@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 
 void main() {
@@ -8,13 +8,13 @@ void main() {
     test('should have correct values for cliente', () {
       expect(EntityType.cliente.code, 'C');
       expect(EntityType.cliente.description, 'Cliente');
-      expect(EntityType.cliente.color, Colors.blue);
+      expect(EntityType.cliente.color, AppColors.info);
     });
 
     test('should have correct values for fornecedor', () {
       expect(EntityType.fornecedor.code, 'F');
       expect(EntityType.fornecedor.description, 'Fornecedor');
-      expect(EntityType.fornecedor.color, Colors.green);
+      expect(EntityType.fornecedor.color, AppColors.success);
     });
 
     test('should parse code correctly', () {
@@ -52,9 +52,9 @@ void main() {
     });
 
     test('should get color by code', () {
-      expect(EntityType.getColor('C'), Colors.blue);
-      expect(EntityType.getColor('F'), Colors.green);
-      expect(EntityType.getColor('X'), Colors.grey); // Default color for invalid
+      expect(EntityType.getColor('C'), AppColors.info);
+      expect(EntityType.getColor('F'), AppColors.success);
+      expect(EntityType.getColor('X'), AppColors.grey); // Default color for invalid
     });
   });
 
@@ -72,9 +72,9 @@ void main() {
     });
 
     test('should get color from string', () {
-      expect('C'.entityTypeColor, Colors.blue);
-      expect('F'.entityTypeColor, Colors.green);
-      expect('X'.entityTypeColor, Colors.grey);
+      expect('C'.entityTypeColor, AppColors.info);
+      expect('F'.entityTypeColor, AppColors.success);
+      expect('X'.entityTypeColor, AppColors.grey);
     });
   });
 
@@ -99,8 +99,8 @@ void main() {
     });
 
     test('should get color', () {
-      expect(EntityTypeModel.getColor('C'), Colors.blue);
-      expect(EntityTypeModel.getColor('F'), Colors.green);
+      expect(EntityTypeModel.getColor('C'), AppColors.info);
+      expect(EntityTypeModel.getColor('F'), AppColors.success);
     });
 
     test('should get all types', () {

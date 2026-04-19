@@ -95,12 +95,11 @@ class QueryBuilder {
     return _pagination!.toQueryString();
   }
 
+  /// Gera cláusula SQL ORDER BY no formato `ORDER BY field1 ASC, field2 DESC`.
+  /// Diferente de [buildOrderByQuery] (que produz query string para REST/URL).
   String buildOrderBySql() {
     if (_orderBy.isEmpty) return '';
-    final fields = _orderBy.map((o) => o.field).join(',');
-    final directions = _orderBy.map((o) => o.direction.value).join(',');
-
-    return 'order_by=$fields&order_direction=$directions';
+    return 'ORDER BY ${_orderBy.map((o) => '${o.field} ${o.direction.value}').join(', ')}';
   }
 
   String buildOrderByQuery() {

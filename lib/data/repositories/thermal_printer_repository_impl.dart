@@ -24,8 +24,35 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
        _tcpService = tcpService,
        _retryPolicy = retryPolicy;
 
+  /// Valida configuração da impressora antes de qualquer build/TCP.
+  /// Retorna lista de erros (vazia se válida).
+  List<String> _validatePrinter(PrinterConfig printer) {
+    final errors = <String>[];
+    if (printer.ip.trim().isEmpty) {
+      errors.add('IP/host da impressora não pode estar vazio');
+    }
+    if (printer.port < 1 || printer.port > 65535) {
+      errors.add('Porta da impressora inválida: ${printer.port} (esperado 1-65535)');
+    }
+    return errors;
+  }
+
   @override
   Future<Result<ThermalPrintResult>> printTestTicket({required PrinterConfig printer, bool autoCut = true}) async {
+    final validationErrors = _validatePrinter(printer);
+    if (validationErrors.isNotEmpty) {
+      _logPrintEvent(
+        operation: 'test',
+        status: 'failure',
+        ip: printer.ip,
+        port: printer.port,
+        itemCount: 0,
+        errorType: 'ValidationFailure',
+        errorMessage: validationErrors.join('; '),
+      );
+      return failure(ValidationFailure.fromErrors(validationErrors));
+    }
+
     _logPrintEvent(operation: 'test', status: 'start', ip: printer.ip, port: printer.port, itemCount: 0);
 
     try {
@@ -118,6 +145,20 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
     int? codUsuario,
     int? leftMarginMm,
   }) async {
+    final validationErrors = _validatePrinter(printer);
+    if (validationErrors.isNotEmpty) {
+      _logPrintEvent(
+        operation: 'expedition',
+        status: 'failure',
+        ip: printer.ip,
+        port: printer.port,
+        itemCount: items.length,
+        errorType: 'ValidationFailure',
+        errorMessage: validationErrors.join('; '),
+      );
+      return failure(ValidationFailure.fromErrors(validationErrors));
+    }
+
     if (items.isEmpty) {
       return failure(DataFailure.notFound('Itens para impressao'));
     }

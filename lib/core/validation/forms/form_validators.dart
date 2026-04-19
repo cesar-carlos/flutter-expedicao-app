@@ -20,7 +20,11 @@ class FormValidators {
   static final _usernameSchema = z
       .string()
       .min(1, message: 'Por favor, digite seu usuário')
-      .transform((value) => value.trim());
+      .transform((value) => value.trim())
+      .refine(
+        (value) => value.isNotEmpty,
+        message: 'Por favor, digite seu usuário',
+      );
 
   /// Schema para validação de senha
   static final _passwordSchema = z
@@ -34,7 +38,10 @@ class FormValidators {
       .string()
       .min(1, message: 'Por favor, digite seu nome')
       .transform((value) => value.trim())
-      .refine((value) => value.length <= 30, message: 'Nome deve ter no máximo 30 caracteres');
+      .refine(
+        (value) => value.isNotEmpty && value.length <= 30,
+        message: 'Nome inválido (1 a 30 caracteres)',
+      );
 
   /// Schema para validação de email
   static final _emailSchema = z
@@ -66,7 +73,7 @@ class FormValidators {
         .min(1, message: 'Por favor, digite ${fieldName ?? 'um número'}')
         .transform((value) => value.trim())
         .refine(
-          (value) => double.tryParse(value) != null,
+          (value) => value.isNotEmpty && double.tryParse(value) != null,
           message: '${fieldName ?? 'Este campo'} deve ser um número válido',
         );
   }
@@ -116,6 +123,9 @@ class FormValidators {
   /// Validador para campo de usuário
   /// Verifica se o campo não está vazio ou contém apenas espaços
   static String? username(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Por favor, digite seu usuário';
+    }
     try {
       _usernameSchema.parse(value);
       return null;
@@ -138,6 +148,12 @@ class FormValidators {
   /// Validador para campo de nome
   /// Verifica se o nome não está vazio e tem no máximo 30 caracteres
   static String? name(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Por favor, digite seu nome';
+    }
+    if (value.trim().length > 30) {
+      return 'Nome deve ter no máximo 30 caracteres';
+    }
     try {
       _nameSchema.parse(value);
       return null;
@@ -211,6 +227,12 @@ class FormValidators {
   /// Validador para campo numérico
   /// Verifica se o valor é um número válido
   static String? numeric(String? value, {String? fieldName}) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Por favor, digite ${fieldName ?? 'um número'}';
+    }
+    if (double.tryParse(value.trim()) == null) {
+      return '${fieldName ?? 'Este campo'} deve ser um número válido';
+    }
     try {
       _numericSchema(fieldName: fieldName).parse(value);
       return null;
@@ -263,12 +285,15 @@ class FormValidators {
   /// Validador para código de separação
   /// Verifica se é um número válido ou campo vazio (opcional)
   static String? codSepararEstoque(String? value) {
-    try {
-      _codSepararEstoqueSchema.parse(value);
-      return null;
-    } catch (e) {
-      return e.toString();
+    // Campo opcional: null ou vazio sao aceitos.
+    if (value == null) return null;
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+
+    if (int.tryParse(trimmed) == null) {
+      return 'Código deve ser numérico';
     }
+    return null;
   }
 
   /// Validador para origem

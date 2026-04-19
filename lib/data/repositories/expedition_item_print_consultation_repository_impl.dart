@@ -44,10 +44,10 @@ class ExpeditionItemPrintConsultationRepositoryImpl
     );
 
     try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
+      // Nota: nao consultamos SocketConfig.isConnected aqui (era um leak da
+      // singleton global que quebrava testes com socket injetado e tambem
+      // era redundante: a indisponibilidade real ja eh coberta pela checagem
+      // de sessionId acima e pelo `responseTimeout` abaixo).
       _socket.on(responseId, (receiver) {
         try {
           if (completer.isCompleted) {

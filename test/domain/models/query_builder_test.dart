@@ -94,22 +94,18 @@ void main() {
         expect(queryBuilder.params.first.operator, '<');
       });
 
-      test('should add in list parameter', () {
+      test('should add in list parameter (com parenteses ao redor dos valores)', () {
         queryBuilder.inList('status', ['active', 'pending', 'completed']);
 
         expect(queryBuilder.params.length, 1);
         expect(queryBuilder.params.first.key, 'status');
-        expect(queryBuilder.params.first.value, "'active','pending','completed'");
+        expect(queryBuilder.params.first.value, "('active','pending','completed')");
         expect(queryBuilder.params.first.operator, 'IN');
       });
 
-      test('should handle empty list in inList', () {
+      test('should ignorar lista vazia (sem adicionar param IN com valor vazio)', () {
         queryBuilder.inList('status', <String>[]);
-
-        expect(queryBuilder.params.length, 1);
-        expect(queryBuilder.params.first.key, 'status');
-        expect(queryBuilder.params.first.value, '');
-        expect(queryBuilder.params.first.operator, 'IN');
+        expect(queryBuilder.params, isEmpty);
       });
     });
 
@@ -489,7 +485,7 @@ void main() {
         expect(complexQuery, contains('age>18'));
         expect(complexQuery, contains('age<65'));
         expect(complexQuery, contains("nameLIKE'John%'"));
-        expect(complexQuery, contains("categoryIN''electronics','books','clothing''"));
+        expect(complexQuery, contains("categoryIN('electronics','books','clothing')"));
         expect(complexQuery, contains('LIMIT=20&OFFSET=40&PAGE=3'));
         expect(complexQuery, contains('order_by=name,created_at&order_direction=ASC,DESC'));
       });
