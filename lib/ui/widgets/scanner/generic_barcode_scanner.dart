@@ -69,7 +69,10 @@ class _GenericBarcodeScannerState extends State<GenericBarcodeScanner> {
     _controller.addListener(_onInput);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
+      // Bug SSSSSSSSS: mounted check antes de requestFocus em
+      // postFrameCallback (widget pode ser desmontado entre initState
+      // e a primeira frame em cenarios de navegacao rapida).
+      if (mounted) _focusNode.requestFocus();
     });
   }
 
@@ -115,7 +118,8 @@ class _GenericBarcodeScannerState extends State<GenericBarcodeScanner> {
       // Limpar campo e restaurar foco
       _controller.clear();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _focusNode.requestFocus();
+        // Bug TTTTTTTTT: mounted check antes de requestFocus.
+        if (mounted) _focusNode.requestFocus();
       });
     }
   }

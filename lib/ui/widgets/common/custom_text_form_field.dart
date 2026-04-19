@@ -44,6 +44,18 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
   }
 
   @override
+  void didUpdateWidget(covariant CustomTextFormField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Bug XXXXXXXXX: se o parent rebuildar com obscureText diferente
+    // (ex.: troca dinamica de "mostrar senha" por algum toggle global),
+    // o estado interno nao acompanhava e a UI mostrava senha errada.
+    // Sincroniza o flag interno com a prop quando ela muda.
+    if (oldWidget.obscureText != widget.obscureText) {
+      _obscureText = widget.obscureText;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: widget.controller,
