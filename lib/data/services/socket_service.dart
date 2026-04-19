@@ -114,28 +114,41 @@ class SocketService extends ChangeNotifier {
       tag: 'SocketService',
     );
 
-    _reconnectTimer = Timer(delay, () async {
-      if (_connectionState == SocketConnectionState.connected) {
-        _reconnectAttempts = 0;
-        _isReconnecting = false;
-        return;
-      }
-
-      try {
-        await connect();
-        if (isConnected) {
-          _reconnectAttempts = 0;
-          AppLogger.connection('Reconexão bem-sucedida', tag: 'SocketService');
-        } else {
-          await _scheduleReconnect();
-        }
-      } catch (e) {
-        AppLogger.error('Falha na reconexão', tag: 'SocketService', error: e);
-        await _scheduleReconnect();
-      } finally {
-        _isReconnecting = false;
-      }
+    _reconnectTimer = Timer(delay, () {
+      unawaited(
+        _runReconnectTick().catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha não tratada no tick de reconexão do socket',
+            tag: 'SocketService',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     });
+  }
+
+  Future<void> _runReconnectTick() async {
+    if (_connectionState == SocketConnectionState.connected) {
+      _reconnectAttempts = 0;
+      _isReconnecting = false;
+      return;
+    }
+
+    try {
+      await connect();
+      if (isConnected) {
+        _reconnectAttempts = 0;
+        AppLogger.connection('Reconexão bem-sucedida', tag: 'SocketService');
+      } else {
+        await _scheduleReconnect();
+      }
+    } catch (e) {
+      AppLogger.error('Falha na reconexão', tag: 'SocketService', error: e);
+      await _scheduleReconnect();
+    } finally {
+      _isReconnecting = false;
+    }
   }
 
   void _cancelReconnectTimer() {
