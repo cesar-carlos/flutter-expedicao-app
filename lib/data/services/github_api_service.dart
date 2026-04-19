@@ -21,8 +21,18 @@ class GitHubApiService {
   Future<List<GitHubReleaseDto>> getReleases(String owner, String repo) async {
     try {
       final response = await _dio.get('/repos/$owner/$repo/releases');
-      final List<dynamic> data = response.data as List<dynamic>;
-      return data.map((json) => GitHubReleaseDto.fromJson(json as Map<String, dynamic>)).toList();
+      // Bug IIIII: antes era `response.data as List<dynamic>` direto.
+      // Se a API GitHub mudar o formato (improvavel mas possivel) ou
+      // retornar erro com body diferente, o cast crashava com TypeError
+      // gritante. Agora validamos explicitamente.
+      final data = response.data;
+      if (data is! List) {
+        throw Exception('Resposta inesperada do GitHub (esperado List, recebido ${data.runtimeType})');
+      }
+      return data
+          .whereType<Map>()
+          .map((json) => GitHubReleaseDto.fromJson(Map<String, dynamic>.from(json)))
+          .toList();
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         throw Exception('Repositório não encontrado: $owner/$repo');
@@ -40,7 +50,11 @@ class GitHubApiService {
   Future<GitHubReleaseDto> getLatestRelease(String owner, String repo) async {
     try {
       final response = await _dio.get('/repos/$owner/$repo/releases/latest');
-      return GitHubReleaseDto.fromJson(response.data as Map<String, dynamic>);
+      final data = response.data;
+      if (data is! Map) {
+        throw Exception('Resposta inesperada do GitHub (esperado Map, recebido ${data.runtimeType})');
+      }
+      return GitHubReleaseDto.fromJson(Map<String, dynamic>.from(data));
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         throw Exception('Nenhum release encontrado para $owner/$repo');

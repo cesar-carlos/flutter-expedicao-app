@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/network/base_api_service.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/pagination/pagination.dart';
 import 'package:data7_expedicao/data/dtos/user_system_list_response_dto.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
@@ -141,9 +142,7 @@ class UserSystemApiService extends BaseApiService {
   /// Processa resposta em formato Map
   UserSystemListResponseDto _processMapResponse(Map<String, dynamic> responseData) {
     if (responseData.containsKey('data') && responseData['data'] is List) {
-      // Resposta com lista de usuários
-      final usersData = responseData['data'] as List;
-      final users = usersData.map((item) => UserSystemModel.fromJson(item as Map<String, dynamic>)).toList();
+      final users = _parseUsersList(responseData['data'] as List);
 
       return UserSystemListResponseDto(
         users: users,
@@ -155,7 +154,6 @@ class UserSystemApiService extends BaseApiService {
         message: responseData['message'] as String?,
       );
     } else {
-      // Resposta com usuário único
       final user = UserSystemModel.fromJson(responseData);
       return UserSystemListResponseDto.success(users: [user], message: 'Usuário encontrado');
     }
@@ -163,9 +161,39 @@ class UserSystemApiService extends BaseApiService {
 
   /// Processa resposta em formato List
   UserSystemListResponseDto _processListResponse(List responseData) {
-    final users = responseData.map((item) => UserSystemModel.fromJson(item as Map<String, dynamic>)).toList();
-
+    final users = _parseUsersList(responseData);
     return UserSystemListResponseDto.success(users: users, message: 'Lista de usuários obtida com sucesso');
+  }
+
+  /// Bug KKKKK/LLLLL: parse defensivo da lista de usuarios.
+  /// Antes era `responseData.map((item) => UserSystemModel.fromJson(item as Map<String, dynamic>)).toList()`
+  /// que crashava com TypeError se QUALQUER item fosse null ou de tipo
+  /// errado, perdendo a lista inteira. Agora cada item e parseado
+  /// individualmente; itens invalidos sao logados e ignorados, e a
+  /// resposta continua util mesmo se 1-2 itens estiverem corrompidos.
+  List<UserSystemModel> _parseUsersList(List rawList) {
+    final result = <UserSystemModel>[];
+    for (var i = 0; i < rawList.length; i++) {
+      final item = rawList[i];
+      if (item is! Map) {
+        AppLogger.warning(
+          'UserSystem: item $i da lista nao e Map (${item.runtimeType}) — ignorado',
+          tag: 'UserSystemApi',
+        );
+        continue;
+      }
+      try {
+        result.add(UserSystemModel.fromJson(Map<String, dynamic>.from(item)));
+      } catch (e, s) {
+        AppLogger.warning(
+          'UserSystem: falha ao parsear item $i — ignorado',
+          tag: 'UserSystemApi',
+          error: e,
+          stackTrace: s,
+        );
+      }
+    }
+    return result;
   }
 
   /// Valida código do usuário

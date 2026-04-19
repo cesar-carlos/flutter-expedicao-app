@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:data7_expedicao/domain/models/api_config.dart';
@@ -10,19 +12,40 @@ class ConfigService {
   late Box _configBox;
   bool _initialized = false;
 
+  /// Bug CCCCC: guard anti-race para evitar 2 chamadas simultaneas
+  /// de initialize() — antes, ambas podiam passar pelo check
+  /// `if (_initialized) return` e tentar Hive.openBox(boxName) duas
+  /// vezes (causando "Box already open" ou estado corrompido).
+  Completer<void>? _initCompleter;
+
   bool get isInitialized => _initialized;
 
   Future<void> initialize() async {
     if (_initialized) return;
-
-    await Hive.initFlutter();
-
-    if (!Hive.isAdapterRegistered(0)) {
-      Hive.registerAdapter(ApiConfigEntityAdapter());
+    if (_initCompleter != null) {
+      // Inicializacao em curso por outro caller — apenas aguarda.
+      return _initCompleter!.future;
     }
 
-    _configBox = await Hive.openBox(_boxName);
-    _initialized = true;
+    final completer = Completer<void>();
+    _initCompleter = completer;
+
+    try {
+      await Hive.initFlutter();
+
+      if (!Hive.isAdapterRegistered(0)) {
+        Hive.registerAdapter(ApiConfigEntityAdapter());
+      }
+
+      _configBox = await Hive.openBox(_boxName);
+      _initialized = true;
+      completer.complete();
+    } catch (e, s) {
+      completer.completeError(e, s);
+      // Permite nova tentativa apos falha (nao trava o servico para sempre).
+      _initCompleter = null;
+      rethrow;
+    }
   }
 
   Future<void> saveApiConfig(ApiConfig config) async {
@@ -56,6 +79,8 @@ class ConfigService {
     if (_initialized) {
       await _configBox.close();
       _initialized = false;
+      // Permite re-initializacao apos dispose().
+      _initCompleter = null;
     }
   }
 
