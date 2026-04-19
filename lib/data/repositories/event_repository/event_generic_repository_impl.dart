@@ -33,10 +33,13 @@ class EventGenericRepositoryImpl<T> implements EventGenericRepository<T> {
 
   @override
   void removeAllListeners() {
-    for (final listener in _listeners) {
+    // Bug HH: copia a lista antes de iterar — `unsubscribe` pode disparar
+    // callbacks que mexem em `_listeners`, causando ConcurrentModificationError.
+    final snapshot = List<EventListenerModel>.from(_listeners);
+    _listeners.clear();
+    for (final listener in snapshot) {
       _eventService.unsubscribe(listener.id);
     }
-    _listeners.clear();
   }
 
   @override

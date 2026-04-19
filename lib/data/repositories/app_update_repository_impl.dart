@@ -100,10 +100,13 @@ class AppUpdateRepositoryImpl implements IAppUpdateRepository {
     void Function(int received, int total)? onProgress,
     bool Function()? isCancelled,
   }) async {
+    // Bug KK: garante fechamento do Dio mesmo em caso de excecao.
+    // Antes, em downloads que falhavam por timeout/cancelamento, o Dio
+    // ficava em memoria com conexoes pendentes ate o GC.
+    final dio = Dio();
     try {
       final directory = await getApplicationDocumentsDirectory();
       final savePath = path.join(directory.path, fileName);
-      final dio = Dio();
       final file = File(savePath);
       final cancelToken = CancelToken();
 
@@ -131,6 +134,8 @@ class AppUpdateRepositoryImpl implements IAppUpdateRepository {
       return failure(_handleDioException(e));
     } catch (e) {
       return unknownFailure(e);
+    } finally {
+      dio.close(force: false);
     }
   }
 

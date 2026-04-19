@@ -45,7 +45,18 @@ class UserRepositoryImpl implements UserRepository {
       final response = await _dio.post(url, data: loginDto.toApiRequest());
 
       if (response.statusCode == 200) {
-        final loginResponseDto = LoginResponseDto.fromJson(response.data);
+        // Bug AA: valida tipo de response.data antes de chamar fromJson.
+        // Servidor pode retornar `null`, `String` ou estrutura inesperada
+        // — o fromJson direto produz mensagem de erro confusa para o
+        // usuario. Aqui detectamos cedo e mensagem clara.
+        final data = response.data;
+        if (data is! Map<String, dynamic>) {
+          throw UserApiException(
+            'Resposta de login em formato invalido (esperava JSON object, recebeu ${data.runtimeType})',
+            statusCode: 200,
+          );
+        }
+        final loginResponseDto = LoginResponseDto.fromJson(data);
         return loginResponseDto.toDomain();
       } else {
         throw UserApiException('Erro inesperado no login', statusCode: response.statusCode);
@@ -57,6 +68,9 @@ class UserRepositoryImpl implements UserRepository {
 
       final errorDto = ApiErrorDto.connectionError(_getErrorMessage(e));
       throw UserApiException(errorDto.message, statusCode: e.response?.statusCode, originalException: e);
+    } on UserApiException {
+      // Bug FF: nao envolver UserApiException em outra UserApiException.
+      rethrow;
     } catch (e) {
       throw UserApiException('Erro interno: $e', statusCode: 500, originalException: e);
     }
@@ -100,6 +114,10 @@ class UserRepositoryImpl implements UserRepository {
 
       final errorDto = ApiErrorDto.connectionError(_getErrorMessage(e));
       throw UserApiException(errorDto.message, statusCode: e.response?.statusCode, originalException: e);
+    } on UserApiException {
+      // Bug FF: nao envolver UserApiException em outra UserApiException
+      // (causava mensagem/stackTrace duplicados).
+      rethrow;
     } catch (e) {
       final errorDto = ApiErrorDto.connectionError('Erro inesperado: $e');
       throw UserApiException(errorDto.message, originalException: e);
@@ -228,16 +246,19 @@ class UserRepositoryImpl implements UserRepository {
     required String newPassword,
   }) async {
     try {
-      // Primeiro, validar a senha atual
-      final isCurrentPasswordValid = await validateCurrentPassword(nome: nome, currentPassword: currentPassword);
-
-      if (!isCurrentPasswordValid) {
-        throw UserApiException('Senha atual incorreta', statusCode: 401, isValidationError: true);
+      // Bug CC corrigido: antes fazia login DUAS VEZES — uma em
+      // `validateCurrentPassword` e outra para obter o CodLoginApp
+      // (2x carga no servidor + lentidao percebida pelo usuario).
+      // Agora um unico login serve para validar E obter o user.
+      final LoginResponse loginResponse;
+      try {
+        loginResponse = await login(nome, currentPassword);
+      } on UserApiException catch (e) {
+        if (e.statusCode == 401) {
+          throw UserApiException('Senha atual incorreta', statusCode: 401, isValidationError: true);
+        }
+        rethrow;
       }
-
-      // Usar o endpoint PUT /expedicao/login-app para alterar a senha
-      // Precisamos obter o CodLoginApp do usuário atual primeiro
-      final loginResponse = await login(nome, currentPassword);
       final user = loginResponse.user;
 
       final url = '$_baseUrl/expedicao/login-app';
