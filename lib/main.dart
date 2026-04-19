@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
@@ -57,6 +58,27 @@ class _MyAppState extends State<MyApp> {
   bool _updateDialogShown = false;
   bool _progressDialogShown = false;
 
+  /// Bug AAAAAAAAAAA: cache do GoRouter para nao recriar a cada
+  /// rebuild do Consumer3 (que dispara em qualquer notify de
+  /// auth/theme/appUpdate viewmodels). Antes, recriar custava:
+  /// * Perda de state interno de navegacao
+  /// * Criacao de nova instancia de GoRouter (caro)
+  /// * Re-avaliacao de redirects desnecessaria
+  ///
+  /// Combinado com `refreshListenable: authViewModel` no router,
+  /// o redirect ainda re-avalia automaticamente quando auth muda,
+  /// mas sem recriar o router.
+  late final GoRouter _router;
+  bool _routerInitialized = false;
+
+  GoRouter _getOrCreateRouter(AuthViewModel authViewModel) {
+    if (!_routerInitialized) {
+      _router = AppRouter.createRouter(authViewModel);
+      _routerInitialized = true;
+    }
+    return _router;
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -71,7 +93,7 @@ class _MyAppState extends State<MyApp> {
       ],
       child: Consumer3<AuthViewModel, ThemeViewModel, AppUpdateViewModel>(
         builder: (context, authViewModel, themeViewModel, appUpdateViewModel, child) {
-          final router = AppRouter.createRouter(authViewModel);
+          final router = _getOrCreateRouter(authViewModel);
 
           if (!_hasScheduledUpdateCheck) {
             _hasScheduledUpdateCheck = true;

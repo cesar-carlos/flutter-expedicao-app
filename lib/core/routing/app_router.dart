@@ -120,6 +120,13 @@ class AppRouter {
     return GoRouter(
       initialLocation: splash,
       debugLogDiagnostics: true,
+      // Bug AAAAAAAAAAA: usar refreshListenable para que o router
+      // re-avalie o redirect quando authViewModel notificar — sem
+      // precisar recriar o router inteiro a cada rebuild da MyApp
+      // (o que era CARO: perdia state de navegacao + criava nova
+      // instancia de GoRouter completa). Combinar com cache do router
+      // em main.dart (campo do State em vez de criar no build()).
+      refreshListenable: authViewModel,
 
       redirect: (BuildContext context, GoRouterState state) {
         return resolveRedirect(authStatus: authViewModel.status, currentLocation: state.uri.path);
