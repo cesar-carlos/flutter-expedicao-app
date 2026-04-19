@@ -47,30 +47,33 @@ class SeparateConsultationModel {
   });
 
   factory SeparateConsultationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return SeparateConsultationModel(
-        codEmpresa: json['CodEmpresa'] ?? 0,
-        codSepararEstoque: json['CodSepararEstoque'] ?? 0,
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String),
-        codOrigem: json['CodOrigem'] ?? 0,
-        codTipoOperacaoExpedicao: json['CodTipoOperacaoExpedicao'] ?? 0,
-        nomeTipoOperacaoExpedicao: json['NomeTipoOperacaoExpedicao'] ?? '',
-        situacao: ExpeditionSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionSituation.aguardando,
-        tipoEntidade: EntityType.fromCode(json['TipoEntidade'] as String? ?? '') ?? EntityType.cliente,
-        dataEmissao: DateHelper.tryStringToDate(json['DataEmissao']),
-        horaEmissao: json['HoraEmissao'] ?? '',
-        codEntidade: json['CodEntidade'] ?? 0,
-        nomeEntidade: json['NomeEntidade'] ?? '',
-        codPrioridade: json['CodPrioridade'] ?? 0,
-        nomePrioridade: json['NomePrioridade'] ?? '',
-        codSetoresEstoque: StringUtils.parseCommaSeparatedInts(json['CodSetoresEstoque']),
-        codUsuariosSeparacao: StringUtils.parseCommaSeparatedInts(json['CodUsuariosSeparacao']),
-        historico: json['Historico'],
-        observacao: json['Observacao'],
-      );
-    } catch (e) {
-      rethrow;
-    }
+    // Bug RRRRRRRRRRR: try/catch que so fazia rethrow era code smell
+    // (codigo morto). Removido — caller que precisa de controle deve
+    // usar `fromJsonSafe` que retorna Result.
+    //
+    // Bug SSSSSSSSSSS: tornado defensivo `Origem` (era `as String` direto
+    // que crashava se viesse null). Agora usa toString()/'' como
+    // fallback (mesmo padrao dos campos Situacao e TipoEntidade abaixo).
+    return SeparateConsultationModel(
+      codEmpresa: json['CodEmpresa'] ?? 0,
+      codSepararEstoque: json['CodSepararEstoque'] ?? 0,
+      origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']?.toString() ?? ''),
+      codOrigem: json['CodOrigem'] ?? 0,
+      codTipoOperacaoExpedicao: json['CodTipoOperacaoExpedicao'] ?? 0,
+      nomeTipoOperacaoExpedicao: json['NomeTipoOperacaoExpedicao'] ?? '',
+      situacao: ExpeditionSituation.fromCode(json['Situacao']?.toString() ?? '') ?? ExpeditionSituation.aguardando,
+      tipoEntidade: EntityType.fromCode(json['TipoEntidade']?.toString() ?? '') ?? EntityType.cliente,
+      dataEmissao: DateHelper.tryStringToDate(json['DataEmissao']),
+      horaEmissao: json['HoraEmissao'] ?? '',
+      codEntidade: json['CodEntidade'] ?? 0,
+      nomeEntidade: json['NomeEntidade'] ?? '',
+      codPrioridade: json['CodPrioridade'] ?? 0,
+      nomePrioridade: json['NomePrioridade'] ?? '',
+      codSetoresEstoque: StringUtils.parseCommaSeparatedInts(json['CodSetoresEstoque']),
+      codUsuariosSeparacao: StringUtils.parseCommaSeparatedInts(json['CodUsuariosSeparacao']),
+      historico: json['Historico'],
+      observacao: json['Observacao'],
+    );
   }
 
   Map<String, dynamic> toJson() {
