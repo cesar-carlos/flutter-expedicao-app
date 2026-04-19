@@ -4,6 +4,7 @@ import 'package:data7_expedicao/domain/services/event_service.dart';
 import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
 import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
 import 'package:data7_expedicao/core/network/socket_config.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class EventServiceImpl implements EventService {
   final Map<String, List<EventListenerModel>> _eventListeners = {};
@@ -49,11 +50,24 @@ class EventServiceImpl implements EventService {
 
   @override
   void unsubscribeAllListeners() {
-    for (final eventName in _eventListeners.keys) {
-      SocketConfig.instance.off(eventName);
-    }
+    // Bug RR: snapshot antes de iterar — `socket.off` pode (em raros
+    // casos) disparar callback sincrono que mexe em `_eventListeners`,
+    // causando ConcurrentModificationError.
+    final eventNames = List<String>.from(_eventListeners.keys);
     _eventListeners.clear();
     _listenerToEvent.clear();
+    for (final eventName in eventNames) {
+      try {
+        SocketConfig.instance.off(eventName);
+      } catch (e, s) {
+        AppLogger.warning(
+          'Erro ao desinscrever evento $eventName',
+          tag: 'EventServiceImpl',
+          error: e,
+          stackTrace: s,
+        );
+      }
+    }
   }
 
   @override
@@ -78,15 +92,28 @@ class EventServiceImpl implements EventService {
     final basicEvent = _convertToBasicEvent(data, eventName);
     final currentSocketId = SocketConfig.instance.id;
 
-    for (final listener in listeners) {
+    // Bug SS: snapshot da lista para suportar listeners que se removem
+    // durante o callback (ex.: handler "one-shot" que chama unsubscribe).
+    // Tambem evita ConcurrentModificationError.
+    final snapshot = List<EventListenerModel>.from(listeners);
+
+    for (final listener in snapshot) {
       if (!listener.allEvent && basicEvent.session == currentSocketId && basicEvent.session != null) {
         continue;
       }
 
+      // Bug SS: try/catch que LOGA e CONTINUA — antes era `rethrow` que
+      // bloqueava todos os listeners restantes se UM unico jogasse
+      // (um bug em listener corrompia o pipeline inteiro de eventos).
       try {
         listener.callback(basicEvent);
-      } catch (e) {
-        rethrow;
+      } catch (e, s) {
+        AppLogger.error(
+          'Listener ${listener.id} falhou ao processar evento $eventName',
+          tag: 'EventServiceImpl',
+          error: e,
+          stackTrace: s,
+        );
       }
     }
   }

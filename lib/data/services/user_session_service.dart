@@ -12,9 +12,15 @@ class UserSessionService implements IUserSessionService {
   Future<void> saveUserSession(AppUser appUser) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_appUserKey, jsonEncode(appUser.toJson()));
-
-      await prefs.setBool(_isLoggedInKey, true);
+      // Bug PP: paraleliza para reduzir janela de inconsistencia (se o
+      // app crashar entre os dois sets, ficavamos com appUserKey
+      // gravado mas isLoggedInKey nao — proxima isUserLoggedIn falhava).
+      // SharedPreferences nao oferece transacao atomica, mas Future.wait
+      // dispara as duas escritas em paralelo, minimizando o gap.
+      await Future.wait([
+        prefs.setString(_appUserKey, jsonEncode(appUser.toJson())),
+        prefs.setBool(_isLoggedInKey, true),
+      ]);
     } catch (e) {
       rethrow;
     }
@@ -31,10 +37,17 @@ class UserSessionService implements IUserSessionService {
         final appUser = AppUser.fromJson(userMap);
         return appUser;
       }
-    } catch (e) {
-      if (e.toString().contains('bool') && e.toString().contains('String')) {
-        await clearUserSession();
-      }
+    } on TypeError catch (_) {
+      // Bug NN: substitui string-match `e.toString().contains('bool')...`
+      // por captura tipada. TypeError eh lancado quando shape do JSON
+      // mudou entre versoes do app (ex.: campo era bool, virou String).
+      // Sessao corrompida = limpar e voltar para login.
+      await clearUserSession();
+    } on FormatException catch (_) {
+      // JSON invalido (ex.: gravacao parcial, corrupcao) → mesma acao.
+      await clearUserSession();
+    } catch (_) {
+      // Outros erros: mantem o comportamento legado (silencia e retorna null).
     }
     return null;
   }

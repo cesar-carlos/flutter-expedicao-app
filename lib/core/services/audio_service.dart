@@ -1,5 +1,4 @@
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
@@ -41,7 +40,11 @@ class AudioService {
     if (!_isEnabled) return;
 
     try {
-      await _fxPlayer.stop();
+      // Bug VV: removido `await _fxPlayer.stop()` antes do play.
+      // Adicionava 5-50ms de latencia entre bip do scanner e o som de
+      // confirmacao — perceptivel em coletor rapido. O `play()` ja
+      // interrompe o som anterior em modo lowLatency, sem necessidade
+      // de stop explicito.
       await _fxPlayer.play(AssetSource(soundType.path));
     } catch (e, stackTrace) {
       AppLogger.warning(
@@ -100,24 +103,25 @@ class AudioService {
   Future<void> stop() async {
     try {
       await _fxPlayer.stop();
-    } catch (e) {
-      if (kDebugMode) {}
+    } catch (e, s) {
+      // Bug YY: antes era bloco vazio. Agora ao menos loga em debug.
+      AppLogger.debug('AudioService.stop falhou', tag: 'AudioService', error: e, stackTrace: s);
     }
   }
 
   Future<void> dispose() async {
     try {
       await _fxPlayer.dispose();
-    } catch (e) {
-      if (kDebugMode) {}
+    } catch (e, s) {
+      AppLogger.debug('AudioService.dispose falhou', tag: 'AudioService', error: e, stackTrace: s);
     }
   }
 
   Future<void> setVolume(double volume) async {
     try {
       await _fxPlayer.setVolume(volume.clamp(0.0, 1.0));
-    } catch (e) {
-      if (kDebugMode) {}
+    } catch (e, s) {
+      AppLogger.debug('AudioService.setVolume falhou', tag: 'AudioService', error: e, stackTrace: s);
     }
   }
 
@@ -127,8 +131,8 @@ class AudioService {
     try {
       await setVolume(volume);
       await playSound(soundType);
-    } catch (e) {
-      if (kDebugMode) {}
+    } catch (e, s) {
+      AppLogger.debug('AudioService.playSoundWithVolume falhou', tag: 'AudioService', error: e, stackTrace: s);
     }
   }
 }
