@@ -169,12 +169,22 @@ class AppRouter {
               path: 'separate-items',
               name: 'separate-items',
               builder: (context, state) {
-                final separationData = state.extra as Map<String, dynamic>?;
-                if (separationData == null) {
+                // Bug AAAAAAAA: antes era `state.extra as Map<String, dynamic>?`
+                // direto. Se a navegacao fosse feita com extra de tipo diferente
+                // (ex.: passar SeparateConsultationModel direto por engano), o
+                // cast lancava TypeError em vez do friendly fallback abaixo.
+                // Agora validamos com `is` antes do cast.
+                final extra = state.extra;
+                if (extra is! Map<String, dynamic>) {
                   return const Scaffold(body: Center(child: Text('Dados da separação não encontrados')));
                 }
 
-                final separation = SeparateConsultationModel.fromJson(separationData);
+                final SeparateConsultationModel separation;
+                try {
+                  separation = SeparateConsultationModel.fromJson(extra);
+                } catch (_) {
+                  return const Scaffold(body: Center(child: Text('Dados da separação inválidos')));
+                }
 
                 return ChangeNotifierProvider(
                   create: (_) => locator<SeparationItemsViewModel>(),
@@ -201,13 +211,20 @@ class AppRouter {
               path: 'card-picking',
               name: 'card-picking',
               builder: (context, state) {
-                final args = state.extra as Map<String, dynamic>?;
-                if (args == null) {
+                // Bug AAAAAAAA: validacao defensiva de tipo (mesma motivacao
+                // da rota separate-items acima).
+                final extra = state.extra;
+                if (extra is! Map<String, dynamic>) {
                   return const Scaffold(body: Center(child: Text('Dados do carrinho não encontrados')));
                 }
 
-                final cart = args['cart'] as ExpeditionCartRouteInternshipConsultationModel;
-                final userModel = args['userModel'] as UserSystemModel?;
+                final cart = extra['cart'];
+                if (cart is! ExpeditionCartRouteInternshipConsultationModel) {
+                  return const Scaffold(body: Center(child: Text('Dados do carrinho inválidos')));
+                }
+                final userModel = extra['userModel'] is UserSystemModel
+                    ? extra['userModel'] as UserSystemModel
+                    : null;
 
                 return ChangeNotifierProvider(
                   create: (_) => CardPickingViewModel(),
@@ -220,15 +237,20 @@ class AppRouter {
               path: 'picking-products-list',
               name: 'picking-products-list',
               builder: (context, state) {
-                final args = state.extra as Map<String, dynamic>?;
-                if (args == null) {
+                final extra = state.extra;
+                if (extra is! Map<String, dynamic>) {
                   return const Scaffold(body: Center(child: Text('Dados não encontrados')));
                 }
 
-                final filterType = args['filterType'] as String;
-                final viewModel = args['viewModel'] as CardPickingViewModel;
-                final cart = args['cart'] as ExpeditionCartRouteInternshipConsultationModel;
-                final isReadOnly = args['isReadOnly'] as bool? ?? false;
+                final filterType = extra['filterType'];
+                final viewModel = extra['viewModel'];
+                final cart = extra['cart'];
+                if (filterType is! String ||
+                    viewModel is! CardPickingViewModel ||
+                    cart is! ExpeditionCartRouteInternshipConsultationModel) {
+                  return const Scaffold(body: Center(child: Text('Dados invalidos para picking-products-list')));
+                }
+                final isReadOnly = extra['isReadOnly'] is bool ? extra['isReadOnly'] as bool : false;
 
                 return ChangeNotifierProvider.value(
                   value: viewModel,
@@ -246,13 +268,16 @@ class AppRouter {
               path: 'add-cart',
               name: 'add-cart',
               builder: (context, state) {
-                final args = state.extra as Map<String, dynamic>?;
-                if (args == null) {
+                final extra = state.extra;
+                if (extra is! Map<String, dynamic>) {
                   return const Scaffold(body: Center(child: Text('Dados não encontrados')));
                 }
 
-                final codEmpresa = args['codEmpresa'] as int;
-                final codSepararEstoque = args['codSepararEstoque'] as int;
+                final codEmpresa = extra['codEmpresa'];
+                final codSepararEstoque = extra['codSepararEstoque'];
+                if (codEmpresa is! int || codSepararEstoque is! int) {
+                  return const Scaffold(body: Center(child: Text('Codigos invalidos para add-cart')));
+                }
 
                 return ChangeNotifierProvider(
                   create: (_) => AddCartViewModel(codEmpresa: codEmpresa, codSepararEstoque: codSepararEstoque),
@@ -267,15 +292,24 @@ class AppRouter {
           path: shelfScanning,
           name: 'shelf-scanning',
           builder: (context, state) {
-            final args = state.extra as Map<String, dynamic>?;
-            if (args == null) {
+            final extra = state.extra;
+            if (extra is! Map<String, dynamic>) {
               return const Scaffold(body: Center(child: Text('Dados não encontrados')));
             }
+            final expectedAddress = extra['expectedAddress'];
+            final expectedAddressDescription = extra['expectedAddressDescription'];
+            final viewModel = extra['viewModel'];
+            if (expectedAddress is! String ||
+                expectedAddressDescription is! String ||
+                viewModel is! CardPickingViewModel) {
+              return const Scaffold(body: Center(child: Text('Dados invalidos para shelf-scanning')));
+            }
+            final returnRoute = extra['returnRoute'] is String ? extra['returnRoute'] as String : null;
             return ShelfScanningScreen(
-              expectedAddress: args['expectedAddress'] as String,
-              expectedAddressDescription: args['expectedAddressDescription'] as String,
-              viewModel: args['viewModel'] as CardPickingViewModel,
-              returnRoute: args['returnRoute'] as String?,
+              expectedAddress: expectedAddress,
+              expectedAddressDescription: expectedAddressDescription,
+              viewModel: viewModel,
+              returnRoute: returnRoute,
             );
           },
         ),
