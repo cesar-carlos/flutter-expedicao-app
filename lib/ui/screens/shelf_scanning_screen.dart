@@ -7,8 +7,8 @@ import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
+import 'package:data7_expedicao/core/services/scanner_mode_coordinator.dart';
 import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
-import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
@@ -40,23 +40,15 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
   late final FocusNode _focusNode;
   late final ShelfScanningService _shelfScanningService;
   late final AudioService _audioService;
-  late final BarcodeBroadcastService _broadcastService;
   late final ConfigViewModel _configViewModel;
+  late final ScannerModeCoordinator _coordinator;
 
-  StreamSubscription<String>? _broadcastSub;
-  ScannerInputMode _scannerMode = ScannerInputMode.focus;
-  String _broadcastAction = '';
-  String _broadcastExtraKey = '';
-  bool _manualOverrideBroadcast = false;
   bool _isManualMode = false;
   bool _isClosingFromSuccess = false;
   bool _hasFocus = false;
   Timer? _validationTimer;
 
-  bool get _isBroadcastConfigured =>
-      _scannerMode == ScannerInputMode.broadcast && _broadcastAction.isNotEmpty && _broadcastExtraKey.isNotEmpty;
-
-  bool get _isBroadcastActive => _isBroadcastConfigured && !_manualOverrideBroadcast;
+  bool get _isBroadcastActive => _coordinator.isBroadcastActive;
 
   @override
   void initState() {
@@ -65,31 +57,35 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     _focusNode = FocusNode();
     _shelfScanningService = locator<ShelfScanningService>();
     _audioService = locator<AudioService>();
-    _broadcastService = locator<BarcodeBroadcastService>();
     _configViewModel = locator<ConfigViewModel>();
+    _coordinator = ScannerModeCoordinator(
+      broadcastService: locator<BarcodeBroadcastService>(),
+      onBarcode: _onBroadcastCode,
+    );
 
     _scanController.addListener(_onScannerInput);
     _focusNode.addListener(_onFocusChange);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _loadScannerPreferences();
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (!mounted) return;
-          if (_isBroadcastActive) {
-            _startBroadcastListener();
-            _hideKeyboard();
-            _focusNode.unfocus();
-          } else {
-            _enableScannerMode();
-            Future.delayed(UIConstants.shortDelay, () {
-              if (mounted) {
-                _focusNode.requestFocus();
-              }
-            });
-          }
-        });
-      }
+      if (!mounted) return;
+      // Mantemos o delay original de 100ms (timing estabelecido para
+      // aguardar o widget tree estabilizar antes de pedir foco).
+      Future.delayed(const Duration(milliseconds: 100), () async {
+        if (!mounted) return;
+        await _coordinator.start(_loadScannerPreferences());
+        if (!mounted) return;
+        if (_coordinator.isBroadcastActive) {
+          _hideKeyboard();
+          _focusNode.unfocus();
+        } else {
+          _enableScannerMode();
+          Future.delayed(UIConstants.shortDelay, () {
+            if (mounted) {
+              _focusNode.requestFocus();
+            }
+          });
+        }
+      });
     });
   }
 
@@ -99,9 +95,21 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     _focusNode.removeListener(_onFocusChange);
     _scanController.dispose();
     _focusNode.dispose();
-    _stopBroadcastListener();
+    // ignore: discarded_futures
+    _coordinator.dispose();
     _validationTimer?.cancel();
     super.dispose();
+  }
+
+  void _onBroadcastCode(String code) {
+    if (!mounted) return;
+    // B4: NAO usar cleanBarcodeText (que so mantem digitos) — enderecos
+    // de prateleira podem ter letras e separadores (ex.: "01-A-2").
+    // A validacao em PickingUtils.validateShelfBarcode compara o endereco
+    // INTEGRO apos trim. Apenas removemos caracteres de controle.
+    final trimmed = _stripControlChars(code).trim();
+    if (trimmed.isEmpty) return;
+    _handleCompleteBarcode(trimmed);
   }
 
   void _onFocusChange() {
@@ -112,49 +120,22 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     }
   }
 
-  void _loadScannerPreferences() {
+  ScannerModePreferences _loadScannerPreferences() {
     try {
       _configViewModel.loadConfigSilent();
       final config = _configViewModel.currentConfig;
-      _scannerMode = config.scannerInputMode;
-      _broadcastAction = (config.broadcastAction ?? '').trim();
-      _broadcastExtraKey = (config.broadcastExtraKey ?? '').trim();
+      final prefs = ScannerModePreferences(
+        mode: config.scannerInputMode,
+        action: (config.broadcastAction ?? '').trim(),
+        extraKey: (config.broadcastExtraKey ?? '').trim(),
+      );
       AppLogger.debug(
-        'prefs mode=$_scannerMode action=$_broadcastAction extra=$_broadcastExtraKey',
+        'prefs mode=${prefs.mode} action=${prefs.action} extra=${prefs.extraKey}',
         tag: 'ShelfScreen',
       );
+      return prefs;
     } catch (_) {
-      _scannerMode = ScannerInputMode.focus;
-      _broadcastAction = '';
-      _broadcastExtraKey = '';
-    }
-  }
-
-  void _startBroadcastListener() {
-    if (!_isBroadcastConfigured) return;
-    if (_manualOverrideBroadcast) return;
-    AppLogger.debug('Broadcast start action=$_broadcastAction extra=$_broadcastExtraKey', tag: 'ShelfScreen');
-    _broadcastSub?.cancel();
-    _broadcastSub = _broadcastService.listen(action: _broadcastAction, extraKey: _broadcastExtraKey).listen((code) {
-      if (!mounted) return;
-      // B4: NAO usar cleanBarcodeText (que so mantem digitos) — enderecos
-      // de prateleira podem ter letras e separadores (ex.: "01-A-2").
-      // A validacao em PickingUtils.validateShelfBarcode compara o endereco
-      // INTEGRO apos trim. Apenas removemos caracteres de controle.
-      final trimmed = _stripControlChars(code).trim();
-      if (trimmed.isEmpty) return;
-      _handleCompleteBarcode(trimmed);
-    });
-  }
-
-  Future<void> _stopBroadcastListener() async {
-    AppLogger.debug('Broadcast stop', tag: 'ShelfScreen');
-    try {
-      await _broadcastSub?.cancel();
-    } catch (_) {
-      // Ignorar erro de cancelamento quando não há stream ativa
-    } finally {
-      _broadcastSub = null;
+      return ScannerModePreferences.empty;
     }
   }
 
@@ -276,15 +257,12 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     AppLogger.debug('toggle manual=${!_isManualMode}', tag: 'ShelfScreen');
     setState(() {
       _isManualMode = !_isManualMode;
-      if (_isManualMode && _isBroadcastConfigured) {
-        _manualOverrideBroadcast = true;
-        _stopBroadcastListener();
-      } else if (!_isManualMode && _isBroadcastConfigured) {
-        _manualOverrideBroadcast = false;
-        _startBroadcastListener();
-      }
       _handleKeyboardControl();
     });
+    // Override manual delegado ao coordinator: ele decide se para/reinicia
+    // a subscription com base nas prefs atuais.
+    // ignore: discarded_futures
+    _coordinator.setManualOverride(_isManualMode);
   }
 
   void _handleKeyboardControl() {
