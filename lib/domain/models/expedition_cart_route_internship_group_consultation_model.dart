@@ -1,3 +1,4 @@
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_router_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
@@ -96,34 +97,34 @@ class ExpeditionCartRouteInternshipGroupConsultationModel {
   }
 
   factory ExpeditionCartRouteInternshipGroupConsultationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return ExpeditionCartRouteInternshipGroupConsultationModel(
-        codEmpresa: json['CodEmpresa'],
-        codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-        itemAgrupamento: json['ItemAgrupamento'],
-        itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
-        codOrigem: json['CodOrigem'],
-        situacao: ExpeditionCartRouterSituation.fromCode(json['Situacao']) ?? ExpeditionCartRouterSituation.vazio,
-        situacaoPercurso: ExpeditionSituation.fromCode(json['SituacaoPercurso']) ?? ExpeditionSituation.aguardando,
-        codPercursoEstagio: json['CodPercursoEstagio'],
-        descricaoPercursoEstagio: json['DescricaoPercursoEstagio'],
-        codCarrinhoAgrupador: json['CodCarrinhoAgrupador'],
-        nomeCarrinhoAgrupador: json['NomeCarrinhoAgrupador'],
-        codCarrinho: json['CodCarrinho'],
-        nomeCarrinho: json['NomeCarrinho'],
-        codigoBarrasCarrinho: json['CodigoBarrasCarrinho'],
-        carrinhoAgrupador: json['CarrinhoAgrupador'] != null
-            ? Situation.fromCodeWithFallback(json['CarrinhoAgrupador'])
-            : Situation.inativo,
-        dataInicio: DateTime.parse(json['DataInicio']),
-        horaInicio: json['HoraInicio'],
-        codUsuarioInicio: json['CodUsuarioInicio'],
-        nomeUsuarioInicio: json['NomeUsuarioInicio'],
-      );
-    } catch (_) {
-      rethrow;
-    }
+    // Bug critico: `DateTime.parse(json['DataInicio'])` sem try/catch
+    // crashava com FormatException em datas malformadas.
+    final carrinhoAgrupRaw = json['CarrinhoAgrupador'];
+    return ExpeditionCartRouteInternshipGroupConsultationModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codCarrinhoPercurso: JsonParse.parseIntOr(json['CodCarrinhoPercurso'], 0),
+      itemAgrupamento: JsonParse.parseStringOrNull(json['ItemAgrupamento']),
+      itemCarrinhoPercurso: JsonParse.parseStringOr(json['ItemCarrinhoPercurso'], ''),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      situacao: ExpeditionCartRouterSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionCartRouterSituation.vazio,
+      situacaoPercurso: ExpeditionSituation.fromCode(JsonParse.parseStringOr(json['SituacaoPercurso'], '')) ??
+          ExpeditionSituation.aguardando,
+      codPercursoEstagio: JsonParse.parseInt(json['CodPercursoEstagio']),
+      descricaoPercursoEstagio: JsonParse.parseStringOrNull(json['DescricaoPercursoEstagio']),
+      codCarrinhoAgrupador: JsonParse.parseInt(json['CodCarrinhoAgrupador']),
+      nomeCarrinhoAgrupador: JsonParse.parseStringOrNull(json['NomeCarrinhoAgrupador']),
+      codCarrinho: JsonParse.parseIntOr(json['CodCarrinho'], 0),
+      nomeCarrinho: JsonParse.parseStringOr(json['NomeCarrinho'], ''),
+      codigoBarrasCarrinho: JsonParse.parseStringOr(json['CodigoBarrasCarrinho'], ''),
+      carrinhoAgrupador:
+          carrinhoAgrupRaw != null ? Situation.fromCodeWithFallback(carrinhoAgrupRaw.toString()) : Situation.inativo,
+      dataInicio: JsonParse.parseDateTimeOr(json['DataInicio'], DateTime.fromMillisecondsSinceEpoch(0)),
+      horaInicio: JsonParse.parseStringOr(json['HoraInicio'], '00:00:00'),
+      codUsuarioInicio: JsonParse.parseIntOr(json['CodUsuarioInicio'], 0),
+      nomeUsuarioInicio: JsonParse.parseStringOr(json['NomeUsuarioInicio'], ''),
+    );
   }
 
   /// Factory method para criação segura com validação de schema

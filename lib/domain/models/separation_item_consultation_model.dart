@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
@@ -150,47 +151,43 @@ class SeparationItemConsultationModel {
   }
 
   factory SeparationItemConsultationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return SeparationItemConsultationModel(
-        codEmpresa: json['CodEmpresa'],
-        codSepararEstoque: json['CodSepararEstoque'],
-        item: json['Item'],
-        sessionId: json['SessionId'],
-        situacao:
-            ExpeditionItemSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionItemSituation.pendente,
-        codCarrinho: json['CodCarrinho'],
-        nomeCarrinho: json['NomeCarrinho'],
-        codigoBarrasCarrinho: json['CodigoBarrasCarrinho'],
-        codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-        itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
-        codProduto: json['CodProduto'],
-        nomeProduto: json['NomeProduto'],
-        codUnidadeMedida: json['CodUnidadeMedida'],
-        nomeUnidadeMedida: json['NomeUnidadeMedida'],
-        codGrupoProduto: json['CodGrupoProduto'],
-        nomeGrupoProduto: json['NomeGrupoProduto'],
-        codMarca: json['CodMarca'],
-        nomeMarca: json['NomeMarca'],
-        codSetorEstoque: json['CodSetorEstoque'],
-        nomeSetorEstoque: json['NomeSetorEstoque'],
-        ncm: json['NCM'] ?? '00000000',
-        codigoBarras: json['CodigoBarras'],
-        codigoBarras2: json['CodigoBarras2'],
-        codigoReferencia: json['CodigoReferencia'],
-        codigoFornecedor: json['CodigoFornecedor'],
-        codigoFabricante: json['CodigoFabricante'],
-        codigoOriginal: json['CodigoOriginal'],
-        endereco: json['Endereco'],
-        enderecoDescricao: json['EnderecoDescricao'],
-        codSeparador: json['CodSeparador'],
-        nomeSeparador: json['NomeSeparador'],
-        dataSeparacao: AppHelper.tryStringToDate(json['DataSeparacao']),
-        horaSeparacao: json['HoraSeparacao'],
-        quantidade: AppHelper.stringToDouble(json['Quantidade']),
-      );
-    } catch (_) {
-      rethrow;
-    }
+    return SeparationItemConsultationModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codSepararEstoque: JsonParse.parseIntOr(json['CodSepararEstoque'], 0),
+      item: JsonParse.parseStringOr(json['Item'], ''),
+      sessionId: JsonParse.parseStringOr(json['SessionId'], ''),
+      situacao: ExpeditionItemSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionItemSituation.pendente,
+      codCarrinho: JsonParse.parseIntOr(json['CodCarrinho'], 0),
+      nomeCarrinho: JsonParse.parseStringOr(json['NomeCarrinho'], ''),
+      codigoBarrasCarrinho: JsonParse.parseStringOr(json['CodigoBarrasCarrinho'], ''),
+      codCarrinhoPercurso: JsonParse.parseIntOr(json['CodCarrinhoPercurso'], 0),
+      itemCarrinhoPercurso: JsonParse.parseStringOr(json['ItemCarrinhoPercurso'], ''),
+      codProduto: JsonParse.parseIntOr(json['CodProduto'], 0),
+      nomeProduto: JsonParse.parseStringOr(json['NomeProduto'], ''),
+      codUnidadeMedida: JsonParse.parseStringOr(json['CodUnidadeMedida'], ''),
+      nomeUnidadeMedida: JsonParse.parseStringOr(json['NomeUnidadeMedida'], ''),
+      codGrupoProduto: JsonParse.parseIntOr(json['CodGrupoProduto'], 0),
+      nomeGrupoProduto: JsonParse.parseStringOr(json['NomeGrupoProduto'], ''),
+      codMarca: JsonParse.parseInt(json['CodMarca']),
+      nomeMarca: JsonParse.parseStringOrNull(json['NomeMarca']),
+      codSetorEstoque: JsonParse.parseInt(json['CodSetorEstoque']),
+      nomeSetorEstoque: JsonParse.parseStringOrNull(json['NomeSetorEstoque']),
+      ncm: JsonParse.parseStringOr(json['NCM'], '00000000'),
+      codigoBarras: JsonParse.parseStringOrNull(json['CodigoBarras']),
+      codigoBarras2: JsonParse.parseStringOrNull(json['CodigoBarras2']),
+      codigoReferencia: JsonParse.parseStringOrNull(json['CodigoReferencia']),
+      codigoFornecedor: JsonParse.parseStringOrNull(json['CodigoFornecedor']),
+      codigoFabricante: JsonParse.parseStringOrNull(json['CodigoFabricante']),
+      codigoOriginal: JsonParse.parseStringOrNull(json['CodigoOriginal']),
+      endereco: JsonParse.parseStringOrNull(json['Endereco']),
+      enderecoDescricao: JsonParse.parseStringOrNull(json['EnderecoDescricao']),
+      codSeparador: JsonParse.parseIntOr(json['CodSeparador'], 0),
+      nomeSeparador: JsonParse.parseStringOr(json['NomeSeparador'], ''),
+      dataSeparacao: AppHelper.tryStringToDate(json['DataSeparacao']),
+      horaSeparacao: JsonParse.parseStringOr(json['HoraSeparacao'], '00:00:00'),
+      quantidade: AppHelper.stringToDouble(json['Quantidade']),
+    );
   }
 
   /// Factory method para criação segura com validação de schema

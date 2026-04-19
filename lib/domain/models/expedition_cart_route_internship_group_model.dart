@@ -1,3 +1,4 @@
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
@@ -58,23 +59,23 @@ class ExpeditionCartRouteInternshipGroupModel {
   }
 
   factory ExpeditionCartRouteInternshipGroupModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return ExpeditionCartRouteInternshipGroupModel(
-        codEmpresa: json['CodEmpresa'],
-        codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-        item: json['Item'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
-        itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
-        situacao: ExpeditionCartSituation.fromCode(json['Situacao']) ?? ExpeditionCartSituation.vazio,
-        codCarrinhoAgrupador: json['CodCarrinhoAgrupador'],
-        dataLancamento: DateTime.parse(json['DataLancamento']),
-        horaLancamento: json['HoraLancamento'],
-        codUsuarioLancamento: json['CodUsuarioLancamento'],
-        nomeUsuarioLancamento: json['NomeUsuarioLancamento'],
-      );
-    } catch (_) {
-      rethrow;
-    }
+    // Bug critico: `DateTime.parse(json['DataLancamento'])` sem
+    // try/catch crashava com FormatException em datas malformadas.
+    // Agora usa parseDateTimeOr com fallback epoch 0.
+    return ExpeditionCartRouteInternshipGroupModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codCarrinhoPercurso: JsonParse.parseIntOr(json['CodCarrinhoPercurso'], 0),
+      item: JsonParse.parseStringOr(json['Item'], ''),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      itemCarrinhoPercurso: JsonParse.parseStringOr(json['ItemCarrinhoPercurso'], ''),
+      situacao: ExpeditionCartSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionCartSituation.vazio,
+      codCarrinhoAgrupador: JsonParse.parseIntOr(json['CodCarrinhoAgrupador'], 0),
+      dataLancamento: JsonParse.parseDateTimeOr(json['DataLancamento'], DateTime.fromMillisecondsSinceEpoch(0)),
+      horaLancamento: JsonParse.parseStringOr(json['HoraLancamento'], '00:00:00'),
+      codUsuarioLancamento: JsonParse.parseIntOr(json['CodUsuarioLancamento'], 0),
+      nomeUsuarioLancamento: JsonParse.parseStringOr(json['NomeUsuarioLancamento'], ''),
+    );
   }
 
   /// Factory method para criação segura com validação de schema

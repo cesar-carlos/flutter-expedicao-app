@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
@@ -87,30 +88,27 @@ class SeparationItemSummaryConsultationModel {
   }
 
   factory SeparationItemSummaryConsultationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return SeparationItemSummaryConsultationModel(
-        codEmpresa: json['CodEmpresa'],
-        codSepararEstoque: json['CodSepararEstoque'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
-        codOrigem: json['CodOrigem'],
-        situacao: ExpeditionSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionSituation.naoLocalizada,
-        codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-        itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
-        codCarrinho: json['CodCarrinho'],
-        descricaoCarrinho: json['DescricaoCarrinho'],
-        codLocalArmazenagem: json['CodLocalArmazenagem'],
-        codProduto: json['CodProduto'],
-        nomeProduto: json['NomeProduto'],
-        codUnidadeMedida: json['CodUnidadeMedida'],
-        descricaoUnidadeMedida: json['DescricaoUnidadeMedida'],
-        codigoBarras: json['CodigoBarras'],
-        codProdutoEndereco: json['CodProdutoEndereco'],
-        descricaoProdutoEndereco: json['DescricaoProdutoEndereco'],
-        quantidade: AppHelper.stringToDouble(json['Quantidade']),
-      );
-    } catch (e) {
-      rethrow;
-    }
+    return SeparationItemSummaryConsultationModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codSepararEstoque: JsonParse.parseIntOr(json['CodSepararEstoque'], 0),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      situacao: ExpeditionSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionSituation.naoLocalizada,
+      codCarrinhoPercurso: JsonParse.parseIntOr(json['CodCarrinhoPercurso'], 0),
+      itemCarrinhoPercurso: JsonParse.parseStringOr(json['ItemCarrinhoPercurso'], ''),
+      codCarrinho: JsonParse.parseIntOr(json['CodCarrinho'], 0),
+      descricaoCarrinho: JsonParse.parseStringOr(json['DescricaoCarrinho'], ''),
+      codLocalArmazenagem: JsonParse.parseIntOr(json['CodLocalArmazenagem'], 0),
+      codProduto: JsonParse.parseIntOr(json['CodProduto'], 0),
+      nomeProduto: JsonParse.parseStringOr(json['NomeProduto'], ''),
+      codUnidadeMedida: JsonParse.parseStringOr(json['CodUnidadeMedida'], ''),
+      descricaoUnidadeMedida: JsonParse.parseStringOr(json['DescricaoUnidadeMedida'], ''),
+      codigoBarras: JsonParse.parseStringOrNull(json['CodigoBarras']),
+      codProdutoEndereco: JsonParse.parseStringOrNull(json['CodProdutoEndereco']),
+      descricaoProdutoEndereco: JsonParse.parseStringOrNull(json['DescricaoProdutoEndereco']),
+      quantidade: AppHelper.stringToDouble(json['Quantidade']),
+    );
   }
 
   /// Factory method para criação segura com validação de schema

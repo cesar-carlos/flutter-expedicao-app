@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
@@ -108,35 +109,32 @@ class ExpeditionCartRouteInternshipConsultationModel {
   }
 
   factory ExpeditionCartRouteInternshipConsultationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return ExpeditionCartRouteInternshipConsultationModel(
-        codEmpresa: json['CodEmpresa'],
-        codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-        item: json['Item'],
-        codPercursoEstagio: json['CodPercursoEstagio'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
-        codOrigem: json['CodOrigem'],
-        situacao: ExpeditionSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionSituation.aguardando,
-        carrinhoAgrupador: Situation.fromCodeWithFallback(json['CarrinhoAgrupador'] as String? ?? ''),
-        codCarrinhoAgrupador: json['CodCarrinhoAgrupador'],
-        codCarrinho: json['CodCarrinho'],
-        nomeCarrinho: json['NomeCarrinho'],
-        codigoBarrasCarrinho: json['CodigoBarrasCarrinho'],
-        ativo: Situation.fromCodeWithFallback(json['Ativo'] as String? ?? ''),
-        codUsuarioInicio: json['CodUsuarioInicio'],
-        nomeUsuarioInicio: json['NomeUsuarioInicio'],
-        dataInicio: AppHelper.tryStringToDate(json['DataInicio']),
-        horaInicio: json['HoraInicio'] ?? '00:00:00',
-        codUsuarioFinalizacao: json['CodUsuarioFinalizacao'],
-        nomeUsuarioFinalizacao: json['NomeUsuarioFinalizacao'],
-        dataFinalizacao: AppHelper.tryStringToDateOrNull(json['DataFinalizacao']),
-        horaFinalizacao: json['HoraFinalizacao'],
-        codSetorEstoque: json['CodSetorEstoque'],
-        nomeSetorEstoque: json['NomeSetorEstoque'],
-      );
-    } catch (_) {
-      rethrow;
-    }
+    return ExpeditionCartRouteInternshipConsultationModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codCarrinhoPercurso: JsonParse.parseIntOr(json['CodCarrinhoPercurso'], 0),
+      item: JsonParse.parseStringOr(json['Item'], ''),
+      codPercursoEstagio: JsonParse.parseIntOr(json['CodPercursoEstagio'], 0),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      situacao: ExpeditionSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionSituation.aguardando,
+      carrinhoAgrupador: Situation.fromCodeWithFallback(JsonParse.parseStringOr(json['CarrinhoAgrupador'], '')),
+      codCarrinhoAgrupador: JsonParse.parseInt(json['CodCarrinhoAgrupador']),
+      codCarrinho: JsonParse.parseIntOr(json['CodCarrinho'], 0),
+      nomeCarrinho: JsonParse.parseStringOr(json['NomeCarrinho'], ''),
+      codigoBarrasCarrinho: JsonParse.parseStringOr(json['CodigoBarrasCarrinho'], ''),
+      ativo: Situation.fromCodeWithFallback(JsonParse.parseStringOr(json['Ativo'], '')),
+      codUsuarioInicio: JsonParse.parseIntOr(json['CodUsuarioInicio'], 0),
+      nomeUsuarioInicio: JsonParse.parseStringOr(json['NomeUsuarioInicio'], ''),
+      dataInicio: AppHelper.tryStringToDate(json['DataInicio']),
+      horaInicio: JsonParse.parseStringOr(json['HoraInicio'], '00:00:00'),
+      codUsuarioFinalizacao: JsonParse.parseInt(json['CodUsuarioFinalizacao']),
+      nomeUsuarioFinalizacao: JsonParse.parseStringOrNull(json['NomeUsuarioFinalizacao']),
+      dataFinalizacao: AppHelper.tryStringToDateOrNull(json['DataFinalizacao']),
+      horaFinalizacao: JsonParse.parseStringOrNull(json['HoraFinalizacao']),
+      codSetorEstoque: JsonParse.parseInt(json['CodSetorEstoque']),
+      nomeSetorEstoque: JsonParse.parseStringOrNull(json['NomeSetorEstoque']),
+    );
   }
 
   /// Factory method para criação segura com validação de schema

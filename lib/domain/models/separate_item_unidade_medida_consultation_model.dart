@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/tipo_fator_conversao_model.dart';
@@ -63,24 +64,21 @@ class SeparateItemUnidadeMedidaConsultationModel {
   }
 
   factory SeparateItemUnidadeMedidaConsultationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return SeparateItemUnidadeMedidaConsultationModel(
-        codEmpresa: json['CodEmpresa'],
-        codSepararEstoque: json['CodSepararEstoque'],
-        item: json['Item'],
-        codProduto: json['CodProduto'],
-        itemUnidadeMedida: json['ItemUnidadeMedida'],
-        codUnidadeMedida: json['CodUnidadeMedida'],
-        unidadeMedidaDescricao: json['UnidadeMedidaDescricao'],
-        unidadeMedidaPadrao: Situation.fromCodeWithFallback(json['UnidadeMedidaPadrao'] ?? 'S'),
-        tipoFatorConversao: TipoFatorConversao.fromCodeWithFallback(json['TipoFatorConversao'] ?? 'M'),
-        fatorConversao: AppHelper.stringToDouble(json['FatorConversao']),
-        codigoBarras: json['CodigoBarras'],
-        observacao: json['Observacao'],
-      );
-    } catch (_) {
-      rethrow;
-    }
+    return SeparateItemUnidadeMedidaConsultationModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codSepararEstoque: JsonParse.parseIntOr(json['CodSepararEstoque'], 0),
+      item: JsonParse.parseStringOr(json['Item'], ''),
+      codProduto: JsonParse.parseIntOr(json['CodProduto'], 0),
+      itemUnidadeMedida: JsonParse.parseStringOr(json['ItemUnidadeMedida'], ''),
+      codUnidadeMedida: JsonParse.parseStringOr(json['CodUnidadeMedida'], ''),
+      unidadeMedidaDescricao: JsonParse.parseStringOr(json['UnidadeMedidaDescricao'], ''),
+      unidadeMedidaPadrao: Situation.fromCodeWithFallback(JsonParse.parseStringOr(json['UnidadeMedidaPadrao'], 'S')),
+      tipoFatorConversao:
+          TipoFatorConversao.fromCodeWithFallback(JsonParse.parseStringOr(json['TipoFatorConversao'], 'M')),
+      fatorConversao: AppHelper.stringToDouble(json['FatorConversao']),
+      codigoBarras: JsonParse.parseStringOrNull(json['CodigoBarras']),
+      observacao: JsonParse.parseStringOrNull(json['Observacao']),
+    );
   }
 
   /// Factory method para criação segura com validação de schema
