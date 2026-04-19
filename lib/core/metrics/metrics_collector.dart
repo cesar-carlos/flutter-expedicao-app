@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:data7_expedicao/core/metrics/metrics_storage.dart';
 import 'package:data7_expedicao/core/metrics/websocket_metrics.dart';
 import 'package:data7_expedicao/core/metrics/scan_metrics.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class MetricsCollector extends ChangeNotifier {
   final MetricsStorage _storage;
@@ -52,9 +53,15 @@ class MetricsCollector extends ChangeNotifier {
   }
 
   Future<void> save() async {
+    // Bug PPPPPPPPPP: antes era catch silencioso. Falha em salvar metrics
+    // ficava invisivel — diagnostico de "porque as metricas nao
+    // persistem?" virava impossivel. Agora logamos como warning (e nao
+    // error porque metrics nao e critico — perda nao impacta negocio).
     try {
       await _storage.saveMetrics(_metrics);
-    } catch (_) {}
+    } catch (e, s) {
+      AppLogger.warning('Falha ao salvar metrics', tag: 'MetricsCollector', error: e, stackTrace: s);
+    }
   }
 
   Future<void> clear() async {
@@ -85,5 +92,10 @@ class MetricsCollector extends ChangeNotifier {
   void disposeCollector() {
     _saveTimer?.cancel();
     _saveTimer = null;
+    // Bug QQQQQQQQQQ: antes nao salvava antes de cancelar o timer.
+    // Metricas em memoria desde o ultimo save (ate 30s) eram perdidas.
+    // Agora disparamos um save final fire-and-forget — a app esta
+    // encerrando e nao da pra await aqui (dispose e sync).
+    unawaited(save());
   }
 }
