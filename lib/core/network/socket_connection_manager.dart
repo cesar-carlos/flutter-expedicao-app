@@ -61,7 +61,12 @@ class SocketConnectionManager extends ChangeNotifier {
       completer.complete();
     } catch (e, s) {
       _setState(SocketConnectionManagerState.failed);
-      AppLogger.error('Falha ao conectar após retries', tag: 'SocketConnectionManager', error: e);
+      AppLogger.error(
+        'Falha ao conectar após retries',
+        tag: 'SocketConnectionManager',
+        error: e,
+        stackTrace: s,
+      );
       completer.completeError(e, s);
       rethrow;
     } finally {
@@ -102,6 +107,12 @@ class SocketConnectionManager extends ChangeNotifier {
       completer.complete();
     } catch (e, s) {
       _setState(SocketConnectionManagerState.failed);
+      AppLogger.error(
+        'Falha ao reconectar após retries',
+        tag: 'SocketConnectionManager',
+        error: e,
+        stackTrace: s,
+      );
       completer.completeError(e, s);
       rethrow;
     } finally {
