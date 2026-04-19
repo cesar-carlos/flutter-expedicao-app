@@ -46,9 +46,18 @@ class PickingFlowController {
         viewModel: viewModel,
         onBack: () {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Future.delayed(Duration.zero, () {
-              if (context.mounted) Navigator.of(context).pop();
-            });
+            unawaited(
+              Future<void>.delayed(Duration.zero, () {
+                if (context.mounted) Navigator.of(context).pop();
+              }).catchError((Object e, StackTrace s) {
+                AppLogger.warning(
+                  'Falha ao fechar modal de endereço (onBack)',
+                  tag: 'PickingFlowController',
+                  error: e,
+                  stackTrace: s,
+                );
+              }),
+            );
           });
         },
       ),
@@ -310,9 +319,18 @@ class PickingFlowController {
             TextButton(
               onPressed: () {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Future.delayed(Duration.zero, () {
-                    if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                  });
+                  unawaited(
+                    Future<void>.delayed(Duration.zero, () {
+                      if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                    }).catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha ao fechar dialog de erro (picking)',
+                        tag: 'PickingFlowController',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
                 });
               },
               child: const Text('Fechar'),

@@ -70,23 +70,46 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
       if (!mounted) return;
       // Mantemos o delay original de 100ms (timing estabelecido para
       // aguardar o widget tree estabilizar antes de pedir foco).
-      Future.delayed(const Duration(milliseconds: 100), () async {
-        if (!mounted) return;
-        await _coordinator.start(_loadScannerPreferences());
-        if (!mounted) return;
-        if (_coordinator.isBroadcastActive) {
-          _hideKeyboard();
-          _focusNode.unfocus();
-        } else {
-          _enableScannerMode();
-          Future.delayed(UIConstants.shortDelay, () {
-            if (mounted) {
-              _focusNode.requestFocus();
-            }
-          });
-        }
-      });
+      unawaited(
+        Future<void>.delayed(const Duration(milliseconds: 100)).then((_) => _runCoordinatorStartup()).catchError((
+          Object e,
+          StackTrace s,
+        ) {
+          AppLogger.warning(
+            'Falha ao iniciar coordinator na tela de endereço',
+            tag: 'ShelfScanningScreen',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     });
+  }
+
+  Future<void> _runCoordinatorStartup() async {
+    if (!mounted) return;
+    await _coordinator.start(_loadScannerPreferences());
+    if (!mounted) return;
+    if (_coordinator.isBroadcastActive) {
+      _hideKeyboard();
+      _focusNode.unfocus();
+    } else {
+      _enableScannerMode();
+      unawaited(
+        Future<void>.delayed(UIConstants.shortDelay, () {
+          if (mounted) {
+            _focusNode.requestFocus();
+          }
+        }).catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao solicitar foco do campo de scan (prateleira)',
+            tag: 'ShelfScanningScreen',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
+    }
   }
 
   @override

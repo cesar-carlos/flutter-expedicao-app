@@ -131,11 +131,20 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
         _isProcessing = true;
       });
 
-      Future.delayed(const Duration(milliseconds: 300), () async {
-        if (mounted && !_isDisposed) {
-          await _closeWithResult(barcode.rawValue);
-        }
-      });
+      unawaited(
+        Future<void>.delayed(const Duration(milliseconds: 300)).then((_) async {
+          if (mounted && !_isDisposed) {
+            await _closeWithResult(barcode.rawValue);
+          }
+        }).catchError((Object e, StackTrace s) {
+          developer.log(
+            'Falha após detecção de código no scanner',
+            error: e,
+            stackTrace: s,
+            name: 'BarcodeScannerScreen',
+          );
+        }),
+      );
     }
   }
 

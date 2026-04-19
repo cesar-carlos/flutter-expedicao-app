@@ -102,23 +102,32 @@ class _MyAppState extends State<MyApp> {
             _hasScheduledUpdateCheck = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (kReleaseMode) {
-                Future.delayed(const Duration(seconds: 2), () {
-                  final owner = dotenv.env['GITHUB_OWNER']?.trim();
-                  final repo = dotenv.env['GITHUB_REPO']?.trim();
-                  unawaited(
-                    appUpdateViewModel.checkForUpdate(owner: owner, repo: repo, forceCheck: false).catchError((
-                      Object e,
-                      StackTrace s,
-                    ) {
-                      AppLogger.warning(
-                        'Falha na verificação automática de atualização',
-                        tag: 'MyApp',
-                        error: e,
-                        stackTrace: s,
-                      );
-                    }),
-                  );
-                });
+                unawaited(
+                  Future<void>.delayed(const Duration(seconds: 2), () {
+                    final owner = dotenv.env['GITHUB_OWNER']?.trim();
+                    final repo = dotenv.env['GITHUB_REPO']?.trim();
+                    unawaited(
+                      appUpdateViewModel.checkForUpdate(owner: owner, repo: repo, forceCheck: false).catchError((
+                        Object e,
+                        StackTrace s,
+                      ) {
+                        AppLogger.warning(
+                          'Falha na verificação automática de atualização',
+                          tag: 'MyApp',
+                          error: e,
+                          stackTrace: s,
+                        );
+                      }),
+                    );
+                  }).catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha no atraso da verificação automática de atualização',
+                      tag: 'MyApp',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
               }
             });
           }
