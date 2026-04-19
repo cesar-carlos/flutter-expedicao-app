@@ -54,6 +54,13 @@ class SocketConfig {
     if (_socketInstance == null) {
       throw StateError('SocketConfig não foi inicializado.');
     }
+    // Bug U: connect() idempotente — se ja conectado, no-op.
+    // Antes, chamadas redundantes geravam novas tentativas (poluindo
+    // logs de metricas e disparando callbacks duplicados).
+    if (_socketInstance!.connected) {
+      AppLogger.debug('Socket ja conectado, connect() ignorado', tag: 'SocketConfig');
+      return;
+    }
     _connectionAttemptStarted = DateTime.now();
     _socketInstance!.connect();
   }
@@ -114,6 +121,10 @@ class SocketConfig {
       try {
         AppLogger.connection('Socket reconectado', tag: 'SocketConfig');
         AppLogger.data('SessionId: ${socket.id}', tag: 'SocketConfig');
+        // Bug V: registra metrica de reconnect tambem (antes so registrava
+        // o connect inicial, perdendo dados de qualidade de rede em
+        // sessoes longas com varias reconexoes).
+        _recordConnectionAttempt(true);
       } catch (_) {}
     });
 

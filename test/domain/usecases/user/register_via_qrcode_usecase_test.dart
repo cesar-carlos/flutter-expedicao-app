@@ -4,7 +4,7 @@ import 'package:mockito/annotations.dart';
 
 import 'package:data7_expedicao/domain/usecases/user/register_via_qrcode_usecase.dart';
 import 'package:data7_expedicao/domain/models/user/system_qrcode_data.dart';
-import 'package:data7_expedicao/domain/models/user/user_api_exception.dart';
+// UserApiException eh re-exportado por user_models.dart
 import 'package:data7_expedicao/domain/models/user/user_models.dart';
 import 'package:data7_expedicao/domain/repositories/user_repository.dart';
 import 'package:data7_expedicao/domain/repositories/user_system_repository.dart';

@@ -2,24 +2,22 @@ import 'package:data7_expedicao/core/network/socket_config.dart';
 
 /// Utilitários para validação de Socket e SessionId
 class SocketValidationHelper {
-  /// Valida se o sessionId possui formato válido do Socket.IO
+  /// Valida se o sessionId possui formato plausível do Socket.IO.
   ///
-  /// Socket.IO gera IDs alfanuméricos de aproximadamente 15-30 caracteres
-  /// Formato típico: combinação de letras, números, hífens e underscores
+  /// **Bug Y/Z corrigido**: o regex anterior `[a-zA-Z0-9_-]{15,30}` era
+  /// restritivo demais e bloqueava IDs legítimos em alguns cenários:
+  /// - Socket.IO 4.x emite IDs com 20 chars puramente alfanuméricos (OK)
+  /// - Alguns proxies/clusters adicionam prefixo do namespace (`/admin#xyz`)
+  /// - Versões customizadas podem usar formatos diferentes
   ///
-  /// Exemplos válidos:
-  /// - "abc123def456ghi789"
-  /// - "socket-123_456-789"
-  /// - "abcdefghijklmnop"
+  /// A nova regex aceita qualquer ID com 8-64 caracteres usando os chars
+  /// padrão de identificadores web (alfanuméricos + `_-./#:`). Para uso
+  /// de "validação real" (saber se o socket está OK), prefira
+  /// [validateSocketState] que checa conectividade — não apenas formato.
   static bool isValidSocketSessionId(String sessionId) {
     if (sessionId.isEmpty) return false;
 
-    // Regex para validar formato de sessionId do Socket.IO
-    // - Permite letras (maiúsculas e minúsculas)
-    // - Permite números
-    // - Permite hífen e underscore
-    // - Tamanho entre 15 e 30 caracteres
-    final socketIdRegex = RegExp(r'^[a-zA-Z0-9_-]{15,30}$');
+    final socketIdRegex = RegExp(r'^[a-zA-Z0-9_\-./#:]{8,64}$');
     return socketIdRegex.hasMatch(sessionId);
   }
 
