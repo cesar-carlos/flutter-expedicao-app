@@ -72,6 +72,24 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     }
   }
 
+  Future<void> _handleLeadingBack(BuildContext context) async {
+    if (_needsRefresh && widget.filterType == 'completed') {
+      try {
+        await widget.viewModel.refresh();
+      } catch (e, stackTrace) {
+        AppLogger.warning(
+          'Falha ao atualizar picking ao voltar da lista',
+          tag: 'PickingProductsListScreen',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    if (context.mounted) {
+      context.pop();
+    }
+  }
+
   @override
   void dispose() {
     if (widget.filterType == 'completed') {
@@ -259,22 +277,17 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
         title: _buildAppBarTitle(),
         showSocketStatus: false,
         leading: IconButton(
-          onPressed: () async {
-            if (_needsRefresh && widget.filterType == 'completed') {
-              try {
-                await widget.viewModel.refresh();
-              } catch (e, stackTrace) {
+          onPressed: () {
+            unawaited(
+              _handleLeadingBack(context).catchError((Object e, StackTrace s) {
                 AppLogger.warning(
-                  'Falha ao atualizar picking ao voltar da lista',
+                  'Falha não tratada ao voltar da lista de produtos',
                   tag: 'PickingProductsListScreen',
                   error: e,
-                  stackTrace: stackTrace,
+                  stackTrace: s,
                 );
-              }
-            }
-            if (context.mounted) {
-              context.pop();
-            }
+              }),
+            );
           },
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Voltar',

@@ -1,9 +1,71 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+
+Future<void> _applyPickingQuantityEdit({
+  required BuildContext dialogContext,
+  required TextEditingController controller,
+  required SeparateItemConsultationModel item,
+  required CardPickingViewModel viewModel,
+}) async {
+  try {
+    final newQuantity = int.tryParse(controller.text) ?? 0;
+    if (newQuantity >= 0 && newQuantity <= item.quantidade.toInt()) {
+      final result = await viewModel.updatePickedQuantityWithSync(item.item, newQuantity);
+      if (!dialogContext.mounted) return;
+      Navigator.of(dialogContext).pop();
+      ScaffoldMessenger.of(dialogContext).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: result.isSuccess ? Colors.green : AppColors.error,
+        ),
+      );
+    } else {
+      if (!dialogContext.mounted) return;
+      ScaffoldMessenger.of(dialogContext).showSnackBar(
+        const SnackBar(content: Text('Quantidade inválida'), backgroundColor: AppColors.error),
+      );
+    }
+  } catch (e, stackTrace) {
+    AppLogger.warning(
+      'Falha ao aplicar quantidade editada',
+      tag: 'PickingProductListItem',
+      error: e,
+      stackTrace: stackTrace,
+    );
+  }
+}
+
+Future<void> _applyPickingQuantityRemoval({
+  required BuildContext dialogContext,
+  required SeparateItemConsultationModel item,
+  required CardPickingViewModel viewModel,
+}) async {
+  try {
+    final result = await viewModel.updatePickedQuantityWithSync(item.item, 0);
+    if (!dialogContext.mounted) return;
+    Navigator.of(dialogContext).pop();
+    ScaffoldMessenger.of(dialogContext).showSnackBar(
+      SnackBar(
+        content: Text(result.message),
+        backgroundColor: result.isSuccess ? AppColors.warning : AppColors.error,
+      ),
+    );
+  } catch (e, stackTrace) {
+    AppLogger.warning(
+      'Falha ao remover separação do produto',
+      tag: 'PickingProductListItem',
+      error: e,
+      stackTrace: stackTrace,
+    );
+  }
+}
 
 class PickingProductListItem extends StatelessWidget {
   final SeparateItemConsultationModel item;
@@ -271,90 +333,112 @@ class PickingProductListItem extends StatelessWidget {
   void _showEditQuantityDialog(BuildContext context) {
     final controller = TextEditingController(text: viewModel.getPickedQuantity(item.item).toString());
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Editar Quantidade'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Produto: ${item.nomeProduto}'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Quantidade separada',
-                suffixText: item.codUnidadeMedida,
-                border: const OutlineInputBorder(),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Editar Quantidade'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Produto: ${item.nomeProduto}'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Quantidade separada',
+                  suffixText: item.codUnidadeMedida,
+                  border: const OutlineInputBorder(),
+                ),
+                autofocus: true,
               ),
-              autofocus: true,
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancelar')),
+            ElevatedButton(
+              onPressed: () {
+                unawaited(
+                  _applyPickingQuantityEdit(
+                    dialogContext: dialogContext,
+                    controller: controller,
+                    item: item,
+                    viewModel: viewModel,
+                  ).catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha não tratada ao salvar quantidade editada',
+                      tag: 'PickingProductListItem',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
+              },
+              child: const Text('Salvar'),
             ),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () async {
-              final newQuantity = int.tryParse(controller.text) ?? 0;
-              if (newQuantity >= 0 && newQuantity <= item.quantidade.toInt()) {
-                final result = await viewModel.updatePickedQuantityWithSync(item.item, newQuantity);
-                if (!context.mounted) return;
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(result.message),
-                    backgroundColor: result.isSuccess ? Colors.green : AppColors.error,
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Quantidade inválida'), backgroundColor: AppColors.error));
-              }
-            },
-            child: const Text('Salvar'),
-          ),
-        ],
-      ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de edição de quantidade',
+          tag: 'PickingProductListItem',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 
   void _showDeleteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remover Separação'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Tem certeza que deseja remover a separação deste produto?'),
-            const SizedBox(height: 8),
-            Text('Produto: ${item.nomeProduto}'),
-            Text('Quantidade separada: ${viewModel.getPickedQuantity(item.item)} ${item.codUnidadeMedida}'),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Remover Separação'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Tem certeza que deseja remover a separação deste produto?'),
+              const SizedBox(height: 8),
+              Text('Produto: ${item.nomeProduto}'),
+              Text('Quantidade separada: ${viewModel.getPickedQuantity(item.item)} ${item.codUnidadeMedida}'),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancelar')),
+            ElevatedButton(
+              onPressed: () {
+                unawaited(
+                  _applyPickingQuantityRemoval(
+                    dialogContext: dialogContext,
+                    item: item,
+                    viewModel: viewModel,
+                  ).catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha não tratada ao remover separação',
+                      tag: 'PickingProductListItem',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+              child: Text('Remover', style: AppFonts.inter(color: AppColors.white)),
+            ),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () async {
-              final result = await viewModel.updatePickedQuantityWithSync(item.item, 0);
-              if (!context.mounted) return;
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(result.message),
-                  backgroundColor: result.isSuccess ? AppColors.warning : AppColors.error,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text('Remover', style: AppFonts.inter(color: AppColors.white)),
-          ),
-        ],
-      ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de remoção de separação',
+          tag: 'PickingProductListItem',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 }

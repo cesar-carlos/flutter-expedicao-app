@@ -8,6 +8,34 @@ import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
 import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
 
+Future<void> _performSocketConnectionButtonTap({
+  required BuildContext context,
+  required SocketViewModel socketViewModel,
+  required bool isConnected,
+}) async {
+  try {
+    if (isConnected) {
+      socketViewModel.disconnect();
+    } else {
+      await socketViewModel.connect();
+    }
+  } catch (e, stackTrace) {
+    AppLogger.warning(
+      'Erro ao alternar conexão WebSocket',
+      tag: 'SocketConnectionButton',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Erro na conexão: $e'),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
+    );
+  }
+}
+
 /// Indicador visual do status do socket.
 ///
 /// Bug TTTTTTTT (refatoracao): a versao anterior usava
@@ -167,23 +195,21 @@ class SocketConnectionButton extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: isConnecting
                 ? null
-                : () async {
-                    try {
-                      if (isConnected) {
-                        socketViewModel.disconnect();
-                      } else {
-                        await socketViewModel.connect();
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Erro na conexão: $e'),
-                            backgroundColor: Theme.of(context).colorScheme.error,
-                          ),
+                : () {
+                    unawaited(
+                      _performSocketConnectionButtonTap(
+                        context: context,
+                        socketViewModel: socketViewModel,
+                        isConnected: isConnected,
+                      ).catchError((Object e, StackTrace s) {
+                        AppLogger.warning(
+                          'Falha não tratada ao alternar WebSocket',
+                          tag: 'SocketConnectionButton',
+                          error: e,
+                          stackTrace: s,
                         );
-                      }
-                    }
+                      }),
+                    );
                   },
             icon: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
