@@ -54,7 +54,7 @@ class PickingDialogManager {
       showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (context) => PickingDialogs.noItemsForSector(
+        builder: (dialogContext) => PickingDialogs.noItemsForSector(
           userSectorCode: userSectorCode,
           // Bug menor anterior: callback marcado como `() async`
           // mas nao retornava Future nem usava await — apenas
@@ -62,16 +62,16 @@ class PickingDialogManager {
           // o `async` (consistente com `onCancel` abaixo).
           onFinish: () {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (context.mounted) {
-                Navigator.of(context).pop();
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext).pop();
                 onFinish();
               }
             });
           },
           onCancel: () {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (context.mounted) {
-                Navigator.of(context).pop();
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext).pop();
                 scanFocusNode.requestFocus();
               }
             });
@@ -121,7 +121,7 @@ class PickingDialogManager {
       showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (context) => ShelfScanningModal(
+        builder: (dialogContext) => ShelfScanningModal(
           expectedAddress: expectedAddress,
           expectedAddressDescription: expectedAddressDescription,
           onShelfScanned: onShelfScanned,
@@ -145,77 +145,98 @@ class PickingDialogManager {
       showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.check_circle_outline, color: AppColors.success, size: UIConstants.largeIconSize),
-            const SizedBox(width: 8),
-            const Text('Setor Concluído!'),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+        builder: (dialogContext) => AlertDialog(
+          title: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(UIConstants.smallPadding),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-                  border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '✓ Todos os itens do seu setor foram separados!',
-                      style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.green700),
-                    ),
-                    const SizedBox(height: UIConstants.smallPadding),
-                    Text('Seu setor: Setor $userSectorCode', style: AppFonts.inter(color: AppColors.green600)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: UIConstants.defaultPadding),
-              Text(
-                'Deseja salvar o carrinho agora ou continuar separando itens de outros setores?',
-                style: AppFonts.inter(fontSize: UIConstants.defaultFontSize),
-              ),
+              Icon(Icons.check_circle_outline, color: AppColors.success, size: UIConstants.largeIconSize),
+              const SizedBox(width: 8),
+              const Text('Setor Concluído!'),
             ],
           ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(UIConstants.smallPadding),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                    border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '✓ Todos os itens do seu setor foram separados!',
+                        style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.green700),
+                      ),
+                      const SizedBox(height: UIConstants.smallPadding),
+                      Text('Seu setor: Setor $userSectorCode', style: AppFonts.inter(color: AppColors.green600)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: UIConstants.defaultPadding),
+                Text(
+                  'Deseja salvar o carrinho agora ou continuar separando itens de outros setores?',
+                  style: AppFonts.inter(fontSize: UIConstants.defaultFontSize),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  unawaited(
+                    Future<void>.delayed(Duration.zero, () {
+                      if (dialogContext.mounted) {
+                        Navigator.of(dialogContext).pop();
+                        onContinue();
+                      }
+                    }).catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha ao fechar dialog (continuar separando)',
+                        tag: 'PickingDialogManager',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
+                });
+              },
+              child: Text('Continuar Separando'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  unawaited(
+                    Future<void>.delayed(Duration.zero, () {
+                      if (dialogContext.mounted) {
+                        Navigator.of(dialogContext).pop();
+                        onSaveCart();
+                      }
+                    }).catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha ao fechar dialog (salvar carrinho)',
+                        tag: 'PickingDialogManager',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
+                });
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+              child: Text(
+                'Salvar Carrinho',
+                style: AppFonts.inter(color: Theme.of(dialogContext).colorScheme.onPrimary),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Future.delayed(Duration.zero, () {
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                    onContinue();
-                  }
-                });
-              });
-            },
-            child: Text('Continuar Separando'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Future.delayed(Duration.zero, () {
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                    onSaveCart();
-                  }
-                });
-              });
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-            child: Text('Salvar Carrinho', style: AppFonts.inter(color: Theme.of(context).colorScheme.onPrimary)),
-          ),
-        ],
-      ),
       ).catchError((Object e, StackTrace s) {
         AppLogger.warning(
           'Falha ao exibir dialog saveCartAfterSectorCompleted',
@@ -237,7 +258,7 @@ class PickingDialogManager {
     // no `.then` para preservar a semantica original (focus volta
     // ao scanner apos o dialog fechar).
     unawaited(
-      showDialog<void>(context: context, builder: (context) => dialogBuilder())
+      showDialog<void>(context: context, builder: (dialogContext) => dialogBuilder())
           .then((_) => _returnFocusToScanner())
           .catchError((Object e, StackTrace s) {
         AppLogger.warning(
@@ -254,11 +275,20 @@ class PickingDialogManager {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (context.mounted) {
         FocusScope.of(context).unfocus();
-        Future.delayed(UIConstants.shortDelay, () {
-          if (context.mounted) {
-            scanFocusNode.requestFocus();
-          }
-        });
+        unawaited(
+          Future<void>.delayed(UIConstants.shortDelay, () {
+            if (context.mounted) {
+              scanFocusNode.requestFocus();
+            }
+          }).catchError((Object e, StackTrace s) {
+            AppLogger.warning(
+              'Falha ao reativar foco do scanner após dialog',
+              tag: 'PickingDialogManager',
+              error: e,
+              stackTrace: s,
+            );
+          }),
+        );
       }
     });
   }

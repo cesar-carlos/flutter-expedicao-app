@@ -68,44 +68,57 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
       setState(() {});
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final viewModel = context.read<SeparationItemsViewModel>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(
+        _initializeAfterFirstFrame().catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha na inicialização da tela de itens de separação',
+            tag: 'SeparationItemsScreen',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
+    });
+  }
 
-      final userSessionService = locator<IUserSessionService>();
-      final appUser = await userSessionService.loadUserSession();
-      final currentUserId = appUser?.userSystemModel?.codUsuario;
-      final userSectorStock = appUser?.userSystemModel?.codSetorEstoque;
+  Future<void> _initializeAfterFirstFrame() async {
+    final viewModel = context.read<SeparationItemsViewModel>();
 
-      if (currentUserId == null) {
-        _showErrorAndGoBack('Usuário não identificado');
+    final userSessionService = locator<IUserSessionService>();
+    final appUser = await userSessionService.loadUserSession();
+    final currentUserId = appUser?.userSystemModel?.codUsuario;
+    final userSectorStock = appUser?.userSystemModel?.codSetorEstoque;
+
+    if (currentUserId == null) {
+      _showErrorAndGoBack('Usuário não identificado');
+      return;
+    }
+
+    if (userSectorStock != null && userSectorStock > 0) {
+      final resolveUseCase = locator<ResolveSeparationUserLinkUseCase>();
+      final result = await resolveUseCase.call(
+        ResolveSeparationUserLinkParams(
+          separation: widget.separation,
+          codUsuario: currentUserId,
+          codSetorEstoque: userSectorStock,
+        ),
+      );
+      if (!mounted) return;
+      if (result.isError()) {
+        _showErrorAndGoBack(UIConstants.separationLinkCheckFailedMessage);
         return;
       }
-
-      if (userSectorStock != null && userSectorStock > 0) {
-        final resolveUseCase = locator<ResolveSeparationUserLinkUseCase>();
-        final result = await resolveUseCase.call(
-          ResolveSeparationUserLinkParams(
-            separation: widget.separation,
-            codUsuario: currentUserId,
-            codSetorEstoque: userSectorStock,
-          ),
-        );
-        if (!mounted) return;
-        if (result.isError()) {
-          _showErrorAndGoBack(UIConstants.separationLinkCheckFailedMessage);
-          return;
-        }
-        if (result.getOrNull() != true && mounted) {
-          _showErrorAndGoBack(UIConstants.separationNotAssignedToUserMessage);
-          return;
-        }
+      if (result.getOrNull() != true && mounted) {
+        _showErrorAndGoBack(UIConstants.separationNotAssignedToUserMessage);
+        return;
       }
+    }
 
-      viewModel.loadSeparationItems(widget.separation);
-      viewModel.loadSeparationCarts(widget.separation);
+    viewModel.loadSeparationItems(widget.separation);
+    viewModel.loadSeparationCarts(widget.separation);
 
-      viewModel.startCartEventMonitoring();
-    });
+    viewModel.startCartEventMonitoring();
   }
 
   @override

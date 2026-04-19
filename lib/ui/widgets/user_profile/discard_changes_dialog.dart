@@ -7,7 +7,7 @@ class DiscardChangesDialog extends StatelessWidget {
   const DiscardChangesDialog({super.key});
 
   static Future<bool?> show(BuildContext context) {
-    return showDialog<bool>(context: context, builder: (context) => const DiscardChangesDialog());
+    return showDialog<bool>(context: context, builder: (dialogContext) => const DiscardChangesDialog());
   }
 
   @override

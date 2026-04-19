@@ -44,13 +44,26 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (mounted) setState(() {}); // atualiza o indicador visual
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _coordinator.start(_loadScannerPreferences());
-      if (!mounted) return;
-      if (!_coordinator.isBroadcastActive) {
-        _focusNode.requestFocus();
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(
+        _startScannerCoordinator().catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao iniciar ScannerModeCoordinator',
+            tag: 'ScannerScreen',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     });
+  }
+
+  Future<void> _startScannerCoordinator() async {
+    await _coordinator.start(_loadScannerPreferences());
+    if (!mounted) return;
+    if (!_coordinator.isBroadcastActive) {
+      _focusNode.requestFocus();
+    }
   }
 
   @override
