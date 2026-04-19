@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_params.dart';
@@ -31,7 +34,7 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
 
     return Scaffold(
       appBar: CustomAppBar.withoutSocket(
-        title: 'Login System',
+        title: context.l10n.loginSystem,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/login')),
       ),
       body: SingleChildScrollView(
@@ -62,7 +65,21 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
             FilledButton.icon(
               icon: const Icon(Icons.qr_code_scanner),
               label: const Text('Escanear QR Code'),
-              onPressed: _isProcessing ? null : _scanQRCode,
+              onPressed: _isProcessing
+                  ? null
+                  : () {
+                      unawaited(
+                        _scanQRCode().catchError((Object e, StackTrace s) {
+                          AppLogger.warning(
+                            'Falha não tratada no fluxo de scan QR',
+                            tag: 'QRCodeLoginScreen',
+                            error: e,
+                            stackTrace: s,
+                          );
+                          _setErrorState('Erro inesperado ao escanear. Tente novamente.');
+                        }),
+                      );
+                    },
               style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
             ),
 
@@ -166,7 +183,13 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
 
     try {
       await _updateAuthStatus();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Cadastro via QR concluído mas atualização de auth falhou',
+        tag: 'QRCodeLoginScreen',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return;
     }
 

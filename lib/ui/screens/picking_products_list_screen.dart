@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
@@ -46,7 +49,19 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
       _separatedProductsViewModel.addListener(_onSeparatedProductsChanged);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _separatedProductsViewModel.loadSeparatedProducts(widget.cart, isReadOnly: widget.isReadOnly);
+        unawaited(
+          _separatedProductsViewModel.loadSeparatedProducts(widget.cart, isReadOnly: widget.isReadOnly).catchError((
+            Object e,
+            StackTrace s,
+          ) {
+            AppLogger.warning(
+              'Falha ao carregar produtos separados (lista)',
+              tag: 'PickingProductsListScreen',
+              error: e,
+              stackTrace: s,
+            );
+          }),
+        );
       });
     }
   }
@@ -91,7 +106,16 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     return PopScope(
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop && _needsRefresh && widget.filterType == 'completed') {
-          await widget.viewModel.refresh();
+          try {
+            await widget.viewModel.refresh();
+          } catch (e, stackTrace) {
+            AppLogger.warning(
+              'Falha ao atualizar picking ao sair da lista de separados',
+              tag: 'PickingProductsListScreen',
+              error: e,
+              stackTrace: stackTrace,
+            );
+          }
         }
       },
       child: child,
@@ -161,8 +185,17 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
         return IconButton(
           onPressed: separatedViewModel.isLoading
               ? null
-              : () async {
-                  await separatedViewModel.refresh();
+              : () {
+                  unawaited(
+                    separatedViewModel.refresh().catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha ao atualizar produtos separados',
+                        tag: 'PickingProductsListScreen',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
                 },
           icon: separatedViewModel.isLoading
               ? SizedBox(
@@ -186,8 +219,17 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
         return IconButton(
           onPressed: viewModel.isLoading
               ? null
-              : () async {
-                  await viewModel.refresh();
+              : () {
+                  unawaited(
+                    viewModel.refresh().catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha ao atualizar produtos pendentes',
+                        tag: 'PickingProductsListScreen',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
                 },
           icon: viewModel.isLoading
               ? SizedBox(
@@ -219,7 +261,16 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
         leading: IconButton(
           onPressed: () async {
             if (_needsRefresh && widget.filterType == 'completed') {
-              await widget.viewModel.refresh();
+              try {
+                await widget.viewModel.refresh();
+              } catch (e, stackTrace) {
+                AppLogger.warning(
+                  'Falha ao atualizar picking ao voltar da lista',
+                  tag: 'PickingProductsListScreen',
+                  error: e,
+                  stackTrace: stackTrace,
+                );
+              }
             }
             if (context.mounted) {
               context.pop();
@@ -284,7 +335,21 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: UIConstants.largePadding),
-              ElevatedButton(onPressed: () => widget.viewModel.retry(), child: const Text('Tentar Novamente')),
+              ElevatedButton(
+                onPressed: () {
+                  unawaited(
+                    widget.viewModel.retry().catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha ao repetir carregamento (pendentes)',
+                        tag: 'PickingProductsListScreen',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
+                },
+                child: const Text('Tentar Novamente'),
+              ),
             ],
           ),
         ),
@@ -379,7 +444,21 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: UIConstants.largePadding),
-              ElevatedButton(onPressed: () => viewModel.retry(), child: const Text('Tentar Novamente')),
+              ElevatedButton(
+                onPressed: () {
+                  unawaited(
+                    viewModel.retry().catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha ao repetir carregamento (separados)',
+                        tag: 'PickingProductsListScreen',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
+                },
+                child: const Text('Tentar Novamente'),
+              ),
             ],
           ),
         ),
@@ -415,7 +494,17 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {
-              await viewModel.refresh();
+              try {
+                await viewModel.refresh();
+              } catch (e, stackTrace) {
+                AppLogger.warning(
+                  'Falha no pull-to-refresh (separados)',
+                  tag: 'PickingProductsListScreen',
+                  error: e,
+                  stackTrace: stackTrace,
+                );
+                rethrow;
+              }
             },
             child: ListView.builder(
               padding: const EdgeInsets.all(UIConstants.defaultPadding),
@@ -487,11 +576,20 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
   }
 
   void _showFilterModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.transparent,
-      builder: (context) => PendingProductsFilterModal(viewModel: widget.viewModel),
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: AppColors.transparent,
+        builder: (_) => PendingProductsFilterModal(viewModel: widget.viewModel),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir modal de filtros de pendentes',
+          tag: 'PickingProductsListScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 }

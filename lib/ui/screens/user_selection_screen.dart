@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
@@ -63,7 +66,16 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
         !viewModel.isLoadingMore &&
         !viewModel.isSearchMode) {
       _isNearBottom = true;
-      viewModel.loadMoreUsers();
+      unawaited(
+        viewModel.loadMoreUsers().catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao carregar mais usuários',
+            tag: 'UserSelectionScreen',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     } else if (!isNearBottom && _isNearBottom) {
       _isNearBottom = false;
     }
@@ -141,16 +153,42 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
   void _performSearch(UserSelectionViewModel viewModel) {
     final searchText = _searchController.text.trim();
     if (searchText.isNotEmpty) {
-      viewModel.searchUsers(searchText);
+      unawaited(
+        viewModel.searchUsers(searchText).catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha na busca de usuários',
+            tag: 'UserSelectionScreen',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     } else {
-      viewModel.loadAllUsers();
+      unawaited(
+        viewModel.loadAllUsers().catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao carregar lista de usuários',
+            tag: 'UserSelectionScreen',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     }
   }
 
   void _clearSelection(UserSelectionViewModel viewModel) {
     viewModel.clearSelection();
-    // Carregar automaticamente os primeiros 20 usuários
-    viewModel.loadAllUsers();
+    unawaited(
+      viewModel.loadAllUsers().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao recarregar usuários após limpar seleção',
+          tag: 'UserSelectionScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   Future<void> _confirmSelection(UserSelectionViewModel viewModel) async {
