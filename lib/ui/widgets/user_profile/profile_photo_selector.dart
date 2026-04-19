@@ -27,17 +27,36 @@ class _ProfilePhotoSelectorState extends State<ProfilePhotoSelector> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
+  /// Bug KKKKKKKK: lock anti-race contra cliques rapidos no botao.
+  /// _picker.pickImage abre dialog do sistema (camera/galeria); sem
+  /// guard, multiplos cliques rapidos abriam VARIOS pickers
+  /// simultaneamente — o primeiro sobreescrevia o resultado do segundo.
+  bool _isPicking = false;
+
   @override
   void initState() {
     super.initState();
     _selectedImage = widget.initialImage;
   }
 
+  @override
+  void didUpdateWidget(covariant ProfilePhotoSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Bug IIIIIIII: antes _selectedImage so era setado em initState.
+    // Se o parent reconstruisse com nova initialImage (ex.: viewModel
+    // emitir novo state), a UI nao atualizava — usuario via foto antiga.
+    if (oldWidget.initialImage != widget.initialImage) {
+      _selectedImage = widget.initialImage;
+    }
+  }
+
   Future<void> _pickImage(ImageSource source) async {
+    if (_isPicking) return;
+    _isPicking = true;
     try {
       final XFile? image = await _picker.pickImage(source: source, imageQuality: 80, maxWidth: 800, maxHeight: 800);
 
-      if (image != null) {
+      if (image != null && mounted) {
         final File imageFile = File(image.path);
         setState(() {
           _selectedImage = imageFile;
@@ -49,12 +68,16 @@ class _ProfilePhotoSelectorState extends State<ProfilePhotoSelector> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erro ao selecionar imagem: $e'),
-            backgroundColor: Colors.red,
+            // Bug JJJJJJJJ: usar AppColors.error em vez de Colors.red para
+            // consistencia com o tema (acessibilidade e modo escuro).
+            backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
           ),
         );
       }
+    } finally {
+      _isPicking = false;
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/photo_options_modal.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
@@ -101,7 +102,10 @@ class EditableAvatar extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          user?.nome?.isNotEmpty == true ? user.nome.substring(0, 1).toUpperCase() : 'U',
+          // Bug HHHHHHHH: usar AvatarUtils.getInitials que ja foi
+          // corrigido (Bug GGGGGG) para nao crashar com nomes contendo
+          // multiplos espacos, e que tambem suporta sobrenome.
+          AvatarUtils.getInitials(user?.nome ?? ''),
           style: AppFonts.inter(
             fontSize: UIConstants.extraHugeFontSize,
             fontWeight: FontWeight.w800,
