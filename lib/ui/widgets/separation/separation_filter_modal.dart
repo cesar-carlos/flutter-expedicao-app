@@ -282,7 +282,15 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
       initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir seletor de data (filtro separações)',
+        tag: 'SeparationFilterModal',
+        error: e,
+        stackTrace: s,
+      );
+      return null;
+    });
 
     if (picked != null && picked != _selectedDate) {
       setState(() {

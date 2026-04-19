@@ -305,7 +305,15 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
       initialDate: _dataInicioInicial ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir seletor de data inicial (filtro carrinhos)',
+        tag: 'CartsFilterModal',
+        error: e,
+        stackTrace: s,
+      );
+      return null;
+    });
 
     if (picked != null && picked != _dataInicioInicial) {
       setState(() {
@@ -320,7 +328,15 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
       initialDate: _dataInicioFinal ?? (_dataInicioInicial ?? DateTime.now()),
       firstDate: _dataInicioInicial ?? DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir seletor de data final (filtro carrinhos)',
+        tag: 'CartsFilterModal',
+        error: e,
+        stackTrace: s,
+      );
+      return null;
+    });
 
     if (picked != null && picked != _dataInicioFinal) {
       setState(() {
