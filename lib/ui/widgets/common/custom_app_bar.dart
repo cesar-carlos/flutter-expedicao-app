@@ -7,7 +7,14 @@ import 'package:data7_expedicao/core/utils/string_utils.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final dynamic title;
+  /// Aceita `String` ou `Widget` (validado em runtime).
+  ///
+  /// Bug latente anterior: era declarado como `dynamic` — silenciava
+  /// type errors em compile time. Se um caller passasse `int`, `Map`
+  /// etc, o cast em `_buildNormalTitle` crashava com TypeError em
+  /// runtime sem warning de analyzer. Mudado para `Object` (mais
+  /// restrito que `dynamic`) mantendo flexibilidade String|Widget.
+  final Object title;
   final List<Widget>? actions;
   final Widget? leading;
   final bool showSocketStatus;
@@ -43,7 +50,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         foregroundColor ?? theme.appBarTheme.foregroundColor ?? theme.colorScheme.onPrimary;
 
     return AppBar(
-      title: replaceWithUserName ? _buildUserTitle(context) : _buildNormalTitle(),
+      title: replaceWithUserName
+          ? _buildUserTitle(context, effectiveForegroundColor)
+          : _buildNormalTitle(effectiveForegroundColor),
       leading: leading,
       centerTitle: centerTitle,
       backgroundColor: effectiveBackgroundColor,
@@ -69,20 +78,37 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  Widget _buildNormalTitle() {
-    if (title is Widget) {
-      return title as Widget;
-    } else {
-      return Text(title as String, style: AppFonts.inter(color: foregroundColor));
+  /// Bug visual anterior: usava `foregroundColor` cru (que e null em
+  /// 90% dos calls). Resultado: o `AppBar` aplicava
+  /// `effectiveForegroundColor` (com fallback para
+  /// `theme.colorScheme.onPrimary`) ao topo, mas o titulo via `Text`
+  /// usava `AppFonts.inter(color: null)` — Text caia para a cor
+  /// default do `TextStyle` (preto/branco do tema), que podia
+  /// CONTRASTAR com a cor do AppBar (ex.: titulo preto sobre AppBar
+  /// teal). Agora usa o `effectiveForegroundColor` calculado para o
+  /// AppBar, garantindo consistencia visual.
+  Widget _buildNormalTitle(Color effectiveForegroundColor) {
+    final t = title;
+    if (t is Widget) {
+      return t;
     }
+    if (t is String) {
+      return Text(t, style: AppFonts.inter(color: effectiveForegroundColor));
+    }
+    // Fallback defensivo: Object inesperado (ex.: caller passou int).
+    return Text(t.toString(), style: AppFonts.inter(color: effectiveForegroundColor));
   }
 
-  Widget _buildUserTitle(BuildContext context) {
+  Widget _buildUserTitle(BuildContext context, Color effectiveForegroundColor) {
     return Consumer<AuthViewModel>(
       builder: (context, authViewModel, child) {
         final currentUser = authViewModel.currentUser;
-        final userName = currentUser?.nome ?? (title is String ? title as String : 'Usuário');
-        return Text('Olá ${StringUtils.capitalizeWords(userName)}', style: AppFonts.inter(color: foregroundColor));
+        final fallback = title is String ? title as String : 'Usuário';
+        final userName = currentUser?.nome ?? fallback;
+        return Text(
+          'Olá ${StringUtils.capitalizeWords(userName)}',
+          style: AppFonts.inter(color: effectiveForegroundColor),
+        );
       },
     );
   }
