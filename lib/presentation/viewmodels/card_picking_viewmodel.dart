@@ -141,12 +141,27 @@ class CardPickingViewModel extends ChangeNotifier {
 
   bool _disposed = false;
 
+  // B12: locks contra reentrancy em operacoes irreversiveis.
+  // Dart eh single-threaded — a checagem `if (_x)` + atribuicao `_x = true`
+  // sao atomicas (nao ha preempcao entre elas). Isso impede que dois
+  // toques rapidos no botao "Salvar/Finalizar/Cancelar" disparem duas
+  // execucoes em paralelo (que poderia causar double-update no servidor
+  // ou rollbacks inconsistentes em caso de falha).
+  bool _isSavingCart = false;
+  bool _isFinalizingPicking = false;
+  bool _isCancelingPicking = false;
+
   bool _validateSocketState() {
     final validation = SocketValidationHelper.validateSocketState();
     return validation.isValid;
   }
 
   Future<Result<SaveSeparationCartSuccess>> saveCart() async {
+    // B12: lock contra double-save (toques rapidos no botao).
+    if (_isSavingCart) {
+      return Failure(BusinessFailure(message: 'Salvamento em andamento. Aguarde a conclusão.'));
+    }
+
     if (_cart == null) {
       return Failure(DataFailure(message: 'Carrinho não carregado'));
     }
@@ -183,15 +198,20 @@ class CardPickingViewModel extends ChangeNotifier {
       return Failure(BusinessFailure(message: errorMessage));
     }
 
-    final saveParams = SaveSeparationCartParams(
-      codEmpresa: _cart!.codEmpresa,
-      codCarrinhoPercurso: _cart!.codCarrinhoPercurso,
-      itemCarrinhoPercurso: _cart!.item,
-      codSepararEstoque: _cart!.codOrigem,
-    );
+    _isSavingCart = true;
+    try {
+      final saveParams = SaveSeparationCartParams(
+        codEmpresa: _cart!.codEmpresa,
+        codCarrinhoPercurso: _cart!.codCarrinhoPercurso,
+        itemCarrinhoPercurso: _cart!.item,
+        codSepararEstoque: _cart!.codOrigem,
+      );
 
-    final result = await _saveSeparationCartUseCase(saveParams);
-    return result;
+      final result = await _saveSeparationCartUseCase(saveParams);
+      return result;
+    } finally {
+      _isSavingCart = false;
+    }
   }
 
   bool _cartStatusChanged = false;
@@ -530,6 +550,9 @@ class CardPickingViewModel extends ChangeNotifier {
 
   Future<bool> finalizePicking() async {
     if (_disposed) return false;
+    // B12: lock contra reentrancy (toques rapidos no botao).
+    if (_isFinalizingPicking) return false;
+    _isFinalizingPicking = true;
 
     try {
       _isLoading = true;
@@ -561,6 +584,7 @@ class CardPickingViewModel extends ChangeNotifier {
       _errorMessage = 'Erro ao finalizar picking: ${e.toString()}';
       return false;
     } finally {
+      _isFinalizingPicking = false;
       _isLoading = false;
       _safeNotifyListeners();
     }
@@ -568,6 +592,9 @@ class CardPickingViewModel extends ChangeNotifier {
 
   Future<bool> cancelPicking() async {
     if (_disposed) return false;
+    // B12: lock contra reentrancy (toques rapidos no botao).
+    if (_isCancelingPicking) return false;
+    _isCancelingPicking = true;
 
     try {
       _isLoading = true;
@@ -593,6 +620,7 @@ class CardPickingViewModel extends ChangeNotifier {
       _errorMessage = 'Erro ao cancelar picking: ${e.toString()}';
       return false;
     } finally {
+      _isCancelingPicking = false;
       _isLoading = false;
       _safeNotifyListeners();
     }
