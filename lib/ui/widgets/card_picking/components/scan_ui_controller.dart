@@ -1,12 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
-import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
+import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/keyboard_toggle_controller.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_dialog_manager.dart';
-import 'package:data7_expedicao/core/constants/ui_constants.dart';
-import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class ScanUiController {
   final PickingDialogManager dialogManager;
@@ -27,10 +29,16 @@ class ScanUiController {
     this.context,
   });
 
+  /// Bug latente anterior: `ScaffoldMessenger.of(context!)` sem
+  /// checar `context.mounted`. O `context` eh capturado pelo
+  /// construtor (antipattern reconhecido) e pode ficar invalido
+  /// se o widget que criou o controller for desmontado entre o
+  /// scan e o callback. O `context!.mounted` previne o crash.
   void _showQuantityConversionFeedback(int originalQuantity, int convertedQuantity) {
-    if (context == null) return;
+    final ctx = context;
+    if (ctx == null || !ctx.mounted) return;
 
-    ScaffoldMessenger.of(context!).showSnackBar(
+    ScaffoldMessenger.of(ctx).showSnackBar(
       SnackBar(
         content: Text('Quantidade convertida: $originalQuantity → $convertedQuantity (unidade de medida)'),
         duration: UIConstants.snackBarShortDuration,
@@ -40,25 +48,30 @@ class ScanUiController {
   }
 
   Future<void> handleScanResult(String barcode, ScanProcessResult scanResult, int inputQuantity) async {
+    // Bug latente anterior: TODAS as chamadas `audioService.play*()`
+    // (8 ocorrencias neste arquivo) retornavam Future descartado
+    // sem catch. Embora `playSound` ja tenha try/catch interno que
+    // loga via `AppLogger.warning`, qualquer exception nao tratada
+    // virava "Unhandled Future error". Padronizado com `unawaited`.
     switch (scanResult.status) {
       case ScanProcessStatus.cartNotInSeparation:
-        audioService.playError();
+        unawaited(audioService.playError());
         return;
       case ScanProcessStatus.ignored:
         return;
       case ScanProcessStatus.noItemsForSector:
-        audioService.playAlert();
+        unawaited(audioService.playAlert());
         if (scanResult.userSectorCode != null) {
           dialogManager.showNoItemsForSectorDialog(scanResult.userSectorCode!, onFinishPicking);
         }
         return;
       case ScanProcessStatus.allItemsCompleted:
-        audioService.playAlert();
+        unawaited(audioService.playAlert());
         dialogManager.showAllItemsCompletedDialog();
         return;
       case ScanProcessStatus.wrongSector:
         if (scanResult.scannedItem != null) {
-          audioService.playError();
+          unawaited(audioService.playError());
           final scannedItem = scanResult.scannedItem!;
           final sectorName = scannedItem.nomeSetorEstoque ?? 'Setor ${scannedItem.codSetorEstoque}';
           final sectorCode = scanResult.userSectorCode ?? scannedItem.codSetorEstoque ?? 0;
@@ -66,21 +79,21 @@ class ScanUiController {
         }
         return;
       case ScanProcessStatus.wrongShelf:
-        audioService.playError();
+        unawaited(audioService.playError());
         dialogManager.showWrongShelfDialog(
           scanResult.expectedShelf ?? 'Endereço não definido',
           scanResult.scannedShelf ?? 'Código escaneado',
         );
         return;
       case ScanProcessStatus.shelfScanned:
-        audioService.playSuccess();
+        unawaited(audioService.playSuccess());
         if (scanResult.expectedItem != null) {
           _showShelfScannedFeedback(scanResult.expectedItem!.enderecoDescricao ?? 'Endereço escaneado');
         }
         return;
       case ScanProcessStatus.wrongProduct:
         if (scanResult.expectedItem != null) {
-          audioService.playError();
+          unawaited(audioService.playError());
           final expectedItem = scanResult.expectedItem!;
           dialogManager.showWrongProductDialog(
             barcode,
@@ -94,7 +107,7 @@ class ScanUiController {
         if (scanResult.expectedItem != null &&
             scanResult.requestedQuantity != null &&
             scanResult.availableQuantity != null) {
-          audioService.playError();
+          unawaited(audioService.playError());
           final item = scanResult.expectedItem!;
           dialogManager.showQuantityExceededDialog(
             barcode,
@@ -121,9 +134,10 @@ class ScanUiController {
   }
 
   void _showShelfScannedFeedback(String shelfAddress) {
-    if (context == null) return;
+    final ctx = context;
+    if (ctx == null || !ctx.mounted) return;
 
-    ScaffoldMessenger.of(context!).showSnackBar(
+    ScaffoldMessenger.of(ctx).showSnackBar(
       SnackBar(
         content: Text('Prateleira confirmada: $shelfAddress'),
         duration: UIConstants.snackBarShortDuration,
