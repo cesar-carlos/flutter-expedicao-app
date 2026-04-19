@@ -45,6 +45,10 @@ class RegisterSeparationUserSectorUseCase {
     } on Exception catch (e) {
       _logError(e.toString());
       return failure(RegisterSeparationUserSectorFailure.insertError(e.toString(), e));
+    } catch (e) {
+      // Bug H: catch generico para `Error`s nao capturados por `on Exception`.
+      _logError('Erro inesperado: $e');
+      return failure(RegisterSeparationUserSectorFailure.insertError('Erro inesperado: $e', Exception(e.toString())));
     }
   }
 

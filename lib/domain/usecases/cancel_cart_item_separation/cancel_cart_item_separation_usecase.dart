@@ -70,6 +70,9 @@ class CancelCardItemSeparationUseCase {
       return failure(CancelCardItemSeparationFailure.networkError(e.message, Exception(e.message)));
     } on Exception catch (e) {
       return failure(CancelCardItemSeparationFailure.unknown(e.toString(), e));
+    } catch (e) {
+      // Bug M: catch generico para `Error`s (NullCheckOperator, etc.).
+      return failure(CancelCardItemSeparationFailure.unknown('Erro inesperado: $e', Exception(e.toString())));
     }
   }
 

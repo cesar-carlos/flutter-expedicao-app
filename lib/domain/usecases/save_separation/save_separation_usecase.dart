@@ -79,6 +79,9 @@ class SaveSeparationUseCase {
       return failure(NetworkFailure(message: 'Erro de rede: ${e.message}'));
     } on Exception catch (e) {
       return failure(UnknownFailure.fromException(e));
+    } catch (e) {
+      // Bug L: catch generico para `Error`s (NullCheckOperator, etc.).
+      return failure(UnknownFailure(message: 'Erro inesperado: $e'));
     }
   }
 
@@ -160,21 +163,45 @@ class SaveSeparationUseCase {
       }
 
       final updatedSeparateModel = separateModel.copyWith(situacao: ExpeditionSituation.separado);
-      final updatedSeparateModels = await _separateRepository.update(updatedSeparateModel);
+      try {
+        final updatedSeparateModels = await _separateRepository.update(updatedSeparateModel);
 
-      if (updatedSeparateModels.isEmpty) {
-        return failure(DataFailure(message: 'Falha ao atualizar situação da separação'));
+        if (updatedSeparateModels.isEmpty) {
+          // Bug K: rollback do cartRoute para o estado original se update
+          // da separacao falhar.
+          await _rollbackCartRoute(originalCartRoute: cartRoute);
+          return failure(DataFailure(message: 'Falha ao atualizar situação da separação'));
+        }
+
+        return success(
+          SaveSeparationSuccess.create(
+            updatedCartRoute: updatedCartRoutes.first,
+            message:
+                'Separação salva com sucesso. Carrinho percurso ${cartRoute.codCarrinhoPercurso} e separação ${separateModel.codSepararEstoque} atualizados para SEPARADO.',
+          ),
+        );
+      } catch (e) {
+        // Bug K: rollback se a segunda etapa lancar
+        await _rollbackCartRoute(originalCartRoute: cartRoute);
+        rethrow;
       }
-
-      return success(
-        SaveSeparationSuccess.create(
-          updatedCartRoute: updatedCartRoutes.first,
-          message:
-              'Separação salva com sucesso. Carrinho percurso ${cartRoute.codCarrinhoPercurso} e separação ${separateModel.codSepararEstoque} atualizados para SEPARADO.',
-        ),
-      );
     } catch (e) {
       rethrow;
+    }
+  }
+
+  /// Bug K: rollback best-effort — restaura o cartRoute para o estado
+  /// original se a atualização da separação falhar.
+  Future<void> _rollbackCartRoute({required ExpeditionCartRouteModel originalCartRoute}) async {
+    try {
+      await _cartRouteRepository.update(originalCartRoute);
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Falha no rollback do cartRoute durante saveSeparation — estado pode estar inconsistente',
+        tag: 'SaveSeparationUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 }

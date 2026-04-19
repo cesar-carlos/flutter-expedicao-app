@@ -69,6 +69,9 @@ class NextSeparationUserUseCase {
       return failure(NextSeparationUserFailure.networkError(e.message, Exception(e.message)));
     } on Exception catch (e) {
       return failure(NextSeparationUserFailure.unknown(e.toString(), e));
+    } catch (e) {
+      // Bug H: catch generico para `Error`s nao capturados por `on Exception`.
+      return failure(NextSeparationUserFailure.unknown('Erro inesperado: $e', Exception(e.toString())));
     }
   }
 

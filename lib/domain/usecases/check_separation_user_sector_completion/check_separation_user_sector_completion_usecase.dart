@@ -41,6 +41,9 @@ class CheckSeparationUserSectorCompletionUseCase {
       return Failure(NetworkFailure(message: e.message, code: 'NETWORK_ERROR', exception: e));
     } on Exception catch (e) {
       return Failure(UnknownFailure.fromException(e));
+    } catch (e) {
+      // Bug H: catch generico para `Error`s nao capturados por `on Exception`.
+      return Failure(UnknownFailure(message: 'Erro inesperado: $e'));
     }
   }
 
