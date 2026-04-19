@@ -106,8 +106,11 @@ class ScannerBroadcastController {
     }
   }
 
-  /// Descarta o controller e cancela a subscription
+  /// Descarta o controller e cancela a subscription.
+  /// (S3: o `stop()` é assíncrono mas dispose é sync; usamos `unawaited`
+  /// porque erros de cancelamento já são logados dentro de `stop()`.)
   void dispose() {
+    // ignore: discarded_futures
     stop();
   }
 }

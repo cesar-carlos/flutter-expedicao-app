@@ -378,7 +378,15 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     return Selector<CardPickingViewModel, bool>(
       selector: (_, vm) => vm.isCartInSeparationStatus,
       builder: (context, isEnabled, _) {
-        _scanState.setEnabled(isEnabled);
+        // B6: side-effect movido para fora do build(). setEnabled chama
+        // notifyListeners() em PickingScanState e disparar isso durante o build
+        // pode causar erro "setState called during build". O guard interno
+        // (_enabled == value) salva hoje, mas qualquer refactor pode quebrar.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _scanState.setEnabled(isEnabled);
+          }
+        });
         return RepaintBoundary(
           child: _PickingCardScanProvider(
             scanState: _scanState,
@@ -403,25 +411,34 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     );
     if (barcode.trim().isEmpty) return;
 
-    if (_scanState.isProcessingScan) return;
-
-    final nextItem = PickingUtils.findNextItemToPick(
-      widget.viewModel.items,
-      widget.viewModel.isItemCompleted,
-      userSectorCode: widget.viewModel.userModel?.codSetorEstoque,
-    );
-
-    if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
-      await _pauseScannerForShelf();
-      if (!mounted) return;
-      _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
+    // B2: aquisicao atomica do lock de processamento.
+    // Em modo broadcast, multiplos Intents podem chegar antes do startProcessing,
+    // causando dupla adicao no carrinho. tryStartProcessing garante que apenas
+    // o primeiro scan concorrente avance.
+    if (!_scanState.tryStartProcessing()) {
+      AppLogger.debug('Scan ignored: another scan in progress', tag: 'PickingCardScan');
       return;
     }
 
-    _scanState.startProcessing();
-    _scanController.clear();
-
     try {
+      final nextItem = PickingUtils.findNextItemToPick(
+        widget.viewModel.items,
+        widget.viewModel.isItemCompleted,
+        userSectorCode: widget.viewModel.userModel?.codSetorEstoque,
+      );
+
+      if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
+        // Libera o lock antes de pausar para shelf, pois o fluxo dali
+        // entra em outro caminho assincrono.
+        _scanState.stopProcessing();
+        await _pauseScannerForShelf();
+        if (!mounted) return;
+        _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
+        return;
+      }
+
+      _scanController.clear();
+
       final inputQuantity = int.tryParse(_quantityController.text) ?? 1;
 
       final scanResult = widget.viewModel.processScan(

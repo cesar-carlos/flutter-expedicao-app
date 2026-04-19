@@ -7,7 +7,6 @@ import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
-import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
 import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
@@ -41,7 +40,6 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
   late final FocusNode _focusNode;
   late final ShelfScanningService _shelfScanningService;
   late final AudioService _audioService;
-  late final BarcodeScannerService _scannerService;
   late final BarcodeBroadcastService _broadcastService;
   late final ConfigViewModel _configViewModel;
 
@@ -67,7 +65,6 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     _focusNode = FocusNode();
     _shelfScanningService = locator<ShelfScanningService>();
     _audioService = locator<AudioService>();
-    _scannerService = locator<BarcodeScannerService>();
     _broadcastService = locator<BarcodeBroadcastService>();
     _configViewModel = locator<ConfigViewModel>();
 
@@ -140,7 +137,11 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     _broadcastSub?.cancel();
     _broadcastSub = _broadcastService.listen(action: _broadcastAction, extraKey: _broadcastExtraKey).listen((code) {
       if (!mounted) return;
-      final trimmed = _scannerService.cleanBarcodeText(code.trim());
+      // B4: NAO usar cleanBarcodeText (que so mantem digitos) — enderecos
+      // de prateleira podem ter letras e separadores (ex.: "01-A-2").
+      // A validacao em PickingUtils.validateShelfBarcode compara o endereco
+      // INTEGRO apos trim. Apenas removemos caracteres de controle.
+      final trimmed = _stripControlChars(code).trim();
       if (trimmed.isEmpty) return;
       _handleCompleteBarcode(trimmed);
     });
@@ -168,14 +169,18 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     final text = _scanController.text.trim();
 
     if (_hasEnterCharacter(text)) {
-      final cleanedText = _cleanBarcodeText(text);
+      // B3: NAO removemos hifens/pontos. A validacao do endereco eh exata
+      // via validateShelfBarcode. Apenas removemos chars de controle.
+      final cleanedText = _stripControlChars(text).trim();
       if (cleanedText.isNotEmpty) {
         _handleCompleteBarcode(cleanedText);
       }
       return;
     }
 
-    Future.delayed(const Duration(milliseconds: 100), () {
+    // B7: cancela timer anterior em vez de empilhar Future.delayed por keystroke.
+    _validationTimer?.cancel();
+    _validationTimer = Timer(const Duration(milliseconds: 100), () {
       if (mounted && _scanController.text.trim() == text) {
         _handleCompleteBarcode(text);
       }
@@ -185,7 +190,16 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
   void _handleCompleteBarcode(String barcode) {
     AppLogger.debug('complete="$barcode"', tag: 'ShelfScreen');
     _clearScannerFieldAfterDelay();
-    _validateShelfInput(barcode);
+    // S5: validacao imediata. O Timer de 100ms em _validateShelfInput era
+    // util para reduzir reentrancia durante digitacao manual; chamadas vindas
+    // de Enter/broadcast ja sao atomicas e nao precisam do delay.
+    _validateShelfInputImmediate(barcode);
+  }
+
+  void _validateShelfInputImmediate(String input) {
+    _validationTimer?.cancel();
+    if (!mounted) return;
+    _runShelfValidation(input.trim());
   }
 
   void _clearScannerFieldAfterDelay() {
@@ -196,12 +210,17 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     });
   }
 
+  static final _controlCharsPattern = RegExp(r'[\n\r\t]');
+
   bool _hasEnterCharacter(String text) {
-    return RegExp(r'[\n\r\t]').hasMatch(text);
+    return _controlCharsPattern.hasMatch(text);
   }
 
-  String _cleanBarcodeText(String text) {
-    return text.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
+  /// Remove apenas caracteres de controle (Enter/Return/Tab),
+  /// preservando letras, dígitos e separadores como hífen e ponto,
+  /// que podem fazer parte de códigos de endereço (ex.: "01-A-2").
+  String _stripControlChars(String text) {
+    return text.replaceAll(_controlCharsPattern, '');
   }
 
   void _validateShelfInput([String? scannedValue]) {
@@ -209,30 +228,33 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
 
     _validationTimer = Timer(const Duration(milliseconds: 100), () {
       if (!mounted) return;
-
       final input = (scannedValue ?? _scanController.text).trim();
-      if (input.isEmpty) return;
-
-      final isValid = _shelfScanningService.validateScannedAddress(
-        scannedAddress: input,
-        expectedAddress: widget.expectedAddress,
-        expectedAddressDescription: widget.expectedAddressDescription,
-        isManualMode: _isManualMode,
-      );
-
-      if (isValid) {
-        _isClosingFromSuccess = true;
-        widget.viewModel.updateScannedAddress(input);
-        _audioService.playShelfScanSuccess();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            context.pop();
-          }
-        });
-      } else {
-        _showValidationError();
-      }
+      _runShelfValidation(input);
     });
+  }
+
+  void _runShelfValidation(String input) {
+    if (input.isEmpty) return;
+
+    final isValid = _shelfScanningService.validateScannedAddress(
+      scannedAddress: input,
+      expectedAddress: widget.expectedAddress,
+      expectedAddressDescription: widget.expectedAddressDescription,
+      isManualMode: _isManualMode,
+    );
+
+    if (isValid) {
+      _isClosingFromSuccess = true;
+      widget.viewModel.updateScannedAddress(input);
+      _audioService.playShelfScanSuccess();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.pop();
+        }
+      });
+    } else {
+      _showValidationError();
+    }
   }
 
   void _showValidationError() {

@@ -16,9 +16,6 @@ class BarcodeScannerService {
   /// Timer para debounce - aguarda usuário parar de digitar
   Timer? _debounceTimer;
 
-  /// Cache de validações para melhorar performance
-  final Map<String, bool> _validationCache = {};
-
   /// Tempo de debounce para detectar quando usuário parou de digitar
   /// Reduzido para melhor responsividade com scanners rápidos
   static const Duration _debounceTimeout = Duration(milliseconds: 40);
@@ -47,16 +44,16 @@ class BarcodeScannerService {
   /// Comprimento mínimo para entrada via scanner
   static const int _minScannerLength = 8;
 
-  /// Limpa o cache de validações
-  /// Útil quando há mudanças no contexto que podem afetar validações
+  /// Mantido por compatibilidade. Cache de validações foi removido (B11)
+  /// porque o ganho era irrelevante (regex já roda em microssegundos)
+  /// e o cache crescia indefinidamente em sessões longas.
   void clearValidationCache() {
-    _validationCache.clear();
+    // no-op
   }
 
   /// Limpa recursos quando não precisar mais do serviço
   void dispose() {
     _debounceTimer?.cancel();
-    _validationCache.clear();
   }
 
   /// Processa entrada de código de barras com detecção de Enter e debounce como fallback
@@ -163,19 +160,10 @@ class BarcodeScannerService {
     return text.length >= minLength;
   }
 
-  /// Verifica se a entrada tem formato de código de barras válido
-  /// Usa cache para melhorar performance em validações repetidas
+  /// Verifica se a entrada tem formato de código de barras válido.
+  /// (B11: cache foi removido — regex já é da ordem de microssegundos.)
   bool _isValidBarcode(String input) {
-    // Verificar cache primeiro
-    if (_validationCache.containsKey(input)) {
-      return _validationCache[input]!;
-    }
-
-    // Validar e cachear resultado
-    final isValid = _barcodePattern.hasMatch(input);
-    _validationCache[input] = isValid;
-
-    return isValid;
+    return _barcodePattern.hasMatch(input);
   }
 
   /// Valida o formato de um código de barras e retorna informações sobre o formato

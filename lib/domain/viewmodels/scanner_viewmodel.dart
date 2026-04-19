@@ -4,9 +4,21 @@ import 'package:flutter/services.dart';
 
 import 'package:data7_expedicao/domain/models/scanner_data.dart';
 
+/// ViewModel da tela livre de scan ([ScannerScreen]).
+///
+/// Tem propósito **diferente** do [BarcodeScannerService]:
+/// - Aqui aceitamos **qualquer string** (alfanumérica, com símbolos),
+///   pois a tela é usada para testar/debugar coletores antes da operação real.
+/// - O [BarcodeScannerService] valida formato (regex 7–16 dígitos) e é usado
+///   no fluxo de separação real, onde só dígitos fazem sentido.
+///
+/// Por isso esta ViewModel mantém debounce e validação próprios.
 class ScannerViewModel extends ChangeNotifier {
+  static const int _maxHistorySize = 50;
+  static const Duration _debounceDuration = Duration(milliseconds: 150);
+
   String _scannedCode = "";
-  List<ScannerData> _scanHistory = [];
+  final List<ScannerData> _scanHistory = [];
   bool _isProcessing = false;
   Timer? _debounceTimer;
 
@@ -19,7 +31,7 @@ class ScannerViewModel extends ChangeNotifier {
       _scannedCode += character;
 
       _debounceTimer?.cancel();
-      _debounceTimer = Timer(const Duration(milliseconds: 150), () {
+      _debounceTimer = Timer(_debounceDuration, () {
         _processDebouncedInput();
       });
 
@@ -50,8 +62,10 @@ class ScannerViewModel extends ChangeNotifier {
     final scanData = ScannerData(code: code);
     _scanHistory.insert(0, scanData);
 
-    if (_scanHistory.length > 50) {
-      _scanHistory = _scanHistory.take(50).toList();
+    // P4: removeLast() em vez de recriar a lista a cada bipagem.
+    // Como inserimos no indice 0, o item mais antigo esta no fim.
+    while (_scanHistory.length > _maxHistorySize) {
+      _scanHistory.removeLast();
     }
 
     HapticFeedback.lightImpact();

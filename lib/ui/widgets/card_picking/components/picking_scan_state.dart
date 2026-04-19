@@ -40,6 +40,21 @@ class PickingScanState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Tenta marcar como "em processamento" de forma atomica.
+  ///
+  /// Retorna `true` se conseguiu adquirir o lock (estado mudou para true),
+  /// ou `false` se ja estava em processamento.
+  ///
+  /// Use este metodo em call-sites concorrentes (ex.: broadcast Intents
+  /// chegando em sequencia rapida) para evitar dupla execucao do mesmo scan.
+  bool tryStartProcessing() {
+    if (_disposed || _isProcessingScan) return false;
+
+    _isProcessingScan = true;
+    notifyListeners();
+    return true;
+  }
+
   void stopProcessing() {
     if (_disposed || !_isProcessingScan) return;
 

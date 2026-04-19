@@ -10,24 +10,19 @@ import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
+/// Implementação mobile do scanner de código de barras via câmera.
+///
+/// B5: removido o `setContext()` mutável que tornava o singleton stateful e
+/// vulneravel a uso de `BuildContext` desmontado. Agora o `BuildContext`
+/// é passado em cada chamada (stateless).
 class BarcodeScannerRepositoryMobileImpl implements BarcodeScannerRepository {
-  BuildContext? _context;
-
-  void setContext(BuildContext context) {
-    _context = context;
-  }
+  const BarcodeScannerRepositoryMobileImpl();
 
   @override
-  Future<Result<String>> scanBarcode() async {
+  Future<Result<String>> scanBarcode({required BuildContext context}) async {
     try {
-      if (_context == null) {
-        return Failure(
-          DataFailure(message: 'Contexto não configurado. Chame setContext() antes de usar.', code: 'NO_CONTEXT'),
-        );
-      }
-
       final result = await Navigator.of(
-        _context!,
+        context,
       ).push<String>(MaterialPageRoute(builder: (context) => const BarcodeScannerScreen()));
 
       if (result == null) {
@@ -94,9 +89,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
 
   Future<void> _closeWithResult(String? result) async {
     if (_isDisposed || !mounted) return;
-    if (mounted) {
-      Navigator.of(context).pop(result);
-    }
+    Navigator.of(context).pop(result);
   }
 
   @override

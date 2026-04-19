@@ -13,8 +13,11 @@ class BarcodeBroadcastStreamHandler(
 
   private var receiver: BroadcastReceiver? = null
   private var eventSink: EventChannel.EventSink? = null
+  // Defaults alinhados com lib/ui/widgets/config/scanner_config_form.dart.
+  // Na pratica o lado Dart sempre passa action/extraKey via arguments,
+  // mas estes defaults garantem coerencia se algum cliente nativo usar o channel.
   private var action: String = "com.scanner.BARCODE"
-  private var extraKey: String = "barcode"
+  private var extraKey: String = "data"
 
   override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
     eventSink = events

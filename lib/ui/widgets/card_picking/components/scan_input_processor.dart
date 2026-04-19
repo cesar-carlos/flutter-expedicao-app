@@ -34,7 +34,7 @@ class ScanInputProcessor {
 
   void clearValidationCaches() {
     _scannerService.clearValidationCache();
-    BarcodeValidationService.clearValidationCache();
+    BarcodeValidationService.clearCaches();
   }
 
   Future<void> handleSuccessfulItemAddition(

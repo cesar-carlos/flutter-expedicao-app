@@ -1,18 +1,26 @@
+import 'dart:collection';
+
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 
 class BarcodeValidationService {
-  static final Map<String, SeparateItemConsultationModel?> _barcodeSearchCache = {};
+  /// Capacidade máxima do cache de busca por código de barras.
+  /// Usado para evitar crescimento ilimitado em sessões longas (B10).
+  static const int _maxCacheSize = 256;
 
-  static final Map<String, BarcodeValidationResult> _validationCache = {};
+  /// Cache LRU de busca por código de barras.
+  /// Vinculado à `identityHashCode` da última lista de items vista,
+  /// para invalidação automática ao trocar de separação (B1).
+  static final LinkedHashMap<String, SeparateItemConsultationModel?> _barcodeSearchCache =
+      LinkedHashMap<String, SeparateItemConsultationModel?>();
+
+  /// Identidade da última lista de items para qual o cache foi populado.
+  /// Trocou a lista? Invalidamos automaticamente.
+  static int? _cachedItemsIdentity;
 
   static void clearCaches() {
     _barcodeSearchCache.clear();
-    _validationCache.clear();
-  }
-
-  static void clearValidationCache() {
-    _validationCache.clear();
+    _cachedItemsIdentity = null;
   }
 
   static BarcodeValidationResult validateScannedBarcode(
@@ -62,9 +70,20 @@ class BarcodeValidationService {
 
   static SeparateItemConsultationModel? _findItemByBarcode(List<SeparateItemConsultationModel> items, String barcode) {
     final trimmedBarcode = barcode.trim();
+    final itemsIdentity = identityHashCode(items);
+
+    // Invalidação automática (B1): se a lista mudou desde o último cache,
+    // descarta tudo antes de consultar.
+    if (_cachedItemsIdentity != itemsIdentity) {
+      _barcodeSearchCache.clear();
+      _cachedItemsIdentity = itemsIdentity;
+    }
 
     if (_barcodeSearchCache.containsKey(trimmedBarcode)) {
-      return _barcodeSearchCache[trimmedBarcode];
+      // Move para o final (estilo LRU): chave acessada vira a mais recente.
+      final cached = _barcodeSearchCache.remove(trimmedBarcode);
+      _barcodeSearchCache[trimmedBarcode] = cached;
+      return cached;
     }
 
     SeparateItemConsultationModel? foundItem;
@@ -86,6 +105,12 @@ class BarcodeValidationService {
     }
 
     _barcodeSearchCache[trimmedBarcode] = foundItem;
+
+    // Eviction LRU (B10): remove a entrada mais antiga se estourar o teto.
+    if (_barcodeSearchCache.length > _maxCacheSize) {
+      _barcodeSearchCache.remove(_barcodeSearchCache.keys.first);
+    }
+
     return foundItem;
   }
 }
