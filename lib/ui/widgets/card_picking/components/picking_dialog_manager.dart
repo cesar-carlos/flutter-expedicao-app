@@ -1,10 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import 'package:data7_expedicao/ui/widgets/common/picking_dialog.dart';
-import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal.dart';
+import 'package:data7_expedicao/ui/widgets/common/picking_dialog.dart';
 
 class PickingDialogManager {
   final BuildContext context;
@@ -43,28 +46,45 @@ class PickingDialogManager {
   void showNoItemsForSectorDialog(int userSectorCode, VoidCallback onFinish) {
     if (!context.mounted) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => PickingDialogs.noItemsForSector(
-        userSectorCode: userSectorCode,
-        onFinish: () async {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) {
-              Navigator.of(context).pop();
-              onFinish();
-            }
-          });
-        },
-        onCancel: () {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) {
-              Navigator.of(context).pop();
-              scanFocusNode.requestFocus();
-            }
-          });
-        },
-      ),
+    // Bug latente anterior: `showDialog(...)` retorna Future
+    // descartado sem catch (lint discarded_futures). Embora o
+    // dialog em si raramente falhe, o catch defensivo garante
+    // observabilidade e satisfaz o lint.
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => PickingDialogs.noItemsForSector(
+          userSectorCode: userSectorCode,
+          // Bug menor anterior: callback marcado como `() async`
+          // mas nao retornava Future nem usava await — apenas
+          // confundia callers que pudessem esperar Future. Removido
+          // o `async` (consistente com `onCancel` abaixo).
+          onFinish: () {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                onFinish();
+              }
+            });
+          },
+          onCancel: () {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                scanFocusNode.requestFocus();
+              }
+            });
+          },
+        ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog noItemsForSector',
+          tag: 'PickingDialogManager',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 
@@ -97,25 +117,35 @@ class PickingDialogManager {
   }) {
     if (!context.mounted) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => ShelfScanningModal(
-        expectedAddress: expectedAddress,
-        expectedAddressDescription: expectedAddressDescription,
-        onShelfScanned: onShelfScanned,
-        onBack: onBack,
-      ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => ShelfScanningModal(
+          expectedAddress: expectedAddress,
+          expectedAddressDescription: expectedAddressDescription,
+          onShelfScanned: onShelfScanned,
+          onBack: onBack,
+        ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog shelfScan',
+          tag: 'PickingDialogManager',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 
   void showSaveCartAfterSectorCompletedDialog(int userSectorCode, VoidCallback onSaveCart, VoidCallback onContinue) {
     if (!context.mounted) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
         title: Row(
           children: [
             Icon(Icons.check_circle_outline, color: AppColors.success, size: UIConstants.largeIconSize),
@@ -186,15 +216,38 @@ class PickingDialogManager {
           ),
         ],
       ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog saveCartAfterSectorCompleted',
+          tag: 'PickingDialogManager',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 
   void _showDialogWithFocusReturn(Widget Function() dialogBuilder) {
     if (!context.mounted) return;
 
-    showDialog(context: context, builder: (context) => dialogBuilder()).then((_) {
-      _returnFocusToScanner();
-    });
+    // Bug latente anterior: `showDialog(...).then(...)` retornava
+    // Future descartado (lint discarded_futures + erros nao
+    // observaveis). Agora envolvemos em `unawaited` + catchError
+    // defensivo. O `_returnFocusToScanner` continua sendo chamado
+    // no `.then` para preservar a semantica original (focus volta
+    // ao scanner apos o dialog fechar).
+    unawaited(
+      showDialog<void>(context: context, builder: (context) => dialogBuilder())
+          .then((_) => _returnFocusToScanner())
+          .catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog (showDialogWithFocusReturn)',
+          tag: 'PickingDialogManager',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _returnFocusToScanner() {

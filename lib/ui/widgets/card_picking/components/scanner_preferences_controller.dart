@@ -1,7 +1,9 @@
-import 'package:data7_expedicao/di/locator.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
-import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
+import 'dart:async';
+
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
+import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 
 class ScannerPreferencesController {
   final ConfigViewModel _configViewModel = locator<ConfigViewModel>();
@@ -41,7 +43,23 @@ class ScannerPreferencesController {
     }
   }
 
+  /// Bug latente anterior: `loadPreferences()` retorna Future
+  /// (porque e `async`) mas era descartado sem catch — se o load
+  /// silenciosamente falhasse, a operacao de reload nao logava
+  /// nada (apesar do `loadPreferences` ja ter try/catch interno
+  /// que loga via AppLogger.warning, qualquer exception nao-tratada
+  /// no proprio loadPreferences viraria "Unhandled Future error").
+  /// Agora `unawaited` + catchError defensivo pelos lints.
   void reloadPreferences() {
-    loadPreferences();
+    unawaited(
+      loadPreferences().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao recarregar preferencias do scanner',
+          tag: 'ScannerPreferencesController',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 }
