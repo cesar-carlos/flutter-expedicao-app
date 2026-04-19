@@ -94,6 +94,15 @@ class CommonSchemas {
   /// Schema para strings opcionais
   ///
   /// Nota: Zard filtra null antes de chamar o transform.
+  ///
+  /// LIMITACAO CONHECIDA: aparente bug do Zard quando `.optional()`
+  /// precede `.transform()` em campos dentro de `z.map({...})`: o
+  /// runtime ainda exige a chave estar presente (pode ser '' ou null,
+  /// mas nao pode ser ausente). Quando o caller controla o input,
+  /// adicionar a chave com valor '' contorna o problema. Para
+  /// schemas usados em runtime de DTOs, prefira parsing defensivo
+  /// no fromJson via `JsonParse.parseStringOrNull` em vez de
+  /// validacao Zard.
   static final optionalStringSchema = z.string().optional().transform((value) => value.trim());
 
   // === SCHEMAS DE VALIDAÇÃO DE FORMATO ===

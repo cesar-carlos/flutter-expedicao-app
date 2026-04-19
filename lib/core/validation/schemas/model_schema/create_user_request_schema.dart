@@ -26,7 +26,12 @@ class CreateUserRequestSchema {
         .optional()
         .refine((value) {
           if (value.trim().isEmpty) return true;
-          final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+          // Bug latente anterior: regex `[\w-]{2,4}` no final do TLD
+          // rejeitava dominios validos com TLD > 4 chars (.travel,
+          // .museum, .tech, .design) ou multi-segmento (.com.br).
+          // Mesmo bug ja foi corrigido em UserValidators.isValidEmail
+          // — aqui aplicamos a mesma regex consolidada.
+          final emailRegex = RegExp(r'^[\w.\-]+@[\w\-]+(\.[\w\-]+)*\.[a-zA-Z]{2,24}$');
           return emailRegex.hasMatch(value.trim());
         }, message: 'Email deve ter formato válido')
         .transform((value) => value.trim()),

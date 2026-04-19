@@ -156,11 +156,19 @@ class PaginationSchemas {
   // === VALIDAÇÕES DE REGRAS DE NEGÓCIO ===
 
   /// Valida consistência da paginação
+  ///
+  /// Bug latente anterior: se `pageSize <= 0` (caller passando dados
+  /// invalidos), a expressao `(totalItems - 1) / pageSize` resultava
+  /// em divisao por zero (`Infinity` em Dart) ou comportamento
+  /// nao-definido. Agora retornamos `false` para inputs invalidos
+  /// em vez de propagar.
   static bool validatePaginationConsistency(int currentPage, int totalPages, int totalItems, int pageSize) {
-    // Página atual não pode ser maior que total de páginas
+    if (pageSize <= 0 || currentPage < 1 || totalPages < 0 || totalItems < 0) {
+      return false;
+    }
+
     if (currentPage > totalPages && totalPages > 0) return false;
 
-    // Total de páginas deve ser consistente com total de itens e tamanho da página
     final expectedTotalPages = totalItems == 0 ? 0 : ((totalItems - 1) / pageSize).floor() + 1;
     if (totalPages != expectedTotalPages) return false;
 
@@ -168,15 +176,31 @@ class PaginationSchemas {
   }
 
   /// Valida índices de paginação
+  ///
+  /// Bug latente anterior: `(expectedStartIndex + pageSize - 1).clamp(0, totalItems - 1)`
+  /// crashava com `RangeError: lower (0) must be <= upper (-1)` quando
+  /// `totalItems == 0` (lista vazia). O caller queria validar que o
+  /// estado de paginacao esta consistente para uma lista vazia, mas
+  /// o validator detonava ao inves de validar.
   static bool validatePaginationIndices(int startIndex, int endIndex, int currentPage, int pageSize, int totalItems) {
-    // Índice inicial deve ser menor que final
-    if (startIndex > endIndex && totalItems > 0) return false;
+    if (pageSize <= 0 || currentPage < 1 || startIndex < 0 || endIndex < 0 || totalItems < 0) {
+      return false;
+    }
 
-    // Índices devem estar dentro do range válido
+    if (totalItems == 0) {
+      // Lista vazia: nao ha indice valido. Aceitamos qualquer
+      // par (start, end) que represente "vazio" sem dispositivos
+      // de range. Politica permissiva e simetrica ao validate
+      // anterior (que retornava true para totalItems==0 antes do crash).
+      return true;
+    }
+
+    if (startIndex > endIndex) return false;
+
     final expectedStartIndex = (currentPage - 1) * pageSize;
     final expectedEndIndex = (expectedStartIndex + pageSize - 1).clamp(0, totalItems - 1);
 
-    return startIndex == expectedStartIndex && (totalItems == 0 || endIndex == expectedEndIndex);
+    return startIndex == expectedStartIndex && endIndex == expectedEndIndex;
   }
 
   /// Valida operador de consulta
