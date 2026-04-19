@@ -18,6 +18,8 @@ import 'package:data7_expedicao/domain/models/situation/tipo_fator_conversao_mod
 import 'package:data7_expedicao/domain/models/filter/pending_products_filters_model.dart';
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/presentation/viewmodels/controllers/cart_event_listener_controller.dart';
+import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_pending_operations_tracker.dart';
 import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_params.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
@@ -26,8 +28,6 @@ import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separa
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_success.dart';
 import 'package:data7_expedicao/core/services/barcode_validation_service.dart';
-import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
-import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
@@ -36,8 +36,6 @@ import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 
 class CardPickingViewModel extends ChangeNotifier {
-  static const String _cartUpdateListenerId = 'card_picking_viewmodel_cart_update';
-
   static const String _cartInSeparationCode = 'EM SEPARACAO';
   static const String _cartSeparatingCode = 'SEPARANDO';
 
@@ -51,6 +49,7 @@ class CardPickingViewModel extends ChangeNotifier {
   final IUserSessionService _userSessionService;
 
   final SeparateCartInternshipEventRepository _cartEventRepository;
+  late final CartEventListenerController _cartEventController;
   final ShelfScanningService _shelfScanningService;
   final PickingStateManager _stateManager;
   final CartValidationService _cartValidationService;
@@ -91,7 +90,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
   SeparateItemConsultationModel? get nextItem => _nextItemCache;
 
-  final Map<String, List<Future<void>>> _pendingOperations = {};
+  final PickingPendingOperationsTracker _pendingOperations = PickingPendingOperationsTracker();
 
   final StreamController<OperationError> _errorController = StreamController<OperationError>.broadcast();
 
@@ -125,7 +124,7 @@ class CardPickingViewModel extends ChangeNotifier {
   bool get hasPendingOperations {
     if (_items.isEmpty) return false;
 
-    return pickingState.hasAnyPendingOperations();
+    return pickingState.hasAnyPendingOperations() || _pendingOperations.isNotEmpty;
   }
 
   int _countPendingOperations() {
@@ -189,7 +188,6 @@ class CardPickingViewModel extends ChangeNotifier {
     return result;
   }
 
-  bool _cartEventListenersRegistered = false;
   bool _cartStatusChanged = false;
 
   PendingProductsFiltersModel _filters = const PendingProductsFiltersModel();
@@ -237,7 +235,13 @@ class CardPickingViewModel extends ChangeNotifier {
       _shelfScanningService = locator<ShelfScanningService>(),
       _stateManager = locator<PickingStateManager>(),
       _cartValidationService = locator<CartValidationService>(),
-      _metricsCollector = _initMetricsCollector();
+      _metricsCollector = _initMetricsCollector() {
+    _cartEventController = CartEventListenerController(
+      eventRepository: _cartEventRepository,
+      onCartUpdated: _handleCartUpdate,
+      onProcessingError: _setError,
+    );
+  }
 
   static MetricsCollector? _initMetricsCollector() {
     try {
@@ -250,7 +254,7 @@ class CardPickingViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
-    stopCartEventMonitoring();
+    _cartEventController.dispose();
     _errorController.close();
     BarcodeValidationService.clearCaches();
     super.dispose();
@@ -698,44 +702,6 @@ class CardPickingViewModel extends ChangeNotifier {
     await initializeCart(_cart!);
   }
 
-  List<SeparateItemConsultationModel> _sortItemsByAddress(List<SeparateItemConsultationModel> items) {
-    final userSectorCode = _userModel?.codSetorEstoque;
-
-    return List.from(items)..sort((a, b) {
-      final sectorA = a.codSetorEstoque;
-      final sectorB = b.codSetorEstoque;
-
-      if (sectorA == null && sectorB != null) return -1;
-      if (sectorA != null && sectorB == null) return 1;
-
-      if (userSectorCode != null && sectorA != null && sectorB != null) {
-        final isASameUserSector = sectorA == userSectorCode;
-        final isBSameUserSector = sectorB == userSectorCode;
-
-        if (isASameUserSector && !isBSameUserSector) return -1;
-        if (!isASameUserSector && isBSameUserSector) return 1;
-      }
-
-      final endA = a.enderecoDescricao?.toLowerCase() ?? '';
-      final endB = b.enderecoDescricao?.toLowerCase() ?? '';
-
-      final regExp = RegExp(r'^(\d+)');
-      final matchA = regExp.firstMatch(endA);
-      final matchB = regExp.firstMatch(endB);
-
-      if (matchA != null && matchB != null) {
-        final numA = int.parse(matchA.group(1)!);
-        final numB = int.parse(matchB.group(1)!);
-        if (numA != numB) return numA.compareTo(numB);
-      }
-
-      if (matchA != null && matchB == null) return -1;
-      if (matchA == null && matchB != null) return 1;
-
-      return endA.compareTo(endB);
-    });
-  }
-
   Future<void> loadAvailableSectors() async {
     if (_disposed || _sectorsLoaded) return;
 
@@ -821,7 +787,7 @@ class CardPickingViewModel extends ChangeNotifier {
       items = _addSyntheticCodProdutoUnitsForScan(items);
 
       _itemsUnmodifiable = null;
-      _items = _sortItemsByAddress(items);
+      _items = PickingUtils.sortItemsByAddress(items, userSectorCode: _userModel?.codSetorEstoque);
 
       _rebuildItemsCache();
 
@@ -937,81 +903,19 @@ class CardPickingViewModel extends ChangeNotifier {
 
   void startCartEventMonitoring() {
     if (_disposed || _cart == null) return;
-    _registerCartEventListener();
+    _cartEventController.start(_cart!);
   }
 
   void stopCartEventMonitoring() {
     if (_disposed) return;
-    _unregisterCartEventListener();
+    _cartEventController.stop();
   }
 
-  void _registerCartEventListener() {
-    if (_disposed || _cartEventListenersRegistered || _cart == null) return;
-
-    try {
-      _cartEventRepository.addListener(
-        EventListenerModel(id: _cartUpdateListenerId, event: Event.update, callback: _onCartEvent, allEvent: false),
-      );
-
-      _cartEventListenersRegistered = true;
-    } catch (e) {
-      developer.log('Failed to register cart event listener', error: e);
-    }
-  }
-
-  void _unregisterCartEventListener() {
-    if (!_cartEventListenersRegistered) return;
-
-    try {
-      _cartEventRepository.removeListener(_cartUpdateListenerId);
-      _cartEventListenersRegistered = false;
-    } catch (e) {
-      developer.log('Failed to unregister cart event listener', error: e);
-    }
-  }
-
-  void _onCartEvent(BasicEventModel event) {
-    if (_disposed || _cart == null) return;
-
-    try {
-      _processCartEventData(event);
-    } catch (e) {
-      developer.log('Failed to process cart event', error: e);
-
-      _setError('Erro ao atualizar carrinho. Toque em atualizar para recarregar os dados.');
-    }
-  }
-
-  void _processCartEventData(BasicEventModel event) {
-    if (event.data == null) return;
-
-    try {
-      if (event.data is Map<String, dynamic>) {
-        final dataMap = event.data as Map<String, dynamic>;
-
-        if (dataMap.containsKey('Mutation') && dataMap['Mutation'] is List) {
-          final mutations = dataMap['Mutation'] as List;
-
-          for (final mutation in mutations) {
-            if (mutation is Map<String, dynamic>) {
-              final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(mutation);
-              _handleCartUpdate(cartData);
-            }
-          }
-        } else {
-          final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(dataMap);
-          _handleCartUpdate(cartData);
-        }
-      }
-    } catch (e) {
-      developer.log('Failed to process cart event data', error: e);
-    }
-  }
-
+  /// Callback do `CartEventListenerController` quando chega evento de
+  /// atualização do mesmo carrinho (filtrado pelo controller).
+  /// Aqui aplicamos a regra de UI: só notificamos se a situação mudou.
   void _handleCartUpdate(ExpeditionCartRouteInternshipConsultationModel cartData) {
     if (_disposed || _cart == null) return;
-
-    if (!_isSameCart(cartData)) return;
 
     final oldSituation = _cart!.situacao.code;
     final newSituation = cartData.situacao.code;
@@ -1019,14 +923,9 @@ class CardPickingViewModel extends ChangeNotifier {
     if (oldSituation != newSituation) {
       _cartStatusChanged = true;
       _cart = cartData;
+      _cartEventController.updateCurrentCart(cartData);
       _safeNotifyListeners();
     }
-  }
-
-  bool _isSameCart(ExpeditionCartRouteInternshipConsultationModel cartData) {
-    return cartData.codEmpresa == _cart!.codEmpresa &&
-        cartData.codCarrinhoPercurso == _cart!.codCarrinhoPercurso &&
-        cartData.item == _cart!.item;
   }
 
   Future<void> _executeAsyncAddItem(
@@ -1037,15 +936,8 @@ class CardPickingViewModel extends ChangeNotifier {
     DateTime timestamp,
   ) async {
     final operation = _performAddItemOperation(params, userSystem, itemId, quantity, timestamp);
-
-    _pendingOperations.putIfAbsent(itemId, () => []).add(operation);
-
+    _pendingOperations.track(itemId, operation);
     await operation;
-
-    _pendingOperations[itemId]?.remove(operation);
-    if (_pendingOperations[itemId]?.isEmpty ?? false) {
-      _pendingOperations.remove(itemId);
-    }
   }
 
   Future<void> _performAddItemOperation(
@@ -1102,8 +994,7 @@ class CardPickingViewModel extends ChangeNotifier {
   Future<void> _waitForPendingOperationsAndRefresh() async {
     if (_pendingOperations.isEmpty) return;
 
-    final allOperations = _pendingOperations.values.expand((list) => list).toList();
-    await Future.wait(allOperations, eagerError: false);
+    await _pendingOperations.waitForAll();
     if (_disposed) return;
 
     await refresh();
