@@ -31,7 +31,11 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
     widget.viewModel.addListener(_onViewModelChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.viewModel.canAddCart) {
+      // Bug: mounted check antes de requestFocus em postFrameCallback
+      // (mesmo padrao dos bugs SSSSSSSSS/TTTTTTTTT em GenericBarcodeScanner).
+      // Widget pode ser desmontado entre initState e a primeira frame em
+      // navegacao rapida.
+      if (mounted && widget.viewModel.canAddCart) {
         _addButtonFocusNode.requestFocus();
       }
     });
