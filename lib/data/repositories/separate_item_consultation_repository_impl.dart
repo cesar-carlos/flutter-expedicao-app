@@ -1,80 +1,23 @@
-import 'dart:async';
-import 'dart:convert';
-import 'package:uuid/uuid.dart';
-
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
-import 'package:data7_expedicao/core/errors/app_error.dart';
-import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
+import 'package:data7_expedicao/core/network/socket_request_helper.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
-import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
-import 'package:data7_expedicao/core/network/socket_config.dart';
+import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
 
+/// Repositorio de consulta de SeparateItemConsultationModel.
+///
+/// Refatorado para usar [SocketRequestHelper] (ver doc do helper).
+/// Preserva o timeout original (`shortNetworkTimeout`).
 class SeparateItemConsultationRepositoryImpl implements BasicConsultationRepository<SeparateItemConsultationModel> {
-  final uuid = const Uuid();
-  var socket = SocketConfig.instance;
-  final selectEvent = 'separar.item.consulta';
+  static const String _selectEvent = 'separar.item.consulta';
 
   @override
-  Future<List<SeparateItemConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
-    final event = '${socket.id} $selectEvent';
-    final completer = Completer<List<SeparateItemConsultationModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendQuerySocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      where: queryBuilder.buildSqlWhere(),
-      pagination: queryBuilder.buildPagination(),
+  Future<List<SeparateItemConsultationModel>> selectConsultation(QueryBuilder queryBuilder) {
+    return SocketRequestHelper.select<SeparateItemConsultationModel>(
+      baseEvent: _selectEvent,
+      queryBuilder: queryBuilder,
+      fromJson: SeparateItemConsultationModel.fromJson,
+      timeout: UIConstants.shortNetworkTimeout,
     );
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final error = response?['Error'];
-          final data = response?['Data'] ?? [];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = <SeparateItemConsultationModel>[];
-          for (final json in data) {
-            final result = SeparateItemConsultationModel.fromJsonSafe(json);
-            result.fold(
-              (model) => list.add(model),
-              (failure) => throw DataError(message: 'Erro ao converter SeparateItemConsultationModel: $failure'),
-            );
-          }
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future.timeout(
-        UIConstants.shortNetworkTimeout,
-        onTimeout: () {
-          if (completer.isCompleted) return completer.future;
-          socket.off(responseId);
-          completer.completeError(DataError(message: 'Tempo limite de consulta excedido'));
-          return completer.future;
-        },
-      );
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
   }
 }

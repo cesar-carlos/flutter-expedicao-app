@@ -1,228 +1,50 @@
-import 'dart:async';
-import 'dart:convert';
-import 'package:uuid/uuid.dart';
-
-import 'package:data7_expedicao/core/errors/app_error.dart';
-import 'package:data7_expedicao/data/dtos/send_mutation_socket_dto.dart';
-import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/core/network/socket_request_helper.dart';
 import 'package:data7_expedicao/domain/models/expedition_cancellation_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
-import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
-import 'package:data7_expedicao/core/network/socket_config.dart';
+import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 
+/// Repositorio de ExpeditionCancellationModel.
+///
+/// Refatorado para usar [SocketRequestHelper] (ver doc do helper).
 class ExpeditionCancellationRepositoryImpl implements BasicRepository<ExpeditionCancellationModel> {
-  final selectEvent = 'expedicao.cancelamento.select';
-  final insertEvent = 'expedicao.cancelamento.insert';
-  final updateEvent = 'expedicao.cancelamento.update';
-  final deleteEvent = 'expedicao.cancelamento.delete';
-  var socket = SocketConfig.instance;
-  final uuid = const Uuid();
+  static const String _selectEvent = 'expedicao.cancelamento.select';
+  static const String _insertEvent = 'expedicao.cancelamento.insert';
+  static const String _updateEvent = 'expedicao.cancelamento.update';
+  static const String _deleteEvent = 'expedicao.cancelamento.delete';
 
   @override
-  Future<List<ExpeditionCancellationModel>> select(QueryBuilder queryBuilder) async {
-    final event = '${socket.id} $selectEvent';
-    final completer = Completer<List<ExpeditionCancellationModel>>();
-    final responseId = uuid.v4();
-
-    final whereQuery = queryBuilder.buildSqlWhere();
-    final paginationQuery = queryBuilder.buildPagination();
-
-    final send = SendQuerySocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      where: whereQuery.isEmpty ? null : whereQuery,
-      pagination: paginationQuery.isEmpty ? null : paginationQuery,
+  Future<List<ExpeditionCancellationModel>> select(QueryBuilder queryBuilder) {
+    return SocketRequestHelper.select<ExpeditionCancellationModel>(
+      baseEvent: _selectEvent,
+      queryBuilder: queryBuilder,
+      fromJson: ExpeditionCancellationModel.fromJson,
     );
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final error = response?['Error'];
-          final data = response?['Data'] ?? [];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = <ExpeditionCancellationModel>[];
-          for (final json in data) {
-            final result = ExpeditionCancellationModel.fromJsonSafe(json);
-            result.fold(
-              (model) => list.add(model),
-              (failure) => throw DataError(message: 'Erro ao converter ExpeditionCancellationModel: $failure'),
-            );
-          }
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future;
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
   }
 
   @override
-  Future<List<ExpeditionCancellationModel>> insert(ExpeditionCancellationModel entity) async {
-    final event = '${socket.id} $insertEvent';
-    final completer = Completer<List<ExpeditionCancellationModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final mutation = response?['Mutation'] ?? [];
-          final error = response?['Error'];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = <ExpeditionCancellationModel>[];
-          for (final json in mutation) {
-            final result = ExpeditionCancellationModel.fromJsonSafe(json);
-            result.fold(
-              (model) => list.add(model),
-              (failure) => throw DataError(message: 'Erro ao converter ExpeditionCancellationModel: $failure'),
-            );
-          }
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future;
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
+  Future<List<ExpeditionCancellationModel>> insert(ExpeditionCancellationModel entity) {
+    return SocketRequestHelper.mutation<ExpeditionCancellationModel>(
+      baseEvent: _insertEvent,
+      entityJson: entity.toJson(),
+      fromJson: ExpeditionCancellationModel.fromJson,
+    );
   }
 
   @override
-  Future<List<ExpeditionCancellationModel>> update(ExpeditionCancellationModel entity) async {
-    final event = '${socket.id} $updateEvent';
-    final completer = Completer<List<ExpeditionCancellationModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final mutation = response?['Mutation'] ?? [];
-          final error = response?['Error'];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = <ExpeditionCancellationModel>[];
-          for (final json in mutation) {
-            final result = ExpeditionCancellationModel.fromJsonSafe(json);
-            result.fold(
-              (model) => list.add(model),
-              (failure) => throw DataError(message: 'Erro ao converter ExpeditionCancellationModel: $failure'),
-            );
-          }
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future;
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
+  Future<List<ExpeditionCancellationModel>> update(ExpeditionCancellationModel entity) {
+    return SocketRequestHelper.mutation<ExpeditionCancellationModel>(
+      baseEvent: _updateEvent,
+      entityJson: entity.toJson(),
+      fromJson: ExpeditionCancellationModel.fromJson,
+    );
   }
 
   @override
-  Future<List<ExpeditionCancellationModel>> delete(ExpeditionCancellationModel entity) async {
-    final event = '${socket.id} $deleteEvent';
-    final completer = Completer<List<ExpeditionCancellationModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final mutation = response?['Mutation'] ?? [];
-          final error = response?['Error'];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = <ExpeditionCancellationModel>[];
-          for (final json in mutation) {
-            final result = ExpeditionCancellationModel.fromJsonSafe(json);
-            result.fold(
-              (model) => list.add(model),
-              (failure) => throw DataError(message: 'Erro ao converter ExpeditionCancellationModel: $failure'),
-            );
-          }
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future;
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
+  Future<List<ExpeditionCancellationModel>> delete(ExpeditionCancellationModel entity) {
+    return SocketRequestHelper.mutation<ExpeditionCancellationModel>(
+      baseEvent: _deleteEvent,
+      entityJson: entity.toJson(),
+      fromJson: ExpeditionCancellationModel.fromJson,
+    );
   }
 }

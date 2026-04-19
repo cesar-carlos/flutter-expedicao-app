@@ -1,241 +1,56 @@
-import 'dart:async';
-import 'dart:convert';
-import 'package:uuid/uuid.dart';
-
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
-import 'package:data7_expedicao/core/errors/app_error.dart';
-import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
-import 'package:data7_expedicao/data/dtos/send_mutation_socket_dto.dart';
+import 'package:data7_expedicao/core/network/socket_request_helper.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-import 'package:data7_expedicao/domain/models/expedition_cart_model.dart';
-import 'package:data7_expedicao/core/network/socket_config.dart';
 
+/// Repositorio de ExpeditionCartModel.
+///
+/// Refatorado para usar [SocketRequestHelper] (ver doc do helper).
+/// Preserva os timeouts originais.
 class ExpeditionCartRepositoryImpl implements BasicRepository<ExpeditionCartModel> {
-  final selectEvent = 'carrinho.select';
-  final insertEvent = 'carrinho.insert';
-  final updateEvent = 'carrinho.update';
-  final deleteEvent = 'carrinho.delete';
-  var socket = SocketConfig.instance;
-  final uuid = const Uuid();
+  static const String _selectEvent = 'carrinho.select';
+  static const String _insertEvent = 'carrinho.insert';
+  static const String _updateEvent = 'carrinho.update';
+  static const String _deleteEvent = 'carrinho.delete';
 
   @override
-  Future<List<ExpeditionCartModel>> select(QueryBuilder queryBuilder) async {
-    final event = '${socket.id} $selectEvent';
-    final completer = Completer<List<ExpeditionCartModel>>();
-    final responseId = uuid.v4();
-
-    final whereQuery = queryBuilder.buildSqlWhere();
-    final paginationQuery = queryBuilder.buildPagination();
-
-    final send = SendQuerySocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      where: whereQuery.isEmpty ? null : whereQuery,
-      pagination: paginationQuery.isEmpty ? null : paginationQuery,
+  Future<List<ExpeditionCartModel>> select(QueryBuilder queryBuilder) {
+    return SocketRequestHelper.select<ExpeditionCartModel>(
+      baseEvent: _selectEvent,
+      queryBuilder: queryBuilder,
+      fromJson: ExpeditionCartModel.fromJson,
+      timeout: UIConstants.shortNetworkTimeout,
     );
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final error = response?['Error'];
-          final data = response?['Data'] ?? [];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = data.map<ExpeditionCartModel>((json) {
-            return ExpeditionCartModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future.timeout(
-        UIConstants.shortNetworkTimeout,
-        onTimeout: () {
-          if (completer.isCompleted) return completer.future;
-          socket.off(responseId);
-          completer.completeError(DataError(message: 'Tempo limite de consulta excedido'));
-          return completer.future;
-        },
-      );
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
   }
 
   @override
-  Future<List<ExpeditionCartModel>> insert(ExpeditionCartModel entity) async {
-    final event = '${socket.id} $insertEvent';
-    final completer = Completer<List<ExpeditionCartModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final mutation = response?['Mutation'] ?? [];
-          final error = response?['Error'];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = mutation.map<ExpeditionCartModel>((json) {
-            return ExpeditionCartModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future.timeout(
-        UIConstants.networkTimeout,
-        onTimeout: () {
-          if (completer.isCompleted) return completer.future;
-          socket.off(responseId);
-          completer.completeError(DataError(message: 'Tempo limite de operação excedido'));
-          return completer.future;
-        },
-      );
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
+  Future<List<ExpeditionCartModel>> insert(ExpeditionCartModel entity) {
+    return SocketRequestHelper.mutation<ExpeditionCartModel>(
+      baseEvent: _insertEvent,
+      entityJson: entity.toJson(),
+      fromJson: ExpeditionCartModel.fromJson,
+      timeout: UIConstants.networkTimeout,
+    );
   }
 
   @override
-  Future<List<ExpeditionCartModel>> update(ExpeditionCartModel entity) async {
-    final event = '${socket.id} $updateEvent';
-    final completer = Completer<List<ExpeditionCartModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final mutation = response?['Mutation'] ?? [];
-          final error = response?['Error'];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = mutation.map<ExpeditionCartModel>((json) {
-            return ExpeditionCartModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future.timeout(
-        UIConstants.networkTimeout,
-        onTimeout: () {
-          if (completer.isCompleted) return completer.future;
-          socket.off(responseId);
-          completer.completeError(DataError(message: 'Tempo limite de operação excedido'));
-          return completer.future;
-        },
-      );
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
+  Future<List<ExpeditionCartModel>> update(ExpeditionCartModel entity) {
+    return SocketRequestHelper.mutation<ExpeditionCartModel>(
+      baseEvent: _updateEvent,
+      entityJson: entity.toJson(),
+      fromJson: ExpeditionCartModel.fromJson,
+      timeout: UIConstants.networkTimeout,
+    );
   }
 
   @override
-  Future<List<ExpeditionCartModel>> delete(ExpeditionCartModel entity) async {
-    final event = '${socket.id} $deleteEvent';
-    final completer = Completer<List<ExpeditionCartModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final mutation = response?['Mutation'] ?? [];
-          final error = response?['Error'];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = mutation.map<ExpeditionCartModel>((json) {
-            return ExpeditionCartModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future.timeout(
-        UIConstants.networkTimeout,
-        onTimeout: () {
-          if (completer.isCompleted) return completer.future;
-          socket.off(responseId);
-          completer.completeError(DataError(message: 'Tempo limite de operação excedido'));
-          return completer.future;
-        },
-      );
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
+  Future<List<ExpeditionCartModel>> delete(ExpeditionCartModel entity) {
+    return SocketRequestHelper.mutation<ExpeditionCartModel>(
+      baseEvent: _deleteEvent,
+      entityJson: entity.toJson(),
+      fromJson: ExpeditionCartModel.fromJson,
+      timeout: UIConstants.networkTimeout,
+    );
   }
 }
