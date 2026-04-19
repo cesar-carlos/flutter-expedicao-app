@@ -69,9 +69,15 @@ class SocketRequestHelper {
     required QueryBuilder queryBuilder,
     required T Function(Map<String, dynamic>) fromJson,
     Duration? timeout,
+    bool includeOrderBy = false,
   }) async {
     final whereQuery = queryBuilder.buildSqlWhere();
     final paginationQuery = queryBuilder.buildPagination();
+    // Bug observado: alguns repos (SeparationUserSectorConsultation,
+    // SeparateProgressConsultation) tambem enviam `orderBy`. Tornamos
+    // opcional via flag para preservar comportamento existente sem
+    // adicionar overhead nos repos que nao precisam.
+    final orderByQuery = includeOrderBy ? queryBuilder.buildOrderByQuery() : '';
 
     return _execute<T>(
       baseEvent: baseEvent,
@@ -81,6 +87,7 @@ class SocketRequestHelper {
           responseIn: responseId,
           where: whereQuery.isEmpty ? null : whereQuery,
           pagination: paginationQuery.isEmpty ? null : paginationQuery,
+          orderBy: orderByQuery.isEmpty ? null : orderByQuery,
         );
         return jsonEncode(dto.toJson());
       },

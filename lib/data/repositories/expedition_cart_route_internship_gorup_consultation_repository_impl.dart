@@ -1,69 +1,21 @@
-import 'dart:async';
-import 'dart:convert';
-import 'package:uuid/uuid.dart';
-
-import 'package:data7_expedicao/core/errors/app_error.dart';
-import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/core/network/socket_request_helper.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_group_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
-import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
-import 'package:data7_expedicao/core/network/socket_config.dart';
 
+/// Repositorio de consulta de ExpeditionCartRouteInternshipGroupConsultationModel.
+///
+/// Refatorado para usar [SocketRequestHelper] (ver doc do helper).
 class ExpeditionCartRouteInternshipConsultationRepositoryImpl
     implements BasicConsultationRepository<ExpeditionCartRouteInternshipGroupConsultationModel> {
-  final uuid = const Uuid();
-  var socket = SocketConfig.instance;
-  final selectEvent = 'carrinho.percurso.agrupamento.consulta';
+  static const String _selectEvent = 'carrinho.percurso.agrupamento.consulta';
 
   @override
-  Future<List<ExpeditionCartRouteInternshipGroupConsultationModel>> selectConsultation(
-    QueryBuilder queryBuilder,
-  ) async {
-    final event = '${socket.id} $selectEvent';
-    final completer = Completer<List<ExpeditionCartRouteInternshipGroupConsultationModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendQuerySocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      where: queryBuilder.buildSqlWhere(),
-      pagination: queryBuilder.buildPagination(),
+  Future<List<ExpeditionCartRouteInternshipGroupConsultationModel>> selectConsultation(QueryBuilder queryBuilder) {
+    return SocketRequestHelper.select<ExpeditionCartRouteInternshipGroupConsultationModel>(
+      baseEvent: _selectEvent,
+      queryBuilder: queryBuilder,
+      fromJson: ExpeditionCartRouteInternshipGroupConsultationModel.fromJson,
     );
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final error = response?['Error'];
-          final data = response?['Data'] ?? [];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = data.map<ExpeditionCartRouteInternshipGroupConsultationModel>((json) {
-            return ExpeditionCartRouteInternshipGroupConsultationModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future;
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
   }
 }

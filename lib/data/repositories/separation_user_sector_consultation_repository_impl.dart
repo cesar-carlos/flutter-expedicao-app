@@ -1,88 +1,39 @@
-import 'dart:async';
-import 'dart:convert';
-import 'package:uuid/uuid.dart';
-
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/network/socket_config.dart';
+import 'package:data7_expedicao/core/network/socket_request_helper.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/separation_user_sector_consultation_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
-import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
-import 'package:data7_expedicao/core/network/socket_config.dart';
 
+/// Repositorio de consulta de SeparationUserSectorConsultationModel.
+///
+/// Refatorado para usar [SocketRequestHelper] (ver doc do helper).
+/// Preserva comportamento especial: aguarda 1.5s + retry se socket
+/// estiver desconectado no inicio (alguns cenarios de inicializacao
+/// chegam antes da conexao estar pronta).
 class SeparationUserSectorConsultationRepositoryImpl
     implements BasicConsultationRepository<SeparationUserSectorConsultationModel> {
-  final uuid = const Uuid();
-  var socket = SocketConfig.instance;
-  final selectEvent = 'separar.usuario.setor.consulta';
-
+  static const String _selectEvent = 'separar.usuario.setor.consulta';
   static const Duration _waitBeforeSocketCheck = Duration(milliseconds: 1500);
 
   @override
   Future<List<SeparationUserSectorConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
-    final completer = Completer<List<SeparationUserSectorConsultationModel>>();
-    final responseId = uuid.v4();
-
-    try {
+    // Espera socket conectar (pode estar reconectando). Comportamento
+    // original deste repo especifico — outros repos falham imediatamente.
+    if (!SocketConfig.isConnected) {
+      await Future.delayed(_waitBeforeSocketCheck);
       if (!SocketConfig.isConnected) {
-        await Future.delayed(_waitBeforeSocketCheck);
-        if (!SocketConfig.isConnected) {
-          throw DataError(message: 'Socket não está conectado');
-        }
+        throw DataError(message: 'Socket nao esta conectado');
       }
-
-      socket = SocketConfig.instance;
-      final event = '${socket.id} $selectEvent';
-      final send = SendQuerySocketDto(
-        session: socket.id!,
-        responseIn: responseId,
-        where: queryBuilder.buildSqlWhere(),
-        pagination: queryBuilder.buildPagination(),
-        orderBy: queryBuilder.buildOrderByQuery(),
-      );
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        if (completer.isCompleted) return;
-
-        try {
-          final response = jsonDecode(receiver);
-          final error = response?['Error'];
-          final data = response?['Data'] ?? [];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            socket.off(responseId);
-            return;
-          }
-
-          final list = data.map<SeparationUserSectorConsultationModel>((json) {
-            return SeparationUserSectorConsultationModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-          socket.off(responseId);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future.timeout(
-        UIConstants.shortNetworkTimeout,
-        onTimeout: () {
-          if (completer.isCompleted) return completer.future;
-
-          socket.off(responseId);
-          completer.completeError(DataError(message: 'Tempo limite de consulta excedido'));
-          return completer.future;
-        },
-      );
-    } catch (e) {
-      socket.off(responseId);
-      if (e is DataError) rethrow;
-      throw DataError(message: e.toString());
     }
+
+    return SocketRequestHelper.select<SeparationUserSectorConsultationModel>(
+      baseEvent: _selectEvent,
+      queryBuilder: queryBuilder,
+      fromJson: SeparationUserSectorConsultationModel.fromJson,
+      timeout: UIConstants.shortNetworkTimeout,
+      includeOrderBy: true,
+    );
   }
 }
