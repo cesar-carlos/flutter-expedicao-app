@@ -263,14 +263,23 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   }
 
   void _showFilterModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.transparent,
-      builder: (modalContext) => ChangeNotifierProvider.value(
-        value: context.read<SeparationViewModel>(),
-        child: const SeparationFilterModal(),
-      ),
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: AppColors.transparent,
+        builder: (modalContext) => ChangeNotifierProvider.value(
+          value: context.read<SeparationViewModel>(),
+          child: const SeparationFilterModal(),
+        ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir filtro de separações',
+          tag: 'SeparationScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 

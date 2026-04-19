@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
@@ -11,10 +14,19 @@ class PhotoOptionsModal extends StatelessWidget {
   const PhotoOptionsModal({super.key, required this.viewModel});
 
   static void show(BuildContext context, ProfileViewModel viewModel) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => PhotoOptionsModal(viewModel: viewModel),
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        builder: (_) => PhotoOptionsModal(viewModel: viewModel),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir opções de foto (perfil)',
+          tag: 'PhotoOptionsModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 

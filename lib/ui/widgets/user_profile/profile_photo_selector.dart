@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class ProfilePhotoSelector extends StatefulWidget {
   final File? initialImage;
@@ -89,40 +92,67 @@ class _ProfilePhotoSelectorState extends State<ProfilePhotoSelector> {
   }
 
   void _showImageOptions() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Câmera'),
-              onTap: () {
-                Navigator.of(context).pop();
-                _pickImage(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Galeria'),
-              onTap: () {
-                Navigator.of(context).pop();
-                _pickImage(ImageSource.gallery);
-              },
-            ),
-            if (_selectedImage != null)
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        builder: (modalContext) => SafeArea(
+          child: Wrap(
+            children: [
               ListTile(
-                leading: const Icon(Icons.delete, color: AppColors.error),
-                title: Text(context.l10n.removePhoto),
-                textColor: AppColors.error,
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Câmera'),
                 onTap: () {
-                  Navigator.of(context).pop();
-                  _removeImage();
+                  Navigator.of(modalContext).pop();
+                  unawaited(
+                    _pickImage(ImageSource.camera).catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha ao abrir câmera (foto perfil)',
+                        tag: 'ProfilePhotoSelector',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
                 },
               ),
-          ],
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Galeria'),
+                onTap: () {
+                  Navigator.of(modalContext).pop();
+                  unawaited(
+                    _pickImage(ImageSource.gallery).catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha ao abrir galeria (foto perfil)',
+                        tag: 'ProfilePhotoSelector',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
+                },
+              ),
+              if (_selectedImage != null)
+                ListTile(
+                  leading: const Icon(Icons.delete, color: AppColors.error),
+                  title: Text(modalContext.l10n.removePhoto),
+                  textColor: AppColors.error,
+                  onTap: () {
+                    Navigator.of(modalContext).pop();
+                    _removeImage();
+                  },
+                ),
+            ],
+          ),
         ),
-      ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir opções de foto (cadastro)',
+          tag: 'ProfilePhotoSelector',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 

@@ -449,17 +449,25 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
   void _showFilterModal(BuildContext context) {
     final viewModel = context.read<SeparationItemsViewModel>();
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        if (_tabController.index == 1) {
-          return SeparateItemsFilterModal(viewModel: viewModel);
-        } else {
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (modalContext) {
+          if (_tabController.index == 1) {
+            return SeparateItemsFilterModal(viewModel: viewModel);
+          }
           return CartsFilterModal(viewModel: viewModel);
-        }
-      },
+        },
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir filtro de itens/carrinhos',
+          tag: 'SeparationItemsScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 

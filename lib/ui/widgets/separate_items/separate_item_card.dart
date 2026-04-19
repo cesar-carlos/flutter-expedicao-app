@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
@@ -313,11 +316,20 @@ class SeparateItemCard extends StatelessWidget {
   }
 
   void _showUnitsModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.transparent,
-      builder: (context) => _UnitsModal(title: item.nomeProduto, units: item.unidadeMedidas),
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: AppColors.transparent,
+        builder: (_) => _UnitsModal(title: item.nomeProduto, units: item.unidadeMedidas),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir modal de unidades',
+          tag: 'SeparateItemCard',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 

@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 import 'package:data7_expedicao/ui/widgets/common/socket_widgets.dart';
@@ -100,32 +103,39 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
     final authViewModel = context.read<AuthViewModel>();
     final currentUser = authViewModel.currentUser;
 
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                UserProfileAvatar(radius: 30),
-                const SizedBox(width: 16),
-                if (currentUser != null) ...[
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(currentUser.nome, style: AppFonts.inter(fontSize: 18, fontWeight: FontWeight.bold)),
-                        Text(
-                          'ID: ${currentUser.codLoginApp}',
-                          style: AppFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                        ),
-                        if (currentUser.codUsuario != null)
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        builder: (modalContext) => Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  UserProfileAvatar(radius: 30),
+                  const SizedBox(width: 16),
+                  if (currentUser != null) ...[
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(currentUser.nome, style: AppFonts.inter(fontSize: 18, fontWeight: FontWeight.bold)),
                           Text(
-                            'Código: ${currentUser.codUsuario}',
-                            style: AppFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            'ID: ${currentUser.codLoginApp}',
+                            style: AppFonts.inter(
+                              fontSize: 14,
+                              color: Theme.of(modalContext).colorScheme.onSurfaceVariant,
+                            ),
                           ),
+                          if (currentUser.codUsuario != null)
+                            Text(
+                              'Código: ${currentUser.codUsuario}',
+                              style: AppFonts.inter(
+                                fontSize: 14,
+                                color: Theme.of(modalContext).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
                         Row(
                           children: [
                             Icon(
@@ -156,13 +166,30 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
               leading: const Icon(Icons.logout),
               title: const Text('Sair'),
               onTap: () {
-                Navigator.of(context).pop();
-                authViewModel.logout();
+                Navigator.of(modalContext).pop();
+                unawaited(
+                  authViewModel.logout().catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha ao executar logout (menu utilizador)',
+                      tag: 'UserAppBar',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
               },
             ),
           ],
         ),
       ),
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir menu de utilizador',
+        tag: 'UserAppBar',
+        error: e,
+        stackTrace: s,
+      );
+    }),
     );
   }
 
