@@ -11,11 +11,23 @@ class LoginResponseDto {
     if (json['message'] == null) {
       throw FormatException('Message é obrigatório na resposta da API');
     }
-    if (json['user'] == null) {
+    final userField = json['user'];
+    if (userField == null) {
       throw FormatException('User é obrigatório na resposta da API');
     }
+    // Bug KKKKKKKKKKK: antes era `UserDataDto.fromJson(json['user'])`
+    // sem type check. Se servidor retornasse `user` como String/List/etc
+    // (caso comum em respostas de erro mal formatadas), o
+    // UserDataDto.fromJson crashava com TypeError em vez de
+    // FormatException tratado.
+    if (userField is! Map) {
+      throw FormatException('User deve ser um objeto, recebido ${userField.runtimeType}');
+    }
 
-    return LoginResponseDto(message: json['message'].toString(), user: UserDataDto.fromJson(json['user']));
+    return LoginResponseDto(
+      message: json['message'].toString(),
+      user: UserDataDto.fromJson(Map<String, dynamic>.from(userField)),
+    );
   }
 
   LoginResponse toDomain() {
@@ -61,15 +73,30 @@ class UserDataDto {
       throw FormatException('Nome é obrigatório na resposta da API');
     }
 
+    // Bug LLLLLLLLLLL: antes era `int.parse(json['CodLoginApp'].toString())`
+    // sem catch. Se o valor viesse com formato inesperado (ex.: float
+    // serializado como "123.45", string com espaco, vazio), int.parse
+    // lancava FormatException generico sem indicar QUAL campo era. Agora
+    // usamos helper que retorna FormatException com nome do campo.
     return UserDataDto(
-      codLoginApp: json['CodLoginApp'] is int ? json['CodLoginApp'] : int.parse(json['CodLoginApp'].toString()),
+      codLoginApp: _parseRequiredInt(json['CodLoginApp'], 'CodLoginApp'),
       ativo: json['Ativo'].toString(),
       nome: json['Nome'].toString(),
-      codUsuario: json['CodUsuario'] != null
-          ? (json['CodUsuario'] is int ? json['CodUsuario'] : int.parse(json['CodUsuario'].toString()))
-          : null,
+      codUsuario: json['CodUsuario'] != null ? _parseRequiredInt(json['CodUsuario'], 'CodUsuario') : null,
       fotoUsuario: json['FotoUsuario']?.toString(),
     );
+  }
+
+  static int _parseRequiredInt(dynamic value, String fieldName) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    final parsed = int.tryParse(value.toString());
+    if (parsed == null) {
+      throw FormatException(
+        'Campo "$fieldName" deve ser numerico, recebido ${value.runtimeType}: $value',
+      );
+    }
+    return parsed;
   }
 
   Map<String, dynamic> toDomain() {

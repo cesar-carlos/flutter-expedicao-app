@@ -8,11 +8,20 @@ class CreateUserResponseDto {
     if (json['message'] == null) {
       throw FormatException('Message é obrigatório na resposta da API');
     }
-    if (json['user'] == null) {
+    final userField = json['user'];
+    if (userField == null) {
       throw FormatException('User é obrigatório na resposta da API');
     }
+    // Bug similar ao KKKKKKKKKKK em LoginResponseDto: type check
+    // antes de delegar para UserCreatedDto.fromJson.
+    if (userField is! Map) {
+      throw FormatException('User deve ser um objeto, recebido ${userField.runtimeType}');
+    }
 
-    return CreateUserResponseDto(message: json['message'].toString(), user: UserCreatedDto.fromJson(json['user']));
+    return CreateUserResponseDto(
+      message: json['message'].toString(),
+      user: UserCreatedDto.fromJson(Map<String, dynamic>.from(userField)),
+    );
   }
 
   Map<String, dynamic> toDomain() {
@@ -48,8 +57,26 @@ class UserCreatedDto {
       throw FormatException('Nome é obrigatório na resposta da API');
     }
 
+    // Bug similar ao LLLLLLLLLLL em UserDataDto: parse defensivo de int
+    // que indica QUAL campo falhou.
+    final rawCodLoginApp = json['CodLoginApp'];
+    final int codLoginApp;
+    if (rawCodLoginApp is int) {
+      codLoginApp = rawCodLoginApp;
+    } else if (rawCodLoginApp is num) {
+      codLoginApp = rawCodLoginApp.toInt();
+    } else {
+      final parsed = int.tryParse(rawCodLoginApp.toString());
+      if (parsed == null) {
+        throw FormatException(
+          'Campo "CodLoginApp" deve ser numerico, recebido ${rawCodLoginApp.runtimeType}: $rawCodLoginApp',
+        );
+      }
+      codLoginApp = parsed;
+    }
+
     return UserCreatedDto(
-      codLoginApp: json['CodLoginApp'] is int ? json['CodLoginApp'] : int.parse(json['CodLoginApp'].toString()),
+      codLoginApp: codLoginApp,
       ativo: json['Ativo'].toString(),
       nome: json['Nome'].toString(),
       fotoUsuario: json['FotoUsuario']?.toString(),
