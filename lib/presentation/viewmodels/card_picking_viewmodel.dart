@@ -19,6 +19,7 @@ import 'package:data7_expedicao/domain/models/filter/pending_products_filters_mo
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/presentation/viewmodels/controllers/cart_event_listener_controller.dart';
+import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_filters_controller.dart';
 import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_pending_operations_tracker.dart';
 import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_params.dart';
@@ -190,9 +191,9 @@ class CardPickingViewModel extends ChangeNotifier {
 
   bool _cartStatusChanged = false;
 
-  PendingProductsFiltersModel _filters = const PendingProductsFiltersModel();
-  PendingProductsFiltersModel get filters => _filters;
-  bool get hasActiveFilters => _filters.isNotEmpty;
+  late final PickingFiltersController _filtersController;
+  PendingProductsFiltersModel get filters => _filtersController.current;
+  bool get hasActiveFilters => _filtersController.hasActive;
 
   List<ExpeditionSectorStockModel> _availableSectors = [];
   List<ExpeditionSectorStockModel>? _availableSectorsUnmodifiable;
@@ -240,6 +241,10 @@ class CardPickingViewModel extends ChangeNotifier {
       eventRepository: _cartEventRepository,
       onCartUpdated: _handleCartUpdate,
       onProcessingError: _setError,
+    );
+    _filtersController = PickingFiltersController(
+      storage: _filtersStorage,
+      onChanged: _safeNotifyListeners,
     );
   }
 
@@ -435,8 +440,7 @@ class CardPickingViewModel extends ChangeNotifier {
     if (_cart == null) return;
 
     try {
-      await _loadSavedFilters();
-
+      await _filtersController.loadSaved();
       await _loadFilteredItems();
     } catch (e) {
       developer.log('Failed to load cart items', error: e);
@@ -724,8 +728,7 @@ class CardPickingViewModel extends ChangeNotifier {
     if (_disposed) return;
 
     try {
-      _filters = filters;
-      await _saveFilters();
+      await _filtersController.apply(filters);
       await _loadFilteredItems();
       if (_disposed) return;
       _safeNotifyListeners();
@@ -738,8 +741,7 @@ class CardPickingViewModel extends ChangeNotifier {
     if (_disposed) return;
 
     try {
-      _filters = const PendingProductsFiltersModel();
-      await _clearFilters();
+      await _filtersController.clear();
       await _loadFilteredItems();
       if (_disposed) return;
       _safeNotifyListeners();
@@ -782,7 +784,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
       if (_disposed) return;
 
-      items = _applyLocalFilters(items);
+      items = _filtersController.applyLocal(items);
 
       items = _addSyntheticCodProdutoUnitsForScan(items);
 
@@ -833,72 +835,6 @@ class CardPickingViewModel extends ChangeNotifier {
       }
       return item.copyWith(unidadeMedidas: [...item.unidadeMedidas, synthetic]);
     }).toList();
-  }
-
-  List<SeparateItemConsultationModel> _applyLocalFilters(List<SeparateItemConsultationModel> items) {
-    return items.where((item) {
-      if (_filters.codProduto != null && _filters.codProduto!.isNotEmpty) {
-        if (!item.codProduto.toString().toLowerCase().contains(_filters.codProduto!.toLowerCase())) {
-          return false;
-        }
-      }
-
-      if (_filters.codigoBarras != null && _filters.codigoBarras!.isNotEmpty) {
-        final barcode = item.codigoBarras?.toLowerCase() ?? '';
-        if (!barcode.contains(_filters.codigoBarras!.toLowerCase())) {
-          return false;
-        }
-      }
-
-      if (_filters.nomeProduto != null && _filters.nomeProduto!.isNotEmpty) {
-        if (!item.nomeProduto.toLowerCase().contains(_filters.nomeProduto!.toLowerCase())) {
-          return false;
-        }
-      }
-
-      if (_filters.enderecoDescricao != null && _filters.enderecoDescricao!.isNotEmpty) {
-        final endereco = item.enderecoDescricao?.toLowerCase() ?? '';
-        if (!endereco.contains(_filters.enderecoDescricao!.toLowerCase())) {
-          return false;
-        }
-      }
-
-      if (_filters.setorEstoque != null) {
-        if (item.codSetorEstoque != _filters.setorEstoque!.codSetorEstoque) {
-          return false;
-        }
-      }
-
-      return true;
-    }).toList();
-  }
-
-  Future<void> _saveFilters() async {
-    try {
-      await _filtersStorage.savePendingProductsFilters(_filters);
-    } catch (e, s) {
-      developer.log('Failed to save pending products filters', error: e, stackTrace: s);
-    }
-  }
-
-  Future<void> _clearFilters() async {
-    try {
-      await _filtersStorage.clearPendingProductsFilters();
-    } catch (e, s) {
-      developer.log('Failed to clear pending products filters', error: e, stackTrace: s);
-    }
-  }
-
-  Future<void> _loadSavedFilters() async {
-    try {
-      final savedFilters = await _filtersStorage.loadPendingProductsFilters();
-      if (savedFilters != null) {
-        _filters = savedFilters;
-        _safeNotifyListeners();
-      }
-    } catch (e, s) {
-      developer.log('Failed to load pending products filters', error: e, stackTrace: s);
-    }
   }
 
   void startCartEventMonitoring() {
