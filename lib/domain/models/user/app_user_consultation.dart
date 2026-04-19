@@ -40,33 +40,45 @@ class AppUserConsultation {
   });
 
   factory AppUserConsultation.fromJson(Map<String, dynamic> json) {
+    // Bug AAAAAAAAAAAA: campos NAO-NULLABLE (codLoginApp, nome) eram
+    // lidos sem cast nem fallback. Mesmo padrao do bug XXXXXXXXXXX
+    // corrigido em AppUser. Crashava com TypeError se servidor
+    // retornasse null para algum campo obrigatorio.
     return AppUserConsultation(
-      codLoginApp: json['CodLoginApp'],
-      ativo: Situation.fromCodeWithFallback(json['Ativo'] as String? ?? 'N'),
-      nome: json['Nome'],
-      codUsuario: json['CodUsuario'],
+      codLoginApp: _parseInt(json['CodLoginApp']) ?? 0,
+      ativo: Situation.fromCodeWithFallback(json['Ativo']?.toString() ?? 'N'),
+      nome: json['Nome']?.toString() ?? '',
+      codUsuario: _parseInt(json['CodUsuario']),
       permiteSepararForaSequencia: Situation.fromCodeWithFallback(
-        json['PermiteSepararForaSequencia'] as String? ?? 'N',
+        json['PermiteSepararForaSequencia']?.toString() ?? 'N',
       ),
       permiteConferirForaSequencia: Situation.fromCodeWithFallback(
-        json['PermiteConferirForaSequencia'] as String? ?? 'N',
+        json['PermiteConferirForaSequencia']?.toString() ?? 'N',
       ),
-      visualizaTodasSeparacoes: Situation.fromCodeWithFallback(json['VisualizaTodasSeparacoes'] as String? ?? 'N'),
-      visualizaTodasConferencias: Situation.fromCodeWithFallback(json['VisualizaTodasConferencias'] as String? ?? 'N'),
-      visualizaTodasArmazenagem: Situation.fromCodeWithFallback(json['VisualizaTodasArmazenagem'] as String? ?? 'N'),
-      codSetorEstoque: json['CodSetorEstoque'],
-      codSetorConferencia: json['CodSetorConferencia'],
-      codSetorArmazenagem: json['CodSetorArmazenagem'],
-      salvaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(json['SalvaCarrinhoOutroUsuario'] as String? ?? 'N'),
-      editaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(json['EditaCarrinhoOutroUsuario'] as String? ?? 'N'),
-      excluiCarrinhoOutroUsuario: Situation.fromCodeWithFallback(json['ExcluiCarrinhoOutroUsuario'] as String? ?? 'N'),
+      visualizaTodasSeparacoes: Situation.fromCodeWithFallback(json['VisualizaTodasSeparacoes']?.toString() ?? 'N'),
+      visualizaTodasConferencias: Situation.fromCodeWithFallback(json['VisualizaTodasConferencias']?.toString() ?? 'N'),
+      visualizaTodasArmazenagem: Situation.fromCodeWithFallback(json['VisualizaTodasArmazenagem']?.toString() ?? 'N'),
+      codSetorEstoque: _parseInt(json['CodSetorEstoque']),
+      codSetorConferencia: _parseInt(json['CodSetorConferencia']),
+      codSetorArmazenagem: _parseInt(json['CodSetorArmazenagem']),
+      salvaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(json['SalvaCarrinhoOutroUsuario']?.toString() ?? 'N'),
+      editaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(json['EditaCarrinhoOutroUsuario']?.toString() ?? 'N'),
+      excluiCarrinhoOutroUsuario: Situation.fromCodeWithFallback(json['ExcluiCarrinhoOutroUsuario']?.toString() ?? 'N'),
       permiteDevolverItemEntregaBalcao: Situation.fromCodeWithFallback(
-        json['PermiteDevolverItemEntregaBalcao'] as String? ?? 'N',
+        json['PermiteDevolverItemEntregaBalcao']?.toString() ?? 'N',
       ),
       permiteDevolverItemEmbalagem: Situation.fromCodeWithFallback(
-        json['PermiteDevolverItemEmbalagem'] as String? ?? 'N',
+        json['PermiteDevolverItemEmbalagem']?.toString() ?? 'N',
       ),
     );
+  }
+
+  /// Parse defensivo de int (mesmo helper do AppUser).
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 
   bool get isActive => ativo == Situation.ativo;

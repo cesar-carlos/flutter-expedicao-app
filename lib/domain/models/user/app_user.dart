@@ -21,17 +21,41 @@ class AppUser {
   });
 
   factory AppUser.fromJson(Map<String, dynamic> json) {
+    // Bug XXXXXXXXXXX: antes os campos NAO-NULLABLE (codLoginApp, nome)
+    // eram lidos como `json['CodLoginApp']` direto, sem cast nem
+    // fallback. Em 2 cenarios isso crashava com TypeError:
+    //
+    // 1. SharedPreferences com sessao corrompida (escrita interrompida,
+    //    bug em versao anterior que salvou parcial).
+    // 2. Migracao de schema (versao antiga nao tinha CodLoginApp).
+    //
+    // Crash no `loadUserSession()` impedia o app de iniciar (loop:
+    // load → crash → relogin → save → load). Agora usamos fallback
+    // defensivo + parse de int que aceita varios tipos.
+    final codLoginApp = _parseInt(json['CodLoginApp']) ?? 0;
+    final userSystemRaw = json['UserSystem'];
+
     return AppUser(
-      codLoginApp: json['CodLoginApp'],
-      ativo: Situation.fromCodeWithFallback(json['Ativo'] as String? ?? 'N'),
-      nome: json['Nome'],
-      codUsuario: json['CodUsuario'],
-      fotoUsuario: json['FotoUsuario'],
-      senha: json['Senha'],
-      userSystemModel: json['UserSystem'] != null
-          ? UserSystemModel.fromJson(json['UserSystem'] as Map<String, dynamic>)
+      codLoginApp: codLoginApp,
+      ativo: Situation.fromCodeWithFallback(json['Ativo']?.toString() ?? 'N'),
+      nome: json['Nome']?.toString() ?? '',
+      codUsuario: _parseInt(json['CodUsuario']),
+      fotoUsuario: json['FotoUsuario']?.toString(),
+      senha: json['Senha']?.toString(),
+      userSystemModel: userSystemRaw is Map
+          ? UserSystemModel.fromJson(Map<String, dynamic>.from(userSystemRaw))
           : null,
     );
+  }
+
+  /// Parse defensivo de int que aceita int, num, ou String parsavel.
+  /// Retorna null se nao for nada disso (mantendo compatibilidade com
+  /// campos opcionais como codUsuario).
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 
   bool get isActive => ativo == Situation.ativo;
