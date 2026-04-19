@@ -1,208 +1,58 @@
-import 'dart:async';
-import 'dart:convert';
-import 'package:uuid/uuid.dart';
-
-import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/network/socket_request_helper.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
-import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
-import 'package:data7_expedicao/data/dtos/send_mutation_socket_dto.dart';
-import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/models/separate_model.dart';
-import 'package:data7_expedicao/core/network/socket_config.dart';
+import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 
+/// Repositorio de SeparateModel usando socket.io.
+///
+/// Refatoracao: a versao anterior tinha 4 metodos quase identicos
+/// (~210 linhas total) com padrao manual de socket-completer. Agora
+/// delega tudo para [SocketRequestHelper] que mitiga 4 bugs latentes
+/// (timeout ausente, null assertion errada, stale reference, casts
+/// inseguros) — ver doc do helper para detalhes.
+///
+/// Codigo reduziu de ~210 para ~30 linhas, com comportamento MAIS
+/// robusto (timeout de 30s + parsing defensivo + log de items
+/// invalidos).
 class SeparateRepositoryImpl implements BasicRepository<SeparateModel> {
-  final selectEvent = 'separar.select';
-  final insertEvent = 'separar.insert';
-  final updateEvent = 'separar.update';
-  final deleteEvent = 'separar.delete';
-  var socket = SocketConfig.instance;
-  final uuid = const Uuid();
+  static const String _selectEvent = 'separar.select';
+  static const String _insertEvent = 'separar.insert';
+  static const String _updateEvent = 'separar.update';
+  static const String _deleteEvent = 'separar.delete';
 
   @override
-  Future<List<SeparateModel>> select(QueryBuilder queryBuilder) async {
-    final event = '${socket.id} $selectEvent';
-    final completer = Completer<List<SeparateModel>>();
-    final responseId = uuid.v4();
-
-    final whereQuery = queryBuilder.buildSqlWhere();
-    final paginationQuery = queryBuilder.buildPagination();
-
-    final send = SendQuerySocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      where: whereQuery.isEmpty ? null : whereQuery,
-      pagination: paginationQuery.isEmpty ? null : paginationQuery,
+  Future<List<SeparateModel>> select(QueryBuilder queryBuilder) {
+    return SocketRequestHelper.select<SeparateModel>(
+      baseEvent: _selectEvent,
+      queryBuilder: queryBuilder,
+      fromJson: SeparateModel.fromJson,
     );
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final error = response?['Error'];
-          final data = response?['Data'] ?? [];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = data.map<SeparateModel>((json) {
-            return SeparateModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future;
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
   }
 
   @override
-  Future<List<SeparateModel>> insert(SeparateModel entity) async {
-    final event = '${socket.id} $insertEvent';
-    final completer = Completer<List<SeparateModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final mutation = response?['Mutation'] ?? [];
-          final error = response?['Error'];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = mutation.map<SeparateModel>((json) {
-            return SeparateModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future;
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
+  Future<List<SeparateModel>> insert(SeparateModel entity) {
+    return SocketRequestHelper.mutation<SeparateModel>(
+      baseEvent: _insertEvent,
+      entityJson: entity.toJson(),
+      fromJson: SeparateModel.fromJson,
+    );
   }
 
   @override
-  Future<List<SeparateModel>> update(SeparateModel entity) async {
-    final event = '${socket.id} $updateEvent';
-    final completer = Completer<List<SeparateModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final mutation = response?['Mutation'] ?? [];
-          final error = response?['Error'];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = mutation.map<SeparateModel>((json) {
-            return SeparateModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future;
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
+  Future<List<SeparateModel>> update(SeparateModel entity) {
+    return SocketRequestHelper.mutation<SeparateModel>(
+      baseEvent: _updateEvent,
+      entityJson: entity.toJson(),
+      fromJson: SeparateModel.fromJson,
+    );
   }
 
   @override
-  Future<List<SeparateModel>> delete(SeparateModel entity) async {
-    final event = '${socket.id} $deleteEvent';
-    final completer = Completer<List<SeparateModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final mutation = response?['Mutation'] ?? [];
-          final error = response?['Error'];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = mutation.map<SeparateModel>((json) {
-            return SeparateModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future;
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
+  Future<List<SeparateModel>> delete(SeparateModel entity) {
+    return SocketRequestHelper.mutation<SeparateModel>(
+      baseEvent: _deleteEvent,
+      entityJson: entity.toJson(),
+      fromJson: SeparateModel.fromJson,
+    );
   }
 }
