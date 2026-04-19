@@ -30,6 +30,9 @@ import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separa
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_success.dart';
 import 'package:data7_expedicao/core/services/barcode_validation_service.dart';
+import 'package:data7_expedicao/presentation/viewmodels/picking_scan_result.dart';
+export 'package:data7_expedicao/presentation/viewmodels/picking_scan_result.dart';
+import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_scan_resolver.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
@@ -56,6 +59,7 @@ class CardPickingViewModel extends ChangeNotifier {
   final PickingStateManager _stateManager;
   final CartValidationService _cartValidationService;
   final PickingMetricsRecorder _metrics;
+  final PickingScanResolver _scanResolver = const PickingScanResolver();
 
   ExpeditionCartRouteInternshipConsultationModel? _cart;
   ExpeditionCartRouteInternshipConsultationModel? get cart => _cart;
@@ -316,125 +320,32 @@ class CardPickingViewModel extends ChangeNotifier {
     );
   }
 
+  /// Resolve um scan delegando ao [PickingScanResolver] (regra de negócio
+  /// pura). O viewmodel apenas fornece o state atual via parâmetros.
   ScanProcessResult processScan({
     required String barcode,
     required int inputQuantity,
     required bool isCartInSeparation,
   }) {
-    final scanStartTime = DateTime.now();
-
-    final trimmedBarcode = barcode.trim();
-
-    if (trimmedBarcode.isEmpty) {
-      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Código vazio');
-      return const ScanProcessResult(status: ScanProcessStatus.ignored);
-    }
-
-    if (!isCartInSeparation) {
-      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Carrinho não em separação');
-      return const ScanProcessResult(status: ScanProcessStatus.cartNotInSeparation);
-    }
-
-    final nextItem = PickingUtils.findNextItemToPick(
-      _items,
-      isItemCompleted,
+    return _scanResolver.resolve(
+      barcode: barcode,
+      inputQuantity: inputQuantity,
+      isCartInSeparation: isCartInSeparation,
+      items: _items,
       userSectorCode: _userModel?.codSetorEstoque,
+      requiresShelfScanning: requiresShelfScanning,
+      shouldScanShelfFor: shouldScanShelf,
+      lastScannedAddress: lastScannedAddress,
+      onShelfAddressMatched: updateScannedAddress,
+      isItemCompleted: isItemCompleted,
+      getPickedQuantity: _stateManager.getPickedQuantity,
+      onScanRecorded: (b, t, s, e) => _metrics.recordScan(
+        barcode: b,
+        startTime: t,
+        success: s,
+        errorMessage: e,
+      ),
     );
-
-    if (nextItem != null && requiresShelfScanning && shouldScanShelf(nextItem)) {
-      final shelfValidation = _validateShelfScanning(trimmedBarcode, nextItem);
-      if (shelfValidation != null) {
-        final success = shelfValidation.status == ScanProcessStatus.shelfScanned;
-        _recordScanMetrics(trimmedBarcode, scanStartTime, success, success ? null : 'Prateleira incorreta');
-        return shelfValidation;
-      }
-    }
-
-    final validationResult = BarcodeValidationService.validateScannedBarcode(
-      trimmedBarcode,
-      _items,
-      isItemCompleted,
-      userSectorCode: _userModel?.codSetorEstoque,
-    );
-
-    if (validationResult.isEmpty) {
-      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Validação vazia');
-      return const ScanProcessResult(status: ScanProcessStatus.ignored);
-    }
-
-    if (validationResult.noItemsForSector) {
-      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Sem itens para o setor');
-      return ScanProcessResult.noItemsForSector(validationResult.userSectorCode);
-    }
-
-    if (validationResult.allItemsCompleted) {
-      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Todos os itens completados');
-      return const ScanProcessResult(status: ScanProcessStatus.allItemsCompleted);
-    }
-
-    if (validationResult.isWrongSector && validationResult.scannedItem != null) {
-      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Setor incorreto');
-      return ScanProcessResult.wrongSector(validationResult.scannedItem!, validationResult.userSectorCode);
-    }
-
-    if (validationResult.isValid && validationResult.expectedItem != null) {
-      final item = validationResult.expectedItem!;
-      final effectiveQuantity = _convertQuantityWithBarcode(item, trimmedBarcode, inputQuantity);
-
-      final totalQuantity = item.quantidade.toInt();
-      final pickedQuantity = _stateManager.getPickedQuantity(item.item);
-      final remainingQuantity = totalQuantity - pickedQuantity;
-
-      if (effectiveQuantity > remainingQuantity) {
-        _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Quantidade excedida');
-        return ScanProcessResult.quantityExceeded(item, effectiveQuantity, remainingQuantity);
-      }
-
-      _recordScanMetrics(trimmedBarcode, scanStartTime, true, null);
-      return ScanProcessResult.success(item, effectiveQuantity);
-    }
-
-    if (validationResult.expectedItem != null) {
-      _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Produto incorreto');
-      return ScanProcessResult.wrongProduct(validationResult.expectedItem!);
-    }
-
-    _recordScanMetrics(trimmedBarcode, scanStartTime, false, 'Ignorado');
-    return const ScanProcessResult(status: ScanProcessStatus.ignored);
-  }
-
-  ScanProcessResult? _validateShelfScanning(String scannedBarcode, SeparateItemConsultationModel expectedItem) {
-    final trimmedCode = scannedBarcode.trim();
-    final expectedShelf = expectedItem.endereco?.trim();
-
-    if (lastScannedAddress == null || lastScannedAddress != expectedShelf) {
-      if (expectedShelf != null && expectedShelf == trimmedCode) {
-        updateScannedAddress(trimmedCode);
-        return ScanProcessResult.shelfScanned(expectedItem, trimmedCode);
-      } else if (expectedShelf != null) {
-        return ScanProcessResult.wrongShelf(expectedItem, trimmedCode, expectedShelf);
-      }
-    }
-
-    return null;
-  }
-
-  int _convertQuantityWithBarcode(SeparateItemConsultationModel item, String barcode, int inputQuantity) {
-    try {
-      if (item.unidadeMedidas.length <= 1) {
-        return inputQuantity;
-      }
-
-      final convertedQuantity = item.converterQuantidadePorCodigoBarras(barcode, inputQuantity.toDouble());
-
-      if (convertedQuantity != null && convertedQuantity > 0) {
-        return convertedQuantity.toInt();
-      }
-
-      return inputQuantity;
-    } catch (_) {
-      return inputQuantity;
-    }
   }
 
   Future<void> _loadCartItems() async {
@@ -970,14 +881,6 @@ class CardPickingViewModel extends ChangeNotifier {
     );
   }
 
-  void _recordScanMetrics(String barcode, DateTime startTime, bool success, String? errorMessage) {
-    _metrics.recordScan(
-      barcode: barcode,
-      startTime: startTime,
-      success: success,
-      errorMessage: errorMessage,
-    );
-  }
 }
 
 class AddItemSeparationResult {
@@ -997,76 +900,3 @@ class OperationError {
   OperationError(this.itemId, this.message);
 }
 
-enum ScanProcessStatus {
-  ignored,
-  cartNotInSeparation,
-  noItemsForSector,
-  allItemsCompleted,
-  wrongSector,
-  wrongProduct,
-  wrongShelf,
-  shelfScanned,
-  quantityExceeded,
-  success,
-}
-
-class ScanProcessResult {
-  final ScanProcessStatus status;
-  final SeparateItemConsultationModel? expectedItem;
-  final SeparateItemConsultationModel? scannedItem;
-  final int? convertedQuantity;
-  final int? userSectorCode;
-  final int? requestedQuantity;
-  final int? availableQuantity;
-  final String? scannedShelf;
-  final String? expectedShelf;
-
-  const ScanProcessResult({
-    required this.status,
-    this.expectedItem,
-    this.scannedItem,
-    this.convertedQuantity,
-    this.userSectorCode,
-    this.requestedQuantity,
-    this.availableQuantity,
-    this.scannedShelf,
-    this.expectedShelf,
-  });
-
-  const ScanProcessResult.success(SeparateItemConsultationModel item, int convertedQuantity)
-    : this(status: ScanProcessStatus.success, expectedItem: item, convertedQuantity: convertedQuantity);
-
-  const ScanProcessResult.noItemsForSector(int? userSectorCode)
-    : this(status: ScanProcessStatus.noItemsForSector, userSectorCode: userSectorCode);
-
-  const ScanProcessResult.wrongSector(SeparateItemConsultationModel scannedItem, int? userSectorCode)
-    : this(status: ScanProcessStatus.wrongSector, scannedItem: scannedItem, userSectorCode: userSectorCode);
-
-  const ScanProcessResult.wrongProduct(SeparateItemConsultationModel expectedItem)
-    : this(status: ScanProcessStatus.wrongProduct, expectedItem: expectedItem);
-
-  const ScanProcessResult.shelfScanned(SeparateItemConsultationModel item, String shelf)
-    : this(status: ScanProcessStatus.shelfScanned, expectedItem: item, scannedShelf: shelf);
-
-  const ScanProcessResult.wrongShelf(
-    SeparateItemConsultationModel expectedItem,
-    String scannedShelf,
-    String expectedShelf,
-  ) : this(
-        status: ScanProcessStatus.wrongShelf,
-        expectedItem: expectedItem,
-        scannedShelf: scannedShelf,
-        expectedShelf: expectedShelf,
-      );
-
-  const ScanProcessResult.quantityExceeded(
-    SeparateItemConsultationModel item,
-    int requestedQuantity,
-    int availableQuantity,
-  ) : this(
-        status: ScanProcessStatus.quantityExceeded,
-        expectedItem: item,
-        requestedQuantity: requestedQuantity,
-        availableQuantity: availableQuantity,
-      );
-}
