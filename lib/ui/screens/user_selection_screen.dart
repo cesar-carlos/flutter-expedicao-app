@@ -36,11 +36,19 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
   }
 
   void _onSearchChanged() {
+    // Bug GGGGGGG: TextEditingController listeners podem disparar APOS
+    // dispose se o controller for modificado externamente entre o
+    // `removeListener` e o `dispose`. context.read em widget desmontado
+    // lanca ProviderNotFoundException.
+    if (!mounted) return;
     final viewModel = context.read<UserSelectionViewModel>();
     viewModel.updateSearchQuery(_searchController.text);
   }
 
   void _onScroll() {
+    // Bug HHHHHHH: ScrollController listeners idem — podem disparar
+    // durante a janela entre removeListener e dispose.
+    if (!mounted) return;
     if (!_scrollController.hasClients) return;
 
     final currentPosition = _scrollController.position.pixels;
@@ -155,8 +163,15 @@ class _UserSelectionScreenState extends State<UserSelectionScreen> {
         await Future.delayed(const Duration(milliseconds: 100));
 
         if (mounted) {
-          final authViewModel = context.read<AuthViewModel>();
-          await authViewModel.updateUserAfterSelection(viewModel.currentAppUser!);
+          // Bug IIIIIII: viewModel.currentAppUser! era null assertion.
+          // Em race rara (outro fluxo zerou currentAppUser entre o
+          // confirm e o delayed), crashava com NullCheckError. Agora
+          // validamos explicitamente.
+          final appUser = viewModel.currentAppUser;
+          if (appUser != null) {
+            final authViewModel = context.read<AuthViewModel>();
+            await authViewModel.updateUserAfterSelection(appUser);
+          }
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

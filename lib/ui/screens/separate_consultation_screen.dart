@@ -24,6 +24,11 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
   final TextEditingController _searchController = TextEditingController();
   final bool _isNavigatingAway = false;
 
+  /// Bug UUUUUUU: rastreia ultima mensagem de erro mostrada para evitar
+  /// dialog duplicado em rebuilds. Mesmo padrao do Bug DDDDDDD corrigido
+  /// em ProfileScreen.
+  String? _lastShownErrorMessage;
+
   @override
   void initState() {
     super.initState();
@@ -574,6 +579,28 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
   }
 
   void _executeConsultation(ShipmentSeparateConsultationViewModel viewModel, QueryBuilder? queryBuilder) {
+    // Bug WWWWWWW (CRITICO): captura referencias ao NavigatorState e
+    // ScaffoldMessengerState ANTES do await. Sem isso, o codigo
+    // anterior tinha um problema serio:
+    //
+    // 1. showDialog abre dialog com barrierDismissible: false
+    // 2. await viewModel.performConsultation(...)
+    // 3. Em .then, `if (!mounted) return;` ANTES do Navigator.pop()
+    //
+    // Se a tela fosse desmontada durante o await (deep link,
+    // notificacao, etc), o dialog ficava TRAVADO permanentemente —
+    // usuario nao podia fechar (barrierDismissible: false) e precisava
+    // matar o app. Cenario raro mas catastrofico para UX.
+    //
+    // Solucao: capturar navigator/messenger ANTES do await e usar essas
+    // referencias para fechar o dialog SEMPRE, mesmo se mounted=false.
+    // Os state objects sobrevivem ao desmonte do widget desde que o
+    // ancestral ainda exista (em geral, se a tela foi pop, o overlay do
+    // dialog sera desmontado automaticamente — mas o pop explicito
+    // garante limpeza).
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -585,11 +612,12 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
     viewModel
         .performConsultation(queryBuilder)
         .then((_) {
+          // Sempre fechar o dialog primeiro, antes de qualquer mounted check.
+          if (navigator.canPop()) navigator.pop();
+
           if (!mounted) return;
 
-          Navigator.of(context).pop();
-
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             SnackBar(
               content: Text(
                 viewModel.hasError
@@ -602,11 +630,11 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
           );
         })
         .catchError((error) {
+          if (navigator.canPop()) navigator.pop();
+
           if (!mounted) return;
 
-          Navigator.of(context).pop();
-
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             SnackBar(
               content: Text('Erro na consulta: $error'),
               backgroundColor: AppColors.error,
@@ -624,17 +652,22 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
 
       switch (viewModel.state) {
         case SeparateConsultationState.error:
-          if (viewModel.errorMessage != null) {
+          final errorMsg = viewModel.errorMessage;
+          if (errorMsg != null && errorMsg != _lastShownErrorMessage) {
+            _lastShownErrorMessage = errorMsg;
             ErrorDialog.showServerError(
               context,
               message: 'Erro ao carregar consultas',
-              details: viewModel.errorMessage!,
+              details: errorMsg,
               showRetryButton: true,
               onRetry: () => _refreshData(viewModel),
             );
           }
           break;
         default:
+          // Quando o estado deixa de ser error, limpamos o tracking
+          // para que um proximo erro IGUAL ao anterior possa ser mostrado.
+          _lastShownErrorMessage = null;
           break;
       }
     });

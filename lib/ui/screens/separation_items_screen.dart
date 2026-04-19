@@ -51,6 +51,13 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
   bool _isPrinting = false;
   bool _isValidatingAddCart = false;
 
+  /// Bug QQQQQQQ: cache do viewModel para uso seguro no dispose().
+  /// Mesmo padrao do Bug WWWWWW corrigido em CardPickingScreen.
+  /// Sem isso, dispose() chamava context.read e PODIA falhar com
+  /// ProviderNotFoundException → stopCartEventMonitoring nao executava
+  /// → listener vazado no socket repository.
+  SeparationItemsViewModel? _vmRef;
+
   @override
   void initState() {
     super.initState();
@@ -101,18 +108,24 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _vmRef = context.read<SeparationItemsViewModel>();
+  }
+
+  @override
   void dispose() {
     try {
-      final viewModel = context.read<SeparationItemsViewModel>();
-      viewModel.stopCartEventMonitoring();
+      _vmRef?.stopCartEventMonitoring();
     } catch (e, stackTrace) {
       AppLogger.debug(
-        'Erro ao parar monitoramento de eventos (contexto pode não estar mais disponível)',
+        'Erro ao parar monitoramento de eventos',
         tag: 'SeparationItemsScreen',
         error: e,
         stackTrace: stackTrace,
       );
     }
+    _vmRef = null;
 
     _tabController.dispose();
     _searchController.dispose();

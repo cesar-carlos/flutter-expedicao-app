@@ -239,6 +239,10 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
   }
 
   void _showValidationError() {
+    // Bug LLLLLLL: _showValidationError pode ser chamada por callback
+    // de Timer (linha 164) ou por callback assincrono. Sem mounted
+    // check, ScaffoldMessenger.of(context) lanca em widget desmontado.
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
