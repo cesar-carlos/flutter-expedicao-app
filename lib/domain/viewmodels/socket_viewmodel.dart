@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/core/network/socket_config.dart';
@@ -35,15 +37,33 @@ class SocketViewModel extends ChangeNotifier {
   }
 
   void _autoConnect() {
-    Future.delayed(const Duration(seconds: 2), () {
-      // Bug AAAA: se o ViewModel foi disposto durante a janela de 2s,
-      // nao tentamos conectar (o socketService e singleton, mas evitamos
-      // trabalho desnecessario e potenciais notifications em VM disposta).
-      if (_disposed) return;
-      if (connectionState == SocketConnectionState.disconnected) {
-        connect();
-      }
-    });
+    unawaited(
+      Future<void>.delayed(const Duration(seconds: 2), () {
+        // Bug AAAA: se o ViewModel foi disposto durante a janela de 2s,
+        // nao tentamos conectar (o socketService e singleton, mas evitamos
+        // trabalho desnecessario e potenciais notifications em VM disposta).
+        if (_disposed) return;
+        if (connectionState == SocketConnectionState.disconnected) {
+          unawaited(
+            connect().catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha na auto-conexão do socket',
+                tag: 'SocketViewModel',
+                error: e,
+                stackTrace: s,
+              );
+            }),
+          );
+        }
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha no delayed de auto-conexão do socket',
+          tag: 'SocketViewModel',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   Future<void> connect() async {

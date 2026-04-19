@@ -215,11 +215,20 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
   }
 
   void _clearScannerFieldAfterDelay() {
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        _scanController.clear();
-      }
-    });
+    unawaited(
+      Future<void>.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _scanController.clear();
+        }
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao limpar campo de scan (tela prateleira)',
+          tag: 'ShelfScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   static final _controlCharsPattern = RegExp(r'[\n\r\t]');
@@ -339,11 +348,20 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     _hideKeyboard();
 
     if (!_isBroadcastActive) {
-      Future.delayed(UIConstants.shortDelay, () {
-        if (mounted) {
-          _focusNode.requestFocus();
-        }
-      });
+      unawaited(
+        Future<void>.delayed(UIConstants.shortDelay, () {
+          if (mounted) {
+            _focusNode.requestFocus();
+          }
+        }).catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha no delayed de foco (scanner mode / tela prateleira)',
+            tag: 'ShelfScreen',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     } else {
       _focusNode.unfocus();
     }
@@ -353,28 +371,55 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     AppLogger.debug('enable keyboard mode', tag: 'ShelfScreen');
     _focusNode.unfocus();
 
-    Future.delayed(UIConstants.shortDelay, () {
-      if (mounted) {
-        _focusNode.requestFocus();
-        _forceKeyboardShow();
-      }
-    });
+    unawaited(
+      Future<void>.delayed(UIConstants.shortDelay, () {
+        if (mounted) {
+          _focusNode.requestFocus();
+          _forceKeyboardShow();
+        }
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha no delayed de foco (keyboard mode / tela prateleira)',
+          tag: 'ShelfScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _forceKeyboardShow() {
-    Future.delayed(UIConstants.shortLoadingDelay, () {
-      if (mounted) {
-        try {
-          SystemChannels.textInput.invokeMethod('TextInput.show');
-        } catch (e) {
-          Future.delayed(UIConstants.shortDelay, () {
-            if (mounted) {
-              _focusNode.requestFocus();
-            }
-          });
+    unawaited(
+      Future<void>.delayed(UIConstants.shortLoadingDelay, () {
+        if (mounted) {
+          try {
+            SystemChannels.textInput.invokeMethod('TextInput.show');
+          } catch (e) {
+            unawaited(
+              Future<void>.delayed(UIConstants.shortDelay, () {
+                if (mounted) {
+                  _focusNode.requestFocus();
+                }
+              }).catchError((Object err, StackTrace st) {
+                AppLogger.warning(
+                  'Falha no delayed de fallback de foco (tela prateleira)',
+                  tag: 'ShelfScreen',
+                  error: err,
+                  stackTrace: st,
+                );
+              }),
+            );
+          }
         }
-      }
-    });
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir teclado (tela prateleira)',
+          tag: 'ShelfScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _hideKeyboard() {

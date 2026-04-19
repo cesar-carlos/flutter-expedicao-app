@@ -216,15 +216,33 @@ class SocketService extends ChangeNotifier {
       // conexao.
 
       if (wasConnected) {
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (SocketConfig.isConnected) {
-            _updateConnectionState(SocketConnectionState.connected);
-            _startHeartbeat();
-          } else {
-            _updateConnectionState(SocketConnectionState.connecting);
-            reconnect();
-          }
-        });
+        unawaited(
+          Future<void>.delayed(const Duration(milliseconds: 100), () {
+            if (SocketConfig.isConnected) {
+              _updateConnectionState(SocketConnectionState.connected);
+              _startHeartbeat();
+            } else {
+              _updateConnectionState(SocketConnectionState.connecting);
+              unawaited(
+                reconnect().catchError((Object e, StackTrace s) {
+                  AppLogger.warning(
+                    'Falha ao reconectar após atualizar config do socket',
+                    tag: 'SocketService',
+                    error: e,
+                    stackTrace: s,
+                  );
+                }),
+              );
+            }
+          }).catchError((Object e, StackTrace s) {
+            AppLogger.warning(
+              'Falha no delayed pós atualização de config do socket',
+              tag: 'SocketService',
+              error: e,
+              stackTrace: s,
+            );
+          }),
+        );
       } else {
         _updateConnectionState(SocketConnectionState.disconnected);
       }

@@ -1,7 +1,8 @@
-import 'dart:async' show Future, StreamController, Stream;
+import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
@@ -832,12 +833,21 @@ class CardPickingViewModel extends ChangeNotifier {
         (success) async {
           _updateOperationStatus(itemId, timestamp, PendingOperationStatus.synced);
 
-          Future.delayed(const Duration(seconds: 2), () {
-            if (!_disposed) {
-              _stateManager.clearSyncedOperations(itemId);
-              _safeNotifyListeners();
-            }
-          });
+          unawaited(
+            Future<void>.delayed(const Duration(seconds: 2), () {
+              if (!_disposed) {
+                _stateManager.clearSyncedOperations(itemId);
+                _safeNotifyListeners();
+              }
+            }).catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha no delayed de limpeza de operação sincronizada',
+                tag: 'CardPickingViewModel',
+                error: e,
+                stackTrace: s,
+              );
+            }),
+          );
         },
         (failure) async {
           _handleAddItemFailure(itemId, quantity, timestamp, failure);
