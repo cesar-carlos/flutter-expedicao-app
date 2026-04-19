@@ -3,11 +3,12 @@ import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
 import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/network/socket_config.dart';
+import 'package:data7_expedicao/core/network/socket_request_helper.dart';
+import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
 import 'package:data7_expedicao/domain/models/expedition_item_print_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
-import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
-import 'package:data7_expedicao/core/network/socket_config.dart';
 
 class ExpeditionItemPrintConsultationRepositoryImpl
     implements BasicConsultationRepository<ExpeditionItemPrintConsultationModel> {
@@ -56,18 +57,30 @@ class ExpeditionItemPrintConsultationRepositoryImpl
 
           final response = receiver is String ? jsonDecode(receiver) : receiver;
           final error = response?['Error'];
-          final data = response?['Data'] ?? [];
+          final data = response?['Data'];
 
           if (error != null) {
             completer.completeError(DataError(message: error.toString()));
             return;
           }
 
-          final list = data
-              .map<ExpeditionItemPrintConsultationModel>(
-                (json) => ExpeditionItemPrintConsultationModel.fromJson(json as Map<String, dynamic>),
-              )
-              .toList();
+          // Bug DDDDDD: parsing defensivo item-por-item (mesma protecao
+          // do SocketRequestHelper, mas mantendo a estrutura especial
+          // deste repo com socket injetado para testes).
+          if (data == null) {
+            completer.complete(const []);
+            return;
+          }
+          if (data is! List) {
+            completer.completeError(
+              DataError(message: 'Campo "Data" da resposta nao e List: ${data.runtimeType}'),
+            );
+            return;
+          }
+          final list = SocketRequestHelper.parseItems<ExpeditionItemPrintConsultationModel>(
+            data,
+            ExpeditionItemPrintConsultationModel.fromJson,
+          );
 
           completer.complete(list);
         } catch (e) {

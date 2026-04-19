@@ -252,8 +252,10 @@ class SocketRequestHelper {
   }
 
   /// Parse defensivo de um item da lista — pula items invalidos com log.
-  /// Exposto para testes; chamado internamente por [_execute].
-  @visibleForTesting
+  ///
+  /// Util tambem para repositorios que tem comportamento customizado
+  /// (ex.: socket injetado para testes) mas querem o mesmo parsing
+  /// defensivo do helper.
   static List<T> parseItems<T>(
     List rawList,
     T Function(Map<String, dynamic>) fromJson,
