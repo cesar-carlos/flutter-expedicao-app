@@ -115,7 +115,7 @@ class ScannerActivationController {
     if (isBroadcastMode) {
       await _reactivateBroadcastMode(scanState, scanController, scanFocusNode, onBarcodeScanned, mounted);
     } else {
-      await _reactivateFocusMode(scanState, keyboardController, scanController, scanFocusNode, mounted);
+      await _reactivateFocusMode(scanState, keyboardController, scanController, scanFocusNode, onBarcodeScanned, mounted);
     }
   }
 
@@ -159,18 +159,22 @@ class ScannerActivationController {
     KeyboardToggleController keyboardController,
     TextEditingController scanController,
     FocusNode scanFocusNode,
+    void Function(String) onBarcodeScanned,
     bool Function() mounted,
   ) async {
     AppLogger.debug('Reactivating scanner in focus mode', tag: 'ScannerActivationController');
 
     _isInitialized = false;
 
+    // S2: callback eh propagado mesmo no focus mode. Hoje activate() so
+    // usa onBarcodeScanned em broadcast, mas mantemos o callback original
+    // para evitar bug silencioso caso a logica de activate mude.
     await activate(
       scanState: scanState,
       keyboardController: keyboardController,
       scanFocusNode: scanFocusNode,
       scanController: scanController,
-      onBarcodeScanned: (_) {},
+      onBarcodeScanned: onBarcodeScanned,
       mounted: mounted,
     );
 

@@ -1,11 +1,10 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
 import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
-import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
+import 'package:data7_expedicao/core/services/scanner_mode_coordinator.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 
 class BarcodeScanner extends StatefulWidget {
@@ -24,69 +23,53 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
 
   bool _keyboardEnabled = false;
   final BarcodeScannerService _scannerService = locator<BarcodeScannerService>();
-  final BarcodeBroadcastService _broadcastService = locator<BarcodeBroadcastService>();
   final ConfigViewModel _configViewModel = locator<ConfigViewModel>();
 
-  StreamSubscription<String>? _broadcastSub;
-  ScannerInputMode _scannerMode = ScannerInputMode.focus;
-  String _broadcastAction = '';
-  String _broadcastExtraKey = '';
-  bool _manualOverrideBroadcast = false;
+  late final ScannerModeCoordinator _coordinator;
 
   @override
   void initState() {
     super.initState();
 
+    _coordinator = ScannerModeCoordinator(
+      broadcastService: locator<BarcodeBroadcastService>(),
+      onBarcode: _onBroadcastCode,
+    );
+
     _barcodeController.addListener(_onScannerInput);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadScannerPreferences();
-      if (_isBroadcastActive) {
-        _startBroadcastListener();
-      } else {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _coordinator.start(_loadPreferences());
+      if (!mounted) return;
+      if (!_coordinator.isBroadcastActive) {
         _focusNode.requestFocus();
       }
     });
   }
 
-  bool get _isBroadcastConfigured =>
-      _scannerMode == ScannerInputMode.broadcast && _broadcastAction.isNotEmpty && _broadcastExtraKey.isNotEmpty;
-
-  bool get _isBroadcastActive => _isBroadcastConfigured && !_manualOverrideBroadcast;
-
-  void _loadScannerPreferences() {
+  ScannerModePreferences _loadPreferences() {
     try {
       _configViewModel.loadConfigSilent();
       final config = _configViewModel.currentConfig;
-      _scannerMode = config.scannerInputMode;
-      _broadcastAction = (config.broadcastAction ?? '').trim();
-      _broadcastExtraKey = (config.broadcastExtraKey ?? '').trim();
+      return ScannerModePreferences(
+        mode: config.scannerInputMode,
+        action: (config.broadcastAction ?? '').trim(),
+        extraKey: (config.broadcastExtraKey ?? '').trim(),
+      );
     } catch (_) {
-      _scannerMode = ScannerInputMode.focus;
-      _broadcastAction = '';
-      _broadcastExtraKey = '';
+      return ScannerModePreferences.empty;
     }
   }
 
-  void _startBroadcastListener() {
-    if (!_isBroadcastConfigured) return;
-    if (_manualOverrideBroadcast) return;
-    _broadcastSub?.cancel();
-    _broadcastSub = _broadcastService.listen(action: _broadcastAction, extraKey: _broadcastExtraKey).listen((code) {
-      if (!mounted) return;
-      final trimmed = _scannerService.cleanBarcodeText(code.trim());
-      if (trimmed.isEmpty || widget.isLoading) return;
-      widget.onBarcodeScanned(trimmed);
-    });
-  }
-
-  void _stopBroadcastListener() {
-    _broadcastSub?.cancel();
-    _broadcastSub = null;
+  void _onBroadcastCode(String code) {
+    if (!mounted || widget.isLoading) return;
+    final trimmed = _scannerService.cleanBarcodeText(code);
+    if (trimmed.isEmpty) return;
+    widget.onBarcodeScanned(trimmed);
   }
 
   void _onScannerInput() {
-    if (_isBroadcastActive) return;
+    if (_coordinator.isBroadcastActive) return;
     if (_keyboardEnabled || _barcodeController.text.isEmpty) return;
 
     _scannerService.processBarcodeInputWithControlDetection(
@@ -106,7 +89,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
 
       _barcodeController.clear();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _focusNode.requestFocus();
+        if (mounted) _focusNode.requestFocus();
       });
     }
   }
@@ -116,19 +99,13 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
     _processBarcode(text);
   }
 
-  void _toggleKeyboard() {
-    if (mounted) {
-      setState(() {
-        _keyboardEnabled = !_keyboardEnabled;
-        if (_keyboardEnabled && _isBroadcastConfigured) {
-          _manualOverrideBroadcast = true;
-          _stopBroadcastListener();
-        } else if (!_keyboardEnabled && _isBroadcastConfigured) {
-          _manualOverrideBroadcast = false;
-          _startBroadcastListener();
-        }
-      });
-    }
+  Future<void> _toggleKeyboard() async {
+    if (!mounted) return;
+    setState(() {
+      _keyboardEnabled = !_keyboardEnabled;
+    });
+    // Override manual: teclado ligado => para broadcast; desligado => religa.
+    await _coordinator.setManualOverride(_keyboardEnabled);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -144,7 +121,8 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
     _barcodeController.removeListener(_onScannerInput);
     _barcodeController.dispose();
     _focusNode.dispose();
-    _stopBroadcastListener();
+    // ignore: discarded_futures
+    _coordinator.dispose();
     super.dispose();
   }
 

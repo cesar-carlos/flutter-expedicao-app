@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +8,7 @@ import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/domain/viewmodels/scanner_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/scanner_title_with_connection_status.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
-import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
+import 'package:data7_expedicao/core/services/scanner_mode_coordinator.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
@@ -25,38 +24,44 @@ class ScannerScreen extends StatefulWidget {
 
 class _ScannerScreenState extends State<ScannerScreen> {
   final FocusNode _focusNode = FocusNode();
-  final BarcodeBroadcastService _broadcastService = locator<BarcodeBroadcastService>();
   final ConfigViewModel _configViewModel = locator<ConfigViewModel>();
-  StreamSubscription<String>? _broadcastSub;
-  bool _isBroadcastMode = false;
-  String _action = '';
-  String _extraKey = '';
+  late final ScannerModeCoordinator _coordinator;
 
   @override
   void initState() {
     super.initState();
 
+    _coordinator = ScannerModeCoordinator(
+      broadcastService: locator<BarcodeBroadcastService>(),
+      onBarcode: _onBroadcastCode,
+    );
+
     // Listener para mudanças de foco
     _focusNode.addListener(() {
-      setState(() {}); // Força rebuild para atualizar o indicador visual
+      if (mounted) setState(() {}); // atualiza o indicador visual
     });
 
-    // Garantir que o foco seja solicitado após a construção
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadScannerPreferences();
-      if (!_isBroadcastMode) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _coordinator.start(_loadScannerPreferences());
+      if (!mounted) return;
+      if (!_coordinator.isBroadcastActive) {
         _focusNode.requestFocus();
-      } else {
-        _startBroadcast();
       }
     });
   }
 
   @override
   void dispose() {
-    _broadcastSub?.cancel();
+    // ignore: discarded_futures
+    _coordinator.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _onBroadcastCode(String code) {
+    if (!mounted) return;
+    final vm = context.read<ScannerViewModel>();
+    vm.addFullCode(code);
   }
 
   @override
@@ -77,7 +82,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             autofocus: true,
             focusNode: _focusNode,
             onKeyEvent: (KeyEvent event) {
-              if (_isBroadcastMode) return;
+              if (_coordinator.isBroadcastActive) return;
               if (event is KeyDownEvent) {
                 // Se for Enter, processar imediatamente
                 if (event.logicalKey == LogicalKeyboardKey.enter) {
@@ -212,30 +217,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
   }
 
-  void _loadScannerPreferences() {
+  ScannerModePreferences _loadScannerPreferences() {
     try {
       _configViewModel.loadConfigSilent();
       final cfg = _configViewModel.currentConfig;
-      _isBroadcastMode = cfg.scannerInputMode == ScannerInputMode.broadcast;
-      _action = (cfg.broadcastAction ?? '').trim();
-      _extraKey = (cfg.broadcastExtraKey ?? '').trim();
+      return ScannerModePreferences(
+        mode: cfg.scannerInputMode,
+        action: (cfg.broadcastAction ?? '').trim(),
+        extraKey: (cfg.broadcastExtraKey ?? '').trim(),
+      );
     } catch (_) {
-      _isBroadcastMode = false;
-      _action = '';
-      _extraKey = '';
+      return ScannerModePreferences.empty;
     }
-  }
-
-  void _startBroadcast() {
-    if (!_isBroadcastMode || _action.isEmpty || _extraKey.isEmpty) return;
-    _broadcastSub?.cancel();
-    _broadcastSub = _broadcastService.listen(action: _action, extraKey: _extraKey).listen((code) {
-      if (!mounted) return;
-      final trimmed = code.trim();
-      if (trimmed.isEmpty) return;
-      final vm = context.read<ScannerViewModel>();
-      vm.addFullCode(trimmed);
-    });
   }
 
   /// Constrói a lista de leituras
