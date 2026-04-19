@@ -20,6 +20,7 @@ import 'package:data7_expedicao/domain/repositories/separate_cart_internship_eve
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/presentation/viewmodels/controllers/cart_event_listener_controller.dart';
 import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_filters_controller.dart';
+import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_metrics_recorder.dart';
 import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_pending_operations_tracker.dart';
 import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_params.dart';
@@ -54,7 +55,7 @@ class CardPickingViewModel extends ChangeNotifier {
   final ShelfScanningService _shelfScanningService;
   final PickingStateManager _stateManager;
   final CartValidationService _cartValidationService;
-  final MetricsCollector? _metricsCollector;
+  final PickingMetricsRecorder _metrics;
 
   ExpeditionCartRouteInternshipConsultationModel? _cart;
   ExpeditionCartRouteInternshipConsultationModel? get cart => _cart;
@@ -236,7 +237,7 @@ class CardPickingViewModel extends ChangeNotifier {
       _shelfScanningService = locator<ShelfScanningService>(),
       _stateManager = locator<PickingStateManager>(),
       _cartValidationService = locator<CartValidationService>(),
-      _metricsCollector = _initMetricsCollector() {
+      _metrics = PickingMetricsRecorder(collector: _initMetricsCollector()) {
     _cartEventController = CartEventListenerController(
       eventRepository: _cartEventRepository,
       onCartUpdated: _handleCartUpdate,
@@ -970,11 +971,12 @@ class CardPickingViewModel extends ChangeNotifier {
   }
 
   void _recordScanMetrics(String barcode, DateTime startTime, bool success, String? errorMessage) {
-    final metricsCollector = _metricsCollector;
-    if (metricsCollector == null) return;
-
-    final duration = DateTime.now().difference(startTime);
-    metricsCollector.recordScan(barcode: barcode, duration: duration, success: success, errorMessage: errorMessage);
+    _metrics.recordScan(
+      barcode: barcode,
+      startTime: startTime,
+      success: success,
+      errorMessage: errorMessage,
+    );
   }
 }
 
