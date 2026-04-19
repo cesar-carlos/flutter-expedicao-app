@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/printer_config.dart';
 
 class PrinterPreferencesService {
@@ -21,12 +22,22 @@ class PrinterPreferencesService {
     dynamic decoded;
     try {
       decoded = jsonDecode(rawData);
-    } catch (_) {
+    } catch (e, s) {
+      AppLogger.warning(
+        'PrinterPreferences: JSON inválido em impressoras salvas — removendo chave',
+        tag: 'PrinterPreferencesService',
+        error: e,
+        stackTrace: s,
+      );
       await prefs.remove(_printersKey);
       return const [];
     }
 
     if (decoded is! List) {
+      AppLogger.warning(
+        'PrinterPreferences: formato inválido (esperado List, recebido ${decoded.runtimeType}) — removendo chave',
+        tag: 'PrinterPreferencesService',
+      );
       await prefs.remove(_printersKey);
       return const [];
     }
@@ -48,7 +59,13 @@ class PrinterPreferencesService {
 
         seenEndpoints.add(endpointKey);
         result.add(printer);
-      } catch (_) {
+      } catch (e, s) {
+        AppLogger.warning(
+          'PrinterPreferences: entrada ignorada (dados incompletos ou inválidos)',
+          tag: 'PrinterPreferencesService',
+          error: e,
+          stackTrace: s,
+        );
         continue;
       }
     }
