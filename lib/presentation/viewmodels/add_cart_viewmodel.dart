@@ -243,7 +243,21 @@ class AddCartViewModel extends ChangeNotifier {
       if (_countdownSeconds <= 0) {
         _stopAutoAddCountdown();
         if (!_disposed) {
-          addCartToSeparation();
+          // Bug MMM: erro do future fire-and-forget agora vai para o log
+          // em vez de virar uncaught exception silenciosa. addCartToSeparation
+          // ja seta _errorMessage internamente em caso de falha — aqui so
+          // garantimos que excecoes inesperadas nao escapem para o root zone.
+          unawaited(
+            addCartToSeparation().catchError((Object e, StackTrace s) {
+              AppLogger.error(
+                'Erro inesperado em addCartToSeparation (auto)',
+                tag: 'AddCartViewModel',
+                error: e,
+                stackTrace: s,
+              );
+              return false;
+            }),
+          );
         }
       } else {
         notifyListeners();

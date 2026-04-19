@@ -2,11 +2,11 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
-import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/user/app_user.dart';
+import 'package:data7_expedicao/domain/models/user/user_api_exception.dart';
 import 'package:data7_expedicao/domain/repositories/user_repository.dart';
-import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 
 enum ProfileState { idle, loading, success, error }
@@ -14,9 +14,8 @@ enum ProfileState { idle, loading, success, error }
 class ProfileViewModel extends ChangeNotifier {
   final UserRepository _userRepository;
   final AuthViewModel _authViewModel;
-  final IUserSessionService _userSessionService;
 
-  ProfileViewModel(this._userRepository, this._authViewModel) : _userSessionService = locator<IUserSessionService>();
+  ProfileViewModel(this._userRepository, this._authViewModel);
 
   ProfileState _state = ProfileState.idle;
   String? _errorMessage;
@@ -132,19 +131,49 @@ class ProfileViewModel extends ChangeNotifier {
     return true;
   }
 
-  Future<bool> _validateCurrentPasswordWithServer() async {
+  /// Resultado tipado da validacao de senha atual com o servidor.
+  /// Bug LLL: distingue "senha errada" (401) de erro de rede/servidor —
+  /// antes ambos retornavam `false` e o usuario via "Senha atual incorreta"
+  /// mesmo quando o problema era de conexao.
+  Future<_PasswordValidationOutcome> _validateCurrentPasswordWithServer() async {
     if (currentUser == null || _currentPassword == null || _currentPassword!.isEmpty) {
-      return false;
+      return _PasswordValidationOutcome.invalid;
     }
 
     try {
-      return await _userRepository.validateCurrentPassword(nome: currentUser!.nome, currentPassword: _currentPassword!);
-    } catch (e) {
-      return false;
+      final ok = await _userRepository.validateCurrentPassword(
+        nome: currentUser!.nome,
+        currentPassword: _currentPassword!,
+      );
+      return ok ? _PasswordValidationOutcome.valid : _PasswordValidationOutcome.invalid;
+    } on UserApiException catch (e) {
+      if (e.statusCode == 401) {
+        return _PasswordValidationOutcome.invalid;
+      }
+      AppLogger.warning(
+        'Erro nao-credencial ao validar senha atual (status=${e.statusCode}): ${e.message}',
+        tag: 'ProfileViewModel',
+      );
+      return _PasswordValidationOutcome.networkError;
+    } catch (e, s) {
+      AppLogger.warning(
+        'Erro inesperado ao validar senha atual',
+        tag: 'ProfileViewModel',
+        error: e,
+        stackTrace: s,
+      );
+      return _PasswordValidationOutcome.networkError;
     }
   }
 
+  bool _isSaving = false;
+
   Future<bool> saveProfile() async {
+    // Bug JJJ: lock anti-race contra cliques rapidos no botao "Salvar".
+    if (_isSaving) {
+      return false;
+    }
+
     if (currentUser == null) {
       _setError('Usuário não encontrado');
       return false;
@@ -154,19 +183,24 @@ class ProfileViewModel extends ChangeNotifier {
       return false;
     }
 
+    _isSaving = true;
     _setState(ProfileState.loading);
 
     final hasPasswordChange = _newPassword != null && _newPassword!.isNotEmpty;
 
-    if (hasPasswordChange) {
-      final isCurrentPasswordValid = await _validateCurrentPasswordWithServer();
-      if (!isCurrentPasswordValid) {
-        _setError('Senha atual incorreta');
-        return false;
-      }
-    }
-
     try {
+      if (hasPasswordChange) {
+        final outcome = await _validateCurrentPasswordWithServer();
+        if (outcome == _PasswordValidationOutcome.invalid) {
+          _setError('Senha atual incorreta');
+          return false;
+        }
+        if (outcome == _PasswordValidationOutcome.networkError) {
+          _setError('Não foi possível validar a senha atual no servidor. Verifique sua conexão e tente novamente.');
+          return false;
+        }
+      }
+
       String? photoBase64;
 
       if (_selectedPhoto != null) {
@@ -199,8 +233,9 @@ class ProfileViewModel extends ChangeNotifier {
         senha: null,
       );
 
+      // Bug III: removida chamada redundante a _userSessionService.saveUserSession
+      // — `updateUserAfterSelection` JA salva a sessao internamente.
       await _authViewModel.updateUserAfterSelection(finalUser);
-      await _userSessionService.saveUserSession(finalUser);
 
       if (hasPasswordChange) {
         _successMessage = 'Perfil e senha atualizados com sucesso!';
@@ -214,6 +249,8 @@ class ProfileViewModel extends ChangeNotifier {
     } catch (e) {
       _setError('Erro ao salvar perfil: ${e.toString()}');
       return false;
+    } finally {
+      _isSaving = false;
     }
   }
 
@@ -239,3 +276,6 @@ class ProfileViewModel extends ChangeNotifier {
     super.dispose();
   }
 }
+
+/// Resultado tipado da validacao de senha atual no servidor.
+enum _PasswordValidationOutcome { valid, invalid, networkError }

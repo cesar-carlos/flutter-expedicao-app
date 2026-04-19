@@ -68,18 +68,28 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> login(String username, String password) async {
+    // Bug EEE: lock anti-race contra 2 cliques rapidos no botao "Entrar".
+    // Sem isso, ambos disparavam login() em paralelo → 2 requisicoes no
+    // servidor e estados conflitantes (saveUserSession concorrente).
+    if (_isLoginLoading) {
+      return;
+    }
+
     if (username.isEmpty || password.isEmpty) {
       _setError('Por favor, preencha todos os campos');
+      notifyListeners();
       return;
     }
 
     if (password.length < 4) {
       _setError('Senha deve ter pelo menos 4 caracteres');
+      notifyListeners();
       return;
     }
 
     if (_loginUserUseCase == null) {
       _setError('Erro interno: LoginUserUseCase não inicializado');
+      notifyListeners();
       return;
     }
 
@@ -126,8 +136,13 @@ class AuthViewModel extends ChangeNotifier {
 
     try {
       await _userSessionService.clearUserSession();
-    } catch (e) {
-      _setError('Erro ao sair: $e');
+    } catch (e, s) {
+      // Bug FFF: NAO chamar _setError aqui — o codigo abaixo SEMPRE
+      // sobrescrevia status para unauthenticated e errorMessage para
+      // vazio, fazendo o usuario nunca ver o erro de logout. Logout
+      // sempre desautentica (mesmo se a limpeza falhar — a sessao
+      // local ja vai ser inutil), mas agora ao menos LOGAMOS o erro.
+      AppLogger.error('Falha ao limpar sessao no logout', tag: 'AuthViewModel', error: e, stackTrace: s);
     }
 
     await Future.delayed(const Duration(milliseconds: 500));
@@ -156,7 +171,19 @@ class AuthViewModel extends ChangeNotifier {
     _currentUser = updatedUser;
     _status = AuthStatus.authenticated;
 
-    await _userSessionService.saveUserSession(updatedUser).catchError((e) {});
+    // Bug GGG: substitui `.catchError((e) {})` (silencioso) por log
+    // explicito. Antes, falha em saveUserSession deixava o usuario
+    // achando que tudo deu certo, mas a sessao nao era persistida.
+    try {
+      await _userSessionService.saveUserSession(updatedUser);
+    } catch (e, s) {
+      AppLogger.error(
+        'Falha ao salvar sessao apos selecao de usuario',
+        tag: 'AuthViewModel',
+        error: e,
+        stackTrace: s,
+      );
+    }
 
     await _loadAndAttachUserSystemModel();
 
