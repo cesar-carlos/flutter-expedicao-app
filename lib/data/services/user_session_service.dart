@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/user/app_user.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 
@@ -46,8 +47,15 @@ class UserSessionService implements IUserSessionService {
     } on FormatException catch (_) {
       // JSON invalido (ex.: gravacao parcial, corrupcao) → mesma acao.
       await clearUserSession();
-    } catch (_) {
-      // Outros erros: mantem o comportamento legado (silencia e retorna null).
+    } catch (e, s) {
+      // Comportamento: retorna null (sessão inválida). Log evita falhas
+      // opacas em produção (ex.: SharedPreferences indisponível).
+      AppLogger.warning(
+        'Falha inesperada ao carregar sessão do utilizador',
+        tag: 'UserSessionService',
+        error: e,
+        stackTrace: s,
+      );
     }
     return null;
   }
