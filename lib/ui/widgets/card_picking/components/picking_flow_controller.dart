@@ -66,6 +66,13 @@ class PickingFlowController {
         keyboardController.enableScannerMode();
       });
       onShelfScanCompleted?.call();
+    }).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir modal de endereço ou ao retomar scanner',
+        tag: 'PickingFlowController',
+        error: e,
+        stackTrace: s,
+      );
     });
   }
 
@@ -418,7 +425,15 @@ class PickingFlowController {
           ),
         ],
       ),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir confirmação de finalização (picking)',
+        tag: 'PickingFlowController',
+        error: e,
+        stackTrace: s,
+      );
+      return false;
+    });
 
     return result ?? false;
   }

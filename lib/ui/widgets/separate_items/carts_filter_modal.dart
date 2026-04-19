@@ -392,7 +392,15 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
       context: context,
       builder: (dialogContext) =>
           _MultiSelectSituacoesDialog(situacoes: situacoes, selectedSituacoes: _selectedSituacoes),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir seleção de situações (filtro carrinhos)',
+        tag: 'CartsFilterModal',
+        error: e,
+        stackTrace: s,
+      );
+      return null;
+    });
 
     if (result != null && mounted) {
       setState(() {

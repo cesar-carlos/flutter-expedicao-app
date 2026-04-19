@@ -364,7 +364,15 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
     final result = await showDialog<_AdvancedDiscoveryResult>(
       context: context,
       builder: (dialogContext) => _AdvancedDiscoveryDialog(initialPrefix: suggestedPrefix ?? ''),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir dialog de descoberta avançada de impressoras',
+        tag: 'PrinterConfigForm',
+        error: e,
+        stackTrace: s,
+      );
+      return null;
+    });
 
     if (result == null || !mounted) {
       return;
@@ -410,7 +418,15 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
           ),
         ],
       ),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir confirmação de remoção de impressora',
+        tag: 'PrinterConfigForm',
+        error: e,
+        stackTrace: s,
+      );
+      return false;
+    });
 
     if (confirmed == true) {
       await vm.removePrinter(printer.id);
@@ -422,7 +438,15 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
     final result = await showDialog<_PrinterDialogResult>(
       context: context,
       builder: (context) => _PrinterDialog(printer: printer),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir dialog de impressora',
+        tag: 'PrinterConfigForm',
+        error: e,
+        stackTrace: s,
+      );
+      return null;
+    });
 
     if (result == null) {
       return;

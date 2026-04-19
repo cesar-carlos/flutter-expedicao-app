@@ -46,7 +46,15 @@ class ConfigScreen extends StatelessWidget {
           FilledButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('Resetar')),
         ],
       ),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir dialog de reset de configuração',
+        tag: 'ConfigScreen',
+        error: e,
+        stackTrace: s,
+      );
+      return false;
+    });
 
     if (confirmed != true) {
       return;

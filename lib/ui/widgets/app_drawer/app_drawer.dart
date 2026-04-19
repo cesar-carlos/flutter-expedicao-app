@@ -408,11 +408,18 @@ class AppDrawer extends StatelessWidget {
     if (!scaffoldContext.mounted) return;
 
     if (appUpdateViewModel.hasUpdate && appUpdateViewModel.updateAvailable != null) {
-      await showDialog(
+      await showDialog<void>(
         context: scaffoldContext,
         barrierDismissible: false,
         builder: (_) => AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
-      );
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de atualização (drawer)',
+          tag: 'AppDrawer',
+          error: e,
+          stackTrace: s,
+        );
+      });
     } else if (appUpdateViewModel.error != null) {
       ScaffoldMessenger.of(scaffoldContext).showSnackBar(
         SnackBar(

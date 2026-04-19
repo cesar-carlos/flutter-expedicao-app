@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
@@ -7,7 +8,18 @@ class DiscardChangesDialog extends StatelessWidget {
   const DiscardChangesDialog({super.key});
 
   static Future<bool?> show(BuildContext context) {
-    return showDialog<bool>(context: context, builder: (dialogContext) => const DiscardChangesDialog());
+    return showDialog<bool>(context: context, builder: (dialogContext) => const DiscardChangesDialog()).catchError((
+      Object e,
+      StackTrace s,
+    ) {
+      AppLogger.warning(
+        'Falha ao exibir dialog de descartar alterações',
+        tag: 'DiscardChangesDialog',
+        error: e,
+        stackTrace: s,
+      );
+      return null;
+    });
   }
 
   @override

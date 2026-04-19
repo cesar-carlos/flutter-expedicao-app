@@ -347,7 +347,15 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
       context: context,
       builder: (dialogContext) =>
           _MultiSelectSituacoesDialog(situacoes: situacoes, selectedSituacoes: _selectedSituacoes),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir seleção de situações (filtro separações)',
+        tag: 'SeparationFilterModal',
+        error: e,
+        stackTrace: s,
+      );
+      return null;
+    });
 
     if (result != null && mounted) {
       setState(() {

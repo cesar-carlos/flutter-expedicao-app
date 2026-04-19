@@ -1052,27 +1052,36 @@ class _CartItemCardState extends State<CartItemCard> {
   Future<bool> _showFinalizeConfirmationDialog(BuildContext context) async {
     if (!context.mounted) return false;
 
-    return await showDialog<bool>(
-          context: context,
-          builder: (dialogContext) {
-            return ListenableBuilder(
-              listenable: locator<PickingStateManager>(),
-              builder: (context, _) {
-                final pickingState = locator<PickingStateManager>().pickingState;
-                final hasPending = pickingState.hasAnyPendingOperations();
-                final pendingCount = pickingState.getTotalPendingOperations();
-                return _FinalizeConfirmationDialogContent(
-                  codCarrinho: widget.cartRouteInternshipConsultation.codCarrinho,
-                  hasPending: hasPending,
-                  pendingCount: pendingCount,
-                  onCancel: () => Navigator.of(dialogContext).pop(false),
-                  onConfirm: () => Navigator.of(dialogContext).pop(true),
-                );
-              },
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return ListenableBuilder(
+          listenable: locator<PickingStateManager>(),
+          builder: (context, _) {
+            final pickingState = locator<PickingStateManager>().pickingState;
+            final hasPending = pickingState.hasAnyPendingOperations();
+            final pendingCount = pickingState.getTotalPendingOperations();
+            return _FinalizeConfirmationDialogContent(
+              codCarrinho: widget.cartRouteInternshipConsultation.codCarrinho,
+              hasPending: hasPending,
+              pendingCount: pendingCount,
+              onCancel: () => Navigator.of(dialogContext).pop(false),
+              onConfirm: () => Navigator.of(dialogContext).pop(true),
             );
           },
-        ) ??
-        false;
+        );
+      },
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir confirmação de finalização (carrinho)',
+        tag: 'CartItemCard',
+        error: e,
+        stackTrace: s,
+      );
+      return false;
+    });
+
+    return confirmed ?? false;
   }
 
   void _showLoadingDialog(BuildContext context) {
