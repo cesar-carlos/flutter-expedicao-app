@@ -1,3 +1,4 @@
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
@@ -34,17 +35,13 @@ class ExpeditionInternshipModel {
   }
 
   factory ExpeditionInternshipModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return ExpeditionInternshipModel(
-        codPercursoEstagio: json['CodPercursoEstagio'],
-        descricao: json['Descricao'],
-        ativo: Situation.fromCodeWithFallback(json['Ativo']),
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
-        sequencia: json['Sequencia'],
-      );
-    } catch (_) {
-      rethrow;
-    }
+    return ExpeditionInternshipModel(
+      codPercursoEstagio: JsonParse.parseIntOr(json['CodPercursoEstagio'], 0),
+      descricao: JsonParse.parseStringOr(json['Descricao'], ''),
+      ativo: Situation.fromCodeWithFallback(JsonParse.parseStringOr(json['Ativo'], '')),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      sequencia: JsonParse.parseIntOr(json['Sequencia'], 0),
+    );
   }
 
   /// Factory method para criação segura com validação de schema

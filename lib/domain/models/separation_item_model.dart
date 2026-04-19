@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
@@ -91,27 +92,24 @@ class SeparationItemModel {
   }
 
   factory SeparationItemModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return SeparationItemModel(
-        codEmpresa: json['CodEmpresa'],
-        codSepararEstoque: json['CodSepararEstoque'],
-        item: json['Item'],
-        sessionId: json['SessionId'],
-        situacao:
-            ExpeditionItemSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionItemSituation.pendente,
-        codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-        itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
-        codSeparador: json['CodSeparador'],
-        nomeSeparador: json['NomeSeparador'],
-        dataSeparacao: AppHelper.tryStringToDate(json['DataSeparacao']),
-        horaSeparacao: json['HoraSeparacao'] ?? '00:00:00',
-        codProduto: json['CodProduto'],
-        codUnidadeMedida: json['CodUnidadeMedida'],
-        quantidade: AppHelper.stringToDouble(json['Quantidade']),
-      );
-    } catch (_) {
-      rethrow;
-    }
+    // Refatorado para usar JsonParse helpers (parsing defensivo).
+    return SeparationItemModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codSepararEstoque: JsonParse.parseIntOr(json['CodSepararEstoque'], 0),
+      item: JsonParse.parseStringOr(json['Item'], ''),
+      sessionId: JsonParse.parseStringOr(json['SessionId'], ''),
+      situacao: ExpeditionItemSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionItemSituation.pendente,
+      codCarrinhoPercurso: JsonParse.parseIntOr(json['CodCarrinhoPercurso'], 0),
+      itemCarrinhoPercurso: JsonParse.parseStringOr(json['ItemCarrinhoPercurso'], ''),
+      codSeparador: JsonParse.parseIntOr(json['CodSeparador'], 0),
+      nomeSeparador: JsonParse.parseStringOr(json['NomeSeparador'], ''),
+      dataSeparacao: AppHelper.tryStringToDate(json['DataSeparacao']),
+      horaSeparacao: JsonParse.parseStringOr(json['HoraSeparacao'], '00:00:00'),
+      codProduto: JsonParse.parseIntOr(json['CodProduto'], 0),
+      codUnidadeMedida: JsonParse.parseStringOr(json['CodUnidadeMedida'], ''),
+      quantidade: AppHelper.stringToDouble(json['Quantidade']),
+    );
   }
 
   /// Factory method para criação segura com validação de schema

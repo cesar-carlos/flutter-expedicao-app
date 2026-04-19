@@ -1,3 +1,4 @@
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
@@ -38,18 +39,15 @@ class ExpeditionCartModel {
   }
 
   factory ExpeditionCartModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return ExpeditionCartModel(
-        codEmpresa: json['CodEmpresa'],
-        codCarrinho: json['CodCarrinho'],
-        descricao: json['Descricao'],
-        ativo: Situation.fromCodeWithFallback(json['Ativo'] as String? ?? ''),
-        codigoBarras: json['CodigoBarras'],
-        situacao: ExpeditionCartSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionCartSituation.vazio,
-      );
-    } catch (_) {
-      rethrow;
-    }
+    return ExpeditionCartModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codCarrinho: JsonParse.parseIntOr(json['CodCarrinho'], 0),
+      descricao: JsonParse.parseStringOr(json['Descricao'], ''),
+      ativo: Situation.fromCodeWithFallback(JsonParse.parseStringOr(json['Ativo'], '')),
+      codigoBarras: JsonParse.parseStringOr(json['CodigoBarras'], ''),
+      situacao: ExpeditionCartSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionCartSituation.vazio,
+    );
   }
 
   /// Factory method para criação segura com validação de schema

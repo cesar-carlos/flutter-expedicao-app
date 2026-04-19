@@ -1,3 +1,4 @@
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
@@ -57,23 +58,22 @@ class ExpeditionCancellationModel {
   }
 
   factory ExpeditionCancellationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return ExpeditionCancellationModel(
-        codEmpresa: json['CodEmpresa'],
-        codCancelamento: json['CodCancelamento'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
-        codOrigem: json['CodOrigem'],
-        itemOrigem: json['ItemOrigem'],
-        codMotivoCancelamento: json['CodMotivoCancelamento'],
-        dataCancelamento: DateTime.parse(json['DataCancelamento']),
-        horaCancelamento: json['HoraCancelamento'],
-        codUsuarioCancelamento: json['CodUsuarioCancelamento'],
-        nomeUsuarioCancelamento: json['NomeUsuarioCancelamento'],
-        observacaoCancelamento: json['ObservacaoCancelamento'],
-      );
-    } catch (_) {
-      rethrow;
-    }
+    // Bug critico anterior: `DateTime.parse(json['DataCancelamento'])`
+    // sem try/catch crashava com FormatException se viesse mal
+    // formatado. Agora `parseDateTimeOr` com fallback epoch 0.
+    return ExpeditionCancellationModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codCancelamento: JsonParse.parseIntOr(json['CodCancelamento'], 0),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      itemOrigem: JsonParse.parseStringOr(json['ItemOrigem'], ''),
+      codMotivoCancelamento: JsonParse.parseInt(json['CodMotivoCancelamento']),
+      dataCancelamento: JsonParse.parseDateTimeOr(json['DataCancelamento'], DateTime.fromMillisecondsSinceEpoch(0)),
+      horaCancelamento: JsonParse.parseStringOr(json['HoraCancelamento'], '00:00:00'),
+      codUsuarioCancelamento: JsonParse.parseIntOr(json['CodUsuarioCancelamento'], 0),
+      nomeUsuarioCancelamento: JsonParse.parseStringOr(json['NomeUsuarioCancelamento'], ''),
+      observacaoCancelamento: JsonParse.parseStringOrNull(json['ObservacaoCancelamento']),
+    );
   }
 
   static Result<ExpeditionCancellationModel> fromJsonSafe(Map<String, dynamic> json) {

@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
@@ -51,21 +52,18 @@ class ExpeditionCartRouteModel {
   }
 
   factory ExpeditionCartRouteModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return ExpeditionCartRouteModel(
-        codEmpresa: json['CodEmpresa'],
-        codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
-        codOrigem: json['CodOrigem'],
-        situacao: ExpeditionCartSituation.fromCode(json['Situacao']) ?? ExpeditionCartSituation.vazio,
-        dataInicio: AppHelper.tryStringToDate(json['DataInicio']),
-        horaInicio: json['HoraInicio'] ?? '00:00:00',
-        dataFinalizacao: AppHelper.tryStringToDateOrNull(json['DataFinalizacao']),
-        horaFinalizacao: json['HoraFinalizacao'],
-      );
-    } catch (_) {
-      rethrow;
-    }
+    return ExpeditionCartRouteModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codCarrinhoPercurso: JsonParse.parseIntOr(json['CodCarrinhoPercurso'], 0),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      situacao: ExpeditionCartSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionCartSituation.vazio,
+      dataInicio: AppHelper.tryStringToDate(json['DataInicio']),
+      horaInicio: JsonParse.parseStringOr(json['HoraInicio'], '00:00:00'),
+      dataFinalizacao: AppHelper.tryStringToDateOrNull(json['DataFinalizacao']),
+      horaFinalizacao: JsonParse.parseStringOrNull(json['HoraFinalizacao']),
+    );
   }
 
   Map<String, dynamic> toJson() {
