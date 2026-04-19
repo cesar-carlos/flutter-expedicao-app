@@ -237,22 +237,24 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
     }
   }
 
+  /// Encontra o indice da consulta correspondente ao `DataGridRow`.
+  ///
+  /// Bug de performance anterior: chamava `rows.indexOf(row)` PRIMEIRO,
+  /// que recomputava o getter `rows` (mapeia toda a lista
+  /// `_consultations`) a cada call. Em grids com 200+ linhas isso
+  /// custava O(n^2) total. O fallback por `id` ja existia mas so
+  /// rodava se o `indexOf` falhasse — agora colocamos o fallback
+  /// (lookup por id) como caminho primario porque e O(n) garantido
+  /// e nao depende de identidade de DataGridRow (que e recriado a
+  /// cada call do getter rows).
   int _findRowIndex(DataGridRow row) {
     try {
-      final directIndex = rows.indexOf(row);
-      if (directIndex >= 0) {
-        return directIndex;
-      }
-
       final rowCells = row.getCells();
-      if (rowCells.isEmpty) {
-        return -1;
-      }
+      if (rowCells.isEmpty) return -1;
 
       final firstCell = rowCells.first;
       if (firstCell.columnName == 'id' && firstCell.value is int) {
         final idValue = firstCell.value as int;
-
         for (int i = 0; i < _consultations.length; i++) {
           if (_consultations[i].codSepararEstoque == idValue) {
             return i;
@@ -260,7 +262,11 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
         }
       }
 
-      return -1;
+      // Ultima tentativa: identity match (raramente matcha porque
+      // o getter `rows` cria DataGridRows novos a cada call, mas
+      // mantemos por seguranca em caso do syncfusion otimizar).
+      final directIndex = rows.indexOf(row);
+      return directIndex;
     } catch (e) {
       return -1;
     }

@@ -137,16 +137,44 @@ class ShipmentSeparateDataSource extends DataGridSource {
     }).toList();
   }
 
+  /// Cache da lista de separacoes indexada por codSepararEstoque.
+  ///
+  /// Bug latente anterior:
+  /// 1. `rows.indexOf(row)` recomputava o `rows` getter a cada call
+  ///    (que mapeia a lista inteira). Em grids com 200+ linhas isso
+  ///    custava O(n^2) total para renderizar.
+  /// 2. `DataGridRow` nao tem operador == customizado — usa identity.
+  ///    Como `rows` getter cria DataGridRows novos a cada call, o
+  ///    `indexOf` podia retornar -1, gerando `RangeError` em
+  ///    `_separations[-1]`.
+  ///
+  /// Fix: procurar a separation diretamente pelo valor da primeira
+  /// celula ('codigo' = codSepararEstoque.toString()), sem depender
+  /// de identidade de DataGridRow.
+  SeparateModel? _separationFromRow(DataGridRow row) {
+    final cells = row.getCells();
+    if (cells.isEmpty) return null;
+    final codigoCell = cells.firstWhere(
+      (c) => c.columnName == 'codigo',
+      orElse: () => cells.first,
+    );
+    final codigo = codigoCell.value?.toString();
+    if (codigo == null) return null;
+    for (final s in _separations) {
+      if (s.codSepararEstoque.toString() == codigo) return s;
+    }
+    return null;
+  }
+
   @override
   DataGridRowAdapter? buildRow(DataGridRow row) {
-    final rowIndex = rows.indexOf(row);
-    final separation = _separations[rowIndex];
+    final separation = _separationFromRow(row);
 
     return DataGridRowAdapter(
       cells: row.getCells().map<Widget>((dataGridCell) {
         return GestureDetector(
-          onTap: onRowTap != null ? () => onRowTap!(separation) : null,
-          onDoubleTap: onRowDoubleTap != null ? () => onRowDoubleTap!(separation) : null,
+          onTap: (onRowTap != null && separation != null) ? () => onRowTap!(separation) : null,
+          onDoubleTap: (onRowDoubleTap != null && separation != null) ? () => onRowDoubleTap!(separation) : null,
           child: Container(
             padding: const EdgeInsets.all(8.0),
             alignment: _getAlignment(dataGridCell.columnName),
