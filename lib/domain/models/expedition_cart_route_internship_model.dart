@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
@@ -79,28 +80,31 @@ class ExpeditionCartRouteInternshipModel {
   }
 
   factory ExpeditionCartRouteInternshipModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return ExpeditionCartRouteInternshipModel(
-        codEmpresa: json['CodEmpresa'],
-        codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-        item: json['Item'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String? ?? ''),
-        codOrigem: json['CodOrigem'],
-        codPercursoEstagio: json['CodPercursoEstagio'],
-        codCarrinho: json['CodCarrinho'],
-        situacao: ExpeditionSituation.fromCode(json['Situacao'] as String? ?? '') ?? ExpeditionSituation.naoLocalizada,
-        dataInicio: DateTime.parse(json['DataInicio']),
-        horaInicio: json['HoraInicio'],
-        codUsuarioInicio: json['CodUsuarioInicio'],
-        nomeUsuarioInicio: json['NomeUsuarioInicio'],
-        dataFinalizacao: AppHelper.tryStringToDateOrNull(json['DataFinalizacao']),
-        horaFinalizacao: json['HoraFinalizacao'],
-        codUsuarioFinalizacao: json['CodUsuarioFinalizacao'],
-        nomeUsuarioFinalizacao: json['NomeUsuarioFinalizacao'],
-      );
-    } catch (_) {
-      rethrow;
-    }
+    // Refatorado para usar JsonParse helpers (parsing defensivo).
+    // Bug critico anterior: `DateTime.parse(json['DataInicio'])` SEM
+    // try/catch crashava se a string viesse mal formatada — propagava
+    // FormatException para o caller. Agora usa parseDateTimeOr com
+    // fallback para epoch 0 (data claramente invalida que outras
+    // camadas podem detectar).
+    return ExpeditionCartRouteInternshipModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codCarrinhoPercurso: JsonParse.parseIntOr(json['CodCarrinhoPercurso'], 0),
+      item: JsonParse.parseStringOr(json['Item'], ''),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      codPercursoEstagio: JsonParse.parseIntOr(json['CodPercursoEstagio'], 0),
+      codCarrinho: JsonParse.parseIntOr(json['CodCarrinho'], 0),
+      situacao: ExpeditionSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionSituation.naoLocalizada,
+      dataInicio: JsonParse.parseDateTimeOr(json['DataInicio'], DateTime.fromMillisecondsSinceEpoch(0)),
+      horaInicio: JsonParse.parseStringOr(json['HoraInicio'], '00:00:00'),
+      codUsuarioInicio: JsonParse.parseIntOr(json['CodUsuarioInicio'], 0),
+      nomeUsuarioInicio: JsonParse.parseStringOr(json['NomeUsuarioInicio'], ''),
+      dataFinalizacao: AppHelper.tryStringToDateOrNull(json['DataFinalizacao']),
+      horaFinalizacao: JsonParse.parseStringOrNull(json['HoraFinalizacao']),
+      codUsuarioFinalizacao: JsonParse.parseInt(json['CodUsuarioFinalizacao']),
+      nomeUsuarioFinalizacao: JsonParse.parseStringOrNull(json['NomeUsuarioFinalizacao']),
+    );
   }
 
   Map<String, dynamic> toJson() {

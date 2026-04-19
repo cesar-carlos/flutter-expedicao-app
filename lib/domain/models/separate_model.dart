@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/utils/date_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
@@ -98,32 +99,34 @@ class SeparateModel {
   }
 
   factory SeparateModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return SeparateModel(
-        codEmpresa: json['CodEmpresa'] as int,
-        codSepararEstoque: json['CodSepararEstoque'] as int,
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem'] as String),
-        codOrigem: json['CodOrigem'] as int,
-        codTipoOperacaoExpedicao: json['CodTipoOperacaoExpedicao'] as int,
-        tipoEntidade: EntityType.fromCode(json['TipoEntidade'] as String? ?? '') ?? EntityType.cliente,
-        codEntidade: json['CodEntidade'] as int,
-        nomeEntidade: json['NomeEntidade'] as String,
-        situacao: ExpeditionSituation.fromCode(json['Situacao'] as String) ?? ExpeditionSituation.aguardando,
-        data: DateHelper.tryStringToDate(json['Data']),
-        hora: json['Hora'] as String? ?? '00:00:00',
-        codPrioridade: json['CodPrioridade'] as int,
-        historico: json['Historico'] as String?,
-        observacao: json['Observacao'] as String?,
-        codMotivoCancelamento: json['CodMotivoCancelamento'] as int?,
-        dataCancelamento: DateHelper.tryStringToDateOrNull(json['DataCancelamento']),
-        horaCancelamento: json['HoraCancelamento'] as String?,
-        codUsuarioCancelamento: json['CodUsuarioCancelamento'] as int?,
-        nomeUsuarioCancelamento: json['NomeUsuarioCancelamento'] as String?,
-        observacaoCancelamento: json['ObservacaoCancelamento'] as String?,
-      );
-    } catch (e) {
-      rethrow;
-    }
+    // Refatorado para usar JsonParse helpers (parsing defensivo
+    // centralizado). Antes: casts diretos `as int`/`as String` que
+    // crashavam com TypeError quando servidor retornava tipos
+    // diferentes (string em vez de int, null em vez de string), e
+    // try/catch+rethrow inutil ao redor.
+    return SeparateModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codSepararEstoque: JsonParse.parseIntOr(json['CodSepararEstoque'], 0),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      codTipoOperacaoExpedicao: JsonParse.parseIntOr(json['CodTipoOperacaoExpedicao'], 0),
+      tipoEntidade: EntityType.fromCode(JsonParse.parseStringOr(json['TipoEntidade'], '')) ?? EntityType.cliente,
+      codEntidade: JsonParse.parseIntOr(json['CodEntidade'], 0),
+      nomeEntidade: JsonParse.parseStringOr(json['NomeEntidade'], ''),
+      situacao:
+          ExpeditionSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ?? ExpeditionSituation.aguardando,
+      data: DateHelper.tryStringToDate(json['Data']),
+      hora: JsonParse.parseStringOr(json['Hora'], '00:00:00'),
+      codPrioridade: JsonParse.parseIntOr(json['CodPrioridade'], 0),
+      historico: JsonParse.parseStringOrNull(json['Historico']),
+      observacao: JsonParse.parseStringOrNull(json['Observacao']),
+      codMotivoCancelamento: JsonParse.parseInt(json['CodMotivoCancelamento']),
+      dataCancelamento: DateHelper.tryStringToDateOrNull(json['DataCancelamento']),
+      horaCancelamento: JsonParse.parseStringOrNull(json['HoraCancelamento']),
+      codUsuarioCancelamento: JsonParse.parseInt(json['CodUsuarioCancelamento']),
+      nomeUsuarioCancelamento: JsonParse.parseStringOrNull(json['NomeUsuarioCancelamento']),
+      observacaoCancelamento: JsonParse.parseStringOrNull(json['ObservacaoCancelamento']),
+    );
   }
 
   /// Factory method para criação segura com validação de schema

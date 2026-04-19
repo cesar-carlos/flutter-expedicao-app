@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
@@ -70,26 +71,25 @@ class SeparateItemModel {
   }
 
   factory SeparateItemModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return SeparateItemModel(
-        codEmpresa: json['CodEmpresa'],
-        codSepararEstoque: json['CodSepararEstoque'],
-        item: json['Item'],
-        codSetorEstoque: json['CodSetorEstoque'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
-        codOrigem: json['CodOrigem'],
-        itemOrigem: json['ItemOrigem'],
-        codLocalArmazenagem: json['CodLocalArmazenagem'],
-        codProduto: json['CodProduto'],
-        codUnidadeMedida: json['CodUnidadeMedida'],
-        quantidade: AppHelper.stringToDouble(json['Quantidade']),
-        quantidadeInterna: AppHelper.stringToDouble(json['QuantidadeInterna']),
-        quantidadeExterna: AppHelper.stringToDouble(json['QuantidadeExterna']),
-        quantidadeSeparacao: AppHelper.stringToDouble(json['QuantidadeSeparacao']),
-      );
-    } catch (_) {
-      rethrow;
-    }
+    // Refatorado para usar JsonParse helpers (mesmo padrao defensivo
+    // do SeparateModel). Antes: campos non-nullable sem cast nem
+    // fallback (json['CodEmpresa'] direto crashava se null).
+    return SeparateItemModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codSepararEstoque: JsonParse.parseIntOr(json['CodSepararEstoque'], 0),
+      item: JsonParse.parseStringOr(json['Item'], ''),
+      codSetorEstoque: JsonParse.parseInt(json['CodSetorEstoque']),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      itemOrigem: JsonParse.parseStringOrNull(json['ItemOrigem']),
+      codLocalArmazenagem: JsonParse.parseIntOr(json['CodLocalArmazenagem'], 0),
+      codProduto: JsonParse.parseIntOr(json['CodProduto'], 0),
+      codUnidadeMedida: JsonParse.parseStringOr(json['CodUnidadeMedida'], ''),
+      quantidade: AppHelper.stringToDouble(json['Quantidade']),
+      quantidadeInterna: AppHelper.stringToDouble(json['QuantidadeInterna']),
+      quantidadeExterna: AppHelper.stringToDouble(json['QuantidadeExterna']),
+      quantidadeSeparacao: AppHelper.stringToDouble(json['QuantidadeSeparacao']),
+    );
   }
 
   /// Factory method para criação segura com validação de schema
