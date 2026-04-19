@@ -1,241 +1,57 @@
-import 'dart:async';
-import 'dart:convert';
-import 'package:uuid/uuid.dart';
-
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
-import 'package:data7_expedicao/core/errors/app_error.dart';
-import 'package:data7_expedicao/data/dtos/send_mutation_socket_dto.dart';
+import 'package:data7_expedicao/core/network/socket_request_helper.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/separation_item_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
-import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
-import 'package:data7_expedicao/core/network/socket_config.dart';
 
+/// Repositorio de SeparationItemModel.
+///
+/// Refatorado para usar [SocketRequestHelper] (ver doc do helper).
+/// Preserva os timeouts originais (`shortNetworkTimeout` no select,
+/// `networkTimeout` nas mutations) para manter comportamento existente.
 class SeparationItemRepositoryImpl implements BasicRepository<SeparationItemModel> {
-  final selectEvent = 'separacao.item.select';
-  final insertEvent = 'separacao.item.insert';
-  final updateEvent = 'separacao.item.update';
-  final deleteEvent = 'separacao.item.delete';
-  var socket = SocketConfig.instance;
-  final uuid = const Uuid();
+  static const String _selectEvent = 'separacao.item.select';
+  static const String _insertEvent = 'separacao.item.insert';
+  static const String _updateEvent = 'separacao.item.update';
+  static const String _deleteEvent = 'separacao.item.delete';
 
   @override
-  Future<List<SeparationItemModel>> select(QueryBuilder queryBuilder) async {
-    final event = '${socket.id} $selectEvent';
-    final completer = Completer<List<SeparationItemModel>>();
-    final responseId = uuid.v4();
-
-    final whereQuery = queryBuilder.buildSqlWhere();
-    final paginationQuery = queryBuilder.buildPagination();
-
-    final send = SendQuerySocketDto(
-      session: socket.id!,
-      responseIn: responseId,
-      where: whereQuery.isEmpty ? null : whereQuery,
-      pagination: paginationQuery.isEmpty ? null : paginationQuery,
+  Future<List<SeparationItemModel>> select(QueryBuilder queryBuilder) {
+    return SocketRequestHelper.select<SeparationItemModel>(
+      baseEvent: _selectEvent,
+      queryBuilder: queryBuilder,
+      fromJson: SeparationItemModel.fromJson,
+      timeout: UIConstants.shortNetworkTimeout,
     );
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final error = response?['Error'];
-          final data = response?['Data'] ?? [];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = data.map<SeparationItemModel>((json) {
-            return SeparationItemModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future.timeout(
-        UIConstants.shortNetworkTimeout,
-        onTimeout: () {
-          if (completer.isCompleted) return completer.future;
-          socket.off(responseId);
-          completer.completeError(DataError(message: 'Tempo limite de consulta excedido'));
-          return completer.future;
-        },
-      );
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
   }
 
   @override
-  Future<List<SeparationItemModel>> insert(SeparationItemModel entity) async {
-    final event = '${socket.id} $insertEvent';
-    final completer = Completer<List<SeparationItemModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final mutation = response?['Mutation'] ?? [];
-          final error = response?['Error'];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = mutation.map<SeparationItemModel>((json) {
-            return SeparationItemModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future.timeout(
-        UIConstants.networkTimeout,
-        onTimeout: () {
-          if (completer.isCompleted) return completer.future;
-          socket.off(responseId);
-          completer.completeError(DataError(message: 'Tempo limite de operação excedido'));
-          return completer.future;
-        },
-      );
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
+  Future<List<SeparationItemModel>> insert(SeparationItemModel entity) {
+    return SocketRequestHelper.mutation<SeparationItemModel>(
+      baseEvent: _insertEvent,
+      entityJson: entity.toJson(),
+      fromJson: SeparationItemModel.fromJson,
+      timeout: UIConstants.networkTimeout,
+    );
   }
 
   @override
-  Future<List<SeparationItemModel>> update(SeparationItemModel entity) async {
-    final event = '${socket.id} $updateEvent';
-    final completer = Completer<List<SeparationItemModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final mutation = response?['Mutation'] ?? [];
-          final error = response?['Error'];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = mutation.map<SeparationItemModel>((json) {
-            return SeparationItemModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future.timeout(
-        UIConstants.networkTimeout,
-        onTimeout: () {
-          if (completer.isCompleted) return completer.future;
-          socket.off(responseId);
-          completer.completeError(DataError(message: 'Tempo limite de operação excedido'));
-          return completer.future;
-        },
-      );
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
+  Future<List<SeparationItemModel>> update(SeparationItemModel entity) {
+    return SocketRequestHelper.mutation<SeparationItemModel>(
+      baseEvent: _updateEvent,
+      entityJson: entity.toJson(),
+      fromJson: SeparationItemModel.fromJson,
+      timeout: UIConstants.networkTimeout,
+    );
   }
 
   @override
-  Future<List<SeparationItemModel>> delete(SeparationItemModel entity) async {
-    final event = '${socket.id} $deleteEvent';
-    final completer = Completer<List<SeparationItemModel>>();
-    final responseId = uuid.v4();
-
-    final send = SendMutationSocketDto(session: socket.id!, responseIn: responseId, mutation: entity.toJson());
-
-    try {
-      if (!SocketConfig.isConnected) {
-        throw DataError(message: 'Socket não está conectado');
-      }
-
-      socket.emit(event, jsonEncode(send.toJson()));
-
-      socket.on(responseId, (receiver) {
-        try {
-          final response = jsonDecode(receiver);
-          final mutation = response?['Mutation'] ?? [];
-          final error = response?['Error'];
-
-          if (error != null) {
-            completer.completeError(DataError(message: error.toString()));
-            return;
-          }
-
-          final list = mutation.map<SeparationItemModel>((json) {
-            return SeparationItemModel.fromJson(json);
-          }).toList();
-
-          completer.complete(list);
-        } catch (e) {
-          completer.completeError(DataError(message: e.toString()));
-        } finally {
-          socket.off(responseId);
-        }
-      });
-
-      return completer.future.timeout(
-        UIConstants.networkTimeout,
-        onTimeout: () {
-          if (completer.isCompleted) return completer.future;
-          socket.off(responseId);
-          completer.completeError(DataError(message: 'Tempo limite de operação excedido'));
-          return completer.future;
-        },
-      );
-    } catch (e) {
-      socket.off(responseId);
-      throw DataError(message: e.toString());
-    }
+  Future<List<SeparationItemModel>> delete(SeparationItemModel entity) {
+    return SocketRequestHelper.mutation<SeparationItemModel>(
+      baseEvent: _deleteEvent,
+      entityJson: entity.toJson(),
+      fromJson: SeparationItemModel.fromJson,
+      timeout: UIConstants.networkTimeout,
+    );
   }
 }
