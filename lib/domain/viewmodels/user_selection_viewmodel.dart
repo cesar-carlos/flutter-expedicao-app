@@ -231,9 +231,19 @@ class UserSelectionViewModel extends ChangeNotifier {
     if (query.trim().isEmpty) {
       _clearUsers();
     } else {
-      // searchUsers e fire-and-forget aqui (mesmo padrao da UI),
-      // porem a propria searchUsers ja loga erros via AppLogger.
-      unawaited(searchUsers(query));
+      // searchUsers trata a maioria dos erros em try/catch; este catchError
+      // cobre falhas fora desse caminho (ex.: assert em notify) sem virar
+      // "Unhandled Future error" no debounce do Timer.
+      unawaited(
+        searchUsers(query).catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha não tratada em searchUsers (debounce)',
+            tag: 'UserSelectionVM',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     }
   }
 
