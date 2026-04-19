@@ -166,11 +166,20 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
       return;
     }
 
-    Future.delayed(UIConstants.shortLoadingDelay, () {
-      if (mounted && _scanController.text.trim() == text) {
-        _handleCompleteBarcode(text);
-      }
-    });
+    unawaited(
+      Future<void>.delayed(UIConstants.shortLoadingDelay, () {
+        if (mounted && _scanController.text.trim() == text) {
+          _handleCompleteBarcode(text);
+        }
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha no delayed de processamento de input (ShelfScanningModal)',
+          tag: 'ShelfScanningModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _handleCompleteBarcode(String barcode) {
@@ -180,11 +189,20 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
   }
 
   void _clearScannerFieldAfterDelay() {
-    Future.delayed(UIConstants.scannerDisplayDelay, () {
-      if (mounted) {
-        _scanController.clear();
-      }
-    });
+    unawaited(
+      Future<void>.delayed(UIConstants.scannerDisplayDelay, () {
+        if (mounted) {
+          _scanController.clear();
+        }
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao limpar campo (ShelfScanningModal)',
+          tag: 'ShelfScanningModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   bool _hasEnterCharacter(String text) {
@@ -214,14 +232,23 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
       if (isValid) {
         _isClosingFromSuccess = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Future.delayed(Duration.zero, () {
-            if (mounted) {
-              Navigator.of(context).pop();
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                widget.onShelfScanned(input);
-              });
-            }
-          });
+          unawaited(
+            Future<void>.delayed(Duration.zero, () {
+              if (mounted) {
+                Navigator.of(context).pop();
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  widget.onShelfScanned(input);
+                });
+              }
+            }).catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha ao fechar modal após validação (ShelfScanningModal)',
+                tag: 'ShelfScanningModal',
+                error: e,
+                stackTrace: s,
+              );
+            }),
+          );
         });
       } else {
         _showValidationError();
@@ -271,39 +298,75 @@ class _ShelfScanningModalState extends State<ShelfScanningModal> {
     AppLogger.debug('Enabling scanner mode', tag: 'ShelfScanningModal');
     _hideKeyboard();
 
-    Future.delayed(UIConstants.shortDelay, () {
-      if (mounted) {
-        _focusNode.requestFocus();
-      }
-    });
+    unawaited(
+      Future<void>.delayed(UIConstants.shortDelay, () {
+        if (mounted) {
+          _focusNode.requestFocus();
+        }
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha no delayed de foco (scanner mode ShelfScanningModal)',
+          tag: 'ShelfScanningModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _enableKeyboardMode() {
     AppLogger.debug('Enabling keyboard mode', tag: 'ShelfScanningModal');
     _focusNode.unfocus();
 
-    Future.delayed(UIConstants.shortDelay, () {
-      if (mounted) {
-        _focusNode.requestFocus();
-        _forceKeyboardShow();
-      }
-    });
+    unawaited(
+      Future<void>.delayed(UIConstants.shortDelay, () {
+        if (mounted) {
+          _focusNode.requestFocus();
+          _forceKeyboardShow();
+        }
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha no delayed de foco (keyboard mode ShelfScanningModal)',
+          tag: 'ShelfScanningModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _forceKeyboardShow() {
-    Future.delayed(UIConstants.shortLoadingDelay, () {
-      if (mounted) {
-        try {
-          SystemChannels.textInput.invokeMethod('TextInput.show');
-        } catch (e) {
-          Future.delayed(UIConstants.shortDelay, () {
-            if (mounted) {
-              _focusNode.requestFocus();
-            }
-          });
+    unawaited(
+      Future<void>.delayed(UIConstants.shortLoadingDelay, () {
+        if (mounted) {
+          try {
+            SystemChannels.textInput.invokeMethod('TextInput.show');
+          } catch (e) {
+            unawaited(
+              Future<void>.delayed(UIConstants.shortDelay, () {
+                if (mounted) {
+                  _focusNode.requestFocus();
+                }
+              }).catchError((Object err, StackTrace st) {
+                AppLogger.warning(
+                  'Falha no delayed de fallback de foco (ShelfScanningModal)',
+                  tag: 'ShelfScanningModal',
+                  error: err,
+                  stackTrace: st,
+                );
+              }),
+            );
+          }
         }
-      }
-    });
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir teclado (ShelfScanningModal)',
+          tag: 'ShelfScanningModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _hideKeyboard() {

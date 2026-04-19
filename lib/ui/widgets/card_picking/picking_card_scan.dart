@@ -1,4 +1,4 @@
-import 'dart:async' show StreamSubscription, Timer, unawaited;
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -110,18 +110,27 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       if (mounted) {
         _scannerPreferencesController.loadPreferences();
 
-        Future.delayed(UIConstants.scannerInitDelay, () {
-          if (mounted) {
-            _scannerActivationController.activate(
-              scanState: _scanState,
-              keyboardController: _keyboardController,
-              scanFocusNode: _scanFocusNode,
-              scanController: _scanController,
-              onBarcodeScanned: _onBarcodeScanned,
-              mounted: () => mounted,
+        unawaited(
+          Future<void>.delayed(UIConstants.scannerInitDelay, () {
+            if (mounted) {
+              _scannerActivationController.activate(
+                scanState: _scanState,
+                keyboardController: _keyboardController,
+                scanFocusNode: _scanFocusNode,
+                scanController: _scanController,
+                onBarcodeScanned: _onBarcodeScanned,
+                mounted: () => mounted,
+              );
+            }
+          }).catchError((Object e, StackTrace s) {
+            AppLogger.warning(
+              'Falha na ativação inicial do scanner (card picking)',
+              tag: 'PickingCardScan',
+              error: e,
+              stackTrace: s,
             );
-          }
-        });
+          }),
+        );
         _statusCache.forceCheckCartStatus();
         if (mounted) {
           _scanState.forceUpdate();
@@ -133,13 +142,22 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
     widget.viewModel.addListener(_onViewModelChanged);
 
-    Future.delayed(UIConstants.longDelay, () {
-      if (mounted && !_hasShownInitialShelfScan) {
-        if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
-          _checkInitialShelfScan();
+    unawaited(
+      Future<void>.delayed(UIConstants.longDelay, () {
+        if (mounted && !_hasShownInitialShelfScan) {
+          if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
+            _checkInitialShelfScan();
+          }
         }
-      }
-    });
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha no delayed de scan inicial de prateleira',
+          tag: 'PickingCardScan',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _initializeComponents() {
@@ -217,22 +235,31 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         _statusCache.forceCheckCartStatus();
 
         if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
-          Future.delayed(UIConstants.scannerActivationDelay, () {
-            if (mounted) {
-              if (!_scannerActivationController.isInitialized) {
-                _scannerActivationController.activate(
-                  scanState: _scanState,
-                  keyboardController: _keyboardController,
-                  scanFocusNode: _scanFocusNode,
-                  scanController: _scanController,
-                  onBarcodeScanned: _onBarcodeScanned,
-                  mounted: () => mounted,
-                );
+          unawaited(
+            Future<void>.delayed(UIConstants.scannerActivationDelay, () {
+              if (mounted) {
+                if (!_scannerActivationController.isInitialized) {
+                  _scannerActivationController.activate(
+                    scanState: _scanState,
+                    keyboardController: _keyboardController,
+                    scanFocusNode: _scanFocusNode,
+                    scanController: _scanController,
+                    onBarcodeScanned: _onBarcodeScanned,
+                    mounted: () => mounted,
+                  );
+                }
+                _scanState.setEnabled(_isCartInSeparationStatus());
+                _scanFocusNode.requestFocus();
               }
-              _scanState.setEnabled(_isCartInSeparationStatus());
-              _scanFocusNode.requestFocus();
-            }
-          });
+            }).catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha na reativação do scanner (didChangeDependencies)',
+                tag: 'PickingCardScan',
+                error: e,
+                stackTrace: s,
+              );
+            }),
+          );
         } else {
           _scanFocusNode.requestFocus();
         }
@@ -269,11 +296,20 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   void _clearScannerFieldAfterDelay() {
-    Future.delayed(UIConstants.scannerDisplayDelay, () {
-      if (mounted) {
-        _scanController.clear();
-      }
-    });
+    unawaited(
+      Future<void>.delayed(UIConstants.scannerDisplayDelay, () {
+        if (mounted) {
+          _scanController.clear();
+        }
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao limpar campo do scanner após delay',
+          tag: 'PickingCardScan',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _toggleKeyboard() {
@@ -475,6 +511,13 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
             if (!mounted) return;
             await Future.delayed(UIConstants.mediumDelay);
             if (mounted) await _checkAndShowSaveCartModal();
+          }).catchError((Object e, StackTrace s) {
+            AppLogger.warning(
+              'Falha na sequência pós-adicionar item (prateleira/salvar)',
+              tag: 'PickingCardScan',
+              error: e,
+              stackTrace: s,
+            );
           }),
         );
 
@@ -500,14 +543,32 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     if (nextItem != null) {
       _hasShownInitialShelfScan = true;
 
-      Future.delayed(UIConstants.shortLoadingDelay, () {
-        if (mounted) {
-          _pauseScannerForShelf().then((_) {
-            if (!mounted) return;
-            _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
-          });
-        }
-      });
+      unawaited(
+        Future<void>.delayed(UIConstants.shortLoadingDelay, () {
+          if (mounted) {
+            unawaited(
+              _pauseScannerForShelf().then((_) {
+                if (!mounted) return;
+                _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
+              }).catchError((Object e, StackTrace s) {
+                AppLogger.warning(
+                  'Falha ao abrir scan inicial de prateleira',
+                  tag: 'PickingCardScan',
+                  error: e,
+                  stackTrace: s,
+                );
+              }),
+            );
+          }
+        }).catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha no delayed antes do scan inicial de prateleira',
+            tag: 'PickingCardScan',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     }
   }
 

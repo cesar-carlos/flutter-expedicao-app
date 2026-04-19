@@ -1,8 +1,10 @@
-import 'dart:async' show Future;
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class KeyboardToggleController {
   final FocusNode scanFocusNode;
@@ -17,12 +19,21 @@ class KeyboardToggleController {
   void enableKeyboardMode() {
     scanFocusNode.unfocus();
 
-    Future.delayed(_focusDelay, () {
-      if (context.mounted) {
-        scanFocusNode.requestFocus();
-        _forceKeyboardShow();
-      }
-    });
+    unawaited(
+      Future<void>.delayed(_focusDelay, () {
+        if (context.mounted) {
+          scanFocusNode.requestFocus();
+          _forceKeyboardShow();
+        }
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha no delayed de foco (teclado)',
+          tag: 'KeyboardToggleController',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void enableScannerMode() {
@@ -31,19 +42,37 @@ class KeyboardToggleController {
   }
 
   void _forceKeyboardShow() {
-    Future.delayed(_keyboardDelay, () {
-      if (context.mounted) {
-        try {
-          SystemChannels.textInput.invokeMethod('TextInput.show');
-        } catch (e) {
-          Future.delayed(_focusDelay, () {
-            if (context.mounted) {
-              scanFocusNode.requestFocus();
-            }
-          });
+    unawaited(
+      Future<void>.delayed(_keyboardDelay, () {
+        if (context.mounted) {
+          try {
+            SystemChannels.textInput.invokeMethod('TextInput.show');
+          } catch (e) {
+            unawaited(
+              Future<void>.delayed(_focusDelay, () {
+                if (context.mounted) {
+                  scanFocusNode.requestFocus();
+                }
+              }).catchError((Object err, StackTrace st) {
+                AppLogger.warning(
+                  'Falha no delayed de fallback de foco (teclado)',
+                  tag: 'KeyboardToggleController',
+                  error: err,
+                  stackTrace: st,
+                );
+              }),
+            );
+          }
         }
-      }
-    });
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir teclado (delayed)',
+          tag: 'KeyboardToggleController',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _hideKeyboard() {
@@ -60,11 +89,20 @@ class KeyboardToggleController {
 
       scanFocusNode.requestFocus();
 
-      Future.delayed(_initialFocusDelay, () {
-        if (context.mounted) {
-          scanFocusNode.requestFocus();
-        }
-      });
+      unawaited(
+        Future<void>.delayed(_initialFocusDelay, () {
+          if (context.mounted) {
+            scanFocusNode.requestFocus();
+          }
+        }).catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha no delayed de foco inicial',
+            tag: 'KeyboardToggleController',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     });
   }
 

@@ -76,21 +76,39 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _loadScannerPreferences();
-        Future.delayed(UIConstants.shortLoadingDelay, () {
-          if (!mounted) return;
-          if (_isBroadcastActive) {
-            _startBroadcastListener();
-            _hideKeyboard();
-            _focusNode.unfocus();
-          } else {
-            _enableScannerMode();
-            Future.delayed(UIConstants.shortDelay, () {
-              if (mounted) {
-                _focusNode.requestFocus();
-              }
-            });
-          }
-        });
+        unawaited(
+          Future<void>.delayed(UIConstants.shortLoadingDelay, () {
+            if (!mounted) return;
+            if (_isBroadcastActive) {
+              _startBroadcastListener();
+              _hideKeyboard();
+              _focusNode.unfocus();
+            } else {
+              _enableScannerMode();
+              unawaited(
+                Future<void>.delayed(UIConstants.shortDelay, () {
+                  if (mounted) {
+                    _focusNode.requestFocus();
+                  }
+                }).catchError((Object e, StackTrace s) {
+                  AppLogger.warning(
+                    'Falha no delayed de foco (modal prateleira init)',
+                    tag: 'ShelfScanningModalV2',
+                    error: e,
+                    stackTrace: s,
+                  );
+                }),
+              );
+            }
+          }).catchError((Object e, StackTrace s) {
+            AppLogger.warning(
+              'Falha no delayed inicial (modal prateleira)',
+              tag: 'ShelfScanningModalV2',
+              error: e,
+              stackTrace: s,
+            );
+          }),
+        );
       }
     });
   }
@@ -201,11 +219,20 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
       return;
     }
 
-    Future.delayed(UIConstants.shortLoadingDelay, () {
-      if (mounted && _scanController.text.trim() == text) {
-        _handleCompleteBarcode(text);
-      }
-    });
+    unawaited(
+      Future<void>.delayed(UIConstants.shortLoadingDelay, () {
+        if (mounted && _scanController.text.trim() == text) {
+          _handleCompleteBarcode(text);
+        }
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha no delayed de processamento de input (prateleira)',
+          tag: 'ShelfScanningModalV2',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _handleCompleteBarcode(String barcode) {
@@ -215,11 +242,20 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
   }
 
   void _clearScannerFieldAfterDelay() {
-    Future.delayed(UIConstants.scannerDisplayDelay, () {
-      if (mounted) {
-        _scanController.clear();
-      }
-    });
+    unawaited(
+      Future<void>.delayed(UIConstants.scannerDisplayDelay, () {
+        if (mounted) {
+          _scanController.clear();
+        }
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao limpar campo (modal prateleira)',
+          tag: 'ShelfScanningModalV2',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   bool _hasEnterCharacter(String text) {
@@ -260,9 +296,18 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
           }),
         );
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Future.delayed(Duration.zero, () {
-            if (mounted) Navigator.of(context).pop();
-          });
+          unawaited(
+            Future<void>.delayed(Duration.zero, () {
+              if (mounted) Navigator.of(context).pop();
+            }).catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha ao fechar modal após validação de prateleira',
+                tag: 'ShelfScanningModalV2',
+                error: e,
+                stackTrace: s,
+              );
+            }),
+          );
         });
       } else {
         _showValidationError();
@@ -327,11 +372,20 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
     _hideKeyboard();
 
     if (!_isBroadcastActive) {
-      Future.delayed(UIConstants.shortDelay, () {
-        if (mounted) {
-          _focusNode.requestFocus();
-        }
-      });
+      unawaited(
+        Future<void>.delayed(UIConstants.shortDelay, () {
+          if (mounted) {
+            _focusNode.requestFocus();
+          }
+        }).catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha no delayed de foco (scanner mode modal)',
+            tag: 'ShelfScanningModalV2',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     } else {
       _focusNode.unfocus();
     }
@@ -341,28 +395,55 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
     AppLogger.debug('Enabling keyboard mode', tag: 'ShelfScanningModalV2');
     _focusNode.unfocus();
 
-    Future.delayed(UIConstants.shortDelay, () {
-      if (mounted) {
-        _focusNode.requestFocus();
-        _forceKeyboardShow();
-      }
-    });
+    unawaited(
+      Future<void>.delayed(UIConstants.shortDelay, () {
+        if (mounted) {
+          _focusNode.requestFocus();
+          _forceKeyboardShow();
+        }
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha no delayed de foco (keyboard mode modal)',
+          tag: 'ShelfScanningModalV2',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _forceKeyboardShow() {
-    Future.delayed(UIConstants.shortLoadingDelay, () {
-      if (mounted) {
-        try {
-          SystemChannels.textInput.invokeMethod('TextInput.show');
-        } catch (e) {
-          Future.delayed(UIConstants.shortDelay, () {
-            if (mounted) {
-              _focusNode.requestFocus();
-            }
-          });
+    unawaited(
+      Future<void>.delayed(UIConstants.shortLoadingDelay, () {
+        if (mounted) {
+          try {
+            SystemChannels.textInput.invokeMethod('TextInput.show');
+          } catch (e) {
+            unawaited(
+              Future<void>.delayed(UIConstants.shortDelay, () {
+                if (mounted) {
+                  _focusNode.requestFocus();
+                }
+              }).catchError((Object err, StackTrace st) {
+                AppLogger.warning(
+                  'Falha no delayed de fallback de foco (modal prateleira)',
+                  tag: 'ShelfScanningModalV2',
+                  error: err,
+                  stackTrace: st,
+                );
+              }),
+            );
+          }
         }
-      }
-    });
+      }).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir teclado (modal prateleira)',
+          tag: 'ShelfScanningModalV2',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _hideKeyboard() {
@@ -384,9 +465,18 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
         } else {
           final navigator = Navigator.of(context);
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Future.delayed(Duration.zero, () {
-              if (navigator.mounted) navigator.pop();
-            });
+            unawaited(
+              Future<void>.delayed(Duration.zero, () {
+                if (navigator.mounted) navigator.pop();
+              }).catchError((Object e, StackTrace s) {
+                AppLogger.warning(
+                  'Falha ao fechar modal (PopScope)',
+                  tag: 'ShelfScanningModalV2',
+                  error: e,
+                  stackTrace: s,
+                );
+              }),
+            );
           });
         }
       },
@@ -471,12 +561,21 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
                   TextButton(
                     onPressed: () {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        Future.delayed(Duration.zero, () {
-                          if (context.mounted) {
-                            Navigator.of(context).pop();
-                            widget.onBack!();
-                          }
-                        });
+                        unawaited(
+                          Future<void>.delayed(Duration.zero, () {
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                              widget.onBack!();
+                            }
+                          }).catchError((Object e, StackTrace s) {
+                            AppLogger.warning(
+                              'Falha ao voltar do modal de prateleira',
+                              tag: 'ShelfScanningModalV2',
+                              error: e,
+                              stackTrace: s,
+                            );
+                          }),
+                        );
                       });
                     },
                     child: Text(context.l10n.back),
