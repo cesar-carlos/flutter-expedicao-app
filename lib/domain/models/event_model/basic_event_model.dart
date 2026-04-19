@@ -9,10 +9,20 @@ class BasicEventModel {
   const BasicEventModel({this.session, this.data, required this.timestamp, required this.eventType});
 
   factory BasicEventModel.fromJson(Map<String, dynamic> json) {
+    // Bug latente anterior: `data: json['data'] ?? json['Data']` fazia
+    // cast implicito Object? -> Map<String, dynamic>?. Se viesse
+    // List ou String, crashava com TypeError no acesso. Agora valida
+    // explicitamente o tipo.
+    // Bug similar: `session` aceitava qualquer tipo (int, etc).
+    // Bug timestamp: `DateTime.tryParse(json['timestamp'])` exigia
+    // String — se viesse int (epoch) ou null direto crashava no cast.
+    final sessionRaw = json['session'] ?? json['Session'];
+    final dataRaw = json['data'] ?? json['Data'];
+    final tsRaw = json['timestamp'];
     return BasicEventModel(
-      session: json['session'] ?? json['Session'],
-      data: json['data'] ?? json['Data'],
-      timestamp: json['timestamp'] != null ? DateTime.tryParse(json['timestamp']) ?? DateTime.now() : DateTime.now(),
+      session: sessionRaw?.toString(),
+      data: dataRaw is Map ? Map<String, dynamic>.from(dataRaw) : null,
+      timestamp: tsRaw is String ? (DateTime.tryParse(tsRaw) ?? DateTime.now()) : DateTime.now(),
       eventType: _parseEventType(json['eventType'] ?? json['EventType']),
     );
   }

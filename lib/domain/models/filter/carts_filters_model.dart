@@ -1,3 +1,4 @@
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 
 class CartsFiltersModel {
@@ -22,17 +23,20 @@ class CartsFiltersModel {
   });
 
   factory CartsFiltersModel.fromJson(Map<String, dynamic> json) {
+    // Bug critico anterior: 2x `DateTime.parse(...)` sem try/catch
+    // (dataInicioInicial e dataInicioFinal). Agora usa parseDateTime
+    // nullable que retorna null em caso de falha.
+    final situacoesRaw = json['situacoes'];
+    final agrupRaw = json['carrinhoAgrupador'];
     return CartsFiltersModel(
-      codCarrinho: json['codCarrinho'],
-      nomeCarrinho: json['nomeCarrinho'],
-      codigoBarrasCarrinho: json['codigoBarrasCarrinho'],
-      situacoes: json['situacoes'] != null ? List<String>.from(json['situacoes']) : null,
-      nomeUsuarioInicio: json['nomeUsuarioInicio'],
-      dataInicioInicial: json['dataInicioInicial'] != null ? DateTime.parse(json['dataInicioInicial']) : null,
-      dataInicioFinal: json['dataInicioFinal'] != null ? DateTime.parse(json['dataInicioFinal']) : null,
-      carrinhoAgrupador: json['carrinhoAgrupador'] != null
-          ? Situation.fromCodeWithFallback(json['carrinhoAgrupador'])
-          : Situation.inativo,
+      codCarrinho: JsonParse.parseStringOrNull(json['codCarrinho']),
+      nomeCarrinho: JsonParse.parseStringOrNull(json['nomeCarrinho']),
+      codigoBarrasCarrinho: JsonParse.parseStringOrNull(json['codigoBarrasCarrinho']),
+      situacoes: situacoesRaw is List ? situacoesRaw.map((e) => e.toString()).toList(growable: false) : null,
+      nomeUsuarioInicio: JsonParse.parseStringOrNull(json['nomeUsuarioInicio']),
+      dataInicioInicial: JsonParse.parseDateTime(json['dataInicioInicial']),
+      dataInicioFinal: JsonParse.parseDateTime(json['dataInicioFinal']),
+      carrinhoAgrupador: agrupRaw != null ? Situation.fromCodeWithFallback(agrupRaw.toString()) : Situation.inativo,
     );
   }
 

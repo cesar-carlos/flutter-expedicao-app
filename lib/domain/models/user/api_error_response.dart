@@ -5,7 +5,10 @@ class ApiErrorResponse {
   ApiErrorResponse({required this.message});
 
   factory ApiErrorResponse.fromJson(Map<String, dynamic> json) {
-    return ApiErrorResponse(message: json['message'] ?? 'Erro desconhecido');
+    final raw = json['message'];
+    return ApiErrorResponse(
+      message: raw is String && raw.isNotEmpty ? raw : (raw?.toString() ?? 'Erro desconhecido'),
+    );
   }
 
   @override

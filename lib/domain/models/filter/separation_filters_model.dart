@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 
 class SeparationFiltersModel {
@@ -19,19 +20,19 @@ class SeparationFiltersModel {
   });
 
   factory SeparationFiltersModel.fromJson(Map<String, dynamic> json) {
+    // Bug critico anterior: `DateTime.parse(json['dataEmissao'])`
+    // sem try/catch crashava com FormatException quando lido de
+    // SharedPreferences corrompido. Agora usa JsonParse.parseDateTime
+    // (nullable, retorna null em caso de falha).
+    final situacoesRaw = json['situacoes'];
+    final setorRaw = json['setorEstoque'];
     return SeparationFiltersModel(
-      codSepararEstoque: json['codSepararEstoque'],
-      origem: json['origem'],
-      codOrigem: json['codOrigem'],
-      situacoes: json['situacoes'] != null
-          ? List<String>.from(json['situacoes'])
-          : null,
-      dataEmissao: json['dataEmissao'] != null
-          ? DateTime.parse(json['dataEmissao'])
-          : null,
-      setorEstoque: json['setorEstoque'] != null
-          ? ExpeditionSectorStockModel.fromJson(json['setorEstoque'])
-          : null,
+      codSepararEstoque: JsonParse.parseStringOrNull(json['codSepararEstoque']),
+      origem: JsonParse.parseStringOrNull(json['origem']),
+      codOrigem: JsonParse.parseStringOrNull(json['codOrigem']),
+      situacoes: situacoesRaw is List ? situacoesRaw.map((e) => e.toString()).toList(growable: false) : null,
+      dataEmissao: JsonParse.parseDateTime(json['dataEmissao']),
+      setorEstoque: setorRaw is Map ? ExpeditionSectorStockModel.fromJson(Map<String, dynamic>.from(setorRaw)) : null,
     );
   }
 

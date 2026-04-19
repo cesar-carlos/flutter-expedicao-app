@@ -1,3 +1,4 @@
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
@@ -20,18 +21,20 @@ class PendingProductsFiltersModel {
   });
 
   factory PendingProductsFiltersModel.fromJson(Map<String, dynamic> json) {
+    final situacaoRaw = json['situacao'];
+    final setorRaw = json['setorEstoque'];
     return PendingProductsFiltersModel(
-      codProduto: json['codProduto'],
-      codigoBarras: json['codigoBarras'],
-      nomeProduto: json['nomeProduto'],
-      enderecoDescricao: json['enderecoDescricao'],
-      situacao: json['situacao'] != null
+      codProduto: JsonParse.parseStringOrNull(json['codProduto']),
+      codigoBarras: JsonParse.parseStringOrNull(json['codigoBarras']),
+      nomeProduto: JsonParse.parseStringOrNull(json['nomeProduto']),
+      enderecoDescricao: JsonParse.parseStringOrNull(json['enderecoDescricao']),
+      situacao: situacaoRaw != null
           ? SeparationItemStatus.values.firstWhere(
-              (e) => e.code == json['situacao'],
+              (e) => e.code == situacaoRaw.toString(),
               orElse: () => SeparationItemStatus.pendente,
             )
           : null,
-      setorEstoque: json['setorEstoque'] != null ? ExpeditionSectorStockModel.fromJson(json['setorEstoque']) : null,
+      setorEstoque: setorRaw is Map ? ExpeditionSectorStockModel.fromJson(Map<String, dynamic>.from(setorRaw)) : null,
     );
   }
 

@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/results/index.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 
 class UserSystemModel {
@@ -67,45 +68,42 @@ class UserSystemModel {
   });
 
   factory UserSystemModel.fromJson(Map<String, dynamic> map) {
+    // Bug latente anterior: `as int? ??` crashava com TypeError se a
+    // API enviasse string ("123") em vez de int. Persistencia em
+    // SharedPreferences (AppUser.userSystem) podia ter dados
+    // corrompidos. Agora todos campos com JsonParse defensivo.
+    Situation flag(String key) => Situation.fromCodeWithFallback(JsonParse.parseStringOr(map[key], 'N'));
     return UserSystemModel(
-      codUsuario: map['CodUsuario'] as int? ?? 0,
-      nomeUsuario: map['NomeUsuario'] as String? ?? '',
-      ativo: Situation.fromCodeWithFallback(map['Ativo'] as String? ?? 'N'),
-      codEmpresa: map['CodEmpresa'] as int?,
-      nomeEmpresa: map['NomeEmpresa'] as String?,
-      codVendedor: map['CodVendedor'] as int?,
-      nomeVendedor: map['NomeVendedor'] as String?,
-      codLocalArmazenagem: map['CodLocalArmazenagem'] as int?,
-      nomeLocalArmazenagem: map['NomeLocalArmazenagem'] as String?,
-      codContaFinanceira: map['CodContaFinanceira'] as String?,
-      nomeContaFinanceira: map['NomeContaFinanceira'] as String?,
-      nomeCaixaOperador: map['NomeCaixaOperador'] as String?,
-      codSetorEstoque: map['CodSetorEstoque'] as int?,
-      nomeSetorEstoque: map['NomeSetorEstoque'] as String?,
-      permiteSepararForaSequencia: Situation.fromCodeWithFallback(map['PermiteSepararForaSequencia'] as String? ?? 'N'),
-      visualizaTodasSeparacoes: Situation.fromCodeWithFallback(map['VisualizaTodasSeparacoes'] as String? ?? 'N'),
-      expedicaoObrigaEscanearPrateleira: Situation.fromCodeWithFallback(
-        map['ExpedicaoObrigaEscanearPrateleira'] as String? ?? 'N',
-      ),
-      codSetorConferencia: map['CodSetorConferencia'] as int?,
-      nomeSetorConferencia: map['NomeSetorConferencia'] as String?,
-      permiteConferirForaSequencia: Situation.fromCodeWithFallback(
-        map['PermiteConferirForaSequencia'] as String? ?? 'N',
-      ),
-      visualizaTodasConferencias: Situation.fromCodeWithFallback(map['VisualizaTodasConferencias'] as String? ?? 'N'),
-      codSetorArmazenagem: map['CodSetorArmazenagem'] as int?,
-      nomeSetorArmazenagem: map['NomeSetorArmazenagem'] as String?,
-      permiteArmazenarForaSequencia: Situation.fromCodeWithFallback(
-        map['PermiteArmazenarForaSequencia'] as String? ?? 'N',
-      ),
-      visualizaTodasArmazenagem: Situation.fromCodeWithFallback(map['VisualizaTodasArmazenagem'] as String? ?? 'N'),
-      editaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(map['EditaCarrinhoOutroUsuario'] as String? ?? 'N'),
-      salvaCarrinhoOutroUsuario: Situation.fromCodeWithFallback(map['SalvaCarrinhoOutroUsuario'] as String? ?? 'N'),
-      excluiCarrinhoOutroUsuario: Situation.fromCodeWithFallback(map['ExcluiCarrinhoOutroUsuario'] as String? ?? 'N'),
-      expedicaoEntregaBalcaoPreVenda: Situation.fromCodeWithFallback(
-        map['ExpedicaoEntregaBalcaoPreVenda'] as String? ?? 'N',
-      ),
-      codLoginApp: map['CodLoginApp'] as int?,
+      codUsuario: JsonParse.parseIntOr(map['CodUsuario'], 0),
+      nomeUsuario: JsonParse.parseStringOr(map['NomeUsuario'], ''),
+      ativo: Situation.fromCodeWithFallback(JsonParse.parseStringOr(map['Ativo'], 'N')),
+      codEmpresa: JsonParse.parseInt(map['CodEmpresa']),
+      nomeEmpresa: JsonParse.parseStringOrNull(map['NomeEmpresa']),
+      codVendedor: JsonParse.parseInt(map['CodVendedor']),
+      nomeVendedor: JsonParse.parseStringOrNull(map['NomeVendedor']),
+      codLocalArmazenagem: JsonParse.parseInt(map['CodLocalArmazenagem']),
+      nomeLocalArmazenagem: JsonParse.parseStringOrNull(map['NomeLocalArmazenagem']),
+      codContaFinanceira: JsonParse.parseStringOrNull(map['CodContaFinanceira']),
+      nomeContaFinanceira: JsonParse.parseStringOrNull(map['NomeContaFinanceira']),
+      nomeCaixaOperador: JsonParse.parseStringOrNull(map['NomeCaixaOperador']),
+      codSetorEstoque: JsonParse.parseInt(map['CodSetorEstoque']),
+      nomeSetorEstoque: JsonParse.parseStringOrNull(map['NomeSetorEstoque']),
+      permiteSepararForaSequencia: flag('PermiteSepararForaSequencia'),
+      visualizaTodasSeparacoes: flag('VisualizaTodasSeparacoes'),
+      expedicaoObrigaEscanearPrateleira: flag('ExpedicaoObrigaEscanearPrateleira'),
+      codSetorConferencia: JsonParse.parseInt(map['CodSetorConferencia']),
+      nomeSetorConferencia: JsonParse.parseStringOrNull(map['NomeSetorConferencia']),
+      permiteConferirForaSequencia: flag('PermiteConferirForaSequencia'),
+      visualizaTodasConferencias: flag('VisualizaTodasConferencias'),
+      codSetorArmazenagem: JsonParse.parseInt(map['CodSetorArmazenagem']),
+      nomeSetorArmazenagem: JsonParse.parseStringOrNull(map['NomeSetorArmazenagem']),
+      permiteArmazenarForaSequencia: flag('PermiteArmazenarForaSequencia'),
+      visualizaTodasArmazenagem: flag('VisualizaTodasArmazenagem'),
+      editaCarrinhoOutroUsuario: flag('EditaCarrinhoOutroUsuario'),
+      salvaCarrinhoOutroUsuario: flag('SalvaCarrinhoOutroUsuario'),
+      excluiCarrinhoOutroUsuario: flag('ExcluiCarrinhoOutroUsuario'),
+      expedicaoEntregaBalcaoPreVenda: flag('ExpedicaoEntregaBalcaoPreVenda'),
+      codLoginApp: JsonParse.parseInt(map['CodLoginApp']),
     );
   }
 

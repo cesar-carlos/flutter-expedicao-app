@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:result_dart/result_dart.dart';
@@ -68,36 +69,42 @@ class SystemQRCodeData {
   });
 
   factory SystemQRCodeData.fromJson(Map<String, dynamic> json) {
+    // Bug critico anterior: `as int` direto em campos requeridos
+    // (codUsuario, codEmpresa) crashava com TypeError se o QR Code
+    // contivesse strings em vez de int (caso comum quando QR e
+    // gerado por sistema com tipagem fraca). Agora usa JsonParse
+    // defensivo. fromQRCodeString ja valida campos obrigatorios.
+    String flag(String key) => JsonParse.parseStringOr(json[key], 'N');
     return SystemQRCodeData(
-      codUsuario: json['CodUsuario'] as int,
-      nomeUsuario: json['NomeUsuario'] as String,
-      senhaUsuario: json['SenhaUsuario'] as String,
-      ativo: json['Ativo'] as String? ?? 'S',
-      codEmpresa: json['CodEmpresa'] as int,
-      nomeEmpresa: json['NomeEmpresa'] as String,
-      codVendedor: json['CodVendedor'] as int?,
-      nomeVendedor: json['NomeVendedor'] as String?,
-      codLocalArmazenagem: json['CodLocalArmazenagem'] as int?,
-      nomeLocalArmazenagem: json['NomeLocalArmazenagem'] as String?,
-      codContaFinanceira: json['CodContaFinanceira'] as String?,
-      nomeContaFinanceira: json['NomeContaFinanceira'] as String?,
-      nomeCaixaOperador: json['NomeCaixaOperador'] as String?,
-      codSetorEstoque: json['CodSetorEstoque'] as int?,
-      nomeSetorEstoque: json['NomeSetorEstoque'] as String?,
-      permiteSepararForaSequencia: json['PermiteSepararForaSequencia'] as String? ?? 'N',
-      visualizaTodasSeparacoes: json['VisualizaTodasSeparacoes'] as String? ?? 'N',
-      codSetorConferencia: json['CodSetorConferencia'] as int?,
-      nomeSetorConferencia: json['NomeSetorConferencia'] as String?,
-      permiteConferirForaSequencia: json['PermiteConferirForaSequencia'] as String? ?? 'N',
-      visualizaTodasConferencias: json['VisualizaTodasConferencias'] as String? ?? 'N',
-      codSetorArmazenagem: json['CodSetorArmazenagem'] as int?,
-      nomeSetorArmazenagem: json['NomeSetorArmazenagem'] as String?,
-      permiteArmazenarForaSequencia: json['PermiteArmazenarForaSequencia'] as String? ?? 'N',
-      visualizaTodasArmazenagem: json['VisualizaTodasArmazenagem'] as String? ?? 'N',
-      editaCarrinhoOutroUsuario: json['EditaCarrinhoOutroUsuario'] as String? ?? 'N',
-      salvaCarrinhoOutroUsuario: json['SalvaCarrinhoOutroUsuario'] as String? ?? 'N',
-      excluiCarrinhoOutroUsuario: json['ExcluiCarrinhoOutroUsuario'] as String? ?? 'N',
-      expedicaoEntregaBalcaoPreVenda: json['ExpedicaoEntregaBalcaoPreVenda'] as String? ?? 'N',
+      codUsuario: JsonParse.parseIntOr(json['CodUsuario'], 0),
+      nomeUsuario: JsonParse.parseStringOr(json['NomeUsuario'], ''),
+      senhaUsuario: JsonParse.parseStringOr(json['SenhaUsuario'], ''),
+      ativo: JsonParse.parseStringOr(json['Ativo'], 'S'),
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      nomeEmpresa: JsonParse.parseStringOr(json['NomeEmpresa'], ''),
+      codVendedor: JsonParse.parseInt(json['CodVendedor']),
+      nomeVendedor: JsonParse.parseStringOrNull(json['NomeVendedor']),
+      codLocalArmazenagem: JsonParse.parseInt(json['CodLocalArmazenagem']),
+      nomeLocalArmazenagem: JsonParse.parseStringOrNull(json['NomeLocalArmazenagem']),
+      codContaFinanceira: JsonParse.parseStringOrNull(json['CodContaFinanceira']),
+      nomeContaFinanceira: JsonParse.parseStringOrNull(json['NomeContaFinanceira']),
+      nomeCaixaOperador: JsonParse.parseStringOrNull(json['NomeCaixaOperador']),
+      codSetorEstoque: JsonParse.parseInt(json['CodSetorEstoque']),
+      nomeSetorEstoque: JsonParse.parseStringOrNull(json['NomeSetorEstoque']),
+      permiteSepararForaSequencia: flag('PermiteSepararForaSequencia'),
+      visualizaTodasSeparacoes: flag('VisualizaTodasSeparacoes'),
+      codSetorConferencia: JsonParse.parseInt(json['CodSetorConferencia']),
+      nomeSetorConferencia: JsonParse.parseStringOrNull(json['NomeSetorConferencia']),
+      permiteConferirForaSequencia: flag('PermiteConferirForaSequencia'),
+      visualizaTodasConferencias: flag('VisualizaTodasConferencias'),
+      codSetorArmazenagem: JsonParse.parseInt(json['CodSetorArmazenagem']),
+      nomeSetorArmazenagem: JsonParse.parseStringOrNull(json['NomeSetorArmazenagem']),
+      permiteArmazenarForaSequencia: flag('PermiteArmazenarForaSequencia'),
+      visualizaTodasArmazenagem: flag('VisualizaTodasArmazenagem'),
+      editaCarrinhoOutroUsuario: flag('EditaCarrinhoOutroUsuario'),
+      salvaCarrinhoOutroUsuario: flag('SalvaCarrinhoOutroUsuario'),
+      excluiCarrinhoOutroUsuario: flag('ExcluiCarrinhoOutroUsuario'),
+      expedicaoEntregaBalcaoPreVenda: flag('ExpedicaoEntregaBalcaoPreVenda'),
     );
   }
 
