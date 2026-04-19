@@ -15,6 +15,13 @@ class SocketConnectionManager extends ChangeNotifier {
   static const Duration _connectionTimeout = Duration(seconds: 15);
   static const Duration _connectionPollInterval = Duration(milliseconds: 200);
 
+  /// Bug WWWWW: guard anti-race contra cliques rapidos no botao
+  /// "Reconectar" / "Conectar". Sem isso, duas chamadas paralelas
+  /// de connectWithRetry/reconnectWithRetry disparavam 2 ciclos de
+  /// retry concorrentes (cada um com proprio backoff exponencial),
+  /// dobrando trafego no servidor e causando setState em cascata.
+  Completer<void>? _inFlight;
+
   SocketConnectionManagerState get state => _state;
 
   bool get isConnected => _state == SocketConnectionManagerState.connected;
@@ -30,22 +37,35 @@ class SocketConnectionManager extends ChangeNotifier {
           );
 
   Future<void> connectWithRetry(ApiConfig config) async {
-    if (!SocketConfig.isInitialized) {
-      SocketConfig.initialize(config);
-    } else {
-      SocketConfig.updateConfig(config);
+    // Bug WWWWW: se ja existe operacao de conexao em curso, aguarda
+    // ela terminar em vez de iniciar outra paralela.
+    if (_inFlight != null) {
+      return _inFlight!.future;
     }
 
-    _setState(SocketConnectionManagerState.connecting);
+    final completer = Completer<void>();
+    _inFlight = completer;
 
     try {
+      if (!SocketConfig.isInitialized) {
+        SocketConfig.initialize(config);
+      } else {
+        SocketConfig.updateConfig(config);
+      }
+
+      _setState(SocketConnectionManagerState.connecting);
+
       await _retryPolicy.execute(() => _connectAndWait(), tag: 'SocketConnectionManager');
       _setState(SocketConnectionManagerState.connected);
       AppLogger.connection('Conexão estabelecida com retry', tag: 'SocketConnectionManager');
-    } catch (e) {
+      completer.complete();
+    } catch (e, s) {
       _setState(SocketConnectionManagerState.failed);
       AppLogger.error('Falha ao conectar após retries', tag: 'SocketConnectionManager', error: e);
+      completer.completeError(e, s);
       rethrow;
+    } finally {
+      _inFlight = null;
     }
   }
 
@@ -62,17 +82,30 @@ class SocketConnectionManager extends ChangeNotifier {
   }
 
   Future<void> reconnectWithRetry() async {
-    _setState(SocketConnectionManagerState.reconnecting);
+    // Bug WWWWW: mesmo guard que connectWithRetry. Se ja temos fluxo
+    // em curso, aguarda em vez de duplicar.
+    if (_inFlight != null) {
+      return _inFlight!.future;
+    }
+
+    final completer = Completer<void>();
+    _inFlight = completer;
 
     try {
+      _setState(SocketConnectionManagerState.reconnecting);
+
       await _retryPolicy.execute(() async {
         await SocketConfig.reconnect();
         return _connectAndWait();
       }, tag: 'SocketConnectionManager');
       _setState(SocketConnectionManagerState.connected);
-    } catch (e) {
+      completer.complete();
+    } catch (e, s) {
       _setState(SocketConnectionManagerState.failed);
+      completer.completeError(e, s);
       rethrow;
+    } finally {
+      _inFlight = null;
     }
   }
 
