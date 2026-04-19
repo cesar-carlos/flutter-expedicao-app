@@ -3,12 +3,12 @@
 
 param(
     [string]$Token = "",
-    [string]$Tag = "v1.1.2+3",
+    [string]$Tag = "v2.0.0+1",
     [string]$Owner = "cesar-carlos",
     [string]$Repo = "flutter-expedicao-app"
 )
 
-$releaseNotes = Get-Content -Path "docs\release\RELEASE_NOTES_v1.1.2+3.md" -Raw
+$releaseNotes = Get-Content -Path "docs\release\RELEASE_NOTES_v2.0.0+1.md" -Raw
 
 if ([string]::IsNullOrEmpty($Token)) {
     Write-Host "❌ Token do GitHub não fornecido!" -ForegroundColor Red
