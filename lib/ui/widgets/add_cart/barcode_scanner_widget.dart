@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
 import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
@@ -38,12 +41,22 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
 
     _barcodeController.addListener(_onScannerInput);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _coordinator.start(_loadPreferences());
-      if (!mounted) return;
-      if (!_coordinator.isBroadcastActive) {
-        _focusNode.requestFocus();
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(
+        _coordinator.start(_loadPreferences()).then((_) {
+          if (!mounted) return;
+          if (!_coordinator.isBroadcastActive) {
+            _focusNode.requestFocus();
+          }
+        }).catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao iniciar ScannerModeCoordinator (add cart)',
+            tag: 'BarcodeScanner',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     });
   }
 
@@ -121,8 +134,16 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
     _barcodeController.removeListener(_onScannerInput);
     _barcodeController.dispose();
     _focusNode.dispose();
-    // ignore: discarded_futures
-    _coordinator.dispose();
+    unawaited(
+      _coordinator.dispose().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Erro ao encerrar ScannerModeCoordinator (add cart)',
+          tag: 'BarcodeScanner',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
     super.dispose();
   }
 
@@ -184,7 +205,18 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
               hintText: _keyboardEnabled ? 'Digite o código...' : 'Aguardando scanner',
               prefixIcon: IconButton(
                 icon: Icon(_keyboardEnabled ? Icons.keyboard : Icons.qr_code_scanner, color: colorScheme.primary),
-                onPressed: _toggleKeyboard,
+                onPressed: () {
+                  unawaited(
+                    _toggleKeyboard().catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha ao alternar teclado/scanner (add cart)',
+                        tag: 'BarcodeScanner',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
+                },
                 tooltip: _keyboardEnabled ? 'Usar scanner' : 'Usar teclado',
               ),
               suffixIcon: widget.isLoading

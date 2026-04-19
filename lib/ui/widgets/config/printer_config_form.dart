@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 import 'package:data7_expedicao/domain/models/printer_config.dart';
@@ -19,7 +22,18 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ConfigViewModel>().loadPrinters();
+      if (!mounted) return;
+      final vm = context.read<ConfigViewModel>();
+      unawaited(
+        vm.loadPrinters().catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao carregar impressoras',
+            tag: 'PrinterConfigForm',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     });
   }
 
@@ -58,7 +72,20 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
                       ),
                     ),
                     IconButton(
-                      onPressed: vm.isLoadingPrinters ? null : vm.loadPrinters,
+                      onPressed: vm.isLoadingPrinters
+                          ? null
+                          : () {
+                              unawaited(
+                                vm.loadPrinters().catchError((Object e, StackTrace s) {
+                                  AppLogger.warning(
+                                    'Falha ao atualizar lista de impressoras',
+                                    tag: 'PrinterConfigForm',
+                                    error: e,
+                                    stackTrace: s,
+                                  );
+                                }),
+                              );
+                            },
                       tooltip: context.l10n.printerConfigRefreshTooltip,
                       icon: vm.isLoadingPrinters
                           ? SizedBox(
@@ -95,7 +122,20 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
                     children: [
                       OutlinedButton.icon(
                         style: actionButtonStyle,
-                        onPressed: vm.isDiscoveringPrinters ? null : _discoverPrinters,
+                        onPressed: vm.isDiscoveringPrinters
+                            ? null
+                            : () {
+                                unawaited(
+                                  _discoverPrinters().catchError((Object e, StackTrace s) {
+                                    AppLogger.warning(
+                                      'Falha na descoberta de impressoras',
+                                      tag: 'PrinterConfigForm',
+                                      error: e,
+                                      stackTrace: s,
+                                    );
+                                  }),
+                                );
+                              },
                         icon: vm.isDiscoveringPrinters
                             ? SizedBox(
                                 width: 14,
@@ -114,13 +154,37 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
                       ),
                       OutlinedButton.icon(
                         style: actionButtonStyle,
-                        onPressed: vm.isDiscoveringPrinters ? null : _showAdvancedDiscoveryDialog,
+                        onPressed: vm.isDiscoveringPrinters
+                            ? null
+                            : () {
+                                unawaited(
+                                  _showAdvancedDiscoveryDialog().catchError((Object e, StackTrace s) {
+                                    AppLogger.warning(
+                                      'Falha na busca avançada de impressoras',
+                                      tag: 'PrinterConfigForm',
+                                      error: e,
+                                      stackTrace: s,
+                                    );
+                                  }),
+                                );
+                              },
                         icon: const Icon(Icons.tune),
                         label: Text(context.l10n.printerConfigAdvancedSearch),
                       ),
                       OutlinedButton.icon(
                         style: actionButtonStyle,
-                        onPressed: () => _showPrinterDialog(context),
+                        onPressed: () {
+                          unawaited(
+                            _showPrinterDialog(context).catchError((Object e, StackTrace s) {
+                              AppLogger.warning(
+                                'Falha ao abrir dialog de impressora',
+                                tag: 'PrinterConfigForm',
+                                error: e,
+                                stackTrace: s,
+                              );
+                            }),
+                          );
+                        },
                         icon: const Icon(Icons.add),
                         label: Text(context.l10n.printerConfigAddPrinter),
                       ),
@@ -217,7 +281,18 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
             : PopupMenuButton<String>(
                 enabled: !vm.isTestingPrinter,
                 iconColor: isDark ? colorScheme.onSurface : null,
-                onSelected: (value) => _onMenuSelected(context, vm, printer, value),
+                onSelected: (value) {
+                  unawaited(
+                    _onMenuSelected(context, vm, printer, value).catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha na ação do menu da impressora',
+                        tag: 'PrinterConfigForm',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
+                },
                 itemBuilder: (context) => [
                   PopupMenuItem(value: 'test', child: Text(context.l10n.printerConfigTestPrinter)),
                   if (!isDefault) PopupMenuItem(value: 'default', child: Text(context.l10n.printerConfigSetDefault)),
@@ -324,14 +399,14 @@ class _PrinterConfigFormState extends State<PrinterConfigForm> {
   Future<void> _confirmDelete(BuildContext context, ConfigViewModel vm, PrinterConfig printer) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.printerConfigRemoveTitle),
-        content: Text(context.l10n.printerConfigRemoveMessage(printer.name)),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogContext.l10n.printerConfigRemoveTitle),
+        content: Text(dialogContext.l10n.printerConfigRemoveMessage(printer.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(context.l10n.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(dialogContext.l10n.cancel)),
           ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(context.l10n.printerConfigRemoveAction),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(dialogContext.l10n.printerConfigRemoveAction),
           ),
         ],
       ),

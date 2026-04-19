@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
@@ -38,7 +41,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _animationController.forward();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthViewModel>().checkAuthStatus();
+      if (!mounted) return;
+      unawaited(
+        context.read<AuthViewModel>().checkAuthStatus().catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao verificar estado de autenticação no splash',
+            tag: 'SplashScreen',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     });
   }
 

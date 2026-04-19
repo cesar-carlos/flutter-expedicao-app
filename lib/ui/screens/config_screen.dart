@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
@@ -49,7 +52,28 @@ class ConfigScreen extends StatelessWidget {
       return;
     }
 
-    await configViewModel.resetServerConfig();
+    try {
+      await configViewModel.resetServerConfig();
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Falha ao resetar configuração do servidor',
+        tag: 'ConfigScreen',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível resetar a configuração. Tente novamente.'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.all(16),
+        ),
+      );
+      return;
+    }
 
     if (!context.mounted) {
       return;
@@ -74,7 +98,18 @@ class ConfigScreen extends StatelessWidget {
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => _handleBack(context)),
         actions: [
           IconButton(
-            onPressed: () => _handleReset(context),
+            onPressed: () {
+              unawaited(
+                _handleReset(context).catchError((Object e, StackTrace s) {
+                  AppLogger.warning(
+                    'Falha no fluxo de reset (config)',
+                    tag: 'ConfigScreen',
+                    error: e,
+                    stackTrace: s,
+                  );
+                }),
+              );
+            },
             icon: const Icon(Icons.refresh),
             tooltip: 'Resetar servidor',
           ),

@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/theme/theme_extensions.dart';
 import 'package:data7_expedicao/core/validation/forms/form_validators_localized.dart';
@@ -46,63 +49,89 @@ class _ServerConfigFormState extends State<ServerConfigForm> {
     super.dispose();
   }
 
-  void _handleSave() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      final configViewModel = context.read<ConfigViewModel>();
-
-      await configViewModel.saveConfig(
-        apiUrl: _urlController.text.trim(),
-        apiPort: _portController.text.trim(),
-        useHttps: _useHttps,
-      );
-
-      if (mounted && configViewModel.errorMessage.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.configSaved),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.all(16),
-          ),
+  void _handleSave() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    unawaited(
+      _performSave().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha inesperada ao salvar configuração',
+          tag: 'ServerConfigForm',
+          error: e,
+          stackTrace: s,
         );
-      }
+      }),
+    );
+  }
+
+  Future<void> _performSave() async {
+    final configViewModel = context.read<ConfigViewModel>();
+
+    await configViewModel.saveConfig(
+      apiUrl: _urlController.text.trim(),
+      apiPort: _portController.text.trim(),
+      useHttps: _useHttps,
+    );
+
+    if (!mounted) return;
+
+    if (configViewModel.errorMessage.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.configSaved),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+        ),
+      );
     }
   }
 
-  void _handleTest() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      final configViewModel = context.read<ConfigViewModel>();
-
-      final success = await configViewModel.testConnection(
-        apiUrl: _urlController.text.trim(),
-        apiPort: _portController.text.trim(),
-        useHttps: _useHttps,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(success ? Icons.check_circle : Icons.error, color: AppColors.white, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    success
-                        ? context.l10n.connectionSuccess
-                        : '${context.l10n.connectionError}: ${configViewModel.errorMessage}',
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: success ? AppColors.success : AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.all(16),
-            duration: Duration(seconds: success ? 3 : 5),
-          ),
+  void _handleTest() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    unawaited(
+      _performTest().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha inesperada ao testar conexão',
+          tag: 'ServerConfigForm',
+          error: e,
+          stackTrace: s,
         );
-      }
-    }
+      }),
+    );
+  }
+
+  Future<void> _performTest() async {
+    final configViewModel = context.read<ConfigViewModel>();
+
+    final success = await configViewModel.testConnection(
+      apiUrl: _urlController.text.trim(),
+      apiPort: _portController.text.trim(),
+      useHttps: _useHttps,
+    );
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(success ? Icons.check_circle : Icons.error, color: AppColors.white, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                success
+                    ? context.l10n.connectionSuccess
+                    : '${context.l10n.connectionError}: ${configViewModel.errorMessage}',
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: success ? AppColors.success : AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        duration: Duration(seconds: success ? 3 : 5),
+      ),
+    );
   }
 
   String _buildPreviewUrl(BuildContext context) {
