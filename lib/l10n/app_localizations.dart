@@ -280,7 +280,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginSystem.
   ///
   /// In pt_BR, this message translates to:
-  /// **'Login System'**
+  /// **'Login do Sistema'**
   String get loginSystem;
 
   /// No description provided for @configurationNeeded.
@@ -1092,6 +1092,12 @@ abstract class AppLocalizations {
   /// In pt_BR, this message translates to:
   /// **'Erro inesperado: {exception}'**
   String unknownErrorDetails(String exception);
+
+  /// No description provided for @useCaseNotAvailable.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'UseCase não disponível'**
+  String get useCaseNotAvailable;
 
   /// No description provided for @httpsProtocol.
   ///

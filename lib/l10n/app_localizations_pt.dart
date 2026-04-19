@@ -99,7 +99,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get backToLogin => 'Voltar ao Login';
 
   @override
-  String get loginSystem => 'Login System';
+  String get loginSystem => 'Login do Sistema';
 
   @override
   String get configurationNeeded => 'Configuração Necessária';
@@ -537,6 +537,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String unknownErrorDetails(String exception) {
     return 'Erro inesperado: $exception';
   }
+
+  @override
+  String get useCaseNotAvailable => 'UseCase não disponível';
 
   @override
   String get httpsProtocol => 'https';
@@ -811,7 +814,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get backToLogin => 'Voltar ao Login';
 
   @override
-  String get loginSystem => 'Login System';
+  String get loginSystem => 'Login do Sistema';
 
   @override
   String get configurationNeeded => 'Configuração Necessária';
@@ -1249,6 +1252,9 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String unknownErrorDetails(String exception) {
     return 'Erro inesperado: $exception';
   }
+
+  @override
+  String get useCaseNotAvailable => 'UseCase não disponível';
 
   @override
   String get httpsProtocol => 'https';

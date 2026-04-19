@@ -37,7 +37,7 @@
   "removePhoto": "Remover Foto",
   "registerButton": "Criar Conta",
   "backToLogin": "Voltar ao Login",
-  "loginSystem": "Login System",
+  "loginSystem": "Login do Sistema",
   "configurationNeeded": "Configuração Necessária",
   "configure": "Configurar",
   
@@ -299,6 +299,7 @@
       }
     }
   },
+  "useCaseNotAvailable": "UseCase não disponível",
   
   "@@protocol": {},
   "httpsProtocol": "https",
