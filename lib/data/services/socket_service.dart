@@ -157,12 +157,14 @@ class SocketService extends ChangeNotifier {
     _isReconnecting = false;
   }
 
-  void emit(String eventName, dynamic data) {
-    if (!SocketConfig.isConnected) {
-      throw StateError('Socket não está conectado');
-    }
-
+  /// [propagateErrors]: quando `false`, erros são apenas logados (útil no
+  /// heartbeat periódico para um tick com falha não interromper o [Timer]).
+  void emit(String eventName, dynamic data, {bool propagateErrors = true}) {
     try {
+      if (!SocketConfig.isConnected) {
+        throw StateError('Socket não está conectado');
+      }
+
       final payload = {'userId': _userId, 'timestamp': DateTime.now().toIso8601String(), 'data': data};
 
       SocketConfig.instance.emit(eventName, payload);
@@ -174,7 +176,9 @@ class SocketService extends ChangeNotifier {
         error: e,
         stackTrace: stackTrace,
       );
-      rethrow;
+      if (propagateErrors) {
+        rethrow;
+      }
     }
   }
 
@@ -316,7 +320,11 @@ class SocketService extends ChangeNotifier {
     _stopHeartbeat();
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       if (isConnected) {
-        emit('heartbeat', {'timestamp': DateTime.now().toIso8601String()});
+        emit(
+          'heartbeat',
+          {'timestamp': DateTime.now().toIso8601String()},
+          propagateErrors: false,
+        );
       }
     });
   }
