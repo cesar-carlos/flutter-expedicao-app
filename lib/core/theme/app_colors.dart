@@ -16,11 +16,12 @@ class AppColors {
   static const Color lightTeal = light;
   static const Color darkTeal = dark;
 
-  // Cores de estado
+  // Cores de estado (Material Design)
   static const Color success = Color(0xFF4CAF50);
   static const Color error = Color(0xFFF44336);
   static const Color warning = Color(0xFFFF9800);
-  static const Color info = Color(0xFF2196F3);
+  // info aponta para blue500 (mesmo valor 0xFF2196F3) para evitar drift
+  static const Color info = blue500;
 
   // Cores adicionais para situações
   static const Color yellow = Color(0xFFFFEB3B);
@@ -50,10 +51,7 @@ class AppColors {
   static const Color blue500 = Color(0xFF2196F3);
   static const Color blue100 = Color(0xFFBBDEFB);
 
-  // Cores neutras
-  static const Color grey = Color(0xFF9E9E9E);
-  static const Color lightGrey = Color(0xFFF5F5F5);
-  static const Color darkGrey = Color(0xFF424242);
+  // Cores neutras (escala Material Design)
   static const Color grey100 = Color(0xFFF5F5F5);
   static const Color grey200 = Color(0xFFEEEEEE);
   static const Color grey300 = Color(0xFFE0E0E0);
@@ -63,6 +61,13 @@ class AppColors {
   static const Color grey700 = Color(0xFF616161);
   static const Color black54 = Color(0x8A000000);
   static const Color black87 = Color(0xDD000000);
+
+  // Aliases semanticos (apontam para a escala acima)
+  // NOTA: anteriormente eram constantes duplicadas com mesmo Color
+  // hash. Agora referenciam a escala canonica para evitar drift.
+  static const Color grey = grey500;
+  static const Color lightGrey = grey100;
+  static const Color darkGrey = Color(0xFF424242);
 
   // Cores básicas
   static const Color white = Colors.white;
@@ -75,12 +80,15 @@ class AppColors {
   static const Color onSurface = Color(0xFF1C1B1F);
   static const Color onBackground = Color(0xFF1C1B1F);
 
-  //create font colors
-  static const Color fontPrimary = Color(0xFF1A7A8A);
-  static const Color fontSecondary = Color(0xFF4FB3C1);
-  static const Color fontAccent = Color(0xFF0A5A6B);
-  static const Color fontLight = Color(0xFFB8E6EA);
-  static const Color fontDark = Color(0xFF052F36);
+  // Cores de fonte
+  // NOTA: tecnicamente identicas as cores principais. Mantidas como
+  // semantic aliases para facilitar leitura no codigo. NAO deletar
+  // sem refatorar todos os usos.
+  static const Color fontPrimary = primary;
+  static const Color fontSecondary = secondary;
+  static const Color fontAccent = accent;
+  static const Color fontLight = light;
+  static const Color fontDark = dark;
 
   // Transparências e variações
   static Color primaryWithOpacity(double opacity) => primary.withValues(alpha: opacity);
