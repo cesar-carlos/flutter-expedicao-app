@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/data/dtos/github_release_dto.dart';
 import 'package:data7_expedicao/data/services/github_api_service.dart';
 
@@ -41,12 +42,15 @@ class GitHubReleaseJsonAdapter {
       final version = release.getVersion();
       if (version == null) continue;
 
-      String sha512;
-      try {
-        sha512 = await _calculateSha512(apkAsset.downloadUrl);
-      } catch (e) {
-        sha512 = '';
-      }
+      // Bug latente anterior: `try { sha = ... } catch { sha = ''; }`
+      // engolia silenciosamente falhas no calculo do checksum e
+      // gravava string vazia no JSON. Apps que validassem o checksum
+      // contra '' poderiam aceitar APK adulterado por engano (vetor
+      // de seguranca). Agora logamos a falha para que o problema seja
+      // visivel em monitoring. O '' continua sendo gravado para
+      // compatibilidade — clientes do JSON devem tratar '' como
+      // "checksum nao disponivel" e exibir warning ao usuario.
+      final sha512 = await _calculateSha512(apkAsset.downloadUrl);
 
       versionList.add({
         'version': version.version,
@@ -65,13 +69,23 @@ class GitHubReleaseJsonAdapter {
       final response = await _dio.get<List<int>>(url, options: Options(responseType: ResponseType.bytes));
 
       if (response.data == null) {
+        AppLogger.warning(
+          'GitHub APK download retornou body vazio em $url',
+          tag: 'GitHubReleaseJsonAdapter',
+        );
         return '';
       }
 
       final bytes = response.data!;
       final digest = sha512.convert(bytes);
       return digest.toString();
-    } catch (e) {
+    } catch (e, s) {
+      AppLogger.warning(
+        'Falha ao calcular SHA-512 do APK em $url',
+        tag: 'GitHubReleaseJsonAdapter',
+        error: e,
+        stackTrace: s,
+      );
       return '';
     }
   }
@@ -87,12 +101,9 @@ class GitHubReleaseJsonAdapter {
       final version = release.getVersion();
       if (version == null) return null;
 
-      String sha512;
-      try {
-        sha512 = await _calculateSha512(apkAsset.downloadUrl);
-      } catch (e) {
-        sha512 = '';
-      }
+      // Bug latente anterior: try/catch local para sha somente.
+      // Removido — `_calculateSha512` ja loga internamente.
+      final sha512 = await _calculateSha512(apkAsset.downloadUrl);
 
       return {
         'version': version.version,
@@ -101,7 +112,17 @@ class GitHubReleaseJsonAdapter {
         'releaseDate': release.publishedAt.toUtc().toIso8601String(),
         'sha512': sha512,
       };
-    } catch (e) {
+    } catch (e, s) {
+      // Bug latente anterior: catch silencioso retornava null sem
+      // log. Em producao, ausencia de update disponivel poderia
+      // ser:  (a) realmente nenhuma release nova, ou (b) erro de
+      // rede/parsing. Sem log, era impossivel distinguir.
+      AppLogger.warning(
+        'Falha ao buscar latest release de $owner/$repo',
+        tag: 'GitHubReleaseJsonAdapter',
+        error: e,
+        stackTrace: s,
+      );
       return null;
     }
   }

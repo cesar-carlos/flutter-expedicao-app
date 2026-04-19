@@ -35,28 +35,40 @@ class LoggerService implements ILogger {
     return '🔵';
   }
 
+  /// Bug latente anterior: o parametro `tag` era IGNORADO em `info`
+  /// e `debug` (chamadas `_logger.info(message)` sem prefixo). Outros
+  /// metodos passavam apenas `(message, error, stackTrace)` ao Logger
+  /// — o tag tambem nao chegava no output (o package `logging` so
+  /// usa o nome do `Logger` em si). Isso significava que callers
+  /// passando tag esperando rastrear origem nao recebiam essa info
+  /// em logs. Agora o tag e prefixado em todas as 5 funcoes.
+  String _format(String message, String? tag) {
+    if (tag == null || tag.isEmpty) return message;
+    return '[$tag] $message';
+  }
+
   @override
   void debug(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
-    _logger.fine(message, error, stackTrace);
+    _logger.fine(_format(message, tag), error, stackTrace);
   }
 
   @override
   void info(String message, {String? tag}) {
-    _logger.info(message);
+    _logger.info(_format(message, tag));
   }
 
   @override
   void warning(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
-    _logger.warning(message, error, stackTrace);
+    _logger.warning(_format(message, tag), error, stackTrace);
   }
 
   @override
   void error(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
-    _logger.severe(message, error, stackTrace);
+    _logger.severe(_format(message, tag), error, stackTrace);
   }
 
   @override
   void severe(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
-    _logger.shout(message, error, stackTrace);
+    _logger.shout(_format(message, tag), error, stackTrace);
   }
 }
