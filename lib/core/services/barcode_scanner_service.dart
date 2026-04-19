@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
+
 /// Serviço responsável por processar entradas de códigos de barras com detecção de Enter
 ///
 /// Este serviço centraliza a lógica de processamento de códigos de barras,
@@ -44,6 +46,32 @@ class BarcodeScannerService {
   /// Comprimento mínimo para entrada via scanner
   static const int _minScannerLength = 8;
 
+  void _safeOnComplete(void Function(String) onCompleteBarcode, String code) {
+    try {
+      onCompleteBarcode(code);
+    } catch (e, s) {
+      AppLogger.warning(
+        'Erro no callback onCompleteBarcode',
+        tag: 'BarcodeScannerService',
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  void _safeOnWait(void Function() onWaitForMore) {
+    try {
+      onWaitForMore();
+    } catch (e, s) {
+      AppLogger.warning(
+        'Erro no callback onWaitForMore',
+        tag: 'BarcodeScannerService',
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
   /// Mantido por compatibilidade. Cache de validações foi removido (B11)
   /// porque o ganho era irrelevante (regex já roda em microssegundos)
   /// e o cache crescia indefinidamente em sessões longas.
@@ -72,7 +100,7 @@ class BarcodeScannerService {
       _debounceTimer?.cancel();
       final cleanedInput = cleanBarcodeText(input);
       if (cleanedInput.isNotEmpty) {
-        onCompleteBarcode(cleanedInput);
+        _safeOnComplete(onCompleteBarcode, cleanedInput);
       }
       return;
     }
@@ -80,14 +108,23 @@ class BarcodeScannerService {
     // Prioridade 2: Códigos completos (13-16 dígitos) - processar imediatamente
     if (_isCompleteBarcode(input)) {
       _debounceTimer?.cancel();
-      onCompleteBarcode(input);
+      _safeOnComplete(onCompleteBarcode, input);
       return;
     }
 
     // Prioridade 3: Debounce como fallback para leitores sem Enter
     _debounceTimer?.cancel();
     _debounceTimer = Timer(_debounceTimeout, () {
-      _processInputAfterDebounce(input, onCompleteBarcode, onWaitForMore);
+      try {
+        _processInputAfterDebounce(input, onCompleteBarcode, onWaitForMore);
+      } catch (e, s) {
+        AppLogger.warning(
+          'Erro no tick de debounce do barcode scanner',
+          tag: 'BarcodeScannerService',
+          error: e,
+          stackTrace: s,
+        );
+      }
     });
   }
 
@@ -99,18 +136,18 @@ class BarcodeScannerService {
   ) {
     // Só processar códigos com pelo menos 7 dígitos
     if (input.length < _minBarcodeLength) {
-      onWaitForMore();
+      _safeOnWait(onWaitForMore);
       return;
     }
 
     // Processar códigos válidos (7+ dígitos)
     if (_isValidBarcode(input)) {
-      onCompleteBarcode(input);
+      _safeOnComplete(onCompleteBarcode, input);
       return;
     }
 
     // Entrada longa mas formato inválido, aguardar mais
-    onWaitForMore();
+    _safeOnWait(onWaitForMore);
   }
 
   /// Processa entrada com detecção prioritária de Enter
@@ -130,7 +167,9 @@ class BarcodeScannerService {
     if (_controlCharPattern.hasMatch(text)) {
       _debounceTimer?.cancel();
       final cleanedInput = cleanBarcodeText(text);
-      if (cleanedInput.isNotEmpty) onCompleteBarcode(cleanedInput);
+      if (cleanedInput.isNotEmpty) {
+        _safeOnComplete(onCompleteBarcode, cleanedInput);
+      }
 
       return;
     }

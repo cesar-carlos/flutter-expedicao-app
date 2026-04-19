@@ -121,7 +121,16 @@ class ScannerModeCoordinator {
               if (_disposed) return;
               final trimmed = code.trim();
               if (trimmed.isEmpty) return;
-              _onBarcode(trimmed);
+              try {
+                _onBarcode(trimmed);
+              } catch (e, s) {
+                AppLogger.error(
+                  'Falha no callback onBarcode (broadcast)',
+                  tag: _logTag,
+                  error: e,
+                  stackTrace: s,
+                );
+              }
             },
             onError: (Object e, StackTrace s) {
               AppLogger.error('Broadcast listener error', tag: _logTag, error: e, stackTrace: s);
