@@ -1,11 +1,29 @@
 import 'package:flutter/material.dart';
 
-import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
-import 'package:data7_expedicao/domain/models/user_system_models.dart';
-import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
-import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
+
+/// Extrai 1-2 caracteres iniciais para o avatar de forma segura.
+///
+/// - `''` -> `'?'`
+/// - `'A'` -> `'A'`
+/// - `'Joao Silva'` -> `'JO'`
+///
+/// Bug latente anterior: `nomeUsuario.substring(0, 2)` crashava com
+/// `RangeError` se o nome tivesse < 2 chars (raro mas possivel — o
+/// backend permite username com 1 char). Esta funcao garante
+/// degrade graceful.
+@visibleForTesting
+String safeInitialsForAvatar(String name) {
+  final trimmed = name.trim();
+  if (trimmed.isEmpty) return '?';
+  if (trimmed.length == 1) return trimmed.toUpperCase();
+  return trimmed.substring(0, 2).toUpperCase();
+}
 
 class UsersListWidget extends StatelessWidget {
   final UserSelectionViewModel viewModel;
@@ -118,7 +136,7 @@ class UsersListWidget extends StatelessWidget {
                   ? AppColors.success
                   : AppColors.grey,
               child: Text(
-                user.nomeUsuario.substring(0, 2).toUpperCase(),
+                safeInitialsForAvatar(user.nomeUsuario),
                 style: AppFonts.inter(
                   color: isBlocked
                       ? colorScheme.surface

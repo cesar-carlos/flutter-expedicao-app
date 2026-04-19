@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:data7_expedicao/ui/widgets/separate_items/carts_empty_state.dart';
+import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/separate_items/cart_item_card.dart';
+import 'package:data7_expedicao/ui/widgets/separate_items/carts_empty_state.dart';
 
 class CartsListView extends StatelessWidget {
   final SeparationItemsViewModel viewModel;
@@ -42,7 +45,21 @@ class CartsListView extends StatelessWidget {
   }
 
   void _onCartCancel(BuildContext context, ExpeditionCartRouteInternshipConsultationModel cart) {
-    viewModel.refresh();
+    // Bug latente anterior: `viewModel.refresh()` retorna Future
+    // descartado. Sem catch, qualquer erro durante refresh virava
+    // "Unhandled Future error". Agora envolvemos em
+    // `unawaited(... .catchError(AppLogger.warning))` consistente
+    // com outros callsites.
+    unawaited(
+      viewModel.refresh().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao atualizar lista de carrinhos apos cancelar',
+          tag: 'CartsListView',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
 
     // Bug EEEEEEEEE: callback pode rodar APOS o widget ser desmontado
     // (cancel async lento). ScaffoldMessenger.of(context) em context
@@ -51,7 +68,7 @@ class CartsListView extends StatelessWidget {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Lista de carrinhos atualizada'),
+        content: const Text('Lista de carrinhos atualizada'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         duration: const Duration(seconds: 2),
       ),
