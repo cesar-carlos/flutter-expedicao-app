@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
@@ -286,10 +289,11 @@ class PickingItemCard extends StatelessWidget {
     final currentQuantity = viewModel.getPickedQuantity(itemId);
     int newQuantity = currentQuantity;
 
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (statefulContext, setState) => AlertDialog(
           title: const Text('Ajustar Quantidade'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -324,16 +328,35 @@ class PickingItemCard extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(statefulContext).pop(),
               child: const Text('Cancelar'),
             ),
             ElevatedButton(
-              onPressed: () => _confirmQuantityChange(context, itemId, newQuantity),
+              onPressed: () {
+                unawaited(
+                  _confirmQuantityChange(statefulContext, itemId, newQuantity).catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha ao confirmar quantidade no picking',
+                      tag: 'PickingItemCard',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
+              },
               child: const Text('Confirmar'),
             ),
           ],
         ),
-      ),
+        ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de quantidade',
+          tag: 'PickingItemCard',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 

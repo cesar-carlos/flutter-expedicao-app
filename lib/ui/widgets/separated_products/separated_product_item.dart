@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/separation_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:data7_expedicao/domain/viewmodels/separated_products_viewmodel.dart';
@@ -287,17 +290,29 @@ class SeparatedProductItem extends StatelessWidget {
   void _showDeleteDialog(BuildContext context) {
     if (viewModel == null) return;
 
-    showDialog(context: context, builder: (context) => _buildDeleteDialog(context));
+    unawaited(
+      showDialog<void>(context: context, builder: (dialogContext) => _buildDeleteDialog(dialogContext)).catchError((
+        Object e,
+        StackTrace s,
+      ) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de exclusão',
+          tag: 'SeparatedProductItem',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
-  Widget _buildDeleteDialog(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget _buildDeleteDialog(BuildContext dialogContext) {
+    final theme = Theme.of(dialogContext);
     final colorScheme = theme.colorScheme;
 
     return AlertDialog(
-      title: _buildDialogTitle(context, colorScheme),
-      content: _buildDialogContent(context, theme),
-      actions: _buildDialogActions(context, colorScheme),
+      title: _buildDialogTitle(dialogContext, colorScheme),
+      content: _buildDialogContent(dialogContext, theme),
+      actions: _buildDialogActions(dialogContext, colorScheme),
     );
   }
 
@@ -343,39 +358,42 @@ class SeparatedProductItem extends StatelessWidget {
     return [
       TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Não')),
       FilledButton.tonal(
-        onPressed: () => _handleDeleteConfirmation(context),
+        onPressed: () {
+          unawaited(
+            _handleDeleteConfirmation(context).catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha não tratada ao excluir item separado',
+                tag: 'SeparatedProductItem',
+                error: e,
+                stackTrace: s,
+              );
+            }),
+          );
+        },
         style: FilledButton.styleFrom(backgroundColor: colorScheme.errorContainer, foregroundColor: colorScheme.error),
         child: const Text('Sim, Excluir'),
       ),
     ];
   }
 
-  Future<void> _handleDeleteConfirmation(BuildContext context) async {
-    Navigator.of(context).pop();
+  Future<void> _handleDeleteConfirmation(BuildContext dialogContext) async {
+    final messenger = ScaffoldMessenger.of(dialogContext);
+    final errorColor = Theme.of(dialogContext).colorScheme.error;
+    Navigator.of(dialogContext).pop();
 
     final success = await viewModel!.deleteItem(item);
 
-    if (!context.mounted) return;
-
     if (success) {
-      _showSuccessMessage(context);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Item excluído com sucesso!'), backgroundColor: AppColors.success),
+      );
     } else {
-      _showErrorMessage(context);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(viewModel!.errorMessage ?? 'Erro ao excluir item'),
+          backgroundColor: errorColor,
+        ),
+      );
     }
-  }
-
-  void _showSuccessMessage(BuildContext context) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Item excluído com sucesso!'), backgroundColor: AppColors.success));
-  }
-
-  void _showErrorMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(viewModel!.errorMessage ?? 'Erro ao excluir item'),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ),
-    );
   }
 }

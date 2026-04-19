@@ -742,16 +742,17 @@ class _CartItemCardState extends State<CartItemCard> {
   void _showDifferentUserDialog(BuildContext context, String cartOwnerName, {required String actionLabel}) {
     if (!context.mounted) return;
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.block, color: AppColors.error),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Acesso Negado', overflow: TextOverflow.ellipsis)),
-          ],
-        ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.block, color: AppColors.error),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('Acesso Negado', overflow: TextOverflow.ellipsis)),
+            ],
+          ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -784,22 +785,31 @@ class _CartItemCardState extends State<CartItemCard> {
             ),
           ],
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar'))],
+        actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar'))],
       ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de acesso negado ao carrinho',
+          tag: 'CartItemCard',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 
   void _showNoItemsForSectorDialog(BuildContext context, int userSectorCode) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.info_outline, color: AppColors.info),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Sem Itens para Separar', overflow: TextOverflow.ellipsis)),
-          ],
-        ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.info_outline, color: AppColors.info),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('Sem Itens para Separar', overflow: TextOverflow.ellipsis)),
+            ],
+          ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -832,8 +842,16 @@ class _CartItemCardState extends State<CartItemCard> {
             ),
           ],
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar'))],
+        actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar'))],
       ),
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir dialog sem itens do setor',
+        tag: 'CartItemCard',
+        error: e,
+        stackTrace: s,
+      );
+    }),
     );
   }
 
@@ -1060,91 +1078,118 @@ class _CartItemCardState extends State<CartItemCard> {
   void _showLoadingDialog(BuildContext context) {
     if (!context.mounted) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        _loadingDialogContext = dialogContext;
-        return const AlertDialog(
-          content: Row(children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Finalizando carrinho...')]),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          _loadingDialogContext = dialogContext;
+          return const AlertDialog(
+            content: Row(children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Finalizando carrinho...')]),
+          );
+        },
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de carregamento (finalizar carrinho)',
+          tag: 'CartItemCard',
+          error: e,
+          stackTrace: s,
         );
-      },
+      }),
     );
   }
 
   void _showSuccessDialog(BuildContext context, SaveSeparationCartSuccess success) {
     if (!context.mounted) return;
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.check_circle, color: AppColors.success),
-            const SizedBox(width: 8),
-            const Text('Sucesso'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Carrinho #${widget.cartRouteInternshipConsultation.codCarrinho} finalizado com sucesso!'),
-            if (success.details != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                success.details!,
-                style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: AppColors.grey),
-              ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.check_circle, color: AppColors.success),
+              const SizedBox(width: 8),
+              const Text('Sucesso'),
             ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Carrinho #${widget.cartRouteInternshipConsultation.codCarrinho} finalizado com sucesso!'),
+              if (success.details != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  success.details!,
+                  style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: AppColors.grey),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+              child: Text('OK', style: AppFonts.inter(color: AppColors.white)),
+            ),
           ],
         ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-            child: Text('OK', style: AppFonts.inter(color: AppColors.white)),
-          ),
-        ],
-      ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de sucesso ao finalizar carrinho',
+          tag: 'CartItemCard',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 
   void _showErrorDialog(BuildContext context, AppFailure failure) {
     if (!context.mounted) return;
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.error, color: AppColors.error),
-            const SizedBox(width: 8),
-            const Text('Erro'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(failure.userMessage),
-            if (failure is SaveSeparationCartFailure && failure.details != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                failure.details!,
-                style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: AppColors.grey),
-              ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.error, color: AppColors.error),
+              const SizedBox(width: 8),
+              const Text('Erro'),
             ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(failure.userMessage),
+              if (failure is SaveSeparationCartFailure && failure.details != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  failure.details!,
+                  style: AppFonts.inter(fontSize: UIConstants.smallFontSize, color: AppColors.grey),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+              child: Text('OK', style: AppFonts.inter(color: AppColors.white)),
+            ),
           ],
         ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text('OK', style: AppFonts.inter(color: AppColors.white)),
-          ),
-        ],
-      ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de erro ao finalizar carrinho',
+          tag: 'CartItemCard',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 
@@ -1169,113 +1214,129 @@ class _CartItemCardState extends State<CartItemCard> {
 
     if (!context.mounted) return;
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.warning, color: Theme.of(context).colorScheme.error),
-            const SizedBox(width: 8),
-            const Text('Cancelar Carrinho'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Deseja realmente cancelar o carrinho?'),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(UIConstants.smallPadding),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-                border: Border.all(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3), width: 1),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Carrinho #${widget.cartRouteInternshipConsultation.codCarrinho}',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.cartRouteInternshipConsultation.nomeCarrinho,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Status: ${widget.cartRouteInternshipConsultation.situacao.description}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Esta ação não pode ser desfeita. O carrinho será marcado como CANCELADO.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Não, manter')),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _cancelCart(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: AppColors.white,
-            ),
-            child: const Text('Sim, cancelar'),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning, color: Theme.of(dialogContext).colorScheme.error),
+              const SizedBox(width: 8),
+              const Text('Cancelar Carrinho'),
+            ],
           ),
-        ],
-      ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Deseja realmente cancelar o carrinho?'),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(UIConstants.smallPadding),
+                decoration: BoxDecoration(
+                  color: Theme.of(dialogContext).colorScheme.errorContainer.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                  border: Border.all(
+                    color: Theme.of(dialogContext).colorScheme.error.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Carrinho #${widget.cartRouteInternshipConsultation.codCarrinho}',
+                      style: Theme.of(dialogContext).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.cartRouteInternshipConsultation.nomeCarrinho,
+                      style: Theme.of(dialogContext).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Status: ${widget.cartRouteInternshipConsultation.situacao.description}',
+                      style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(dialogContext).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Esta ação não pode ser desfeita. O carrinho será marcado como CANCELADO.',
+                style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(dialogContext).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Não, manter')),
+            ElevatedButton(
+              onPressed: () {
+                final messenger = ScaffoldMessenger.of(dialogContext);
+                final vm = widget.viewModel ?? dialogContext.read<SeparationItemsViewModel>();
+                Navigator.of(dialogContext).pop();
+                unawaited(
+                  _cancelCart(messenger, vm).catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha não tratada ao cancelar carrinho',
+                      tag: 'CartItemCard',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(dialogContext).colorScheme.error,
+                foregroundColor: AppColors.white,
+              ),
+              child: const Text('Sim, cancelar'),
+            ),
+          ],
+        ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de cancelamento de carrinho',
+          tag: 'CartItemCard',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 
-  Future<void> _cancelCart(BuildContext context) async {
+  Future<void> _cancelCart(ScaffoldMessengerState messenger, SeparationItemsViewModel vm) async {
+    final errorColor = Theme.of(messenger.context).colorScheme.error;
     try {
-      final vm = widget.viewModel ?? context.read<SeparationItemsViewModel>();
-
       final success = await vm.cancelCart(widget.cartRouteInternshipConsultation.codCarrinho);
 
       if (success) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Carrinho #${widget.cartRouteInternshipConsultation.codCarrinho} cancelado com sucesso!'),
-              backgroundColor: AppColors.success,
-            ),
-          );
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Carrinho #${widget.cartRouteInternshipConsultation.codCarrinho} cancelado com sucesso!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
 
-          widget.onCancel?.call();
-        }
+        widget.onCancel?.call();
       } else {
-        if (context.mounted) {
-          final errorMessage = vm.lastCancelError ?? 'Erro ao cancelar carrinho';
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: Theme.of(context).colorScheme.error));
-        }
+        final errorMessage = vm.lastCancelError ?? 'Erro ao cancelar carrinho';
+        messenger.showSnackBar(
+          SnackBar(content: Text(errorMessage), backgroundColor: errorColor),
+        );
       }
     } catch (e, stackTrace) {
       AppLogger.error('Erro inesperado ao cancelar carrinho', tag: 'CartItemCard', error: e, stackTrace: stackTrace);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Erro inesperado. Tente novamente.'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('Erro inesperado. Tente novamente.'),
+          backgroundColor: errorColor,
+        ),
+      );
     }
   }
 

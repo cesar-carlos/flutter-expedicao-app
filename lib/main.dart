@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -6,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/bootstrap.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/theme/app_theme.dart';
@@ -102,7 +105,19 @@ class _MyAppState extends State<MyApp> {
                 Future.delayed(const Duration(seconds: 2), () {
                   final owner = dotenv.env['GITHUB_OWNER']?.trim();
                   final repo = dotenv.env['GITHUB_REPO']?.trim();
-                  appUpdateViewModel.checkForUpdate(owner: owner, repo: repo, forceCheck: false);
+                  unawaited(
+                    appUpdateViewModel.checkForUpdate(owner: owner, repo: repo, forceCheck: false).catchError((
+                      Object e,
+                      StackTrace s,
+                    ) {
+                      AppLogger.warning(
+                        'Falha na verificação automática de atualização',
+                        tag: 'MyApp',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
                 });
               }
             });
@@ -112,13 +127,23 @@ class _MyAppState extends State<MyApp> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted && !_updateDialogShown) {
                 _updateDialogShown = true;
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (_) => AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
-                ).then((_) {
-                  _updateDialogShown = false;
-                });
+                unawaited(
+                  showDialog<void>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) => AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
+                  ).then((_) {
+                    _updateDialogShown = false;
+                  }).catchError((Object e, StackTrace s) {
+                    _updateDialogShown = false;
+                    AppLogger.warning(
+                      'Falha ao exibir dialog de atualização do app',
+                      tag: 'MyApp',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
               }
             });
           } else if (!appUpdateViewModel.hasUpdate && _updateDialogShown) {
@@ -129,13 +154,23 @@ class _MyAppState extends State<MyApp> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted && !_progressDialogShown) {
                 _progressDialogShown = true;
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (_) => const AppUpdateProgressDialog(),
-                ).then((_) {
-                  _progressDialogShown = false;
-                });
+                unawaited(
+                  showDialog<void>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) => const AppUpdateProgressDialog(),
+                  ).then((_) {
+                    _progressDialogShown = false;
+                  }).catchError((Object e, StackTrace s) {
+                    _progressDialogShown = false;
+                    AppLogger.warning(
+                      'Falha ao exibir dialog de progresso de atualização',
+                      tag: 'MyApp',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
               }
             });
           } else if (!appUpdateViewModel.isDownloading && !appUpdateViewModel.isInstalling && _progressDialogShown) {

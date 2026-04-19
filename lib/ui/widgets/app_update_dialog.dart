@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/github_release.dart';
@@ -43,10 +46,33 @@ class AppUpdateDialog extends StatelessWidget {
         ElevatedButton(
           key: const Key('app_update_now'),
           onPressed: () {
-            Navigator.of(context).pop();
-            showDialog(context: context, barrierDismissible: false, builder: (_) => const AppUpdateProgressDialog());
-
-            viewModel.downloadAndInstall();
+            final navigator = Navigator.of(context);
+            final hostContext = navigator.context;
+            navigator.pop();
+            unawaited(
+              showDialog<void>(
+                context: hostContext,
+                barrierDismissible: false,
+                builder: (_) => const AppUpdateProgressDialog(),
+              ).catchError((Object e, StackTrace s) {
+                AppLogger.warning(
+                  'Falha ao exibir dialog de progresso de atualização',
+                  tag: 'AppUpdateDialog',
+                  error: e,
+                  stackTrace: s,
+                );
+              }),
+            );
+            unawaited(
+              viewModel.downloadAndInstall().catchError((Object e, StackTrace s) {
+                AppLogger.warning(
+                  'Falha ao iniciar download/instalação do app',
+                  tag: 'AppUpdateDialog',
+                  error: e,
+                  stackTrace: s,
+                );
+              }),
+            );
           },
           child: Text(context.l10n.appUpdateNowButton),
         ),
