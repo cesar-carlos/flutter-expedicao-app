@@ -101,9 +101,14 @@ class UIConstants {
   static const Duration longCacheExpiration = Duration(days: 1);
 
   // Configurações de validação
-  static const int minPasswordLength = 6;
-  static const int maxPasswordLength = 50;
-  static const int minUsernameLength = 3;
+  // NOTA: estes valores foram alinhados com a implementacao real
+  // dos schemas em FormValidators (`_passwordSchema`, `_nameSchema`).
+  // Antes existia inconsistencia (minPasswordLength=6 vs schema.min(4))
+  // que poderia confundir devs ao usar UIConstants em UI counter de
+  // forca de senha enquanto o validador real aceitava 4 caracteres.
+  static const int minPasswordLength = 4;
+  static const int maxPasswordLength = 60;
+  static const int minUsernameLength = 1;
   static const int maxUsernameLength = 30;
 
   // Configurações de arquivo

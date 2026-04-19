@@ -4,26 +4,10 @@ import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'package:data7_expedicao/data/datasources/user_preferences_service.dart';
 import 'package:data7_expedicao/domain/models/user_preferences.dart';
 import 'package:data7_expedicao/domain/viewmodels/theme_viewmodel.dart';
-
-class _FakePathProvider extends PathProviderPlatform with MockPlatformInterfaceMixin {
-  _FakePathProvider(this._tmp);
-  final String _tmp;
-
-  @override
-  Future<String?> getApplicationDocumentsPath() async => _tmp;
-
-  @override
-  Future<String?> getTemporaryPath() async => _tmp;
-
-  @override
-  Future<String?> getApplicationSupportPath() async => _tmp;
-}
 
 class _FailingUserPreferencesService extends UserPreferencesService {
   bool failNext = false;
@@ -48,7 +32,6 @@ void main() {
 
   setUpAll(() async {
     tmpDir = await Directory.systemTemp.createTemp('theme_vm_test_');
-    PathProviderPlatform.instance = _FakePathProvider(tmpDir.path);
     Hive.init(tmpDir.path);
     if (!Hive.isAdapterRegistered(1)) {
       Hive.registerAdapter(UserPreferencesAdapter());
