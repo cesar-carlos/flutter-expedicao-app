@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
@@ -170,7 +173,18 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
             const SizedBox(height: 16),
 
             InkWell(
-              onTap: () => _showSituacoesDialog(context),
+              onTap: () {
+                unawaited(
+                  _showSituacoesDialog(context).catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha ao abrir seleção de situações (filtro separação)',
+                      tag: 'SeparationFilterModal',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
+              },
               child: InputDecorator(
                 decoration: const InputDecoration(
                   labelText: 'Situação',
@@ -288,7 +302,16 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
     });
 
     final viewModel = context.read<SeparationViewModel>();
-    viewModel.clearFilters();
+    unawaited(
+      viewModel.clearFilters().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao limpar filtros de separação',
+          tag: 'SeparationFilterModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
     Navigator.of(context).pop();
   }
 
@@ -303,7 +326,16 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
     viewModel.setSetorEstoqueFilter(_selectedSetorEstoque);
 
     Navigator.of(context).pop();
-    viewModel.applyFilters();
+    unawaited(
+      viewModel.applyFilters().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao aplicar filtros de separação',
+          tag: 'SeparationFilterModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   Future<void> _showSituacoesDialog(BuildContext context) async {
@@ -313,7 +345,8 @@ class _SeparationFilterModalState extends State<SeparationFilterModal> {
 
     final result = await showDialog<List<String>>(
       context: context,
-      builder: (context) => _MultiSelectSituacoesDialog(situacoes: situacoes, selectedSituacoes: _selectedSituacoes),
+      builder: (dialogContext) =>
+          _MultiSelectSituacoesDialog(situacoes: situacoes, selectedSituacoes: _selectedSituacoes),
     );
 
     if (result != null && mounted) {

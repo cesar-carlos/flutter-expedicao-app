@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
@@ -41,9 +44,21 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
     super.dispose();
   }
 
-  Future<void> _handleSave() async {
+  void _handleSave() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    unawaited(
+      _performSave().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha inesperada ao salvar preferências do scanner',
+          tag: 'ScannerConfigForm',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
+  }
 
+  Future<void> _performSave() async {
     final vm = context.read<ConfigViewModel>();
     await vm.saveScannerPreferences(mode: _mode, action: _actionController.text, extraKey: _extraController.text);
 

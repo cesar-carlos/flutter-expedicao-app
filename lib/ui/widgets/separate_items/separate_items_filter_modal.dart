@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/filter/separate_items_filters_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
@@ -324,7 +327,16 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
       _selectedSetorEstoque = null;
     });
 
-    widget.viewModel.clearItemsFilters();
+    unawaited(
+      widget.viewModel.clearItemsFilters().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao limpar filtros de itens',
+          tag: 'SeparateItemsFilterModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
     Navigator.of(context).pop();
   }
 
@@ -347,6 +359,15 @@ class _SeparateItemsFilterModalState extends State<SeparateItemsFilterModal> {
     );
 
     Navigator.of(context).pop();
-    widget.viewModel.applyItemsFilters(filters);
+    unawaited(
+      widget.viewModel.applyItemsFilters(filters).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao aplicar filtros de itens',
+          tag: 'SeparateItemsFilterModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 }

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
@@ -141,7 +144,18 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
                   const SizedBox(height: 16),
 
                   InkWell(
-                    onTap: () => _showSituacoesDialog(context),
+                    onTap: () {
+                      unawaited(
+                        _showSituacoesDialog(context).catchError((Object e, StackTrace s) {
+                          AppLogger.warning(
+                            'Falha ao abrir seleção de situações (filtro carrinhos)',
+                            tag: 'CartsFilterModal',
+                            error: e,
+                            stackTrace: s,
+                          );
+                        }),
+                      );
+                    },
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: 'Situação',
@@ -196,7 +210,18 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
                   const SizedBox(height: 16),
 
                   InkWell(
-                    onTap: () => _selectDataInicioInicial(context),
+                    onTap: () {
+                      unawaited(
+                        _selectDataInicioInicial(context).catchError((Object e, StackTrace s) {
+                          AppLogger.warning(
+                            'Falha ao selecionar data inicial (filtro carrinhos)',
+                            tag: 'CartsFilterModal',
+                            error: e,
+                            stackTrace: s,
+                          );
+                        }),
+                      );
+                    },
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: 'Data de Início (Inicial)',
@@ -216,7 +241,18 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
                   const SizedBox(height: 16),
 
                   InkWell(
-                    onTap: () => _selectDataInicioFinal(context),
+                    onTap: () {
+                      unawaited(
+                        _selectDataInicioFinal(context).catchError((Object e, StackTrace s) {
+                          AppLogger.warning(
+                            'Falha ao selecionar data final (filtro carrinhos)',
+                            tag: 'CartsFilterModal',
+                            error: e,
+                            stackTrace: s,
+                          );
+                        }),
+                      );
+                    },
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: 'Data de Início (Final)',
@@ -305,7 +341,16 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
       _dataInicioFinal = null;
     });
 
-    widget.viewModel.clearCartsFilters();
+    unawaited(
+      widget.viewModel.clearCartsFilters().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao limpar filtros de carrinhos',
+          tag: 'CartsFilterModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
     Navigator.of(context).pop();
   }
 
@@ -326,7 +371,16 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
     );
 
     Navigator.of(context).pop();
-    widget.viewModel.applyCartsFilters(filters);
+    unawaited(
+      widget.viewModel.applyCartsFilters(filters).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao aplicar filtros de carrinhos',
+          tag: 'CartsFilterModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   Future<void> _showSituacoesDialog(BuildContext context) async {
@@ -336,7 +390,8 @@ class _CartsFilterModalState extends State<CartsFilterModal> {
 
     final result = await showDialog<List<String>>(
       context: context,
-      builder: (context) => _MultiSelectSituacoesDialog(situacoes: situacoes, selectedSituacoes: _selectedSituacoes),
+      builder: (dialogContext) =>
+          _MultiSelectSituacoesDialog(situacoes: situacoes, selectedSituacoes: _selectedSituacoes),
     );
 
     if (result != null && mounted) {

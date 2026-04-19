@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/filter/pending_products_filters_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
@@ -294,7 +297,16 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
       _selectedSetorEstoque = null;
     });
 
-    widget.viewModel.clearFilters();
+    unawaited(
+      widget.viewModel.clearFilters().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao limpar filtros de pendentes',
+          tag: 'PendingProductsFilterModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
     Navigator.of(context).pop();
   }
 
@@ -311,6 +323,15 @@ class _PendingProductsFilterModalState extends State<PendingProductsFilterModal>
     );
 
     Navigator.of(context).pop();
-    widget.viewModel.applyFilters(filters);
+    unawaited(
+      widget.viewModel.applyFilters(filters).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao aplicar filtros de pendentes',
+          tag: 'PendingProductsFilterModal',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 }
