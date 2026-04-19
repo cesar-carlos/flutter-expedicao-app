@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/ui/screens/login_screen.dart';
 import 'package:data7_expedicao/ui/screens/splash_screen.dart';
@@ -76,22 +79,40 @@ class HomeScreen extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Saída'),
-        content: const Text('Deseja realmente sair do aplicativo?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.read<AuthViewModel>().logout();
-            },
-            child: const Text('Sair'),
-          ),
-        ],
-      ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Confirmar Saída'),
+          content: const Text('Deseja realmente sair do aplicativo?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancelar')),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                unawaited(
+                  dialogContext.read<AuthViewModel>().logout().catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha ao executar logout (home)',
+                      tag: 'HomeScreen',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
+              },
+              child: const Text('Sair'),
+            ),
+          ],
+        ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de logout (home)',
+          tag: 'HomeScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 }

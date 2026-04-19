@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/profile_photo_selector.dart';
 import 'package:data7_expedicao/core/validation/forms/form_validators_localized.dart';
@@ -35,29 +38,43 @@ class _RegisterFormState extends State<RegisterForm> {
     super.dispose();
   }
 
-  void _handleRegister() async {
+  void _handleRegister() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    unawaited(
+      _performRegister().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha inesperada no cadastro',
+          tag: 'RegisterForm',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
+  }
+
+  Future<void> _performRegister() async {
     final registerViewModel = context.read<RegisterViewModel>();
 
-    if (_formKey.currentState?.validate() ?? false) {
-      final success = await registerViewModel.register(
-        name: _nameController.text.trim(),
-        password: _passwordController.text,
-        confirmPassword: _confirmPasswordController.text,
-        profileImage: registerViewModel.profileImage,
+    final success = await registerViewModel.register(
+      name: _nameController.text.trim(),
+      password: _passwordController.text,
+      confirmPassword: _confirmPasswordController.text,
+      profileImage: registerViewModel.profileImage,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.registerSuccess),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+        ),
       );
 
-      if (mounted && success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.registerSuccess),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.all(16),
-          ),
-        );
-
-        context.go('/login');
-      }
+      context.go('/login');
     }
   }
 

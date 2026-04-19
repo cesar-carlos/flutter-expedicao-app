@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/presentation/viewmodels/add_cart_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/add_cart/cart_details_widget.dart';
 import 'package:data7_expedicao/ui/widgets/add_cart/barcode_scanner_widget.dart';
@@ -105,7 +108,18 @@ class _AddCartScreenState extends State<AddCartScreen> {
                         viewModel.cancelAutoAdd();
                         context.pop();
                       },
-                      onAdd: () => _onAddCart(viewModel),
+                      onAdd: () {
+                        unawaited(
+                          _onAddCart(viewModel).catchError((Object e, StackTrace s) {
+                            AppLogger.warning(
+                              'Falha ao adicionar carrinho à separação',
+                              tag: 'AddCartScreen',
+                              error: e,
+                              stackTrace: s,
+                            );
+                          }),
+                        );
+                      },
                       onNewQuery: () => _onNewQuery(viewModel),
                     ),
                   ],

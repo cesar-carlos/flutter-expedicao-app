@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/validation/forms/form_validators_localized.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
@@ -44,30 +47,51 @@ class _LoginFormState extends State<LoginForm> {
         return;
       }
 
-      context.read<AuthViewModel>().login(_usernameController.text.trim(), _passwordController.text);
+      unawaited(
+        context.read<AuthViewModel>().login(_usernameController.text.trim(), _passwordController.text).catchError((
+          Object e,
+          StackTrace s,
+        ) {
+          AppLogger.warning(
+            'Falha inesperada no fluxo de login',
+            tag: 'LoginForm',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     }
   }
 
   void _showServerConfigDialog(String message) {
     if (!mounted) return;
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: const Icon(Icons.warning, color: AppColors.warning, size: 32),
-        title: Text(context.l10n.configurationNeeded),
-        content: Text(message),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l10n.cancel)),
-          FilledButton(
-            child: Text(context.l10n.configure),
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.go('/config');
-            },
-          ),
-        ],
-      ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          icon: const Icon(Icons.warning, color: AppColors.warning, size: 32),
+          title: Text(dialogContext.l10n.configurationNeeded),
+          content: Text(message),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(dialogContext.l10n.cancel)),
+            FilledButton(
+              child: Text(dialogContext.l10n.configure),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                dialogContext.go('/config');
+              },
+            ),
+          ],
+        ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de configuração do servidor',
+          tag: 'LoginForm',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 

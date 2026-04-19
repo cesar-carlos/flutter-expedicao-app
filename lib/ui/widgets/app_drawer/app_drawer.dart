@@ -429,38 +429,47 @@ class AppDrawer extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Saída'),
-        content: const Text('Deseja realmente sair do aplicativo?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-              // Bug latente anterior: `logout()` retorna Future. Sem
-              // await/catch, qualquer erro durante o logout (ex.: falha
-              // de I/O ao limpar sessao) virava "Unhandled Future error".
-              // Logamos via AppLogger e seguimos — o usuario ja foi
-              // navegado para fora do drawer e o estado de auth ficou
-              // limpo na memoria.
-              unawaited(
-                context.read<AuthViewModel>().logout().catchError((Object e, StackTrace s) {
-                  AppLogger.warning(
-                    'Falha ao executar logout',
-                    tag: 'AppDrawer',
-                    error: e,
-                    stackTrace: s,
-                  );
-                }),
-              );
-            },
-            child: Text('Sair', style: AppFonts.inter(color: Theme.of(context).colorScheme.error)),
-          ),
-        ],
-      ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Confirmar Saída'),
+          content: const Text('Deseja realmente sair do aplicativo?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancelar')),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                Navigator.of(dialogContext).pop();
+                // Bug latente anterior: `logout()` retorna Future. Sem
+                // await/catch, qualquer erro durante o logout (ex.: falha
+                // de I/O ao limpar sessao) virava "Unhandled Future error".
+                // Logamos via AppLogger e seguimos — o usuario ja foi
+                // navegado para fora do drawer e o estado de auth ficou
+                // limpo na memoria.
+                unawaited(
+                  dialogContext.read<AuthViewModel>().logout().catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha ao executar logout',
+                      tag: 'AppDrawer',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
+              },
+              child: Text('Sair', style: AppFonts.inter(color: Theme.of(dialogContext).colorScheme.error)),
+            ),
+          ],
+        ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de logout (drawer)',
+          tag: 'AppDrawer',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 }
