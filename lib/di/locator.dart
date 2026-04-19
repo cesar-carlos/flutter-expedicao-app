@@ -171,12 +171,15 @@ void setupLocator() {
   locator.registerLazySingleton<MetricsStorage>(() => MetricsStorage());
   locator.registerLazySingleton<MetricsCollector>(() => MetricsCollector(locator<MetricsStorage>()));
   locator.registerLazySingleton<NetworkService>(() => const InternetAddressNetworkService());
+  // Bug R: usa RetryPolicy.withJitter em producao para evitar
+  // "thundering herd" quando muitos clientes falham simultaneamente
+  // (ex.: servidor cai e reconecta — todos retentam ao mesmo tempo).
   locator.registerLazySingleton<RetryPolicy>(
-    () => const RetryPolicy(
+    () => RetryPolicy.withJitter(
       maxAttempts: 3,
-      initialDelay: Duration(seconds: 1),
+      initialDelay: const Duration(seconds: 1),
       backoffMultiplier: 2.0,
-      maxDelay: Duration(seconds: 10),
+      maxDelay: const Duration(seconds: 10),
     ),
   );
   locator.registerLazySingleton<SocketConnectionManager>(
