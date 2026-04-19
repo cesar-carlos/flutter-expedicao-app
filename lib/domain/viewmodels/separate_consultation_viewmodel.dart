@@ -299,7 +299,16 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
   /// Define um erro
   void _setError(String message) {
     _errorMessage = message;
-    _setState(SeparateConsultationState.error);
+    // Bug NNNN: antes era _setState(error) que tinha guard `if (_state != newState)`.
+    // Quando ja estavamos em estado de erro, _setState nao notificava → segundo
+    // erro distinto ficava invisivel para a UI (errorMessage atualizado mas sem
+    // rebuild). Forcamos notify aqui pois mudou _errorMessage mesmo se _state
+    // ja era error.
+    if (_state == SeparateConsultationState.error) {
+      _safeNotifyListeners();
+    } else {
+      _setState(SeparateConsultationState.error);
+    }
   }
 
   /// Limpa o erro atual

@@ -115,13 +115,17 @@ class SeparatedProductsViewModel extends ChangeNotifier {
       _items = items;
 
       startCartEventMonitoring();
-
-      if (kDebugMode) {}
-    } catch (e) {
+    } catch (e, s) {
+      // Bug QQQQ: antes era `if (kDebugMode) {}` (bloco vazio).
+      // Erro era silencioso, dificultando diagnostico em release.
+      AppLogger.error(
+        'Erro ao carregar produtos separados',
+        tag: 'SeparatedProductsVM',
+        error: e,
+        stackTrace: s,
+      );
       _hasError = true;
       _errorMessage = 'Erro ao carregar produtos separados: ${e.toString()}';
-
-      if (kDebugMode) {}
     } finally {
       _isLoading = false;
       _safeNotifyListeners();
@@ -229,8 +233,12 @@ class SeparatedProductsViewModel extends ChangeNotifier {
   }
 
   void _setError(String message) {
+    // Bug PPPP: antes _setError nao chamava notifyListeners. Funcionava
+    // por sorte quando o caller (deleteItem) tinha _clearDeletingState
+    // no finally — mas era fragil. Agora notifica explicitamente.
     _hasError = true;
     _errorMessage = message;
+    _safeNotifyListeners();
   }
 
   DeleteItemSeparationParams _createDeleteParams(SeparationItemConsultationModel item) {

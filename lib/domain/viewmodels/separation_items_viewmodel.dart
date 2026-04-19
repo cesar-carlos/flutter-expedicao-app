@@ -198,11 +198,20 @@ class SeparationItemsViewModel extends ChangeNotifier {
 
       _carts = filteredCarts..sort((a, b) => b.item.compareTo(a.item));
       _cartsLoaded = true;
-      notifyListeners();
-    } catch (e) {
+      _safeNotifyListeners();
+    } catch (e, s) {
       if (_disposed) return;
+      // Bug RRRR: antes era catch silencioso (sem log) que ainda
+      // setava _cartsLoaded=true. Usuario via lista vazia sem
+      // pista do motivo. Agora logamos e mantemos comportamento.
+      AppLogger.warning(
+        'Erro ao carregar carrinhos da separacao',
+        tag: 'SeparationItemsVM',
+        error: e,
+        stackTrace: s,
+      );
       _cartsLoaded = true;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -245,7 +254,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
   void updateSeparation(SeparateConsultationModel separation) {
     if (_disposed) return;
     _separation = separation;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> loadAvailableSectors() async {
@@ -262,15 +271,15 @@ class SeparationItemsViewModel extends ChangeNotifier {
       _availableSectorsUnmodifiable = null;
       _availableSectors = sectors;
       _sectorsLoaded = true;
-      notifyListeners();
+      _safeNotifyListeners();
     } catch (e) {
       if (_disposed) return;
 
-      if (kDebugMode) {
-        AppLogger.error('Erro ao carregar setores de estoque', tag: 'SeparationItemsVM', error: e);
-      }
+      // Log fora do `if (kDebugMode)` para que erros tambem apareçam
+      // em release builds (AppLogger ja respeita o nivel global).
+      AppLogger.error('Erro ao carregar setores de estoque', tag: 'SeparationItemsVM', error: e);
       _sectorsLoaded = true;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -816,9 +825,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
         break;
     }
 
-    if (!_disposed) {
-      notifyListeners();
-    }
+    _safeNotifyListeners();
   }
 
   bool _isCartValidForCurrentSeparation(ExpeditionCartRouteInternshipConsultationModel cartData) {
