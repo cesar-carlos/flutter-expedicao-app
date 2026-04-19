@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
+
 class CustomDialog extends StatelessWidget {
   final String title;
   final Widget? titleIcon;
@@ -173,7 +175,15 @@ extension CustomDialogExtension on BuildContext {
         scrollable: scrollable,
         mainAxisSize: mainAxisSize,
       ),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir CustomDialog.responsive',
+        tag: 'CustomDialog',
+        error: e,
+        stackTrace: s,
+      );
+      return null;
+    });
   }
 
   Future<T?> showCustomDialogFixed<T>({
@@ -204,7 +214,15 @@ extension CustomDialogExtension on BuildContext {
         scrollable: scrollable,
         mainAxisSize: mainAxisSize,
       ),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir CustomDialog.fixed',
+        tag: 'CustomDialog',
+        error: e,
+        stackTrace: s,
+      );
+      return null;
+    });
   }
 
   Future<T?> showCustomDialogCustom<T>({
@@ -235,6 +253,14 @@ extension CustomDialogExtension on BuildContext {
         scrollable: scrollable,
         mainAxisSize: mainAxisSize,
       ),
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir CustomDialog.custom',
+        tag: 'CustomDialog',
+        error: e,
+        stackTrace: s,
+      );
+      return null;
+    });
   }
 }

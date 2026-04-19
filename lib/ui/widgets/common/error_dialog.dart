@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/theme/app_text_styles.dart';
@@ -44,7 +45,14 @@ class ErrorDialog extends StatelessWidget {
           showRetryButton: showRetryButton,
         );
       },
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir dialog de erro do servidor',
+        tag: 'ErrorDialog',
+        error: e,
+        stackTrace: s,
+      );
+    });
   }
 
   static Future<void> showConnectionError(BuildContext context, {VoidCallback? onRetry, VoidCallback? onClose}) {
@@ -62,7 +70,14 @@ class ErrorDialog extends StatelessWidget {
           showRetryButton: true,
         );
       },
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir dialog de erro de conexão',
+        tag: 'ErrorDialog',
+        error: e,
+        stackTrace: s,
+      );
+    });
   }
 
   static Future<void> showGenericError(
@@ -77,7 +92,14 @@ class ErrorDialog extends StatelessWidget {
       builder: (BuildContext dialogContext) {
         return ErrorDialog(title: 'Erro', message: message, details: details, onClose: onClose, showRetryButton: false);
       },
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir dialog de erro genérico',
+        tag: 'ErrorDialog',
+        error: e,
+        stackTrace: s,
+      );
+    });
   }
 
   static Future<void> showValidationError(BuildContext context, {required String message, String? details}) {
@@ -87,7 +109,14 @@ class ErrorDialog extends StatelessWidget {
       builder: (BuildContext dialogContext) {
         return ErrorDialog(title: 'Dados Inválidos', message: message, details: details, showRetryButton: false);
       },
-    );
+    ).catchError((Object e, StackTrace s) {
+      AppLogger.warning(
+        'Falha ao exibir dialog de erro de validação',
+        tag: 'ErrorDialog',
+        error: e,
+        stackTrace: s,
+      );
+    });
   }
 
   @override
