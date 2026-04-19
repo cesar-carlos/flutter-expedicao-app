@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/utils/date_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
 class SeparationUserSectorModel {
@@ -49,21 +50,17 @@ class SeparationUserSectorModel {
   }
 
   factory SeparationUserSectorModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return SeparationUserSectorModel(
-        codEmpresa: json['CodEmpresa'] as int,
-        codSepararEstoque: json['CodSepararEstoque'] as int,
-        item: json['Item'] as String,
-        codSetorEstoque: json['CodSetorEstoque'] as int,
-        dataLancamento: DateHelper.tryStringToDate(json['DataLancamento']),
-        horaLancamento: json['HoraLancamento'] as String? ?? '00:00:00',
-        codUsuario: json['CodUsuario'] as int,
-        nomeUsuario: json['NomeUsuario'] as String,
-        estacaoSeparacao: json['EstacaoSeparacao'] as String? ?? '',
-      );
-    } catch (e) {
-      rethrow;
-    }
+    return SeparationUserSectorModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codSepararEstoque: JsonParse.parseIntOr(json['CodSepararEstoque'], 0),
+      item: JsonParse.parseStringOr(json['Item'], ''),
+      codSetorEstoque: JsonParse.parseIntOr(json['CodSetorEstoque'], 0),
+      dataLancamento: DateHelper.tryStringToDate(json['DataLancamento']),
+      horaLancamento: JsonParse.parseStringOr(json['HoraLancamento'], '00:00:00'),
+      codUsuario: JsonParse.parseIntOr(json['CodUsuario'], 0),
+      nomeUsuario: JsonParse.parseStringOr(json['NomeUsuario'], ''),
+      estacaoSeparacao: JsonParse.parseStringOr(json['EstacaoSeparacao'], ''),
+    );
   }
 
   /// Factory method para criação segura com validação de schema

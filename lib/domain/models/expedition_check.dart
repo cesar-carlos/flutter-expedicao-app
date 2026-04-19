@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/utils/date_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_router_situation_model.dart';
 import 'package:data7_expedicao/core/results/index.dart';
@@ -81,28 +82,25 @@ class ExpeditionCheckModel {
   }
 
   factory ExpeditionCheckModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return ExpeditionCheckModel(
-        codEmpresa: json['CodEmpresa'],
-        codConferir: json['CodConferir'],
-        origem: ExpeditionOrigem.fromCodeWithFallback(json['Origem']),
-        codOrigem: json['CodOrigem'],
-        codPrioridade: json['CodPrioridade'],
-        situacao: ExpeditionCartRouterSituation.fromCode(json['Situacao']) ?? ExpeditionCartRouterSituation.vazio,
-        data: DateHelper.tryStringToDate(json['Data']),
-        hora: json['Hora'],
-        historico: json['Historico'],
-        observacao: json['Observacao'],
-        codMotivoCancelamento: json['CodMotivoCancelamento'],
-        dataCancelamento: DateHelper.tryStringToDateOrNull(json['DataCancelamento']),
-        horaCancelamento: json['HoraCancelamento'],
-        codUsuarioCancelamento: json['CodUsuarioCancelamento'],
-        nomeUsuarioCancelamento: json['NomeUsuarioCancelamento'],
-        observacaoCancelamento: json['ObservacaoCancelamento'],
-      );
-    } catch (_) {
-      rethrow;
-    }
+    return ExpeditionCheckModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codConferir: JsonParse.parseIntOr(json['CodConferir'], 0),
+      origem: ExpeditionOrigem.fromCodeWithFallback(JsonParse.parseStringOr(json['Origem'], '')),
+      codOrigem: JsonParse.parseIntOr(json['CodOrigem'], 0),
+      codPrioridade: JsonParse.parseIntOr(json['CodPrioridade'], 0),
+      situacao: ExpeditionCartRouterSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+          ExpeditionCartRouterSituation.vazio,
+      data: DateHelper.tryStringToDate(json['Data']),
+      hora: JsonParse.parseStringOr(json['Hora'], '00:00:00'),
+      historico: JsonParse.parseStringOrNull(json['Historico']),
+      observacao: JsonParse.parseStringOrNull(json['Observacao']),
+      codMotivoCancelamento: JsonParse.parseInt(json['CodMotivoCancelamento']),
+      dataCancelamento: DateHelper.tryStringToDateOrNull(json['DataCancelamento']),
+      horaCancelamento: JsonParse.parseStringOrNull(json['HoraCancelamento']),
+      codUsuarioCancelamento: JsonParse.parseInt(json['CodUsuarioCancelamento']),
+      nomeUsuarioCancelamento: JsonParse.parseStringOrNull(json['NomeUsuarioCancelamento']),
+      observacaoCancelamento: JsonParse.parseStringOrNull(json['ObservacaoCancelamento']),
+    );
   }
 
   /// Factory method para criação segura com validação de schema

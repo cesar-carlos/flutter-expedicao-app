@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 
 class SeparationUserSectorConsultationModel {
@@ -67,30 +68,26 @@ class SeparationUserSectorConsultationModel {
   }
 
   factory SeparationUserSectorConsultationModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return SeparationUserSectorConsultationModel(
-        codEmpresa: json['CodEmpresa'] as int,
-        codSepararEstoque: json['CodSepararEstoque'] as int,
-        separarEstoqueSituacao:
-            ExpeditionSituation.fromCode(json['SepararEstoqueSituacao'] as String? ?? '') ??
-            ExpeditionSituation.aguardando,
-        codSetorEstoque: json['CodSetorEstoque'] as int,
-        descricaoSetorEstoque: json['DescricaoSetorEstoque'] as String,
-        codPrioridade: json['CodPrioridade'] as int,
-        descricaoPrioridade: json['DescricaoPrioridade'] as String,
-        prioridade: json['Prioridade'] as int,
-        quantidadeItens: AppHelper.stringToDouble(json['QuantidadeItens']),
-        quantidadeItensSeparacao: AppHelper.stringToDouble(json['QuantidadeItensSeparacao']),
-        quantidadeItensSetor: AppHelper.stringToDouble(json['QuantidadeItensSetor']),
-        quantidadeItensSeparacaoSetor: AppHelper.stringToDouble(json['QuantidadeItensSeparacaoSetor']),
-        carrinhosAbertosUsuario: json['CarrinhosAbertosUsuario'] as String,
-        codUsuario: json['CodUsuario'] as int?,
-        nomeUsuario: json['NomeUsuario'] as String?,
-        estacaoSeparacao: json['EstacaoSeparacao'] as String?,
-      );
-    } catch (e) {
-      rethrow;
-    }
+    return SeparationUserSectorConsultationModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codSepararEstoque: JsonParse.parseIntOr(json['CodSepararEstoque'], 0),
+      separarEstoqueSituacao:
+          ExpeditionSituation.fromCode(JsonParse.parseStringOr(json['SepararEstoqueSituacao'], '')) ??
+              ExpeditionSituation.aguardando,
+      codSetorEstoque: JsonParse.parseIntOr(json['CodSetorEstoque'], 0),
+      descricaoSetorEstoque: JsonParse.parseStringOr(json['DescricaoSetorEstoque'], ''),
+      codPrioridade: JsonParse.parseIntOr(json['CodPrioridade'], 0),
+      descricaoPrioridade: JsonParse.parseStringOr(json['DescricaoPrioridade'], ''),
+      prioridade: JsonParse.parseIntOr(json['Prioridade'], 0),
+      quantidadeItens: AppHelper.stringToDouble(json['QuantidadeItens']),
+      quantidadeItensSeparacao: AppHelper.stringToDouble(json['QuantidadeItensSeparacao']),
+      quantidadeItensSetor: AppHelper.stringToDouble(json['QuantidadeItensSetor']),
+      quantidadeItensSeparacaoSetor: AppHelper.stringToDouble(json['QuantidadeItensSeparacaoSetor']),
+      carrinhosAbertosUsuario: JsonParse.parseStringOr(json['CarrinhosAbertosUsuario'], ''),
+      codUsuario: JsonParse.parseInt(json['CodUsuario']),
+      nomeUsuario: JsonParse.parseStringOrNull(json['NomeUsuario']),
+      estacaoSeparacao: JsonParse.parseStringOrNull(json['EstacaoSeparacao']),
+    );
   }
 
   Map<String, dynamic> toJson() {

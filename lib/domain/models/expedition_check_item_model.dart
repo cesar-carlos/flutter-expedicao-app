@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/core/utils/app_helper.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 
 class ExpeditionCheckItemModel {
@@ -49,23 +50,17 @@ class ExpeditionCheckItemModel {
   }
 
   factory ExpeditionCheckItemModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return ExpeditionCheckItemModel(
-        codEmpresa: json['CodEmpresa'],
-        codConferir: json['CodConferir'],
-        item: json['Item'],
-        codCarrinhoPercurso: json['CodCarrinhoPercurso'],
-        itemCarrinhoPercurso: json['ItemCarrinhoPercurso'],
-        codProduto: json['CodProduto'],
-        codUnidadeMedida: json['CodUnidadeMedida'],
-        quantidade: AppHelper.stringToDouble(json['Quantidade']),
-        quantidadeConferida: AppHelper.stringToDouble(
-          json['QuantidadeConferida'],
-        ),
-      );
-    } catch (_) {
-      rethrow;
-    }
+    return ExpeditionCheckItemModel(
+      codEmpresa: JsonParse.parseIntOr(json['CodEmpresa'], 0),
+      codConferir: JsonParse.parseIntOr(json['CodConferir'], 0),
+      item: JsonParse.parseStringOr(json['Item'], ''),
+      codCarrinhoPercurso: JsonParse.parseIntOr(json['CodCarrinhoPercurso'], 0),
+      itemCarrinhoPercurso: JsonParse.parseStringOr(json['ItemCarrinhoPercurso'], ''),
+      codProduto: JsonParse.parseIntOr(json['CodProduto'], 0),
+      codUnidadeMedida: JsonParse.parseStringOr(json['CodUnidadeMedida'], ''),
+      quantidade: AppHelper.stringToDouble(json['Quantidade']),
+      quantidadeConferida: AppHelper.stringToDouble(json['QuantidadeConferida']),
+    );
   }
 
   /// Factory method para criação segura com validação de schema
