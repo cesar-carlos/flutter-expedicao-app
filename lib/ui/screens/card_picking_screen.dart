@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -59,7 +61,16 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = context.read<CardPickingViewModel>();
-      viewModel.initializeCart(widget.cart, userModel: widget.userModel);
+      unawaited(
+        viewModel.initializeCart(widget.cart, userModel: widget.userModel).catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao inicializar carrinho no picking',
+            tag: 'CardPickingScreen',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     });
   }
 
@@ -94,8 +105,17 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
               return IconButton(
                 onPressed: viewModel.isLoading
                     ? null
-                    : () async {
-                        await viewModel.refresh();
+                    : () {
+                        unawaited(
+                          viewModel.refresh().catchError((Object e, StackTrace s) {
+                            AppLogger.warning(
+                              'Falha ao atualizar picking',
+                              tag: 'CardPickingScreen',
+                              error: e,
+                              stackTrace: s,
+                            );
+                          }),
+                        );
                       },
                 icon: viewModel.isLoading ? child! : const Icon(Icons.refresh),
                 tooltip: 'Atualizar dados',
@@ -218,7 +238,21 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              ElevatedButton(onPressed: () => viewModel.retry(), child: const Text('Tentar Novamente')),
+              ElevatedButton(
+                onPressed: () {
+                  unawaited(
+                    viewModel.retry().catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha ao repetir carregamento do picking',
+                        tag: 'CardPickingScreen',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
+                },
+                child: const Text('Tentar Novamente'),
+              ),
             ],
           ),
         ),
@@ -265,30 +299,39 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
   }
 
   void _showCartInfo(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.shopping_cart, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Informações do Carrinho', overflow: TextOverflow.ellipsis)),
-          ],
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.shopping_cart, color: Theme.of(dialogContext).colorScheme.primary),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('Informações do Carrinho', overflow: TextOverflow.ellipsis)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInfoRow('Código:', '#${widget.cart.codCarrinho}'),
+              _buildInfoRow('Nome:', widget.cart.nomeCarrinho),
+              _buildInfoRow('Status:', widget.cart.situacao.description),
+              if (widget.cart.nomeSetorEstoque != null) _buildInfoRow('Setor:', widget.cart.nomeSetorEstoque!),
+              if (widget.cart.carrinhoAgrupadorCode.isNotEmpty)
+                _buildInfoRow('Agrupador:', widget.cart.carrinhoAgrupadorCode),
+            ],
+          ),
+          actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar'))],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildInfoRow('Código:', '#${widget.cart.codCarrinho}'),
-            _buildInfoRow('Nome:', widget.cart.nomeCarrinho),
-            _buildInfoRow('Status:', widget.cart.situacao.description),
-            if (widget.cart.nomeSetorEstoque != null) _buildInfoRow('Setor:', widget.cart.nomeSetorEstoque!),
-            if (widget.cart.carrinhoAgrupadorCode.isNotEmpty)
-              _buildInfoRow('Agrupador:', widget.cart.carrinhoAgrupadorCode),
-          ],
-        ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar'))],
-      ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir informações do carrinho',
+          tag: 'CardPickingScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 
@@ -313,144 +356,153 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
     final pendingItems = totalItems - completedItems;
     final progress = totalItems > 0 ? (completedItems / totalItems) : 0.0;
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.analytics_outlined, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Progresso da Separação', overflow: TextOverflow.ellipsis, maxLines: 1)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Progresso Geral',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        '${(progress * 100).toInt()}%',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: progress >= 1.0 ? AppColors.success : Theme.of(context).colorScheme.primary,
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.analytics_outlined, color: Theme.of(dialogContext).colorScheme.primary),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('Progresso da Separação', overflow: TextOverflow.ellipsis, maxLines: 1)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(dialogContext).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Progresso Geral',
+                          style: Theme.of(dialogContext).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         ),
+                        Text(
+                          '${(progress * 100).toInt()}%',
+                          style: Theme.of(dialogContext).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: progress >= 1.0 ? AppColors.success : Theme.of(dialogContext).colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: Theme.of(dialogContext).colorScheme.outline.withValues(alpha: 0.2),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        progress >= 1.0 ? AppColors.success : Theme.of(dialogContext).colorScheme.primary,
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(Icons.check_circle, color: AppColors.success, size: 24),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$completedItems',
+                            style: Theme.of(
+                              dialogContext,
+                            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.success),
+                          ),
+                          Text(
+                            'Separados',
+                            style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(color: AppColors.green700),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      progress >= 1.0 ? AppColors.success : Theme.of(context).colorScheme.primary,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(Icons.pending_actions, color: AppColors.warning, size: 24),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$pendingItems',
+                            style: Theme.of(
+                              dialogContext,
+                            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.warning),
+                          ),
+                          Text(
+                            'Pendentes',
+                            style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(color: AppColors.warning),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(Icons.check_circle, color: AppColors.success, size: 24),
-                        const SizedBox(height: 4),
-                        Text(
-                          '$completedItems',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.success),
-                        ),
-                        Text(
-                          'Separados',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.green700),
-                        ),
-                      ],
-                    ),
-                  ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(dialogContext).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Theme.of(dialogContext).colorScheme.outline.withValues(alpha: 0.3)),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Informações do Carrinho',
+                      style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    child: Column(
-                      children: [
-                        Icon(Icons.pending_actions, color: AppColors.warning, size: 24),
-                        const SizedBox(height: 4),
-                        Text(
-                          '$pendingItems',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.warning),
-                        ),
-                        Text(
-                          'Pendentes',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.warning),
-                        ),
-                      ],
-                    ),
-                  ),
+                    const SizedBox(height: 8),
+                    Text('Código: ${widget.cart.codCarrinho}'),
+                    Text('Nome: ${widget.cart.nomeCarrinho}'),
+                    Text('Origem: ${widget.cart.origem.description}'),
+                    Text('Situação: ${widget.cart.situacao.description}'),
+                  ],
                 ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Informações do Carrinho',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text('Código: ${widget.cart.codCarrinho}'),
-                  Text('Nome: ${widget.cart.nomeCarrinho}'),
-                  Text('Origem: ${widget.cart.origem.description}'),
-                  Text('Situação: ${widget.cart.situacao.description}'),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
+          actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar'))],
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar'))],
-      ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir progresso da separação',
+          tag: 'CardPickingScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 }

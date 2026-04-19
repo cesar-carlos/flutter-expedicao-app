@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/domain/viewmodels/scanner_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/scanner_title_with_connection_status.dart';
@@ -52,8 +55,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   void dispose() {
-    // ignore: discarded_futures
-    _coordinator.dispose();
+    unawaited(
+      _coordinator.dispose().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Erro ao encerrar ScannerModeCoordinator (tela scanner)',
+          tag: 'ScannerScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
     _focusNode.dispose();
     super.dispose();
   }
@@ -357,45 +368,63 @@ class _ScannerScreenState extends State<ScannerScreen> {
   void _showDeleteDialog(BuildContext context, ScannerViewModel viewModel, int index) {
     final scan = viewModel.scanHistory[index];
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remover Leitura'),
-        content: Text('Deseja remover a leitura "${scan.code}"?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-          TextButton(
-            onPressed: () {
-              viewModel.removeFromHistory(index);
-              Navigator.of(context).pop();
-            },
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-            child: const Text('Remover'),
-          ),
-        ],
-      ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Remover Leitura'),
+          content: Text('Deseja remover a leitura "${scan.code}"?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancelar')),
+            TextButton(
+              onPressed: () {
+                viewModel.removeFromHistory(index);
+                Navigator.of(dialogContext).pop();
+              },
+              style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
+              child: const Text('Remover'),
+            ),
+          ],
+        ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de remover leitura',
+          tag: 'ScannerScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 
   /// Mostra diálogo de confirmação para limpar todas as leituras
   void _showClearAllDialog(BuildContext context, ScannerViewModel viewModel) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Limpar Todas as Leituras'),
-        content: Text('Deseja remover todas as ${viewModel.scanHistory.length} leituras?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-          TextButton(
-            onPressed: () {
-              viewModel.clearHistory();
-              Navigator.of(context).pop();
-            },
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-            child: const Text('Limpar Tudo'),
-          ),
-        ],
-      ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Limpar Todas as Leituras'),
+          content: Text('Deseja remover todas as ${viewModel.scanHistory.length} leituras?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancelar')),
+            TextButton(
+              onPressed: () {
+                viewModel.clearHistory();
+                Navigator.of(dialogContext).pop();
+              },
+              style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
+              child: const Text('Limpar Tudo'),
+            ),
+          ],
+        ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de limpar leituras',
+          tag: 'ScannerScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 }

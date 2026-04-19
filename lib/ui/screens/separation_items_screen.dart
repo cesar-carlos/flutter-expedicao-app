@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -32,7 +34,6 @@ import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_ex
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
-import 'dart:async';
 
 class SeparationItemsScreen extends StatefulWidget {
   final SeparateConsultationModel separation;
@@ -345,7 +346,16 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
   }
 
   void _refreshData(SeparationItemsViewModel viewModel) {
-    viewModel.refresh();
+    unawaited(
+      viewModel.refresh().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao atualizar itens da separação',
+          tag: 'SeparationItemsScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   Future<void> _onPrintTicket(BuildContext context) async {

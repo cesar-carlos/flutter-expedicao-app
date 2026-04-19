@@ -185,7 +185,16 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     if (_scrollController.hasClients) {
       _scrollController.jumpTo(0);
     }
-    viewModel.refresh();
+    unawaited(
+      viewModel.refresh().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao atualizar lista de separações',
+          tag: 'SeparationScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   String _buildPrintKey(SeparateConsultationModel separation) {
@@ -569,23 +578,32 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     required IconData icon,
     required Color color,
   }) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => AlertDialog(
-        icon: Icon(icon, color: color, size: _modalIconSize),
-        title: Text(
-          title,
-          style: AppFonts.inter(color: color, fontWeight: FontWeight.bold),
-        ),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK', style: AppFonts.inter(color: color)),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (dialogContext) => AlertDialog(
+          icon: Icon(icon, color: color, size: _modalIconSize),
+          title: Text(
+            title,
+            style: AppFonts.inter(color: color, fontWeight: FontWeight.bold),
           ),
-        ],
-      ),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text('OK', style: AppFonts.inter(color: color)),
+            ),
+          ],
+        ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir modal na tela de separações',
+          tag: 'SeparationScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 
@@ -676,7 +694,18 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: viewModel.refresh,
+              onPressed: () {
+                unawaited(
+                  viewModel.refresh().catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha ao repetir carregamento de separações',
+                      tag: 'SeparationScreen',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
+              },
               icon: const Icon(Icons.refresh),
               label: const Text('Tentar Novamente'),
             ),
@@ -707,7 +736,19 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => context.read<SeparationViewModel>().refresh(),
+              onPressed: () {
+                final vm = context.read<SeparationViewModel>();
+                unawaited(
+                  vm.refresh().catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha ao atualizar separações (estado vazio)',
+                      tag: 'SeparationScreen',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
+                );
+              },
               icon: const Icon(Icons.refresh),
               label: const Text('Atualizar'),
             ),

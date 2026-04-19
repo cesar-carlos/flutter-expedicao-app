@@ -95,8 +95,16 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     _focusNode.removeListener(_onFocusChange);
     _scanController.dispose();
     _focusNode.dispose();
-    // ignore: discarded_futures
-    _coordinator.dispose();
+    unawaited(
+      _coordinator.dispose().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Erro ao encerrar ScannerModeCoordinator (tela prateleira)',
+          tag: 'ShelfScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
     _validationTimer?.cancel();
     super.dispose();
   }
@@ -227,7 +235,16 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     if (isValid) {
       _isClosingFromSuccess = true;
       widget.viewModel.updateScannedAddress(input);
-      _audioService.playShelfScanSuccess();
+      unawaited(
+        _audioService.playShelfScanSuccess().catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao reproduzir som de sucesso (prateleira/tela)',
+            tag: 'ShelfScreen',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.pop();
@@ -254,7 +271,16 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
       ),
     );
 
-    _audioService.playError();
+    unawaited(
+      _audioService.playError().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao reproduzir som de erro (prateleira/tela)',
+          tag: 'ShelfScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _toggleInputMode() {
@@ -265,8 +291,16 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     });
     // Override manual delegado ao coordinator: ele decide se para/reinicia
     // a subscription com base nas prefs atuais.
-    // ignore: discarded_futures
-    _coordinator.setManualOverride(_isManualMode);
+    unawaited(
+      _coordinator.setManualOverride(_isManualMode).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao aplicar override manual do scanner',
+          tag: 'ShelfScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _handleKeyboardControl() {

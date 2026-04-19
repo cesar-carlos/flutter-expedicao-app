@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/index.dart';
 import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
@@ -178,11 +181,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final errorMsg = viewModel.errorMessage;
           if (errorMsg != null && errorMsg != _lastShownErrorMessage) {
             _lastShownErrorMessage = errorMsg;
-            ErrorDialog.showServerError(
-              context,
-              message: context.l10n.profileError,
-              details: errorMsg,
-              showRetryButton: false,
+            unawaited(
+              ErrorDialog.showServerError(
+                context,
+                message: context.l10n.profileError,
+                details: errorMsg,
+                showRetryButton: false,
+              ).catchError((Object e, StackTrace s) {
+                AppLogger.warning(
+                  'Falha ao exibir dialog de erro do perfil',
+                  tag: 'ProfileScreen',
+                  error: e,
+                  stackTrace: s,
+                );
+              }),
             );
           }
           break;

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/ui/widgets/app_drawer/app_drawer.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder_extension.dart';
@@ -271,36 +274,45 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
   }
 
   void _showConsultationDetails(dynamic consultation) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Consulta ${consultation.codSepararEstoque}'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildDetailItem('ID:', consultation.codSepararEstoque.toString()),
-              _buildDetailItem('Código:', consultation.codSepararEstoque.toString()),
-              _buildDetailItem('Descrição:', consultation.nomeEntidade),
-              _buildDetailItem('Status:', consultation.situacaoDescription),
-              _buildDetailItem('Usuário:', consultation.nomeEntidade),
-              _buildDetailItem('Data Emissão:', _formatDate(consultation.dataEmissao)),
-              _buildDetailItem('Hora Emissão:', consultation.horaEmissao),
-              if (consultation.observacao != null) _buildDetailItem('Observações:', consultation.observacao),
-            ],
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text('Consulta ${consultation.codSepararEstoque}'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildDetailItem('ID:', consultation.codSepararEstoque.toString()),
+                _buildDetailItem('Código:', consultation.codSepararEstoque.toString()),
+                _buildDetailItem('Descrição:', consultation.nomeEntidade),
+                _buildDetailItem('Status:', consultation.situacaoDescription),
+                _buildDetailItem('Usuário:', consultation.nomeEntidade),
+                _buildDetailItem('Data Emissão:', _formatDate(consultation.dataEmissao)),
+                _buildDetailItem('Hora Emissão:', consultation.horaEmissao),
+                if (consultation.observacao != null) _buildDetailItem('Observações:', consultation.observacao),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar')),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Editar'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar')),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Editar'),
-          ),
-        ],
-      ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir detalhes da consulta',
+          tag: 'SeparateConsultationScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
   }
 
@@ -372,7 +384,16 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
   }
 
   void _refreshData(ShipmentSeparateConsultationViewModel viewModel) {
-    viewModel.loadConsultations();
+    unawaited(
+      viewModel.loadConsultations().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao recarregar consultas de separação',
+          tag: 'SeparateConsultationScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
   }
 
   void _performConsultation(ShipmentSeparateConsultationViewModel viewModel) {
@@ -601,12 +622,21 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Row(children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Consultando...')]),
-      ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const AlertDialog(
+          content: Row(children: [CircularProgressIndicator(), SizedBox(width: 16), Text('Consultando...')]),
+        ),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao exibir dialog de consulta em andamento',
+          tag: 'SeparateConsultationScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
     );
 
     viewModel
@@ -655,12 +685,21 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
           final errorMsg = viewModel.errorMessage;
           if (errorMsg != null && errorMsg != _lastShownErrorMessage) {
             _lastShownErrorMessage = errorMsg;
-            ErrorDialog.showServerError(
-              context,
-              message: 'Erro ao carregar consultas',
-              details: errorMsg,
-              showRetryButton: true,
-              onRetry: () => _refreshData(viewModel),
+            unawaited(
+              ErrorDialog.showServerError(
+                context,
+                message: 'Erro ao carregar consultas',
+                details: errorMsg,
+                showRetryButton: true,
+                onRetry: () => _refreshData(viewModel),
+              ).catchError((Object e, StackTrace s) {
+                AppLogger.warning(
+                  'Falha ao exibir dialog de erro (consulta separação)',
+                  tag: 'SeparateConsultationScreen',
+                  error: e,
+                  stackTrace: s,
+                );
+              }),
             );
           }
           break;
