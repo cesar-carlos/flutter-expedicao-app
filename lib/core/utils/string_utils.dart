@@ -52,7 +52,14 @@ class StringUtils {
   /// ```
   static String truncate(String text, int maxLength, {String suffix = '...'}) {
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength - suffix.length) + suffix;
+    // Bug IIIIII: se maxLength < suffix.length, `maxLength - suffix.length`
+    // ficava negativo e `text.substring(0, negativo)` lancava RangeError.
+    // Agora retornamos so o suffix truncado (ou string vazia se nem isso cabe).
+    final keep = maxLength - suffix.length;
+    if (keep <= 0) {
+      return suffix.length <= maxLength ? suffix : suffix.substring(0, maxLength);
+    }
+    return text.substring(0, keep) + suffix;
   }
 
   /// Remove acentos de uma string

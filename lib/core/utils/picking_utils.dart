@@ -41,9 +41,21 @@ class PickingUtils {
 
       // Se ambos começam com números, comparar numericamente
       if (matchA != null && matchB != null) {
-        final numA = int.parse(matchA.group(1)!);
-        final numB = int.parse(matchB.group(1)!);
-        if (numA != numB) return numA.compareTo(numB);
+        // Bug QQQQQQ: int.parse podia overflow se o regex \d+ casasse
+        // string de 19+ digitos (limite int64). Usamos tryParse e
+        // fallback para comparacao por comprimento (numeros maiores
+        // tem mais digitos) seguido de string compare.
+        final numA = int.tryParse(matchA.group(1)!);
+        final numB = int.tryParse(matchB.group(1)!);
+        if (numA != null && numB != null) {
+          if (numA != numB) return numA.compareTo(numB);
+        } else {
+          final strA = matchA.group(1)!;
+          final strB = matchB.group(1)!;
+          if (strA.length != strB.length) return strA.length.compareTo(strB.length);
+          final cmp = strA.compareTo(strB);
+          if (cmp != 0) return cmp;
+        }
       }
 
       // Se um começa com número e outro não, priorizar o que começa com número

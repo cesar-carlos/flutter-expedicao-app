@@ -131,7 +131,16 @@ class AppHelper {
   }
 
   static double qtdDisplayToDouble(String value) {
-    return double.parse(value.replaceAll('.', '').replaceAll(',', '.'));
+    // Bug MMMMMM: antes era `double.parse(...)` SEM try/catch.
+    // Inconsistente com os outros parsers da classe (stringToDouble,
+    // stringToInt, parseMoedaToDouble) que retornam 0.0 em erro.
+    // Pior: input invalido (ex.: string vazia, caracteres) crashava
+    // a UI inteira em telas de quantidade.
+    try {
+      return double.parse(value.replaceAll('.', '').replaceAll(',', '.'));
+    } catch (_) {
+      return 0.0;
+    }
   }
 
   static bool isBarCode(String value) {

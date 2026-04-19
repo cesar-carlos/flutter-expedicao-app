@@ -12,7 +12,11 @@ class AvatarUtils {
   static String getInitials(String name) {
     if (name.isEmpty) return 'U';
 
-    final parts = name.trim().split(' ');
+    // Bug GGGGGG: nomes com apenas espacos ('   ') ou multiplos
+    // espacos entre palavras ('Joao   Silva') geravam parts com
+    // strings vazias. `parts[0].substring(0, 1)` lancava RangeError.
+    // Filtramos partes vazias antes de acessar.
+    final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
     if (parts.isEmpty) return 'U';
 
     if (parts.length == 1) {
