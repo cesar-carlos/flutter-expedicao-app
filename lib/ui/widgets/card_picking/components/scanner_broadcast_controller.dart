@@ -1,29 +1,34 @@
-import 'dart:async' show StreamSubscription;
-
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
+import 'package:data7_expedicao/core/services/scanner_mode_coordinator.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 
-/// Controller responsável por gerenciar o broadcast listener do scanner
+/// Controller de broadcast usado pelo `ScannerActivationController` no
+/// fluxo de picking.
 ///
-/// Responsabilidades:
-/// - Gerenciar ciclo de vida do broadcast listener
-/// - Iniciar/parar broadcast listener
-/// - Processar códigos recebidos via broadcast
-/// - Tratar erros do broadcast stream
+/// Hoje é um wrapper fino sobre [ScannerModeCoordinator], preservando a
+/// API antiga (`start(action, extraKey, onBarcodeReceived)`, `stop()`,
+/// `dispose()`) para evitar refator no `PickingCardScan`. A lógica
+/// real de subscription, retry, error handling e logging vive no
+/// coordinator (testável, puro Dart).
 class ScannerBroadcastController {
-  final BarcodeBroadcastService _broadcastService = locator<BarcodeBroadcastService>();
+  static const _logTag = 'ScannerBroadcastController';
 
-  StreamSubscription<String>? _subscription;
-  bool _isActive = false;
+  late final ScannerModeCoordinator _coordinator;
+  void Function(String)? _onBarcodeReceived;
 
-  /// Indica se o broadcast listener está ativo
-  bool get isActive => _isActive;
+  ScannerBroadcastController({BarcodeBroadcastService? broadcastService}) {
+    _coordinator = ScannerModeCoordinator(
+      broadcastService: broadcastService ?? locator<BarcodeBroadcastService>(),
+      onBarcode: (code) => _onBarcodeReceived?.call(code),
+    );
+  }
 
-  /// Retorna a subscription atual (para verificação)
-  StreamSubscription<String>? get subscription => _subscription;
+  /// Indica se o broadcast listener está ativo.
+  bool get isActive => _coordinator.isBroadcastActive;
 
-  /// Inicia o broadcast listener
+  /// Inicia o broadcast listener.
   ///
   /// [action] - Action para o broadcast
   /// [extraKey] - Extra key para o broadcast
@@ -36,81 +41,42 @@ class ScannerBroadcastController {
     if (action.isEmpty || extraKey.isEmpty) {
       AppLogger.debug(
         'Broadcast listener start skipped - invalid configuration: action=$action extraKey=$extraKey',
-        tag: 'ScannerBroadcastController',
+        tag: _logTag,
       );
       return;
     }
 
-    AppLogger.debug(
-      'Starting broadcast listener: action=$action extraKey=$extraKey',
-      tag: 'ScannerBroadcastController',
+    AppLogger.debug('Starting broadcast listener: action=$action extraKey=$extraKey', tag: _logTag);
+
+    _onBarcodeReceived = onBarcodeReceived;
+    // Garante que start() apos um stop() (que setou manual override) volte
+    // a ouvir antes de aplicar as novas preferencias.
+    await _coordinator.setManualOverride(false);
+    await _coordinator.start(
+      ScannerModePreferences(mode: ScannerInputMode.broadcast, action: action, extraKey: extraKey),
     );
-
-    await stop();
-
-    try {
-      _subscription = _broadcastService
-          .listen(action: action, extraKey: extraKey)
-          .listen(
-            (code) {
-              final trimmed = code.trim();
-              AppLogger.debug('Broadcast received code: $trimmed', tag: 'ScannerBroadcastController');
-              if (trimmed.isEmpty) return;
-              onBarcodeReceived(trimmed);
-            },
-            onError: (error, stackTrace) {
-              AppLogger.error(
-                'Broadcast listener error',
-                tag: 'ScannerBroadcastController',
-                error: error,
-                stackTrace: stackTrace,
-              );
-            },
-            onDone: () {
-              AppLogger.debug('Broadcast listener stream done', tag: 'ScannerBroadcastController');
-              _isActive = false;
-            },
-          );
-      _isActive = true;
-      AppLogger.debug('Broadcast listener created successfully', tag: 'ScannerBroadcastController');
-    } catch (e, stackTrace) {
-      AppLogger.error(
-        'Error creating broadcast listener',
-        tag: 'ScannerBroadcastController',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      _isActive = false;
-    }
+    AppLogger.debug('Broadcast listener created successfully', tag: _logTag);
   }
 
-  /// Para o broadcast listener
+  /// Para o broadcast listener.
+  ///
+  /// Não destrói o coordinator: um `start()` posterior religa a subscription
+  /// (limpando o manual override).
   Future<void> stop() async {
-    if (!_isActive && _subscription == null) {
+    if (!_coordinator.isBroadcastActive) {
       return;
     }
 
-    AppLogger.debug('Stopping broadcast listener', tag: 'ScannerBroadcastController');
-    try {
-      await _subscription?.cancel();
-    } catch (e, stackTrace) {
-      AppLogger.warning(
-        'Error canceling broadcast subscription',
-        tag: 'ScannerBroadcastController',
-        error: e,
-        stackTrace: stackTrace,
-      );
-    } finally {
-      _subscription = null;
-      _isActive = false;
-    }
+    AppLogger.debug('Stopping broadcast listener', tag: _logTag);
+    await _coordinator.setManualOverride(true);
   }
 
   /// Descarta o controller e cancela a subscription.
-  /// (S3: o `stop()` é assíncrono mas dispose é sync; usamos `unawaited`
-  /// porque erros de cancelamento já são logados dentro de `stop()`.)
+  /// (S3: o `dispose()` do coordinator é assíncrono mas este é sync;
+  /// usamos `discarded_futures` porque erros já são logados internamente.)
   void dispose() {
     // ignore: discarded_futures
-    stop();
+    _coordinator.dispose();
+    _onBarcodeReceived = null;
   }
 }
