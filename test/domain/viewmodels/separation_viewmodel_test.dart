@@ -59,8 +59,7 @@ void main() {
 
   group('SeparationViewModel', () {
     late SeparationViewModel viewModel;
-    late MockBasicConsultationRepository<SeparateConsultationModel>
-    mockRepository;
+    late MockBasicConsultationRepository<SeparateConsultationModel> mockRepository;
     late MockBasicRepository<ExpeditionSectorStockModel> mockSectorRepository;
     late MockFiltersStorageService mockFiltersStorage;
     late MockSeparateEventRepository mockEventRepository;
@@ -68,8 +67,7 @@ void main() {
     late MockNotificationService mockNotificationService;
 
     setUp(() {
-      mockRepository =
-          MockBasicConsultationRepository<SeparateConsultationModel>();
+      mockRepository = MockBasicConsultationRepository<SeparateConsultationModel>();
       mockSectorRepository = MockBasicRepository<ExpeditionSectorStockModel>();
       mockFiltersStorage = MockFiltersStorageService();
       mockEventRepository = MockSeparateEventRepository();
@@ -77,12 +75,8 @@ void main() {
       mockNotificationService = MockNotificationService();
 
       // Configurar stubs para evitar erros
-      when(
-        mockFiltersStorage.loadSeparationFilters(),
-      ).thenAnswer((_) async => const SeparationFiltersModel());
-      when(
-        mockFiltersStorage.saveSeparationFilters(any),
-      ).thenAnswer((_) async {});
+      when(mockFiltersStorage.loadSeparationFilters()).thenAnswer((_) async => const SeparationFiltersModel());
+      when(mockFiltersStorage.saveSeparationFilters(any)).thenAnswer((_) async {});
 
       // Configurar stubs para o mock do event repository
       when(mockEventRepository.listeners).thenReturn([]);
@@ -124,17 +118,14 @@ void main() {
       expect(viewModel.pageSize, 20);
     });
 
-    test(
-      'should change state to loading when loadSeparations is called',
-      () async {
-        // Act
-        viewModel.loadSeparations();
+    test('should change state to loading when loadSeparations is called', () async {
+      // Act
+      viewModel.loadSeparations();
 
-        // Assert - O estado deve mudar para loading imediatamente
-        expect(viewModel.state, SeparationState.loading);
-        expect(viewModel.isLoading, isTrue);
-      },
-    );
+      // Assert - O estado deve mudar para loading imediatamente
+      expect(viewModel.state, SeparationState.loading);
+      expect(viewModel.isLoading, isTrue);
+    });
 
     test('should handle refresh method', () async {
       // Act
@@ -163,10 +154,7 @@ void main() {
     });
 
     test('refreshSeparationListSilently skips when paginated past first page', () async {
-      final page0 = List.generate(
-        20,
-        (i) => buildSeparation(codSepararEstoque: 100 - i, codSetoresEstoque: const [1]),
-      );
+      final page0 = List.generate(20, (i) => buildSeparation(codSepararEstoque: 100 - i, codSetoresEstoque: const [1]));
       final page1Extra = buildSeparation(codSepararEstoque: 1, codSetoresEstoque: const [1]);
 
       var selectCalls = 0;
@@ -450,11 +438,7 @@ void main() {
         viewModel.setSituacoesFilter(['AGUARDANDO', 'SEPARANDO', 'SEPARADO']);
 
         // Assert
-        expect(viewModel.situacoesFilter, [
-          'AGUARDANDO',
-          'SEPARANDO',
-          'SEPARADO',
-        ]);
+        expect(viewModel.situacoesFilter, ['AGUARDANDO', 'SEPARANDO', 'SEPARADO']);
         expect(viewModel.hasActiveFilters, isTrue);
       });
 
@@ -522,15 +506,11 @@ void main() {
         viewModel.startEventMonitoring();
 
         // Assert - Verifica se os listeners foram registrados
-        verify(
-          mockEventRepository.addListener(any),
-        ).called(3); // insert, update, delete
+        verify(mockEventRepository.addListener(any)).called(3); // insert, update, delete
       });
 
-      test(
-        'CRUD listeners usam allEvent true para nao serem ignorados pelo EventServiceImpl '
-        'quando Session == socket atual (ex.: separacao criada no mesmo app)',
-        () {
+      test('CRUD listeners usam allEvent true para nao serem ignorados pelo EventServiceImpl '
+          'quando Session == socket atual (ex.: separacao criada no mesmo app)', () {
         viewModel.startEventMonitoring();
         final captured = verify(mockEventRepository.addListener(captureAny)).captured;
         final listeners = captured.cast<EventListenerModel>();
@@ -538,8 +518,7 @@ void main() {
         for (final l in listeners) {
           expect(l.allEvent, isTrue, reason: 'listener ${l.id} / ${l.event}');
         }
-      },
-      );
+      });
 
       test('should stop event monitoring', () {
         // Arrange - Primeiro iniciar o monitoramento
@@ -593,9 +572,7 @@ void main() {
         viewModel.startEventMonitoring();
 
         // Assert - Verifica se os listeners foram registrados
-        verify(
-          mockEventRepository.addListener(any),
-        ).called(3); // insert, update, delete
+        verify(mockEventRepository.addListener(any)).called(3); // insert, update, delete
       });
 
       test('should process update events correctly', () {
