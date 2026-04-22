@@ -326,6 +326,7 @@ class SeparationViewModel extends ChangeNotifier {
   QueryBuilder _buildQueryWithFilters(int page) {
     final queryBuilder = QueryBuilder()
       ..paginate(limit: _pageSize, offset: page * _pageSize, page: page + 1)
+      ..orderByAsc('CodEmpresa')
       ..orderByDesc('CodSepararEstoque');
 
     if (_codSepararEstoqueFilter != null) {

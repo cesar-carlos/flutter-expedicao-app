@@ -15,6 +15,7 @@ class SeparateConsultationRepositoryImpl implements BasicConsultationRepository<
       baseEvent: _selectEvent,
       queryBuilder: queryBuilder,
       fromJson: SeparateConsultationModel.fromJson,
+      includeOrderBy: true,
     );
   }
 }
