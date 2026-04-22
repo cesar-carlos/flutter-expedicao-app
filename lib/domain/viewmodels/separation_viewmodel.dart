@@ -21,6 +21,10 @@ import 'package:data7_expedicao/core/services/notification_service.dart';
 enum SeparationState { initial, loading, loaded, error }
 
 class SeparationViewModel extends ChangeNotifier {
+  /// Enquanto a tela de listagem estiver com [startEventMonitoring] ativo, a primeira
+  /// página é reconsultada em intervalo fixo. Complementa o socket quando o backend
+  /// não emite `separar.*.listen` para a operação feita neste app.
+  static const Duration listPollingInterval = Duration(seconds: 10);
   final BasicConsultationRepository<SeparateConsultationModel> _repository;
   final IFiltersStorageService _filtersStorage;
   final BasicRepository<ExpeditionSectorStockModel> _sectorRepository;
@@ -78,6 +82,8 @@ class SeparationViewModel extends ChangeNotifier {
 
   bool _isScreenVisible = false;
   Timer? _notificationDebounce;
+  Timer? _silentRefreshTimer;
+  bool _silentRefreshInFlight = false;
 
   bool get isScreenVisible => _isScreenVisible;
 
@@ -147,6 +153,7 @@ class SeparationViewModel extends ChangeNotifier {
 
       if (_disposed) return;
       _separations = filteredSeparations;
+      _sortSeparationsNewestFirst();
       _hasMoreData = separations.length == _pageSize;
       _setState(SeparationState.loaded);
     } catch (e) {
@@ -157,6 +164,49 @@ class SeparationViewModel extends ChangeNotifier {
 
   Future<void> refresh() async {
     await loadSeparations();
+  }
+
+  /// Recarrega só a primeira página, sem estado `loading` nem skeleton.
+  /// Útil com polling e ao voltar do segundo plano; falhas são só logadas.
+  Future<void> refreshSeparationListSilently() async {
+    if (_disposed || isLoading || _isLoadingMore || _silentRefreshInFlight) return;
+    // Com paginação além da 1ª página, substituir só os 20 primeiros apagaria o restante.
+    if (_currentPage > 0) return;
+
+    _silentRefreshInFlight = true;
+    try {
+      final queryBuilder = _buildQueryWithFilters(0);
+      final separations = await _repository.selectConsultation(queryBuilder);
+      if (_disposed) return;
+
+      final previousKeys = {for (final s in _separations) _separationKey(s)};
+      final filteredSeparations = _applyExactSetorFilter(separations);
+      final newFromPoll = filteredSeparations.where((s) => !previousKeys.contains(_separationKey(s))).toList();
+
+      _separations = filteredSeparations;
+      _sortSeparationsNewestFirst();
+      _currentPage = 0;
+      _hasMoreData = separations.length == _pageSize;
+      _clearError();
+      _setState(SeparationState.loaded);
+
+      if (!_disposed && !_isScreenVisible && _shouldNotifyForPolledNewSeparations(previousKeys, newFromPoll)) {
+        newFromPoll.sort((a, b) => b.codSepararEstoque.compareTo(a.codSepararEstoque));
+        _playNotificationIfNeeded(newFromPoll.first);
+      }
+    } catch (e, s) {
+      if (_disposed) return;
+      AppLogger.debug(
+        'Falha no refresh silencioso da lista de separações',
+        tag: 'SeparationVM',
+        error: e,
+        stackTrace: s,
+      );
+    } finally {
+      if (!_disposed) {
+        _silentRefreshInFlight = false;
+      }
+    }
   }
 
   Future<void> clearFilters() async {
@@ -233,12 +283,7 @@ class SeparationViewModel extends ChangeNotifier {
       // Bug NNN: antes era catch silencioso. Sem log, falha em
       // loadAvailableSectors deixava a lista vazia sem nenhum
       // feedback (nem para o usuario, nem para o desenvolvedor).
-      AppLogger.error(
-        'Erro ao carregar setores disponiveis para filtro',
-        tag: 'SeparationVM',
-        error: e,
-        stackTrace: s,
-      );
+      AppLogger.error('Erro ao carregar setores disponiveis para filtro', tag: 'SeparationVM', error: e, stackTrace: s);
       _availableSectorsUnmodifiable = null;
       _availableSectors = [];
       _sectorsLoaded = false;
@@ -269,6 +314,7 @@ class SeparationViewModel extends ChangeNotifier {
 
       if (moreSeparations.isNotEmpty) {
         _separations.addAll(filteredSeparations);
+        _sortSeparationsNewestFirst();
         _hasMoreData = moreSeparations.length == _pageSize;
       } else {
         _hasMoreData = false;
@@ -313,6 +359,7 @@ class SeparationViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _notificationDebounce?.cancel();
+    _stopSilentRefreshTimer();
     _disposed = true;
     super.dispose();
   }
@@ -321,6 +368,25 @@ class SeparationViewModel extends ChangeNotifier {
     if (!_disposed) {
       notifyListeners();
     }
+  }
+
+  String _separationKey(SeparateConsultationModel s) => '${s.codEmpresa}:${s.codSepararEstoque}';
+
+  /// Evita disparar som/notificação no primeiro lote vindo só do poll (ex.: lista vazia → muitas linhas).
+  bool _shouldNotifyForPolledNewSeparations(Set<String> previousKeys, List<SeparateConsultationModel> newOnes) {
+    if (newOnes.isEmpty) return false;
+    if (previousKeys.isNotEmpty) return true;
+    return newOnes.length == 1;
+  }
+
+  /// Maior [codSepararEstoque] primeiro (últimas separações no topo).
+  /// Também aplicado após carregar/atualizar lista — o socket nem sempre respeita ORDER BY.
+  void _sortSeparationsNewestFirst() {
+    _separations.sort((a, b) {
+      final byCod = b.codSepararEstoque.compareTo(a.codSepararEstoque);
+      if (byCod != 0) return byCod;
+      return a.codEmpresa.compareTo(b.codEmpresa);
+    });
   }
 
   QueryBuilder _buildQueryWithFilters(int page) {
@@ -461,29 +527,49 @@ class SeparationViewModel extends ChangeNotifier {
     _registerEventListener();
     _registerConsultationEventListener();
     _registerUpdateListEventListener();
+    _startSilentRefreshTimer();
   }
 
   void stopEventMonitoring() {
     if (_disposed) return;
+    _stopSilentRefreshTimer();
     _unregisterEventListener();
     _unregisterConsultationEventListener();
     _unregisterUpdateListEventListener();
+  }
+
+  void _startSilentRefreshTimer() {
+    if (_disposed || _silentRefreshTimer != null) return;
+    _silentRefreshTimer = Timer.periodic(listPollingInterval, (_) => _onSilentRefreshTick());
+  }
+
+  void _stopSilentRefreshTimer() {
+    _silentRefreshTimer?.cancel();
+    _silentRefreshTimer = null;
+  }
+
+  void _onSilentRefreshTick() {
+    if (_disposed || !_isScreenVisible || isLoading || _isLoadingMore) return;
+    unawaited(refreshSeparationListSilently());
   }
 
   void _registerEventListener() {
     if (_disposed || _eventListenersRegistered) return;
 
     try {
+      // allEvent: true — [EventServiceImpl] ignora eventos com Session == socket atual
+      // quando allEvent é false (evitar eco em outros fluxos). Na listagem, isso impedia
+      // de ver a própria separação criada neste app até dar refresh.
       _eventRepository.addListener(
-        EventListenerModel(id: _insertListenerId, event: Event.insert, callback: _onSeparationEvent, allEvent: false),
+        EventListenerModel(id: _insertListenerId, event: Event.insert, callback: _onSeparationEvent, allEvent: true),
       );
 
       _eventRepository.addListener(
-        EventListenerModel(id: _updateListenerId, event: Event.update, callback: _onSeparationEvent, allEvent: false),
+        EventListenerModel(id: _updateListenerId, event: Event.update, callback: _onSeparationEvent, allEvent: true),
       );
 
       _eventRepository.addListener(
-        EventListenerModel(id: _deleteListenerId, event: Event.delete, callback: _onSeparationEvent, allEvent: false),
+        EventListenerModel(id: _deleteListenerId, event: Event.delete, callback: _onSeparationEvent, allEvent: true),
       );
 
       _eventListenersRegistered = true;
@@ -638,6 +724,7 @@ class SeparationViewModel extends ChangeNotifier {
     }
 
     if (!_disposed) {
+      _sortSeparationsNewestFirst();
       notifyListeners();
     }
   }
@@ -754,6 +841,7 @@ class SeparationViewModel extends ChangeNotifier {
     }
 
     if (hasAnyUpdate && !_disposed) {
+      _sortSeparationsNewestFirst();
       notifyListeners();
     }
   }
@@ -803,8 +891,21 @@ class SeparationViewModel extends ChangeNotifier {
     if (!_shouldAddToCurrentList(separationData)) return;
 
     _notificationDebounce?.cancel();
+    if (kDebugMode) {
+      AppLogger.debug(
+        'Som/notificação de nova separação agendados em 5s (cod ${separationData.codSepararEstoque})',
+        tag: 'SeparationVM',
+      );
+    }
     _notificationDebounce = Timer(const Duration(seconds: 5), () {
       if (_disposed) return;
+
+      if (kDebugMode) {
+        AppLogger.debug(
+          'Disparando som + notificação local (cod ${separationData.codSepararEstoque})',
+          tag: 'SeparationVM',
+        );
+      }
 
       unawaited(
         _audioService.playNotification().catchError((Object e, StackTrace s) {

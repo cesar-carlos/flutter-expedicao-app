@@ -55,7 +55,8 @@ class CartEventListenerController {
           id: _cartUpdateListenerId,
           event: Event.update,
           callback: _onEvent,
-          allEvent: false,
+          // Ver [EventServiceImpl]: allEvent=false descarta atualizacoes do proprio socket.
+          allEvent: true,
         ),
       );
       _registered = true;

@@ -1,3 +1,4 @@
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -141,6 +142,168 @@ void main() {
 
       // Assert - Deve iniciar o carregamento
       expect(viewModel.state, SeparationState.loading);
+    });
+
+    test('refreshSeparationListSilently updates list without loading state', () async {
+      final first = buildSeparation(codSepararEstoque: 1, codSetoresEstoque: const [1]);
+      when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [first]);
+
+      await viewModel.loadSeparations();
+      expect(viewModel.state, SeparationState.loaded);
+      expect(viewModel.isLoading, isFalse);
+
+      final newer = buildSeparation(codSepararEstoque: 2, codSetoresEstoque: const [1]);
+      when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [newer, first]);
+
+      await viewModel.refreshSeparationListSilently();
+
+      expect(viewModel.state, SeparationState.loaded);
+      expect(viewModel.isLoading, isFalse);
+      expect(viewModel.separations.first.codSepararEstoque, 2);
+    });
+
+    test('refreshSeparationListSilently skips when paginated past first page', () async {
+      final page0 = List.generate(
+        20,
+        (i) => buildSeparation(codSepararEstoque: 100 - i, codSetoresEstoque: const [1]),
+      );
+      final page1Extra = buildSeparation(codSepararEstoque: 1, codSetoresEstoque: const [1]);
+
+      var selectCalls = 0;
+      when(mockRepository.selectConsultation(any)).thenAnswer((_) async {
+        selectCalls++;
+        if (selectCalls == 1) return page0;
+        return [page1Extra];
+      });
+
+      await viewModel.loadSeparations();
+      await viewModel.loadMoreSeparations();
+      expect(viewModel.currentPage, greaterThan(0));
+
+      clearInteractions(mockRepository);
+      await viewModel.refreshSeparationListSilently();
+      verifyNever(mockRepository.selectConsultation(any));
+    });
+
+    group('Silent refresh / poll notifications', () {
+      test('plays notification when a new separation appears via silent refresh and list not visible', () {
+        FakeAsync().run((async) {
+          final existing = buildSeparation(codSepararEstoque: 10, codSetoresEstoque: const [1]);
+          when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [existing]);
+          when(mockAudioService.playNotification()).thenAnswer((_) async {});
+          when(
+            mockNotificationService.showNewSeparationNotification(
+              codSepararEstoque: anyNamed('codSepararEstoque'),
+              nomeEntidade: anyNamed('nomeEntidade'),
+              codSetoresEstoque: anyNamed('codSetoresEstoque'),
+            ),
+          ).thenAnswer((_) async {});
+
+          viewModel.loadSeparations();
+          async.flushMicrotasks();
+
+          final newer = buildSeparation(codSepararEstoque: 11, codSetoresEstoque: const [1]);
+          when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [newer, existing]);
+
+          viewModel.setScreenVisible(false);
+          viewModel.refreshSeparationListSilently();
+          async.flushMicrotasks();
+
+          async.elapse(const Duration(seconds: 5));
+          async.flushMicrotasks();
+
+          verify(mockAudioService.playNotification()).called(1);
+          verify(
+            mockNotificationService.showNewSeparationNotification(
+              codSepararEstoque: 11,
+              nomeEntidade: newer.nomeEntidade,
+              codSetoresEstoque: newer.codSetoresEstoque,
+            ),
+          ).called(1);
+        });
+      });
+
+      test('does not play notification when list is visible', () {
+        FakeAsync().run((async) {
+          final existing = buildSeparation(codSepararEstoque: 10, codSetoresEstoque: const [1]);
+          when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [existing]);
+          when(mockAudioService.playNotification()).thenAnswer((_) async {});
+
+          viewModel.loadSeparations();
+          async.flushMicrotasks();
+
+          final newer = buildSeparation(codSepararEstoque: 11, codSetoresEstoque: const [1]);
+          when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [newer, existing]);
+
+          viewModel.setScreenVisible(true);
+          viewModel.refreshSeparationListSilently();
+          async.flushMicrotasks();
+          async.elapse(const Duration(seconds: 5));
+          async.flushMicrotasks();
+
+          verifyNever(mockAudioService.playNotification());
+          verifyNever(
+            mockNotificationService.showNewSeparationNotification(
+              codSepararEstoque: anyNamed('codSepararEstoque'),
+              nomeEntidade: anyNamed('nomeEntidade'),
+              codSetoresEstoque: anyNamed('codSetoresEstoque'),
+            ),
+          );
+        });
+      });
+
+      test('does not notify on bulk first fetch from empty list via silent refresh', () {
+        FakeAsync().run((async) {
+          when(mockRepository.selectConsultation(any)).thenAnswer((_) async => []);
+          when(mockAudioService.playNotification()).thenAnswer((_) async {});
+
+          viewModel.loadSeparations();
+          async.flushMicrotasks();
+
+          final batch = [
+            buildSeparation(codSepararEstoque: 1, codSetoresEstoque: const [1]),
+            buildSeparation(codSepararEstoque: 2, codSetoresEstoque: const [1]),
+            buildSeparation(codSepararEstoque: 3, codSetoresEstoque: const [1]),
+          ];
+          when(mockRepository.selectConsultation(any)).thenAnswer((_) async => batch);
+
+          viewModel.setScreenVisible(false);
+          viewModel.refreshSeparationListSilently();
+          async.flushMicrotasks();
+          async.elapse(const Duration(seconds: 5));
+          async.flushMicrotasks();
+
+          verifyNever(mockAudioService.playNotification());
+        });
+      });
+
+      test('notifies when a single separation appears after list was empty', () {
+        FakeAsync().run((async) {
+          when(mockRepository.selectConsultation(any)).thenAnswer((_) async => []);
+          when(mockAudioService.playNotification()).thenAnswer((_) async {});
+          when(
+            mockNotificationService.showNewSeparationNotification(
+              codSepararEstoque: anyNamed('codSepararEstoque'),
+              nomeEntidade: anyNamed('nomeEntidade'),
+              codSetoresEstoque: anyNamed('codSetoresEstoque'),
+            ),
+          ).thenAnswer((_) async => {});
+
+          viewModel.loadSeparations();
+          async.flushMicrotasks();
+
+          final one = buildSeparation(codSepararEstoque: 42, codSetoresEstoque: const [1]);
+          when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [one]);
+
+          viewModel.setScreenVisible(false);
+          viewModel.refreshSeparationListSilently();
+          async.flushMicrotasks();
+          async.elapse(const Duration(seconds: 5));
+          async.flushMicrotasks();
+
+          verify(mockAudioService.playNotification()).called(1);
+        });
+      });
     });
 
     test('should handle clearFilters method', () async {
@@ -363,6 +526,20 @@ void main() {
           mockEventRepository.addListener(any),
         ).called(3); // insert, update, delete
       });
+
+      test(
+        'CRUD listeners usam allEvent true para nao serem ignorados pelo EventServiceImpl '
+        'quando Session == socket atual (ex.: separacao criada no mesmo app)',
+        () {
+        viewModel.startEventMonitoring();
+        final captured = verify(mockEventRepository.addListener(captureAny)).captured;
+        final listeners = captured.cast<EventListenerModel>();
+        expect(listeners, hasLength(3));
+        for (final l in listeners) {
+          expect(l.allEvent, isTrue, reason: 'listener ${l.id} / ${l.event}');
+        }
+      },
+      );
 
       test('should stop event monitoring', () {
         // Arrange - Primeiro iniciar o monitoramento

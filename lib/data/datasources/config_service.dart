@@ -9,6 +9,9 @@ class ConfigService {
   static const String _boxName = 'config';
   static const String _apiConfigKey = 'api_config';
 
+  /// Evita chamar [Hive.init] mais de uma vez no mesmo isolate (testes).
+  static bool _hiveInitedWithTestPath = false;
+
   late Box _configBox;
   bool _initialized = false;
 
@@ -20,7 +23,9 @@ class ConfigService {
 
   bool get isInitialized => _initialized;
 
-  Future<void> initialize() async {
+  /// [hivePathForTests] usa [Hive.init] em disco temporário (sem path_provider).
+  /// Não use em produção; apenas em testes de integração que precisam de HTTP real.
+  Future<void> initialize({String? hivePathForTests}) async {
     if (_initialized) return;
     if (_initCompleter != null) {
       // Inicializacao em curso por outro caller — apenas aguarda.
@@ -31,7 +36,14 @@ class ConfigService {
     _initCompleter = completer;
 
     try {
-      await Hive.initFlutter();
+      if (hivePathForTests != null) {
+        if (!_hiveInitedWithTestPath) {
+          Hive.init(hivePathForTests);
+          _hiveInitedWithTestPath = true;
+        }
+      } else {
+        await Hive.initFlutter();
+      }
 
       if (!Hive.isAdapterRegistered(0)) {
         Hive.registerAdapter(ApiConfigEntityAdapter());

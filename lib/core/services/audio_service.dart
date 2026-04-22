@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
@@ -65,6 +66,12 @@ class AudioService {
   }
 
   Future<void> playNotification() async {
+    if (kDebugMode) {
+      AppLogger.debug(
+        'playNotification (enabled: $_isEnabled, asset: ${SoundType.notification.path})',
+        tag: 'AudioService',
+      );
+    }
     await playSound(SoundType.notification);
   }
 

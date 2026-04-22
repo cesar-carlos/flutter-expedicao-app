@@ -31,6 +31,7 @@ void main() {
       ctrl.start(_buildCart(codCarrinhoPercurso: 1, item: '1'));
 
       expect(fakeRepo.registeredListeners.length, equals(1));
+      expect(fakeRepo.registeredListeners.single.allEvent, isTrue);
       expect(ctrl.isListening, isTrue);
 
       // Segunda chamada nao re-registra (idempotente).

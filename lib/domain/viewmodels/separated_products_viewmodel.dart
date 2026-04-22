@@ -263,8 +263,9 @@ class SeparatedProductsViewModel extends ChangeNotifier {
     if (_disposed || _cartEventListenersRegistered || _cartRouteInternshipConsultation == null) return;
 
     try {
+      // Ver [EventServiceImpl]: com allEvent=false, eventos com Session == socket atual sao ignorados.
       _cartEventRepository.addListener(
-        EventListenerModel(id: _cartUpdateListenerId, event: Event.update, callback: _onCartEvent, allEvent: false),
+        EventListenerModel(id: _cartUpdateListenerId, event: Event.update, callback: _onCartEvent, allEvent: true),
       );
 
       _cartEventListenersRegistered = true;

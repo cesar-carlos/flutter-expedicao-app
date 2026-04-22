@@ -177,12 +177,7 @@ class AuthViewModel extends ChangeNotifier {
     try {
       await _userSessionService.saveUserSession(updatedUser);
     } catch (e, s) {
-      AppLogger.error(
-        'Falha ao salvar sessao apos selecao de usuario',
-        tag: 'AuthViewModel',
-        error: e,
-        stackTrace: s,
-      );
+      AppLogger.error('Falha ao salvar sessao apos selecao de usuario', tag: 'AuthViewModel', error: e, stackTrace: s);
     }
 
     await _loadAndAttachUserSystemModel();

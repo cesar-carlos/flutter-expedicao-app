@@ -98,6 +98,8 @@ class EventServiceImpl implements EventService {
     final snapshot = List<EventListenerModel>.from(listeners);
 
     for (final listener in snapshot) {
+      // allEvent=false: ignora eco do proprio socket. Telas que precisam refletir
+      // acoes deste cliente devem usar allEvent=true (ou session null no payload).
       if (!listener.allEvent && basicEvent.session == currentSocketId && basicEvent.session != null) {
         continue;
       }

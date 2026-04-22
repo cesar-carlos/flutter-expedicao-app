@@ -733,16 +733,17 @@ class SeparationItemsViewModel extends ChangeNotifier {
     if (_disposed || _cartEventListenersRegistered) return;
 
     try {
+      // Ver SeparationViewModel: [EventServiceImpl] filtra Session == socket atual se allEvent=false.
       _cartEventRepository.addListener(
-        EventListenerModel(id: _cartInsertListenerId, event: Event.insert, callback: _onCartEvent, allEvent: false),
+        EventListenerModel(id: _cartInsertListenerId, event: Event.insert, callback: _onCartEvent, allEvent: true),
       );
 
       _cartEventRepository.addListener(
-        EventListenerModel(id: _cartUpdateListenerId, event: Event.update, callback: _onCartEvent, allEvent: false),
+        EventListenerModel(id: _cartUpdateListenerId, event: Event.update, callback: _onCartEvent, allEvent: true),
       );
 
       _cartEventRepository.addListener(
-        EventListenerModel(id: _cartDeleteListenerId, event: Event.delete, callback: _onCartEvent, allEvent: false),
+        EventListenerModel(id: _cartDeleteListenerId, event: Event.delete, callback: _onCartEvent, allEvent: true),
       );
 
       _cartEventListenersRegistered = true;

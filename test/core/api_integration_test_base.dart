@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 
@@ -9,12 +11,17 @@ import 'package:data7_expedicao/domain/models/printer_config.dart';
 
 /// Classe base para testes de integração que usam API
 abstract class ApiIntegrationTestBase {
+  /// Diretório Hive por isolate; mantido entre setup/tearDown para não chamar [Hive.init] duas vezes.
+  static Directory? _hiveTestDir;
+
   /// Configuração padrão para testes
   static ApiConfig get testConfig =>
       ApiConfig(apiUrl: 'localhost', apiPort: 3001, useHttps: false, lastUpdated: DateTime.now());
 
   /// Inicializa o ambiente de teste com API
   static Future<void> setupApi() async {
+    _hiveTestDir ??= await Directory.systemTemp.createTemp('exp_api_integration_');
+
     // Registra o serviço de configuração
     if (!GetIt.I.isRegistered<ConfigService>()) {
       final configService = ConfigService();
@@ -27,7 +34,7 @@ abstract class ApiIntegrationTestBase {
 
     // Configura a API
     final configService = GetIt.I<ConfigService>();
-    await configService.initialize();
+    await configService.initialize(hivePathForTests: _hiveTestDir!.path);
     await configService.saveApiConfig(testConfig);
 
     // Aguarda um pouco para garantir que tudo está configurado

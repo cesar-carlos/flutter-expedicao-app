@@ -10,7 +10,7 @@ class ConfigServiceMock implements ConfigService {
   bool get isInitialized => _initialized;
 
   @override
-  Future<void> initialize() async {
+  Future<void> initialize({String? hivePathForTests}) async {
     _initialized = true;
   }
 

@@ -1,0 +1,3 @@
+# Testes de integração compartilham o mesmo backend / chaves fixas (ex.: CodSepararEstoque 999999).
+# Execução paralela causa estado cruzado; serializar evita flakiness.
+concurrency: 1

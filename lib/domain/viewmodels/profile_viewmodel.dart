@@ -156,12 +156,7 @@ class ProfileViewModel extends ChangeNotifier {
       );
       return _PasswordValidationOutcome.networkError;
     } catch (e, s) {
-      AppLogger.warning(
-        'Erro inesperado ao validar senha atual',
-        tag: 'ProfileViewModel',
-        error: e,
-        stackTrace: s,
-      );
+      AppLogger.warning('Erro inesperado ao validar senha atual', tag: 'ProfileViewModel', error: e, stackTrace: s);
       return _PasswordValidationOutcome.networkError;
     }
   }

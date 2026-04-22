@@ -132,6 +132,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         viewModel.setScreenVisible(false);
       } else if (state == AppLifecycleState.resumed) {
         viewModel.setScreenVisible(true);
+        unawaited(viewModel.refreshSeparationListSilently());
       }
     } catch (e, stackTrace) {
       AppLogger.debug(
