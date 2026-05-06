@@ -319,10 +319,6 @@ class _CardPickingScreenState extends State<CardPickingScreen> with WidgetsBindi
       '/home/picking-products-list',
       extra: {'filterType': filter, 'viewModel': viewModel, 'cart': widget.cart},
     );
-
-    if (context.mounted) {
-      await viewModel.refresh();
-    }
   }
 
   void _showCartInfo(BuildContext context) {

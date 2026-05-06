@@ -119,7 +119,7 @@ class SaveSeparationUseCase {
   }
 
   SaveSeparationFailure? _validateSeparationProgress(SeparateProgressConsultationModel separateProgress) {
-    if (separateProgress.processoSeparacao.code != 'N') {
+    if (separateProgress.processoSeparacao != ExpeditionSituation.separando) {
       return SaveSeparationFailure.processoSeparacaoNotN(separateProgress.processoSeparacao.code);
     }
 

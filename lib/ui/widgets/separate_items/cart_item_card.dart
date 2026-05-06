@@ -22,7 +22,6 @@ import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separa
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_success.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_failure.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
-import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
@@ -546,13 +545,7 @@ class _CartItemCardState extends State<CartItemCard> {
                         )
                       : Consumer<SeparationItemsViewModel>(
                           builder: (context, vm, child) {
-                            return _buildCancelIconButton(
-                              context,
-                              theme,
-                              colorScheme,
-                              vm,
-                              isSaveInProgress: _isSaving,
-                            );
+                            return _buildCancelIconButton(context, theme, colorScheme, vm, isSaveInProgress: _isSaving);
                           },
                         ),
                 ],
@@ -595,9 +588,9 @@ class _CartItemCardState extends State<CartItemCard> {
     BuildContext context,
     ThemeData theme,
     ColorScheme colorScheme,
-    SeparationItemsViewModel viewModel,
-    {required bool isSaveInProgress}
-  ) {
+    SeparationItemsViewModel viewModel, {
+    required bool isSaveInProgress,
+  }) {
     final isCancelling = viewModel.isCartBeingCancelled(widget.cartRouteInternshipConsultation.codCarrinho);
     final isBusy = isCancelling || isSaveInProgress;
 
@@ -753,40 +746,40 @@ class _CartItemCardState extends State<CartItemCard> {
               const Expanded(child: Text('Acesso Negado', overflow: TextOverflow.ellipsis)),
             ],
           ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(UIConstants.smallPadding),
-              decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-                border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(UIConstants.smallPadding),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '❌ Você não pode $actionLabel neste carrinho',
+                      style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.red700),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('Carrinho incluído por: $cartOwnerName', style: AppFonts.inter(color: AppColors.red600)),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '❌ Você não pode $actionLabel neste carrinho',
-                    style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.red700),
-                  ),
-                  const SizedBox(height: 8),
-                  Text('Carrinho incluído por: $cartOwnerName', style: AppFonts.inter(color: AppColors.red600)),
-                ],
+              const SizedBox(height: UIConstants.defaultPadding),
+              const Text('Este carrinho foi incluído por outro usuário.'),
+              const SizedBox(height: 8),
+              Text(
+                'Apenas o usuário que incluiu o carrinho pode realizar esta ação.',
+                style: AppFonts.inter(fontSize: UIConstants.smallFontSize),
               ),
-            ),
-            const SizedBox(height: UIConstants.defaultPadding),
-            const Text('Este carrinho foi incluído por outro usuário.'),
-            const SizedBox(height: 8),
-            Text(
-              'Apenas o usuário que incluiu o carrinho pode realizar esta ação.',
-              style: AppFonts.inter(fontSize: UIConstants.smallFontSize),
-            ),
-          ],
+            ],
+          ),
+          actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar'))],
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar'))],
-      ),
       ).catchError((Object e, StackTrace s) {
         AppLogger.warning(
           'Falha ao exibir dialog de acesso negado ao carrinho',
@@ -810,48 +803,43 @@ class _CartItemCardState extends State<CartItemCard> {
               const Expanded(child: Text('Sem Itens para Separar', overflow: TextOverflow.ellipsis)),
             ],
           ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(UIConstants.smallPadding),
-              decoration: BoxDecoration(
-                color: AppColors.info.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-                border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(UIConstants.smallPadding),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
+                  border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Todos os itens do seu setor já foram separados!',
+                      style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.blue700),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('Seu setor: Setor $userSectorCode', style: AppFonts.inter(color: AppColors.blue600)),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Todos os itens do seu setor já foram separados!',
-                    style: AppFonts.inter(fontWeight: FontWeight.bold, color: AppColors.blue700),
-                  ),
-                  const SizedBox(height: 8),
-                  Text('Seu setor: Setor $userSectorCode', style: AppFonts.inter(color: AppColors.blue600)),
-                ],
+              const SizedBox(height: UIConstants.defaultPadding),
+              const Text('Não há mais produtos do seu setor neste carrinho para separar.'),
+              const SizedBox(height: 8),
+              Text(
+                'Os itens restantes pertencem a outros setores e serão separados por outros usuários.',
+                style: AppFonts.inter(fontSize: UIConstants.smallFontSize),
               ),
-            ),
-            const SizedBox(height: UIConstants.defaultPadding),
-            const Text('Não há mais produtos do seu setor neste carrinho para separar.'),
-            const SizedBox(height: 8),
-            Text(
-              'Os itens restantes pertencem a outros setores e serão separados por outros usuários.',
-              style: AppFonts.inter(fontSize: UIConstants.smallFontSize),
-            ),
-          ],
+            ],
+          ),
+          actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar'))],
         ),
-        actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar'))],
-      ),
-    ).catchError((Object e, StackTrace s) {
-      AppLogger.warning(
-        'Falha ao exibir dialog sem itens do setor',
-        tag: 'CartItemCard',
-        error: e,
-        stackTrace: s,
-      );
-    }),
+      ).catchError((Object e, StackTrace s) {
+        AppLogger.warning('Falha ao exibir dialog sem itens do setor', tag: 'CartItemCard', error: e, stackTrace: s);
+      }),
     );
   }
 
@@ -1005,27 +993,18 @@ class _CartItemCardState extends State<CartItemCard> {
   void _onViewCart(BuildContext context) {
     if (!context.mounted) return;
 
-    final tempViewModel = CardPickingViewModel();
-
     context.push(
       AppRouter.pickingProductsList,
-      extra: {'filterType': 'completed', 'viewModel': tempViewModel, 'cart': widget.cartRouteInternshipConsultation},
+      extra: {'filterType': 'completed', 'cart': widget.cartRouteInternshipConsultation},
     );
   }
 
   void _onViewCartReadOnly(BuildContext context) {
     if (!context.mounted) return;
 
-    final tempViewModel = CardPickingViewModel();
-
     context.push(
       AppRouter.pickingProductsList,
-      extra: {
-        'filterType': 'completed',
-        'viewModel': tempViewModel,
-        'cart': widget.cartRouteInternshipConsultation,
-        'isReadOnly': true,
-      },
+      extra: {'filterType': 'completed', 'cart': widget.cartRouteInternshipConsultation, 'isReadOnly': true},
     );
   }
 
@@ -1052,34 +1031,35 @@ class _CartItemCardState extends State<CartItemCard> {
   Future<bool> _showFinalizeConfirmationDialog(BuildContext context) async {
     if (!context.mounted) return false;
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return ListenableBuilder(
-          listenable: locator<PickingStateManager>(),
-          builder: (context, _) {
-            final pickingState = locator<PickingStateManager>().pickingState;
-            final hasPending = pickingState.hasAnyPendingOperations();
-            final pendingCount = pickingState.getTotalPendingOperations();
-            return _FinalizeConfirmationDialogContent(
-              codCarrinho: widget.cartRouteInternshipConsultation.codCarrinho,
-              hasPending: hasPending,
-              pendingCount: pendingCount,
-              onCancel: () => Navigator.of(dialogContext).pop(false),
-              onConfirm: () => Navigator.of(dialogContext).pop(true),
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) {
+            return ListenableBuilder(
+              listenable: locator<PickingStateManager>(),
+              builder: (context, _) {
+                final pickingState = locator<PickingStateManager>().pickingState;
+                final hasPending = pickingState.hasAnyPendingOperations();
+                final pendingCount = pickingState.getTotalPendingOperations();
+                return _FinalizeConfirmationDialogContent(
+                  codCarrinho: widget.cartRouteInternshipConsultation.codCarrinho,
+                  hasPending: hasPending,
+                  pendingCount: pendingCount,
+                  onCancel: () => Navigator.of(dialogContext).pop(false),
+                  onConfirm: () => Navigator.of(dialogContext).pop(true),
+                );
+              },
             );
           },
-        );
-      },
-    ).catchError((Object e, StackTrace s) {
-      AppLogger.warning(
-        'Falha ao exibir confirmação de finalização (carrinho)',
-        tag: 'CartItemCard',
-        error: e,
-        stackTrace: s,
-      );
-      return false;
-    });
+        ).catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao exibir confirmação de finalização (carrinho)',
+            tag: 'CartItemCard',
+            error: e,
+            stackTrace: s,
+          );
+          return false;
+        });
 
     return confirmed ?? false;
   }
@@ -1245,10 +1225,7 @@ class _CartItemCardState extends State<CartItemCard> {
                 decoration: BoxDecoration(
                   color: Theme.of(dialogContext).colorScheme.errorContainer.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-                  border: Border.all(
-                    color: Theme.of(dialogContext).colorScheme.error.withValues(alpha: 0.3),
-                    width: 1,
-                  ),
+                  border: Border.all(color: Theme.of(dialogContext).colorScheme.error.withValues(alpha: 0.3), width: 1),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1265,9 +1242,9 @@ class _CartItemCardState extends State<CartItemCard> {
                     const SizedBox(height: 4),
                     Text(
                       'Status: ${widget.cartRouteInternshipConsultation.situacao.description}',
-                      style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(dialogContext).colorScheme.onSurfaceVariant,
-                      ),
+                      style: Theme.of(
+                        dialogContext,
+                      ).textTheme.bodySmall?.copyWith(color: Theme.of(dialogContext).colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -1275,9 +1252,9 @@ class _CartItemCardState extends State<CartItemCard> {
               const SizedBox(height: 12),
               Text(
                 'Esta ação não pode ser desfeita. O carrinho será marcado como CANCELADO.',
-                style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(dialogContext).colorScheme.onSurfaceVariant,
-                ),
+                style: Theme.of(
+                  dialogContext,
+                ).textTheme.bodySmall?.copyWith(color: Theme.of(dialogContext).colorScheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -1334,17 +1311,12 @@ class _CartItemCardState extends State<CartItemCard> {
         widget.onCancel?.call();
       } else {
         final errorMessage = vm.lastCancelError ?? 'Erro ao cancelar carrinho';
-        messenger.showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: errorColor),
-        );
+        messenger.showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: errorColor));
       }
     } catch (e, stackTrace) {
       AppLogger.error('Erro inesperado ao cancelar carrinho', tag: 'CartItemCard', error: e, stackTrace: stackTrace);
       messenger.showSnackBar(
-        SnackBar(
-          content: const Text('Erro inesperado. Tente novamente.'),
-          backgroundColor: errorColor,
-        ),
+        SnackBar(content: const Text('Erro inesperado. Tente novamente.'), backgroundColor: errorColor),
       );
     }
   }

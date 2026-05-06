@@ -415,7 +415,13 @@ void main() {
       final allowedItem = buildPendingItem(item: '1', codProduto: 1, codSetorEstoque: 1);
       final hiddenItem = buildPendingItem(item: '2', codProduto: 2, codSetorEstoque: 99);
 
-      repository.onSelect = (_) async => <SeparateItemConsultationModel>[allowedItem, hiddenItem];
+      repository.onSelect = (queryBuilder) async {
+        final where = queryBuilder.buildSqlWhere();
+        if (where.contains('CodSetorEstoque = 1 OR CodSetorEstoque IS NULL')) {
+          return <SeparateItemConsultationModel>[allowedItem];
+        }
+        return <SeparateItemConsultationModel>[allowedItem, hiddenItem];
+      };
 
       await viewModel.initializeCart(cart, userModel: buildUserModel(codSetorEstoque: 1));
       expect(viewModel.items, hasLength(1));
@@ -425,6 +431,38 @@ void main() {
 
       expect(viewModel.items, hasLength(1));
       expect(viewModel.items.first.codProduto, 1);
+    });
+
+    test('updatePickedQuantityWithSync rejects quantity reductions that cannot be persisted', () async {
+      final cart = buildCart();
+      final item = buildPendingItem(item: '1', codProduto: 1);
+
+      repository.onSelect = (_) async => <SeparateItemConsultationModel>[item];
+
+      await viewModel.initializeCart(cart, userModel: buildUserModel());
+      viewModel.updatePickedQuantity(item.item, 5);
+
+      final result = await viewModel.updatePickedQuantityWithSync(item.item, 3);
+
+      expect(result.isSuccess, isFalse);
+      expect(result.message, contains('não é suportada'));
+      expect(viewModel.getPickedQuantity(item.item), 5);
+    });
+
+    test('user-sector reload pushes sector filtering to the server query', () async {
+      final cart = buildCart();
+      final item = buildPendingItem(item: '1', codProduto: 1, codSetorEstoque: 1);
+      var capturedWhere = '';
+
+      repository.onSelect = (queryBuilder) async {
+        capturedWhere = queryBuilder.buildSqlWhere();
+        return <SeparateItemConsultationModel>[item];
+      };
+
+      await viewModel.initializeCart(cart, userModel: buildUserModel(codSetorEstoque: 1));
+
+      expect(capturedWhere, contains('CodSetorEstoque = 1 OR CodSetorEstoque IS NULL'));
+      expect(viewModel.items, hasLength(1));
     });
   });
 }

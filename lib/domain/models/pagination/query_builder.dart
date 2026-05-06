@@ -39,6 +39,11 @@ class QueryBuilder {
     return this;
   }
 
+  QueryBuilder rawWhere(String sql) {
+    _params.add(QueryParam.createWithOperator('where', sql, 'RAW'));
+    return this;
+  }
+
   QueryBuilder fieldEquals(String key, String fieldName) {
     _params.add(QueryParam.createFieldComparison(key, fieldName, '='));
     return this;

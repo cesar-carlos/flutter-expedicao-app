@@ -229,9 +229,7 @@ class AppRouter {
                 if (cart is! ExpeditionCartRouteInternshipConsultationModel) {
                   return const Scaffold(body: Center(child: Text('Dados do carrinho inválidos')));
                 }
-                final userModel = extra['userModel'] is UserSystemModel
-                    ? extra['userModel'] as UserSystemModel
-                    : null;
+                final userModel = extra['userModel'] is UserSystemModel ? extra['userModel'] as UserSystemModel : null;
 
                 return ChangeNotifierProvider(
                   create: (_) => CardPickingViewModel(),
@@ -252,22 +250,27 @@ class AppRouter {
                 final filterType = extra['filterType'];
                 final viewModel = extra['viewModel'];
                 final cart = extra['cart'];
-                if (filterType is! String ||
-                    viewModel is! CardPickingViewModel ||
-                    cart is! ExpeditionCartRouteInternshipConsultationModel) {
+                if (filterType is! String || cart is! ExpeditionCartRouteInternshipConsultationModel) {
+                  return const Scaffold(body: Center(child: Text('Dados invalidos para picking-products-list')));
+                }
+
+                final parsedViewModel = viewModel is CardPickingViewModel ? viewModel : null;
+                if (filterType == 'pending' && parsedViewModel == null) {
                   return const Scaffold(body: Center(child: Text('Dados invalidos para picking-products-list')));
                 }
                 final isReadOnly = extra['isReadOnly'] is bool ? extra['isReadOnly'] as bool : false;
-
-                return ChangeNotifierProvider.value(
-                  value: viewModel,
-                  child: PickingProductsListScreen(
-                    filterType: filterType,
-                    viewModel: viewModel,
-                    cart: cart,
-                    isReadOnly: isReadOnly,
-                  ),
+                final screen = PickingProductsListScreen(
+                  filterType: filterType,
+                  viewModel: parsedViewModel,
+                  cart: cart,
+                  isReadOnly: isReadOnly,
                 );
+
+                if (parsedViewModel == null) {
+                  return screen;
+                }
+
+                return ChangeNotifierProvider.value(value: parsedViewModel, child: screen);
               },
             ),
 

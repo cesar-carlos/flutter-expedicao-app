@@ -37,7 +37,7 @@ class _SeparationNotFound extends SaveSeparationFailure {
 
 class _ProcessoSeparacaoNotN extends SaveSeparationFailure {
   const _ProcessoSeparacaoNotN(String currentValue)
-    : super('Processo de separação deve ser "N", mas está: $currentValue');
+    : super('Processo de separação deve estar SEPARANDO, mas está: $currentValue');
 }
 
 class _SituacaoNotSeparando extends SaveSeparationFailure {

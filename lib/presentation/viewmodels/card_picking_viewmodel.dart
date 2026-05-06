@@ -492,10 +492,9 @@ class CardPickingViewModel extends ChangeNotifier {
     }
 
     if (newQuantity < currentQuantity) {
-      _stateManager.updateItemQuantity(itemId, newQuantity);
-      _updateNextItemCache();
-      _safeNotifyListeners();
-      return AddItemSeparationResult.success('Redução aplicada localmente', addedQuantity: 0);
+      return AddItemSeparationResult.error(
+        'Redução de quantidade não é suportada nesta tela. Exclua a separação e refaça com a nova quantidade.',
+      );
     }
 
     final delta = newQuantity - currentQuantity;
@@ -681,6 +680,7 @@ class CardPickingViewModel extends ChangeNotifier {
     }
 
     if (_isLoading || hasPendingOperations) {
+      _silentResyncQueued = true;
       return;
     }
 
@@ -829,9 +829,7 @@ class CardPickingViewModel extends ChangeNotifier {
       _safeNotifyListeners();
     }
 
-    if (!hasPendingOperations) {
-      unawaited(resyncVisibleDataSilently());
-    }
+    unawaited(resyncVisibleDataSilently());
   }
 
   Future<void> _executeAsyncAddItem(
@@ -867,6 +865,7 @@ class CardPickingViewModel extends ChangeNotifier {
               if (!_disposed) {
                 _stateManager.clearSyncedOperations(itemId);
                 _safeNotifyListeners();
+                _scheduleQueuedResyncIfReady();
               }
             }).catchError((Object e, StackTrace s) {
               AppLogger.warning(
@@ -948,6 +947,14 @@ class CardPickingViewModel extends ChangeNotifier {
     );
   }
 
+  void _scheduleQueuedResyncIfReady() {
+    if (_disposed || !_silentResyncQueued || hasPendingOperations || _isLoading) {
+      return;
+    }
+
+    unawaited(resyncVisibleDataSilently());
+  }
+
   Future<List<SeparateItemConsultationModel>> _fetchFilteredItems() async {
     if (_cart == null) {
       return <SeparateItemConsultationModel>[];
@@ -960,16 +967,13 @@ class CardPickingViewModel extends ChangeNotifier {
     List<SeparateItemConsultationModel> items;
 
     if (codSetorEstoqueUsuario != null) {
-      final queryNoSector = QueryBuilder()
+      final queryForUserSector = QueryBuilder()
         ..equals('CodEmpresa', codEmpresa.toString())
         ..equals('CodSepararEstoque', codSepararEstoque.toString())
+        ..rawWhere('(CodSetorEstoque = $codSetorEstoqueUsuario OR CodSetorEstoque IS NULL)')
         ..orderBy('EnderecoDescricao');
 
-      final allItems = await _repository.selectConsultation(queryNoSector);
-
-      items = allItems.where((item) {
-        return item.codSetorEstoque == null || item.codSetorEstoque == codSetorEstoqueUsuario;
-      }).toList();
+      items = await _repository.selectConsultation(queryForUserSector);
     } else {
       final queryBuilder = QueryBuilder()
         ..equals('CodEmpresa', codEmpresa.toString())

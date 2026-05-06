@@ -294,68 +294,66 @@ class PickingItemCard extends StatelessWidget {
         context: context,
         builder: (dialogContext) => StatefulBuilder(
           builder: (statefulContext, setState) => AlertDialog(
-          title: const Text('Ajustar Quantidade'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Quantidade a separar: $totalQuantity'),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: newQuantity > 0 ? () => setState(() => newQuantity--) : null,
-                    icon: const Icon(Icons.remove),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.grey),
-                      borderRadius: BorderRadius.circular(4),
+            title: const Text('Ajustar Quantidade'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Quantidade a separar: $totalQuantity'),
+                const SizedBox(height: 8),
+                Text(
+                  'Nesta tela só é possível aumentar a quantidade já separada.',
+                  style: Theme.of(statefulContext).textTheme.bodySmall?.copyWith(color: AppColors.warning),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: newQuantity > currentQuantity ? () => setState(() => newQuantity--) : null,
+                      icon: const Icon(Icons.remove),
                     ),
-                    child: Text(
-                      '$newQuantity',
-                      style: AppFonts.inter(fontSize: UIConstants.largeFontSize, fontWeight: FontWeight.bold),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.grey),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '$newQuantity',
+                        style: AppFonts.inter(fontSize: UIConstants.largeFontSize, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: newQuantity < totalQuantity ? () => setState(() => newQuantity++) : null,
-                    icon: const Icon(Icons.add),
-                  ),
-                ],
+                    IconButton(
+                      onPressed: newQuantity < totalQuantity ? () => setState(() => newQuantity++) : null,
+                      icon: const Icon(Icons.add),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(statefulContext).pop(), child: const Text('Cancelar')),
+              ElevatedButton(
+                onPressed: () {
+                  unawaited(
+                    _confirmQuantityChange(statefulContext, itemId, newQuantity).catchError((Object e, StackTrace s) {
+                      AppLogger.warning(
+                        'Falha ao confirmar quantidade no picking',
+                        tag: 'PickingItemCard',
+                        error: e,
+                        stackTrace: s,
+                      );
+                    }),
+                  );
+                },
+                child: const Text('Confirmar'),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(statefulContext).pop(),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                unawaited(
-                  _confirmQuantityChange(statefulContext, itemId, newQuantity).catchError((Object e, StackTrace s) {
-                    AppLogger.warning(
-                      'Falha ao confirmar quantidade no picking',
-                      tag: 'PickingItemCard',
-                      error: e,
-                      stackTrace: s,
-                    );
-                  }),
-                );
-              },
-              child: const Text('Confirmar'),
-            ),
-          ],
-        ),
         ),
       ).catchError((Object e, StackTrace s) {
-        AppLogger.warning(
-          'Falha ao exibir dialog de quantidade',
-          tag: 'PickingItemCard',
-          error: e,
-          stackTrace: s,
-        );
+        AppLogger.warning('Falha ao exibir dialog de quantidade', tag: 'PickingItemCard', error: e, stackTrace: s);
       }),
     );
   }

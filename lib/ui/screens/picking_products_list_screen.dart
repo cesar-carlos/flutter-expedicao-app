@@ -19,14 +19,14 @@ import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class PickingProductsListScreen extends StatefulWidget {
   final String filterType;
-  final CardPickingViewModel viewModel;
+  final CardPickingViewModel? viewModel;
   final ExpeditionCartRouteInternshipConsultationModel cart;
   final bool isReadOnly;
 
   const PickingProductsListScreen({
     super.key,
     required this.filterType,
-    required this.viewModel,
+    this.viewModel,
     required this.cart,
     this.isReadOnly = false,
   });
@@ -38,6 +38,8 @@ class PickingProductsListScreen extends StatefulWidget {
 class _PickingProductsListScreenState extends State<PickingProductsListScreen> with WidgetsBindingObserver {
   late SeparatedProductsViewModel _separatedProductsViewModel;
   bool _needsRefresh = false;
+  bool _hasLoadedSeparatedProductsSnapshot = false;
+  String? _lastSeparatedProductsSnapshot;
 
   @override
   void initState() {
@@ -69,7 +71,17 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
 
   void _onSeparatedProductsChanged() {
     if (!_separatedProductsViewModel.isLoading && !_separatedProductsViewModel.isCancelling) {
-      _needsRefresh = true;
+      final snapshot = _buildSeparatedProductsSnapshot();
+      if (!_hasLoadedSeparatedProductsSnapshot) {
+        _hasLoadedSeparatedProductsSnapshot = true;
+        _lastSeparatedProductsSnapshot = snapshot;
+        return;
+      }
+
+      if (snapshot != _lastSeparatedProductsSnapshot || _separatedProductsViewModel.hasCartStatusChanged) {
+        _needsRefresh = true;
+        _lastSeparatedProductsSnapshot = snapshot;
+      }
     }
   }
 
@@ -94,20 +106,39 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
   }
 
   Future<void> _handleLeadingBack(BuildContext context) async {
-    if (_needsRefresh && widget.filterType == 'completed') {
-      try {
-        await widget.viewModel.refresh();
-      } catch (e, stackTrace) {
-        AppLogger.warning(
-          'Falha ao atualizar picking ao voltar da lista',
-          tag: 'PickingProductsListScreen',
-          error: e,
-          stackTrace: stackTrace,
-        );
-      }
-    }
     if (context.mounted) {
       context.pop();
+    }
+  }
+
+  String _buildSeparatedProductsSnapshot() {
+    final entries =
+        _separatedProductsViewModel.items
+            .map(
+              (item) => '${item.item}|${item.situacao.code}|${item.quantidade}|${item.dataSeparacao.toIso8601String()}',
+            )
+            .toList()
+          ..sort();
+    return entries.join(';');
+  }
+
+  Future<void> _refreshParentPickingIfNeeded() async {
+    final parentViewModel = widget.viewModel;
+    if (!_needsRefresh || widget.filterType != 'completed' || parentViewModel == null) {
+      return;
+    }
+
+    try {
+      await parentViewModel.refresh();
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Falha ao atualizar picking ao sair da lista de separados',
+        tag: 'PickingProductsListScreen',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      _needsRefresh = false;
     }
   }
 
@@ -145,17 +176,8 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
   Widget _buildPopScope(Widget child) {
     return PopScope(
       onPopInvokedWithResult: (didPop, result) async {
-        if (didPop && _needsRefresh && widget.filterType == 'completed') {
-          try {
-            await widget.viewModel.refresh();
-          } catch (e, stackTrace) {
-            AppLogger.warning(
-              'Falha ao atualizar picking ao sair da lista de separados',
-              tag: 'PickingProductsListScreen',
-              error: e,
-              stackTrace: stackTrace,
-            );
-          }
+        if (didPop) {
+          await _refreshParentPickingIfNeeded();
         }
       },
       child: child,
@@ -337,7 +359,12 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
     IconData icon,
     Color iconColor,
   ) {
-    if (widget.viewModel.isLoading) {
+    final viewModel = widget.viewModel;
+    if (viewModel == null) {
+      return const Center(child: Text('Picking pendente indisponível'));
+    }
+
+    if (viewModel.isLoading) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -350,7 +377,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
       );
     }
 
-    if (widget.viewModel.hasError) {
+    if (viewModel.hasError) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(UIConstants.extraLargePadding),
@@ -365,7 +392,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
               ),
               const SizedBox(height: UIConstants.smallPadding),
               Text(
-                widget.viewModel.errorMessage ?? 'Erro desconhecido',
+                viewModel.errorMessage ?? 'Erro desconhecido',
                 style: theme.textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
@@ -373,7 +400,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
               ElevatedButton(
                 onPressed: () {
                   unawaited(
-                    widget.viewModel.retry().catchError((Object e, StackTrace s) {
+                    viewModel.retry().catchError((Object e, StackTrace s) {
                       AppLogger.warning(
                         'Falha ao repetir carregamento (pendentes)',
                         tag: 'PickingProductsListScreen',
@@ -391,7 +418,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
       );
     }
 
-    final pendingItems = widget.viewModel.items.where((item) => !widget.viewModel.isItemCompleted(item.item)).toList();
+    final pendingItems = viewModel.items.where((item) => !viewModel.isItemCompleted(item.item)).toList();
 
     if (pendingItems.isEmpty) {
       return Center(
@@ -425,12 +452,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
             itemCount: pendingItems.length,
             itemBuilder: (context, index) {
               final item = pendingItems[index];
-              return PickingProductListItem(
-                item: item,
-                viewModel: widget.viewModel,
-                isCompleted: false,
-                allowEdit: false,
-              );
+              return PickingProductListItem(item: item, viewModel: viewModel, isCompleted: false, allowEdit: false);
             },
           ),
         ),
@@ -611,12 +633,17 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
   }
 
   void _showFilterModal(BuildContext context) {
+    final viewModel = widget.viewModel;
+    if (viewModel == null) {
+      return;
+    }
+
     unawaited(
       showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         backgroundColor: AppColors.transparent,
-        builder: (_) => PendingProductsFilterModal(viewModel: widget.viewModel),
+        builder: (_) => PendingProductsFilterModal(viewModel: viewModel),
       ).catchError((Object e, StackTrace s) {
         AppLogger.warning(
           'Falha ao exibir modal de filtros de pendentes',
