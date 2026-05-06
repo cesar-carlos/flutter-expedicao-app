@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
@@ -18,11 +17,12 @@ import 'package:data7_expedicao/domain/usecases/start_separation/start_separatio
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_usecase.dart';
 
 import '../../../mocks/user_system_model_mock.dart';
+import '../../../support/in_memory_separate_model_repository.dart';
 
 void main() {
   group('StartSeparationUseCase', () {
     late _SessionFake session;
-    late _MemorySeparateRepository separateRepo;
+    late InMemorySeparateModelRepository separateRepo;
     late _MemoryStartCartRouteRepository cartRouteRepo;
     late StartSeparationUseCase useCase;
 
@@ -54,12 +54,9 @@ void main() {
       );
     }
 
-    void configure({
-      List<SeparateModel>? separations,
-      List<ExpeditionCartRouteModel>? routes,
-    }) {
+    void configure({List<SeparateModel>? separations, List<ExpeditionCartRouteModel>? routes}) {
       session = _SessionFake(loggedIn());
-      separateRepo = _MemorySeparateRepository(separations ?? [baseSeparation()]);
+      separateRepo = InMemorySeparateModelRepository(separations ?? [baseSeparation()]);
       cartRouteRepo = _MemoryStartCartRouteRepository(routes ?? []);
       useCase = StartSeparationUseCase(
         separateRepository: separateRepo,
@@ -70,11 +67,7 @@ void main() {
 
     test('retorna invalidParams quando codigo invalido', () async {
       configure();
-      const params = StartSeparationParams(
-        codEmpresa: 0,
-        origem: ExpeditionOrigem.separacaoEstoque,
-        codOrigem: 100,
-      );
+      const params = StartSeparationParams(codEmpresa: 0, origem: ExpeditionOrigem.separacaoEstoque, codOrigem: 100);
 
       final result = await useCase.call(params);
 
@@ -87,11 +80,7 @@ void main() {
       configure(separations: []);
 
       final result = await useCase.call(
-        const StartSeparationParams(
-          codEmpresa: 1,
-          origem: ExpeditionOrigem.separacaoEstoque,
-          codOrigem: 100,
-        ),
+        const StartSeparationParams(codEmpresa: 1, origem: ExpeditionOrigem.separacaoEstoque, codOrigem: 100),
       );
 
       expect(result.isError(), isTrue);
@@ -103,11 +92,7 @@ void main() {
       configure(separations: [baseSeparation(situacao: ExpeditionSituation.separando)]);
 
       final result = await useCase.call(
-        const StartSeparationParams(
-          codEmpresa: 1,
-          origem: ExpeditionOrigem.separacaoEstoque,
-          codOrigem: 100,
-        ),
+        const StartSeparationParams(codEmpresa: 1, origem: ExpeditionOrigem.separacaoEstoque, codOrigem: 100),
       );
 
       expect(result.isError(), isTrue);
@@ -128,11 +113,7 @@ void main() {
       configure(routes: [existing]);
 
       final result = await useCase.call(
-        const StartSeparationParams(
-          codEmpresa: 1,
-          origem: ExpeditionOrigem.separacaoEstoque,
-          codOrigem: 100,
-        ),
+        const StartSeparationParams(codEmpresa: 1, origem: ExpeditionOrigem.separacaoEstoque, codOrigem: 100),
       );
 
       expect(result.isError(), isTrue);
@@ -145,16 +126,12 @@ void main() {
       configure();
 
       final result = await useCase.call(
-        const StartSeparationParams(
-          codEmpresa: 1,
-          origem: ExpeditionOrigem.separacaoEstoque,
-          codOrigem: 100,
-        ),
+        const StartSeparationParams(codEmpresa: 1, origem: ExpeditionOrigem.separacaoEstoque, codOrigem: 100),
       );
 
       expect(result.isSuccess(), isTrue);
       expect(cartRouteRepo.items.length, equals(1));
-      expect(separateRepo.items.first.situacao, equals(ExpeditionSituation.separando));
+      expect(separateRepo.rows.first.situacao, equals(ExpeditionSituation.separando));
     });
 
     test('retorna networkError quando lanca DataError na busca de separacao', () async {
@@ -162,11 +139,7 @@ void main() {
       separateRepo.throwOnSelect = true;
 
       final result = await useCase.call(
-        const StartSeparationParams(
-          codEmpresa: 1,
-          origem: ExpeditionOrigem.separacaoEstoque,
-          codOrigem: 100,
-        ),
+        const StartSeparationParams(codEmpresa: 1, origem: ExpeditionOrigem.separacaoEstoque, codOrigem: 100),
       );
 
       expect(result.isError(), isTrue);
@@ -179,11 +152,7 @@ void main() {
       session.user = null;
 
       final result = await useCase.call(
-        const StartSeparationParams(
-          codEmpresa: 1,
-          origem: ExpeditionOrigem.separacaoEstoque,
-          codOrigem: 100,
-        ),
+        const StartSeparationParams(codEmpresa: 1, origem: ExpeditionOrigem.separacaoEstoque, codOrigem: 100),
       );
 
       expect(result.isError(), isTrue);
@@ -221,54 +190,6 @@ class _SessionFake implements IUserSessionService {
   }
 }
 
-class _MemorySeparateRepository implements BasicRepository<SeparateModel> {
-  _MemorySeparateRepository(List<SeparateModel> initial) : items = List<SeparateModel>.from(initial);
-
-  final List<SeparateModel> items;
-  bool throwOnSelect = false;
-
-  @override
-  Future<List<SeparateModel>> delete(SeparateModel entity) async => [entity];
-
-  @override
-  Future<List<SeparateModel>> insert(SeparateModel entity) async {
-    items.add(entity);
-    return [entity];
-  }
-
-  @override
-  Future<List<SeparateModel>> select(QueryBuilder queryBuilder) async {
-    if (throwOnSelect) {
-      throw DataError(message: 'falha rede');
-    }
-    return items.where((m) => _matchesSeparateQuery(m, queryBuilder)).toList();
-  }
-
-  @override
-  Future<List<SeparateModel>> update(SeparateModel entity) async {
-    final i = items.indexWhere(
-      (e) => e.codEmpresa == entity.codEmpresa && e.codSepararEstoque == entity.codSepararEstoque,
-    );
-    if (i < 0) {
-      return [];
-    }
-    items[i] = entity;
-    return [entity];
-  }
-}
-
-bool _matchesSeparateQuery(SeparateModel m, QueryBuilder qb) {
-  var ok = true;
-  for (final QueryParam<dynamic> p in qb.params) {
-    if (p.key == 'CodEmpresa' && p.operator == '=') {
-      ok = ok && m.codEmpresa == p.value;
-    } else if (p.key == 'CodSepararEstoque' && p.operator == '=') {
-      ok = ok && m.codSepararEstoque == p.value;
-    }
-  }
-  return ok;
-}
-
 class _MemoryStartCartRouteRepository implements BasicRepository<ExpeditionCartRouteModel> {
   _MemoryStartCartRouteRepository(List<ExpeditionCartRouteModel> initial)
     : items = List<ExpeditionCartRouteModel>.from(initial);
@@ -283,9 +204,7 @@ class _MemoryStartCartRouteRepository implements BasicRepository<ExpeditionCartR
 
   @override
   Future<List<ExpeditionCartRouteModel>> insert(ExpeditionCartRouteModel entity) async {
-    final withId = entity.codCarrinhoPercurso == 0
-        ? entity.copyWith(codCarrinhoPercurso: items.length + 100)
-        : entity;
+    final withId = entity.codCarrinhoPercurso == 0 ? entity.copyWith(codCarrinhoPercurso: items.length + 100) : entity;
     items.add(withId);
     return [withId];
   }

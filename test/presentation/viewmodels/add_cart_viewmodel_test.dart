@@ -15,6 +15,14 @@ class MockAddCartUseCase extends Mock implements AddCartUseCase {}
 
 class MockStartSeparationUseCase extends Mock implements StartSeparationUseCase {}
 
+class _SilentAudioService extends Fake implements AudioService {
+  @override
+  Future<void> playBarcodeScan() async {}
+
+  @override
+  Future<void> playError() async {}
+}
+
 class _EmptyCartConsultation implements BasicConsultationRepository<ExpeditionCartConsultationModel> {
   @override
   Future<List<ExpeditionCartConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async => [];
@@ -39,7 +47,6 @@ void main() {
 
   group('AddCartViewModel', () {
     test('scanBarcode define erro quando nenhum carrinho corresponde', () async {
-      AudioService().setEnabled(false);
       final vm = AddCartViewModel(
         codEmpresa: 1,
         codSepararEstoque: 2,
@@ -47,7 +54,7 @@ void main() {
         cartConsultationRepository: _EmptyCartConsultation(),
         cartRouteRepository: _FakeCartRouteRepo(),
         startSeparationUseCase: MockStartSeparationUseCase(),
-        audioService: AudioService(),
+        audioService: _SilentAudioService(),
       );
 
       await vm.scanBarcode('unknown');
