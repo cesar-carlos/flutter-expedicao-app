@@ -151,6 +151,8 @@ class CardPickingViewModel extends ChangeNotifier {
   bool _isSavingCart = false;
   bool _isFinalizingPicking = false;
   bool _isCancelingPicking = false;
+  bool _silentResyncInFlight = false;
+  bool _silentResyncQueued = false;
 
   bool _validateSocketState() {
     final validation = SocketValidationHelper.validateSocketState();
@@ -268,10 +270,38 @@ class CardPickingViewModel extends ChangeNotifier {
       onCartUpdated: _handleCartUpdate,
       onProcessingError: _setError,
     );
-    _filtersController = PickingFiltersController(
-      storage: _filtersStorage,
-      onChanged: _safeNotifyListeners,
+    _filtersController = PickingFiltersController(storage: _filtersStorage, onChanged: _safeNotifyListeners);
+  }
+
+  CardPickingViewModel.withDependencies({
+    required BasicConsultationRepository<SeparateItemConsultationModel> repository,
+    required BasicRepository<ExpeditionSectorStockModel> sectorStockRepository,
+    required IFiltersStorageService filtersStorage,
+    required AddItemSeparationUseCase addItemSeparationUseCase,
+    required SaveSeparationCartUseCase saveSeparationCartUseCase,
+    required IUserSessionService userSessionService,
+    required SeparateCartInternshipEventRepository cartEventRepository,
+    required ShelfScanningService shelfScanningService,
+    required PickingStateManager stateManager,
+    required CartValidationService cartValidationService,
+    MetricsCollector? metricsCollector,
+  }) : _repository = repository,
+       _sectorStockRepository = sectorStockRepository,
+       _filtersStorage = filtersStorage,
+       _addItemSeparationUseCase = addItemSeparationUseCase,
+       _saveSeparationCartUseCase = saveSeparationCartUseCase,
+       _userSessionService = userSessionService,
+       _cartEventRepository = cartEventRepository,
+       _shelfScanningService = shelfScanningService,
+       _stateManager = stateManager,
+       _cartValidationService = cartValidationService,
+       _metrics = PickingMetricsRecorder(collector: metricsCollector) {
+    _cartEventController = CartEventListenerController(
+      eventRepository: _cartEventRepository,
+      onCartUpdated: _handleCartUpdate,
+      onProcessingError: _setError,
     );
+    _filtersController = PickingFiltersController(storage: _filtersStorage, onChanged: _safeNotifyListeners);
   }
 
   static MetricsCollector? _initMetricsCollector() {
@@ -360,12 +390,7 @@ class CardPickingViewModel extends ChangeNotifier {
       onShelfAddressMatched: updateScannedAddress,
       isItemCompleted: isItemCompleted,
       getPickedQuantity: _stateManager.getPickedQuantity,
-      onScanRecorded: (b, t, s, e) => _metrics.recordScan(
-        barcode: b,
-        startTime: t,
-        success: s,
-        errorMessage: e,
-      ),
+      onScanRecorded: (b, t, s, e) => _metrics.recordScan(barcode: b, startTime: t, success: s, errorMessage: e),
     );
   }
 
@@ -644,7 +669,46 @@ class CardPickingViewModel extends ChangeNotifier {
 
     _hasError = false;
     _errorMessage = null;
-    await initializeCart(_cart!);
+    await initializeCart(_cart!, userModel: _userModel);
+  }
+
+  Future<void> resyncVisibleDataSilently() async {
+    if (_disposed || _cart == null) return;
+
+    if (_silentResyncInFlight) {
+      _silentResyncQueued = true;
+      return;
+    }
+
+    if (_isLoading || hasPendingOperations) {
+      return;
+    }
+
+    _silentResyncInFlight = true;
+    try {
+      final items = await _fetchFilteredItems();
+      if (_disposed) return;
+
+      _hasError = false;
+      _errorMessage = null;
+      _applyLoadedItems(items);
+    } catch (e, stackTrace) {
+      if (_disposed) return;
+      AppLogger.debug(
+        'Falha no resync silencioso do picking',
+        tag: 'CardPickingViewModel',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      if (!_disposed) {
+        _silentResyncInFlight = false;
+        if (_silentResyncQueued) {
+          _silentResyncQueued = false;
+          unawaited(resyncVisibleDataSilently());
+        }
+      }
+    }
   }
 
   Future<void> loadAvailableSectors() async {
@@ -695,50 +759,9 @@ class CardPickingViewModel extends ChangeNotifier {
     if (_cart == null) return;
 
     try {
-      final codEmpresa = _cart!.codEmpresa;
-      final codSepararEstoque = _cart!.codOrigem;
-      final codSetorEstoqueUsuario = _userModel?.codSetorEstoque;
-
-      List<SeparateItemConsultationModel> items = [];
-
-      if (codSetorEstoqueUsuario != null) {
-        final queryNoSector = QueryBuilder()
-          ..equals('CodEmpresa', codEmpresa.toString())
-          ..equals('CodSepararEstoque', codSepararEstoque.toString())
-          ..orderBy('EnderecoDescricao');
-
-        final allItems = await _repository.selectConsultation(queryNoSector);
-
-        final filteredItems = allItems.where((item) {
-          return item.codSetorEstoque == null || item.codSetorEstoque == codSetorEstoqueUsuario;
-        }).toList();
-
-        items = filteredItems;
-      } else {
-        final queryBuilder = QueryBuilder()
-          ..equals('CodEmpresa', codEmpresa.toString())
-          ..equals('CodSepararEstoque', codSepararEstoque.toString())
-          ..orderBy('EnderecoDescricao');
-
-        items = await _repository.selectConsultation(queryBuilder);
-      }
-
+      final items = await _fetchFilteredItems();
       if (_disposed) return;
-
-      items = _filtersController.applyLocal(items);
-
-      items = _addSyntheticCodProdutoUnitsForScan(items);
-
-      _itemsUnmodifiable = null;
-      _items = PickingUtils.sortItemsByAddress(items, userSectorCode: _userModel?.codSetorEstoque);
-
-      _rebuildItemsCache();
-
-      _stateManager.initial(_items);
-
-      _updateNextItemCache();
-
-      _safeNotifyListeners();
+      _applyLoadedItems(items);
     } catch (e) {
       developer.log('Failed to load filtered items', error: e);
     }
@@ -796,12 +819,18 @@ class CardPickingViewModel extends ChangeNotifier {
 
     final oldSituation = _cart!.situacao.code;
     final newSituation = cartData.situacao.code;
+    final statusChanged = oldSituation != newSituation;
 
-    if (oldSituation != newSituation) {
+    _cart = cartData;
+    _cartEventController.updateCurrentCart(cartData);
+
+    if (statusChanged) {
       _cartStatusChanged = true;
-      _cart = cartData;
-      _cartEventController.updateCurrentCart(cartData);
       _safeNotifyListeners();
+    }
+
+    if (!hasPendingOperations) {
+      unawaited(resyncVisibleDataSilently());
     }
   }
 
@@ -919,6 +948,49 @@ class CardPickingViewModel extends ChangeNotifier {
     );
   }
 
+  Future<List<SeparateItemConsultationModel>> _fetchFilteredItems() async {
+    if (_cart == null) {
+      return <SeparateItemConsultationModel>[];
+    }
+
+    final codEmpresa = _cart!.codEmpresa;
+    final codSepararEstoque = _cart!.codOrigem;
+    final codSetorEstoqueUsuario = _userModel?.codSetorEstoque;
+
+    List<SeparateItemConsultationModel> items;
+
+    if (codSetorEstoqueUsuario != null) {
+      final queryNoSector = QueryBuilder()
+        ..equals('CodEmpresa', codEmpresa.toString())
+        ..equals('CodSepararEstoque', codSepararEstoque.toString())
+        ..orderBy('EnderecoDescricao');
+
+      final allItems = await _repository.selectConsultation(queryNoSector);
+
+      items = allItems.where((item) {
+        return item.codSetorEstoque == null || item.codSetorEstoque == codSetorEstoqueUsuario;
+      }).toList();
+    } else {
+      final queryBuilder = QueryBuilder()
+        ..equals('CodEmpresa', codEmpresa.toString())
+        ..equals('CodSepararEstoque', codSepararEstoque.toString())
+        ..orderBy('EnderecoDescricao');
+
+      items = await _repository.selectConsultation(queryBuilder);
+    }
+
+    items = _filtersController.applyLocal(items);
+    return _addSyntheticCodProdutoUnitsForScan(items);
+  }
+
+  void _applyLoadedItems(List<SeparateItemConsultationModel> items) {
+    _itemsUnmodifiable = null;
+    _items = PickingUtils.sortItemsByAddress(items, userSectorCode: _userModel?.codSetorEstoque);
+    _rebuildItemsCache();
+    _stateManager.initial(_items);
+    _updateNextItemCache();
+    _safeNotifyListeners();
+  }
 }
 
 class AddItemSeparationResult {
@@ -937,4 +1009,3 @@ class OperationError {
 
   OperationError(this.itemId, this.message);
 }
-

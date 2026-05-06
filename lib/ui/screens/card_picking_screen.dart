@@ -39,7 +39,7 @@ class _CardPickingBodyState {
   }
 }
 
-class _CardPickingScreenState extends State<CardPickingScreen> {
+class _CardPickingScreenState extends State<CardPickingScreen> with WidgetsBindingObserver {
   /// Bug WWWWWW: cache do viewModel para uso no dispose().
   ///
   /// Antes, dispose() chamava `context.read<CardPickingViewModel>()` que
@@ -58,6 +58,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = context.read<CardPickingViewModel>();
@@ -81,7 +82,33 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state != AppLifecycleState.resumed) {
+      return;
+    }
+
+    final viewModel = _vmRef;
+    if (viewModel == null) {
+      return;
+    }
+
+    unawaited(
+      viewModel.resyncVisibleDataSilently().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao sincronizar picking no retorno da tela',
+          tag: 'CardPickingScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     try {
       _vmRef?.stopCartEventMonitoring();
     } catch (e) {
@@ -325,12 +352,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
           actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar'))],
         ),
       ).catchError((Object e, StackTrace s) {
-        AppLogger.warning(
-          'Falha ao exibir informações do carrinho',
-          tag: 'CardPickingScreen',
-          error: e,
-          stackTrace: s,
-        );
+        AppLogger.warning('Falha ao exibir informações do carrinho', tag: 'CardPickingScreen', error: e, stackTrace: s);
       }),
     );
   }
@@ -496,12 +518,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> {
           actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar'))],
         ),
       ).catchError((Object e, StackTrace s) {
-        AppLogger.warning(
-          'Falha ao exibir progresso da separação',
-          tag: 'CardPickingScreen',
-          error: e,
-          stackTrace: s,
-        );
+        AppLogger.warning('Falha ao exibir progresso da separação', tag: 'CardPickingScreen', error: e, stackTrace: s);
       }),
     );
   }

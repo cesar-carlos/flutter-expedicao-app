@@ -13,13 +13,13 @@ import 'package:data7_expedicao/data/repositories/separate_item_repository_impl.
 import 'package:data7_expedicao/data/repositories/separate_repository_impl.dart';
 import 'package:data7_expedicao/data/services/user_session_service.dart';
 
-import '../../mocks/cancel_item_separation_params_mock.dart';
-import '../../mocks/add_item_separation_params_mock.dart';
-import '../../mocks/user_session_service_mock.dart';
-import '../../mocks/separate_item_model_mock.dart';
-import '../../mocks/test_data_cleanup_helper.dart';
-import '../../mocks/separate_model_mock.dart';
-import '../../core/usecase_integration_test_base.dart';
+import '../../../test/mocks/cancel_item_separation_params_mock.dart';
+import '../../../test/mocks/add_item_separation_params_mock.dart';
+import '../../../test/mocks/user_session_service_mock.dart';
+import '../../../test/mocks/separate_item_model_mock.dart';
+import '../../../test/mocks/test_data_cleanup_helper.dart';
+import '../../../test/mocks/separate_model_mock.dart';
+import '../../../test/core/usecase_integration_test_base.dart';
 
 void main() {
   group('CancelItemSeparationUseCase Integration Tests', () {

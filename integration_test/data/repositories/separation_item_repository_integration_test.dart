@@ -1,22 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:data7_expedicao/data/repositories/separate_item_repository_impl.dart';
-import 'package:data7_expedicao/domain/models/separate_item_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
+import 'package:data7_expedicao/data/repositories/separation_item_repository_impl.dart';
+import 'package:data7_expedicao/domain/models/separation_item_model.dart';
 
-import '../../core/socket_integration_test_base.dart';
-import '../../mocks/separate_item_model_mock.dart';
+import '../../../test/mocks/separation_item_model_mock.dart';
+import '../../../test/core/socket_integration_test_base.dart';
 
 void main() {
-  group('SeparateItemRepositoryImpl Integration Tests', () {
-    late SeparateItemRepositoryImpl repository;
-    late SeparateItemModel insertedSeparateItem;
+  group('SeparationItemRepositoryImpl Integration Tests', () {
+    late SeparationItemRepositoryImpl repository;
+    late SeparationItemModel insertedSeparationItem;
 
     setUpAll(() async {
       await SocketIntegrationTestBase.setupSocket();
     });
 
     setUp(() {
-      repository = SeparateItemRepositoryImpl();
+      repository = SeparationItemRepositoryImpl();
     });
 
     tearDownAll(() async {
@@ -25,23 +26,31 @@ void main() {
 
     group('INSERT Integration Tests', () {
       test('deve inserir um novo item de separação e verificar se foi inserido', () async {
-        // Cria um novo item para teste
-        final newItem = createDefaultTestItem();
+        // Cria um novo item de separação para teste
+        final newItem = createDefaultTestSeparationItem();
 
-        // Tenta inserir o item
+        // Tenta inserir o item de separação
         final insertResult = await repository.insert(newItem);
 
         // Verifica o resultado
         expect(insertResult, isNotEmpty, reason: 'O resultado da inserção não deve estar vazio');
         expect(insertResult.first.item, newItem.item, reason: 'O número do item deve corresponder ao enviado');
+        expect(insertResult.first.sessionId, newItem.sessionId, reason: 'O sessionId deve corresponder ao enviado');
+        expect(
+          insertResult.first.situacaoCode,
+          ExpeditionItemSituation.pendente.code,
+          reason: 'A situação inicial deve ser PENDENTE',
+        );
         expect(insertResult.first.codProduto, 1, reason: 'O código do produto deve ser 1');
-        expect(insertResult.first.quantidade, 40.0, reason: 'A quantidade total deve ser 40.0');
-        expect(insertResult.first.quantidadeInterna, 40.0, reason: 'A quantidade interna inicial deve ser 40.0');
-        expect(insertResult.first.quantidadeExterna, 0.0, reason: 'A quantidade externa inicial deve ser 0.0');
-        expect(insertResult.first.quantidadeSeparacao, 0.0, reason: 'A quantidade de separação inicial deve ser 0.0');
+        expect(insertResult.first.quantidade, 1.0, reason: 'A quantidade deve ser 1.0');
+        expect(
+          insertResult.first.nomeSeparador,
+          'TESTE SEPARADOR',
+          reason: 'O nome do separador deve corresponder ao enviado',
+        );
 
         // Guarda o item inserido para os próximos testes
-        insertedSeparateItem = insertResult.first;
+        insertedSeparationItem = insertResult.first;
 
         // Aguarda para garantir que a operação foi concluída
         await SocketIntegrationTestBase.waitForOperation();
@@ -50,34 +59,37 @@ void main() {
 
     group('UPDATE Integration Tests', () {
       test('deve atualizar o item de separação inserido anteriormente', () async {
-        // Cria uma versão atualizada do item
-        final updatedItem = createUpdatedTestItem(insertedSeparateItem);
+        // Cria uma versão atualizada do item de separação
+        final updatedItem = createUpdatedTestSeparationItem(insertedSeparationItem);
 
-        // Tenta atualizar o item
+        // Tenta atualizar o item de separação
         final updateResult = await repository.update(updatedItem);
 
         // Verifica o resultado
         expect(updateResult, isNotEmpty, reason: 'O resultado da atualização não deve estar vazio');
         expect(
           updateResult.first.codSepararEstoque,
-          insertedSeparateItem.codSepararEstoque,
+          insertedSeparationItem.codSepararEstoque,
           reason: 'O código da separação deve permanecer o mesmo',
         );
-        expect(updateResult.first.item, insertedSeparateItem.item, reason: 'O número do item deve permanecer o mesmo');
         expect(
-          updateResult.first.quantidadeSeparacao,
-          40.0,
-          reason: 'A quantidade de separação deve ser atualizada para 40.0',
+          updateResult.first.item,
+          insertedSeparationItem.item,
+          reason: 'O número do item deve permanecer o mesmo',
         );
-        expect(updateResult.first.quantidadeInterna, 0.0, reason: 'A quantidade interna deve ser zerada');
         expect(
-          updateResult.first.quantidadeExterna,
-          35.0,
-          reason: 'A quantidade externa deve ser atualizada para 35.0',
+          updateResult.first.situacaoCode,
+          ExpeditionItemSituation.separado.code,
+          reason: 'A situação deve ter sido alterada para SEPARADO',
+        );
+        expect(
+          updateResult.first.nomeSeparador,
+          'SEPARADOR ATUALIZADO',
+          reason: 'O nome do separador deve ter sido atualizado',
         );
         expect(
           updateResult.first.codProduto,
-          insertedSeparateItem.codProduto,
+          insertedSeparationItem.codProduto,
           reason: 'O código do produto deve permanecer o mesmo',
         );
 
@@ -88,22 +100,23 @@ void main() {
 
     group('DELETE Integration Tests', () {
       test('deve deletar o item de separação inserido anteriormente', () async {
-        // Tenta deletar o item
-        final deleteResult = await repository.delete(insertedSeparateItem);
+        // Tenta deletar o item de separação
+        final deleteResult = await repository.delete(insertedSeparationItem);
 
         // Verifica o resultado
         expect(deleteResult, isNotEmpty, reason: 'O resultado da deleção não deve estar vazio');
         expect(
           deleteResult.first.codSepararEstoque,
-          insertedSeparateItem.codSepararEstoque,
+          insertedSeparationItem.codSepararEstoque,
           reason: 'O código da separação deletada deve corresponder',
         );
-        expect(deleteResult.first.item, insertedSeparateItem.item, reason: 'O número do item deve corresponder');
+        expect(deleteResult.first.item, insertedSeparationItem.item, reason: 'O número do item deve corresponder');
         expect(
           deleteResult.first.codProduto,
-          insertedSeparateItem.codProduto,
+          insertedSeparationItem.codProduto,
           reason: 'O código do produto deve corresponder',
         );
+        expect(deleteResult.first.quantidade, 1.0, reason: 'A quantidade deve permanecer a mesma');
 
         // Aguarda para garantir que a operação foi concluída
         await SocketIntegrationTestBase.waitForOperation();

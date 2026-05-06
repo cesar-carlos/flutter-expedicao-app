@@ -1,6 +1,6 @@
 ---
 description: Padroes de testes - estrategia, harness e praticas Dart Flutter
-globs: ["test/**/*.dart"]
+globs: ["test/**/*.dart", "integration_test/**/*.dart"]
 alwaysApply: false
 ---
 
@@ -64,6 +64,12 @@ Este arquivo cobre estrategia de testes e convencoes praticas para
   para o comportamento testado
 - evite widget tests grandes e difusos; prefira foco em estados e
   interacoes relevantes
+
+## Suites unit vs integracao
+
+- testes que conversam com API/socket ficam em `integration_test/` (mesmo suffix `*_integration_test.dart`)
+- gate rapido sem backend: `flutter test` (somente `test/`)
+- apenas integracao: `flutter test integration_test`
 
 ## Manutencao
 

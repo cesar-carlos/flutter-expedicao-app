@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
@@ -63,11 +65,19 @@ class SeparatedProductsViewModel extends ChangeNotifier {
 
   bool _cartEventListenersRegistered = false;
   bool _cartStatusChanged = false;
+  bool _silentResyncInFlight = false;
+  bool _silentResyncQueued = false;
 
   SeparatedProductsViewModel()
     : _repository = locator<BasicConsultationRepository<SeparationItemConsultationModel>>(),
       _deleteItemSeparationUseCase = locator<DeleteItemSeparationUseCase>(),
       _cartEventRepository = locator<SeparateCartInternshipEventRepository>();
+
+  SeparatedProductsViewModel.withDependencies(
+    this._repository,
+    this._deleteItemSeparationUseCase,
+    this._cartEventRepository,
+  );
 
   @override
   void dispose() {
@@ -97,33 +107,13 @@ class SeparatedProductsViewModel extends ChangeNotifier {
       _cartStatusChanged = false;
       _safeNotifyListeners();
 
-      final queryBuilder = QueryBuilder()
-        ..equals('CodEmpresa', cart.codEmpresa.toString())
-        ..equals('CodSepararEstoque', cart.codOrigem.toString())
-        ..equals('CodCarrinhoPercurso', cart.codCarrinhoPercurso.toString())
-        ..equals('ItemCarrinhoPercurso', cart.item);
-
-      final items = await _repository.selectConsultation(queryBuilder);
-
-      items.sort((a, b) {
-        final dateComparison = b.dataSeparacao.compareTo(a.dataSeparacao);
-        if (dateComparison != 0) return dateComparison;
-
-        return b.horaSeparacao.compareTo(a.horaSeparacao);
-      });
-
-      _items = items;
+      _items = await _loadItemsForCart(cart);
 
       startCartEventMonitoring();
     } catch (e, s) {
       // Bug QQQQ: antes era `if (kDebugMode) {}` (bloco vazio).
       // Erro era silencioso, dificultando diagnostico em release.
-      AppLogger.error(
-        'Erro ao carregar produtos separados',
-        tag: 'SeparatedProductsVM',
-        error: e,
-        stackTrace: s,
-      );
+      AppLogger.error('Erro ao carregar produtos separados', tag: 'SeparatedProductsVM', error: e, stackTrace: s);
       _hasError = true;
       _errorMessage = 'Erro ao carregar produtos separados: ${e.toString()}';
     } finally {
@@ -135,6 +125,46 @@ class SeparatedProductsViewModel extends ChangeNotifier {
   Future<void> refresh() async {
     if (_disposed || _cartRouteInternshipConsultation == null) return;
     await loadSeparatedProducts(_cartRouteInternshipConsultation!);
+  }
+
+  Future<void> resyncVisibleDataSilently() async {
+    if (_disposed || _cartRouteInternshipConsultation == null) return;
+
+    if (_silentResyncInFlight) {
+      _silentResyncQueued = true;
+      return;
+    }
+
+    if (_isLoading) {
+      return;
+    }
+
+    _silentResyncInFlight = true;
+    try {
+      final cart = _cartRouteInternshipConsultation!;
+      _items = await _loadItemsForCart(cart);
+      if (_disposed) return;
+
+      _hasError = false;
+      _errorMessage = null;
+      _safeNotifyListeners();
+    } catch (e, s) {
+      if (_disposed) return;
+      AppLogger.debug(
+        'Falha no resync silencioso dos produtos separados',
+        tag: 'SeparatedProductsVM',
+        error: e,
+        stackTrace: s,
+      );
+    } finally {
+      if (!_disposed) {
+        _silentResyncInFlight = false;
+        if (_silentResyncQueued) {
+          _silentResyncQueued = false;
+          unawaited(resyncVisibleDataSilently());
+        }
+      }
+    }
   }
 
   Future<void> retry() async {
@@ -302,24 +332,13 @@ class SeparatedProductsViewModel extends ChangeNotifier {
   }
 
   void _processCartEventData(BasicEventModel event) {
-    if (event.data == null) return;
+    if (event.data == null || _cartRouteInternshipConsultation == null) return;
 
     try {
       if (event.data is Map<String, dynamic>) {
         final dataMap = event.data as Map<String, dynamic>;
-
-        if (dataMap.containsKey('Mutation') && dataMap['Mutation'] is List) {
-          final mutations = dataMap['Mutation'] as List;
-
-          for (final mutation in mutations) {
-            if (mutation is Map<String, dynamic>) {
-              final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(mutation);
-              _handleCartUpdate(cartData);
-            }
-          }
-        } else {
-          final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(dataMap);
-          _handleCartUpdate(cartData);
+        if (_eventAffectsCurrentCart(dataMap)) {
+          unawaited(resyncVisibleDataSilently());
         }
       }
     } catch (e) {
@@ -329,24 +348,67 @@ class SeparatedProductsViewModel extends ChangeNotifier {
     }
   }
 
-  void _handleCartUpdate(ExpeditionCartRouteInternshipConsultationModel cartData) {
-    if (_disposed || _cartRouteInternshipConsultation == null) return;
+  bool _eventAffectsCurrentCart(Map<String, dynamic> dataMap) {
+    final mutations = dataMap['Mutation'];
+    if (mutations is List) {
+      var affectedCurrentCart = false;
+      for (final mutation in mutations) {
+        if (mutation is! Map<String, dynamic>) continue;
+        final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(mutation);
+        affectedCurrentCart = _handleCurrentCartMutation(cartData) || affectedCurrentCart;
+      }
+      return affectedCurrentCart;
+    }
 
-    if (!_isSameCart(cartData)) return;
+    final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(dataMap);
+    return _handleCurrentCartMutation(cartData);
+  }
+
+  bool _handleCurrentCartMutation(ExpeditionCartRouteInternshipConsultationModel cartData) {
+    if (!_isSameCart(cartData)) return false;
 
     final oldSituation = _cartRouteInternshipConsultation!.situacao.code;
     final newSituation = cartData.situacao.code;
 
     if (oldSituation != newSituation) {
       _cartStatusChanged = true;
-      _cartRouteInternshipConsultation = cartData;
+    }
+
+    _cartRouteInternshipConsultation = cartData;
+
+    if (oldSituation != newSituation) {
       _safeNotifyListeners();
     }
+
+    return true;
   }
 
   bool _isSameCart(ExpeditionCartRouteInternshipConsultationModel cartData) {
     return cartData.codEmpresa == _cartRouteInternshipConsultation!.codEmpresa &&
         cartData.codCarrinhoPercurso == _cartRouteInternshipConsultation!.codCarrinhoPercurso &&
         cartData.item == _cartRouteInternshipConsultation!.item;
+  }
+
+  Future<List<SeparationItemConsultationModel>> _loadItemsForCart(
+    ExpeditionCartRouteInternshipConsultationModel cart,
+  ) async {
+    final items = await _repository.selectConsultation(_buildSeparatedProductsQuery(cart));
+
+    items.sort((a, b) {
+      final dateComparison = b.dataSeparacao.compareTo(a.dataSeparacao);
+      if (dateComparison != 0) return dateComparison;
+
+      return b.horaSeparacao.compareTo(a.horaSeparacao);
+    });
+
+    return items;
+  }
+
+  QueryBuilder _buildSeparatedProductsQuery(ExpeditionCartRouteInternshipConsultationModel cart) {
+    return QueryBuilder()
+      ..equals('CodEmpresa', cart.codEmpresa.toString())
+      ..equals('CodSepararEstoque', cart.codOrigem.toString())
+      ..equals('CodCarrinhoPercurso', cart.codCarrinhoPercurso.toString())
+      ..equals('ItemCarrinhoPercurso', cart.item);
   }
 }

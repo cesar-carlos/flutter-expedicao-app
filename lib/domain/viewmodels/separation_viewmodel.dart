@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
@@ -21,10 +21,6 @@ import 'package:data7_expedicao/core/services/notification_service.dart';
 enum SeparationState { initial, loading, loaded, error }
 
 class SeparationViewModel extends ChangeNotifier {
-  /// Enquanto a tela de listagem estiver com [startEventMonitoring] ativo, a primeira
-  /// página é reconsultada em intervalo fixo. Complementa o socket quando o backend
-  /// não emite `separar.*.listen` para a operação feita neste app.
-  static const Duration listPollingInterval = Duration(seconds: 10);
   final BasicConsultationRepository<SeparateConsultationModel> _repository;
   final IFiltersStorageService _filtersStorage;
   final BasicRepository<ExpeditionSectorStockModel> _sectorRepository;
@@ -82,8 +78,8 @@ class SeparationViewModel extends ChangeNotifier {
 
   bool _isScreenVisible = false;
   Timer? _notificationDebounce;
-  Timer? _silentRefreshTimer;
-  bool _silentRefreshInFlight = false;
+  bool _silentResyncInFlight = false;
+  bool _silentResyncQueued = false;
 
   bool get isScreenVisible => _isScreenVisible;
 
@@ -158,7 +154,7 @@ class SeparationViewModel extends ChangeNotifier {
       _setState(SeparationState.loaded);
     } catch (e) {
       if (_disposed) return;
-      _setError('Erro ao carregar separações: ${_getErrorMessage(e)}');
+      _setError('Erro ao carregar separaÃƒÂ§ÃƒÂµes: ${_getErrorMessage(e)}');
     }
   }
 
@@ -166,45 +162,56 @@ class SeparationViewModel extends ChangeNotifier {
     await loadSeparations();
   }
 
-  /// Recarrega só a primeira página, sem estado `loading` nem skeleton.
-  /// Útil com polling e ao voltar do segundo plano; falhas são só logadas.
-  Future<void> refreshSeparationListSilently() async {
-    if (_disposed || isLoading || _isLoadingMore || _silentRefreshInFlight) return;
-    // Com paginação além da 1ª página, substituir só os 20 primeiros apagaria o restante.
-    if (_currentPage > 0) return;
+  Future<void> resyncVisibleSeparationsSilently() async {
+    if (_disposed) return;
 
-    _silentRefreshInFlight = true;
+    if (_silentResyncInFlight) {
+      _silentResyncQueued = true;
+      return;
+    }
+
+    if (isLoading || _isLoadingMore) {
+      return;
+    }
+
+    _silentResyncInFlight = true;
     try {
-      final queryBuilder = _buildQueryWithFilters(0);
+      final loadedItemCount = (_currentPage + 1) * _pageSize;
+      final queryBuilder = _buildQueryWithFilters(0, limitOverride: loadedItemCount);
       final separations = await _repository.selectConsultation(queryBuilder);
       if (_disposed) return;
 
-      final previousKeys = {for (final s in _separations) _separationKey(s)};
+      final previousKeys = {for (final separation in _separations) _separationKey(separation)};
       final filteredSeparations = _applyExactSetorFilter(separations);
-      final newFromPoll = filteredSeparations.where((s) => !previousKeys.contains(_separationKey(s))).toList();
+      final notificationCandidate = !_isScreenVisible
+          ? _selectNewSeparationNotificationCandidate(previousKeys, filteredSeparations)
+          : null;
 
       _separations = filteredSeparations;
       _sortSeparationsNewestFirst();
-      _currentPage = 0;
-      _hasMoreData = separations.length == _pageSize;
+      _currentPage = filteredSeparations.isEmpty ? 0 : ((filteredSeparations.length - 1) ~/ _pageSize);
+      _hasMoreData = separations.length == loadedItemCount;
       _clearError();
       _setState(SeparationState.loaded);
 
-      if (!_disposed && !_isScreenVisible && _shouldNotifyForPolledNewSeparations(previousKeys, newFromPoll)) {
-        newFromPoll.sort((a, b) => b.codSepararEstoque.compareTo(a.codSepararEstoque));
-        _playNotificationIfNeeded(newFromPoll.first);
+      if (!_disposed && notificationCandidate != null) {
+        _playNotificationIfNeeded(notificationCandidate);
       }
     } catch (e, s) {
       if (_disposed) return;
       AppLogger.debug(
-        'Falha no refresh silencioso da lista de separações',
+        'Falha no resync silencioso da lista de separaÃƒÂ§ÃƒÂµes',
         tag: 'SeparationVM',
         error: e,
         stackTrace: s,
       );
     } finally {
       if (!_disposed) {
-        _silentRefreshInFlight = false;
+        _silentResyncInFlight = false;
+        if (_silentResyncQueued) {
+          _silentResyncQueued = false;
+          unawaited(resyncVisibleSeparationsSilently());
+        }
       }
     }
   }
@@ -359,7 +366,6 @@ class SeparationViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _notificationDebounce?.cancel();
-    _stopSilentRefreshTimer();
     _disposed = true;
     super.dispose();
   }
@@ -370,17 +376,31 @@ class SeparationViewModel extends ChangeNotifier {
     }
   }
 
-  String _separationKey(SeparateConsultationModel s) => '${s.codEmpresa}:${s.codSepararEstoque}';
-
-  /// Evita disparar som/notificação no primeiro lote vindo só do poll (ex.: lista vazia → muitas linhas).
-  bool _shouldNotifyForPolledNewSeparations(Set<String> previousKeys, List<SeparateConsultationModel> newOnes) {
-    if (newOnes.isEmpty) return false;
-    if (previousKeys.isNotEmpty) return true;
-    return newOnes.length == 1;
+  String _separationKey(SeparateConsultationModel separation) {
+    return '${separation.codEmpresa}:${separation.codSepararEstoque}';
   }
 
-  /// Maior [codSepararEstoque] primeiro (últimas separações no topo).
-  /// Também aplicado após carregar/atualizar lista — o socket nem sempre respeita ORDER BY.
+  SeparateConsultationModel? _selectNewSeparationNotificationCandidate(
+    Set<String> previousKeys,
+    List<SeparateConsultationModel> separations,
+  ) {
+    final newSeparations = separations
+        .where((separation) => !previousKeys.contains(_separationKey(separation)))
+        .toList();
+    if (newSeparations.isEmpty) return null;
+    if (previousKeys.isEmpty && newSeparations.length != 1) return null;
+
+    newSeparations.sort((a, b) {
+      final byCod = b.codSepararEstoque.compareTo(a.codSepararEstoque);
+      if (byCod != 0) return byCod;
+      return a.codEmpresa.compareTo(b.codEmpresa);
+    });
+
+    return newSeparations.first;
+  }
+
+  /// Maior [codSepararEstoque] primeiro (ÃƒÂºltimas separaÃƒÂ§ÃƒÂµes no topo).
+  /// TambÃƒÂ©m aplicado apÃƒÂ³s carregar/atualizar lista Ã¢â‚¬â€ o socket nem sempre respeita ORDER BY.
   void _sortSeparationsNewestFirst() {
     _separations.sort((a, b) {
       final byCod = b.codSepararEstoque.compareTo(a.codSepararEstoque);
@@ -389,9 +409,12 @@ class SeparationViewModel extends ChangeNotifier {
     });
   }
 
-  QueryBuilder _buildQueryWithFilters(int page) {
+  QueryBuilder _buildQueryWithFilters(int page, {int? limitOverride}) {
+    final limit = limitOverride ?? _pageSize;
+    final offset = page * limit;
+
     final queryBuilder = QueryBuilder()
-      ..paginate(limit: _pageSize, offset: page * _pageSize, page: page + 1)
+      ..paginate(limit: limit, offset: offset, page: page + 1)
       ..orderByAsc('CodEmpresa')
       ..orderByDesc('CodSepararEstoque');
 
@@ -527,39 +550,22 @@ class SeparationViewModel extends ChangeNotifier {
     _registerEventListener();
     _registerConsultationEventListener();
     _registerUpdateListEventListener();
-    _startSilentRefreshTimer();
   }
 
   void stopEventMonitoring() {
     if (_disposed) return;
-    _stopSilentRefreshTimer();
     _unregisterEventListener();
     _unregisterConsultationEventListener();
     _unregisterUpdateListEventListener();
-  }
-
-  void _startSilentRefreshTimer() {
-    if (_disposed || _silentRefreshTimer != null) return;
-    _silentRefreshTimer = Timer.periodic(listPollingInterval, (_) => _onSilentRefreshTick());
-  }
-
-  void _stopSilentRefreshTimer() {
-    _silentRefreshTimer?.cancel();
-    _silentRefreshTimer = null;
-  }
-
-  void _onSilentRefreshTick() {
-    if (_disposed || !_isScreenVisible || isLoading || _isLoadingMore) return;
-    unawaited(refreshSeparationListSilently());
   }
 
   void _registerEventListener() {
     if (_disposed || _eventListenersRegistered) return;
 
     try {
-      // allEvent: true — [EventServiceImpl] ignora eventos com Session == socket atual
-      // quando allEvent é false (evitar eco em outros fluxos). Na listagem, isso impedia
-      // de ver a própria separação criada neste app até dar refresh.
+      // allEvent: true Ã¢â‚¬â€ [EventServiceImpl] ignora eventos com Session == socket atual
+      // quando allEvent ÃƒÂ© false (evitar eco em outros fluxos). Na listagem, isso impedia
+      // de ver a prÃƒÂ³pria separaÃƒÂ§ÃƒÂ£o criada neste app atÃƒÂ© dar refresh.
       _eventRepository.addListener(
         EventListenerModel(id: _insertListenerId, event: Event.insert, callback: _onSeparationEvent, allEvent: true),
       );
@@ -575,7 +581,7 @@ class SeparationViewModel extends ChangeNotifier {
       _eventListenersRegistered = true;
     } catch (e) {
       if (kDebugMode) {
-        AppLogger.error('Erro ao registrar evento de separação', tag: 'SeparationVM', error: e);
+        AppLogger.error('Erro ao registrar evento de separaÃƒÂ§ÃƒÂ£o', tag: 'SeparationVM', error: e);
       }
     }
   }
@@ -595,7 +601,7 @@ class SeparationViewModel extends ChangeNotifier {
       _consultationListenerRegistered = true;
     } catch (e) {
       if (kDebugMode) {
-        AppLogger.error('Erro ao registrar evento de consulta de separação', tag: 'SeparationVM', error: e);
+        AppLogger.error('Erro ao registrar evento de consulta de separaÃƒÂ§ÃƒÂ£o', tag: 'SeparationVM', error: e);
       }
     }
   }
@@ -608,7 +614,7 @@ class SeparationViewModel extends ChangeNotifier {
       _eventListenersRegistered = false;
     } catch (e) {
       if (kDebugMode) {
-        AppLogger.error('Erro ao desregistrar evento de separação', tag: 'SeparationVM', error: e);
+        AppLogger.error('Erro ao desregistrar evento de separaÃƒÂ§ÃƒÂ£o', tag: 'SeparationVM', error: e);
       }
     }
   }
@@ -621,7 +627,7 @@ class SeparationViewModel extends ChangeNotifier {
       _consultationListenerRegistered = false;
     } catch (e) {
       if (kDebugMode) {
-        AppLogger.error('Erro ao desregistrar evento de consulta de separação', tag: 'SeparationVM', error: e);
+        AppLogger.error('Erro ao desregistrar evento de consulta de separaÃƒÂ§ÃƒÂ£o', tag: 'SeparationVM', error: e);
       }
     }
   }
@@ -641,7 +647,7 @@ class SeparationViewModel extends ChangeNotifier {
       _updateListListenerRegistered = true;
     } catch (e) {
       if (kDebugMode) {
-        AppLogger.error('Erro ao registrar evento de atualização de lista', tag: 'SeparationVM', error: e);
+        AppLogger.error('Erro ao registrar evento de atualizaÃƒÂ§ÃƒÂ£o de lista', tag: 'SeparationVM', error: e);
       }
     }
   }
@@ -654,7 +660,7 @@ class SeparationViewModel extends ChangeNotifier {
       _updateListListenerRegistered = false;
     } catch (e) {
       if (kDebugMode) {
-        AppLogger.error('Erro ao desregistrar evento de atualização de lista', tag: 'SeparationVM', error: e);
+        AppLogger.error('Erro ao desregistrar evento de atualizaÃƒÂ§ÃƒÂ£o de lista', tag: 'SeparationVM', error: e);
       }
     }
   }
@@ -666,7 +672,7 @@ class SeparationViewModel extends ChangeNotifier {
       _processEventData(event);
     } catch (e) {
       if (kDebugMode) {
-        AppLogger.error('Erro ao processar evento de separação', tag: 'SeparationVM', error: e);
+        AppLogger.error('Erro ao processar evento de separaÃƒÂ§ÃƒÂ£o', tag: 'SeparationVM', error: e);
       }
     }
   }
@@ -694,7 +700,7 @@ class SeparationViewModel extends ChangeNotifier {
       }
     } catch (e) {
       if (kDebugMode) {
-        AppLogger.error('Erro ao processar evento de separação', tag: 'SeparationVM', error: e);
+        AppLogger.error('Erro ao processar evento de separaÃƒÂ§ÃƒÂ£o', tag: 'SeparationVM', error: e);
       }
     }
   }
@@ -702,48 +708,36 @@ class SeparationViewModel extends ChangeNotifier {
   void _handleSeparationEvent(Event eventType, SeparateConsultationModel separationData) {
     if (_disposed) return;
 
+    var hasChanges = false;
     switch (eventType) {
       case Event.insert:
-        _handleNewSeparation(separationData);
+        hasChanges = _handleNewSeparation(separationData);
         break;
       case Event.update:
-        final index = _separations.indexWhere(
-          (s) => s.codEmpresa == separationData.codEmpresa && s.codSepararEstoque == separationData.codSepararEstoque,
-        );
-        if (index != -1) {
-          _separations[index] = separationData;
-        } else if (_shouldAddToCurrentList(separationData)) {
-          _separations.insert(0, separationData);
-        }
+        hasChanges = _handleSeparationUpdate(separationData);
         break;
       case Event.delete:
+        final previousLength = _separations.length;
         _separations.removeWhere(
           (s) => s.codEmpresa == separationData.codEmpresa && s.codSepararEstoque == separationData.codSepararEstoque,
         );
+        hasChanges = previousLength != _separations.length;
         break;
     }
 
-    if (!_disposed) {
+    if (hasChanges && !_disposed) {
       _sortSeparationsNewestFirst();
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
-  void _handleNewSeparation(SeparateConsultationModel separationData) {
+  bool _handleNewSeparation(SeparateConsultationModel separationData) {
     final index = _findSeparationIndex(separationData);
     if (index != -1) {
-      _separations[index] = separationData;
-      return;
+      return _updateExistingSeparation(index, separationData, shouldBeVisible: _shouldAddToCurrentList(separationData));
     }
 
-    if (!_shouldAddToCurrentList(separationData)) {
-      return;
-    }
-
-    if (!_isScreenVisible) {
-      _playNotificationIfNeeded(separationData);
-    }
-    _separations.insert(0, separationData);
+    return _addNewSeparation(separationData, shouldBeVisible: _shouldAddToCurrentList(separationData));
   }
 
   bool _shouldAddToCurrentList(SeparateConsultationModel separationData) {
@@ -792,7 +786,7 @@ class SeparationViewModel extends ChangeNotifier {
       _processConsultationEventData(event);
     } catch (e) {
       if (kDebugMode) {
-        AppLogger.error('Erro ao processar evento de consulta de separação', tag: 'SeparationVM', error: e);
+        AppLogger.error('Erro ao processar evento de consulta de separaÃƒÂ§ÃƒÂ£o', tag: 'SeparationVM', error: e);
       }
     }
   }
@@ -804,7 +798,7 @@ class SeparationViewModel extends ChangeNotifier {
       _processUpdateListEventData(event);
     } catch (e) {
       if (kDebugMode) {
-        AppLogger.error('Erro ao processar evento de atualização de lista', tag: 'SeparationVM', error: e);
+        AppLogger.error('Erro ao processar evento de atualizaÃƒÂ§ÃƒÂ£o de lista', tag: 'SeparationVM', error: e);
       }
     }
   }
@@ -822,39 +816,19 @@ class SeparationViewModel extends ChangeNotifier {
 
     if (!dataMap.containsKey('Data') || dataMap['Data'] is! List) return;
 
-    final dataList = dataMap['Data'] as List;
-    bool hasAnyUpdate = false;
-
-    for (final item in dataList) {
-      if (item is Map<String, dynamic>) {
-        try {
-          final separationData = SeparateConsultationModel.fromJson(item);
-          if (_handleSeparationUpdate(separationData)) {
-            hasAnyUpdate = true;
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            AppLogger.error('Erro ao processar evento de separação', tag: 'SeparationVM', error: e);
-          }
-        }
-      }
-    }
-
-    if (hasAnyUpdate && !_disposed) {
-      _sortSeparationsNewestFirst();
-      notifyListeners();
-    }
+    unawaited(resyncVisibleSeparationsSilently());
   }
 
   bool _handleSeparationUpdate(SeparateConsultationModel separationData) {
     if (_disposed) return false;
 
     final index = _findSeparationIndex(separationData);
+    final shouldBeVisible = _shouldAddToCurrentList(separationData);
 
     if (index != -1) {
-      return _updateExistingSeparation(index, separationData);
+      return _updateExistingSeparation(index, separationData, shouldBeVisible: shouldBeVisible);
     } else {
-      return _addNewSeparation(separationData);
+      return _addNewSeparation(separationData, shouldBeVisible: shouldBeVisible);
     }
   }
 
@@ -864,7 +838,12 @@ class SeparationViewModel extends ChangeNotifier {
     );
   }
 
-  bool _updateExistingSeparation(int index, SeparateConsultationModel newData) {
+  bool _updateExistingSeparation(int index, SeparateConsultationModel newData, {required bool shouldBeVisible}) {
+    if (!shouldBeVisible) {
+      _separations.removeAt(index);
+      return true;
+    }
+
     final currentData = _separations[index];
 
     if (_hasRelevantChanges(currentData, newData)) {
@@ -875,16 +854,14 @@ class SeparationViewModel extends ChangeNotifier {
     return false;
   }
 
-  bool _addNewSeparation(SeparateConsultationModel separationData) {
-    if (_shouldAddToCurrentList(separationData)) {
-      if (!_isScreenVisible) {
-        _playNotificationIfNeeded(separationData);
-      }
-      _separations.insert(0, separationData);
-      return true;
-    }
+  bool _addNewSeparation(SeparateConsultationModel separationData, {required bool shouldBeVisible}) {
+    if (!shouldBeVisible) return false;
 
-    return false;
+    if (!_isScreenVisible) {
+      _playNotificationIfNeeded(separationData);
+    }
+    _separations.insert(0, separationData);
+    return true;
   }
 
   void _playNotificationIfNeeded(SeparateConsultationModel separationData) {
@@ -893,7 +870,7 @@ class SeparationViewModel extends ChangeNotifier {
     _notificationDebounce?.cancel();
     if (kDebugMode) {
       AppLogger.debug(
-        'Som/notificação de nova separação agendados em 5s (cod ${separationData.codSepararEstoque})',
+        'Som/notificaÃƒÂ§ÃƒÂ£o de nova separaÃƒÂ§ÃƒÂ£o agendados em 5s (cod ${separationData.codSepararEstoque})',
         tag: 'SeparationVM',
       );
     }
@@ -902,7 +879,7 @@ class SeparationViewModel extends ChangeNotifier {
 
       if (kDebugMode) {
         AppLogger.debug(
-          'Disparando som + notificação local (cod ${separationData.codSepararEstoque})',
+          'Disparando som + notificaÃƒÂ§ÃƒÂ£o local (cod ${separationData.codSepararEstoque})',
           tag: 'SeparationVM',
         );
       }
@@ -910,7 +887,7 @@ class SeparationViewModel extends ChangeNotifier {
       unawaited(
         _audioService.playNotification().catchError((Object e, StackTrace s) {
           AppLogger.warning(
-            'Falha ao reproduzir notificação sonora (nova separação)',
+            'Falha ao reproduzir notificaÃƒÂ§ÃƒÂ£o sonora (nova separaÃƒÂ§ÃƒÂ£o)',
             tag: 'SeparationViewModel',
             error: e,
             stackTrace: s,
@@ -926,7 +903,7 @@ class SeparationViewModel extends ChangeNotifier {
             )
             .catchError((Object e, StackTrace s) {
               AppLogger.warning(
-                'Falha ao exibir notificação de nova separação',
+                'Falha ao exibir notificaÃƒÂ§ÃƒÂ£o de nova separaÃƒÂ§ÃƒÂ£o',
                 tag: 'SeparationViewModel',
                 error: e,
                 stackTrace: s,
@@ -938,9 +915,13 @@ class SeparationViewModel extends ChangeNotifier {
 
   bool _hasRelevantChanges(SeparateConsultationModel current, SeparateConsultationModel updated) {
     return current.situacao != updated.situacao ||
+        current.origem != updated.origem ||
+        current.codOrigem != updated.codOrigem ||
         current.nomeEntidade != updated.nomeEntidade ||
+        current.tipoEntidade != updated.tipoEntidade ||
         current.nomeTipoOperacaoExpedicao != updated.nomeTipoOperacaoExpedicao ||
         current.nomePrioridade != updated.nomePrioridade ||
+        current.dataEmissao != updated.dataEmissao ||
         current.horaEmissao != updated.horaEmissao ||
         current.historico != updated.historico ||
         current.observacao != updated.observacao ||

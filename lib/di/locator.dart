@@ -170,7 +170,7 @@ void setupLocator() {
   locator.registerLazySingleton(() => BarcodeBroadcastService());
   locator.registerLazySingleton<MetricsStorage>(() => MetricsStorage());
   locator.registerLazySingleton<MetricsCollector>(() => MetricsCollector(locator<MetricsStorage>()));
-  locator.registerLazySingleton<NetworkService>(() => const InternetAddressNetworkService());
+  locator.registerLazySingleton<NetworkService>(() => InternetAddressNetworkService());
   // Bug R: usa RetryPolicy.withJitter em producao para evitar
   // "thundering herd" quando muitos clientes falham simultaneamente
   // (ex.: servidor cai e reconecta — todos retentam ao mesmo tempo).

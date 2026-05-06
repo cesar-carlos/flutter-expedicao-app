@@ -35,13 +35,14 @@ class PickingProductsListScreen extends StatefulWidget {
   State<PickingProductsListScreen> createState() => _PickingProductsListScreenState();
 }
 
-class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
+class _PickingProductsListScreenState extends State<PickingProductsListScreen> with WidgetsBindingObserver {
   late SeparatedProductsViewModel _separatedProductsViewModel;
   bool _needsRefresh = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     if (widget.filterType == 'completed') {
       _separatedProductsViewModel = SeparatedProductsViewModel();
@@ -72,6 +73,26 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
     }
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state != AppLifecycleState.resumed || widget.filterType != 'completed') {
+      return;
+    }
+
+    unawaited(
+      _separatedProductsViewModel.resyncVisibleDataSilently().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao sincronizar produtos separados no retorno da tela',
+          tag: 'PickingProductsListScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
+  }
+
   Future<void> _handleLeadingBack(BuildContext context) async {
     if (_needsRefresh && widget.filterType == 'completed') {
       try {
@@ -92,6 +113,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     if (widget.filterType == 'completed') {
       _separatedProductsViewModel.removeListener(_onSeparatedProductsChanged);
       _separatedProductsViewModel.dispose();

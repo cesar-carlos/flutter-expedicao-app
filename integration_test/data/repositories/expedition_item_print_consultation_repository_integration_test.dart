@@ -4,7 +4,7 @@ import 'package:data7_expedicao/domain/models/expedition_item_print_consultation
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/data/repositories/expedition_item_print_consultation_repository_impl.dart';
 
-import '../../core/socket_integration_test_base.dart';
+import '../../../test/core/socket_integration_test_base.dart';
 
 void main() {
   group('ExpeditionItemPrintConsultationRepositoryImpl', () {

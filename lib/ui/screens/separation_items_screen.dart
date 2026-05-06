@@ -44,7 +44,8 @@ class SeparationItemsScreen extends StatefulWidget {
   State<SeparationItemsScreen> createState() => _SeparationItemsScreenState();
 }
 
-class _SeparationItemsScreenState extends State<SeparationItemsScreen> with TickerProviderStateMixin {
+class _SeparationItemsScreenState extends State<SeparationItemsScreen>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   final _searchController = TextEditingController();
   final _cartsScrollController = ScrollController();
@@ -62,6 +63,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 3, vsync: this);
 
     _tabController.addListener(() {
@@ -128,7 +130,33 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen> with Tick
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state != AppLifecycleState.resumed) {
+      return;
+    }
+
+    final viewModel = _vmRef;
+    if (viewModel == null) {
+      return;
+    }
+
+    unawaited(
+      viewModel.resyncVisibleDataSilently().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Falha ao sincronizar itens da separacao no retorno da tela',
+          tag: 'SeparationItemsScreen',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     try {
       _vmRef?.stopCartEventMonitoring();
     } catch (e, stackTrace) {

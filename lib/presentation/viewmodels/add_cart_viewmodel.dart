@@ -39,12 +39,20 @@ class AddCartViewModel extends ChangeNotifier {
   bool _disposed = false;
   int _successCounter = 0;
 
-  AddCartViewModel({required this.codEmpresa, required this.codSepararEstoque})
-    : _addCartUseCase = locator<AddCartUseCase>(),
-      _cartConsultationRepository = locator<BasicConsultationRepository<ExpeditionCartConsultationModel>>(),
-      _cartRouteRepository = locator<BasicRepository<ExpeditionCartRouteModel>>(),
-      _startSeparationUseCase = locator<StartSeparationUseCase>(),
-      _audioService = locator<AudioService>();
+  AddCartViewModel({
+    required this.codEmpresa,
+    required this.codSepararEstoque,
+    AddCartUseCase? addCartUseCase,
+    BasicConsultationRepository<ExpeditionCartConsultationModel>? cartConsultationRepository,
+    BasicRepository<ExpeditionCartRouteModel>? cartRouteRepository,
+    StartSeparationUseCase? startSeparationUseCase,
+    AudioService? audioService,
+  }) : _addCartUseCase = addCartUseCase ?? locator<AddCartUseCase>(),
+       _cartConsultationRepository =
+           cartConsultationRepository ?? locator<BasicConsultationRepository<ExpeditionCartConsultationModel>>(),
+       _cartRouteRepository = cartRouteRepository ?? locator<BasicRepository<ExpeditionCartRouteModel>>(),
+       _startSeparationUseCase = startSeparationUseCase ?? locator<StartSeparationUseCase>(),
+       _audioService = audioService ?? locator<AudioService>();
 
   bool get isScanning => _isScanning;
   bool get isAdding => _isAdding;
@@ -166,7 +174,12 @@ class AddCartViewModel extends ChangeNotifier {
         },
       );
     } catch (e, stackTrace) {
-      AppLogger.error('Erro inesperado ao adicionar carrinho', tag: 'AddCartViewModel', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Erro inesperado ao adicionar carrinho',
+        tag: 'AddCartViewModel',
+        error: e,
+        stackTrace: stackTrace,
+      );
       _setError('Erro inesperado. Tente novamente.');
       _audioService.playError();
       return false;
@@ -191,7 +204,12 @@ class AddCartViewModel extends ChangeNotifier {
 
       return Failure(DataFailure.notFound('Percurso de carrinho'));
     } catch (e, stackTrace) {
-      AppLogger.error('Erro ao verificar carrinho percurso existente', tag: 'AddCartViewModel', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Erro ao verificar carrinho percurso existente',
+        tag: 'AddCartViewModel',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return Failure(DataFailure.repository(e));
     }
   }
@@ -206,15 +224,20 @@ class AddCartViewModel extends ChangeNotifier {
 
       final result = await _startSeparationUseCase.call(params);
       return result.fold((success) => true, (failure) {
-        final message = failure is StartSeparationFailure &&
-                failure.type == StartSeparationFailureType.separationAlreadyStarted
+        final message =
+            failure is StartSeparationFailure && failure.type == StartSeparationFailureType.separationAlreadyStarted
             ? 'Outro setor já iniciou esta separação. Toque em Adicionar novamente para incluir seu carrinho.'
             : (failure is AppFailure ? failure.userMessage : 'Erro ao iniciar separação. Tente novamente.');
         _setError(message);
         return false;
       });
     } catch (e, stackTrace) {
-      AppLogger.error('Erro inesperado ao iniciar separação', tag: 'AddCartViewModel', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Erro inesperado ao iniciar separação',
+        tag: 'AddCartViewModel',
+        error: e,
+        stackTrace: stackTrace,
+      );
       _setError('Erro inesperado. Tente novamente.');
       return false;
     }

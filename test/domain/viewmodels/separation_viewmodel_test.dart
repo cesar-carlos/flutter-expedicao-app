@@ -35,17 +35,20 @@ void main() {
     required int codSepararEstoque,
     required List<int> codSetoresEstoque,
     String observacao = '',
+    ExpeditionOrigem origem = ExpeditionOrigem.orcamentoBalcao,
+    int codOrigem = 1,
+    DateTime? dataEmissao,
   }) {
     return SeparateConsultationModel(
       codEmpresa: 1,
       codSepararEstoque: codSepararEstoque,
-      origem: ExpeditionOrigem.orcamentoBalcao,
-      codOrigem: 1,
+      origem: origem,
+      codOrigem: codOrigem,
       codTipoOperacaoExpedicao: 10,
       nomeTipoOperacaoExpedicao: 'Entrega Balcão',
       situacao: ExpeditionSituation.aguardando,
       tipoEntidade: EntityType.cliente,
-      dataEmissao: DateTime(2026, 2, 24),
+      dataEmissao: dataEmissao ?? DateTime(2026, 2, 24),
       horaEmissao: '14:45:17',
       codEntidade: 123,
       nomeEntidade: 'Cliente Teste',
@@ -135,7 +138,7 @@ void main() {
       expect(viewModel.state, SeparationState.loading);
     });
 
-    test('refreshSeparationListSilently updates list without loading state', () async {
+    test('resyncVisibleSeparationsSilently updates list without loading state', () async {
       final first = buildSeparation(codSepararEstoque: 1, codSetoresEstoque: const [1]);
       when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [first]);
 
@@ -146,35 +149,42 @@ void main() {
       final newer = buildSeparation(codSepararEstoque: 2, codSetoresEstoque: const [1]);
       when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [newer, first]);
 
-      await viewModel.refreshSeparationListSilently();
+      await viewModel.resyncVisibleSeparationsSilently();
 
       expect(viewModel.state, SeparationState.loaded);
       expect(viewModel.isLoading, isFalse);
       expect(viewModel.separations.first.codSepararEstoque, 2);
     });
 
-    test('refreshSeparationListSilently skips when paginated past first page', () async {
+    test('resyncVisibleSeparationsSilently refreshes the loaded paginated range', () async {
       final page0 = List.generate(20, (i) => buildSeparation(codSepararEstoque: 100 - i, codSetoresEstoque: const [1]));
       final page1Extra = buildSeparation(codSepararEstoque: 1, codSetoresEstoque: const [1]);
+      final refreshed = [
+        buildSeparation(codSepararEstoque: 101, codSetoresEstoque: const [1]),
+        ...page0,
+        page1Extra,
+      ];
 
       var selectCalls = 0;
       when(mockRepository.selectConsultation(any)).thenAnswer((_) async {
         selectCalls++;
         if (selectCalls == 1) return page0;
-        return [page1Extra];
+        if (selectCalls == 2) return [page1Extra];
+        return refreshed;
       });
 
       await viewModel.loadSeparations();
       await viewModel.loadMoreSeparations();
       expect(viewModel.currentPage, greaterThan(0));
 
-      clearInteractions(mockRepository);
-      await viewModel.refreshSeparationListSilently();
-      verifyNever(mockRepository.selectConsultation(any));
+      await viewModel.resyncVisibleSeparationsSilently();
+
+      expect(viewModel.separations.first.codSepararEstoque, 101);
+      expect(viewModel.separations, hasLength(refreshed.length));
     });
 
-    group('Silent refresh / poll notifications', () {
-      test('plays notification when a new separation appears via silent refresh and list not visible', () {
+    group('Silent resync notifications', () {
+      test('plays notification when a new separation appears via silent resync and list not visible', () {
         FakeAsync().run((async) {
           final existing = buildSeparation(codSepararEstoque: 10, codSetoresEstoque: const [1]);
           when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [existing]);
@@ -194,7 +204,7 @@ void main() {
           when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [newer, existing]);
 
           viewModel.setScreenVisible(false);
-          viewModel.refreshSeparationListSilently();
+          viewModel.resyncVisibleSeparationsSilently();
           async.flushMicrotasks();
 
           async.elapse(const Duration(seconds: 5));
@@ -224,7 +234,7 @@ void main() {
           when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [newer, existing]);
 
           viewModel.setScreenVisible(true);
-          viewModel.refreshSeparationListSilently();
+          viewModel.resyncVisibleSeparationsSilently();
           async.flushMicrotasks();
           async.elapse(const Duration(seconds: 5));
           async.flushMicrotasks();
@@ -240,7 +250,7 @@ void main() {
         });
       });
 
-      test('does not notify on bulk first fetch from empty list via silent refresh', () {
+      test('does not notify on bulk first fetch from empty list via silent resync', () {
         FakeAsync().run((async) {
           when(mockRepository.selectConsultation(any)).thenAnswer((_) async => []);
           when(mockAudioService.playNotification()).thenAnswer((_) async {});
@@ -256,7 +266,7 @@ void main() {
           when(mockRepository.selectConsultation(any)).thenAnswer((_) async => batch);
 
           viewModel.setScreenVisible(false);
-          viewModel.refreshSeparationListSilently();
+          viewModel.resyncVisibleSeparationsSilently();
           async.flushMicrotasks();
           async.elapse(const Duration(seconds: 5));
           async.flushMicrotasks();
@@ -284,7 +294,7 @@ void main() {
           when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [one]);
 
           viewModel.setScreenVisible(false);
-          viewModel.refreshSeparationListSilently();
+          viewModel.resyncVisibleSeparationsSilently();
           async.flushMicrotasks();
           async.elapse(const Duration(seconds: 5));
           async.flushMicrotasks();
@@ -499,6 +509,80 @@ void main() {
         // Assert
         expect(viewModel.separations.length, 1);
         expect(viewModel.separations.first.observacao, 'evento repetido');
+      });
+
+      test('consultation listener performs authoritative resync and removes stale rows', () async {
+        final first = buildSeparation(codSepararEstoque: 2001, codSetoresEstoque: const [1]);
+        final second = buildSeparation(codSepararEstoque: 2002, codSetoresEstoque: const [1]);
+        when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [first, second]);
+
+        await viewModel.loadSeparations();
+        expect(viewModel.separations, hasLength(2));
+
+        viewModel.startEventMonitoring();
+        final consultationListener =
+            verify(mockEventRepository.addConsultationListener(captureAny)).captured.single as EventListenerModel;
+
+        when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [second]);
+
+        consultationListener.callback(
+          BasicEventModel.create(
+            data: {
+              'Data': [second.toJson()],
+            },
+            eventType: Event.insert,
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        expect(viewModel.separations, hasLength(1));
+        expect(viewModel.separations.first.codSepararEstoque, second.codSepararEstoque);
+      });
+
+      test('update event removes row when it stops matching current filters', () async {
+        final setorFilter = ExpeditionSectorStockModel(
+          codSetorEstoque: 1,
+          descricao: 'Setor 1',
+          ativo: Situation.ativo,
+        );
+        final separation = buildSeparation(codSepararEstoque: 3001, codSetoresEstoque: const [1]);
+        when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [separation]);
+
+        viewModel.setSetorEstoqueFilter(setorFilter);
+        await viewModel.loadSeparations();
+        viewModel.startEventMonitoring();
+
+        final crudListeners = verify(mockEventRepository.addListener(captureAny)).captured.cast<EventListenerModel>();
+        final updateListener = crudListeners.firstWhere((listener) => listener.id == 'separation_viewmodel_update');
+
+        final movedOutOfFilter = buildSeparation(codSepararEstoque: 3001, codSetoresEstoque: const [2]);
+        updateListener.callback(BasicEventModel.create(data: movedOutOfFilter.toJson(), eventType: Event.update));
+
+        expect(viewModel.separations, isEmpty);
+      });
+
+      test('update event refreshes fields that affect ui and filters', () async {
+        final separation = buildSeparation(codSepararEstoque: 4001, codSetoresEstoque: const [1]);
+        when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [separation]);
+
+        await viewModel.loadSeparations();
+        viewModel.startEventMonitoring();
+
+        final crudListeners = verify(mockEventRepository.addListener(captureAny)).captured.cast<EventListenerModel>();
+        final updateListener = crudListeners.firstWhere((listener) => listener.id == 'separation_viewmodel_update');
+
+        final updated = buildSeparation(
+          codSepararEstoque: 4001,
+          codSetoresEstoque: const [1],
+          origem: ExpeditionOrigem.entregaBalcao,
+          codOrigem: 77,
+          dataEmissao: DateTime(2026, 3, 1),
+        );
+        updateListener.callback(BasicEventModel.create(data: updated.toJson(), eventType: Event.update));
+
+        expect(viewModel.separations.single.origem, ExpeditionOrigem.entregaBalcao);
+        expect(viewModel.separations.single.codOrigem, 77);
+        expect(viewModel.separations.single.dataEmissao, DateTime(2026, 3, 1));
       });
 
       test('should start event monitoring', () {

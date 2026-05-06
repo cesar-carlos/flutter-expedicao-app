@@ -132,7 +132,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         viewModel.setScreenVisible(false);
       } else if (state == AppLifecycleState.resumed) {
         viewModel.setScreenVisible(true);
-        unawaited(viewModel.refreshSeparationListSilently());
+        unawaited(viewModel.resyncVisibleSeparationsSilently());
       }
     } catch (e, stackTrace) {
       AppLogger.debug(
@@ -188,12 +188,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     }
     unawaited(
       viewModel.refresh().catchError((Object e, StackTrace s) {
-        AppLogger.warning(
-          'Falha ao atualizar lista de separações',
-          tag: 'SeparationScreen',
-          error: e,
-          stackTrace: s,
-        );
+        AppLogger.warning('Falha ao atualizar lista de separações', tag: 'SeparationScreen', error: e, stackTrace: s);
       }),
     );
   }
@@ -274,12 +269,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
           child: const SeparationFilterModal(),
         ),
       ).catchError((Object e, StackTrace s) {
-        AppLogger.warning(
-          'Falha ao exibir filtro de separações',
-          tag: 'SeparationScreen',
-          error: e,
-          stackTrace: s,
-        );
+        AppLogger.warning('Falha ao exibir filtro de separações', tag: 'SeparationScreen', error: e, stackTrace: s);
       }),
     );
   }
@@ -365,9 +355,9 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     } catch (e, stackTrace) {
       AppLogger.error('Erro ao imprimir separação', tag: 'SeparationScreen', error: e, stackTrace: stackTrace);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Erro ao imprimir separação. Tente novamente.'), backgroundColor: AppColors.error));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao imprimir separação. Tente novamente.'), backgroundColor: AppColors.error),
+      );
     } finally {
       if (mounted) {
         setState(() => _printingTickets.remove(key));
@@ -395,7 +385,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         scale: _fabAnimation.value,
         child: Opacity(
           opacity: _fabAnimation.value,
-            child: IgnorePointer(
+          child: IgnorePointer(
             ignoring: _showScrollToTop,
             child: Semantics(
               button: true,
@@ -465,7 +455,12 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
 
       _handleNextSeparationResult(result, params);
     } catch (e, stackTrace) {
-      AppLogger.error('Erro inesperado em Próxima Separação', tag: 'SeparationScreen', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Erro inesperado em Próxima Separação',
+        tag: 'SeparationScreen',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         _showErrorModal('Erro Inesperado', 'Erro inesperado. Tente novamente.');
       }
@@ -530,7 +525,10 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   }
 
   /// Consulta a separação completa e navega para a tela de separação
-  Future<void> _openNextSeparation(SeparationUserSectorConsultationModel separation, NextSeparationUserParams params) async {
+  Future<void> _openNextSeparation(
+    SeparationUserSectorConsultationModel separation,
+    NextSeparationUserParams params,
+  ) async {
     if (!mounted) return;
 
     // Verificar se a separação está atribuída ao usuário atual

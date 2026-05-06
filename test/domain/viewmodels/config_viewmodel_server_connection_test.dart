@@ -85,49 +85,38 @@ void main() {
       expect(result, isTrue);
       expect(viewModel.errorMessage, isEmpty);
     });
+
+    test('deve falhar quando nenhum servidor escuta a porta', () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      final port = server.port;
+      await server.close(force: true);
+
+      final result = await _runConnectionTest(viewModel, port);
+
+      expect(result, isFalse);
+      expect(viewModel.errorMessage, isNotEmpty);
+    });
   });
 }
 
 class _SilentLogger implements ILogger {
   @override
-  void debug(
-    String message, {
-    String? tag,
-    Object? error,
-    StackTrace? stackTrace,
-  }) {}
+  void debug(String message, {String? tag, Object? error, StackTrace? stackTrace}) {}
 
   @override
-  void error(
-    String message, {
-    String? tag,
-    Object? error,
-    StackTrace? stackTrace,
-  }) {}
+  void error(String message, {String? tag, Object? error, StackTrace? stackTrace}) {}
 
   @override
   void info(String message, {String? tag}) {}
 
   @override
-  void severe(
-    String message, {
-    String? tag,
-    Object? error,
-    StackTrace? stackTrace,
-  }) {}
+  void severe(String message, {String? tag, Object? error, StackTrace? stackTrace}) {}
 
   @override
-  void warning(
-    String message, {
-    String? tag,
-    Object? error,
-    StackTrace? stackTrace,
-  }) {}
+  void warning(String message, {String? tag, Object? error, StackTrace? stackTrace}) {}
 }
 
-Future<HttpServer> _startServer(
-  Future<void> Function(HttpRequest request) handler,
-) async {
+Future<HttpServer> _startServer(Future<void> Function(HttpRequest request) handler) async {
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
 
   server.listen((request) async {
@@ -138,9 +127,5 @@ Future<HttpServer> _startServer(
 }
 
 Future<bool> _runConnectionTest(ConfigViewModel viewModel, int port) {
-  return viewModel.testConnection(
-    apiUrl: InternetAddress.loopbackIPv4.address,
-    apiPort: '$port',
-    useHttps: false,
-  );
+  return viewModel.testConnection(apiUrl: InternetAddress.loopbackIPv4.address, apiPort: '$port', useHttps: false);
 }

@@ -12,8 +12,23 @@ import 'package:data7_expedicao/domain/repositories/user_repository.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class UserRepositoryImpl implements UserRepository {
-  Dio get _dio => DioConfig.instance;
-  String get _baseUrl => DioConfig.baseUrl;
+  UserRepositoryImpl({Dio? dio}) : _dioOverride = dio;
+
+  final Dio? _dioOverride;
+
+  Dio get _dio => _dioOverride ?? DioConfig.instance;
+
+  String get _baseUrl {
+    final override = _dioOverride;
+    if (override != null) {
+      final u = override.options.baseUrl;
+      if (u.isEmpty) {
+        return u;
+      }
+      return u.endsWith('/') ? u.substring(0, u.length - 1) : u;
+    }
+    return DioConfig.baseUrl;
+  }
 
   @override
   Future<CreateUserResponse> createUser({

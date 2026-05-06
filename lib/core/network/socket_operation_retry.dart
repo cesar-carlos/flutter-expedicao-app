@@ -2,21 +2,27 @@ import 'package:data7_expedicao/core/network/retry_policy.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/validation/common/socket_validation_helper.dart';
 
+typedef SocketStateValidator = SocketValidationResult Function();
+
 class SocketOperationRetry {
   final RetryPolicy _retryPolicy;
+  final SocketStateValidator _validateSocketState;
 
-  SocketOperationRetry({RetryPolicy? retryPolicy})
-    : _retryPolicy =
-          retryPolicy ??
-          const RetryPolicy(
-            maxAttempts: 3,
-            initialDelay: Duration(seconds: 1),
-            backoffMultiplier: 2.0,
-            maxDelay: Duration(seconds: 8),
-          );
+  SocketOperationRetry({
+    RetryPolicy? retryPolicy,
+    SocketStateValidator? validateSocketState,
+  }) : _retryPolicy =
+           retryPolicy ??
+           const RetryPolicy(
+             maxAttempts: 3,
+             initialDelay: Duration(seconds: 1),
+             backoffMultiplier: 2.0,
+             maxDelay: Duration(seconds: 8),
+           ),
+       _validateSocketState = validateSocketState ?? SocketValidationHelper.validateSocketState;
 
   Future<T> execute<T>(Future<T> Function() operation, {String? operationId}) async {
-    final validation = SocketValidationHelper.validateSocketState();
+    final validation = _validateSocketState();
     if (!validation.isValid) {
       AppLogger.warning('Socket inválido antes da operação: ${validation.errorMessage}', tag: 'SocketOperationRetry');
       throw StateError(validation.errorMessage ?? 'Socket não está pronto para operações');

@@ -1,3 +1,4 @@
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:data7_expedicao/domain/models/expedition_cart_model.dart';
@@ -16,12 +17,11 @@ import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/tipo_fator_conversao_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
+import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_failure.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
-import 'package:data7_expedicao/domain/models/user/app_user.dart';
 
-import '../../mocks/user_system_model_mock.dart';
+import '../../support/fake_user_session_service.dart';
 
 void main() {
   group('SaveSeparationCartUseCase rollback', () {
@@ -45,7 +45,7 @@ void main() {
         items: [_buildSeparationItemModel()],
       );
       final cartRepository = _InMemoryCartRepository(item: _buildCart(), failOnFirstUpdate: true);
-      final userSessionService = _FakeUserSessionService();
+      final userSessionService = FakeUserSessionService();
 
       final useCase = SaveSeparationCartUseCase(
         cartRouteInternshipRepository: cartRouteRepository,
@@ -71,35 +71,124 @@ void main() {
       expect(separationItemModelRepository.items.first.situacao, equals(ExpeditionItemSituation.separado));
     });
   });
-}
 
-class _FakeUserSessionService implements IUserSessionService {
-  @override
-  Future<void> clearUserSession() async {}
+  group('SaveSeparationCartUseCase timeouts (relógio fake)', () {
+    test('falha quando atualizacao em lote de itens estoura timeout de 10s', () {
+      FakeAsync().run((async) {
+        final cartRouteRepository = _InMemoryCartRouteRepository(item: _buildCartRoute());
+        final separationItemConsultationRepository = _FakeSeparationItemConsultationRepository(
+          items: [_buildSeparationItemConsultation()],
+        );
+        final separateItemConsultationRepository = _FakeSeparateItemConsultationRepository(
+          items: [_buildSeparateItem()],
+        );
+        final progressRepository = _FakeProgressRepository(
+          item: const SeparateProgressConsultationModel(
+            codEmpresa: 1,
+            codSepararEstoque: 100,
+            origem: ExpeditionOrigem.separacaoEstoque,
+            codOrigem: 100,
+            situacao: ExpeditionSituation.separando,
+            processoSeparacao: ExpeditionSituation.separando,
+          ),
+        );
+        final separationItemModelRepository = _SlowSeparationItemModelRepository(items: [_buildSeparationItemModel()]);
+        final cartRepository = _InMemoryCartRepository(item: _buildCart());
+        final userSessionService = FakeUserSessionService();
 
-  @override
-  Future<bool> hasActiveSession() async => true;
+        final useCase = SaveSeparationCartUseCase(
+          cartRouteInternshipRepository: cartRouteRepository,
+          separationItemConsultationRepository: separationItemConsultationRepository,
+          separateItemRepository: separateItemConsultationRepository,
+          separateProgressRepository: progressRepository,
+          separationItemModelRepository: separationItemModelRepository,
+          cartRepository: cartRepository,
+          userSessionService: userSessionService,
+        );
 
-  @override
-  Future<bool> isUserLoggedIn() async => true;
+        SaveSeparationCartFailure? failure;
 
-  @override
-  Future<AppUser?> loadUserSession() async {
-    final user = createDefaultTestUserSystem();
-    return AppUser(
-      codLoginApp: 1,
-      ativo: Situation.ativo,
-      nome: user.nomeUsuario,
-      codUsuario: user.codUsuario,
-      userSystemModel: user,
-    );
-  }
+        useCase
+            .call(
+              const SaveSeparationCartParams(
+                codEmpresa: 1,
+                codCarrinhoPercurso: 200,
+                itemCarrinhoPercurso: '0001',
+                codSepararEstoque: 100,
+              ),
+            )
+            .then((r) {
+              failure = r.exceptionOrNull() as SaveSeparationCartFailure?;
+            });
 
-  @override
-  Future<void> saveUserSession(AppUser appUser) async {}
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 11));
+        async.flushMicrotasks();
 
-  @override
-  Future<void> updateUserSession(AppUser appUser) async {}
+        expect(failure, isNotNull);
+        expect(failure!.message, contains('TimeoutException'));
+      });
+    });
+
+    test('falha quando consulta de itens separados na validacao estoura timeout de 10s', () {
+      FakeAsync().run((async) {
+        final cartRouteRepository = _InMemoryCartRouteRepository(item: _buildCartRoute());
+        final separationItemConsultationRepository = _FakeSeparationItemConsultationRepository(
+          items: [_buildSeparationItemConsultation()],
+        );
+        final separateItemConsultationRepository = _HangingSeparateItemConsultationRepository(
+          items: [_buildSeparateItem()],
+        );
+        final progressRepository = _FakeProgressRepository(
+          item: const SeparateProgressConsultationModel(
+            codEmpresa: 1,
+            codSepararEstoque: 100,
+            origem: ExpeditionOrigem.separacaoEstoque,
+            codOrigem: 100,
+            situacao: ExpeditionSituation.separando,
+            processoSeparacao: ExpeditionSituation.separando,
+          ),
+        );
+        final separationItemModelRepository = _InMemorySeparationItemModelRepository(
+          items: [_buildSeparationItemModel()],
+        );
+        final cartRepository = _InMemoryCartRepository(item: _buildCart());
+        final userSessionService = FakeUserSessionService();
+
+        final useCase = SaveSeparationCartUseCase(
+          cartRouteInternshipRepository: cartRouteRepository,
+          separationItemConsultationRepository: separationItemConsultationRepository,
+          separateItemRepository: separateItemConsultationRepository,
+          separateProgressRepository: progressRepository,
+          separationItemModelRepository: separationItemModelRepository,
+          cartRepository: cartRepository,
+          userSessionService: userSessionService,
+        );
+
+        SaveSeparationCartFailure? failure;
+
+        useCase
+            .call(
+              const SaveSeparationCartParams(
+                codEmpresa: 1,
+                codCarrinhoPercurso: 200,
+                itemCarrinhoPercurso: '0001',
+                codSepararEstoque: 100,
+              ),
+            )
+            .then((r) {
+              failure = r.exceptionOrNull() as SaveSeparationCartFailure?;
+            });
+
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 11));
+        async.flushMicrotasks();
+
+        expect(failure, isNotNull);
+        expect(failure!.message, contains('TimeoutException'));
+      });
+    });
+  });
 }
 
 class _InMemoryCartRouteRepository implements BasicRepository<ExpeditionCartRouteInternshipModel> {
@@ -147,6 +236,50 @@ class _InMemoryCartRepository implements BasicRepository<ExpeditionCartModel> {
     }
     item = entity;
     return [entity];
+  }
+}
+
+class _SlowSeparationItemModelRepository implements BasicRepository<SeparationItemModel> {
+  _SlowSeparationItemModelRepository({required this.items});
+
+  final List<SeparationItemModel> items;
+
+  @override
+  Future<List<SeparationItemModel>> delete(SeparationItemModel entity) async {
+    items.removeWhere((e) => e.item == entity.item);
+    return [entity];
+  }
+
+  @override
+  Future<List<SeparationItemModel>> insert(SeparationItemModel entity) async {
+    items.add(entity);
+    return [entity];
+  }
+
+  @override
+  Future<List<SeparationItemModel>> select(QueryBuilder queryBuilder) async {
+    return List<SeparationItemModel>.from(items);
+  }
+
+  @override
+  Future<List<SeparationItemModel>> update(SeparationItemModel entity) async {
+    await Future<void>.delayed(const Duration(seconds: 11));
+    final index = items.indexWhere((e) => e.item == entity.item);
+    if (index == -1) return [];
+    items[index] = entity;
+    return [entity];
+  }
+}
+
+class _HangingSeparateItemConsultationRepository implements BasicConsultationRepository<SeparateItemConsultationModel> {
+  _HangingSeparateItemConsultationRepository({required this.items});
+
+  final List<SeparateItemConsultationModel> items;
+
+  @override
+  Future<List<SeparateItemConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
+    await Future<void>.delayed(const Duration(days: 1));
+    return List<SeparateItemConsultationModel>.from(items);
   }
 }
 

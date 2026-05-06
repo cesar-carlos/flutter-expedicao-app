@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
@@ -47,6 +49,20 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
+  SeparationItemsViewModel.withDependencies(
+    BasicConsultationRepository<SeparateItemConsultationModel> repository,
+    BasicConsultationRepository<ExpeditionCartRouteInternshipConsultationModel> cartRepository,
+    BasicRepository<ExpeditionSectorStockModel> sectorStockRepository,
+    IFiltersStorageService filtersStorage,
+    SeparateCartInternshipEventRepository cartEventRepository,
+  ) {
+    _repository = repository;
+    _cartRepository = cartRepository;
+    _sectorStockRepository = sectorStockRepository;
+    _filtersStorage = filtersStorage;
+    _cartEventRepository = cartEventRepository;
+  }
+
   SeparateItemsState _state = SeparateItemsState.initial;
   String? _errorMessage;
   bool _disposed = false;
@@ -73,6 +89,8 @@ class SeparationItemsViewModel extends ChangeNotifier {
   static const String _cartDeleteListenerId = 'separation_items_viewmodel_cart_delete';
   bool _cartEventListenersRegistered = false;
   bool _isRefreshing = false;
+  bool _silentResyncInFlight = false;
+  bool _silentResyncQueued = false;
 
   SeparateItemsState get state => _state;
   String? get errorMessage => _errorMessage;
@@ -204,12 +222,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
       // Bug RRRR: antes era catch silencioso (sem log) que ainda
       // setava _cartsLoaded=true. Usuario via lista vazia sem
       // pista do motivo. Agora logamos e mantemos comportamento.
-      AppLogger.warning(
-        'Erro ao carregar carrinhos da separacao',
-        tag: 'SeparationItemsVM',
-        error: e,
-        stackTrace: s,
-      );
+      AppLogger.warning('Erro ao carregar carrinhos da separacao', tag: 'SeparationItemsVM', error: e, stackTrace: s);
       _cartsLoaded = true;
       _safeNotifyListeners();
     }
@@ -248,6 +261,46 @@ class SeparationItemsViewModel extends ChangeNotifier {
       }
     } finally {
       if (!_disposed) _isRefreshing = false;
+    }
+  }
+
+  Future<void> resyncVisibleDataSilently() async {
+    if (_disposed || _separation == null) return;
+
+    if (_silentResyncInFlight) {
+      _silentResyncQueued = true;
+      return;
+    }
+
+    if (_isRefreshing || isLoading) {
+      return;
+    }
+
+    _silentResyncInFlight = true;
+    try {
+      await Future.wait<void>([_loadFilteredItems(), _loadFilteredCarts()]);
+      if (_disposed) return;
+
+      _cartsLoaded = true;
+      _clearError();
+      _state = SeparateItemsState.loaded;
+      _safeNotifyListeners();
+    } catch (e, s) {
+      if (_disposed) return;
+      AppLogger.debug(
+        'Falha no resync silencioso dos itens da separacao',
+        tag: 'SeparationItemsVM',
+        error: e,
+        stackTrace: s,
+      );
+    } finally {
+      if (!_disposed) {
+        _silentResyncInFlight = false;
+        if (_silentResyncQueued) {
+          _silentResyncQueued = false;
+          unawaited(resyncVisibleDataSilently());
+        }
+      }
     }
   }
 
@@ -780,24 +833,13 @@ class SeparationItemsViewModel extends ChangeNotifier {
   }
 
   void _processCartEventData(BasicEventModel event) {
-    if (event.data == null) return;
+    if (event.data == null || _separation == null) return;
 
     try {
       if (event.data is Map<String, dynamic>) {
         final dataMap = event.data as Map<String, dynamic>;
-
-        if (dataMap.containsKey('Mutation') && dataMap['Mutation'] is List) {
-          final mutations = dataMap['Mutation'] as List;
-
-          for (final mutation in mutations) {
-            if (mutation is Map<String, dynamic>) {
-              final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(mutation);
-              _handleCartEvent(event.eventType, cartData);
-            }
-          }
-        } else {
-          final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(dataMap);
-          _handleCartEvent(event.eventType, cartData);
+        if (_eventAffectsCurrentVisibleCarts(dataMap)) {
+          unawaited(resyncVisibleDataSilently());
         }
       }
     } catch (e) {
@@ -807,66 +849,42 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  void _handleCartEvent(Event eventType, ExpeditionCartRouteInternshipConsultationModel cartData) {
-    if (_disposed) return;
-
-    if (!_isCartValidForCurrentSeparation(cartData)) {
-      return;
-    }
-
-    switch (eventType) {
-      case Event.insert:
-        _handleCartInsert(cartData);
-        break;
-      case Event.update:
-        _handleCartUpdate(cartData);
-        break;
-      case Event.delete:
-        _handleCartDelete(cartData);
-        break;
-    }
-
-    _safeNotifyListeners();
-  }
-
-  bool _isCartValidForCurrentSeparation(ExpeditionCartRouteInternshipConsultationModel cartData) {
-    final existingCartIndex = _findCartIndex(cartData);
-    if (existingCartIndex != -1) {
-      return true;
-    }
-
-    if (_separation != null && cartData.codOrigem != _separation!.codSepararEstoque) {
+  bool _eventAffectsCurrentVisibleCarts(Map<String, dynamic> dataMap) {
+    final mutations = dataMap['Mutation'];
+    if (mutations is List) {
+      for (final mutation in mutations) {
+        if (mutation is! Map<String, dynamic>) continue;
+        final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(mutation);
+        if (_affectsCurrentVisibleCarts(cartData)) {
+          return true;
+        }
+      }
       return false;
     }
 
-    return true;
+    final cartData = ExpeditionCartRouteInternshipConsultationModel.fromJson(dataMap);
+    return _affectsCurrentVisibleCarts(cartData);
+  }
+
+  bool _affectsCurrentVisibleCarts(ExpeditionCartRouteInternshipConsultationModel cartData) {
+    final separation = _separation;
+    if (separation == null) {
+      return false;
+    }
+
+    if (_findCartIndex(cartData) != -1) {
+      return true;
+    }
+
+    if (cartData.origem != ExpeditionOrigem.separacaoEstoque) {
+      return false;
+    }
+
+    return cartData.codOrigem == separation.codSepararEstoque;
   }
 
   int _findCartIndex(ExpeditionCartRouteInternshipConsultationModel cartData) {
     return _carts.indexWhere(
-      (c) =>
-          c.codEmpresa == cartData.codEmpresa &&
-          c.codCarrinhoPercurso == cartData.codCarrinhoPercurso &&
-          c.item == cartData.item,
-    );
-  }
-
-  void _handleCartInsert(ExpeditionCartRouteInternshipConsultationModel cartData) {
-    _carts.insert(0, cartData);
-  }
-
-  void _handleCartUpdate(ExpeditionCartRouteInternshipConsultationModel cartData) {
-    final index = _findCartIndex(cartData);
-
-    if (index != -1) {
-      _carts[index] = cartData;
-    } else {
-      _carts.insert(0, cartData);
-    }
-  }
-
-  void _handleCartDelete(ExpeditionCartRouteInternshipConsultationModel cartData) {
-    _carts.removeWhere(
       (c) =>
           c.codEmpresa == cartData.codEmpresa &&
           c.codCarrinhoPercurso == cartData.codCarrinhoPercurso &&

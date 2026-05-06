@@ -8,19 +8,17 @@ import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/separate_item_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_params.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_with_consistency_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_params.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_usecase.dart';
-import 'package:data7_expedicao/domain/models/user/app_user.dart';
-import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 
-import '../../mocks/user_system_model_mock.dart';
+import '../../support/fake_user_session_service.dart';
 
 void main() {
   group('CancelCartWithConsistencyUseCase', () {
@@ -34,7 +32,7 @@ void main() {
       final cancellationRepository = _InMemoryCancellationRepository();
       final cartRouteRepository = _InMemoryCartRouteRepository(item: _buildCartRoute(), failOnUpdate: true);
       final cartRepository = _InMemoryCartRepository(item: _buildCart());
-      final userSessionService = _FakeUserSessionService();
+      final userSessionService = FakeUserSessionService();
 
       final cancelItemsUseCase = CancelCardItemSeparationUseCase(
         separateItemRepository: separateItemRepository,
@@ -67,35 +65,6 @@ void main() {
       expect(separationItemRepository.items.first.situacao, equals(ExpeditionItemSituation.separado));
     });
   });
-}
-
-class _FakeUserSessionService implements IUserSessionService {
-  @override
-  Future<void> clearUserSession() async {}
-
-  @override
-  Future<bool> hasActiveSession() async => true;
-
-  @override
-  Future<bool> isUserLoggedIn() async => true;
-
-  @override
-  Future<AppUser?> loadUserSession() async {
-    final user = createDefaultTestUserSystem();
-    return AppUser(
-      codLoginApp: 1,
-      ativo: Situation.ativo,
-      nome: user.nomeUsuario,
-      codUsuario: user.codUsuario,
-      userSystemModel: user,
-    );
-  }
-
-  @override
-  Future<void> saveUserSession(AppUser appUser) async {}
-
-  @override
-  Future<void> updateUserSession(AppUser appUser) async {}
 }
 
 class _InMemorySeparateItemRepository implements BasicRepository<SeparateItemModel> {
