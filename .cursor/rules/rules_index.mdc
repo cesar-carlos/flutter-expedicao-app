@@ -2,293 +2,98 @@
 alwaysApply: true
 ---
 
-#
-
-# Cursor Rules
-
-This folder contains the **Project Rules** for Cursor, which are automatically applied when working on project files. The rules provide persistent context for the AI, ensuring code consistency and quality.
-
-## How They Work
-
-Rules are `.mdc` (Markdown Cursor) files that contain:
-
-- **Frontmatter YAML**: Metadata about the rule
-
-  - `description`: Brief description of the rule
-  - `globs`: File patterns to which the rule applies
-  - `alwaysApply`: Defines whether the rule should always be applied
-
-- **Markdown Content**: The rules and guidelines themselves
-
-## Important Behavioral Rules
-
-### Commits and Documentation
-
-- ❌ **NEVER make git commits** unless explicitly requested by the user
-- ❌ **NEVER create documentation** (README.md, comments, etc.) unless explicitly requested
-- ❌ **NEVER push to repository** unless explicitly requested
-- ✅ **ONLY commit/push/document** when the user explicitly asks for it
-- ✅ Always ask for confirmation before committing or pushing changes
-- ✅ Code should be self-explanatory through clear naming
-
-These rules ensure that the AI assistant respects user control over version control and documentation decisions.
-
-## Rules Adoption and Migration
-
-### Important Note: Rules Are New and Evolving
-
-⚠️ **These rules are new and are being gradually adopted across the codebase.**
-
-- ✅ **New code** should **ALWAYS** follow all rules from the start
-- ⚠️ **Existing code** may not yet conform to all rules - this is expected
-- ✅ **Gradual migration**: When modifying existing code, update it to follow the new rules
-- ✅ **Incremental improvements**: Fix rule violations as you touch code areas
-- ✅ **Prioritize**: Focus on following rules when creating new features or refactoring existing ones
-
-**Migration Strategy:**
-
-- When working on existing code, update it to follow the new rules
-- Don't refactor everything at once - fix as you go
-- New features and components should strictly follow all rules
-- Over time, the codebase will gradually align with all rules
-
-This approach ensures:
-
-- ✅ New code maintains high quality standards
-- ✅ Existing functionality continues to work
-- ✅ Codebase improves incrementally without breaking changes
-- ✅ Team can adapt to new patterns gradually
-
-## Component Creation and Reusability
-
-### Priority: Always Create Reusable Components
-
-- ✅ **ALWAYS prioritize creating reusable components** over inline code duplication
-- ✅ **ALWAYS check for existing components** before creating new ones
-- ✅ **ALWAYS extract repeated UI patterns** into reusable widgets
-- ✅ **ALWAYS place reusable components** in `lib/shared/widgets/` or feature-specific widget folders
-- ❌ **NEVER duplicate UI code** - extract to components instead
-- ❌ **NEVER create similar widgets** without checking for existing ones first
-
-### Visual Style Standardization
-
-- ✅ **ALWAYS use centralized theme** (`core/theme/` or `presentation/theme/`)
-- ✅ **ALWAYS use consistent spacing** from theme constants (`AppSpacing`, `EdgeInsets` constants)
-- ✅ **ALWAYS use consistent colors** from theme (`Theme.of(context).colorScheme` or theme constants)
-- ✅ **ALWAYS use consistent typography** from theme (`Theme.of(context).textTheme`)
-- ✅ **ALWAYS use consistent border radius** from theme constants
-- ✅ **ALWAYS use consistent elevation/shadows** from theme constants
-- ❌ **NEVER use hardcoded colors, sizes, or spacing** - always use theme constants
-- ❌ **NEVER create visual inconsistencies** - check existing components for style patterns
-
-### Component Structure
-
-- ✅ **ALWAYS create small, focused components** (Single Responsibility)
-- ✅ **ALWAYS make components configurable** via constructor parameters
-- ✅ **ALWAYS use `const` constructors** when possible for performance
-- ✅ **ALWAYS extract complex layouts** into separate widget components
-- ✅ **ALWAYS document component purpose** when creating new reusable components (only when necessary)
-- ❌ **NEVER create components that do too much** - split into smaller components
-- ❌ **NEVER create components with hardcoded values** that could be configurable
-
-### Code Duplication Prevention
-
-- ✅ **ALWAYS search the codebase** before writing similar code
-- ✅ **ALWAYS extract common patterns** into utility functions or widgets
-- ✅ **ALWAYS reuse existing services, repositories, and use cases**
-- ✅ **ALWAYS check for similar functionality** in other features before implementing
-- ❌ **NEVER copy-paste code** - extract to shared utilities/components instead
-- ❌ **NEVER implement the same logic** in multiple places - create shared functions/services
-
-### When Creating Components
-
-Before creating a new component, check:
-
-1. [ ] Does a similar component already exist? (`lib/shared/widgets/`, feature widgets)
-2. [ ] Can I extend/modify an existing component instead?
-3. [ ] Will this component be reused in multiple places?
-4. [ ] Are visual styles consistent with existing components?
-5. [ ] Are colors, spacing, and typography from theme?
-
-## Available Rules
-
-### 1. `solid_principles.mdc`
-
-**Applied to**: `lib/**/*.dart`
-
-Defines SOLID principles:
-
-- **Single Responsibility Principle (SRP)**: Each class has a single responsibility
-- **Open/Closed Principle (OCP)**: Open for extension, closed for modification
-- **Liskov Substitution Principle (LSP)**: Subtypes are substitutable for base types
-- **Interface Segregation Principle (ISP)**: Specific interfaces are better
-- **Dependency Inversion Principle (DIP)**: Depend on abstractions
-
-### 2. `clean_architecture.mdc`
-
-**Applied to**: `lib/**/*.dart`
-
-Defines dependency rules between layers:
-
-- Layer structure (Domain, Application, Infrastructure, Presentation)
-- Import rules between layers
-- Clean Architecture principles
-- Domain independence
-
-### 3. `domain_layer.mdc`
-
-**Applied to**: `lib/domain/**/*.dart`
-
-Specific rules for Domain Layer:
-
-- **Entities**: Main domain objects with unique identity
-- **Value Objects**: Immutable objects compared by value
-- **Use Cases**: Isolated and testable business operations
-- **Repositories**: Interfaces that define contracts
-- **Errors**: Domain-specific exceptions
-
-### 4. `coding_conventions.mdc`
-
-**Applied to**: `lib/**/*.dart`
-
-Coding conventions:
-
-- Naming for classes, methods, and variables
-- File structure
-- Error handling (Result pattern - result_dart)
-- Dependency injection
-- Import organization
-
-### 5. `testing.mdc`
-
-**Applied to**: `test/**/*.dart`
-
-Testing patterns:
-
-- Unit test structure
-- Widget tests
-- Best practices (AAA pattern)
-- Test naming
-- Isolation and mocking
-
-### 6. `dart_style_code.mdc`
-
-**Applied to**: `lib/**/*.dart`, `test/**/*.dart`
-
-Dart style guide based on Effective Dart:
-
-- Naming and conventions
-- Types and null safety
-- Const and final
-- Strings and collections
-- Functions and methods
-- Classes and constructors
-- Imports and organization
-- Dot shorthands
-- Tear-off for widgets (never return Widget from functions)
-
-### 7. `flutter_widgets.mdc`
-
-**Applied to**: `lib/presentation/**/*.dart`, `lib/shared/**/*.dart`
-
-Best practices for Flutter widgets:
-
-- Stateless vs StatefulWidget
-- Performance and optimization
-- Const widgets
-- Widget composition
-- Layout and responsive design
-- Theming and navigation
-- State management
-
-### 8. `null_safety.mdc`
-
-**Applied to**: `lib/**/*.dart`
-
-Best practices for null safety:
-
-- Nullable/non-nullable type declaration
-- Variable initialization
-- Null checks and null-aware operators
-- Nullable collections
-- Functions and methods with null safety
-- External APIs and JSON parsing
-
-### 9. `general_rules.mdc`
-
-**Applied to**: `lib/**/*.dart`, `test/**/*.dart`
-
-General project rules:
-
-- **DO NOT create documentation automatically** (only when requested)
-- **DO NOT create documentation files** without explicit request
-- Self-explanatory code
-- Comments only when necessary
-
-### 10. `dependencies_patterns.mdc`
-
-**Applied to**: `lib/**/*.dart`, `pubspec.yaml`
-
-Dependency and library patterns:
-
-- **go_router** for routes (never Navigator or auto_route)
-- **dio** for HTTP/API (never http package)
-- **get_it** for dependency injection (never Provider for DI)
-- **Provider** for state management (never BLoC, Riverpod, GetX)
-- **brasil_fields** for BR formatting
-- **flutter_dotenv** for environment variables
-- **uuid** for UUID generation
-- **zard** for type validation
-
-### 11. `architecture.mdc`
-
-**Applied to**: `lib/**/*.dart`
-
-Clean Architecture + Domain Driven Design (DDD) overview:
-
-- Architecture principles and SOLID
-- Layer structure and organization
-- Dependency rules between layers
-- Folder structure
-- Data flow examples
-- Barrel files
-- Library configuration (go_router, dio, get_it, Provider, etc.)
-- Import patterns
-- Code review checklist
-- Configuration checklist
-
-## Creating New Rules
-
-To create a new rule:
-
-1. Create a `.mdc` file in the `.cursor/rules/` folder
-2. Add the YAML frontmatter:
-   ```yaml
-   ---
-   description: Rule description
-   globs: ["pattern/**/*.dart"]
-   alwaysApply: true
-   ---
-   ```
-3. Add the rule content in Markdown
-
-## Rule Example
-
-```mdc
----
-description: Example rule for validation
-globs: ["lib/domain/**/*.dart"]
-alwaysApply: true
----
-
-# Validation Rule
-
-- All entities must validate their data in the constructor
-- Value objects must throw specific exceptions for invalid values
-- Use cases must validate parameters before executing
-```
-
-## References
-
-- [Cursor Documentation on Rules](https://docs.cursor.com/en/context/rules)
-- [Cursor Context Guide](https://docs.cursor.com/en/guides)
+# Indice de Rules
+
+## Escopo
+
+Este arquivo e o mapa de roteamento das rules do repositorio.
+
+Mantenha a politica detalhada no arquivo dono do assunto em vez de
+repeti-la aqui.
+
+## Rules Globais
+
+- `global_guardrails.mdc`: guardrails minimos de fluxo, documentacao e
+  validacao
+- `rules_index.mdc`: roteamento de rules e prioridade entre elas
+- `rules_authoring.mdc`: como manter `.cursor/rules` e `AGENTS.md` sem
+  duplicacao ou drift
+
+## Rules de Arquitetura
+
+- `architecture.mdc`: visao arquitetural do projeto, camadas e fluxo
+- `clean_architecture.mdc`: fronteiras de camada e direcao de
+  dependencias
+- `solid_principles.mdc`: orientacao de design baseada em
+  SRP, OCP, LSP, ISP e DIP
+- `domain_layer.mdc`: regras especificas de entidades, value objects,
+  use cases, repositories e erros de dominio
+
+## Rules de Codigo Dart
+
+- `coding_conventions.mdc`: nomenclatura, contratos, DI por construtor e
+  uso de `Result`
+- `coding_style.mdc`: sintaxe Dart, imports, tooling, logging e recursos
+  modernos
+- `null_safety.mdc`: nullability, acesso seguro e parsing defensivo
+- `dependencies_patterns.mdc`: bibliotecas obrigatorias e alternativas
+  proibidas
+- `general_rules.mdc`: documentacao, comentarios, duplicacao e codigo
+  autoexplicativo
+
+## Rules de Flutter e UI
+
+- `flutter_widgets.mdc`: estrutura de widgets, estado local, layout e
+  performance
+- `ui_ux_design.mdc`: design system mobile, estados de tela,
+  acessibilidade e responsividade
+- `shared_components.mdc`: promocao, reuso e evolucao segura de
+  componentes compartilhados
+
+## Rules de Testes
+
+- `testing.mdc`: estrategia de testes, isolamento, harness e praticas
+  Dart/Flutter para `test/**`
+
+## Ordem de prioridade
+
+1. rules especificas de camada ou escopo
+2. rules tecnicas transversais
+3. rules gerais
+4. este indice
+
+## Mapeamento rapido por area
+
+- `lib/domain/**/*.dart`
+  Leia `domain_layer.mdc`, `clean_architecture.mdc`,
+  `solid_principles.mdc`, `coding_conventions.mdc`,
+  `coding_style.mdc` e `null_safety.mdc`.
+- `lib/data/**/*.dart` e `lib/infrastructure/**/*.dart`
+  Leia `clean_architecture.mdc`, `coding_conventions.mdc`,
+  `coding_style.mdc`, `dependencies_patterns.mdc` e
+  `null_safety.mdc`.
+- `lib/di/**/*.dart`
+  Leia `clean_architecture.mdc`, `coding_conventions.mdc`,
+  `coding_style.mdc` e `dependencies_patterns.mdc`.
+- `lib/presentation/**/*.dart` e `lib/ui/**/*.dart`
+  Leia `flutter_widgets.mdc`, `ui_ux_design.mdc`,
+  `shared_components.mdc`, `dependencies_patterns.mdc`,
+  `coding_style.mdc` e `general_rules.mdc`.
+- `lib/core/**/*.dart`
+  Leia `coding_style.mdc`, `dependencies_patterns.mdc`,
+  `general_rules.mdc` e, quando tocar tema ou UI base,
+  `ui_ux_design.mdc`.
+- `test/**/*.dart`
+  Leia `testing.mdc`, `coding_style.mdc` e `general_rules.mdc`.
+- `.cursor/rules/**/*.mdc` e `AGENTS.md`
+  Leia `global_guardrails.mdc`, `rules_index.mdc` e
+  `rules_authoring.mdc`.
+- `pubspec.yaml`
+  Leia `dependencies_patterns.mdc`.
+
+## Manutencao
+
+- atualize a rule especifica primeiro
+- atualize este indice apenas quando nomes, escopos ou relacoes entre
+  rules mudarem
+- evite repetir aqui exemplos extensos ou checklists detalhados

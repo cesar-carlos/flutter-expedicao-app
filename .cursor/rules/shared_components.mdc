@@ -1,0 +1,65 @@
+---
+description: Criacao, promocao e evolucao segura de componentes compartilhados
+globs: ["lib/presentation/**/*.dart", "lib/ui/**/*.dart", "lib/shared/**/*.dart"]
+---
+
+# Componentes Compartilhados
+
+## Escopo
+
+Este arquivo registra as decisoes para criar, promover e evoluir
+componentes compartilhados de UI sem duplicar codigo.
+
+## Onde procurar primeiro
+
+- antes de criar um novo componente de UI, verifique
+  `lib/ui/widgets/common/`
+- se o projeto passar a manter `lib/shared/widgets/`, use esse
+  diretorio para novos primitivos realmente genericos
+- se um componente existente quase atende, evolua-o antes de criar uma
+  variante paralela
+
+## Promocao para compartilhado
+
+- promova um componente quando o mesmo padrao visual ou de interacao
+  aparecer em uma segunda area com a mesma intencao
+- mantenha componentes especificos de fluxo perto da feature ate a API
+  de reuso ficar estavel
+- nao mova um componente para a area compartilhada apenas porque ele
+  ficou grande
+- componentes compartilhados nao devem depender de controllers, rotas,
+  assets ou contratos de uma unica feature
+
+## Escolha da abstracao
+
+- comece pelo menor primitivo estavel que resolva a necessidade
+- adicione parametro opcional ao componente base apenas quando a
+  variacao for generica e util a multiplos chamadores
+- crie um wrapper quando a variacao trouxer regra fixa de UX, validacao
+  de dominio ou estado local proprio
+- nao crie variantes paralelas como `BaseCard`, `NewCard` e
+  `AdvancedCard` para a mesma responsabilidade
+
+## Evolucao segura de APIs compartilhadas
+
+- prefira mudancas aditivas e compativeis com versoes anteriores
+- migre call sites quando padroes antigos e novos passarem a conviver de
+  forma confusa
+- separe rename, move e mudancas semanticas em refactors diferentes
+  quando o risco nao for trivial
+- se um componente compartilhado acumular parametros demais e sem
+  relacao, divida-o em uma base menor com wrappers especializados
+
+## Implementacao
+
+- composicao e a estrategia padrao de especializacao; detalhes vivem em
+  `flutter_widgets.mdc`
+- nao use heranca de widget como mecanismo principal para construir o
+  design system
+- mantenha consistencia visual com as diretrizes de `ui_ux_design.mdc`
+
+## Referencias
+
+- composicao, estado local e performance: `flutter_widgets.mdc`
+- design system e estados de tela: `ui_ux_design.mdc`
+- duplicacao, reuso e refatoracao: `general_rules.mdc`

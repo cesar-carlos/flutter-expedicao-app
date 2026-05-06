@@ -1,534 +1,109 @@
 ---
-description: Flutter Widgets - Boas práticas para widgets, performance e otimização
-globs: ["lib/presentation/**/*.dart", "lib/shared/**/*.dart"]
+description: Flutter Widgets - composicao, estado local, layout e performance
+globs: ["lib/presentation/**/*.dart", "lib/ui/**/*.dart", "lib/shared/**/*.dart"]
 alwaysApply: true
 ---
 
-#
+# Flutter Widgets
 
-# Flutter Widgets - Boas Práticas
+## Escopo
 
-## Stateless vs Stateful
+Este arquivo e a fonte de verdade para codigo de widgets:
 
-### StatelessWidget
+- estrutura e composicao de widgets
+- estado local de UI
+- layout e responsividade no codigo
+- performance de build e renderizacao
 
-- ✅ Use `StatelessWidget` quando o widget não precisa gerenciar estado
-- ✅ Use `const` construtor quando possível para melhor performance
-- ✅ Prefira composição sobre herança
+Nao repita aqui regras de design system e UX de tela. Para isso, use
+`ui_ux_design.mdc`.
 
-```dart
-// ✅ Bom: StatelessWidget com const
-class UserCard extends StatelessWidget {
-  final User user;
+## Composicao e estrutura
 
-  const UserCard({
-    super.key,
-    required this.user,
-  });
+- quebre widgets grandes em widgets menores e focados
+- prefira classes privadas pequenas a metodos `Widget _build...`
+- mantenha `build()` legivel e raso
+- nao retorne `Widget` de funcoes auxiliares quando uma classe privada
+  ou construtor direto resolver melhor
+- prefira composicao a heranca
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        title: Text(user.name),
-        subtitle: Text(user.email),
-      ),
-    );
-  }
-}
-```
+## Estado local de UI
 
-### StatefulWidget
+- use `StatelessWidget` quando nao houver estado local
+- use `ValueNotifier` com `ValueListenableBuilder` para estado local
+  simples e pontual
+- use `StatefulWidget` apenas quando houver lifecycle real, como
+  `initState`, `dispose`, foco, controllers, animacao ou subscriptions
+- mantenha `setState()` restrito a menor subarvore que realmente muda
+- descarte `FocusNode`, controllers, timers, streams e subscriptions
+- separe logica de negocio do estado visual
 
-- ✅ Use `StatefulWidget` apenas quando necessário gerenciar estado
-- ✅ Mantenha estado mínimo (apenas o necessário)
-- ✅ Separe lógica de negócio do estado da UI
+## Reutilizacao e especializacao
 
-```dart
-// ✅ Bom: StatefulWidget com estado mínimo
-class CounterWidget extends StatefulWidget {
-  const CounterWidget({super.key});
+- consulte componentes compartilhados antes de criar outro parecido
+- detalhes de promocao e evolucao vivem em `shared_components.mdc`
+- quando um componente base quase atende, prefira evolui-lo ou criar um
+  wrapper por composicao em vez de duplicar layout
+- wrappers sao preferiveis quando a variacao adiciona estado local,
+  validacao fixa ou configuracoes de UX sempre iguais
 
-  @override
-  State<CounterWidget> createState() => _CounterWidgetState();
-}
+## Padroes de composicao
 
-class _CounterWidgetState extends State<CounterWidget> {
-  int _counter = 0;
-
-  void _increment() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text('Counter: $_counter'),
-        ElevatedButton(
-          onPressed: _increment,
-          child: const Text('Increment'),
-        ),
-      ],
-    );
-  }
-}
-```
-
-## Performance
-
-### Const Widgets
-
-- ✅ Use `const` construtor para widgets imutáveis
-- ✅ Use `const` widgets filhos quando possível
-- ✅ Reduz reconstruções desnecessárias
-
-```dart
-// ✅ Bom: const widgets
-class MyWidget extends StatelessWidget {
-  const MyWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      children: [
-        Text('Hello'),
-        Text('World'),
-      ],
-    );
-  }
-}
-
-// ❌ Evite: sem const quando possível
-class MyWidget extends StatelessWidget {
-  MyWidget({super.key}); // Deveria ser const
-
-  @override
-  Widget build(BuildContext context) {
-    return Column( // Deveria ser const
-      children: [
-        Text('Hello'), // Deveria ser const
-        Text('World'), // Deveria ser const
-      ],
-    );
-  }
-}
-```
-
-### Rebuilds
-
-- ✅ Use `const` para evitar rebuilds desnecessários
-- ✅ Extraia widgets que mudam frequentemente
-- ✅ Use `RepaintBoundary` para widgets complexos
-
-```dart
-// ✅ Bom: extrair widget que muda
-class UserList extends StatelessWidget {
-  final List<User> users;
-
-  const UserList({super.key, required this.users});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: users.length,
-      itemBuilder: (context, index) {
-        // Widget extraído que pode ser const
-        return UserListItem(user: users[index]);
-      },
-    );
-  }
-}
-
-class UserListItem extends StatelessWidget {
-  final User user;
-
-  const UserListItem({super.key, required this.user});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(user.name),
-      subtitle: Text(user.email),
-    );
-  }
-}
-```
-
-### Keys
-
-- ✅ Use `Key` apenas quando necessário (listas, animações)
-- ✅ Use `ValueKey` para valores únicos
-- ✅ Use `ObjectKey` para objetos complexos
-
-```dart
-// ✅ Bom: usar Key quando necessário
-ListView.builder(
-  itemCount: users.length,
-  itemBuilder: (context, index) {
-    return UserCard(
-      key: ValueKey(users[index].id), // Key para otimizar rebuilds
-      user: users[index],
-    );
-  },
-)
-```
-
-## Widget Composition
-
-### Extrair Widgets
-
-- ✅ Extraia widgets quando ficarem muito grandes (>100 linhas no build)
-- ✅ Extraia widgets reutilizáveis
-- ✅ Use widgets pequenos e focados
-
-```dart
-// ✅ Bom: widget extraído e reutilizável
-class UserCard extends StatelessWidget {
-  final User user;
-
-  const UserCard({super.key, required this.user});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Column(
-        children: [
-          UserAvatar(user: user),
-          UserInfo(user: user),
-          UserActions(user: user),
-        ],
-      ),
-    );
-  }
-}
-```
-
-### Build Context
-
-- ✅ Evite passar `BuildContext` para métodos longos
-- ✅ Use `context` apenas dentro de `build()` ou callbacks
-- ✅ Não armazene `BuildContext` em campos
-
-```dart
-// ✅ Bom: usar context no build
-class MyWidget extends StatelessWidget {
-  const MyWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.of(context).push(/* ... */);
-      },
-      child: const Text('Navigate'),
-    );
-  }
-}
-
-// ❌ Evite: armazenar context
-class MyWidget extends StatefulWidget {
-  @override
-  State<MyWidget> createState() => _MyWidgetState();
-}
-
-class _MyWidgetState extends State<MyWidget> {
-  BuildContext? _context; // ❌ Não armazene context
-
-  @override
-  Widget build(BuildContext context) {
-    _context = context; // ❌ Errado
-    return Container();
-  }
-}
-```
+- use parametros `Widget?` nomeados quando o componente tiver multiplas
+  zonas visuais independentes
+- use builder callbacks quando o filho precisar de `BuildContext` ou de
+  dados que o componente so conhece internamente
+- agrupe muitos parametros visuais em style objects com construtor
+  `const`
+- use mixins para comportamento reutilizavel de `State` quando nao
+  houver relacao hierarquica entre widgets
+- nao use heranca de `StatelessWidget` ou `StatefulWidget` como
+  mecanismo principal de especializacao
 
 ## Layout
 
-### Responsive Design
+- use `Padding`, `SizedBox`, `Expanded`, `Flexible`, `Wrap` e
+  `LayoutBuilder` de forma explicita e intencional
+- use builders ou slivers para listas longas
+- use `SingleChildScrollView` apenas para conteudo intrinsicamente
+  limitado
+- use `Stack`, `Positioned` e `Align` apenas quando layout linear nao
+  resolver
+- evite valores hardcoded quando houver tokens, tema ou constantes
+  nomeadas para o mesmo papel
 
-- ✅ Use `MediaQuery` para dimensões responsivas
-- ✅ Use `LayoutBuilder` para layouts adaptativos
-- ✅ Evite valores hardcoded para dimensões
+## Performance de build e renderizacao
 
-```dart
-// ✅ Bom: layout responsivo
-class ResponsiveWidget extends StatelessWidget {
-  const ResponsiveWidget({super.key});
+- use `const` sempre que possivel em widgets imutaveis
+- nao execute trabalho caro dentro de `build()`
+- extraia subarvores que mudam com frequencia
+- use `RepaintBoundary` quando uma subarvore complexa repintar com
+  frequencia
+- use `Key` apenas quando houver necessidade real
+- evite custos caros de renderizacao, como clipping e opacity
+  desnecessarios
 
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+## Inputs, imagens e semantica
 
-    return screenWidth > 600
-        ? const DesktopLayout()
-        : const MobileLayout();
-  }
-}
+- configure `keyboardType`, `textInputAction`, autofill e fluxo de foco
+  de forma coerente
+- mantenha validacao perto do campo
+- forneca `loadingBuilder` e `errorBuilder` quando imagens de rede
+  precisarem de estados explicitos
+- adicione labels semanticos para acoes apenas com icone
+- preserve alvos de toque adequados e comportamento correto com teclado
+  virtual
 
-// ✅ Bom: usar LayoutBuilder
-class AdaptiveLayout extends StatelessWidget {
-  const AdaptiveLayout({super.key});
+## Estado global e navegacao
 
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth > 600) {
-          return const DesktopLayout();
-        }
-        return const MobileLayout();
-      },
-    );
-  }
-}
-```
+- estado global deve seguir o padrao oficial do projeto
+- widgets nao devem concentrar logica de negocio
+- navegacao deve seguir o padrao definido em
+  `dependencies_patterns.mdc`
 
-### Spacing
+## Referencias Cruzadas
 
-- ✅ Use `SizedBox` para espaçamento explícito
-- ✅ Use `Padding` para padding
-- ✅ Evite valores mágicos (crie constantes)
-
-```dart
-// ✅ Bom: espaçamento explícito
-Column(
-  children: [
-    const Text('Title'),
-    const SizedBox(height: 16),
-    const Text('Subtitle'),
-    const SizedBox(height: 8),
-    const Text('Content'),
-  ],
-)
-
-// ✅ Bom: constantes para espaçamento
-class AppSpacing {
-  static const double small = 8.0;
-  static const double medium = 16.0;
-  static const double large = 24.0;
-}
-
-// Uso
-const SizedBox(height: AppSpacing.medium),
-```
-
-## Theming
-
-### ThemeData
-
-- ✅ Defina tema centralizado em `core/theme`
-- ✅ Use `Theme.of(context)` para acessar tema
-- ✅ Crie temas customizados quando necessário
-
-```dart
-// ✅ Bom: tema centralizado
-class AppTheme {
-  static ThemeData get lightTheme {
-    return ThemeData(
-      primarySwatch: Colors.blue,
-      useMaterial3: true,
-      // ... outras configurações
-    );
-  }
-
-  static ThemeData get darkTheme {
-    return ThemeData(
-      brightness: Brightness.dark,
-      primarySwatch: Colors.blue,
-      useMaterial3: true,
-      // ... outras configurações
-    );
-  }
-}
-
-// Uso
-MaterialApp(
-  theme: AppTheme.lightTheme,
-  darkTheme: AppTheme.darkTheme,
-  themeMode: ThemeMode.system,
-  // ...
-)
-```
-
-### Text Styles
-
-- ✅ Use `Theme.of(context).textTheme` para estilos de texto
-- ✅ Crie text styles customizados quando necessário
-- ✅ Evite estilos hardcoded
-
-```dart
-// ✅ Bom: usar textTheme
-Text(
-  'Hello',
-  style: Theme.of(context).textTheme.headlineMedium,
-)
-
-// ✅ Bom: estilos customizados no tema
-ThemeData(
-  textTheme: TextTheme(
-    headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-    // ... outros estilos
-  ),
-)
-```
-
-## Navigation
-
-### Routes
-
-- ✅ Defina rotas centralizadas em `core/routes`
-- ✅ Use rotas nomeadas para navegação
-- ✅ Use `go_router` ou `auto_route` para rotas complexas
-
-```dart
-// ✅ Bom: rotas centralizadas
-class AppRoutes {
-  static const String home = '/';
-  static const String login = '/login';
-  static const String user = '/user/:id';
-
-  static Route<dynamic> generateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case home:
-        return MaterialPageRoute(builder: (_) => const HomePage());
-      case login:
-        return MaterialPageRoute(builder: (_) => const LoginPage());
-      default:
-        return MaterialPageRoute(builder: (_) => const NotFoundPage());
-    }
-  }
-}
-```
-
-### Navigation
-
-- ✅ Use `Navigator.push()` para navegação imperativa
-- ✅ Use rotas nomeadas para navegação declarativa
-- ✅ Passe dados via construtor, não via arguments
-
-```dart
-// ✅ Bom: passar dados via construtor
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => UserDetailPage(user: user),
-  ),
-);
-
-// ✅ Bom: rotas nomeadas
-Navigator.pushNamed(
-  context,
-  AppRoutes.user,
-  arguments: user.id,
-);
-```
-
-## State Management
-
-### Local State
-
-- ✅ Use `StatefulWidget` para estado local simples
-- ✅ Use `setState()` apenas para estado da UI
-- ✅ Mantenha estado mínimo
-
-```dart
-// ✅ Bom: estado local simples
-class CounterWidget extends StatefulWidget {
-  const CounterWidget({super.key});
-
-  @override
-  State<CounterWidget> createState() => _CounterWidgetState();
-}
-
-class _CounterWidgetState extends State<CounterWidget> {
-  int _counter = 0;
-
-  void _increment() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Text('Counter: $_counter');
-  }
-}
-```
-
-### Global State
-
-- ✅ Use `Provider` para estado global (padrão do projeto)
-- ✅ Separe lógica de negócio do estado da UI
-- ✅ Use `ChangeNotifierProvider` para providers que estendem `ChangeNotifier`
-
-```dart
-// ✅ Bom: usar Provider para estado global
-class UserProvider extends ChangeNotifier {
-  final UserService userService;
-
-  UserProvider(this.userService);
-
-  User? _user;
-  bool _isLoading = false;
-  String? _error;
-
-  User? get user => _user;
-  bool get isLoading => _isLoading;
-  String? get error => _error;
-
-  Future<void> loadUser(String id) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final result = await userService.getUser(id);
-      result.fold(
-        (failure) {
-          _error = failure.message;
-          _isLoading = false;
-        },
-        (user) {
-          _user = user;
-          _isLoading = false;
-        },
-      );
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-    }
-
-    notifyListeners();
-  }
-}
-```
-
-## Boas Práticas Gerais
-
-### Widgets Pequenos
-
-- ✅ Mantenha widgets pequenos e focados
-- ✅ Extraia widgets quando `build()` ficar grande
-- ✅ Use composição sobre herança
-
-### Evitar Rebuilds
-
-- ✅ Use `const` widgets quando possível
-- ✅ Extraia widgets que mudam frequentemente
-- ✅ Use `RepaintBoundary` para widgets complexos
-
-### Acessibilidade
-
-- ✅ Use `Semantics` para widgets importantes
-- ✅ Forneça labels para widgets interativos
-- ✅ Teste com screen readers
-
-### Internacionalização
-
-- ✅ Use `intl` package para i18n
-- ✅ Evite strings hardcoded
-- ✅ Prepare strings para tradução desde o início
+- design system, acessibilidade e estados de tela: `ui_ux_design.mdc`
+- criacao e evolucao de componentes compartilhados:
+  `shared_components.mdc`
+- estilo Dart e tooling: `coding_style.mdc`

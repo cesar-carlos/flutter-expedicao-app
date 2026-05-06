@@ -1,0 +1,41 @@
+---
+description: Manutencao de rules e arquivos de entrada do agente
+globs: [".cursor/rules/**/*.mdc", "AGENTS.md"]
+---
+
+# Manutencao de Rules
+
+## Escopo
+
+Use este arquivo ao editar rules do repositorio ou arquivos de entrada
+do agente.
+
+## Principios de autoria
+
+- mantenha uma preocupacao principal por arquivo de rule
+- prefira referencias ao arquivo dono da politica em vez de copiar a
+  mesma regra em varios arquivos
+- mantenha o conjunto always-on minimo; use `alwaysApply: true` apenas
+  para guardrails globais, roteamento e rules que realmente precisam
+  ficar sempre em contexto
+- prefira `globs` especificos para escopar rules ao codigo que
+  realmente precisa delas
+- quando uma rule crescer cobrindo assuntos sem relacao, divida por
+  responsabilidade em vez de expandir um monolito
+- exemplos dentro das rules precisam estar corretos, seguros e
+  alinhados com o stack atual do repositorio
+- ao criar, remover ou mover uma rule, atualize `rules_index.mdc` e
+  `AGENTS.md` no mesmo passo
+- evite drift entre `AGENTS.md`, `rules_index.mdc` e a rule dona do
+  assunto
+
+## Checklist
+
+- [ ] este arquivo de rule tem uma unica preocupacao principal
+- [ ] guardrails repetidos foram substituidos por referencias ao
+      arquivo dono
+- [ ] `alwaysApply` foi usado apenas onde a rule realmente precisa de
+      contexto global
+- [ ] os exemplos foram revisados como se fossem codigo de producao
+- [ ] `rules_index.mdc` e `AGENTS.md` ainda apontam para os arquivos
+      corretos

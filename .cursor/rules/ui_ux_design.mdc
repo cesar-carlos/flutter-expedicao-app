@@ -1,0 +1,112 @@
+---
+description: Design system mobile, estados de tela, acessibilidade e responsividade
+globs: ["lib/presentation/**/*.dart", "lib/ui/**/*.dart", "lib/core/theme/**/*.dart"]
+---
+
+# UI UX Design
+
+## Escopo
+
+Este arquivo e a fonte de verdade para:
+
+- design system e linguagem visual
+- navegacao e interacoes mobile
+- estados de loading, empty e error
+- acessibilidade, feedback e responsividade
+
+Nao duplique aqui detalhes de implementacao de widgets. Para
+composicao, layout, performance e estrutura de widgets, use
+`flutter_widgets.mdc`.
+
+## Design System
+
+- use tema centralizado como base visual do app
+- construa identidade consistente com tokens de cor, tipografia,
+  spacing, radius, elevacao e motion
+- prefira valores do tema a cores e tamanhos hardcoded quando ja
+  houver token equivalente
+- mantenha suporte coerente aos modos visualmente suportados pelo app
+- extraia componentes reutilizaveis antes de repetir padroes visuais
+
+## Hierarquia Visual
+
+- deixe claro o que e primario com contraste, tamanho, peso e espaco
+- use whitespace para separar grupos logicos
+- mantenha a paleta e a tipografia coerentes entre telas
+- evite ruido visual e ornamentos sem funcao de UX
+
+## Navegacao e Interacao Mobile
+
+- use padroes familiares de mobile para navegacao, gestos e feedback
+- preserve safe areas, keyboard insets e scroll sem sobrepor conteudo
+  importante
+- priorize alvos de toque confortaveis e estados pressed, loading e
+  disabled coerentes
+- reserve dialogs para confirmacoes criticas; prefira feedback inline
+  ou bottom sheets para estados comuns
+
+## Estados da Interface
+
+Toda superficie importante deve considerar loading, empty, success e
+error.
+
+### Loading
+
+- use placeholders estruturais ou indicadores que combinem com o tipo
+  de conteudo esperado
+- reserve spinner generico para operacoes pontuais sem estrutura
+  previsivel
+
+### Empty
+
+- diferencie "ainda nao ha dados" de "nenhum resultado para este
+  filtro"
+- nao mostre lista vazia sem contexto ou proximo passo
+
+### Error
+
+- mensagens devem ser claras e acionaveis
+- forneca retry quando a operacao puder ser repetida
+- nunca exponha stack trace ou mensagem tecnica bruta ao usuario
+
+### Feedback de acao
+
+- use feedback inline ou SnackBar para acoes iniciadas pelo usuario
+- nao use toast ou SnackBar como substituto de estados de tela
+
+## Formularios
+
+- use validacao proxima ao campo
+- configure `textInputAction`, teclado e autofill de forma coerente
+- organize formularios para leitura vertical clara
+- nao esconda erros relevantes em mensagens temporarias
+
+## Acessibilidade
+
+- mantenha contraste adequado
+- garanta labels semanticos e ordem de leitura coerente
+- considere escalonamento de fonte do sistema
+- elementos puramente decorativos nao devem competir com a semantica
+
+## Responsividade
+
+- use `LayoutBuilder`, `MediaQuery`, `Expanded`, `Flexible` e `Wrap`
+  quando ajudarem a adaptar o layout
+- prefira constantes nomeadas ou abstracoes compartilhadas a thresholds
+  numericos repetidos em varios arquivos
+- evite larguras fixas quando o layout puder se adaptar melhor ao
+  espaco disponivel
+- em telas maiores, aproveite o espaco extra sem quebrar a hierarquia
+  visual
+
+## Plataforma
+
+- respeite convencoes de Android e iOS quando isso melhorar a
+  previsibilidade
+- mostre progresso em operacoes longas de IO, rede ou processamento
+
+## Referencias Cruzadas
+
+- implementacao de widgets, layout e performance: `flutter_widgets.mdc`
+- ciclo de vida de componentes compartilhados: `shared_components.mdc`
+- comportamento geral e duplicacao: `general_rules.mdc`

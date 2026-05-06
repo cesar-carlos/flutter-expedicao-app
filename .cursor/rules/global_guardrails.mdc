@@ -1,0 +1,35 @@
+---
+description: Guardrails globais do repositorio para fluxo, documentacao e validacao
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Guardrails Globais
+
+## Escopo
+
+Este arquivo mantem apenas as restricoes que precisam ficar sempre em
+contexto.
+
+Use `rules_index.mdc` para localizar a regra dona de cada assunto.
+
+## Guardrails do repositorio
+
+- nunca faca commit, push ou crie documentacao nova sem pedido explicito
+  do usuario
+- trate `.cursor/rules/*.mdc` como fonte de verdade para a politica do
+  projeto
+- para codigo novo, siga as regras integralmente; para codigo existente,
+  melhore a aderencia de forma incremental
+- prefira falhas claras e acionaveis a mensagens genericas
+- nunca esconda erros silenciosamente
+- antes de encerrar mudancas de codigo, rode a validacao mais relevante
+  ao escopo alterado quando isso for viavel
+- quando um assunto tiver uma rule dedicada, siga a rule dona do assunto
+  em vez de duplicar politica local
+
+## Referencias
+
+- `rules_index.mdc`
+- `general_rules.mdc`
+- `testing.mdc`
