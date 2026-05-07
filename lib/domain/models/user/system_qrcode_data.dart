@@ -1,8 +1,9 @@
 import 'dart:convert';
 
-import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
-import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
+import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
+import 'package:data7_expedicao/core/validation/schemas/model_schema/system_qrcode_data_schema.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:result_dart/result_dart.dart';
 
 class SystemQRCodeData {
@@ -69,12 +70,8 @@ class SystemQRCodeData {
   });
 
   factory SystemQRCodeData.fromJson(Map<String, dynamic> json) {
-    // Bug critico anterior: `as int` direto em campos requeridos
-    // (codUsuario, codEmpresa) crashava com TypeError se o QR Code
-    // contivesse strings em vez de int (caso comum quando QR e
-    // gerado por sistema com tipagem fraca). Agora usa JsonParse
-    // defensivo. fromQRCodeString ja valida campos obrigatorios.
     String flag(String key) => JsonParse.parseStringOr(json[key], 'N');
+
     return SystemQRCodeData(
       codUsuario: JsonParse.parseIntOr(json['CodUsuario'], 0),
       nomeUsuario: JsonParse.parseStringOr(json['NomeUsuario'], ''),
@@ -110,10 +107,14 @@ class SystemQRCodeData {
 
   static Result<SystemQRCodeData> fromQRCodeString(String qrCodeContent) {
     try {
-      final Map<String, dynamic> json = jsonDecode(qrCodeContent);
+      final decoded = jsonDecode(qrCodeContent);
+      if (decoded is! Map) {
+        return Failure(ValidationFailure(message: 'QR Code com formato JSON inválido: esperado objeto JSON'));
+      }
 
+      final json = Map<String, dynamic>.from(decoded);
       final missingFields = <String>[];
-      const requiredFields = ['CodUsuario', 'NomeUsuario', 'SenhaUsuario'];
+      const requiredFields = ['CodUsuario', 'NomeUsuario', 'SenhaUsuario', 'CodEmpresa'];
 
       for (final field in requiredFields) {
         if (!json.containsKey(field) || json[field] == null) {
@@ -128,6 +129,11 @@ class SystemQRCodeData {
       }
 
       final data = SystemQRCodeData.fromJson(json);
+      final validationResult = SystemQRCodeDataSchema.safeValidate(data.toMap());
+      if (validationResult.isError()) {
+        return Failure(ValidationFailure(message: 'QR Code inválido: ${validationResult.exceptionOrNull()}'));
+      }
+
       return Success(data);
     } on FormatException catch (e) {
       return Failure(ValidationFailure(message: 'QR Code com formato JSON inválido: ${e.message}'));
@@ -136,6 +142,7 @@ class SystemQRCodeData {
     }
   }
 
+  @Deprecated('Use os dados autoritativos carregados de /usuarios para sessao autenticada final.')
   UserSystemModel toUserSystemModel() {
     return UserSystemModel.fromJson({
       'CodUsuario': codUsuario,
@@ -167,6 +174,27 @@ class SystemQRCodeData {
       'ExcluiCarrinhoOutroUsuario': excluiCarrinhoOutroUsuario,
       'ExpedicaoEntregaBalcaoPreVenda': expedicaoEntregaBalcaoPreVenda,
     });
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'CodUsuario': codUsuario,
+      'NomeUsuario': nomeUsuario,
+      'SenhaUsuario': senhaUsuario,
+      'Ativo': ativo,
+      'CodEmpresa': codEmpresa,
+      'NomeEmpresa': nomeEmpresa,
+      'PermiteSepararForaSequencia': permiteSepararForaSequencia,
+      'VisualizaTodasSeparacoes': visualizaTodasSeparacoes,
+      'PermiteConferirForaSequencia': permiteConferirForaSequencia,
+      'VisualizaTodasConferencias': visualizaTodasConferencias,
+      'PermiteArmazenarForaSequencia': permiteArmazenarForaSequencia,
+      'VisualizaTodasArmazenagem': visualizaTodasArmazenagem,
+      'EditaCarrinhoOutroUsuario': editaCarrinhoOutroUsuario,
+      'SalvaCarrinhoOutroUsuario': salvaCarrinhoOutroUsuario,
+      'ExcluiCarrinhoOutroUsuario': excluiCarrinhoOutroUsuario,
+      'ExpedicaoEntregaBalcaoPreVenda': expedicaoEntregaBalcaoPreVenda,
+    };
   }
 
   @override

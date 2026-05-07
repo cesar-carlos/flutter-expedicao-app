@@ -337,9 +337,7 @@ void setupLocator() {
       throw StateError('ConfigService deve ser inicializado antes de criar AuthViewModel');
     }
 
-    final viewModel = AuthViewModel();
-    viewModel.initialize(locator<LoginUserUseCase>());
-    return viewModel;
+    return AuthViewModel(loginUserUseCase: locator<LoginUserUseCase>());
   });
 
   locator.registerFactory(() {

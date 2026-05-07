@@ -31,6 +31,7 @@ export 'app_user_schema.dart';
 export 'app_user_consultation_schema.dart';
 export 'login_request_schema.dart';
 export 'login_response_schema.dart';
+export 'system_qrcode_data_schema.dart';
 export 'create_user_request_schema.dart';
 export 'create_user_response_schema.dart';
 export 'user_api_exception_schema.dart';
