@@ -54,7 +54,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
       _lastSuccessCounter = _viewModel.successCounter;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.pop(true);
+          context.pop(_viewModel.lastAddSuccess);
         }
       });
     }

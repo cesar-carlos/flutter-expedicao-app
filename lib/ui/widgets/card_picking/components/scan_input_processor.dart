@@ -12,10 +12,15 @@ import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.d
 
 class ScanInputProcessor {
   final CardPickingViewModel viewModel;
-  final AudioService _audioService = locator<AudioService>();
-  final BarcodeScannerService _scannerService = locator<BarcodeScannerService>();
+  final AudioService? _audioServiceOverride;
+  final BarcodeScannerService? _scannerServiceOverride;
 
-  ScanInputProcessor({required this.viewModel});
+  ScanInputProcessor({required this.viewModel, AudioService? audioService, BarcodeScannerService? scannerService})
+    : _audioServiceOverride = audioService,
+      _scannerServiceOverride = scannerService;
+
+  AudioService get _audioService => _audioServiceOverride ?? locator<AudioService>();
+  BarcodeScannerService get _scannerService => _scannerServiceOverride ?? locator<BarcodeScannerService>();
 
   void dispose() {
     BarcodeValidationService.clearCaches();
@@ -47,22 +52,14 @@ class ScanInputProcessor {
     Future<void> Function() onCheckSectorCompletion,
   ) async {
     final itemId = item.item;
-    final wasCompletedBefore = viewModel.isItemCompleted(itemId);
+    final currentQuantity = _getCurrentQuantity(itemId);
+    final totalQuantity = _getTotalQuantity(item);
+    final isCompletedAfterUpdate = currentQuantity >= totalQuantity;
 
     onResetQuantity();
     onInvalidateCache();
 
-    if (wasCompletedBefore) {
-      final currentQuantity = _getCurrentQuantity(itemId);
-      final totalQuantity = _getTotalQuantity(item);
-
-      if (currentQuantity == totalQuantity) {
-        await _audioService.playItemCompleted();
-        return;
-      }
-    }
-
-    if (_didItemBecomeCompleted(itemId, wasCompletedBefore)) {
+    if (isCompletedAfterUpdate) {
       await _audioService.playItemCompleted();
     } else {
       await _provideSuccessFeedback();
@@ -104,10 +101,6 @@ class ScanInputProcessor {
     } catch (e, stackTrace) {
       AppLogger.debug('Erro ao fornecer feedback tátil', tag: 'ScanInputProcessor', error: e, stackTrace: stackTrace);
     }
-  }
-
-  bool _didItemBecomeCompleted(String itemId, bool wasCompletedBefore) {
-    return !wasCompletedBefore && viewModel.isItemCompleted(itemId);
   }
 
   int _getCurrentQuantity(String itemId) => viewModel.getPickedQuantity(itemId);

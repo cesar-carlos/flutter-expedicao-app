@@ -1,21 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:data7_expedicao/core/errors/app_error.dart';
-import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
-import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
-import 'package:data7_expedicao/domain/models/user_system_models.dart';
-import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_params.dart';
-import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_failure.dart';
-import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_usecase.dart';
-import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
-import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-
-import 'package:data7_expedicao/domain/models/separation_user_sector_consultation_model.dart';
-import 'package:data7_expedicao/domain/models/separation_user_sector_model.dart';
-import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
-import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_usecase.dart';
 import 'package:data7_expedicao/core/utils/i_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
+import 'package:data7_expedicao/domain/models/separation_user_sector_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separation_user_sector_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
+import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_failure.dart';
+import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_params.dart';
+import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_usecase.dart';
 
 void main() {
   setUpAll(() {
@@ -30,7 +29,8 @@ void main() {
       locator.unregister<ILogger>();
     }
   });
-  group('NextSeparationUserUseCase Tests', () {
+
+  group('NextSeparationUserUseCase', () {
     late _FakeSeparationUserSectorConsultationRepository consultationRepository;
     late _FakeSeparationUserSectorRepository registrationRepository;
     late NextSeparationUserUseCase useCase;
@@ -47,20 +47,19 @@ void main() {
       registrationRepository.reset();
     });
 
-    group('Validação de Parâmetros', () {
-      test('deve retornar erro quando codUsuario for inválido', () async {
+    group('parameter validation', () {
+      test('should return invalidParams when codUsuario is invalid', () async {
         final params = _createInvalidParams(codUsuario: 0);
 
         final result = await useCase.call(params);
 
         expect(result.isError(), isTrue);
-        expect(result.exceptionOrNull(), isA<NextSeparationUserFailure>());
         final failure = result.exceptionOrNull() as NextSeparationUserFailure;
         expect(failure.type, equals(NextSeparationUserFailureType.invalidParams));
         expect(failure.details, contains('Código do usuário deve ser maior que zero'));
       });
 
-      test('deve retornar erro quando codEmpresa for inválido', () async {
+      test('should return invalidParams when codEmpresa is invalid', () async {
         final params = _createInvalidParams(codEmpresa: 0);
 
         final result = await useCase.call(params);
@@ -70,8 +69,8 @@ void main() {
         expect(failure.type, equals(NextSeparationUserFailureType.invalidParams));
       });
 
-      test('deve retornar erro quando userSystemModel for null', () async {
-        final params = NextSeparationUserParams(
+      test('should return invalidParams when userSystemModel is null', () async {
+        final params = const NextSeparationUserParams(
           codEmpresa: 1,
           codUsuario: 1,
           codSetorEstoque: 100,
@@ -85,7 +84,7 @@ void main() {
         expect(failure.type, equals(NextSeparationUserFailureType.invalidParams));
       });
 
-      test('deve retornar erro quando codSetorEstoque não for informado', () async {
+      test('should return userWithoutSector when codSetorEstoque is missing', () async {
         final params = NextSeparationUserParams(
           codEmpresa: 1,
           codUsuario: 1,
@@ -101,28 +100,48 @@ void main() {
       });
     });
 
-    group('Separação 100% completada (setor finalizado) NÃO deve ser retornada', () {
-      test('deve retornar notFound quando só existe separação já finalizada pelo setor do usuário', () async {
+    group('completed separation should not be returned', () {
+      test('should return notFound when only completed work exists for the sector', () async {
         final completedSeparation = createMockCompletedSeparation(codUsuario: 1, nomeUsuario: 'Test User');
         consultationRepository.setCompletedSeparation(completedSeparation);
 
-        final params = _createValidParams();
-        final result = await useCase.call(params);
+        final result = await useCase.call(_createValidParams());
 
         expect(result.isSuccess(), isTrue);
         final success = result.getOrNull()!;
         expect(success.hasSeparation, isFalse);
         expect(success.message, equals('Não existe separação pendente para este usuário'));
       });
+
+      test('should keep searching other pages until it finds a real pending separation', () async {
+        final completedSeparations = List<SeparationUserSectorConsultationModel>.generate(
+          20,
+          (index) =>
+              createMockCompletedSeparation(codUsuario: 1, nomeUsuario: 'Test User', codSepararEstoque: 100 + index),
+        );
+        final pendingSeparation = createMockSeparationWithPendingItems(
+          codUsuario: 1,
+          nomeUsuario: 'Test User',
+          codSepararEstoque: 999,
+        );
+
+        consultationRepository.setExistingSeparations([...completedSeparations, pendingSeparation]);
+
+        final result = await useCase.call(_createValidParams());
+
+        expect(result.isSuccess(), isTrue);
+        final success = result.getOrNull()!;
+        expect(success.hasSeparation, isTrue);
+        expect(success.separation!.codSepararEstoque, equals(999));
+      });
     });
 
-    group('PRIORIDADE 1: Separação com itens/carrinhos pendentes', () {
-      test('deve retornar separação com itens pendentes no setor', () async {
+    group('priority 1', () {
+      test('should return the user separation with pending items', () async {
         final pendingSeparation = createMockSeparationWithPendingItems(codUsuario: 1, nomeUsuario: 'Test User');
         consultationRepository.setPendingItemsSeparation(pendingSeparation);
 
-        final params = _createValidParams();
-        final result = await useCase.call(params);
+        final result = await useCase.call(_createValidParams());
 
         expect(result.isSuccess(), isTrue);
         final success = result.getOrNull()!;
@@ -132,102 +151,80 @@ void main() {
         expect(success.separation!.quantidadeItensSeparacaoSetor, equals(5.0));
       });
 
-      test('não deve registrar atribuição quando retornar separação pendente', () async {
+      test('should not register assignment when returning an existing pending separation', () async {
         final pendingSeparation = createMockSeparationWithPendingItems(codUsuario: 1, nomeUsuario: 'Test User');
         consultationRepository.setPendingItemsSeparation(pendingSeparation);
 
-        final params = _createValidParams();
-        await useCase.call(params);
+        await useCase.call(_createValidParams());
 
         expect(registrationRepository.insertCount, equals(0));
       });
     });
 
-    group('PRIORIDADE 2: Nova Separação', () {
-      test('deve buscar nova separação disponível e registrar atribuição', () async {
+    group('priority 2', () {
+      test('should find a new separation and register assignment', () async {
         final newSeparation = createMockNewSeparation();
-        consultationRepository.setNewSeparation(newSeparation);
+        consultationRepository.setNewSeparations([newSeparation]);
 
-        final params = _createValidParams();
-        final result = await useCase.call(params);
+        final result = await useCase.call(_createValidParams());
 
         expect(result.isSuccess(), isTrue);
         final success = result.getOrNull()!;
         expect(success.hasSeparation, isTrue);
         expect(success.separation!.codSepararEstoque, equals(newSeparation.codSepararEstoque));
-
-        // Verificar se a atribuição foi registrada
-        expect(registrationRepository.insertCount, greaterThan(0));
+        expect(registrationRepository.insertCount, equals(1));
         expect(registrationRepository.lastInsert?.codUsuario, equals(1));
         expect(registrationRepository.lastInsert?.codSepararEstoque, equals(newSeparation.codSepararEstoque));
       });
     });
 
-    group('Mecanismo de Retry', () {
-      test('deve fazer retry quando atribuição falhar na primeira tentativa', () async {
-        final newSeparation1 = createMockNewSeparation(codSepararEstoque: 301);
-        final newSeparation2 = createMockNewSeparation(codSepararEstoque: 302);
-
-        // Configurar repositório para retornar separações diferentes
-        consultationRepository.setNewSeparations([newSeparation1, newSeparation2]);
-
-        // Falha na primeira tentativa, sucesso na segunda
+    group('assignment retry', () {
+      test('should try the next available candidate when first assignment fails', () async {
+        consultationRepository.setNewSeparations([
+          createMockNewSeparation(codSepararEstoque: 301),
+          createMockNewSeparation(codSepararEstoque: 302),
+        ]);
         registrationRepository.setShouldFailFirstTime(true);
 
-        final params = _createValidParams();
-        final result = await useCase.call(params);
+        final result = await useCase.call(_createValidParams());
 
-        // Deve tentar registrar 2 vezes (falhou na primeira, retryou)
         expect(registrationRepository.insertCount, equals(2));
-
-        // Deve ter retornado a segunda separação (porque a primeira falhou)
-        if (result.isSuccess()) {
-          final success = result.getOrNull()!;
-          expect(success.hasSeparation, isTrue);
-          expect(success.separation!.codSepararEstoque, equals(302));
-        }
+        expect(result.isSuccess(), isTrue);
+        final success = result.getOrNull()!;
+        expect(success.hasSeparation, isTrue);
+        expect(success.separation!.codSepararEstoque, equals(302));
       });
 
-      test('deve parar após máximo de tentativas', () async {
+      test('should fail explicitly when assignment reaches max retries', () async {
         consultationRepository.setNewSeparations([
           createMockNewSeparation(codSepararEstoque: 301),
           createMockNewSeparation(codSepararEstoque: 302),
           createMockNewSeparation(codSepararEstoque: 303),
         ]);
-
-        // Sempre falha
         registrationRepository.setAlwaysFail(true);
 
-        final params = _createValidParams();
-        final result = await useCase.call(params);
+        final result = await useCase.call(_createValidParams());
 
-        // Deve tentar no máximo 3 vezes (1 inicial + 2 retries)
-        expect(registrationRepository.insertCount, lessThanOrEqualTo(3));
-
-        // Deve retornar notFound
-        expect(result.isSuccess(), isTrue);
-        final success = result.getOrNull()!;
-        expect(success.hasSeparation, isFalse);
+        expect(registrationRepository.insertCount, equals(3));
+        expect(result.isError(), isTrue);
+        final failure = result.exceptionOrNull() as NextSeparationUserFailure;
+        expect(failure.type, equals(NextSeparationUserFailureType.assignmentFailed));
       });
 
-      test('deve retornar null quando não há mais separações após retry', () async {
-        final newSeparation = createMockNewSeparation();
-        consultationRepository.setNewSeparations([newSeparation]);
-
-        // Atribuição falha
+      test('should fail explicitly when there was a candidate but no assignment succeeded', () async {
+        consultationRepository.setNewSeparations([createMockNewSeparation()]);
         registrationRepository.setAlwaysFail(true);
 
-        final params = _createValidParams();
-        final result = await useCase.call(params);
+        final result = await useCase.call(_createValidParams());
 
-        expect(result.isSuccess(), isTrue);
-        final success = result.getOrNull()!;
-        expect(success.hasSeparation, isFalse);
+        expect(result.isError(), isTrue);
+        final failure = result.exceptionOrNull() as NextSeparationUserFailure;
+        expect(failure.type, equals(NextSeparationUserFailureType.assignmentFailed));
       });
     });
 
-    group('Precedência de Prioridades', () {
-      test('PRIORIDADE 1 (pendentes) tem precedência sobre PRIORIDADE 2 (nova)', () async {
+    group('priority precedence', () {
+      test('should prefer pending separation over new separation', () async {
         final pendingSeparation = createMockSeparationWithPendingItems(
           codUsuario: 1,
           nomeUsuario: 'Test User',
@@ -236,33 +233,28 @@ void main() {
         final newSeparation = createMockNewSeparation(codSepararEstoque: 300);
 
         consultationRepository.setPendingItemsSeparation(pendingSeparation);
-        consultationRepository.setNewSeparation(newSeparation);
+        consultationRepository.setNewSeparations([newSeparation]);
 
-        final params = _createValidParams();
-        final result = await useCase.call(params);
+        final result = await useCase.call(_createValidParams());
 
         final success = result.getOrNull()!;
-        expect(success.separation!.codSepararEstoque, equals(200)); // PRIORIDADE 1 (pendentes)
+        expect(success.separation!.codSepararEstoque, equals(200));
       });
 
-      test('quando PRIORIDADE 1 não existe, usa PRIORIDADE 2 (nova separação)', () async {
+      test('should use priority 2 when there is no pending separation', () async {
         final newSeparation = createMockNewSeparation();
-        consultationRepository.setNewSeparation(newSeparation);
+        consultationRepository.setNewSeparations([newSeparation]);
 
-        final params = _createValidParams();
-        final result = await useCase.call(params);
+        final result = await useCase.call(_createValidParams());
 
         final success = result.getOrNull()!;
         expect(success.separation!.codSepararEstoque, equals(newSeparation.codSepararEstoque));
       });
     });
 
-    group('Cenários de Não Encontrado', () {
-      test('deve retornar notFound quando não há separações', () async {
-        // Nenhuma separação configurada
-
-        final params = _createValidParams();
-        final result = await useCase.call(params);
+    group('not found scenarios', () {
+      test('should return notFound when there are no separations', () async {
+        final result = await useCase.call(_createValidParams());
 
         expect(result.isSuccess(), isTrue);
         final success = result.getOrNull()!;
@@ -271,23 +263,21 @@ void main() {
       });
     });
 
-    group('Tratamento de Erros', () {
-      test('deve retornar erro quando repositório lançar DataError', () async {
+    group('error handling', () {
+      test('should return networkError when repository throws DataError', () async {
         consultationRepository.setError(DataError(message: 'Erro de conexão'));
 
-        final params = _createValidParams();
-        final result = await useCase.call(params);
+        final result = await useCase.call(_createValidParams());
 
         expect(result.isError(), isTrue);
         final failure = result.exceptionOrNull() as NextSeparationUserFailure;
         expect(failure.type, equals(NextSeparationUserFailureType.networkError));
       });
 
-      test('deve retornar erro quando ocorrer exceção genérica', () async {
+      test('should return unknownError when repository throws generic exception', () async {
         consultationRepository.setError(Exception('Erro inesperado'));
 
-        final params = _createValidParams();
-        final result = await useCase.call(params);
+        final result = await useCase.call(_createValidParams());
 
         expect(result.isError(), isTrue);
         final failure = result.exceptionOrNull() as NextSeparationUserFailure;
@@ -296,8 +286,6 @@ void main() {
     });
   });
 }
-
-// Helpers para criar parâmetros e mocks
 
 NextSeparationUserParams _createValidParams() {
   return NextSeparationUserParams(
@@ -329,7 +317,7 @@ UserSystemModel _createTestUserSystemModel() {
     codVendedor: 1,
     nomeVendedor: 'Vendedor Teste',
     codLocalArmazenagem: 1,
-    nomeLocalArmazenagem: 'Armazém Teste',
+    nomeLocalArmazenagem: 'Armazem Teste',
     codContaFinanceira: '001',
     nomeContaFinanceira: 'Conta Teste',
     nomeCaixaOperador: 'Caixa Teste',
@@ -339,7 +327,7 @@ UserSystemModel _createTestUserSystemModel() {
     permiteConferirForaSequencia: Situation.ativo,
     visualizaTodasConferencias: Situation.ativo,
     codSetorConferencia: 100,
-    nomeSetorConferencia: 'Setor Conferência',
+    nomeSetorConferencia: 'Setor Conferencia',
     codSetorArmazenagem: 100,
     nomeSetorArmazenagem: 'Setor Armazenagem',
     permiteArmazenarForaSequencia: Situation.ativo,
@@ -350,8 +338,6 @@ UserSystemModel _createTestUserSystemModel() {
     expedicaoEntregaBalcaoPreVenda: Situation.inativo,
   );
 }
-
-// Funções de criação de mocks de separação
 
 SeparationUserSectorConsultationModel createMockCompletedSeparation({
   required int codUsuario,
@@ -370,8 +356,8 @@ SeparationUserSectorConsultationModel createMockCompletedSeparation({
     quantidadeItens: 10.0,
     quantidadeItensSeparacao: 10.0,
     quantidadeItensSetor: 10.0,
-    quantidadeItensSeparacaoSetor: 10.0, // 100% separado
-    carrinhosAbertosUsuario: 'N', // Sem carrinhos abertos
+    quantidadeItensSeparacaoSetor: 10.0,
+    carrinhosAbertosUsuario: 'N',
     codUsuario: codUsuario,
     nomeUsuario: nomeUsuario,
     estacaoSeparacao: null,
@@ -395,7 +381,7 @@ SeparationUserSectorConsultationModel createMockSeparationWithPendingItems({
     quantidadeItens: 10.0,
     quantidadeItensSeparacao: 5.0,
     quantidadeItensSetor: 10.0,
-    quantidadeItensSeparacaoSetor: 5.0, // 50% separado
+    quantidadeItensSeparacaoSetor: 5.0,
     carrinhosAbertosUsuario: 'N',
     codUsuario: codUsuario,
     nomeUsuario: nomeUsuario,
@@ -418,37 +404,46 @@ SeparationUserSectorConsultationModel createMockNewSeparation({int codSepararEst
     quantidadeItensSetor: 10.0,
     quantidadeItensSeparacaoSetor: 0.0,
     carrinhosAbertosUsuario: 'N',
-    codUsuario: null, // Disponível
+    codUsuario: null,
     nomeUsuario: null,
     estacaoSeparacao: null,
   );
 }
 
-// Fake implementations
-
 class _FakeSeparationUserSectorConsultationRepository
     implements BasicConsultationRepository<SeparationUserSectorConsultationModel> {
-  SeparationUserSectorConsultationModel? _pendingItemsSeparation;
+  final List<SeparationUserSectorConsultationModel> _existingSeparations = [];
   final List<SeparationUserSectorConsultationModel> _newSeparations = [];
   Object? _error;
-  int _callCount = 0;
 
-  void setCompletedSeparation(SeparationUserSectorConsultationModel _) {
-    // Separação finalizada não retorna em P1 nem P2; fake retorna [] sem configuração extra
+  void setCompletedSeparation(SeparationUserSectorConsultationModel separation) {
+    _existingSeparations
+      ..clear()
+      ..add(separation);
   }
 
   void setPendingItemsSeparation(SeparationUserSectorConsultationModel separation) {
-    _pendingItemsSeparation = separation;
+    _existingSeparations
+      ..clear()
+      ..add(separation);
+  }
+
+  void setExistingSeparations(List<SeparationUserSectorConsultationModel> separations) {
+    _existingSeparations
+      ..clear()
+      ..addAll(separations);
   }
 
   void setNewSeparation(SeparationUserSectorConsultationModel separation) {
-    _newSeparations.clear();
-    _newSeparations.add(separation);
+    _newSeparations
+      ..clear()
+      ..add(separation);
   }
 
   void setNewSeparations(List<SeparationUserSectorConsultationModel> separations) {
-    _newSeparations.clear();
-    _newSeparations.addAll(separations);
+    _newSeparations
+      ..clear()
+      ..addAll(separations);
   }
 
   void setError(Object error) {
@@ -456,30 +451,42 @@ class _FakeSeparationUserSectorConsultationRepository
   }
 
   void reset() {
-    _callCount = 0;
+    _existingSeparations.clear();
+    _newSeparations.clear();
+    _error = null;
   }
 
   @override
   Future<List<SeparationUserSectorConsultationModel>> selectConsultation(dynamic queryBuilder) async {
-    _callCount++;
     if (_error != null) {
       throw _error!;
     }
 
-    // PRIORIDADE 1: Primeira consulta (busca separação com itens/carrinhos pendentes)
-    // PRIORIDADE 2: Segunda consulta em diante (busca nova separação)
+    final builder = queryBuilder as QueryBuilder;
+    final isNewSeparationQuery = builder.params.any(
+      (param) => param.key == 'CodUsuario' && param.operator == 'IS' && param.value == null,
+    );
+    final limit = builder.pagination?.limit ?? 1000;
+    final offset = builder.pagination?.offset ?? 0;
 
-    if (_callCount == 1 && _pendingItemsSeparation != null) {
-      return [_pendingItemsSeparation!];
+    if (isNewSeparationQuery) {
+      return _slicePage(_newSeparations, offset: offset, limit: limit);
     }
 
-    if (_callCount >= 2 && _newSeparations.isNotEmpty) {
-      final result = _newSeparations.first;
-      _newSeparations.removeAt(0);
-      return [result];
+    return _slicePage(_existingSeparations, offset: offset, limit: limit);
+  }
+
+  List<SeparationUserSectorConsultationModel> _slicePage(
+    List<SeparationUserSectorConsultationModel> source, {
+    required int offset,
+    required int limit,
+  }) {
+    if (offset >= source.length) {
+      return [];
     }
 
-    return [];
+    final end = (offset + limit) > source.length ? source.length : offset + limit;
+    return source.sublist(offset, end);
   }
 }
 
@@ -500,12 +507,12 @@ class _FakeSeparationUserSectorRepository implements BasicRepository<SeparationU
   void reset() {
     _insertCount = 0;
     _lastInsert = null;
+    _shouldFailFirstTime = false;
+    _alwaysFail = false;
   }
 
   @override
-  Future<List<SeparationUserSectorModel>> select(QueryBuilder queryBuilder) async {
-    return [];
-  }
+  Future<List<SeparationUserSectorModel>> select(QueryBuilder queryBuilder) async => [];
 
   @override
   Future<List<SeparationUserSectorModel>> insert(SeparationUserSectorModel model) async {
@@ -520,14 +527,10 @@ class _FakeSeparationUserSectorRepository implements BasicRepository<SeparationU
   }
 
   @override
-  Future<List<SeparationUserSectorModel>> update(SeparationUserSectorModel model) async {
-    return [];
-  }
+  Future<List<SeparationUserSectorModel>> update(SeparationUserSectorModel model) async => [];
 
   @override
-  Future<List<SeparationUserSectorModel>> delete(SeparationUserSectorModel model) async {
-    return [];
-  }
+  Future<List<SeparationUserSectorModel>> delete(SeparationUserSectorModel model) async => [];
 
   int get insertCount => _insertCount;
   SeparationUserSectorModel? get lastInsert => _lastInsert;
@@ -535,27 +538,17 @@ class _FakeSeparationUserSectorRepository implements BasicRepository<SeparationU
 
 class _FakeLogger implements ILogger {
   @override
-  void debug(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
-    // Do nothing for tests
-  }
+  void debug(String message, {String? tag, Object? error, StackTrace? stackTrace}) {}
 
   @override
-  void info(String message, {String? tag}) {
-    // Do nothing for tests
-  }
+  void error(String message, {String? tag, Object? error, StackTrace? stackTrace}) {}
 
   @override
-  void warning(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
-    // Do nothing for tests
-  }
+  void info(String message, {String? tag}) {}
 
   @override
-  void error(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
-    // Do nothing for tests
-  }
+  void severe(String message, {String? tag, Object? error, StackTrace? stackTrace}) {}
 
   @override
-  void severe(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
-    // Do nothing for tests
-  }
+  void warning(String message, {String? tag, Object? error, StackTrace? stackTrace}) {}
 }

@@ -1,273 +1,332 @@
-# Processo "Próxima Separação" – Regras de Negócio e Implementação
+# Processo "Proxima Separacao"
 
-Este documento descreve as regras de negócio e a implementação do fluxo **Próxima Separação**, que determina qual separação o usuário deve abrir ao acionar o botão "Próxima Separação" na tela de listagem de separações.
+## Objetivo
 
----
+Este documento descreve o comportamento atual do fluxo "Proxima
+Separacao", usado para decidir qual separacao o usuario deve abrir ao
+acionar o botao correspondente na tela de listagem.
 
-## 1. Visão geral do processo
+O foco aqui e documentar o que o codigo faz hoje, sem carregar
+suposicoes da versao anterior do fluxo.
 
-O processo **Próxima Separação** responde à pergunta: _qual separação o usuário deve abrir agora?_
+## Onde o fluxo comeca
 
-- **Onde é acionado:** tela de listagem de separações (`SeparationScreen`), através do FAB (Floating Action Button) "Próxima Separação".
-- **Resultado esperado:** retornar uma única separação (já atribuída ou recém-atribuída ao usuário no setor dele) ou informar que não há separação pendente.
-- **Escopo:** sempre no **setor do usuário** e para o **usuário logado** (empresa + usuário + setor estoque obrigatórios).
+O disparo fica em:
 
-O fluxo segue Clean Architecture: a tela chama o use case de domínio, que usa repositório de consulta e o use case de atribuição quando for nova separação.
+- `lib/ui/screens/separation_screen.dart`
 
----
+O FAB chama:
 
-## 2. Regras de negócio
-
-### 2.1 Pré-requisitos (validação antes da busca)
-
-| Regra             | Descrição                                                                             | Falha retornada                               |
-| ----------------- | ------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Usuário válido    | `codUsuario` e `codEmpresa` devem ser maiores que zero; `userSystemModel` obrigatório | `NextSeparationUserFailure.invalidParams`     |
-| Setor obrigatório | Usuário deve possuir setor estoque configurado (`codSetorEstoque != null` e `> 0`)    | `NextSeparationUserFailure.userWithoutSector` |
-
-Sem setor, o usuário não pode participar do processo de “próxima separação” (regra de negócio: cada ator atua em um setor).
-
-### 2.2 Prioridade 1 – Voltar na mesma separação (itens ou carrinhos pendentes)
-
-**Regra:** Sempre que existir uma separação **já atribuída ao usuário**, no **setor do usuário**, com **itens a separar** ou **carrinhos para salvar**, essa separação deve ser a primeira opção.
-
-- **Objetivo:** evitar que o usuário abandone uma separação em andamento; ele deve continuar na mesma até concluir (itens + carrinhos).
-- **Critérios de busca:**
-  - `CodEmpresa` = empresa do usuário
-  - `CodUsuario` = usuário atual
-  - `CodSetorEstoque` = setor estoque do usuário
-  - Situação **não** pode ser: CANCELADA, SEPARADO, EM PAUSA, BLOQUEADA
-  - **E** pelo menos uma das condições:
-    - `QuantidadeItensSetor > QuantidadeItensSeparacaoSetor` (ainda há itens do setor a separar)
-    - `CarrinhosAbertosUsuario = 'S'` (há carrinhos abertos do usuário)
-
-Se houver resultado, ele é retornado e o fluxo encerra (não se busca nova).
-
-### 2.3 Separação já finalizada pelo setor NÃO deve ser retornada
-
-**Regra:** Separações em que o usuário **já finalizou** o setor dele (todos os itens separados e todos os carrinhos salvos) **não** devem ser retornadas por "Próxima Separação".
-
-- **Objetivo:** evitar que o usuário volte para uma separação na qual já concluiu seu trabalho. Após finalizar carrinhos e concluir todos os itens do seu setor, a separação deixa de ser pendente para aquele usuário.
-- **Critérios de exclusão:** separações com `QuantidadeItensSetor = QuantidadeItensSeparacaoSetor` e `CarrinhosAbertosUsuario != 'S'` (setor 100% separado e carrinhos finalizados) não entram na busca. O usuário deve receber "Nenhuma separação pendente" ou uma nova separação (Prioridade 2).
-
-### 2.4 Prioridade 2 – Nova separação (atribuição)
-
-**Regra:** Só quando não existir separação na Prioridade 1, buscar uma **nova** separação **disponível** (ainda sem usuário atribuído) no setor do usuário e **atribuir** ao usuário antes de retornar.
-
-- **Objetivo:** cada separação no setor tem um único responsável; a atribuição é a confirmação de que aquele usuário assumiu aquela separação naquele setor.
-- **Critérios de busca:**
-  - `CodEmpresa` = empresa do usuário
-  - `CodSetorEstoque` = setor do usuário
-  - `CodUsuario IS NULL` (separação ainda não atribuída)
-  - Ainda há itens a separar no setor: `QuantidadeItensSetor > QuantidadeItensSeparacaoSetor`
-  - Situação **não** pode ser: CANCELADA, SEPARADO, EM PAUSA, BLOQUEADA
-
-Após encontrar uma separação disponível, o sistema **registra a atribuição** (use case `RegisterSeparationUserSectorUseCase`). Se o registro falhar, há retry (até 3 tentativas) buscando outra separação disponível.
-
-### 2.5 Situações excluídas da “próxima separação”
-
-As situações abaixo **não** entram como candidatas em Prioridade 1 e Prioridade 2:
-
-| Código    | Descrição | Motivo                             |
-| --------- | --------- | ---------------------------------- |
-| CANCELADA | Cancelada | Separação não está ativa           |
-| SEPARADO  | Separado  | Já concluída no fluxo de separação |
-| EM PAUSA  | Em Pausa  | Suspensa                           |
-| BLOQUEADA | Bloqueada | Indisponível                       |
-
-Ou seja: o processo considera apenas separações “em andamento” ou “aguardando”, nunca canceladas, finalizadas, em pausa ou bloqueadas.
-
-### 2.6 Regras de atribuição e responsabilidade
-
-- **Atribuição obrigatória:** o usuário só pode “iniciar” uma nova separação (Prioridade 2) após a atribuição ser registrada (confirmação de que a separação naquele setor foi assumida por ele).
-- **Um usuário por setor por separação:** cada separação, em cada setor, tem um único usuário responsável. A unicidade é garantida pelo registro de atribuição (e deve ser garantida no backend ao persistir).
-- **Não pegar próxima sem completar:** o usuário só recebe uma **nova** separação (Prioridade 2) quando não tiver nenhuma separação sua com itens pendentes ou carrinhos abertos (Prioridade 1). Separações já finalizadas pelo setor do usuário não são retornadas.
-
-### 2.7 Abertura apenas de separações vinculadas (botão "Abrir Separação")
-
-- **Usuário com setor:** Se o usuário possui `codSetorEstoque` (não nulo e maior que zero), ele **só pode abrir** separações em que esteja participando (vinculado), ou seja, cujo `codUsuariosSeparacao` contenha o `codUsuario` dele. A verificação é feita antes da navegação na tela de listagem (`SeparationScreen._onSeparationTap`) e também ao entrar na tela de itens (`SeparationItemsScreen`).
-- **Usuário sem setor:** Se o usuário não possui setor (null ou zero), mantém-se permissão administrativa: pode abrir qualquer separação da lista.
-- **Verificação centralizada:** A checagem é feita através do use case **ResolveSeparationUserLinkUseCase**: quando `codUsuariosSeparacao` não está vazio, usa-se os dados da listagem (`contains(codUsuario)`); quando está vazio, o use case chama o **CheckSeparationUserSectorLinkUseCase** (consulta `separar.usuario.setor.consulta`) como fallback para decidir se permite abrir.
-
-### 2.8 Incluir Carrinho
-
-As regras abaixo aplicam-se em conjunto (todas devem ser atendidas):
-
-- **Situação da separação:** Só é permitido incluir carrinho quando a separação estiver em situação **AGUARDANDO** ou **SEPARANDO**. Outras situações (ex.: SEPARADO, CANCELADA, EM PAUSA, BLOQUEADA) impedem a ação. A verificação usa dados consultados no servidor no momento do clique (`SeparationItemsScreen._onAddCart` → `GetSeparationConsultationUseCase` → `_canAddCart`).
-- **Usuário com setor (vínculo):** Se o usuário possui `codSetorEstoque` (não nulo e maior que zero), ele **só pode incluir carrinho** em separações em que esteja participando (vinculado), ou seja, cujo `codUsuariosSeparacao` contenha o `codUsuario` dele. A verificação é feita antes de navegar para a tela de incluir carrinho (`SeparationItemsScreen._onAddCart`).
-- **Usuário sem setor:** Se o usuário não possui setor (null ou zero), mantém-se permissão administrativa: pode incluir carrinho em qualquer separação (respeitando a situação AGUARDANDO/SEPARANDO).
-- **Verificação centralizada:** O **ResolveSeparationUserLinkUseCase** é usado também em Incluir Carrinho: quando `codUsuariosSeparacao` não está vazio usa os dados da listagem; quando está vazio usa o **CheckSeparationUserSectorLinkUseCase** (evento `separar.usuario.setor.consulta`) como fallback antes de permitir incluir carrinho.
-
-### 2.9 Permissões para carrinho de outro usuário (Separar / Salvar / Cancelar)
-
-Na tela de itens da separação, cada carrinho pode ter sido iniciado pelo próprio usuário ou por outro. As ações **Separar** (editar), **Salvar** (finalizar) e **Cancelar** (excluir) obedecem às permissões do usuário no sistema:
-
-| Permissão (UserSystemModel) | Ação na UI | Regra |
-| --------------------------- | ---------- | ----- |
-| `editaCarrinhoOutroUsuario == Situation.ativo` | **Separar** (abrir carrinho para separar itens) | Permite separar carrinho de outro usuário; caso contrário, só o dono do carrinho pode separar. |
-| `salvaCarrinhoOutroUsuario == Situation.ativo` | **Salvar** (finalizar carrinho) | Permite salvar carrinho de outro usuário; caso contrário, só o dono pode salvar. |
-| `excluiCarrinhoOutroUsuario == Situation.ativo` | **Cancelar** (excluir/cancelar carrinho) | Permite cancelar carrinho de outro usuário; caso contrário, só o dono pode cancelar. |
-
-- **Dono do carrinho:** se `codUsuario` atual for igual a `codUsuarioInicio` do carrinho, o usuário sempre pode Separar, Salvar e Cancelar aquele carrinho, independentemente das permissões acima.
-- **Outro usuário:** só pode executar a ação se tiver a permissão correspondente (`Situation.ativo`); caso contrário, o app exibe diálogo "Acesso Negado" e não executa a ação.
-- **Implementação:** `CartValidationService` centraliza a lógica (`canEditOtherUserCart`, `canSaveOtherUserCart`, `canDeleteOtherUserCart`) e é chamado antes de navegar para Separar, antes de Salvar e antes de abrir o diálogo de Cancelar em `cart_item_card.dart`, e antes de Salvar em `card_picking_viewmodel.dart`.
-
----
-
-## 3. Fluxo da implementação
-
-### 3.1 Camadas envolvidas
-
-```
-Presentation (SeparationScreen)
-    → chama NextSeparationUserUseCase com NextSeparationUserParams
-Domain (NextSeparationUserUseCase)
-    → consulta BasicConsultationRepository<SeparationUserSectorConsultationModel>
-    → se Prioridade 2 (nova): chama RegisterSeparationUserSectorUseCase
-Infrastructure (repositórios concretos / socket)
-    → SeparationUserSectorConsultationRepositoryImpl (consulta)
-    → repositório de SeparationUserSectorModel (inserção da atribuição)
+```dart
+_findNextSeparation()
 ```
 
-### 3.2 Sequência resumida (Próxima Separação)
+Esse metodo:
 
-1. Usuário toca no FAB "Próxima Separação" na tela de separações.
-2. A tela obtém sessão (UserSessionService), monta `NextSeparationUserParams` (empresa, usuário, setor, userSystemModel) e valida setor.
-3. Chama `NextSeparationUserUseCase(params)`.
-4. Use case valida parâmetros (incluindo `hasValidSector`).
-5. **Prioridade 1:** busca separação do usuário no setor com (itens a separar OU carrinhos abertos). Se encontrar, retorna.
-6. **Prioridade 2:** busca separação disponível (CodUsuario IS NULL) no setor; se encontrar, chama `RegisterSeparationUserSectorUseCase` para atribuir; em falha, retry até 3 vezes. Separações já finalizadas pelo setor do usuário não são retornadas.
-7. Retorno: `NextSeparationUserSuccess.found(separation)` ou `NextSeparationUserSuccess.notFound()` ou `NextSeparationUserFailure` (validação, rede, etc.).
-8. Se sucesso com separação, a tela verifica se `separation.codUsuario == params.codUsuario`, converte para `SeparateConsultationModel` e navega para a tela de itens da separação (`AppRouter.separateItems`).
+1. carrega a sessao do usuario
+2. monta `NextSeparationUserParams`
+3. executa `NextSeparationUserUseCase`
+4. trata sucesso, ausencia de separacao ou falha
+5. se houver separacao valida, consulta os dados completos antes de
+   navegar para a tela de itens
 
-### 3.3 Diagrama de prioridades (lógico)
+## Pre-requisitos atuais
 
-```mermaid
-flowchart TD
-  Start[Usuário toca Próxima Separação]
-  Validate[Validar params e setor]
-  P1[Prioridade 1: Pendentes no setor]
-  P2[Prioridade 2: Nova + Atribuir]
-  ReturnFound[Retornar separação]
-  ReturnNotFound[Retornar não encontrado]
+Os parametros sao representados por:
 
-  Start --> Validate
-  Validate -->|inválido| ReturnNotFound
-  Validate -->|válido| P1
-  P1 -->|encontrou| ReturnFound
-  P1 -->|não| P2
-  P2 -->|encontrou e atribuiu| ReturnFound
-  P2 -->|não ou falha atribuição| ReturnNotFound
+- `lib/domain/usecases/next_separation_user/next_separation_user_params.dart`
+
+Hoje o fluxo exige:
+
+- `codEmpresa > 0`
+- `codUsuario > 0`
+- `userSystemModel != null`
+- `codSetorEstoque != null && codSetorEstoque > 0`
+
+Se o usuario nao tiver setor valido, a tela nem prossegue com a busca e
+mostra erro localmente. O use case tambem valida isso e retorna
+`NextSeparationUserFailure.userWithoutSector()` como protecao adicional.
+
+## Regras de negocio atuais
+
+### Prioridade 1: voltar para uma separacao do proprio usuario
+
+A primeira busca tenta encontrar uma separacao ja atribuida ao usuario
+no setor dele.
+
+Implementacao:
+
+- `NextSeparationUserUseCase._findExistingSeparationWithPendingItems(...)`
+
+O filtro de consulta usado hoje aplica:
+
+- `CodEmpresa = params.codEmpresa`
+- `CodUsuario = params.codUsuario`
+- `CodSetorEstoque = params.codSetorEstoque`
+- `SepararEstoqueSituacao` diferente de:
+  - `CANCELADA`
+  - `SEPARADO`
+  - `EM PAUSA`
+  - `BLOQUEADA`
+
+Depois da consulta, a implementacao atual nao confia apenas na query
+para saber se ha pendencia. Ela filtra o resultado em memoria com:
+
+```dart
+CheckSeparationUserSectorCompletionUseCase.hasPendingItems
 ```
 
----
+Ou seja, a regra real de pendencia fica centralizada em:
 
-## 4. Detalhamento da implementação
+- `quantidadeItensSetor > quantidadeItensSeparacaoSetor`
+- ou `carrinhosAbertosUsuario == 'S'`
 
-### 4.1 Arquivos principais
+Se encontrar uma separacao com pendencia, o fluxo retorna ali mesmo.
 
-| Camada       | Arquivo                                                                                                | Responsabilidade                                                                                                                            |
-| ------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Presentation | `lib/ui/screens/separation_screen.dart`                                                                | FAB "Próxima Separação", montagem de params a partir da sessão, chamada ao use case, tratamento de resultado e navegação para tela de itens |
-| Domain       | `lib/domain/usecases/next_separation_user/next_separation_user_usecase.dart`                           | Orquestração das duas prioridades (pendentes e nova), validação, consulta e atribuição; não retorna separações já finalizadas pelo setor    |
-| Domain       | `lib/domain/usecases/next_separation_user/next_separation_user_params.dart`                            | Parâmetros de entrada (codEmpresa, codUsuario, codSetorEstoque, userSystemModel) e validação (isValid, hasValidSector)                      |
-| Domain       | `lib/domain/usecases/next_separation_user/next_separation_user_success.dart`                           | Resultado de sucesso (separation opcional, message) e factory `found` / `notFound`                                                          |
-| Domain       | `lib/domain/usecases/next_separation_user/next_separation_user_failure.dart`                           | Tipos de falha (userWithoutSector, invalidParams, networkError, unknownError) e mensagens ao usuário                                        |
-| Domain       | `lib/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_usecase.dart`         | Verificação centralizada de vínculo usuário–separação: usa listagem quando `codUsuariosSeparacao` não vazio, senão chama CheckSeparationUserSectorLinkUseCase |
-| Domain       | `lib/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_params.dart`           | Parâmetros do use case (separation, codUsuario, codSetorEstoque)                                                                           |
-| Domain       | `lib/domain/usecases/check_separation_user_sector_link/check_separation_user_sector_link_usecase.dart` | Verificação de vínculo usuário–separação–setor (fallback usado por ResolveSeparationUserLinkUseCase quando `CodUsuariosSeparacao` vazio)   |
-| Domain       | `lib/domain/usecases/register_separation_user_sector/register_separation_user_sector_usecase.dart`     | Registro da atribuição usuário–separação–setor (Prioridade 2 – nova)                                                                        |
-| Domain       | `lib/domain/models/separation_user_sector_consultation_model.dart`                                     | Modelo de consulta (separação + setor + usuário + quantidades + carrinhos abertos)                                                          |
-| Domain       | `lib/domain/models/situation/expedition_situation_model.dart`                                          | Situações da expedição (ex.: SEPARANDO, SEPARADO, CANCELADA) usadas nas buscas e exclusões                                                  |
-| Data         | `lib/data/repositories/separation_user_sector_consultation_repository_impl.dart`                       | Implementação da consulta (ex.: evento socket `separar.usuario.setor.consulta`)                                                             |
-| Domain       | `lib/domain/services/cart_validation_service.dart`                                                     | Validação de acesso ao carrinho: dono ou permissão (EditaCarrinhoOutroUsuario, SalvaCarrinhoOutroUsuario, ExcluiCarrinhoOutroUsuario). Recebe repositório por injeção de dependência (construtor); não utiliza locator. Usado antes de Separar, Salvar e Cancelar |
-| Presentation | `lib/ui/widgets/separate_items/cart_item_card.dart`                                                     | Card do carrinho na tela de itens; obtém `CartValidationService` do locator e chama `validateCartAccess` / `hasItemsForUserSector` em _onSeparateCart, _onFinalizeCart, _showCancelDialog |
-| Presentation | `lib/presentation/viewmodels/card_picking_viewmodel.dart`                                               | ViewModel da tela de separação por item; usa `CartValidationService` injetado (via locator) em `validateCartAccess` antes de salvar |
+Quando a consulta vem paginada, o use case continua avancando pagina por
+pagina ate encontrar uma separacao realmente elegivel ou esgotar os
+resultados. Isso evita falso `notFound` quando a primeira pagina so tem
+trabalho concluido.
 
-### 4.2 Parâmetros de entrada (NextSeparationUserParams)
+### Separacao concluida pelo setor do usuario nao volta
 
-- **codEmpresa** (int): código da empresa.
-- **codUsuario** (int): código do usuário logado.
-- **codSetorEstoque** (int?): código do setor estoque do usuário; obrigatório para o fluxo (`hasValidSector`).
-- **userSystemModel** (UserSystemModel?): dados do usuário no sistema (ex.: nome para registro de atribuição).
+Na pratica, uma separacao em que o usuario nao tenha mais itens
+pendentes nem carrinhos abertos deixa de ser elegivel na Prioridade 1.
 
-Validação: `codEmpresa > 0`, `codUsuario > 0`, `userSystemModel != null`, `hasValidSector` (codSetorEstoque não nulo e > 0).
+Isso nao acontece por uma query dedicada de "setor concluido", mas pelo
+filtro de pendencia descrito acima.
 
-### 4.3 Query base e setor
+### Prioridade 2: procurar nova separacao disponivel
 
-Todas as buscas que consideram “separação do usuário” usam `_buildBaseQuery(params)`, que inclui:
+Se a Prioridade 1 nao retornar nada, o fluxo busca uma nova separacao
+disponivel no setor do usuario.
 
-- `CodEmpresa` = params.codEmpresa
-- `CodUsuario` = params.codUsuario
-- `CodSetorEstoque` = params.codSetorEstoque (quando `params.hasValidSector`)
+Implementacao:
 
-Assim, Prioridade 1 restringe sempre ao **usuário e ao setor** do usuário.
+- `NextSeparationUserUseCase._findAndAssignNewSeparation(...)`
 
-### 4.4 Retry na Prioridade 2 (nova separação)
+A query atual usa:
 
-Se a atribuição (RegisterSeparationUserSectorUseCase) falhar após encontrar uma separação disponível, o use case tenta novamente até **3 vezes** (contagem total), com delay entre tentativas (ex.: 100ms × (retryCount + 1)). A cada tentativa, busca-se outra separação disponível (nova chamada a `_findNewSeparation`).
+- `CodEmpresa = params.codEmpresa`
+- `CodSetorEstoque = params.codSetorEstoque`
+- `QuantidadeItensSetor > QuantidadeItensSeparacaoSetor`
+- `CodUsuario IS NULL`
+- situacao diferente de:
+  - `CANCELADA`
+  - `SEPARADO`
+  - `EM PAUSA`
+  - `BLOQUEADA`
 
-### 4.5 Verificação na tela antes de abrir
+Se houver candidata, o use case tenta registrar a atribuicao via:
 
-Antes de navegar para a tela de itens, a `SeparationScreen` verifica se `separation.codUsuario == params.codUsuario`. Se a separação retornada não estiver atribuída ao usuário atual, exibe modal de erro e não navega. Isso protege contra inconsistências (ex.: atribuição falhou no backend mas o app recebeu a separação).
+- `RegisterSeparationUserSectorUseCase`
 
----
+No sucesso, ele devolve a separacao com `codUsuario` e `nomeUsuario`
+atualizados no retorno.
 
-## 5. Resumo das regras (checklist)
+### Retry de atribuicao
 
-- Prioridade 1: sempre voltar na mesma separação (usuário + setor) se houver itens a separar ou carrinhos para salvar; situações CANCELADA, SEPARADO, EM PAUSA, BLOQUEADA excluídas.
-- Separação já finalizada pelo setor: NÃO retornar. Quando QuantidadeItensSetor = QuantidadeItensSeparacaoSetor e CarrinhosAbertosUsuario != 'S', o usuário concluiu; retornar "Nenhuma separação pendente" ou nova separação.
-- Prioridade 2: nova separação disponível (CodUsuario IS NULL) no setor, com atribuição obrigatória antes de retornar; retry em caso de falha na atribuição.
-- Um usuário por setor por separação; usuário não recebe nova separação sem “completar” a atual (ordem das prioridades).
-- Setor do usuário obrigatório; todas as buscas de separação do usuário filtradas por CodSetorEstoque.
-- Abertura (botão "Abrir Separação"): usuário com setor só abre separações em que `codUsuariosSeparacao` contenha seu `codUsuario`; usuário sem setor tem permissão administrativa.
-- Verificação de vínculo (abrir separação / entrada na tela de itens / incluir carrinho) centralizada no use case **ResolveSeparationUserLinkUseCase** (listagem quando `codUsuariosSeparacao` não vazio, fallback CheckSeparationUserSectorLinkUseCase quando vazio).
-- Incluir Carrinho (todas as regras devem ser atendidas): (1) situação da separação deve ser AGUARDANDO ou SEPARANDO; (2) usuário com setor só pode incluir carrinho em separações vinculadas (`codUsuariosSeparacao` contenha seu `codUsuario`); usuário sem setor tem permissão administrativa (respeitando a situação). Checagem em `SeparationItemsScreen._onAddCart` (GetSeparationConsultationUseCase + ResolveSeparationUserLinkUseCase).
-- Carrinho de outro usuário: Separar/Salvar/Cancelar permitidos apenas se o usuário for o dono do carrinho ou tiver a permissão correspondente no UserSystemModel (editaCarrinhoOutroUsuario, salvaCarrinhoOutroUsuario, excluiCarrinhoOutroUsuario); validação via CartValidationService antes de cada ação.
+Se a atribuicao falhar, o fluxo tenta novamente ate 3 vezes.
 
-Este documento reflete o comportamento implementado no use case `NextSeparationUserUseCase` e nas telas `SeparationScreen` e `SeparationItemsScreen` conforme o código em `lib/`.
+Implementacao:
 
----
+- `NextSeparationUserUseCase._findAndAssignNewSeparationPaged(...)`
 
-## 6. Verificação de consistência (regras do projeto e objetivos)
+No caminho paginado, a implementacao atual registra as separacoes ja
+tentadas e evita repetir a mesma candidata dentro da mesma execucao do
+fluxo.
 
-### 6.1 Objetivos
+Se existirem candidatas, mas nenhuma atribuicao conseguir ser gravada, o
+use case agora retorna falha explicita de atribuicao em vez de colapsar
+o caso para `notFound`.
 
-| Objetivo                                                                     | Implementação                                                                                                                                                                       | Status      |
-| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| Prioridade 1: voltar na mesma separação (itens/carrinhos pendentes) no setor | `_findExistingSeparationWithPendingItems` chamada em primeiro lugar; `_buildBaseQuery` inclui `CodSetorEstoque` quando `hasValidSector`                                             | Consistente |
-| Separação finalizada pelo setor NÃO retornada                                | Não existe busca por separação 100% completada; apenas P1 (pendentes) e P2 (nova). Separação com setor finalizado cai em notFound ou P2                                             | Consistente |
-| Prioridade 2: nova separação + atribuição                                    | `_findNewSeparation` (CodUsuario IS NULL) + `RegisterSeparationUserSectorUseCase`; retry até 3x                                                                                     | Consistente |
-| Usuário com setor só abre separações vinculadas                              | `SeparationScreen._onSeparationTap`: verifica via ResolveSeparationUserLinkUseCase antes de navegar; `SeparationItemsScreen`: mesma regra ao entrar e em Incluir Carrinho           | Consistente |
-| Verificação de vínculo centralizada                                          | ResolveSeparationUserLinkUseCase usado em Abrir Separação, entrada na tela de itens e Incluir Carrinho; listagem quando `codUsuariosSeparacao` não vazio, CheckSeparationUserSectorLinkUseCase como fallback | Consistente |
-| Usuário sem setor: permissão administrativa                                  | Em ambos os pontos: só aplica bloqueio quando `codSetorEstoque != null && codSetorEstoque > 0`                                                                                      | Consistente |
-| Mensagem alinhada entre listagem e tela de itens                             | Mesmo texto: "Esta separação não está atribuída ao usuário atual. Por favor, utilize a opção 'Próxima Separação'."                                                                  | Consistente |
-| Incluir Carrinho: situação AGUARDANDO ou SEPARANDO                           | `SeparationItemsScreen._canAddCart`; consulta servidor via GetSeparationConsultationUseCase; SnackBar e updateSeparation se situação inválida                                      | Consistente |
-| Incluir Carrinho: usuário com setor só em separações vinculadas              | `SeparationItemsScreen._onAddCart`: antes do `context.push`, chama ResolveSeparationUserLinkUseCase; SnackBar e retorno sem navegar se não vinculado                                | Consistente |
-| Fallback quando CodUsuariosSeparacao vazio                                   | ResolveSeparationUserLinkUseCase chama `CheckSeparationUserSectorLinkUseCase` quando a lista está vazia; consulta `separar.usuario.setor.consulta`                                | Consistente |
-| Permissões carrinho outro usuário (Separar/Salvar/Cancelar)                  | `CartValidationService` (DIP: repositório injetado no construtor) usado em `cart_item_card.dart` e `card_picking_viewmodel.dart` via instância do locator; bloqueio e diálogo "Acesso Negado" quando sem permissão | Consistente |
+### Fallback para erro SQL com paginacao
 
-### 6.2 Regras do projeto (Clean Architecture, convenções, dependências)
+O use case tambem tem um comportamento especifico para alguns erros de
+consulta:
 
-| Regra                                          | Onde verificar                                                                                                                                                                                                | Status                                          |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Domain não importa infrastructure/presentation | `NextSeparationUserUseCase`: apenas domain, core, results                                                                                                                                                     | Ok                                              |
-| Use case retorna Result e usa interfaces       | `NextSeparationUserUseCase`: `Result<NextSeparationUserSuccess>`, `BasicConsultationRepository`, factory do RegisterUseCase                                                                                   | Ok                                              |
-| DIP: injeção por construtor                    | Use case recebe repositório e factory no construtor; DI em `locator`                                                                                                                                          | Ok                                              |
-| Presentation não importa infrastructure        | `SeparationScreen` importa `data/services/user_session_service`; regra diz "nunca importar de infrastructure". No projeto, `data/` é a camada de implementação; outras telas já usam esse padrão para sessão. | Padrão existente; não alterado por esta feature |
-| Navegação com go_router                        | `context.push(AppRouter.separateItems)`, `context.pop()`                                                                                                                                                      | Ok                                              |
-| Nomenclatura (camelCase, métodos privados \_)  | `_onSeparationTap`, `_showErrorModal`, `_findNextSeparation`                                                                                                                                                  | Ok                                              |
-| Null safety                                    | Verificação `codSetorEstoque != null && codSetorEstoque > 0 && codUsuario != null` antes de usar; `mounted` antes de mostrar modal e navegar                                                                  | Ok                                              |
-| Comentários apenas quando necessário           | Comentários em `_onSeparationTap` e `_onAddCart` explicam a regra (por quê); documentação em 2.7 e 2.8                                                                                                        | Ok                                              |
+- se detectar erro SQL, `offset` ou problema de `fetch/statement`
+- ele refaz a busca sem paginacao
 
-### 6.3 Documentação
+Esse fallback existe tanto para a Prioridade 1 quanto para a Prioridade
+2.
 
-- Regras de negócio (Prioridades 1 e 2, separação finalizada não retornada, situações excluídas, atribuição, abertura vinculada, Incluir Carrinho, permissões carrinho outro usuário) descritas na seção 2 (2.1 a 2.9).
-- Verificação de vínculo centralizada no **ResolveSeparationUserLinkUseCase** (seções 2.7 e 2.8); fallback quando `CodUsuariosSeparacao` vazio: **CheckSeparationUserSectorLinkUseCase** (consulta `separar.usuario.setor.consulta`).
-- Permissões de carrinho de outro usuário (seção 2.9): regras EditaCarrinhoOutroUsuario, SalvaCarrinhoOutroUsuario, ExcluiCarrinhoOutroUsuario aplicadas via CartValidationService (repositório injetado) antes de Separar, Salvar e Cancelar; detalhes em `lib/domain/services/cart_validation_service.dart` e uso em `cart_item_card.dart` e `card_picking_viewmodel.dart`.
-- Testes: use case `CheckSeparationUserSectorLink` com testes unitários; **testes de widget** para o fluxo "não vinculado" (ex.: `test/ui/screens/separation_screen_not_linked_test.dart`: toque em "Abrir Separação" com separação não atribuída → SnackBar com mensagem e sem navegação); mensagem única e SnackBar para "não vinculado" em todos os pontos (UX). Em `hasItemsForUserSector`, em caso de exceção o serviço registra o erro em log (AppLogger) antes de retornar `true` (fallback para não bloquear o usuário).
-- Fluxo, arquivos e parâmetros descritos nas seções 3 e 4.
+## Fluxo de abertura na UI
 
-### 6.4 Observação (edge case)
+Quando o use case encontra uma separacao, a `SeparationScreen` ainda nao
+navega direto para a tela de itens.
 
-- Se o usuário tiver setor mas `codUsuario` for null (sessão incompleta), `_onSeparationTap` não entra no bloco de verificação e permite navegar; a `SeparationItemsScreen` faz `currentUserId == null` e devolve o usuário. Ou seja, a segunda tela garante o bloqueio; opcionalmente pode-se tratar "tem setor e codUsuario == null" na listagem para evitar uma navegação desnecessária.
+Passos atuais:
+
+1. valida se `separation.codUsuario == params.codUsuario`
+2. consulta os dados completos com `GetSeparationConsultationUseCase`
+3. so depois chama `context.push(AppRouter.separateItems, ...)`
+
+Esse detalhe e importante porque o retorno do use case usa
+`SeparationUserSectorConsultationModel`, mas a tela de itens abre com
+os dados completos da separacao.
+
+## Verificacao de vinculo do usuario com a separacao
+
+O controle de acesso para abrir uma separacao ja existente fica
+centralizado em:
+
+- `ResolveSeparationUserLinkUseCase`
+
+Regras atuais:
+
+- usuario com setor:
+  - so pode abrir separacao vinculada a ele
+- usuario sem setor:
+  - mantem permissao administrativa
+
+O comportamento do resolver e:
+
+1. se `codUsuariosSeparacao` vier preenchido na listagem, usa
+   `contains(codUsuario)`
+2. se vier vazio, faz fallback para
+   `CheckSeparationUserSectorLinkUseCase`
+
+Esse mesmo use case e reutilizado em:
+
+- `SeparationScreen._onSeparationTap()`
+- `SeparationItemsScreen._initializeAfterFirstFrame()`
+- `SeparationItemsScreen._onAddCart()`
+
+## Incluir carrinho
+
+O documento antigo estava perto, mas faltava uma regra relevante.
+
+Hoje, para incluir carrinho em `SeparationItemsScreen._onAddCart(...)`,
+o fluxo valida tudo isso:
+
+1. consulta novamente a separacao no servidor com
+   `GetSeparationConsultationUseCase`
+2. verifica se a situacao atual permite incluir carrinho
+3. verifica vinculo do usuario com `ResolveSeparationUserLinkUseCase`
+4. verifica se o setor do usuario ja foi concluido com
+   `CheckSeparationUserSectorCompletionUseCase`
+5. so depois navega para `AppRouter.addCart`
+
+Quando a tela de adicionar carrinho retorna sucesso, a implementacao
+atual reconsulta os carrinhos da separacao e tenta abrir exatamente o
+carrinho adicionado, usando `codCarrinho` e `codCarrinhoPercurso`, em
+vez de reabrir heuristica de "carrinho mais recente".
+
+### Situacoes permitidas para incluir carrinho
+
+Implementacao:
+
+```dart
+separation.situacao == ExpeditionSituation.aguardando ||
+separation.situacao == ExpeditionSituation.separando
+```
+
+### Regra adicional importante
+
+Mesmo que a separacao esteja em situacao valida e vinculada ao usuario,
+o app bloqueia incluir carrinho quando o setor daquele usuario ja esta
+concluido na separacao.
+
+Essa checagem fica em:
+
+- `CheckSeparationUserSectorCompletionUseCase`
+
+Ela olha se ainda existe:
+
+- item pendente no setor
+- ou carrinho aberto do usuario
+
+Se nao houver mais pendencia, a UI informa que o setor ja esta
+concluido e impede novos carrinhos.
+
+## Carrinho de outro usuario
+
+As permissoes de separar, salvar e cancelar carrinho continuam
+centralizadas em:
+
+- `lib/domain/services/cart_validation_service.dart`
+
+As regras atuais sao:
+
+- dono do carrinho sempre pode agir
+- outro usuario depende da permissao correspondente no
+  `UserSystemModel`
+
+Permissoes usadas:
+
+- `editaCarrinhoOutroUsuario`
+- `salvaCarrinhoOutroUsuario`
+- `excluiCarrinhoOutroUsuario`
+
+Essas validacoes sao usadas em:
+
+- `lib/ui/widgets/separate_items/cart_item_card.dart`
+- `lib/presentation/viewmodels/card_picking_viewmodel.dart`
+
+## Camadas e arquivos principais
+
+- Presentation:
+  - `lib/ui/screens/separation_screen.dart`
+  - `lib/ui/screens/separation_items_screen.dart`
+- Domain:
+  - `lib/domain/usecases/next_separation_user/next_separation_user_usecase.dart`
+  - `lib/domain/usecases/next_separation_user/next_separation_user_params.dart`
+  - `lib/domain/usecases/next_separation_user/next_separation_user_success.dart`
+  - `lib/domain/usecases/next_separation_user/next_separation_user_failure.dart`
+  - `lib/domain/usecases/register_separation_user_sector/register_separation_user_sector_usecase.dart`
+  - `lib/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_usecase.dart`
+  - `lib/domain/usecases/check_separation_user_sector_link/check_separation_user_sector_link_usecase.dart`
+  - `lib/domain/usecases/check_separation_user_sector_completion/check_separation_user_sector_completion_usecase.dart`
+- Data:
+  - `lib/data/repositories/separation_user_sector_consultation_repository_impl.dart`
+
+## Observacoes de implementacao
+
+### Repositorio de consulta
+
+`SeparationUserSectorConsultationRepositoryImpl` tem um comportamento
+proprio:
+
+- espera ate 1.5s se o socket estiver desconectado no inicio
+- se continuar desconectado, lanca erro de dados
+
+Isso ajuda a explicar por que algumas buscas nao falham imediatamente em
+cenarios de reconexao.
+
+### Tipos de falha do fluxo
+
+O use case hoje pode retornar falhas especificas como:
+
+- `userWithoutSector`
+- `invalidParams`
+- `assignmentFailed`
+- `socketDisconnected`
+- `networkError`
+- `serverError`
+- `unknownError`
+
+Esses tipos vivem em:
+
+- `lib/domain/usecases/next_separation_user/next_separation_user_failure.dart`
+
+## Resumo pratico
+
+- O usuario com setor sempre tenta retomar primeiro o que ja esta no
+  nome dele.
+- So pega nova separacao quando nao ha mais pendencia na atual.
+- Nova separacao precisa ser atribuida antes de abrir.
+- A UI reconsulta a separacao completa antes de navegar.
+- Abrir separacao e incluir carrinho dependem de vinculo com o usuario.
+- Incluir carrinho tambem e bloqueado quando o setor do usuario ja foi
+  concluido.
+
+## Diferencas em relacao ao documento anterior
+
+- Texto sem encoding quebrado.
+- Prioridade 1 documentada como filtro em memoria apos a consulta, que e
+  o comportamento real do codigo.
+- Retry descrito sem afirmar que sempre busca uma separacao diferente.
+- Fluxo de abertura atualizado para incluir
+  `GetSeparationConsultationUseCase`.
+- Regra de setor concluido em "Incluir Carrinho" documentada.

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/separate_items/separate_item_card.dart';
@@ -34,6 +35,7 @@ import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_ex
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_success.dart';
 
 class SeparationItemsScreen extends StatefulWidget {
   final SeparateConsultationModel separation;
@@ -674,70 +676,18 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
 
       viewModel.updateSeparation(freshSeparation);
 
-      final result = await context.push<bool>(
+      final result = await context.push<AddCartSuccess?>(
         AppRouter.addCart,
         extra: {'codEmpresa': freshSeparation.codEmpresa, 'codSepararEstoque': freshSeparation.codSepararEstoque},
       );
 
-      if (result == true) {
+      if (result != null) {
         AppLogger.debug(
-          'Carrinho adicionado com sucesso, iniciando processo de abertura...',
+          'Carrinho adicionado com sucesso, iniciando abertura do carrinho exato...',
           tag: 'SeparationItemsScreen',
         );
-
-        await viewModel.refresh();
-
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        int retryCount = 0;
-        while (!viewModel.cartsLoaded && retryCount < 5 && context.mounted) {
-          await Future.delayed(const Duration(milliseconds: 200));
-          retryCount++;
-        }
-
-        if (!context.mounted) {
-          AppLogger.warning('Context não está mais montado, abortando navegação', tag: 'SeparationItemsScreen');
-          return;
-        }
-
-        AppLogger.debug(
-          'Carrinhos carregados: ${viewModel.carts.length}, tentando abrir o mais recente...',
-          tag: 'SeparationItemsScreen',
-        );
-
-        final cartOpened = await _openSeparationForNewestCart(context, viewModel);
-
-        if (!cartOpened && context.mounted) {
-          AppLogger.debug(
-            'Primeira tentativa falhou, tentando novamente após refresh...',
-            tag: 'SeparationItemsScreen',
-          );
-          await Future.delayed(const Duration(milliseconds: 500));
-          await viewModel.refresh();
-
-          if (!context.mounted) {
-            AppLogger.warning('Context não está mais montado após refresh', tag: 'SeparationItemsScreen');
-            return;
-          }
-
-          final retryOpened = await _openSeparationForNewestCart(context, viewModel);
-
-          if (!retryOpened && context.mounted) {
-            AppLogger.warning(
-              'Não foi possível abrir o carrinho após múltiplas tentativas',
-              tag: 'SeparationItemsScreen',
-            );
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text(
-                  'Carrinho adicionado, mas não foi possível abrir automaticamente. Tente abrir manualmente.',
-                ),
-                backgroundColor: Theme.of(context).colorScheme.tertiary,
-                duration: UIConstants.snackBarMediumDuration,
-              ),
-            );
-          }
-        }
+        if (!context.mounted) return;
+        await _handleAddedCartAutoOpen(context, viewModel, result);
       }
     } finally {
       if (mounted) {
@@ -753,7 +703,58 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
         separation.situacao == ExpeditionSituation.separando;
   }
 
-  Future<bool> _openSeparationForNewestCart(BuildContext context, SeparationItemsViewModel viewModel) async {
+  Future<void> _handleAddedCartAutoOpen(
+    BuildContext context,
+    SeparationItemsViewModel viewModel,
+    AddCartSuccess addCartResult,
+  ) async {
+    const retryDelays = <Duration>[Duration.zero, Duration(milliseconds: 250), Duration(milliseconds: 500)];
+
+    for (final retryDelay in retryDelays) {
+      if (!context.mounted) {
+        return;
+      }
+
+      if (retryDelay > Duration.zero) {
+        await Future.delayed(retryDelay);
+        if (!context.mounted) {
+          return;
+        }
+      }
+
+      await viewModel.refresh();
+      if (!context.mounted) {
+        return;
+      }
+
+      final cartOpened = await _openSeparationForAddedCart(context, viewModel, addCartResult);
+      if (cartOpened) {
+        return;
+      }
+    }
+
+    if (context.mounted) {
+      AppLogger.warning(
+        'Carrinho ${addCartResult.addedCart.codCarrinho} adicionado, mas nao foi encontrado para abertura automatica',
+        tag: 'SeparationItemsScreen',
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Carrinho adicionado, mas não foi possível abrir automaticamente. Tente abrir manualmente.',
+          ),
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
+          duration: UIConstants.snackBarMediumDuration,
+        ),
+      );
+    }
+  }
+
+  Future<bool> _openSeparationForAddedCart(
+    BuildContext context,
+    SeparationItemsViewModel viewModel,
+    AddCartSuccess addCartResult,
+  ) async {
     try {
       final userSessionService = locator<IUserSessionService>();
       final appUser = await userSessionService.loadUserSession();
@@ -763,39 +764,19 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
         return false;
       }
 
-      final availableCarts = viewModel.carts
-          .where(
-            (cart) =>
-                cart.situacao == ExpeditionSituation.aguardando ||
-                cart.situacao == ExpeditionSituation.separado ||
-                cart.situacao == ExpeditionSituation.conferido ||
-                cart.situacao == ExpeditionSituation.separando,
-          )
-          .toList();
-
-      if (availableCarts.isEmpty) {
+      final addedCart = _findAddedCartForAutoOpen(viewModel, addCartResult);
+      if (addedCart == null) {
         AppLogger.debug(
-          'Nenhum carrinho disponível para separação. Total de carrinhos: ${viewModel.carts.length}',
+          'Carrinho adicionado ${addCartResult.addedCart.codCarrinho} ainda nao disponivel para abertura. '
+          'Total atual: ${viewModel.carts.length}',
           tag: 'SeparationItemsScreen',
         );
         return false;
       }
 
-      availableCarts.sort((a, b) {
-        if (a.situacao == ExpeditionSituation.separando && b.situacao != ExpeditionSituation.separando) {
-          return -1;
-        }
-        if (a.situacao != ExpeditionSituation.separando && b.situacao == ExpeditionSituation.separando) {
-          return 1;
-        }
-
-        return b.dataInicio.compareTo(a.dataInicio);
-      });
-
-      final newestCart = availableCarts.first;
-
       AppLogger.debug(
-        'Abrindo carrinho: ${newestCart.codCarrinho} (${newestCart.nomeCarrinho}), situação: ${newestCart.situacao.description}',
+        'Abrindo carrinho adicionado: ${addedCart.codCarrinho} '
+        '(${addedCart.nomeCarrinho}), situação: ${addedCart.situacao.description}',
         tag: 'SeparationItemsScreen',
       );
 
@@ -804,9 +785,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
       }
 
       unawaited(
-        context.push<Object?>(AppRouter.cardPicking, extra: {'cart': newestCart, 'userModel': userModel}).then((
-          result,
-        ) {
+        context.push<Object?>(AppRouter.cardPicking, extra: {'cart': addedCart, 'userModel': userModel}).then((result) {
           if (result == 'save_cart' && context.mounted) {
             context.go(AppRouter.separation);
           }
@@ -831,5 +810,31 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
       }
       return false;
     }
+  }
+
+  ExpeditionCartRouteInternshipConsultationModel? _findAddedCartForAutoOpen(
+    SeparationItemsViewModel viewModel,
+    AddCartSuccess addCartResult,
+  ) {
+    final matchingCarts = viewModel.carts.where((cart) {
+      final matchesCart = cart.codCarrinho == addCartResult.addedCart.codCarrinho;
+      final matchesRoute =
+          addCartResult.codCarrinhoPercurso == null || cart.codCarrinhoPercurso == addCartResult.codCarrinhoPercurso;
+      return matchesCart && matchesRoute && _isCartAvailableForAutoOpen(cart);
+    }).toList();
+
+    if (matchingCarts.isEmpty) {
+      return null;
+    }
+
+    matchingCarts.sort((a, b) => b.dataInicio.compareTo(a.dataInicio));
+    return matchingCarts.first;
+  }
+
+  bool _isCartAvailableForAutoOpen(ExpeditionCartRouteInternshipConsultationModel cart) {
+    return cart.situacao == ExpeditionSituation.aguardando ||
+        cart.situacao == ExpeditionSituation.separado ||
+        cart.situacao == ExpeditionSituation.conferido ||
+        cart.situacao == ExpeditionSituation.separando;
   }
 }

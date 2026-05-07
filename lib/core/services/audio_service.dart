@@ -30,6 +30,7 @@ class AudioService {
     ..setReleaseMode(ReleaseMode.stop);
 
   bool _isEnabled = true;
+  SoundType? _lastPlayedSoundType;
 
   void setEnabled(bool enabled) {
     _isEnabled = enabled;
@@ -41,12 +42,18 @@ class AudioService {
     if (!_isEnabled) return;
 
     try {
-      // Bug VV: removido `await _fxPlayer.stop()` antes do play.
-      // Adicionava 5-50ms de latencia entre bip do scanner e o som de
-      // confirmacao — perceptivel em coletor rapido. O `play()` ja
-      // interrompe o som anterior em modo lowLatency, sem necessidade
-      // de stop explicito.
+      // Em alguns dispositivos Android, repetir o mesmo asset no mesmo
+      // player lowLatency nao rearma o som corretamente. Isso aparecia
+      // no picking como: primeiro scan toca, scans seguintes do mesmo
+      // item ficam mudos ate outro som diferente ser reproduzido.
+      // Forcamos stop apenas quando o mesmo som sera repetido em
+      // sequencia, preservando a menor latencia para sons diferentes.
+      if (_lastPlayedSoundType == soundType) {
+        await _fxPlayer.stop();
+      }
+
       await _fxPlayer.play(AssetSource(soundType.path));
+      _lastPlayedSoundType = soundType;
     } catch (e, stackTrace) {
       AppLogger.warning(
         'Erro ao reproduzir som: ${soundType.path}',
@@ -110,8 +117,8 @@ class AudioService {
   Future<void> stop() async {
     try {
       await _fxPlayer.stop();
+      _lastPlayedSoundType = null;
     } catch (e, s) {
-      // Bug YY: antes era bloco vazio. Agora ao menos loga em debug.
       AppLogger.debug('AudioService.stop falhou', tag: 'AudioService', error: e, stackTrace: s);
     }
   }
@@ -119,6 +126,7 @@ class AudioService {
   Future<void> dispose() async {
     try {
       await _fxPlayer.dispose();
+      _lastPlayedSoundType = null;
     } catch (e, s) {
       AppLogger.debug('AudioService.dispose falhou', tag: 'AudioService', error: e, stackTrace: s);
     }

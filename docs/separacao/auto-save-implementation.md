@@ -1,579 +1,143 @@
-# Auto-Salvamento após Completar Setor - Documentação Técnica
+# Oferta de salvamento apos concluir o setor
 
-## 📋 Visão Geral
+## Importante
 
-Sistema que detecta automaticamente quando um usuário completa todos os itens do seu setor e oferece salvamento imediato do carrinho, eliminando múltiplas etapas manuais.
+O nome deste arquivo foi mantido por compatibilidade com referencias
+anteriores, mas o comportamento atual nao e um auto-save silencioso.
+Hoje o sistema oferece o salvamento ao usuario quando ele conclui os
+itens do seu setor.
 
-**Data de Implementação**: 2025-10-02  
-**Versão**: 1.0  
-**Status**: ✅ Implementado e Testado
+## Resumo do comportamento atual
 
----
+1. Cada scan correto grava a separacao do item.
+2. Depois da gravacao, o app verifica se os itens do setor acabaram.
+3. Se acabaram, toca um som de conclusao do setor.
+4. O usuario recebe um dialogo para decidir se quer salvar o carrinho.
+5. Se confirmar, o fluxo chama `saveCart()` e retorna `'save_cart'`.
+6. A lista de carrinhos mostra snackbar e navega para a tela principal
+   de separacao.
 
-## 🎯 Objetivos
+## Onde a regra vive hoje
 
-### Problema Anterior
+### Scan bem-sucedido
 
-- Usuário precisava **manualmente**:
-  1. Sair da tela de scan
-  2. Localizar o carrinho na lista
-  3. Clicar no botão "Salvar"
-  4. Confirmar salvamento
-- **Total**: 5-6 ações e ~15 segundos
+`lib/ui/widgets/card_picking/components/scan_input_processor.dart`
 
-### Solução Implementada
+O `ScanInputProcessor` e responsavel por:
 
-- **Detecção automática** quando último item é separado
-- **Diálogo contextual** oferece salvamento
-- **Um clique** para salvar e voltar
-- **Total**: 1 ação e ~3 segundos
-- **Ganho**: 80% de redução de tempo
+- resetar a quantidade temporaria
+- invalidar cache local do scan
+- tocar o audio correto do scan
+- disparar a verificacao assincrona de conclusao do setor
 
----
+Regras atuais de audio:
 
-## 🏗️ Arquitetura
+- scan correto parcial: `playBarcodeScan()`
+- scan correto que completa o item: `playItemCompleted()`
 
-### Componentes Envolvidos
+### Conclusao do setor
 
-```
-┌─────────────────────────────────────────┐
-│  picking_card_scan.dart                 │
-│  - Detecta fim de itens do setor        │
-│  - Toca som AlertFalha.wav              │
-│  - Mostra diálogo "Salvar Carrinho"     │
-│  - Retorna 'save_cart' ao fechar        │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────┐
-│  cart_item_card.dart                    │
-│  - Recebe resultado 'save_cart'         │
-│  - Chama _onFinalizeCart(skip=true)     │
-│  - Mostra snackbar de sucesso           │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────┐
-│  SaveSeparationCartUseCase              │
-│  - Valida itens separados               │
-│  - Salva no backend                     │
-│  - Atualiza situação do carrinho        │
-└─────────────────────────────────────────┘
-```
+`lib/ui/widgets/card_picking/components/picking_flow_controller.dart`
 
----
-
-## 📁 Arquivos Modificados
-
-### 1. `lib/ui/widgets/card_picking/picking_card_scan.dart`
-
-#### Método: `_checkIfSectorItemsCompleted()`
-
-**Linha**: 242-258
+O `PickingFlowController` coordena o passo seguinte:
 
 ```dart
-Future<void> _checkIfSectorItemsCompleted() async {
-  final userSectorCode = widget.viewModel.userModel?.codSetorEstoque;
+Future<void> checkAndShowSaveCartModal() async
+```
 
-  // Só verifica se usuário tem setor definido
-  if (userSectorCode == null) return;
+Esse metodo:
 
-  // Verifica se ainda há itens do setor
-  if (!widget.viewModel.hasItemsForUserSector) {
-    // Som diferenciado para conclusão
-    await _audioService.playAlertComplete(); // AlertFalha.wav
+1. le o `userSectorCode`
+2. monta o subconjunto de itens sem setor ou do setor do usuario
+3. confirma se o subconjunto nao esta vazio
+4. verifica se todos esses itens foram concluidos
+5. toca `playAlertComplete()`
+6. abre o dialogo de salvamento
 
-    // Mostra diálogo oferecendo salvar
-    _showSaveCartAfterSectorCompletedDialog(userSectorCode);
-  }
+Hoje essa responsabilidade nao fica mais documentada como sendo do
+`picking_card_scan.dart`.
+
+### Confirmacao de salvamento
+
+Ainda no `PickingFlowController`, o fluxo de confirmacao passa por:
+
+```dart
+Future<void> finishPicking() async
+```
+
+O metodo atual:
+
+- evita double-submit com `_isFinishing`
+- valida estado do socket
+- abre loading
+- chama `viewModel.saveCart()`
+- toca `playSuccess()` quando salva
+- faz `GoRouter.of(context).pop('save_cart')`
+
+### Reacao na lista de carrinhos
+
+`lib/ui/widgets/separate_items/cart_item_card.dart`
+
+O `CartItemCard` nao salva mais o carrinho por conta propria nesse
+fluxo. Ele apenas reage ao retorno:
+
+```dart
+if (result == 'save_cart' && context.mounted) {
+  ScaffoldMessenger.of(context).showSnackBar(...);
+  context.go(AppRouter.separation);
 }
 ```
 
-**Chamado em**: `_addItemToSeparation()` após sucesso
+## Fluxo atualizado
 
-#### Método: `_showSaveCartAfterSectorCompletedDialog()`
-
-**Linha**: 353-420
-
-```dart
-void _showSaveCartAfterSectorCompletedDialog(int userSectorCode) {
-  showDialog(
-    context: context,
-    barrierDismissible: false, // Força escolha do usuário
-    builder: (context) => AlertDialog(
-      title: Row(
-        children: [
-          Icon(Icons.check_circle_outline, color: Colors.green, size: 28),
-          const SizedBox(width: 8),
-          const Text('Setor Concluído!'),
-        ],
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Card verde destacado
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.green.withOpacity(0.3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '✓ Todos os itens do seu setor foram separados!',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green.shade700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Seu setor: Setor $userSectorCode',
-                  style: TextStyle(color: Colors.green.shade600),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Deseja salvar o carrinho agora?',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Os itens restantes pertencem a outros setores e serão separados por outros usuários.',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-            // Retorna foco ao scanner
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _scanFocusNode.requestFocus();
-            });
-          },
-          child: const Text('Continuar Escaneando'),
-        ),
-        ElevatedButton.icon(
-          onPressed: () async {
-            Navigator.of(context).pop();
-            await _saveCartAndReturn();
-          },
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-          icon: const Icon(Icons.check_circle, color: Colors.white),
-          label: const Text(
-            'Salvar Carrinho',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      ],
-    ),
-  );
-}
+```text
+scan correto
+  -> adiciona item na separacao
+  -> toca som do scan
+  -> verifica se o setor foi concluido
+  -> se nao concluiu, continua
+  -> se concluiu:
+       -> toca AlertFalha.wav
+       -> mostra dialogo
+       -> usuario decide
+       -> se salvar:
+            -> finishPicking()
+            -> viewModel.saveCart()
+            -> pop('save_cart')
+            -> snackbar + retorno para separacao
 ```
 
-#### Método: `_saveCartAndReturn()`
-
-**Linha**: 426-431
-
-```dart
-Future<void> _saveCartAndReturn() async {
-  if (mounted) {
-    Navigator.of(context).pop('save_cart'); // Sinal especial
-  }
-}
-```
-
----
-
-### 2. `lib/ui/widgets/separate_items/cart_item_card.dart`
-
-#### Método: `_onSeparateCart()` - Detecta retorno
-
-**Linha**: 631-655
-
-```dart
-Future<void> _onSeparateCart(BuildContext context) async {
-  // ... validações
-
-  // Navegar para tela de scan
-  if (context.mounted) {
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider(
-          create: (_) => CardPickingViewModel(),
-          child: CardPickingScreen(
-            cart: cartRouteInternshipConsultation,
-            userModel: userModel,
-          ),
-        ),
-      ),
-    );
-
-    // 🆕 Detecta se usuário escolheu salvar
-    if (result == 'save_cart' && context.mounted) {
-      final saved = await _onFinalizeCart(
-        context,
-        skipConfirmation: true, // Não pede confirmação de novo
-      );
-
-      // Feedback de sucesso
-      if (saved && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Carrinho salvo com sucesso!'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    }
-  }
-}
-```
-
-#### Método: `_onFinalizeCart()` - Modificado
-
-**Linha**: 751-827
-
-```dart
-Future<bool> _onFinalizeCart(
-  BuildContext context,
-  {bool skipConfirmation = false}, // 🆕 Parâmetro
-) async {
-  // Validações de acesso...
-
-  // 🆕 Pula confirmação se já confirmado
-  if (!skipConfirmation) {
-    final confirmed = await _showFinalizeConfirmationDialog(context);
-    if (!confirmed) return false;
-  }
-
-  // Mostrar loading
-  if (context.mounted) _showLoadingDialog(context);
-
-  try {
-    // Salvar carrinho
-    final result = await saveSeparationCartUseCase.call(params);
-
-    // Fechar loading
-    if (context.mounted) Navigator.of(context).pop();
-
-    // Processar resultado
-    return result.fold(
-      (success) {
-        // 🆕 Não mostra diálogo se foi auto-salvamento
-        if (!skipConfirmation) {
-          _showSuccessDialog(context, success);
-        }
-
-        // Atualiza lista
-        if (viewModel != null) {
-          viewModel!.refresh();
-        }
-
-        return true; // Indica sucesso
-      },
-      (failure) {
-        _showErrorDialog(context, failure as AppFailure);
-        return false; // Indica falha
-      },
-    );
-  } catch (e) {
-    // Trata erros
-    if (context.mounted) Navigator.of(context).pop();
-    // ...
-    return false;
-  }
-}
-```
-
----
-
-### 3. `lib/core/services/audio_service.dart`
-
-#### Enum: `SoundType` - Novo som
-
-**Linha**: 5-16
-
-```dart
-enum SoundType {
-  barcodeScan('som/BarcodeScan.wav'),
-  success('som/Notification.wav'),
-  error('som/Error.wav'),
-  fail('som/Fail.wav'),
-  alert('som/Alert.wav'),
-  alertComplete('som/AlertFalha.wav'), // 🆕 Novo som
-  disconnected('som/Disconected.wav');
-
-  const SoundType(this.path);
-  final String path;
-}
-```
-
-#### Método: `playAlertComplete()`
-
-**Linha**: 74-77
-
-```dart
-/// Reproduz som de alerta de separação completa
-Future<void> playAlertComplete() async {
-  await playSound(SoundType.alertComplete);
-}
-```
-
----
-
-### 4. `pubspec.yaml`
-
-#### Assets: Novo som
-
-**Linha**: 103-111
-
-```yaml
-# Sons
-- assets/som/
-- assets/som/Alert.wav
-- assets/som/AlertFalha.wav # 🆕 Adicionado
-- assets/som/BarcodeScan.wav
-- assets/som/Disconected.wav
-- assets/som/Error.wav
-- assets/som/Fail.wav
-- assets/som/Notification.wav
-```
-
----
-
-## 🔄 Fluxo Completo
-
-```
-┌────────────────────────────────────────────┐
-│ 1. Usuário escaneia produto               │
-└───────────────┬────────────────────────────┘
-                │
-                ▼
-┌────────────────────────────────────────────┐
-│ 2. Item adicionado com sucesso             │
-│    _addItemToSeparation() ✓                │
-└───────────────┬────────────────────────────┘
-                │
-                ▼
-┌────────────────────────────────────────────┐
-│ 3. _checkIfSectorItemsCompleted()          │
-│    Verifica hasItemsForUserSector          │
-└───────────────┬────────────────────────────┘
-                │
-                ▼
-         ┌──────┴───────┐
-         │              │
-    Tem itens?      Não tem mais
-         │              │
-         ▼              ▼
-   Continua      ┌─────────────────────────┐
-   normal        │ 4. Som AlertFalha.wav   │
-                 │    playAlertComplete()  │
-                 └──────────┬──────────────┘
-                            │
-                            ▼
-                 ┌─────────────────────────┐
-                 │ 5. Mostra diálogo verde │
-                 │    "Setor Concluído!"   │
-                 └──────────┬──────────────┘
-                            │
-              ┌─────────────┴─────────────┐
-              │                           │
-       Continuar                   Salvar Carrinho
-       Escaneando                         │
-              │                           ▼
-              │              ┌──────────────────────┐
-              │              │ 6. pop('save_cart')  │
-              │              └──────────┬───────────┘
-              │                         │
-              │                         ▼
-              │              ┌──────────────────────┐
-              │              │ 7. cart_item_card    │
-              │              │    detecta resultado │
-              │              └──────────┬───────────┘
-              │                         │
-              │                         ▼
-              │              ┌──────────────────────┐
-              │              │ 8. _onFinalizeCart   │
-              │              │    (skip=true)       │
-              │              └──────────┬───────────┘
-              │                         │
-              │                         ▼
-              │              ┌──────────────────────┐
-              │              │ 9. Mostra loading    │
-              │              └──────────┬───────────┘
-              │                         │
-              │                         ▼
-              │              ┌──────────────────────┐
-              │              │ 10. Salva backend    │
-              │              │     SaveSeparation   │
-              │              │     CartUseCase      │
-              │              └──────────┬───────────┘
-              │                         │
-              │                         ▼
-              │              ┌──────────────────────┐
-              │              │ 11. Fecha loading    │
-              │              └──────────┬───────────┘
-              │                         │
-              │                         ▼
-              │              ┌──────────────────────┐
-              │              │ 12. Refresh lista    │
-              │              └──────────┬───────────┘
-              │                         │
-              ▼                         ▼
-┌────────────────────────────────────────────┐
-│ 13. Volta para lista de carrinhos         │
-│     Mostra snackbar verde "Salvo!"         │
-└────────────────────────────────────────────┘
-```
-
----
-
-## 🎨 Interface do Usuário
-
-### Diálogo "Setor Concluído"
-
-```
-╔═══════════════════════════════════════════╗
-║  ✓  Setor Concluído!                     ║
-╠═══════════════════════════════════════════╣
-║                                           ║
-║  ╔═════════════════════════════════════╗ ║
-║  ║ ✓ Todos os itens do seu setor       ║ ║
-║  ║   foram separados!                  ║ ║
-║  ║                                     ║ ║
-║  ║ Seu setor: Setor 3                  ║ ║
-║  ╚═════════════════════════════════════╝ ║
-║                                           ║
-║  Deseja salvar o carrinho agora?          ║
-║                                           ║
-║  Os itens restantes pertencem a outros    ║
-║  setores e serão separados por outros     ║
-║  usuários.                                ║
-║                                           ║
-╠═══════════════════════════════════════════╣
-║  [Continuar Escaneando] [✓ Salvar Carrinho]║
-╚═══════════════════════════════════════════╝
-```
-
-### Snackbar de Sucesso
-
-```
-╔═══════════════════════════════════════════╗
-║ ✓ Carrinho salvo com sucesso!            ║
-╚═══════════════════════════════════════════╝
-```
-
----
-
-## 📊 Métricas de Melhoria
-
-| Métrica                | Antes        | Depois      | Melhoria  |
-| ---------------------- | ------------ | ----------- | --------- |
-| **Ações do usuário**   | 5-6 cliques  | 1 clique    | **-83%**  |
-| **Tempo médio**        | ~15 segundos | ~3 segundos | **-80%**  |
-| **Navegação de telas** | 2 vezes      | 0 vezes     | **-100%** |
-| **Confirmações**       | 2 vezes      | 1 vez       | **-50%**  |
-| **Satisfação UX**      | Médio        | Alto        | **+100%** |
-
----
-
-## 🧪 Casos de Teste
-
-### Caso 1: Fluxo Completo de Sucesso
-
-1. ✅ Usuário com setor 3 definido
-2. ✅ Separa todos os itens do setor 3
-3. ✅ Último item separado
-4. ✅ Som AlertFalha.wav toca
-5. ✅ Diálogo "Setor Concluído!" aparece
-6. ✅ Clica "Salvar Carrinho"
-7. ✅ Mostra loading
-8. ✅ Salva no backend
-9. ✅ Volta para lista
-10. ✅ Snackbar verde aparece
-11. ✅ Lista atualizada
-
-### Caso 2: Continuar Escaneando
-
-1. ✅ Diálogo aparece
-2. ✅ Clica "Continuar Escaneando"
-3. ✅ Diálogo fecha
-4. ✅ Foco volta para scanner
-5. ✅ Pode continuar escaneando outros setores
-
-### Caso 3: Usuário Sem Setor
-
-1. ✅ Usuário sem setor definido
-2. ✅ Separa todos os itens
-3. ✅ Diálogo NÃO aparece
-4. ✅ Comportamento normal
-
-### Caso 4: Erro ao Salvar
-
-1. ✅ Diálogo aparece
-2. ✅ Clica "Salvar Carrinho"
-3. ❌ Erro no backend
-4. ✅ Mostra diálogo de erro
-5. ✅ Permanece na tela de scan
-6. ✅ Pode tentar novamente
-
----
-
-## ⚠️ Considerações Importantes
-
-### 1. Recompilação Necessária
-
-**Assets novos** (AlertFalha.wav) só são carregados após:
-
-- `flutter clean && flutter run`
-- Ou simplesmente fechar e reabrir o app
-
-### 2. Hot Reload Limitations
-
-**Mudanças de texto** precisam de:
-
-- Hot Restart (R no terminal)
-- Ou recompilação completa
-
-### 3. UserModel em Memória
-
-- `UserSessionService` mantém `AppUser` em memória
-- Não precisa recarregar a cada verificação
-- Helper `_getUserModel()` otimizado
-
----
-
-## 🔮 Melhorias Futuras (Possíveis)
-
-1. **Analytics**: Rastrear taxa de uso do salvamento automático
-2. **Configuração**: Permitir desabilitar diálogo nas preferências
-3. **Som Customizável**: Escolher som nas configurações
-4. **Estatísticas**: Mostrar tempo economizado no dashboard
-5. **Notificação**: Vibração adicional ao completar setor
-
----
-
-## 📚 Referências
-
-- **Use Case**: `SaveSeparationCartUseCase`
-- **Service**: `AudioService`
-- **ViewModel**: `CardPickingViewModel`
-- **Validation**: `CartValidationService`
-- **Documentação Geral**: `product-ordering-logic.md`
-
----
-
-**Última Atualização**: 2025-10-02  
-**Autor**: Sistema de Separação por Setor  
-**Status**: ✅ Produção
+## Audio relevante para esse fluxo
+
+- `AudioService.playBarcodeScan()`
+  - sucesso parcial de scan
+- `AudioService.playItemCompleted()`
+  - ultimo scan necessario para completar o item
+- `AudioService.playAlertComplete()`
+  - todos os itens do setor foram concluidos
+- `AudioService.playSuccess()`
+  - carrinho salvo com sucesso
+
+## Observacao importante sobre repeticao de som
+
+O `AudioService` atual trata um problema real de Android em que repetir
+o mesmo asset no mesmo player low-latency podia deixar os scans
+seguintes mudos. Para isso, quando o mesmo `SoundType` sera repetido em
+sequencia, o service executa `stop()` antes de `play()`.
+
+Isso garante que:
+
+- scans corretos consecutivos do mesmo item continuam emitindo som
+- erros continuam com seus sons proprios
+- a mudanca de produto nao depende mais de outro som intermediario para
+  "destravar" o player
+
+## Diferencas em relacao a documentacao antiga
+
+- Nao documentar `_onFinalizeCart(skip=true)` como fluxo principal.
+- Nao documentar `picking_card_scan.dart` como dono do dialogo de
+  salvamento.
+- Nao chamar o comportamento de "auto-save" se ele depende de escolha do
+  usuario.
+- Nao assumir que todo scan correto usa o mesmo som; hoje o ultimo scan
+  do item usa um som proprio.

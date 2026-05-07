@@ -15,6 +15,7 @@ import 'package:data7_expedicao/domain/usecases/start_separation/start_separatio
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_params.dart';
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_success.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/di/locator.dart';
@@ -38,6 +39,7 @@ class AddCartViewModel extends ChangeNotifier {
   int _countdownSeconds = 0;
   bool _disposed = false;
   int _successCounter = 0;
+  AddCartSuccess? _lastAddSuccess;
 
   AddCartViewModel({
     required this.codEmpresa,
@@ -62,6 +64,7 @@ class AddCartViewModel extends ChangeNotifier {
   int get countdownSeconds => _countdownSeconds;
   bool get isCountdownActive => _autoAddTimer != null && _autoAddTimer!.isActive;
   int get successCounter => _successCounter;
+  AddCartSuccess? get lastAddSuccess => _lastAddSuccess;
 
   ExpeditionCartConsultationModel? get scannedCart => _scannedCart;
   String? get errorMessage => _errorMessage;
@@ -82,10 +85,12 @@ class AddCartViewModel extends ChangeNotifier {
 
       if (carts.isNotEmpty) {
         _scannedCart = carts.first;
+        _lastAddSuccess = null;
         _audioService.playBarcodeScan();
         _startAutoAddCountdown();
       } else {
         _scannedCart = null;
+        _lastAddSuccess = null;
         _stopAutoAddCountdown();
         _errorMessage = 'Carrinho não encontrado com o código de barras informado.';
         _audioService.playError();
@@ -93,6 +98,7 @@ class AddCartViewModel extends ChangeNotifier {
     } catch (e, stackTrace) {
       AppLogger.error('Erro ao buscar carrinho', tag: 'AddCartViewModel', error: e, stackTrace: stackTrace);
       _scannedCart = null;
+      _lastAddSuccess = null;
       _stopAutoAddCountdown();
       _errorMessage = 'Erro ao buscar carrinho. Tente novamente.';
       _audioService.playError();
@@ -161,12 +167,14 @@ class AddCartViewModel extends ChangeNotifier {
       final result = await _addCartUseCase.call(params);
       return result.fold(
         (success) {
+          _lastAddSuccess = success;
           _audioService.playCartAddSuccess();
           _successCounter++;
           notifyListeners();
           return true;
         },
         (failure) {
+          _lastAddSuccess = null;
           final message = failure is AppFailure ? failure.userMessage : 'Erro ao adicionar carrinho. Tente novamente.';
           _setError(message);
           _audioService.playError();
@@ -180,6 +188,7 @@ class AddCartViewModel extends ChangeNotifier {
         error: e,
         stackTrace: stackTrace,
       );
+      _lastAddSuccess = null;
       _setError('Erro inesperado. Tente novamente.');
       _audioService.playError();
       return false;
@@ -246,6 +255,7 @@ class AddCartViewModel extends ChangeNotifier {
   void clearScannedData() {
     _stopAutoAddCountdown();
     _scannedCart = null;
+    _lastAddSuccess = null;
     _clearError();
     notifyListeners();
   }

@@ -453,7 +453,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       final result = await _executeNextSeparationUseCase(params);
       if (!mounted) return;
 
-      _handleNextSeparationResult(result, params);
+      await _handleNextSeparationResult(result, params);
     } catch (e, stackTrace) {
       AppLogger.error(
         'Erro inesperado em Próxima Separação',
@@ -508,20 +508,23 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   }
 
   /// Processa o resultado da busca de próxima separação
-  void _handleNextSeparationResult(Result<NextSeparationUserSuccess> result, NextSeparationUserParams params) {
-    result.fold(
-      (success) async {
-        if (success.hasSeparation) {
-          _openNextSeparation(success.separation!, params);
-        } else {
-          _showInfoModal('Nenhuma Separação', success.message);
-        }
-      },
-      (failure) {
-        final errorMessage = failure is NextSeparationUserFailure ? failure.userMessage : failure.toString();
-        _showErrorModal('Erro na Busca', errorMessage);
-      },
-    );
+  Future<void> _handleNextSeparationResult(
+    Result<NextSeparationUserSuccess> result,
+    NextSeparationUserParams params,
+  ) async {
+    final success = result.getOrNull();
+    if (success != null) {
+      if (success.hasSeparation) {
+        await _openNextSeparation(success.separation!, params);
+      } else {
+        _showInfoModal('Nenhuma Separação', success.message);
+      }
+      return;
+    }
+
+    final failure = result.exceptionOrNull();
+    final errorMessage = failure is NextSeparationUserFailure ? failure.userMessage : failure.toString();
+    _showErrorModal('Erro na Busca', errorMessage);
   }
 
   /// Consulta a separação completa e navega para a tela de separação

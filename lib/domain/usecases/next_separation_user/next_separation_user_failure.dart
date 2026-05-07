@@ -3,6 +3,7 @@ import 'package:data7_expedicao/core/results/index.dart';
 enum NextSeparationUserFailureType {
   userWithoutSector('Usuário sem setor estoque'),
   invalidParams('Parâmetros inválidos'),
+  assignmentFailed('Falha ao atribuir separação'),
   socketDisconnected('Socket desconectado'),
   networkError('Erro de rede'),
   serverError('Erro no servidor'),
@@ -49,6 +50,16 @@ class NextSeparationUserFailure extends AppFailure {
     );
   }
 
+  factory NextSeparationUserFailure.assignmentFailed(String details, {Exception? exception}) {
+    return NextSeparationUserFailure(
+      type: NextSeparationUserFailureType.assignmentFailed,
+      message: 'Não foi possível atribuir uma separação disponível',
+      details: details,
+      code: 'ASSIGNMENT_FAILED',
+      exception: exception,
+    );
+  }
+
   factory NextSeparationUserFailure.networkError(String details, Exception? exception) {
     return NextSeparationUserFailure(
       type: NextSeparationUserFailureType.networkError,
@@ -92,6 +103,8 @@ class NextSeparationUserFailure extends AppFailure {
         return 'Usuário não possui setor estoque configurado';
       case NextSeparationUserFailureType.invalidParams:
         return 'Dados inválidos para buscar separação';
+      case NextSeparationUserFailureType.assignmentFailed:
+        return 'Não foi possível reservar uma separação disponível agora. Tente novamente.';
       case NextSeparationUserFailureType.socketDisconnected:
         return 'Conexão em tempo real indisponível no momento. Verifique o indicador de conexão e tente novamente.';
       case NextSeparationUserFailureType.networkError:

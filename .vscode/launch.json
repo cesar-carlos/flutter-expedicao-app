@@ -1,41 +1,11 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-  "version": "1.0.0",
+  "version": "0.2.0",
   "configurations": [
     {
-      "name": "expedicao (debug mode)",
+      "name": "data7_expedicao",
       "request": "launch",
       "type": "dart",
-      "flutterMode": "debug",
-      "deviceId": "emulator-5554"
-    },
-    {
-      "name": "expedicao (debug mode) - Medium Phone API 36",
-      "request": "launch",
-      "type": "dart",
-      "flutterMode": "debug",
-      "deviceId": "emulator-5554"
-    },
-    {
-      "name": "expedicao (debug mode) - Q900 wireless",
-      "request": "launch",
-      "type": "dart",
-      "flutterMode": "debug",
-      "deviceId": "192.168.3.206:38419"
-    },
-    {
-      "name": "expedicao (profile mode)",
-      "request": "launch",
-      "type": "dart",
-      "flutterMode": "profile"
-    },
-    {
-      "name": "expedicao (release mode)",
-      "request": "launch",
-      "type": "dart",
-      "flutterMode": "release"
+      "program": "lib/main.dart"
     }
   ]
 }

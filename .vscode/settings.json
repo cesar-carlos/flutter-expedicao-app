@@ -4,13 +4,15 @@
   "dart.flutterSdkPath": null,
   "dart.enableSdkFormatter": true,
 
-    // Explorer settings
-    "explorer.compactFolders": false,
+  // Explorer settings
+  "explorer.compactFolders": false,
 
   // Editor settings
   "editor.rulers": [120],
   "editor.wordWrap": "off",
   "editor.formatOnSave": true,
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": false,
 
   // Debug settings
   "debug.toolBarLocation": "commandCenter",
