@@ -381,40 +381,45 @@ class PickingFlowController {
             const Expanded(child: Text('Finalizar Separação', overflow: TextOverflow.ellipsis)),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Confirma finalização do carrinho ${cart.nomeCarrinho}?'),
-            SizedBox(height: UIConstants.defaultPadding),
-            _buildInfoRow('Código', '#${cart.codCarrinho}'),
-            _buildInfoRow('Itens totais', '$totalItems'),
-            _buildInfoRow('Itens separados', '$completedItems'),
-            _buildInfoRow('Progresso', '${(progress * 100).toInt()}%'),
-            if (pendingOps > 0) ...[
-              SizedBox(height: UIConstants.smallFontSize),
-              Container(
-                padding: const EdgeInsets.all(UIConstants.smallPadding),
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning, color: AppColors.warning, size: UIConstants.smallIconSize),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'Há $pendingOps operação${pendingOps == 1 ? '' : 'es'} sincronizando',
-                        style: AppFonts.inter(fontSize: UIConstants.tinyFontSize, color: AppColors.warning),
-                      ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Confirma finalização do carrinho ${cart.nomeCarrinho}?'),
+                SizedBox(height: UIConstants.defaultPadding),
+                _buildInfoRow('Código', '#${cart.codCarrinho}'),
+                _buildInfoRow('Itens totais', '$totalItems'),
+                _buildInfoRow('Itens separados', '$completedItems'),
+                _buildInfoRow('Progresso', '${(progress * 100).toInt()}%'),
+                if (pendingOps > 0) ...[
+                  SizedBox(height: UIConstants.smallFontSize),
+                  Container(
+                    padding: const EdgeInsets.all(UIConstants.smallPadding),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ],
+                    child: Row(
+                      children: [
+                        Icon(Icons.warning, color: AppColors.warning, size: UIConstants.smallIconSize),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Há $pendingOps operação${pendingOps == 1 ? '' : 'es'} sincronizando',
+                            style: AppFonts.inter(fontSize: UIConstants.tinyFontSize, color: AppColors.warning),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancelar')),
