@@ -17,6 +17,7 @@ Use `rules_index.mdc` para localizar a regra dona de cada assunto.
 
 - nunca faca commit, push ou crie documentacao nova sem pedido explicito
   do usuario
+- nunca crie branch git (local ou remota) sem pedido explicito do usuario
 - trate `.cursor/rules/*.mdc` como fonte de verdade para a politica do
   projeto
 - para codigo novo, siga as regras integralmente; para codigo existente,
