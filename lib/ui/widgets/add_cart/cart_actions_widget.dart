@@ -24,11 +24,12 @@ class CartActionsWidget extends StatefulWidget {
 
 class _CartActionsWidgetState extends State<CartActionsWidget> {
   final _addButtonFocusNode = FocusNode();
+  late bool _wasAbleToAdd;
 
   @override
   void initState() {
     super.initState();
-    widget.viewModel.addListener(_onViewModelChanged);
+    _wasAbleToAdd = widget.viewModel.canAddCart;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Bug: mounted check antes de requestFocus em postFrameCallback
@@ -42,16 +43,23 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
   }
 
   @override
-  void dispose() {
-    widget.viewModel.removeListener(_onViewModelChanged);
-    _addButtonFocusNode.dispose();
-    super.dispose();
+  void didUpdateWidget(covariant CartActionsWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final canAdd = widget.viewModel.canAddCart;
+    if (mounted && canAdd && !_wasAbleToAdd) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _addButtonFocusNode.requestFocus();
+        }
+      });
+    }
+    _wasAbleToAdd = canAdd;
   }
 
-  void _onViewModelChanged() {
-    if (mounted) {
-      setState(() {});
-    }
+  @override
+  void dispose() {
+    _addButtonFocusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -173,18 +181,23 @@ class _CartActionsWidgetState extends State<CartActionsWidget> {
 
                   // Botão Adicionar - usando CustomFlatButton ocupando o espaço restante
                   Expanded(
-                    child: CustomFlatButton(
-                      text: widget.viewModel.isAdding
-                          ? 'Adicionando...'
-                          : widget.viewModel.isCountdownActive
-                          ? 'Adicionar (${widget.viewModel.countdownSeconds}s)'
-                          : 'Adicionar',
-                      icon: Icons.add_shopping_cart,
-                      onPressed: !widget.viewModel.isAdding ? widget.onAdd : null,
-                      isLoading: widget.viewModel.isAdding,
-                      backgroundColor: colorScheme.primary,
-                      textColor: colorScheme.onPrimary,
-                      borderRadius: 8,
+                    child: Focus(
+                      focusNode: _addButtonFocusNode,
+                      child: CustomFlatButton(
+                        text: widget.viewModel.isAdding
+                            ? 'Adicionando...'
+                            : widget.viewModel.isScanning
+                            ? 'Buscando...'
+                            : widget.viewModel.isCountdownActive
+                            ? 'Adicionar (${widget.viewModel.countdownSeconds}s)'
+                            : 'Adicionar',
+                        icon: Icons.add_shopping_cart,
+                        onPressed: !widget.viewModel.isAdding && !widget.viewModel.isScanning ? widget.onAdd : null,
+                        isLoading: widget.viewModel.isAdding,
+                        backgroundColor: colorScheme.primary,
+                        textColor: colorScheme.onPrimary,
+                        borderRadius: 8,
+                      ),
                     ),
                   ),
                 ],

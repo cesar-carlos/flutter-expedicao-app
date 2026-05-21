@@ -92,6 +92,27 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(received, isEmpty);
     });
+
+    test('auto-recupera a subscription quando o stream eh encerrado', () async {
+      final controller = ScannerBroadcastController();
+      final received = <String>[];
+
+      await controller.start(action: 'a', extraKey: 'd', onBarcodeReceived: received.add);
+      expect(controller.isActive, isTrue);
+      expect(fakeService.listenCalls, equals(1));
+
+      await fakeService.closeCurrentStream();
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+
+      expect(controller.isActive, isTrue);
+      expect(fakeService.listenCalls, equals(2));
+
+      fakeService.emit('555');
+      await Future<void>.delayed(Duration.zero);
+      expect(received, equals(['555']));
+
+      controller.dispose();
+    });
   });
 }
 
@@ -109,5 +130,9 @@ class _FakeBroadcastService implements BarcodeBroadcastService {
 
   void emit(String code) {
     _controller?.add(code);
+  }
+
+  Future<void> closeCurrentStream() async {
+    await _controller?.close();
   }
 }

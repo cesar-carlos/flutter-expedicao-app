@@ -16,7 +16,8 @@ class ScanUiController {
   final KeyboardToggleController keyboardController;
   final TextEditingController quantityController;
   final Future<void> Function() onFinishPicking;
-  final Future<void> Function(SeparateItemConsultationModel item, String barcode, int quantity) onAddItem;
+  final Future<bool> Function(SeparateItemConsultationModel item, String barcode, int quantity, int originalQuantity)
+  onAddItem;
   final BuildContext? context;
 
   const ScanUiController({
@@ -120,13 +121,17 @@ class ScanUiController {
       case ScanProcessStatus.success:
         if (scanResult.expectedItem != null) {
           final convertedQuantity = scanResult.convertedQuantity ?? inputQuantity;
+          final originalQuantityText = quantityController.text;
 
           if (convertedQuantity != inputQuantity) {
             quantityController.text = convertedQuantity.toString();
             _showQuantityConversionFeedback(inputQuantity, convertedQuantity);
           }
 
-          await onAddItem(scanResult.expectedItem!, barcode, convertedQuantity);
+          final added = await onAddItem(scanResult.expectedItem!, barcode, convertedQuantity, inputQuantity);
+          if (!added && convertedQuantity != inputQuantity) {
+            quantityController.text = originalQuantityText;
+          }
           keyboardController.forceFocusAndCloseKeyboard();
         }
         return;

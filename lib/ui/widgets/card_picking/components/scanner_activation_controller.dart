@@ -6,6 +6,7 @@ import 'package:data7_expedicao/ui/widgets/card_picking/components/keyboard_togg
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_scan_state.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/scanner_preferences_controller.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/scanner_broadcast_controller.dart';
+import 'package:data7_expedicao/core/services/scanner_mode_coordinator.dart';
 
 class ScannerActivationController {
   final ScannerPreferencesController _preferencesController;
@@ -36,11 +37,11 @@ class ScannerActivationController {
       return;
     }
 
-    await _preferencesController.loadPreferences();
-    final isBroadcastMode = _preferencesController.isBroadcastConfigured;
+    final preferences = await _preferencesController.loadModePreferences();
+    final isBroadcastMode = preferences.isBroadcastConfigured;
 
     if (isBroadcastMode) {
-      await _activateBroadcastMode(onBarcodeScanned, mounted);
+      await _activateBroadcastMode(preferences, onBarcodeScanned, mounted);
     } else {
       await _activateFocusMode(scanState, keyboardController, scanFocusNode, mounted);
     }
@@ -48,11 +49,15 @@ class ScannerActivationController {
     _isInitialized = true;
   }
 
-  Future<void> _activateBroadcastMode(void Function(String) onBarcodeScanned, bool Function() mounted) async {
+  Future<void> _activateBroadcastMode(
+    ScannerModePreferences preferences,
+    void Function(String) onBarcodeScanned,
+    bool Function() mounted,
+  ) async {
     AppLogger.debug('Activating scanner in broadcast mode', tag: 'ScannerActivationController');
     await _broadcastController.start(
-      action: _preferencesController.broadcastAction,
-      extraKey: _preferencesController.broadcastExtraKey,
+      action: preferences.action,
+      extraKey: preferences.extraKey,
       onBarcodeReceived: (code) {
         if (mounted()) {
           onBarcodeScanned(code);
@@ -106,20 +111,28 @@ class ScannerActivationController {
       return;
     }
 
-    _preferencesController.reloadPreferences();
+    final preferences = await _preferencesController.loadModePreferences();
     _isInitialized = false;
     _isPaused = false;
 
-    final isBroadcastMode = _preferencesController.isBroadcastConfigured;
+    final isBroadcastMode = preferences.isBroadcastConfigured;
 
     if (isBroadcastMode) {
-      await _reactivateBroadcastMode(scanState, scanController, scanFocusNode, onBarcodeScanned, mounted);
+      await _reactivateBroadcastMode(preferences, scanState, scanController, scanFocusNode, onBarcodeScanned, mounted);
     } else {
-      await _reactivateFocusMode(scanState, keyboardController, scanController, scanFocusNode, onBarcodeScanned, mounted);
+      await _reactivateFocusMode(
+        scanState,
+        keyboardController,
+        scanController,
+        scanFocusNode,
+        onBarcodeScanned,
+        mounted,
+      );
     }
   }
 
   Future<void> _reactivateBroadcastMode(
+    ScannerModePreferences preferences,
     PickingScanState scanState,
     TextEditingController scanController,
     FocusNode scanFocusNode,
@@ -135,8 +148,8 @@ class ScannerActivationController {
     }
 
     await _broadcastController.start(
-      action: _preferencesController.broadcastAction,
-      extraKey: _preferencesController.broadcastExtraKey,
+      action: preferences.action,
+      extraKey: preferences.extraKey,
       onBarcodeReceived: (code) {
         if (mounted()) {
           onBarcodeScanned(code);

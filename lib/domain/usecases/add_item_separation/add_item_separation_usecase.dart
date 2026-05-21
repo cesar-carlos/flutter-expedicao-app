@@ -192,10 +192,20 @@ class AddItemSeparationUseCase {
         QueryBuilder()
             .equals('CodEmpresa', params.codEmpresa)
             .equals('CodSepararEstoque', params.codSepararEstoque)
-            .equals('CodProduto', params.codProduto),
+            .equals('CodProduto', params.codProduto)
+            .equals('Item', params.itemSepararEstoque),
       );
 
-      return separateItems.isNotEmpty ? separateItems.first : null;
+      for (final item in separateItems) {
+        if (item.codEmpresa == params.codEmpresa &&
+            item.codSepararEstoque == params.codSepararEstoque &&
+            item.codProduto == params.codProduto &&
+            item.item == params.itemSepararEstoque) {
+          return item;
+        }
+      }
+
+      return null;
     } catch (e) {
       rethrow;
     }

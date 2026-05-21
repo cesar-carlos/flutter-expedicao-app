@@ -25,7 +25,8 @@ class InMemorySeparateItemRepository implements BasicRepository<SeparateItemMode
       (r) =>
           r.codEmpresa == entity.codEmpresa &&
           r.codSepararEstoque == entity.codSepararEstoque &&
-          r.codProduto == entity.codProduto,
+          r.codProduto == entity.codProduto &&
+          r.item == entity.item,
     );
     if (i < 0) {
       return <SeparateItemModel>[];

@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
+import 'package:data7_expedicao/core/validation/common/socket_validation_helper.dart';
 import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
 import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_model.dart';
@@ -19,6 +23,7 @@ import 'package:data7_expedicao/domain/models/separate_progress_consultation_mod
 import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/user/app_user.dart';
@@ -30,6 +35,8 @@ import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/services/picking_state_manager.dart';
+import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_params.dart';
+import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_success.dart';
 import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
@@ -202,6 +209,67 @@ class FakeSeparateCartInternshipEventRepository implements SeparateCartInternshi
   @override
   void removeListeners(List<String> listenerIds) {
     _listeners.removeWhere((listener) => listenerIds.contains(listener.id));
+  }
+}
+
+class QueuedAddItemSeparationUseCase extends AddItemSeparationUseCase {
+  QueuedAddItemSeparationUseCase()
+    : super(
+        separateItemRepository: FakeBasicRepository<SeparateItemModel>(),
+        separationItemRepository: FakeBasicRepository<SeparationItemModel>(),
+        userSessionService: FakeUserSessionService(),
+      );
+
+  final List<Completer<Result<AddItemSeparationSuccess>>> pendingResponses =
+      <Completer<Result<AddItemSeparationSuccess>>>[];
+  int callCount = 0;
+
+  @override
+  Future<Result<AddItemSeparationSuccess>> call(AddItemSeparationParams params, {UserSystemModel? userSystem}) {
+    callCount += 1;
+    if (pendingResponses.isEmpty) {
+      return Future<Result<AddItemSeparationSuccess>>.value(buildSuccess(params));
+    }
+
+    return pendingResponses.removeAt(0).future;
+  }
+
+  Result<AddItemSeparationSuccess> buildSuccess(AddItemSeparationParams params) {
+    return Success(
+      AddItemSeparationSuccess.create(
+        createdSeparationItem: SeparationItemModel(
+          codEmpresa: params.codEmpresa,
+          codSepararEstoque: params.codSepararEstoque,
+          item: params.itemSepararEstoque,
+          sessionId: params.sessionId,
+          situacao: ExpeditionItemSituation.separado,
+          codCarrinhoPercurso: params.codCarrinhoPercurso,
+          itemCarrinhoPercurso: params.itemCarrinhoPercurso,
+          codSeparador: params.codSeparador,
+          nomeSeparador: params.nomeSeparador,
+          dataSeparacao: DateTime(2026, 5, 21, 10),
+          horaSeparacao: '10:00:00',
+          codProduto: params.codProduto,
+          codUnidadeMedida: params.codUnidadeMedida,
+          quantidade: params.quantidade,
+        ),
+        updatedSeparateItem: SeparateItemModel(
+          codEmpresa: params.codEmpresa,
+          codSepararEstoque: params.codSepararEstoque,
+          item: params.itemSepararEstoque,
+          origem: ExpeditionOrigem.separacaoEstoque,
+          codOrigem: params.codSepararEstoque,
+          codLocalArmazenagem: 1,
+          codProduto: params.codProduto,
+          codUnidadeMedida: params.codUnidadeMedida,
+          quantidade: 10,
+          quantidadeInterna: 10,
+          quantidadeExterna: 0,
+          quantidadeSeparacao: params.quantidade,
+        ),
+        addedQuantity: params.quantidade,
+      ),
+    );
   }
 }
 
@@ -464,5 +532,79 @@ void main() {
       expect(capturedWhere, contains('CodSetorEstoque = 1 OR CodSetorEstoque IS NULL'));
       expect(viewModel.items, hasLength(1));
     });
+
+    test('switching scanned items does not wait for pending operations or trigger a full refresh', () async {
+      final queuedAddUseCase = QueuedAddItemSeparationUseCase();
+      final firstPendingResponse = Completer<Result<AddItemSeparationSuccess>>();
+      final secondPendingResponse = Completer<Result<AddItemSeparationSuccess>>();
+      queuedAddUseCase.pendingResponses.addAll(<Completer<Result<AddItemSeparationSuccess>>>[
+        firstPendingResponse,
+        secondPendingResponse,
+      ]);
+
+      viewModel.dispose();
+      viewModel = CardPickingViewModel.withDependencies(
+        repository: repository,
+        sectorStockRepository: sectorStockRepository,
+        filtersStorage: filtersStorage,
+        addItemSeparationUseCase: queuedAddUseCase,
+        saveSeparationCartUseCase: buildSaveCartUseCase(userSessionService),
+        userSessionService: userSessionService,
+        validateSocketState: () => SocketValidationResult.success('abcd12345678'),
+        cartEventRepository: eventRepository,
+        shelfScanningService: ShelfScanningService(),
+        stateManager: PickingStateManager(),
+        cartValidationService: CartValidationService(repository: repository),
+      );
+
+      userSessionService.session = AppUser(
+        codLoginApp: 1,
+        ativo: Situation.ativo,
+        nome: 'Usuario',
+        codUsuario: 10,
+        userSystemModel: buildUserModel(),
+      );
+
+      final cart = buildCart();
+      final firstItem = buildPendingItem(item: '1', codProduto: 1);
+      final secondItem = buildPendingItem(item: '2', codProduto: 2);
+      repository.onSelect = (_) async => <SeparateItemConsultationModel>[firstItem, secondItem];
+
+      await viewModel.initializeCart(cart, userModel: buildUserModel());
+      expect(repository.selectCallCount, equals(1));
+
+      final firstResult = await viewModel.addScannedItem(itemId: firstItem.item, quantity: 1);
+      expect(firstResult.isSuccess, isTrue);
+
+      final secondResult = await viewModel
+          .addScannedItem(itemId: secondItem.item, quantity: 1)
+          .timeout(const Duration(milliseconds: 100));
+
+      expect(secondResult.isSuccess, isTrue);
+      expect(repository.selectCallCount, equals(1));
+      expect(queuedAddUseCase.callCount, equals(2));
+      expect(viewModel.getPickedQuantity(firstItem.item), equals(1));
+      expect(viewModel.getPickedQuantity(secondItem.item), equals(1));
+
+      firstPendingResponse.complete(queuedAddUseCase.buildSuccess(_buildAddParamsForItem(firstItem)));
+      secondPendingResponse.complete(queuedAddUseCase.buildSuccess(_buildAddParamsForItem(secondItem)));
+      await Future<void>.delayed(Duration.zero);
+    });
   });
+}
+
+AddItemSeparationParams _buildAddParamsForItem(SeparateItemConsultationModel item) {
+  return AddItemSeparationParams(
+    codEmpresa: item.codEmpresa,
+    codSepararEstoque: item.codSepararEstoque,
+    sessionId: 'abcd12345678',
+    codCarrinhoPercurso: 200,
+    itemCarrinhoPercurso: '1',
+    itemSepararEstoque: item.item,
+    codSeparador: 10,
+    nomeSeparador: 'Usuario',
+    codProduto: item.codProduto,
+    codUnidadeMedida: item.codUnidadeMedida,
+    quantidade: 1,
+  );
 }

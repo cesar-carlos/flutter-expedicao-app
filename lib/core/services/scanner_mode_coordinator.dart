@@ -11,22 +11,13 @@ class ScannerModePreferences {
   final String action;
   final String extraKey;
 
-  const ScannerModePreferences({
-    required this.mode,
-    required this.action,
-    required this.extraKey,
-  });
+  const ScannerModePreferences({required this.mode, required this.action, required this.extraKey});
 
   /// Indica se o modo broadcast está totalmente configurado
   /// (modo selecionado + action + extraKey não vazios).
-  bool get isBroadcastConfigured =>
-      mode == ScannerInputMode.broadcast && action.isNotEmpty && extraKey.isNotEmpty;
+  bool get isBroadcastConfigured => mode == ScannerInputMode.broadcast && action.isNotEmpty && extraKey.isNotEmpty;
 
-  static const empty = ScannerModePreferences(
-    mode: ScannerInputMode.focus,
-    action: '',
-    extraKey: '',
-  );
+  static const empty = ScannerModePreferences(mode: ScannerInputMode.focus, action: '', extraKey: '');
 }
 
 /// Coordenador único para o boilerplate de "modo de scanner" repetido
@@ -57,24 +48,27 @@ class ScannerModeCoordinator {
 
   final BarcodeBroadcastService _broadcastService;
   final void Function(String code) _onBarcode;
+  final Duration _listenerRestartDelay;
 
   ScannerModePreferences _prefs = ScannerModePreferences.empty;
   StreamSubscription<String>? _subscription;
+  Timer? _restartTimer;
   bool _manualOverride = false;
   bool _disposed = false;
 
   ScannerModeCoordinator({
     required BarcodeBroadcastService broadcastService,
     required void Function(String code) onBarcode,
-  })  : _broadcastService = broadcastService,
-        _onBarcode = onBarcode;
+    Duration listenerRestartDelay = const Duration(milliseconds: 300),
+  }) : _broadcastService = broadcastService,
+       _onBarcode = onBarcode,
+       _listenerRestartDelay = listenerRestartDelay;
 
   ScannerModePreferences get preferences => _prefs;
 
   /// Verdadeiro quando broadcast está configurado e nenhum override
   /// manual desligou-o (ex.: usuário usando teclado).
-  bool get isBroadcastActive =>
-      _prefs.isBroadcastConfigured && !_manualOverride && _subscription != null;
+  bool get isBroadcastActive => _prefs.isBroadcastConfigured && !_manualOverride && _subscription != null;
 
   /// Inicia (ou re-inicia) o coordinator com novas preferências.
   /// Idempotente: chamar com as mesmas prefs e mesmo override é seguro.
@@ -111,10 +105,12 @@ class ScannerModeCoordinator {
   }
 
   Future<void> _startListener() async {
+    _restartTimer?.cancel();
     await _stopListener();
     if (_disposed) return;
     try {
-      _subscription = _broadcastService
+      late final StreamSubscription<String> subscription;
+      subscription = _broadcastService
           .listen(action: _prefs.action, extraKey: _prefs.extraKey)
           .listen(
             (code) {
@@ -124,23 +120,22 @@ class ScannerModeCoordinator {
               try {
                 _onBarcode(trimmed);
               } catch (e, s) {
-                AppLogger.error(
-                  'Falha no callback onBarcode (broadcast)',
-                  tag: _logTag,
-                  error: e,
-                  stackTrace: s,
-                );
+                AppLogger.error('Falha no callback onBarcode (broadcast)', tag: _logTag, error: e, stackTrace: s);
               }
             },
             onError: (Object e, StackTrace s) {
               AppLogger.error('Broadcast listener error', tag: _logTag, error: e, stackTrace: s);
             },
+            onDone: () {
+              if (!identical(_subscription, subscription)) return;
+              _subscription = null;
+              AppLogger.warning('Broadcast listener encerrado. Tentando religar.', tag: _logTag);
+              _scheduleRestartIfNeeded();
+            },
             cancelOnError: false,
           );
-      AppLogger.debug(
-        'Broadcast listener started: action=${_prefs.action} extraKey=${_prefs.extraKey}',
-        tag: _logTag,
-      );
+      _subscription = subscription;
+      AppLogger.debug('Broadcast listener started: action=${_prefs.action} extraKey=${_prefs.extraKey}', tag: _logTag);
     } catch (e, s) {
       AppLogger.error('Failed to start broadcast listener', tag: _logTag, error: e, stackTrace: s);
       _subscription = null;
@@ -148,6 +143,8 @@ class ScannerModeCoordinator {
   }
 
   Future<void> _stopListener() async {
+    _restartTimer?.cancel();
+    _restartTimer = null;
     final sub = _subscription;
     _subscription = null;
     if (sub == null) return;
@@ -163,5 +160,18 @@ class ScannerModeCoordinator {
     if (_disposed) return;
     _disposed = true;
     await _stopListener();
+  }
+
+  void _scheduleRestartIfNeeded() {
+    if (_disposed) return;
+    if (!(_prefs.isBroadcastConfigured && !_manualOverride)) return;
+    if (_restartTimer?.isActive ?? false) return;
+
+    _restartTimer = Timer(_listenerRestartDelay, () async {
+      _restartTimer = null;
+      if (_disposed) return;
+      if (!(_prefs.isBroadcastConfigured && !_manualOverride)) return;
+      await _startListener();
+    });
   }
 }

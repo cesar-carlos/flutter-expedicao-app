@@ -1,16 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_consultation_model.dart';
 import 'package:data7_expedicao/presentation/viewmodels/add_cart_viewmodel.dart';
-import 'package:data7_expedicao/ui/widgets/add_cart/cart_details_widget.dart';
 import 'package:data7_expedicao/ui/widgets/add_cart/barcode_scanner_widget.dart';
 import 'package:data7_expedicao/ui/widgets/add_cart/cart_actions_widget.dart';
+import 'package:data7_expedicao/ui/widgets/add_cart/cart_details_widget.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
-import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
 class AddCartScreen extends StatefulWidget {
   final int codEmpresa;
@@ -25,6 +26,7 @@ class AddCartScreen extends StatefulWidget {
 class _AddCartScreenState extends State<AddCartScreen> {
   final _scrollController = ScrollController();
   int _lastSuccessCounter = 0;
+  int? _lastScrolledCartCode;
   late final AddCartViewModel _viewModel;
 
   @override
@@ -42,7 +44,12 @@ class _AddCartScreenState extends State<AddCartScreen> {
   }
 
   void _onViewModelChanged() {
-    if (_viewModel.hasCartData && !_viewModel.isScanning) {
+    final currentCartCode = !_viewModel.isScanning ? _viewModel.scannedCart?.codCarrinho : null;
+
+    if (currentCartCode == null) {
+      _lastScrolledCartCode = null;
+    } else if (currentCartCode != _lastScrolledCartCode) {
+      _lastScrolledCartCode = currentCartCode;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _scrollToActions();
@@ -72,61 +79,102 @@ class _AddCartScreenState extends State<AddCartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AddCartViewModel>(
-      builder: (context, viewModel, child) {
-        return Scaffold(
-          appBar: CustomAppBar.withoutSocket(
-            title: 'Incluir Carrinho',
-            leading: IconButton(
-              onPressed: () {
-                viewModel.cancelAutoAdd();
-                context.pop();
-              },
-              icon: const Icon(Icons.arrow_back),
-              tooltip: 'Voltar',
-            ),
-          ),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  BarcodeScanner(onBarcodeScanned: viewModel.scanBarcode, isLoading: viewModel.isScanning),
+    return Scaffold(
+      appBar: CustomAppBar.withoutSocket(
+        title: 'Incluir Carrinho',
+        leading: IconButton(
+          onPressed: () {
+            _viewModel.cancelAutoAdd();
+            context.pop();
+          },
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Voltar',
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Selector<AddCartViewModel, bool>(
+                selector: (_, viewModel) => viewModel.isScanning,
+                builder: (context, isScanning, _) {
+                  return BarcodeScanner(onBarcodeScanned: _viewModel.scanBarcode, isLoading: isScanning);
+                },
+              ),
+              const SizedBox(height: 24),
+              Selector<AddCartViewModel, ExpeditionCartConsultationModel?>(
+                selector: (_, viewModel) => viewModel.scannedCart,
+                builder: (context, cart, _) {
+                  if (cart == null) {
+                    return const SizedBox.shrink();
+                  }
 
-                  const SizedBox(height: 24),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      CartDetailsWidget(cart: cart),
+                      const SizedBox(height: 24),
+                    ],
+                  );
+                },
+              ),
+              Selector<
+                AddCartViewModel,
+                ({
+                  ExpeditionCartConsultationModel? cart,
+                  bool isAdding,
+                  bool isScanning,
+                  bool isCountdownActive,
+                  int countdownSeconds,
+                })
+              >(
+                selector: (_, viewModel) => (
+                  cart: viewModel.scannedCart,
+                  isAdding: viewModel.isAdding,
+                  isScanning: viewModel.isScanning,
+                  isCountdownActive: viewModel.isCountdownActive,
+                  countdownSeconds: viewModel.countdownSeconds,
+                ),
+                builder: (context, state, _) {
+                  if (state.cart == null) {
+                    return const SizedBox.shrink();
+                  }
 
-                  if (viewModel.hasCartData) ...[
-                    CartDetailsWidget(cart: viewModel.scannedCart!),
+                  return CartActionsWidget(
+                    viewModel: _viewModel,
+                    onCancel: () {
+                      _viewModel.cancelAutoAdd();
+                      context.pop();
+                    },
+                    onAdd: () {
+                      unawaited(
+                        _onAddCart(_viewModel).catchError((Object e, StackTrace s) {
+                          AppLogger.warning(
+                            'Falha ao adicionar carrinho à separação',
+                            tag: 'AddCartScreen',
+                            error: e,
+                            stackTrace: s,
+                          );
+                        }),
+                      );
+                    },
+                    onNewQuery: () => _onNewQuery(_viewModel),
+                  );
+                },
+              ),
+              Selector<AddCartViewModel, String?>(
+                selector: (_, viewModel) => viewModel.errorMessage,
+                builder: (context, errorMessage, _) {
+                  if (errorMessage == null) {
+                    return const SizedBox.shrink();
+                  }
 
-                    const SizedBox(height: 24),
-
-                    CartActionsWidget(
-                      viewModel: viewModel,
-                      onCancel: () {
-                        viewModel.cancelAutoAdd();
-                        context.pop();
-                      },
-                      onAdd: () {
-                        unawaited(
-                          _onAddCart(viewModel).catchError((Object e, StackTrace s) {
-                            AppLogger.warning(
-                              'Falha ao adicionar carrinho à separação',
-                              tag: 'AddCartScreen',
-                              error: e,
-                              stackTrace: s,
-                            );
-                          }),
-                        );
-                      },
-                      onNewQuery: () => _onNewQuery(viewModel),
-                    ),
-                  ],
-
-                  if (viewModel.hasError) ...[
-                    const SizedBox(height: 16),
-                    Container(
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.errorContainer,
@@ -137,7 +185,7 @@ class _AddCartScreenState extends State<AddCartScreen> {
                           Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error, size: 48),
                           const SizedBox(height: 8),
                           Text(
-                            viewModel.errorMessage ?? 'Erro desconhecido',
+                            errorMessage,
                             style: AppFonts.inter(
                               color: Theme.of(context).colorScheme.error,
                               fontWeight: FontWeight.w500,
@@ -147,13 +195,13 @@ class _AddCartScreenState extends State<AddCartScreen> {
                         ],
                       ),
                     ),
-                  ],
-                ],
+                  );
+                },
               ),
-            ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 

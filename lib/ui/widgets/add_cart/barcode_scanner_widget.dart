@@ -8,7 +8,7 @@ import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
 import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
 import 'package:data7_expedicao/core/services/scanner_mode_coordinator.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/ui/widgets/card_picking/components/scanner_preferences_controller.dart';
 
 class BarcodeScanner extends StatefulWidget {
   final Function(String) onBarcodeScanned;
@@ -26,7 +26,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
 
   bool _keyboardEnabled = false;
   final BarcodeScannerService _scannerService = locator<BarcodeScannerService>();
-  final ConfigViewModel _configViewModel = locator<ConfigViewModel>();
+  final ScannerPreferencesController _preferencesController = ScannerPreferencesController();
 
   late final ScannerModeCoordinator _coordinator;
 
@@ -43,35 +43,25 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(
-        _coordinator.start(_loadPreferences()).then((_) {
-          if (!mounted) return;
-          if (!_coordinator.isBroadcastActive) {
-            _focusNode.requestFocus();
-          }
-        }).catchError((Object e, StackTrace s) {
-          AppLogger.warning(
-            'Falha ao iniciar ScannerModeCoordinator (add cart)',
-            tag: 'BarcodeScanner',
-            error: e,
-            stackTrace: s,
-          );
-        }),
+        _preferencesController
+            .loadModePreferences()
+            .then(_coordinator.start)
+            .then((_) {
+              if (!mounted) return;
+              if (!_coordinator.isBroadcastActive) {
+                _focusNode.requestFocus();
+              }
+            })
+            .catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha ao iniciar ScannerModeCoordinator (add cart)',
+                tag: 'BarcodeScanner',
+                error: e,
+                stackTrace: s,
+              );
+            }),
       );
     });
-  }
-
-  ScannerModePreferences _loadPreferences() {
-    try {
-      _configViewModel.loadConfigSilent();
-      final config = _configViewModel.currentConfig;
-      return ScannerModePreferences(
-        mode: config.scannerInputMode,
-        action: (config.broadcastAction ?? '').trim(),
-        extraKey: (config.broadcastExtraKey ?? '').trim(),
-      );
-    } catch (_) {
-      return ScannerModePreferences.empty;
-    }
   }
 
   void _onBroadcastCode(String code) {
@@ -226,22 +216,28 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
                       margin: const EdgeInsets.all(12),
                       child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.primary),
                     )
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
-                          onPressed: () {
-                            _barcodeController.clear();
-                            _focusNode.requestFocus();
-                          },
-                        ),
-                        IconButton(
-                          onPressed: _barcodeController.text.isNotEmpty ? () => _onScanPressed() : null,
-                          icon: const Icon(Icons.search),
-                          tooltip: 'Buscar carrinho',
-                        ),
-                      ],
+                  : ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _barcodeController,
+                      builder: (context, value, child) {
+                        final hasText = value.text.trim().isNotEmpty;
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
+                              onPressed: () {
+                                _barcodeController.clear();
+                                _focusNode.requestFocus();
+                              },
+                            ),
+                            IconButton(
+                              onPressed: hasText ? () => _onScanPressed() : null,
+                              icon: const Icon(Icons.search),
+                              tooltip: 'Buscar carrinho',
+                            ),
+                          ],
+                        );
+                      },
                     ),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               focusedBorder: OutlineInputBorder(

@@ -53,6 +53,7 @@ class CardPickingViewModel extends ChangeNotifier {
   final SaveSeparationCartUseCase _saveSeparationCartUseCase;
 
   final IUserSessionService _userSessionService;
+  final SocketValidationResult Function() _validateSocketStateFn;
 
   final SeparateCartInternshipEventRepository _cartEventRepository;
   late final CartEventListenerController _cartEventController;
@@ -86,10 +87,6 @@ class CardPickingViewModel extends ChangeNotifier {
   }
 
   bool get hasItems => _items.isNotEmpty;
-
-  Map<int, SeparateItemConsultationModel>? _itemsByCodProduto;
-
-  int? _lastScannedCodProduto;
 
   SeparateItemConsultationModel? _nextItemCache;
 
@@ -155,7 +152,7 @@ class CardPickingViewModel extends ChangeNotifier {
   bool _silentResyncQueued = false;
 
   bool _validateSocketState() {
-    final validation = SocketValidationHelper.validateSocketState();
+    final validation = _validateSocketStateFn();
     return validation.isValid;
   }
 
@@ -260,6 +257,7 @@ class CardPickingViewModel extends ChangeNotifier {
       _addItemSeparationUseCase = locator<AddItemSeparationUseCase>(),
       _saveSeparationCartUseCase = locator<SaveSeparationCartUseCase>(),
       _userSessionService = locator<IUserSessionService>(),
+      _validateSocketStateFn = SocketValidationHelper.validateSocketState,
       _cartEventRepository = locator<SeparateCartInternshipEventRepository>(),
       _shelfScanningService = locator<ShelfScanningService>(),
       _stateManager = locator<PickingStateManager>(),
@@ -280,6 +278,7 @@ class CardPickingViewModel extends ChangeNotifier {
     required AddItemSeparationUseCase addItemSeparationUseCase,
     required SaveSeparationCartUseCase saveSeparationCartUseCase,
     required IUserSessionService userSessionService,
+    SocketValidationResult Function()? validateSocketState,
     required SeparateCartInternshipEventRepository cartEventRepository,
     required ShelfScanningService shelfScanningService,
     required PickingStateManager stateManager,
@@ -291,6 +290,7 @@ class CardPickingViewModel extends ChangeNotifier {
        _addItemSeparationUseCase = addItemSeparationUseCase,
        _saveSeparationCartUseCase = saveSeparationCartUseCase,
        _userSessionService = userSessionService,
+       _validateSocketStateFn = validateSocketState ?? SocketValidationHelper.validateSocketState,
        _cartEventRepository = cartEventRepository,
        _shelfScanningService = shelfScanningService,
        _stateManager = stateManager,
@@ -367,7 +367,7 @@ class CardPickingViewModel extends ChangeNotifier {
     return _shelfScanningService.shouldShowInitialShelfScan(
       _items,
       _userModel,
-      () => PickingUtils.findNextItemToPick(_items, isItemCompleted, userSectorCode: _userModel?.codSetorEstoque),
+      () => _nextItemCache ?? _findNextItemFromCurrentOrder(),
     );
   }
 
@@ -378,11 +378,13 @@ class CardPickingViewModel extends ChangeNotifier {
     required int inputQuantity,
     required bool isCartInSeparation,
   }) {
+    final nextItem = _nextItemCache ?? _findNextItemFromCurrentOrder();
     return _scanResolver.resolve(
       barcode: barcode,
       inputQuantity: inputQuantity,
       isCartInSeparation: isCartInSeparation,
       items: _items,
+      nextItem: nextItem,
       userSectorCode: _userModel?.codSetorEstoque,
       requiresShelfScanning: requiresShelfScanning,
       shouldScanShelfFor: shouldScanShelf,
@@ -405,17 +407,17 @@ class CardPickingViewModel extends ChangeNotifier {
     }
   }
 
-  Future<AddItemSeparationResult> addScannedItem({required int codProduto, required int quantity}) async {
+  Future<AddItemSeparationResult> addScannedItem({required String itemId, required int quantity}) async {
     if (_disposed) return AddItemSeparationResult.error('ViewModel foi descartado');
     if (_cart == null) return AddItemSeparationResult.error('Carrinho não inicializado');
 
     try {
-      final item = _findItemByCodProduto(codProduto);
+      final item = _findItemByItemId(itemId);
       if (item == null) return AddItemSeparationResult.error('Produto não encontrado neste carrinho');
 
       final futures = <Future<dynamic>>[
         _userSessionService.loadUserSession(),
-        Future(() => SocketValidationHelper.validateSocketState()),
+        Future<SocketValidationResult>(_validateSocketStateFn),
       ];
 
       final results = await Future.wait(futures);
@@ -433,22 +435,16 @@ class CardPickingViewModel extends ChangeNotifier {
       final userSystem = appUser.userSystemModel;
       final sessionId = socketValidation.sessionId!;
 
-      final lastScanned = _lastScannedCodProduto;
-      _lastScannedCodProduto = codProduto;
-
-      if (lastScanned != null && lastScanned != codProduto) {
-        await _waitForPendingOperationsAndRefresh();
-      }
-
       final params = AddItemSeparationParams(
         codEmpresa: _cart!.codEmpresa,
         codSepararEstoque: _cart!.codOrigem,
         sessionId: sessionId,
         codCarrinhoPercurso: _cart!.codCarrinhoPercurso,
         itemCarrinhoPercurso: _cart!.item,
+        itemSepararEstoque: item.item,
         codSeparador: userSystem.codUsuario,
         nomeSeparador: userSystem.nomeUsuario,
-        codProduto: codProduto,
+        codProduto: item.codProduto,
         codUnidadeMedida: item.codUnidadeMedida,
         quantidade: quantity.toDouble(),
       );
@@ -501,7 +497,7 @@ class CardPickingViewModel extends ChangeNotifier {
     try {
       final futures = <Future<dynamic>>[
         _userSessionService.loadUserSession(),
-        Future(() => SocketValidationHelper.validateSocketState()),
+        Future<SocketValidationResult>(_validateSocketStateFn),
       ];
       final results = await Future.wait(futures);
       final appUser = results[0] as dynamic;
@@ -527,6 +523,7 @@ class CardPickingViewModel extends ChangeNotifier {
         sessionId: sessionId,
         codCarrinhoPercurso: _cart!.codCarrinhoPercurso,
         itemCarrinhoPercurso: _cart!.item,
+        itemSepararEstoque: item.item,
         codSeparador: userSystem.codUsuario,
         nomeSeparador: userSystem.nomeUsuario,
         codProduto: item.codProduto,
@@ -654,9 +651,7 @@ class CardPickingViewModel extends ChangeNotifier {
   Future<void> refresh() async {
     if (_disposed || _cart == null) return;
 
-    _lastScannedCodProduto = null;
     _shelfScanningService.resetScannedAddress();
-    _itemsByCodProduto = null;
 
     _clearNextItemCache();
 
@@ -905,23 +900,10 @@ class CardPickingViewModel extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  Future<void> _waitForPendingOperationsAndRefresh() async {
-    if (_pendingOperations.isEmpty) return;
-
-    await _pendingOperations.waitForAll();
-    if (_disposed) return;
-
-    await refresh();
-  }
-
   void _notifyOperationError(String itemId, String errorMessage) {
     if (!_errorController.isClosed) {
       _errorController.add(OperationError(itemId, errorMessage));
     }
-  }
-
-  SeparateItemConsultationModel? _findItemByCodProduto(int codProduto) {
-    return _itemsByCodProduto?[codProduto];
   }
 
   SeparateItemConsultationModel? _findItemByItemId(String itemId) {
@@ -931,20 +913,22 @@ class CardPickingViewModel extends ChangeNotifier {
     return null;
   }
 
-  void _rebuildItemsCache() {
-    _itemsByCodProduto = {for (final item in _items) item.codProduto: item};
-  }
-
   void _clearNextItemCache() {
     _nextItemCache = null;
   }
 
   void _updateNextItemCache() {
-    _nextItemCache = PickingUtils.findNextItemToPick(
-      _items,
-      isItemCompleted,
-      userSectorCode: _userModel?.codSetorEstoque,
-    );
+    _nextItemCache = _findNextItemFromCurrentOrder();
+  }
+
+  SeparateItemConsultationModel? _findNextItemFromCurrentOrder() {
+    for (final item in _items) {
+      if (!isItemCompleted(item.item)) {
+        return item;
+      }
+    }
+
+    return null;
   }
 
   void _scheduleQueuedResyncIfReady() {
@@ -990,7 +974,6 @@ class CardPickingViewModel extends ChangeNotifier {
   void _applyLoadedItems(List<SeparateItemConsultationModel> items) {
     _itemsUnmodifiable = null;
     _items = PickingUtils.sortItemsByAddress(items, userSectorCode: _userModel?.codSetorEstoque);
-    _rebuildItemsCache();
     _stateManager.initial(_items);
     _updateNextItemCache();
     _safeNotifyListeners();

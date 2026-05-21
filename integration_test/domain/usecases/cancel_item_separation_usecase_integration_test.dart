@@ -155,6 +155,7 @@ void main() {
             sessionId: 'test-session-id',
             codCarrinhoPercurso: 1,
             itemCarrinhoPercurso: '00020',
+            itemSepararEstoque: '00001',
             codSeparador: 1,
             nomeSeparador: 'TESTE SEPARADOR',
             codProduto: 1,

@@ -13,6 +13,7 @@ class AddItemSeparationParamsSchema {
         'SessionId': CommonSchemas.sessionIdSchema,
         'CodCarrinhoPercurso': CommonSchemas.integerSchema,
         'ItemCarrinhoPercurso': CommonSchemas.itemIdSchema,
+        'ItemSepararEstoque': CommonSchemas.itemIdSchema,
         'CodSeparador': CommonSchemas.integerSchema,
         'NomeSeparador': CommonSchemas.nonEmptyStringSchema,
         'CodProduto': CommonSchemas.integerSchema,

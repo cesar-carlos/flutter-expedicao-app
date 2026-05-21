@@ -23,6 +23,7 @@ class PickingFlowController {
   final KeyboardToggleController keyboardController;
 
   bool _isFinishing = false;
+  bool _hasShownSaveCartAfterSectorCompletion = false;
   BuildContext? _loadingDialogContext;
 
   PickingFlowController({
@@ -38,65 +39,81 @@ class PickingFlowController {
     VoidCallback? onShelfScanCompleted,
   }) {
     return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => ShelfScanningModalV2(
-        expectedAddress: nextItem.endereco!,
-        expectedAddressDescription: nextItem.enderecoDescricao ?? 'Endereço não definido',
-        viewModel: viewModel,
-        onBack: () {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            unawaited(
-              Future<void>.delayed(Duration.zero, () {
-                if (context.mounted) Navigator.of(context).pop();
-              }).catchError((Object e, StackTrace s) {
-                AppLogger.warning(
-                  'Falha ao fechar modal de endereço (onBack)',
-                  tag: 'PickingFlowController',
-                  error: e,
-                  stackTrace: s,
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => ShelfScanningModalV2(
+            expectedAddress: nextItem.endereco!,
+            expectedAddressDescription: nextItem.enderecoDescricao ?? 'Endereço não definido',
+            viewModel: viewModel,
+            onBack: () {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                unawaited(
+                  Future<void>.delayed(Duration.zero, () {
+                    if (context.mounted) Navigator.of(context).pop();
+                  }).catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha ao fechar modal de endereço (onBack)',
+                      tag: 'PickingFlowController',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
                 );
-              }),
-            );
+              });
+            },
+          ),
+        )
+        .then((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            keyboardController.enableScannerMode();
           });
-        },
-      ),
-    ).then((_) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        keyboardController.enableScannerMode();
-      });
-      onShelfScanCompleted?.call();
-    }).catchError((Object e, StackTrace s) {
-      AppLogger.warning(
-        'Falha ao exibir modal de endereço ou ao retomar scanner',
-        tag: 'PickingFlowController',
-        error: e,
-        stackTrace: s,
-      );
-    });
+          onShelfScanCompleted?.call();
+        })
+        .catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao exibir modal de endereço ou ao retomar scanner',
+            tag: 'PickingFlowController',
+            error: e,
+            stackTrace: s,
+          );
+        });
   }
 
   Future<void> checkAndShowSaveCartModal() async {
     final userSectorCode = viewModel.userModel?.codSetorEstoque;
-    if (userSectorCode == null) return;
+    if (userSectorCode == null) {
+      _hasShownSaveCartAfterSectorCompletion = false;
+      return;
+    }
 
     final sectorItems = viewModel.items
         .where((item) => item.codSetorEstoque == null || item.codSetorEstoque == userSectorCode)
         .toList();
 
-    if (sectorItems.isEmpty) return;
+    if (sectorItems.isEmpty) {
+      _hasShownSaveCartAfterSectorCompletion = false;
+      return;
+    }
 
     final allSectorItemsCompleted = sectorItems.every((item) => viewModel.isItemCompleted(item.item));
 
-    if (allSectorItemsCompleted) {
-      await audioService.playAlertComplete();
-
-      dialogManager.showSaveCartAfterSectorCompletedDialog(
-        userSectorCode,
-        () => finishPicking(),
-        keyboardController.forceFocusAndCloseKeyboard,
-      );
+    if (!allSectorItemsCompleted) {
+      _hasShownSaveCartAfterSectorCompletion = false;
+      return;
     }
+
+    if (_hasShownSaveCartAfterSectorCompletion) {
+      return;
+    }
+
+    _hasShownSaveCartAfterSectorCompletion = true;
+    await audioService.playAlertComplete();
+
+    dialogManager.showSaveCartAfterSectorCompletedDialog(
+      userSectorCode,
+      () => finishPicking(),
+      keyboardController.forceFocusAndCloseKeyboard,
+    );
   }
 
   Future<void> finishPicking() async {
@@ -345,12 +362,7 @@ class PickingFlowController {
           ],
         ),
       ).catchError((Object e, StackTrace s) {
-        AppLogger.warning(
-          'Falha ao exibir dialog de erro',
-          tag: 'PickingFlowController',
-          error: e,
-          stackTrace: s,
-        );
+        AppLogger.warning('Falha ao exibir dialog de erro', tag: 'PickingFlowController', error: e, stackTrace: s);
       }),
     );
   }
@@ -371,74 +383,75 @@ class PickingFlowController {
       }
     }
 
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.check_circle, color: AppColors.success, size: UIConstants.mediumIconSize),
-            SizedBox(width: UIConstants.smallPadding),
-            const Expanded(child: Text('Finalizar Separação', overflow: TextOverflow.ellipsis)),
-          ],
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final result =
+        await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Row(
               children: [
-                Text('Confirma finalização do carrinho ${cart.nomeCarrinho}?'),
-                SizedBox(height: UIConstants.defaultPadding),
-                _buildInfoRow('Código', '#${cart.codCarrinho}'),
-                _buildInfoRow('Itens totais', '$totalItems'),
-                _buildInfoRow('Itens separados', '$completedItems'),
-                _buildInfoRow('Progresso', '${(progress * 100).toInt()}%'),
-                if (pendingOps > 0) ...[
-                  SizedBox(height: UIConstants.smallFontSize),
-                  Container(
-                    padding: const EdgeInsets.all(UIConstants.smallPadding),
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.warning, color: AppColors.warning, size: UIConstants.smallIconSize),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            'Há $pendingOps operação${pendingOps == 1 ? '' : 'es'} sincronizando',
-                            style: AppFonts.inter(fontSize: UIConstants.tinyFontSize, color: AppColors.warning),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                Icon(Icons.check_circle, color: AppColors.success, size: UIConstants.mediumIconSize),
+                SizedBox(width: UIConstants.smallPadding),
+                const Expanded(child: Text('Finalizar Separação', overflow: TextOverflow.ellipsis)),
               ],
             ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Confirma finalização do carrinho ${cart.nomeCarrinho}?'),
+                    SizedBox(height: UIConstants.defaultPadding),
+                    _buildInfoRow('Código', '#${cart.codCarrinho}'),
+                    _buildInfoRow('Itens totais', '$totalItems'),
+                    _buildInfoRow('Itens separados', '$completedItems'),
+                    _buildInfoRow('Progresso', '${(progress * 100).toInt()}%'),
+                    if (pendingOps > 0) ...[
+                      SizedBox(height: UIConstants.smallFontSize),
+                      Container(
+                        padding: const EdgeInsets.all(UIConstants.smallPadding),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.warning, color: AppColors.warning, size: UIConstants.smallIconSize),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Há $pendingOps operação${pendingOps == 1 ? '' : 'es'} sincronizando',
+                                style: AppFonts.inter(fontSize: UIConstants.tinyFontSize, color: AppColors.warning),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancelar')),
+              ElevatedButton(
+                onPressed: pendingOps == 0 ? () => Navigator.of(dialogContext).pop(true) : null,
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, foregroundColor: AppColors.white),
+                child: const Text('Confirmar Finalização'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: pendingOps == 0 ? () => Navigator.of(dialogContext).pop(true) : null,
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, foregroundColor: AppColors.white),
-            child: const Text('Confirmar Finalização'),
-          ),
-        ],
-      ),
-    ).catchError((Object e, StackTrace s) {
-      AppLogger.warning(
-        'Falha ao exibir confirmação de finalização (picking)',
-        tag: 'PickingFlowController',
-        error: e,
-        stackTrace: s,
-      );
-      return false;
-    });
+        ).catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha ao exibir confirmação de finalização (picking)',
+            tag: 'PickingFlowController',
+            error: e,
+            stackTrace: s,
+          );
+          return false;
+        });
 
     return result ?? false;
   }

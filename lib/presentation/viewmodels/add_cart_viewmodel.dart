@@ -37,6 +37,7 @@ class AddCartViewModel extends ChangeNotifier {
   String? _errorMessage;
   Timer? _autoAddTimer;
   int _countdownSeconds = 0;
+  int _autoAddGeneration = 0;
   bool _disposed = false;
   int _successCounter = 0;
   AddCartSuccess? _lastAddSuccess;
@@ -70,13 +71,17 @@ class AddCartViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   Future<void> scanBarcode(String barcode) async {
+    if (_disposed) return;
     if (barcode.isEmpty) return;
     if (_isScanning) return;
 
     _isScanning = true;
     _errorMessage = null;
+    _scannedCart = null;
+    _lastAddSuccess = null;
+    _stopAutoAddCountdown();
 
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final query = QueryBuilder().equals('codigoBarras', barcode);
@@ -87,7 +92,7 @@ class AddCartViewModel extends ChangeNotifier {
         _scannedCart = carts.first;
         _lastAddSuccess = null;
         _audioService.playBarcodeScan();
-        _startAutoAddCountdown();
+        _startAutoAddCountdown(notifyInitialState: false);
       } else {
         _scannedCart = null;
         _lastAddSuccess = null;
@@ -104,12 +109,13 @@ class AddCartViewModel extends ChangeNotifier {
       _audioService.playError();
     } finally {
       _isScanning = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   Future<bool> addCartToSeparation() async {
     if (_disposed) return false;
+    if (_isScanning) return false;
 
     if (_scannedCart == null) {
       _setError('Nenhum carrinho foi escaneado.');
@@ -124,8 +130,9 @@ class AddCartViewModel extends ChangeNotifier {
     if (_isAdding) return false;
 
     _stopAutoAddCountdown();
-    _setAdding(true);
-    _clearError();
+    _isAdding = true;
+    _errorMessage = null;
+    _safeNotifyListeners();
 
     try {
       final existingCartRouteResult = await _checkExistingCartRoute();
@@ -170,13 +177,12 @@ class AddCartViewModel extends ChangeNotifier {
           _lastAddSuccess = success;
           _audioService.playCartAddSuccess();
           _successCounter++;
-          notifyListeners();
           return true;
         },
         (failure) {
           _lastAddSuccess = null;
           final message = failure is AppFailure ? failure.userMessage : 'Erro ao adicionar carrinho. Tente novamente.';
-          _setError(message);
+          _errorMessage = message;
           _audioService.playError();
           return false;
         },
@@ -189,11 +195,12 @@ class AddCartViewModel extends ChangeNotifier {
         stackTrace: stackTrace,
       );
       _lastAddSuccess = null;
-      _setError('Erro inesperado. Tente novamente.');
+      _errorMessage = 'Erro inesperado. Tente novamente.';
       _audioService.playError();
       return false;
     } finally {
-      _setAdding(false);
+      _isAdding = false;
+      _safeNotifyListeners();
     }
   }
 
@@ -256,20 +263,26 @@ class AddCartViewModel extends ChangeNotifier {
     _stopAutoAddCountdown();
     _scannedCart = null;
     _lastAddSuccess = null;
-    _clearError();
-    notifyListeners();
+    _errorMessage = null;
+    _safeNotifyListeners();
   }
 
-  void _startAutoAddCountdown() {
+  void _startAutoAddCountdown({bool notifyInitialState = true}) {
     _stopAutoAddCountdown();
 
     if (!canAddCart) return;
 
+    final generation = ++_autoAddGeneration;
     _countdownSeconds = 5;
-    notifyListeners();
+    if (notifyInitialState) {
+      _safeNotifyListeners();
+    }
 
     _autoAddTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_disposed) return;
+      if (_disposed || generation != _autoAddGeneration) {
+        timer.cancel();
+        return;
+      }
 
       _countdownSeconds--;
 
@@ -293,26 +306,23 @@ class AddCartViewModel extends ChangeNotifier {
           );
         }
       } else {
-        notifyListeners();
+        _safeNotifyListeners();
       }
     });
   }
 
   void _stopAutoAddCountdown() {
+    _autoAddGeneration++;
     _autoAddTimer?.cancel();
     _autoAddTimer = null;
     _countdownSeconds = 0;
   }
 
   void cancelAutoAdd() {
+    final hadCountdown = _autoAddTimer != null || _countdownSeconds != 0;
     _stopAutoAddCountdown();
-    notifyListeners();
-  }
-
-  void _setAdding(bool adding) {
-    if (!_disposed) {
-      _isAdding = adding;
-      notifyListeners();
+    if (hadCountdown) {
+      _safeNotifyListeners();
     }
   }
 
@@ -323,9 +333,8 @@ class AddCartViewModel extends ChangeNotifier {
     }
   }
 
-  void _clearError() {
+  void _safeNotifyListeners() {
     if (!_disposed) {
-      _errorMessage = null;
       notifyListeners();
     }
   }

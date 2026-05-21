@@ -27,13 +27,15 @@ class BarcodeValidationService {
     String scannedBarcode,
     List<SeparateItemConsultationModel> items,
     bool Function(String itemId) isItemCompleted, {
+    SeparateItemConsultationModel? expectedItem,
     int? userSectorCode,
   }) {
     if (scannedBarcode.trim().isEmpty) {
       return BarcodeValidationResult.empty();
     }
 
-    final nextItem = PickingUtils.findNextItemToPick(items, isItemCompleted, userSectorCode: userSectorCode);
+    final nextItem =
+        expectedItem ?? PickingUtils.findNextItemToPick(items, isItemCompleted, userSectorCode: userSectorCode);
 
     if (nextItem == null) {
       if (userSectorCode != null) {

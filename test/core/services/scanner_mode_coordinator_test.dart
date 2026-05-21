@@ -17,6 +17,7 @@ void main() {
     coordinator = ScannerModeCoordinator(
       broadcastService: fakeService,
       onBarcode: received.add,
+      listenerRestartDelay: const Duration(milliseconds: 1),
     );
   });
 
@@ -31,18 +32,19 @@ void main() {
         isFalse,
       );
       expect(
-        const ScannerModePreferences(mode: ScannerInputMode.broadcast, action: '', extraKey: 'd')
-            .isBroadcastConfigured,
+        const ScannerModePreferences(mode: ScannerInputMode.broadcast, action: '', extraKey: 'd').isBroadcastConfigured,
         isFalse,
       );
       expect(
-        const ScannerModePreferences(mode: ScannerInputMode.broadcast, action: 'a', extraKey: '')
-            .isBroadcastConfigured,
+        const ScannerModePreferences(mode: ScannerInputMode.broadcast, action: 'a', extraKey: '').isBroadcastConfigured,
         isFalse,
       );
       expect(
-        const ScannerModePreferences(mode: ScannerInputMode.broadcast, action: 'a', extraKey: 'd')
-            .isBroadcastConfigured,
+        const ScannerModePreferences(
+          mode: ScannerInputMode.broadcast,
+          action: 'a',
+          extraKey: 'd',
+        ).isBroadcastConfigured,
         isTrue,
       );
     });
@@ -50,9 +52,7 @@ void main() {
 
   group('start()', () {
     test('em focus mode nao registra subscription', () async {
-      await coordinator.start(
-        const ScannerModePreferences(mode: ScannerInputMode.focus, action: 'a', extraKey: 'd'),
-      );
+      await coordinator.start(const ScannerModePreferences(mode: ScannerInputMode.focus, action: 'a', extraKey: 'd'));
       expect(coordinator.isBroadcastActive, isFalse);
       expect(fakeService.listenCalls, equals(0));
     });
@@ -180,6 +180,25 @@ void main() {
       await coordinator.dispose(); // nao deve lancar
     });
   });
+
+  group('stream recovery', () {
+    test('reinicia o listener quando o stream broadcast eh encerrado', () async {
+      await coordinator.start(
+        const ScannerModePreferences(mode: ScannerInputMode.broadcast, action: 'a', extraKey: 'd'),
+      );
+      expect(fakeService.listenCalls, equals(1));
+
+      await fakeService.closeCurrentStream();
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      expect(coordinator.isBroadcastActive, isTrue);
+      expect(fakeService.listenCalls, equals(2));
+
+      fakeService.emit('321');
+      await Future<void>.delayed(Duration.zero);
+      expect(received, equals(['321']));
+    });
+  });
 }
 
 class _FakeBroadcastService implements BarcodeBroadcastService {
@@ -200,5 +219,9 @@ class _FakeBroadcastService implements BarcodeBroadcastService {
 
   void emit(String code) {
     _controller?.add(code);
+  }
+
+  Future<void> closeCurrentStream() async {
+    await _controller?.close();
   }
 }

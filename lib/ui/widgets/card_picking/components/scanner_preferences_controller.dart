@@ -4,9 +4,10 @@ import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
 import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/core/services/scanner_mode_coordinator.dart';
 
 class ScannerPreferencesController {
-  final ConfigViewModel _configViewModel = locator<ConfigViewModel>();
+  final ConfigViewModel _configViewModel;
 
   ScannerInputMode _scannerMode = ScannerInputMode.focus;
   String _broadcastAction = '';
@@ -15,9 +16,14 @@ class ScannerPreferencesController {
   ScannerInputMode get mode => _scannerMode;
   String get broadcastAction => _broadcastAction;
   String get broadcastExtraKey => _broadcastExtraKey;
+  ScannerModePreferences get modePreferences =>
+      ScannerModePreferences(mode: _scannerMode, action: _broadcastAction, extraKey: _broadcastExtraKey);
 
   bool get isBroadcastConfigured =>
       _scannerMode == ScannerInputMode.broadcast && _broadcastAction.isNotEmpty && _broadcastExtraKey.isNotEmpty;
+
+  ScannerPreferencesController({ConfigViewModel? configViewModel})
+    : _configViewModel = configViewModel ?? locator<ConfigViewModel>();
 
   Future<void> loadPreferences() async {
     try {
@@ -41,6 +47,11 @@ class ScannerPreferencesController {
         stackTrace: stackTrace,
       );
     }
+  }
+
+  Future<ScannerModePreferences> loadModePreferences() async {
+    await loadPreferences();
+    return modePreferences;
   }
 
   /// Bug latente anterior: `loadPreferences()` retorna Future

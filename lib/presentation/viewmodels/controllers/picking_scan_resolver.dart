@@ -26,6 +26,7 @@ class PickingScanResolver {
     required int inputQuantity,
     required bool isCartInSeparation,
     required List<SeparateItemConsultationModel> items,
+    SeparateItemConsultationModel? nextItem,
     required int? userSectorCode,
     required bool requiresShelfScanning,
     required String? lastScannedAddress,
@@ -52,16 +53,16 @@ class PickingScanResolver {
       return const ScanProcessResult(status: ScanProcessStatus.cartNotInSeparation);
     }
 
-    final nextItem = PickingUtils.findNextItemToPick(items, isItemCompleted, userSectorCode: userSectorCode);
+    final expectedNextItem =
+        nextItem ?? PickingUtils.findNextItemToPick(items, isItemCompleted, userSectorCode: userSectorCode);
 
-    final shouldCheckShelf = nextItem != null &&
-        requiresShelfScanning &&
-        (shouldScanShelfFor?.call(nextItem) ?? true);
+    final shouldCheckShelf =
+        expectedNextItem != null && requiresShelfScanning && (shouldScanShelfFor?.call(expectedNextItem) ?? true);
 
     if (shouldCheckShelf) {
       final shelfResult = _validateShelfScanning(
         scannedBarcode: trimmedBarcode,
-        expectedItem: nextItem,
+        expectedItem: expectedNextItem,
         lastScannedAddress: lastScannedAddress,
         onShelfAddressMatched: onShelfAddressMatched,
       );
@@ -76,6 +77,7 @@ class PickingScanResolver {
       trimmedBarcode,
       items,
       isItemCompleted,
+      expectedItem: expectedNextItem,
       userSectorCode: userSectorCode,
     );
 

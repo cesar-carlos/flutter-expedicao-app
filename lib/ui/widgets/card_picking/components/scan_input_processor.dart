@@ -35,6 +35,7 @@ class ScanInputProcessor {
       barcode,
       viewModel.items,
       viewModel.isItemCompleted,
+      expectedItem: viewModel.nextItem,
       userSectorCode: viewModel.userModel?.codSetorEstoque,
     );
   }

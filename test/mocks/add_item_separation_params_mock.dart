@@ -9,6 +9,7 @@ AddItemSeparationParams createTestAddItemSeparationParams() {
     sessionId: 'test-session-id',
     codCarrinhoPercurso: 1,
     itemCarrinhoPercurso: '00001', // varchar(5) - 5 caracteres
+    itemSepararEstoque: '00001',
     codSeparador: 1,
     nomeSeparador: 'TESTE SEPARADOR',
     codProduto: 1,
@@ -30,6 +31,7 @@ AddItemSeparationParams createTestAddItemSeparationParamsWithSessionId(String se
     sessionId: sessionId,
     codCarrinhoPercurso: 1,
     itemCarrinhoPercurso: '00005',
+    itemSepararEstoque: '00001',
     codSeparador: 1,
     nomeSeparador: 'TESTE SEPARADOR',
     codProduto: 1,
@@ -50,6 +52,7 @@ AddItemSeparationParams createTestAddItemSeparationParamsWithExcessiveQuantity(S
     sessionId: sessionId,
     codCarrinhoPercurso: 1,
     itemCarrinhoPercurso: '00010',
+    itemSepararEstoque: '00001',
     codSeparador: 1,
     nomeSeparador: 'TESTE SEPARADOR',
     codProduto: 1,
@@ -74,6 +77,7 @@ AddItemSeparationParams createTestAddItemSeparationParamsWithNonExistentProduct(
     sessionId: sessionId,
     codCarrinhoPercurso: 1,
     itemCarrinhoPercurso: uniqueItemId, // varchar(5) - 5 caracteres
+    itemSepararEstoque: '99999',
     codSeparador: 1,
     nomeSeparador: 'TESTE SEPARADOR',
     codProduto: 999999, // Produto que não existe
@@ -90,6 +94,7 @@ AddItemSeparationParams createTestAddItemSeparationParamsForMultiple1(String ses
     sessionId: sessionId,
     codCarrinhoPercurso: 1,
     itemCarrinhoPercurso: '00011',
+    itemSepararEstoque: '00001',
     codSeparador: 1,
     nomeSeparador: 'TESTE SEPARADOR',
     codProduto: 1,
@@ -106,6 +111,7 @@ AddItemSeparationParams createTestAddItemSeparationParamsForMultiple2(String ses
     sessionId: sessionId,
     codCarrinhoPercurso: 1,
     itemCarrinhoPercurso: '00012',
+    itemSepararEstoque: '00001',
     codSeparador: 1,
     nomeSeparador: 'TESTE SEPARADOR',
     codProduto: 1,

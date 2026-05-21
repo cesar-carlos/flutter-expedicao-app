@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
-import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
@@ -457,11 +456,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
 
     try {
-      final nextItem = PickingUtils.findNextItemToPick(
-        widget.viewModel.items,
-        widget.viewModel.isItemCompleted,
-        userSectorCode: widget.viewModel.userModel?.codSetorEstoque,
-      );
+      final nextItem = widget.viewModel.nextItem;
 
       if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
         // Libera o lock antes de pausar para shelf, pois o fluxo dali
@@ -489,9 +484,14 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     }
   }
 
-  Future<void> _addItemToSeparation(SeparateItemConsultationModel item, String barcode, int quantity) async {
+  Future<bool> _addItemToSeparation(
+    SeparateItemConsultationModel item,
+    String barcode,
+    int quantity,
+    int originalQuantity,
+  ) async {
     try {
-      final result = await widget.viewModel.addScannedItem(codProduto: item.codProduto, quantity: quantity);
+      final result = await widget.viewModel.addScannedItem(itemId: item.item, quantity: quantity);
 
       if (result.isSuccess) {
         if (item.endereco != null) {
@@ -507,32 +507,43 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         );
 
         unawaited(
-          _checkNextItemShelfScanAsync().then((_) async {
-            if (!mounted) return;
-            await Future.delayed(UIConstants.mediumDelay);
-            if (mounted) await _checkAndShowSaveCartModal();
-          }).catchError((Object e, StackTrace s) {
-            AppLogger.warning(
-              'Falha na sequência pós-adicionar item (prateleira/salvar)',
-              tag: 'PickingCardScan',
-              error: e,
-              stackTrace: s,
-            );
-          }),
+          _checkNextItemShelfScanAsync()
+              .then((_) async {
+                if (!mounted) return;
+                await Future.delayed(UIConstants.mediumDelay);
+                if (mounted) await _checkAndShowSaveCartModal();
+              })
+              .catchError((Object e, StackTrace s) {
+                AppLogger.warning(
+                  'Falha na sequência pós-adicionar item (prateleira/salvar)',
+                  tag: 'PickingCardScan',
+                  error: e,
+                  stackTrace: s,
+                );
+              }),
         );
 
         _keyboardController.forceFocusAndCloseKeyboard();
+        return true;
       } else {
+        if (originalQuantity != quantity) {
+          _quantityController.text = originalQuantity.toString();
+        }
         _scanProcessor.handleFailedItemAddition(item, result.message);
         _dialogManager.showErrorDialog(barcode, item.nomeProduto, result.message);
         _keyboardController.forceFocusAndCloseKeyboard();
+        return false;
       }
     } catch (e, stackTrace) {
+      if (originalQuantity != quantity) {
+        _quantityController.text = originalQuantity.toString();
+      }
       AppLogger.error('Erro inesperado ao processar scan', tag: 'PickingCardScan', error: e, stackTrace: stackTrace);
       const message = 'Erro inesperado. Tente novamente.';
       _scanProcessor.handleFailedItemAddition(item, message);
       _dialogManager.showErrorDialog(barcode, item.nomeProduto, message);
       _keyboardController.forceFocusAndCloseKeyboard();
+      return false;
     }
   }
 
@@ -547,17 +558,19 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         Future<void>.delayed(UIConstants.shortLoadingDelay, () {
           if (mounted) {
             unawaited(
-              _pauseScannerForShelf().then((_) {
-                if (!mounted) return;
-                _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
-              }).catchError((Object e, StackTrace s) {
-                AppLogger.warning(
-                  'Falha ao abrir scan inicial de prateleira',
-                  tag: 'PickingCardScan',
-                  error: e,
-                  stackTrace: s,
-                );
-              }),
+              _pauseScannerForShelf()
+                  .then((_) {
+                    if (!mounted) return;
+                    _flowController.showShelfScanDialog(context, nextItem, onShelfScanCompleted: _reactivateScanner);
+                  })
+                  .catchError((Object e, StackTrace s) {
+                    AppLogger.warning(
+                      'Falha ao abrir scan inicial de prateleira',
+                      tag: 'PickingCardScan',
+                      error: e,
+                      stackTrace: s,
+                    );
+                  }),
             );
           }
         }).catchError((Object e, StackTrace s) {
@@ -576,11 +589,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     await Future.delayed(UIConstants.shortLoadingDelay);
     if (!mounted) return;
 
-    final nextItem = PickingUtils.findNextItemToPick(
-      widget.viewModel.items,
-      widget.viewModel.isItemCompleted,
-      userSectorCode: widget.viewModel.userModel?.codSetorEstoque,
-    );
+    final nextItem = widget.viewModel.nextItem;
 
     if (nextItem != null && widget.viewModel.shouldScanShelf(nextItem)) {
       await _pauseScannerForShelf();

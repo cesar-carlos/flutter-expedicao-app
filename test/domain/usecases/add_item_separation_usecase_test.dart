@@ -22,7 +22,8 @@ void main() {
       codSepararEstoque: 100,
       sessionId: 'abcd12345678',
       codCarrinhoPercurso: 200,
-      itemCarrinhoPercurso: '0001',
+      itemCarrinhoPercurso: '00001',
+      itemSepararEstoque: '00001',
       codSeparador: 1,
       nomeSeparador: 'Operador',
       codProduto: 42,
@@ -64,7 +65,8 @@ void main() {
         codSepararEstoque: 100,
         sessionId: 'abcd12345678',
         codCarrinhoPercurso: 200,
-        itemCarrinhoPercurso: '0001',
+        itemCarrinhoPercurso: '00001',
+        itemSepararEstoque: '00001',
         codSeparador: 1,
         nomeSeparador: 'Op',
         codProduto: 42,
@@ -155,6 +157,30 @@ void main() {
       }, (_) => fail('expected success'));
     });
 
+    test('usa o itemSepararEstoque para atualizar a linha correta quando o produto se repete', () async {
+      final separationRepo = _TrackingSeparationRepo();
+      final separateItemRepository = InMemorySeparateItemRepository([
+        separateAvailable(qSep: 1.0),
+        separateAvailable(qSep: 4.0).copyWith(item: '00002'),
+      ]);
+      final uc = AddItemSeparationUseCase(
+        separateItemRepository: separateItemRepository,
+        separationItemRepository: separationRepo,
+        userSessionService: FakeUserSessionService(),
+      );
+
+      final result = await uc.call(
+        baseParams(quantidade: 2.0).copyWithForTest(itemSepararEstoque: '00002'),
+        userSystem: user(),
+      );
+
+      expect(result.isSuccess(), isTrue);
+      final success = result.getOrNull()!;
+      expect(success.updatedSeparateItem.item, equals('00002'));
+      expect(success.updatedSeparateItem.quantidadeSeparacao, equals(6.0));
+      expect(separateItemRepository.rows.firstWhere((row) => row.item == '00001').quantidadeSeparacao, equals(1.0));
+    });
+
     test('sem userSystem carrega sessao via IUserSessionService', () async {
       final separationRepo = _TrackingSeparationRepo();
       final uc = AddItemSeparationUseCase(
@@ -168,6 +194,24 @@ void main() {
       expect(result.isSuccess(), isTrue);
     });
   });
+}
+
+extension on AddItemSeparationParams {
+  AddItemSeparationParams copyWithForTest({String? itemSepararEstoque}) {
+    return AddItemSeparationParams(
+      codEmpresa: codEmpresa,
+      codSepararEstoque: codSepararEstoque,
+      sessionId: sessionId,
+      codCarrinhoPercurso: codCarrinhoPercurso,
+      itemCarrinhoPercurso: itemCarrinhoPercurso,
+      itemSepararEstoque: itemSepararEstoque ?? this.itemSepararEstoque,
+      codSeparador: codSeparador,
+      nomeSeparador: nomeSeparador,
+      codProduto: codProduto,
+      codUnidadeMedida: codUnidadeMedida,
+      quantidade: quantidade,
+    );
+  }
 }
 
 class _TrackingSeparationRepo implements BasicRepository<SeparationItemModel> {
