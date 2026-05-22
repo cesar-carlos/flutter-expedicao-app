@@ -123,6 +123,24 @@ O sistema compara versões da seguinte forma:
 
 ## Criando um Release no GitHub
 
+Fluxo recomendado no projeto:
+
+```powershell
+.\create-release.ps1 -Publish
+```
+
+Esse comando valida a versao do `pubspec.yaml`, confere as notas de release,
+roda analise/testes/lint Android, gera o APK, cria copia versionada em
+`dist/release/`, publica a tag/release no GitHub e anexa o APK.
+
+Para build de producao com assinatura obrigatoria:
+
+```powershell
+.\create-release.ps1 -Publish -RequireReleaseSigning -Artifact both
+```
+
+O fluxo manual abaixo continua valido para diagnostico ou publicacao manual.
+
 ### Passo 1: Preparar o APK
 
 1. Gere o APK do aplicativo:

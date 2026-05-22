@@ -333,6 +333,12 @@ flutter test test/domain/usecases/user/register_via_qrcode_usecase_test.dart
 flutter build apk --release
 ```
 
+Para gerar o pacote versionado com validacoes:
+
+```powershell
+.\create-release.ps1
+```
+
 ### Build Android (App Bundle)
 
 ```bash
@@ -353,9 +359,23 @@ O projeto possui um script PowerShell para facilitar o processo de release:
 .\create-release.ps1
 ```
 
+Para publicar no GitHub com APK anexado:
+
+```powershell
+.\create-release.ps1 -Publish
+```
+
+Para exigir assinatura de producao e gerar APK + AAB:
+
+```powershell
+.\create-release.ps1 -Publish -RequireReleaseSigning -Artifact both
+```
+
 ## 📚 Documentação Adicional
 
 - [Sistema de Auto-Update](./docs/auto-update-system.md)
+- [Processo de Release](./docs/release/RELEASE_PROCESS.md)
+- [Assinatura Android](./android/RELEASE_SIGNING_GUIDE.md)
 - [Arquitetura do Projeto](./.cursor/rules/architecture.mdc)
 - [Padrões de Código](./.cursor/rules/coding_conventions.mdc)
 - [Guia de Testes](./.cursor/rules/testing.mdc)
@@ -388,6 +408,6 @@ Desenvolvido pela equipe Data7.
 
 ---
 
-**Versão**: 1.0.7+2
+**Versão**: 2.1.4+5
 
 Para mais informações, consulte a documentação técnica nos arquivos `.md` na pasta `docs/`.

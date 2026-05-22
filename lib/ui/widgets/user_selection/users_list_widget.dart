@@ -56,7 +56,6 @@ class UsersListWidget extends StatelessWidget {
         return ListView.builder(
           controller: scrollController,
           physics: const BouncingScrollPhysics(),
-          cacheExtent: 200,
           itemCount: filteredUsers.length + (viewModel.hasMoreData && !viewModel.isSearchMode ? 1 : 0),
           itemBuilder: (context, index) {
             if (index == filteredUsers.length) {
