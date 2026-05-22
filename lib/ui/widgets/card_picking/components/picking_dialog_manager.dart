@@ -6,7 +6,6 @@ import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal.dart';
 import 'package:data7_expedicao/ui/widgets/common/picking_dialog.dart';
 
 class PickingDialogManager {
@@ -106,35 +105,6 @@ class PickingDialogManager {
   void showWrongShelfDialog(String expectedShelf, String scannedShelf) {
     _showDialogWithFocusReturn(
       () => PickingDialogs.wrongShelf(expectedShelf: expectedShelf, scannedShelf: scannedShelf),
-    );
-  }
-
-  void showShelfScanDialog({
-    required String expectedAddress,
-    required String expectedAddressDescription,
-    required Function(String) onShelfScanned,
-    Function()? onBack,
-  }) {
-    if (!context.mounted) return;
-
-    unawaited(
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (dialogContext) => ShelfScanningModal(
-          expectedAddress: expectedAddress,
-          expectedAddressDescription: expectedAddressDescription,
-          onShelfScanned: onShelfScanned,
-          onBack: onBack,
-        ),
-      ).catchError((Object e, StackTrace s) {
-        AppLogger.warning(
-          'Falha ao exibir dialog shelfScan',
-          tag: 'PickingDialogManager',
-          error: e,
-          stackTrace: s,
-        );
-      }),
     );
   }
 
@@ -258,9 +228,10 @@ class PickingDialogManager {
     // no `.then` para preservar a semantica original (focus volta
     // ao scanner apos o dialog fechar).
     unawaited(
-      showDialog<void>(context: context, builder: (dialogContext) => dialogBuilder())
-          .then((_) => _returnFocusToScanner())
-          .catchError((Object e, StackTrace s) {
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => dialogBuilder(),
+      ).then((_) => _returnFocusToScanner()).catchError((Object e, StackTrace s) {
         AppLogger.warning(
           'Falha ao exibir dialog (showDialogWithFocusReturn)',
           tag: 'PickingDialogManager',

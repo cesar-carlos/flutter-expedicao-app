@@ -119,10 +119,8 @@ import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/res
 import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
-import 'package:data7_expedicao/domain/repositories/barcode_scanner_repository.dart';
-import 'package:data7_expedicao/data/repositories/barcode_scanner_repository_mobile_impl.dart';
-import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/user/register_via_qrcode_usecase.dart';
+import 'package:data7_expedicao/ui/services/camera_barcode_scan_service.dart';
 import 'package:data7_expedicao/domain/repositories/i_app_update_repository.dart';
 import 'package:data7_expedicao/data/repositories/app_update_repository_impl.dart';
 import 'package:data7_expedicao/domain/usecases/check_app_update/check_app_update_usecase.dart';
@@ -526,12 +524,7 @@ void setupLocator() {
     ),
   );
 
-  // Registro do Barcode Scanner Repository e UseCase
-  locator.registerLazySingleton<BarcodeScannerRepository>(() => BarcodeScannerRepositoryMobileImpl());
-
-  locator.registerLazySingleton<ScanBarcodeUseCase>(
-    () => ScanBarcodeUseCase(scannerRepository: locator<BarcodeScannerRepository>()),
-  );
+  locator.registerLazySingleton<CameraBarcodeScanService>(() => const CameraBarcodeScanService());
 
   // Registro dos ViewModels após os repositórios de eventos
   locator.registerFactory(() => SeparationViewModel());

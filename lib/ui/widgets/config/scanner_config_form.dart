@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/constants/scanner_broadcast_defaults.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
@@ -27,21 +28,31 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
   void initState() {
     super.initState();
     _loadCurrentPrefs();
+    _actionController.addListener(_onBroadcastConfigChanged);
+    _extraController.addListener(_onBroadcastConfigChanged);
   }
 
   void _loadCurrentPrefs() {
     final vm = context.read<ConfigViewModel>();
     vm.loadConfigSilent();
     _mode = vm.scannerInputMode;
-    _actionController.text = vm.broadcastAction.isNotEmpty ? vm.broadcastAction : 'com.scanner.BARCODE';
-    _extraController.text = vm.broadcastExtraKey.isNotEmpty ? vm.broadcastExtraKey : 'data';
+    _actionController.text = vm.broadcastAction.isNotEmpty ? vm.broadcastAction : ScannerBroadcastDefaults.action;
+    _extraController.text = vm.broadcastExtraKey.isNotEmpty ? vm.broadcastExtraKey : ScannerBroadcastDefaults.extraKey;
   }
 
   @override
   void dispose() {
+    _actionController.removeListener(_onBroadcastConfigChanged);
+    _extraController.removeListener(_onBroadcastConfigChanged);
     _actionController.dispose();
     _extraController.dispose();
     super.dispose();
+  }
+
+  void _onBroadcastConfigChanged() {
+    if (mounted && _mode == ScannerInputMode.broadcast) {
+      setState(() {});
+    }
   }
 
   void _handleSave() {
@@ -57,6 +68,11 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
       }),
     );
   }
+
+  bool get _usesDefaultBroadcastConfig =>
+      _mode == ScannerInputMode.broadcast &&
+      _actionController.text.trim() == ScannerBroadcastDefaults.action &&
+      _extraController.text.trim() == ScannerBroadcastDefaults.extraKey;
 
   Future<void> _performSave() async {
     final vm = context.read<ConfigViewModel>();
@@ -115,6 +131,10 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
                     _buildActionField(context, theme),
                     const SizedBox(height: 12),
                     _buildExtraField(context, theme),
+                    if (_usesDefaultBroadcastConfig) ...[
+                      const SizedBox(height: 12),
+                      _buildDefaultBroadcastWarning(context, theme, colorScheme),
+                    ],
                   ],
                   const SizedBox(height: 16),
                   Align(
@@ -167,7 +187,7 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
       ),
       validator: (value) {
         if (_mode == ScannerInputMode.broadcast && (value == null || value.trim().isEmpty)) {
-          return 'Informe a action do broadcast';
+          return context.l10n.broadcastActionRequired;
         }
         return null;
       },
@@ -184,10 +204,34 @@ class _ScannerConfigFormState extends State<ScannerConfigForm> {
       ),
       validator: (value) {
         if (_mode == ScannerInputMode.broadcast && (value == null || value.trim().isEmpty)) {
-          return 'Informe a chave do extra';
+          return context.l10n.broadcastExtraRequired;
         }
         return null;
       },
+    );
+  }
+
+  Widget _buildDefaultBroadcastWarning(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              context.l10n.scannerBroadcastDefaultWarning,
+              style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurface),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

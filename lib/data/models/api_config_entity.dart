@@ -38,12 +38,16 @@ class ApiConfigEntity extends HiveObject {
   });
 
   ApiConfig toDomain() {
+    final scannerInputMode = scannerModeIndex >= 0 && scannerModeIndex < ScannerInputMode.values.length
+        ? ScannerInputMode.values[scannerModeIndex]
+        : ApiConfig.defaultConfig.scannerInputMode;
+
     return ApiConfig(
       apiUrl: apiUrl,
       apiPort: apiPort,
       useHttps: useHttps,
       lastUpdated: lastUpdated,
-      scannerInputMode: ScannerInputMode.values[scannerModeIndex],
+      scannerInputMode: scannerInputMode,
       broadcastAction: broadcastAction,
       broadcastExtraKey: broadcastExtraKey,
     );

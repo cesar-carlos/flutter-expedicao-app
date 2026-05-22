@@ -4,20 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/constants/scan_failure_codes.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/user/system_qrcode_data.dart';
-import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_params.dart';
-import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/user/register_via_qrcode_usecase.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/ui/services/camera_barcode_scan_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 
 class QRCodeLoginScreen extends StatefulWidget {
-  const QRCodeLoginScreen({super.key});
+  final CameraBarcodeScanService scanService;
+  final RegisterViaQRCodeUseCase registerViaQRCodeUseCase;
+
+  const QRCodeLoginScreen({super.key, required this.scanService, required this.registerViaQRCodeUseCase});
 
   @override
   State<QRCodeLoginScreen> createState() => _QRCodeLoginScreenState();
@@ -26,6 +28,10 @@ class QRCodeLoginScreen extends StatefulWidget {
 class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
   bool _isProcessing = false;
   String? _errorMessage;
+
+  CameraBarcodeScanService get _scanService => widget.scanService;
+
+  RegisterViaQRCodeUseCase get _registerViaQRCodeUseCase => widget.registerViaQRCodeUseCase;
 
   @override
   Widget build(BuildContext context) {
@@ -131,19 +137,16 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
     _setProcessingState(true);
 
     try {
-      final scanUseCase = locator<ScanBarcodeUseCase>();
-      const params = ScanBarcodeParams();
-      final scanResult = await scanUseCase.callWithContext(context, params);
+      final scanResult = await _scanService.scan(context);
 
       await scanResult.fold(
-        (success) async {
+        (barcode) async {
           AppLogger.info('QR Code escaneado com sucesso', tag: 'QRCodeLoginScreen');
-          await _processQRCodeData(success.barcode);
+          await _processQRCodeData(barcode);
         },
         (failure) {
-          final failureMessage = failure is AppFailure ? failure.userMessage : failure.toString();
           AppLogger.warning('Falha ao escanear QR Code', tag: 'QRCodeLoginScreen', error: failure);
-          _setErrorState('Erro ao escanear: $failureMessage');
+          _setErrorState(_scanFailureMessage(failure));
         },
       );
     } catch (e, s) {
@@ -174,9 +177,8 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
     }
 
     try {
-      final registerUseCase = locator<RegisterViaQRCodeUseCase>();
       final params = RegisterViaQRCodeParams(qrCodeData: qrCodeData);
-      final result = await registerUseCase(params);
+      final result = await _registerViaQRCodeUseCase(params);
 
       if (!mounted) {
         return;
@@ -200,6 +202,20 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
   void _handleQRCodeParseFailure(AppFailure failure) {
     AppLogger.warning('Falha ao interpretar QR Code', tag: 'QRCodeLoginScreen', error: failure);
     _setErrorState(failure.userMessage);
+  }
+
+  String _scanFailureMessage(Object failure) {
+    if (failure is! AppFailure) {
+      return 'Erro ao escanear. Tente novamente.';
+    }
+
+    return switch (failure.code) {
+      ScanFailureCodes.cancelled => context.l10n.scanCancelledMessage,
+      ScanFailureCodes.emptyBarcode => context.l10n.emptyBarcodeMessage,
+      ScanFailureCodes.permissionDenied => context.l10n.cameraPermissionDeniedMessage,
+      ScanFailureCodes.scannerError => context.l10n.scannerOpenErrorMessage,
+      _ => failure.userMessage,
+    };
   }
 
   Future<void> _handleRegistrationSuccess(RegisterViaQRCodeSuccess success) async {

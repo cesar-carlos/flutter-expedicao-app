@@ -3,42 +3,38 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
 import 'package:result_dart/result_dart.dart';
 
+import 'package:data7_expedicao/core/constants/scan_failure_codes.dart';
 import 'package:data7_expedicao/data/dtos/user_system_list_response_dto.dart';
-import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/pagination/pagination.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/user/user_models.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
-import 'package:data7_expedicao/domain/repositories/barcode_scanner_repository.dart';
 import 'package:data7_expedicao/domain/repositories/user_repository.dart';
 import 'package:data7_expedicao/domain/repositories/user_system_repository.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
-import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_failure.dart';
-import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_params.dart';
-import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_success.dart';
-import 'package:data7_expedicao/domain/usecases/scan_barcode/scan_barcode_usecase.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/domain/usecases/user/login_user_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/user/register_via_qrcode_usecase.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/l10n/app_localizations.dart';
 import 'package:data7_expedicao/ui/screens/qrcode_login_screen.dart';
+import 'package:data7_expedicao/ui/services/camera_barcode_scan_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('QRCodeLoginScreen', () {
-    late _FakeScanBarcodeUseCase scanUseCase;
+    late _FakeCameraBarcodeScanService scanService;
     late _FakeRegisterViaQRCodeUseCase registerUseCase;
     late _FakeUserSessionService sessionService;
     late _FakeUserSystemRepository userSystemRepository;
     late AuthViewModel authViewModel;
 
     setUp(() {
-      scanUseCase = _FakeScanBarcodeUseCase();
+      scanService = _FakeCameraBarcodeScanService();
       registerUseCase = _FakeRegisterViaQRCodeUseCase();
       sessionService = _FakeUserSessionService();
       userSystemRepository = _FakeUserSystemRepository();
@@ -47,40 +43,31 @@ void main() {
         userSessionService: sessionService,
         userSystemRepository: userSystemRepository,
       );
-
-      locator.pushNewScope(
-        init: (GetIt scope) {
-          scope.registerSingleton<ScanBarcodeUseCase>(scanUseCase);
-          scope.registerSingleton<RegisterViaQRCodeUseCase>(registerUseCase);
-        },
-      );
-    });
-
-    tearDown(() async {
-      await locator.popScope();
     });
 
     testWidgets('should show loading indicator while scan is in progress', (tester) async {
-      final completer = Completer<Result<ScanBarcodeSuccess>>();
-      scanUseCase.nextResultBuilder = () => completer.future;
+      final completer = Completer<Result<String>>();
+      scanService.nextResultBuilder = () => completer.future;
 
-      await tester.pumpWidget(_buildScreen(authViewModel));
+      await tester.pumpWidget(_buildScreen(authViewModel, scanService, registerUseCase));
 
       await tester.tap(find.text('Escanear QR Code'));
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(scanUseCase.callCount, equals(1));
+      expect(scanService.callCount, equals(1));
 
-      completer.complete(Failure(ScanBarcodeFailure.cancelled()));
+      completer.complete(
+        Failure(DataFailure(message: 'Scan cancelado pelo usuario', code: ScanFailureCodes.cancelled)),
+      );
       await tester.pump();
     });
 
     testWidgets('should show confirmation failure with retry actions and rescan on retry', (tester) async {
-      scanUseCase.nextResult = Success(ScanBarcodeSuccess(barcode: _validQrJson));
+      scanService.nextResult = Success(_validQrJson);
       registerUseCase.nextResult = Failure(RegisterViaQRCodeFailure.userConfirmationFailed());
 
-      await tester.pumpWidget(_buildScreen(authViewModel));
+      await tester.pumpWidget(_buildScreen(authViewModel, scanService, registerUseCase));
 
       await tester.tap(find.text('Escanear QR Code'));
       await tester.pump();
@@ -92,13 +79,27 @@ void main() {
       );
       expect(find.text('Tentar novamente'), findsOneWidget);
       expect(find.text('Voltar ao login'), findsOneWidget);
-      expect(scanUseCase.callCount, equals(1));
+      expect(scanService.callCount, equals(1));
 
-      scanUseCase.nextResult = Success(ScanBarcodeSuccess(barcode: _validQrJson));
+      scanService.nextResult = Success(_validQrJson);
       await tester.tap(find.text('Tentar novamente'));
       await tester.pump();
 
-      expect(scanUseCase.callCount, equals(2));
+      expect(scanService.callCount, equals(2));
+    });
+
+    testWidgets('should map permission denied scan failure by code', (tester) async {
+      scanService.nextResult = Failure(
+        DataFailure(message: 'raw permission message', code: ScanFailureCodes.permissionDenied),
+      );
+
+      await tester.pumpWidget(_buildScreen(authViewModel, scanService, registerUseCase));
+
+      await tester.tap(find.text('Escanear QR Code'));
+      await tester.pump();
+
+      expect(find.text('Permissão de câmera negada. Libere o acesso à câmera e tente novamente.'), findsOneWidget);
+      expect(find.textContaining('raw permission message'), findsNothing);
     });
 
     testWidgets('should refresh auth status after successful registration', (tester) async {
@@ -112,13 +113,13 @@ void main() {
       );
 
       userSystemRepository.user = authoritativeUser;
-      scanUseCase.nextResult = Success(ScanBarcodeSuccess(barcode: _validQrJson));
+      scanService.nextResult = Success(_validQrJson);
       registerUseCase.nextResultBuilder = () async {
         await sessionService.saveUserSession(confirmedUser);
         return Success(RegisterViaQRCodeSuccess(user: confirmedUser, message: 'Cadastro realizado com sucesso'));
       };
 
-      await tester.pumpWidget(_buildScreen(authViewModel));
+      await tester.pumpWidget(_buildScreen(authViewModel, scanService, registerUseCase));
 
       await tester.tap(find.text('Escanear QR Code'));
       await tester.pump();
@@ -131,32 +132,38 @@ void main() {
   });
 }
 
-Widget _buildScreen(AuthViewModel authViewModel) {
+Widget _buildScreen(
+  AuthViewModel authViewModel,
+  CameraBarcodeScanService scanService,
+  RegisterViaQRCodeUseCase registerUseCase,
+) {
   return MaterialApp(
+    locale: const Locale('pt', 'BR'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
-    home: ChangeNotifierProvider<AuthViewModel>.value(value: authViewModel, child: const QRCodeLoginScreen()),
+    home: ChangeNotifierProvider<AuthViewModel>.value(
+      value: authViewModel,
+      child: QRCodeLoginScreen(scanService: scanService, registerViaQRCodeUseCase: registerUseCase),
+    ),
   );
 }
 
 const String _validQrJson =
     '{"CodUsuario":123,"NomeUsuario":"Maria","SenhaUsuario":"1234","CodEmpresa":1,"NomeEmpresa":"Empresa Teste"}';
 
-class _FakeScanBarcodeUseCase extends ScanBarcodeUseCase {
-  _FakeScanBarcodeUseCase() : super(scannerRepository: _FakeBarcodeScannerRepository());
-
-  Result<ScanBarcodeSuccess>? nextResult;
-  Future<Result<ScanBarcodeSuccess>> Function()? nextResultBuilder;
+class _FakeCameraBarcodeScanService extends CameraBarcodeScanService {
+  Result<String>? nextResult;
+  Future<Result<String>> Function()? nextResultBuilder;
   int callCount = 0;
 
   @override
-  Future<Result<ScanBarcodeSuccess>> callWithContext(BuildContext context, ScanBarcodeParams params) async {
+  Future<Result<String>> scan(BuildContext context) async {
     callCount++;
     final builder = nextResultBuilder;
     if (builder != null) {
       return builder();
     }
-    return nextResult ?? Failure(ScanBarcodeFailure.cancelled());
+    return nextResult ?? Failure(DataFailure(message: 'Scan cancelado pelo usuario', code: ScanFailureCodes.cancelled));
   }
 }
 
@@ -178,13 +185,6 @@ class _FakeRegisterViaQRCodeUseCase extends RegisterViaQRCodeUseCase {
       return builder();
     }
     return nextResult ?? Failure(const RegisterViaQRCodeFailure(message: 'Falha nao configurada'));
-  }
-}
-
-class _FakeBarcodeScannerRepository implements BarcodeScannerRepository {
-  @override
-  Future<Result<String>> scanBarcode({required BuildContext context}) {
-    throw UnimplementedError();
   }
 }
 

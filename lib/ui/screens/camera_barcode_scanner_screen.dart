@@ -1,55 +1,24 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
+import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:result_dart/result_dart.dart';
-import 'package:flutter/material.dart';
 
-import 'dart:developer' as developer;
-import 'package:data7_expedicao/domain/repositories/barcode_scanner_repository.dart';
+import 'package:data7_expedicao/core/constants/scan_failure_codes.dart';
+import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 
-/// Implementação mobile do scanner de código de barras via câmera.
-///
-/// B5: removido o `setContext()` mutável que tornava o singleton stateful e
-/// vulneravel a uso de `BuildContext` desmontado. Agora o `BuildContext`
-/// é passado em cada chamada (stateless).
-class BarcodeScannerRepositoryMobileImpl implements BarcodeScannerRepository {
-  const BarcodeScannerRepositoryMobileImpl();
+class CameraBarcodeScannerScreen extends StatefulWidget {
+  const CameraBarcodeScannerScreen({super.key});
 
   @override
-  Future<Result<String>> scanBarcode({required BuildContext context}) async {
-    try {
-      final result = await Navigator.of(
-        context,
-      ).push<String>(MaterialPageRoute(builder: (context) => const BarcodeScannerScreen()));
-
-      if (result == null) {
-        return Failure(DataFailure(message: 'Scan cancelado pelo usuário', code: 'SCAN_CANCELLED'));
-      }
-
-      if (result.trim().isEmpty) {
-        return Failure(DataFailure(message: 'Código de barras vazio', code: 'EMPTY_BARCODE'));
-      }
-
-      return Success(result);
-    } catch (e) {
-      return Failure(
-        DataFailure(message: 'Erro ao escanear código de barras: ${e.toString()}', code: 'SCANNER_ERROR', exception: e),
-      );
-    }
-  }
+  State<CameraBarcodeScannerScreen> createState() => _CameraBarcodeScannerScreenState();
 }
 
-class BarcodeScannerScreen extends StatefulWidget {
-  const BarcodeScannerScreen({super.key});
-
-  @override
-  State<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
-}
-
-class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with WidgetsBindingObserver {
+class _CameraBarcodeScannerScreenState extends State<CameraBarcodeScannerScreen> with WidgetsBindingObserver {
   MobileScannerController? _controller;
   bool _isProcessing = false;
   String? _errorMessage;
@@ -59,11 +28,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _disableSystemSounds();
     _initializeController();
   }
-
-  void _disableSystemSounds() {}
 
   void _initializeController() {
     try {
@@ -75,7 +41,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
       );
     } catch (e) {
       setState(() {
-        _errorMessage = 'Erro ao inicializar câmera: ${e.toString()}';
+        _errorMessage = e.toString();
       });
     }
   }
@@ -87,9 +53,33 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
     await ctrl.dispose();
   }
 
-  Future<void> _closeWithResult(String? result) async {
+  Future<void> _closeWithResult(Result<String> result) async {
     if (_isDisposed || !mounted) return;
     Navigator.of(context).pop(result);
+  }
+
+  Future<void> _closeCancelled() async {
+    await _closeWithResult(
+      Failure(DataFailure(message: context.l10n.scanCancelledMessage, code: ScanFailureCodes.cancelled)),
+    );
+  }
+
+  Future<void> _closeScannerError(MobileScannerException error) async {
+    await _closeWithResult(_failureForMobileScannerError(error));
+  }
+
+  Result<String> _failureForMobileScannerError(MobileScannerException error) {
+    final code = error.errorCode == MobileScannerErrorCode.permissionDenied
+        ? ScanFailureCodes.permissionDenied
+        : ScanFailureCodes.scannerError;
+    final message = code == ScanFailureCodes.permissionDenied
+        ? context.l10n.cameraPermissionDeniedMessage
+        : context.l10n.scannerOpenErrorMessage;
+    return Failure(DataFailure(message: message, code: code, exception: error));
+  }
+
+  Result<String> _scannerErrorFromMessage(String message, Object exception) {
+    return Failure(DataFailure(message: message, code: ScanFailureCodes.scannerError, exception: exception));
   }
 
   @override
@@ -112,13 +102,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.detached) {
-      unawaited(_handleAppBackground());
-    }
-  }
-
-  Future<void> _handleAppBackground() async {
-    if (mounted) {
-      Navigator.of(context).pop(null);
+      unawaited(_closeCancelled());
     }
   }
 
@@ -126,26 +110,28 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
     if (_isProcessing || _isDisposed) return;
 
     final barcode = barcodeCapture.barcodes.firstOrNull;
-    if (barcode != null && barcode.rawValue != null && barcode.rawValue!.isNotEmpty) {
-      setState(() {
-        _isProcessing = true;
-      });
+    if (barcode?.rawValue == null || barcode!.rawValue!.isEmpty) return;
 
-      unawaited(
-        Future<void>.delayed(const Duration(milliseconds: 300)).then((_) async {
-          if (mounted && !_isDisposed) {
-            await _closeWithResult(barcode.rawValue);
-          }
-        }).catchError((Object e, StackTrace s) {
-          developer.log(
-            'Falha após detecção de código no scanner',
-            error: e,
-            stackTrace: s,
-            name: 'BarcodeScannerScreen',
-          );
-        }),
-      );
-    }
+    setState(() {
+      _isProcessing = true;
+    });
+
+    unawaited(
+      Future<void>.delayed(const Duration(milliseconds: 300))
+          .then((_) async {
+            if (mounted && !_isDisposed) {
+              await _closeWithResult(Success(barcode.rawValue!));
+            }
+          })
+          .catchError((Object e, StackTrace s) {
+            developer.log(
+              'Falha apos deteccao de codigo no scanner',
+              error: e,
+              stackTrace: s,
+              name: 'CameraBarcodeScannerScreen',
+            );
+          }),
+    );
   }
 
   @override
@@ -155,22 +141,31 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
         canPop: false,
         onPopInvokedWithResult: (didPop, result) async {
           if (!didPop) {
-            await _closeWithResult(null);
+            await _closeWithResult(_scannerErrorFromMessage(_errorMessage!, _errorMessage!));
           }
         },
         child: Scaffold(
-          appBar: AppBar(title: const Text('Erro no Scanner')),
+          appBar: AppBar(title: Text(context.l10n.scannerErrorTitle)),
           body: Center(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.error_outline, size: 64, color: AppColors.error),
                   const SizedBox(height: 16),
-                  Text(_errorMessage!, textAlign: TextAlign.center, style: AppFonts.inter(fontSize: 16)),
+                  Text(
+                    context.l10n.cameraInitializationError(_errorMessage!),
+                    textAlign: TextAlign.center,
+                    style: AppFonts.inter(fontSize: 16),
+                  ),
                   const SizedBox(height: 24),
-                  ElevatedButton(onPressed: () => _closeWithResult(null), child: const Text('Voltar')),
+                  ElevatedButton(
+                    onPressed: () => _closeWithResult(
+                      _scannerErrorFromMessage(context.l10n.cameraInitializationError(_errorMessage!), _errorMessage!),
+                    ),
+                    child: Text(context.l10n.back),
+                  ),
                 ],
               ),
             ),
@@ -179,7 +174,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
       );
     }
 
-    if (_controller == null) {
+    final controller = _controller;
+    if (controller == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -187,16 +183,16 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop) {
-          await _closeWithResult(null);
+          await _closeCancelled();
         }
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Escanear Código'),
+          title: Text(context.l10n.barcodeScannerTitle),
           actions: [
             IconButton(
               icon: ValueListenableBuilder(
-                valueListenable: _controller!,
+                valueListenable: controller,
                 builder: (context, state, child) {
                   return Icon(state.torchState == TorchState.on ? Icons.flash_on : Icons.flash_off);
                 },
@@ -215,19 +211,24 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Widget
         body: Stack(
           children: [
             MobileScanner(
-              controller: _controller!,
+              controller: controller,
               onDetect: _onDetect,
-              scanWindow: null,
               errorBuilder: (context, error) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  unawaited(_closeScannerError(error));
+                });
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(Icons.error, size: 64, color: AppColors.error),
                       const SizedBox(height: 16),
-                      Text('Erro: ${error.errorCode}', textAlign: TextAlign.center),
+                      Text(context.l10n.scannerErrorCode(error.errorCode.toString()), textAlign: TextAlign.center),
                       const SizedBox(height: 8),
-                      Text(error.errorDetails?.message ?? 'Erro desconhecido', textAlign: TextAlign.center),
+                      Text(
+                        error.errorDetails?.message ?? context.l10n.unknownScannerError,
+                        textAlign: TextAlign.center,
+                      ),
                     ],
                   ),
                 );

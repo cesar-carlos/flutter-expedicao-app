@@ -126,6 +126,9 @@
   "scannerModeBroadcast": "Broadcast (intent)",
   "broadcastActionLabel": "Broadcast Action",
   "broadcastExtraLabel": "Extra Key (barcode)",
+  "broadcastActionRequired": "Enter the broadcast action",
+  "broadcastExtraRequired": "Enter the extra key",
+  "scannerBroadcastDefaultWarning": "The default action and extra key work with many scanners, but they are also predictable to other apps. When the scanner supports it, configure device-specific values.",
   "scannerConfigSaved": "Scanner preferences saved!",
   "scannerConfigMenu": "Scanner Configuration",
   "printerConfigTitle": "Printer Configuration",
@@ -358,6 +361,29 @@
   "positionProductScanner": "Position the product on the scanner or tap the icon to use the keyboard",
   "scannerDisabled": "Scanner disabled - cart is not in separation status",
   "cancelCart": "Cancel Cart",
+  "barcodeScannerTitle": "Scan Code",
+  "scannerErrorTitle": "Scanner Error",
+  "scanCancelledMessage": "Scan cancelled.",
+  "emptyBarcodeMessage": "No code was read. Please try again.",
+  "cameraPermissionDeniedMessage": "Camera permission denied. Allow camera access and try again.",
+  "scannerOpenErrorMessage": "Error opening scanner. Please try again.",
+  "unknownScannerError": "Unknown error",
+  "scannerErrorCode": "Error: {errorCode}",
+  "@scannerErrorCode": {
+    "placeholders": {
+      "errorCode": {
+        "type": "String"
+      }
+    }
+  },
+  "cameraInitializationError": "Error initializing camera: {details}",
+  "@cameraInitializationError": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
 
   "@@appUpdate": {},
   "appUpdateTitle": "Update Available",

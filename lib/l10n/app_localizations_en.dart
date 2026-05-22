@@ -203,6 +203,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get broadcastExtraLabel => 'Extra Key (barcode)';
 
   @override
+  String get broadcastActionRequired => 'Enter the broadcast action';
+
+  @override
+  String get broadcastExtraRequired => 'Enter the extra key';
+
+  @override
+  String get scannerBroadcastDefaultWarning =>
+      'The default action and extra key work with many scanners, but they are also predictable to other apps. When the scanner supports it, configure device-specific values.';
+
+  @override
   String get scannerConfigSaved => 'Scanner preferences saved!';
 
   @override
@@ -672,6 +682,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancelCart => 'Cancel Cart';
+
+  @override
+  String get barcodeScannerTitle => 'Scan Code';
+
+  @override
+  String get scannerErrorTitle => 'Scanner Error';
+
+  @override
+  String get scanCancelledMessage => 'Scan cancelled.';
+
+  @override
+  String get emptyBarcodeMessage => 'No code was read. Please try again.';
+
+  @override
+  String get cameraPermissionDeniedMessage => 'Camera permission denied. Allow camera access and try again.';
+
+  @override
+  String get scannerOpenErrorMessage => 'Error opening scanner. Please try again.';
+
+  @override
+  String get unknownScannerError => 'Unknown error';
+
+  @override
+  String scannerErrorCode(String errorCode) {
+    return 'Error: $errorCode';
+  }
+
+  @override
+  String cameraInitializationError(String details) {
+    return 'Error initializing camera: $details';
+  }
 
   @override
   String get appUpdateTitle => 'Update Available';
@@ -918,6 +959,16 @@ class AppLocalizationsEnUs extends AppLocalizationsEn {
   String get broadcastExtraLabel => 'Extra Key (barcode)';
 
   @override
+  String get broadcastActionRequired => 'Enter the broadcast action';
+
+  @override
+  String get broadcastExtraRequired => 'Enter the extra key';
+
+  @override
+  String get scannerBroadcastDefaultWarning =>
+      'The default action and extra key work with many scanners, but they are also predictable to other apps. When the scanner supports it, configure device-specific values.';
+
+  @override
   String get scannerConfigSaved => 'Scanner preferences saved!';
 
   @override
@@ -1387,6 +1438,37 @@ class AppLocalizationsEnUs extends AppLocalizationsEn {
 
   @override
   String get cancelCart => 'Cancel Cart';
+
+  @override
+  String get barcodeScannerTitle => 'Scan Code';
+
+  @override
+  String get scannerErrorTitle => 'Scanner Error';
+
+  @override
+  String get scanCancelledMessage => 'Scan cancelled.';
+
+  @override
+  String get emptyBarcodeMessage => 'No code was read. Please try again.';
+
+  @override
+  String get cameraPermissionDeniedMessage => 'Camera permission denied. Allow camera access and try again.';
+
+  @override
+  String get scannerOpenErrorMessage => 'Error opening scanner. Please try again.';
+
+  @override
+  String get unknownScannerError => 'Unknown error';
+
+  @override
+  String scannerErrorCode(String errorCode) {
+    return 'Error: $errorCode';
+  }
+
+  @override
+  String cameraInitializationError(String details) {
+    return 'Error initializing camera: $details';
+  }
 
   @override
   String get appUpdateTitle => 'Update Available';

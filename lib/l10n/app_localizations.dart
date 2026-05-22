@@ -457,6 +457,24 @@ abstract class AppLocalizations {
   /// **'Chave do Extra (código de barras)'**
   String get broadcastExtraLabel;
 
+  /// No description provided for @broadcastActionRequired.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Informe a action do broadcast'**
+  String get broadcastActionRequired;
+
+  /// No description provided for @broadcastExtraRequired.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Informe a chave do extra'**
+  String get broadcastExtraRequired;
+
+  /// No description provided for @scannerBroadcastDefaultWarning.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'A action e a chave padrão funcionam com muitos coletores, mas também são previsíveis para outros apps. Quando o coletor permitir, configure valores específicos do equipamento.'**
+  String get scannerBroadcastDefaultWarning;
+
   /// No description provided for @scannerConfigSaved.
   ///
   /// In pt_BR, this message translates to:
@@ -1362,6 +1380,60 @@ abstract class AppLocalizations {
   /// In pt_BR, this message translates to:
   /// **'Cancelar Carrinho'**
   String get cancelCart;
+
+  /// No description provided for @barcodeScannerTitle.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Escanear Código'**
+  String get barcodeScannerTitle;
+
+  /// No description provided for @scannerErrorTitle.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Erro no Scanner'**
+  String get scannerErrorTitle;
+
+  /// No description provided for @scanCancelledMessage.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Leitura cancelada.'**
+  String get scanCancelledMessage;
+
+  /// No description provided for @emptyBarcodeMessage.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Nenhum código foi lido. Tente novamente.'**
+  String get emptyBarcodeMessage;
+
+  /// No description provided for @cameraPermissionDeniedMessage.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Permissão de câmera negada. Libere o acesso à câmera e tente novamente.'**
+  String get cameraPermissionDeniedMessage;
+
+  /// No description provided for @scannerOpenErrorMessage.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Erro ao abrir o scanner. Tente novamente.'**
+  String get scannerOpenErrorMessage;
+
+  /// No description provided for @unknownScannerError.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Erro desconhecido'**
+  String get unknownScannerError;
+
+  /// No description provided for @scannerErrorCode.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Erro: {errorCode}'**
+  String scannerErrorCode(String errorCode);
+
+  /// No description provided for @cameraInitializationError.
+  ///
+  /// In pt_BR, this message translates to:
+  /// **'Erro ao inicializar câmera: {details}'**
+  String cameraInitializationError(String details);
 
   /// No description provided for @appUpdateTitle.
   ///

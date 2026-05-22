@@ -1,11 +1,23 @@
 import org.gradle.api.tasks.compile.JavaCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import com.android.build.gradle.BaseExtension
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+
+    configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "net.bytebuddy" &&
+                (requested.name == "byte-buddy" || requested.name == "byte-buddy-agent")
+            ) {
+                useVersion("1.14.18")
+                because("Jetifier used by Android lint cannot process byte-buddy 1.17.x Java 24 multi-release classes.")
+            }
+        }
     }
 }
 
@@ -36,8 +48,8 @@ subprojects {
         
         // Configurar tarefas Kotlin
         tasks.withType<KotlinCompile>().configureEach {
-            kotlinOptions {
-                jvmTarget = "17"
+            compilerOptions {
+                jvmTarget.set(JvmTarget.JVM_17)
             }
         }
     }

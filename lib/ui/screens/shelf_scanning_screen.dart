@@ -134,11 +134,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
 
   void _onBroadcastCode(String code) {
     if (!mounted) return;
-    // B4: NAO usar cleanBarcodeText (que so mantem digitos) — enderecos
-    // de prateleira podem ter letras e separadores (ex.: "01-A-2").
-    // A validacao em PickingUtils.validateShelfBarcode compara o endereco
-    // INTEGRO apos trim. Apenas removemos caracteres de controle.
-    final trimmed = _stripControlChars(code).trim();
+    final trimmed = _shelfScanningService.cleanScannedAddress(code);
     if (trimmed.isEmpty) return;
     _handleCompleteBarcode(trimmed);
   }
@@ -160,10 +156,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
         action: (config.broadcastAction ?? '').trim(),
         extraKey: (config.broadcastExtraKey ?? '').trim(),
       );
-      AppLogger.debug(
-        'prefs mode=${prefs.mode} action=${prefs.action} extra=${prefs.extraKey}',
-        tag: 'ShelfScreen',
-      );
+      AppLogger.debug('prefs mode=${prefs.mode} action=${prefs.action} extra=${prefs.extraKey}', tag: 'ShelfScreen');
       return prefs;
     } catch (_) {
       return ScannerModePreferences.empty;
@@ -183,7 +176,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     if (_hasEnterCharacter(text)) {
       // B3: NAO removemos hifens/pontos. A validacao do endereco eh exata
       // via validateShelfBarcode. Apenas removemos chars de controle.
-      final cleanedText = _stripControlChars(text).trim();
+      final cleanedText = _shelfScanningService.cleanScannedAddress(text);
       if (cleanedText.isNotEmpty) {
         _handleCompleteBarcode(cleanedText);
       }
@@ -231,17 +224,8 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     );
   }
 
-  static final _controlCharsPattern = RegExp(r'[\n\r\t]');
-
   bool _hasEnterCharacter(String text) {
-    return _controlCharsPattern.hasMatch(text);
-  }
-
-  /// Remove apenas caracteres de controle (Enter/Return/Tab),
-  /// preservando letras, dígitos e separadores como hífen e ponto,
-  /// que podem fazer parte de códigos de endereço (ex.: "01-A-2").
-  String _stripControlChars(String text) {
-    return text.replaceAll(_controlCharsPattern, '');
+    return RegExp(r'[\n\r\t]').hasMatch(text);
   }
 
   void _validateShelfInput([String? scannedValue]) {
@@ -325,12 +309,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
     // a subscription com base nas prefs atuais.
     unawaited(
       _coordinator.setManualOverride(_isManualMode).catchError((Object e, StackTrace s) {
-        AppLogger.warning(
-          'Falha ao aplicar override manual do scanner',
-          tag: 'ShelfScreen',
-          error: e,
-          stackTrace: s,
-        );
+        AppLogger.warning('Falha ao aplicar override manual do scanner', tag: 'ShelfScreen', error: e, stackTrace: s);
       }),
     );
   }
@@ -412,12 +391,7 @@ class _ShelfScanningScreenState extends State<ShelfScanningScreen> {
           }
         }
       }).catchError((Object e, StackTrace s) {
-        AppLogger.warning(
-          'Falha ao exibir teclado (tela prateleira)',
-          tag: 'ShelfScreen',
-          error: e,
-          stackTrace: s,
-        );
+        AppLogger.warning('Falha ao exibir teclado (tela prateleira)', tag: 'ShelfScreen', error: e, stackTrace: s);
       }),
     );
   }

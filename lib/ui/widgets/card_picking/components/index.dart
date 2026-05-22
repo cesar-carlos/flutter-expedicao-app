@@ -8,5 +8,5 @@ export 'scan_input_processor.dart';
 export 'scanner_preferences_controller.dart';
 export 'scanner_broadcast_controller.dart';
 export 'scanner_activation_controller.dart';
-export 'shelf_scanning_modal.dart';
+export 'shelf_scanning_modal_v2.dart';
 export 'picking_flow_controller.dart';

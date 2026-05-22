@@ -203,6 +203,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get broadcastExtraLabel => 'Chave do Extra (código de barras)';
 
   @override
+  String get broadcastActionRequired => 'Informe a action do broadcast';
+
+  @override
+  String get broadcastExtraRequired => 'Informe a chave do extra';
+
+  @override
+  String get scannerBroadcastDefaultWarning =>
+      'A action e a chave padrão funcionam com muitos coletores, mas também são previsíveis para outros apps. Quando o coletor permitir, configure valores específicos do equipamento.';
+
+  @override
   String get scannerConfigSaved => 'Preferências do scanner salvas!';
 
   @override
@@ -672,6 +682,37 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get cancelCart => 'Cancelar Carrinho';
+
+  @override
+  String get barcodeScannerTitle => 'Escanear Código';
+
+  @override
+  String get scannerErrorTitle => 'Erro no Scanner';
+
+  @override
+  String get scanCancelledMessage => 'Leitura cancelada.';
+
+  @override
+  String get emptyBarcodeMessage => 'Nenhum código foi lido. Tente novamente.';
+
+  @override
+  String get cameraPermissionDeniedMessage => 'Permissão de câmera negada. Libere o acesso à câmera e tente novamente.';
+
+  @override
+  String get scannerOpenErrorMessage => 'Erro ao abrir o scanner. Tente novamente.';
+
+  @override
+  String get unknownScannerError => 'Erro desconhecido';
+
+  @override
+  String scannerErrorCode(String errorCode) {
+    return 'Erro: $errorCode';
+  }
+
+  @override
+  String cameraInitializationError(String details) {
+    return 'Erro ao inicializar câmera: $details';
+  }
 
   @override
   String get appUpdateTitle => 'Atualização Disponível';
@@ -918,6 +959,16 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get broadcastExtraLabel => 'Chave do Extra (código de barras)';
 
   @override
+  String get broadcastActionRequired => 'Informe a action do broadcast';
+
+  @override
+  String get broadcastExtraRequired => 'Informe a chave do extra';
+
+  @override
+  String get scannerBroadcastDefaultWarning =>
+      'A action e a chave padrão funcionam com muitos coletores, mas também são previsíveis para outros apps. Quando o coletor permitir, configure valores específicos do equipamento.';
+
+  @override
   String get scannerConfigSaved => 'Preferências do scanner salvas!';
 
   @override
@@ -1387,6 +1438,37 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get cancelCart => 'Cancelar Carrinho';
+
+  @override
+  String get barcodeScannerTitle => 'Escanear Código';
+
+  @override
+  String get scannerErrorTitle => 'Erro no Scanner';
+
+  @override
+  String get scanCancelledMessage => 'Leitura cancelada.';
+
+  @override
+  String get emptyBarcodeMessage => 'Nenhum código foi lido. Tente novamente.';
+
+  @override
+  String get cameraPermissionDeniedMessage => 'Permissão de câmera negada. Libere o acesso à câmera e tente novamente.';
+
+  @override
+  String get scannerOpenErrorMessage => 'Erro ao abrir o scanner. Tente novamente.';
+
+  @override
+  String get unknownScannerError => 'Erro desconhecido';
+
+  @override
+  String scannerErrorCode(String errorCode) {
+    return 'Erro: $errorCode';
+  }
+
+  @override
+  String cameraInitializationError(String details) {
+    return 'Erro ao inicializar câmera: $details';
+  }
 
   @override
   String get appUpdateTitle => 'Atualização Disponível';

@@ -10,6 +10,8 @@ import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 /// - Validar se deve mostrar o modal inicial
 /// - Separar a lógica de negócio da UI
 class ShelfScanningService {
+  static final RegExp _controlCharsPattern = RegExp(r'[\n\r\t]');
+
   String? _lastScannedAddress;
 
   /// Obtém o último endereço escaneado
@@ -48,6 +50,15 @@ class ShelfScanningService {
   /// Atualiza o endereço escaneado
   void updateScannedAddress(String address) {
     _lastScannedAddress = address;
+  }
+
+  /// Remove apenas caracteres de controle enviados pelo leitor.
+  ///
+  /// Enderecos de prateleira podem conter letras, hifens e pontos
+  /// (ex.: 01-A-2), entao a limpeza nao pode usar a regra numerica
+  /// de codigo de barras de produto.
+  String cleanScannedAddress(String address) {
+    return address.replaceAll(_controlCharsPattern, '').trim();
   }
 
   /// Reseta o endereço escaneado

@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
-import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
+import 'package:data7_expedicao/core/services/scanner_mode_coordinator.dart';
 import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
@@ -22,6 +22,10 @@ class ShelfScanningModalV2 extends StatefulWidget {
   final String expectedAddressDescription;
   final CardPickingViewModel viewModel;
   final VoidCallback? onBack;
+  final ShelfScanningService? shelfScanningService;
+  final AudioService? audioService;
+  final BarcodeBroadcastService? broadcastService;
+  final ConfigViewModel? configViewModel;
 
   const ShelfScanningModalV2({
     super.key,
@@ -29,6 +33,10 @@ class ShelfScanningModalV2 extends StatefulWidget {
     required this.expectedAddressDescription,
     required this.viewModel,
     this.onBack,
+    this.shelfScanningService,
+    this.audioService,
+    this.broadcastService,
+    this.configViewModel,
   });
 
   @override
@@ -40,11 +48,9 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
   late final FocusNode _focusNode;
   late final ShelfScanningService _shelfScanningService;
   late final AudioService _audioService;
-  late final BarcodeScannerService _scannerService;
-  late final BarcodeBroadcastService _broadcastService;
+  late final ScannerModeCoordinator _coordinator;
   late final ConfigViewModel _configViewModel;
 
-  StreamSubscription<String>? _broadcastSub;
   ScannerInputMode _scannerMode = ScannerInputMode.focus;
   String _broadcastAction = '';
   String _broadcastExtraKey = '';
@@ -64,11 +70,13 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
     super.initState();
     _scanController = TextEditingController();
     _focusNode = FocusNode();
-    _shelfScanningService = locator<ShelfScanningService>();
-    _audioService = locator<AudioService>();
-    _scannerService = locator<BarcodeScannerService>();
-    _broadcastService = locator<BarcodeBroadcastService>();
-    _configViewModel = locator<ConfigViewModel>();
+    _shelfScanningService = widget.shelfScanningService ?? locator<ShelfScanningService>();
+    _audioService = widget.audioService ?? locator<AudioService>();
+    _coordinator = ScannerModeCoordinator(
+      broadcastService: widget.broadcastService ?? locator<BarcodeBroadcastService>(),
+      onBarcode: _onBroadcastCode,
+    );
+    _configViewModel = widget.configViewModel ?? locator<ConfigViewModel>();
 
     _scanController.addListener(_onScannerInput);
     _focusNode.addListener(_onFocusChange);
@@ -80,7 +88,7 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
           Future<void>.delayed(UIConstants.shortLoadingDelay, () {
             if (!mounted) return;
             if (_isBroadcastActive) {
-              _startBroadcastListener();
+              unawaited(_startBroadcastListener());
               _hideKeyboard();
               _focusNode.unfocus();
             } else {
@@ -119,20 +127,16 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
     _focusNode.removeListener(_onFocusChange);
     _scanController.dispose();
     _focusNode.dispose();
-    final sub = _broadcastSub;
-    _broadcastSub = null;
-    if (sub != null) {
-      unawaited(
-        sub.cancel().catchError((Object e, StackTrace s) {
-          AppLogger.warning(
-            'Erro ao cancelar inscrição broadcast no dispose',
-            tag: 'ShelfScanningModalV2',
-            error: e,
-            stackTrace: s,
-          );
-        }),
-      );
-    }
+    unawaited(
+      _coordinator.dispose().catchError((Object e, StackTrace s) {
+        AppLogger.warning(
+          'Erro ao cancelar coordinator broadcast no dispose',
+          tag: 'ShelfScanningModalV2',
+          error: e,
+          stackTrace: s,
+        );
+      }),
+    );
     _validationTimer?.cancel();
     super.dispose();
   }
@@ -169,26 +173,31 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
     }
   }
 
-  void _startBroadcastListener() {
+  ScannerModePreferences get _scannerPreferences =>
+      ScannerModePreferences(mode: _scannerMode, action: _broadcastAction, extraKey: _broadcastExtraKey);
+
+  void _onBroadcastCode(String code) {
+    if (!mounted) return;
+    final trimmed = _shelfScanningService.cleanScannedAddress(code);
+    if (trimmed.isEmpty) return;
+    _handleCompleteBarcode(trimmed);
+  }
+
+  Future<void> _startBroadcastListener() async {
     if (!_isBroadcastConfigured) return;
     if (_manualOverrideBroadcast) return;
     AppLogger.debug(
       'Starting broadcast listener: action=$_broadcastAction extra=$_broadcastExtraKey',
       tag: 'ShelfScanningModalV2',
     );
-    _broadcastSub?.cancel();
-    _broadcastSub = _broadcastService.listen(action: _broadcastAction, extraKey: _broadcastExtraKey).listen((code) {
-      if (!mounted) return;
-      final trimmed = _scannerService.cleanBarcodeText(code.trim());
-      if (trimmed.isEmpty) return;
-      _handleCompleteBarcode(trimmed);
-    });
+    await _coordinator.setManualOverride(false);
+    await _coordinator.start(_scannerPreferences);
   }
 
   Future<void> _stopBroadcastListener() async {
     AppLogger.debug('Stopping broadcast listener', tag: 'ShelfScanningModalV2');
     try {
-      await _broadcastSub?.cancel();
+      await _coordinator.setManualOverride(true);
     } catch (e, stackTrace) {
       AppLogger.warning(
         'Error canceling broadcast subscription',
@@ -196,8 +205,6 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
         error: e,
         stackTrace: stackTrace,
       );
-    } finally {
-      _broadcastSub = null;
     }
   }
 
@@ -212,7 +219,7 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
     final text = _scanController.text.trim();
 
     if (_hasEnterCharacter(text)) {
-      final cleanedText = _cleanBarcodeText(text);
+      final cleanedText = _shelfScanningService.cleanScannedAddress(text);
       if (cleanedText.isNotEmpty) {
         _handleCompleteBarcode(cleanedText);
       }
@@ -260,10 +267,6 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
 
   bool _hasEnterCharacter(String text) {
     return RegExp(r'[\n\r\t]').hasMatch(text);
-  }
-
-  String _cleanBarcodeText(String text) {
-    return text.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
   }
 
   void _validateShelfInput([String? scannedValue]) {
@@ -353,7 +356,7 @@ class _ShelfScanningModalV2State extends State<ShelfScanningModalV2> {
       _isManualMode = willBeManual;
       if (!_isManualMode && _isBroadcastConfigured) {
         _manualOverrideBroadcast = false;
-        _startBroadcastListener();
+        unawaited(_startBroadcastListener());
       }
       _handleKeyboardControl();
     });

@@ -148,6 +148,26 @@ void main() {
       expect(fakeService.lastAction, equals('new'));
     });
 
+    test('reiniciar broadcast cancela subscription anterior antes de ouvir novamente', () async {
+      await coordinator.start(
+        const ScannerModePreferences(mode: ScannerInputMode.broadcast, action: 'a', extraKey: 'd'),
+      );
+      final firstController = fakeService.currentController;
+
+      await coordinator.start(
+        const ScannerModePreferences(mode: ScannerInputMode.broadcast, action: 'a', extraKey: 'd'),
+      );
+
+      expect(fakeService.listenCalls, equals(2));
+      expect(fakeService.cancelCalls, equals(1));
+
+      firstController?.add('old');
+      fakeService.emit('new');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(received, equals(['new']));
+    });
+
     test('trocar de broadcast para focus para subscription', () async {
       await coordinator.start(
         const ScannerModePreferences(mode: ScannerInputMode.broadcast, action: 'a', extraKey: 'd'),
@@ -203,17 +223,18 @@ void main() {
 
 class _FakeBroadcastService implements BarcodeBroadcastService {
   int listenCalls = 0;
+  int cancelCalls = 0;
   String? lastAction;
   String? lastExtraKey;
   StreamController<String>? _controller;
+  StreamController<String>? get currentController => _controller;
 
   @override
   Stream<String> listen({required String action, required String extraKey}) {
     listenCalls++;
     lastAction = action;
     lastExtraKey = extraKey;
-    _controller?.close();
-    _controller = StreamController<String>.broadcast();
+    _controller = StreamController<String>.broadcast(onCancel: () => cancelCalls++);
     return _controller!.stream;
   }
 

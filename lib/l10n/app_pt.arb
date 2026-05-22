@@ -126,6 +126,9 @@
   "scannerModeBroadcast": "Broadcast (intent)",
   "broadcastActionLabel": "Ação do Broadcast",
   "broadcastExtraLabel": "Chave do Extra (código de barras)",
+  "broadcastActionRequired": "Informe a action do broadcast",
+  "broadcastExtraRequired": "Informe a chave do extra",
+  "scannerBroadcastDefaultWarning": "A action e a chave padrão funcionam com muitos coletores, mas também são previsíveis para outros apps. Quando o coletor permitir, configure valores específicos do equipamento.",
   "scannerConfigSaved": "Preferências do scanner salvas!",
   "scannerConfigMenu": "Configuração do Scanner",
   "printerConfigTitle": "Configuração de Impressoras",
@@ -358,6 +361,29 @@
   "positionProductScanner": "Posicione o produto no scanner ou toque no ícone para usar o teclado",
   "scannerDisabled": "Scanner desabilitado - carrinho não está em situação de separação",
   "cancelCart": "Cancelar Carrinho",
+  "barcodeScannerTitle": "Escanear Código",
+  "scannerErrorTitle": "Erro no Scanner",
+  "scanCancelledMessage": "Leitura cancelada.",
+  "emptyBarcodeMessage": "Nenhum código foi lido. Tente novamente.",
+  "cameraPermissionDeniedMessage": "Permissão de câmera negada. Libere o acesso à câmera e tente novamente.",
+  "scannerOpenErrorMessage": "Erro ao abrir o scanner. Tente novamente.",
+  "unknownScannerError": "Erro desconhecido",
+  "scannerErrorCode": "Erro: {errorCode}",
+  "@scannerErrorCode": {
+    "placeholders": {
+      "errorCode": {
+        "type": "String"
+      }
+    }
+  },
+  "cameraInitializationError": "Erro ao inicializar câmera: {details}",
+  "@cameraInitializationError": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
 
   "@@appUpdate": {},
   "appUpdateTitle": "Atualização Disponível",

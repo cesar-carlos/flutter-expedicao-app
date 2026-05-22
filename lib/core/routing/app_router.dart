@@ -8,10 +8,12 @@ import 'package:data7_expedicao/ui/screens/splash_screen.dart';
 import 'package:data7_expedicao/ui/screens/profile_screen.dart';
 import 'package:data7_expedicao/ui/screens/register_screen.dart';
 import 'package:data7_expedicao/ui/screens/qrcode_login_screen.dart';
+import 'package:data7_expedicao/ui/screens/camera_barcode_scanner_screen.dart';
 import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/ui/screens/counter_delivery_screen.dart';
 import 'package:data7_expedicao/domain/repositories/user_repository.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_viewmodel.dart';
+import 'package:data7_expedicao/domain/usecases/user/register_via_qrcode_usecase.dart';
 import 'package:data7_expedicao/ui/screens/separate_consultation_screen.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
@@ -29,6 +31,7 @@ import 'package:data7_expedicao/ui/screens/scanner_screen.dart';
 import 'package:data7_expedicao/ui/screens/config_screen.dart';
 import 'package:data7_expedicao/ui/screens/scanner_config_screen.dart';
 import 'package:data7_expedicao/ui/screens/printer_config_screen.dart';
+import 'package:data7_expedicao/ui/services/camera_barcode_scan_service.dart';
 import 'package:data7_expedicao/ui/screens/home_screen.dart';
 import 'package:data7_expedicao/ui/screens/shelf_scanning_screen.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
@@ -45,6 +48,7 @@ class AppRouter {
   static const String login = '/login';
   static const String register = '/register';
   static const String qrcodeLogin = '/qrcode-login';
+  static const String cameraBarcodeScanner = '/camera-barcode-scanner';
   static const String config = '/config';
   static const String scannerConfig = '/scanner-config';
   static const String printerConfig = '/printer-config';
@@ -90,6 +94,7 @@ class AppRouter {
       if (currentLocation != login &&
           currentLocation != register &&
           currentLocation != qrcodeLogin &&
+          currentLocation != cameraBarcodeScanner &&
           currentLocation != config) {
         return login;
       }
@@ -139,7 +144,20 @@ class AppRouter {
 
         GoRoute(path: register, name: 'register', builder: (context, state) => const RegisterScreen()),
 
-        GoRoute(path: qrcodeLogin, name: 'qrcode-login', builder: (context, state) => const QRCodeLoginScreen()),
+        GoRoute(
+          path: qrcodeLogin,
+          name: 'qrcode-login',
+          builder: (context, state) => QRCodeLoginScreen(
+            scanService: locator<CameraBarcodeScanService>(),
+            registerViaQRCodeUseCase: locator<RegisterViaQRCodeUseCase>(),
+          ),
+        ),
+
+        GoRoute(
+          path: cameraBarcodeScanner,
+          name: 'camera-barcode-scanner',
+          builder: (context, state) => const CameraBarcodeScannerScreen(),
+        ),
 
         GoRoute(path: config, name: 'config', builder: (context, state) => const ConfigScreen()),
 

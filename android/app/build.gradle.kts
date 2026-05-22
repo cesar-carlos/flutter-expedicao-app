@@ -16,10 +16,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "br.com.se7esistemassinop.exp"
@@ -38,6 +34,10 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 
 flutter {
@@ -46,4 +46,7 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("androidx.test:core:1.6.1")
+    testImplementation("org.robolectric:robolectric:4.12.2")
 }

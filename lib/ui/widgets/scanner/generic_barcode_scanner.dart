@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
+import 'package:data7_expedicao/di/locator.dart';
 
 /// Widget genérico para scanner de códigos de barras
 ///
@@ -17,7 +17,7 @@ import 'package:data7_expedicao/core/services/barcode_scanner_service.dart';
 /// - Suporte a entrada via teclado ou scanner
 class GenericBarcodeScanner extends StatefulWidget {
   /// Callback chamado quando um código de barras válido é detectado
-  final Function(String) onBarcodeScanned;
+  final ValueChanged<String> onBarcodeScanned;
 
   /// Se true, mostra loading durante processamento
   final bool isLoading;
@@ -40,6 +40,8 @@ class GenericBarcodeScanner extends StatefulWidget {
   /// Decoração do campo de texto
   final InputDecoration? decoration;
 
+  final BarcodeScannerService? scannerService;
+
   const GenericBarcodeScanner({
     super.key,
     required this.onBarcodeScanned,
@@ -50,6 +52,7 @@ class GenericBarcodeScanner extends StatefulWidget {
     this.hintText,
     this.textStyle,
     this.decoration,
+    this.scannerService,
   });
 
   @override
@@ -59,13 +62,12 @@ class GenericBarcodeScanner extends StatefulWidget {
 class _GenericBarcodeScannerState extends State<GenericBarcodeScanner> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
-  final _scannerService = locator<BarcodeScannerService>();
-
-  final bool _keyboardEnabled = false;
+  late final BarcodeScannerService _scannerService;
 
   @override
   void initState() {
     super.initState();
+    _scannerService = widget.scannerService ?? locator<BarcodeScannerService>();
     _controller.addListener(_onInput);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -85,7 +87,7 @@ class _GenericBarcodeScannerState extends State<GenericBarcodeScanner> {
   }
 
   void _onInput() {
-    if (!_keyboardEnabled && _controller.text.isNotEmpty) {
+    if (!widget.allowKeyboardInput && _controller.text.isNotEmpty) {
       _scannerService.processBarcodeInputWithControlDetection(
         _controller.text,
         (barcode) => _processBarcode(),
@@ -131,6 +133,9 @@ class _GenericBarcodeScannerState extends State<GenericBarcodeScanner> {
       focusNode: _focusNode,
       enabled: !widget.isLoading,
       style: widget.textStyle,
+      keyboardType: widget.allowKeyboardInput ? TextInputType.text : TextInputType.none,
+      textInputAction: widget.allowKeyboardInput ? TextInputAction.done : TextInputAction.none,
+      enableInteractiveSelection: widget.allowKeyboardInput,
       decoration:
           widget.decoration ??
           InputDecoration(
@@ -144,6 +149,11 @@ class _GenericBarcodeScannerState extends State<GenericBarcodeScanner> {
                   )
                 : const Icon(Icons.qr_code_scanner),
           ),
+      onSubmitted: (_) {
+        if (widget.allowKeyboardInput) {
+          _processBarcode();
+        }
+      },
     );
   }
 }

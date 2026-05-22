@@ -113,14 +113,20 @@ void main() {
       );
     });
 
+    test('cleanScannedAddress preserva letras, hifens e pontos', () {
+      expect(service.cleanScannedAddress('01-A-2'), equals('01-A-2'));
+      expect(service.cleanScannedAddress('A.01-02'), equals('A.01-02'));
+    });
+
+    test('cleanScannedAddress remove controles e espacos externos', () {
+      expect(service.cleanScannedAddress('  01-A-2\n'), equals('01-A-2'));
+      expect(service.cleanScannedAddress('\tA.01-02\r'), equals('A.01-02'));
+    });
+
     test('shouldShowInitialShelfScan retorna proximo item quando aplicavel', () {
       final items = [buildItem(endereco: 'Z9')];
       final next = items.first;
-      final result = service.shouldShowInitialShelfScan(
-        items,
-        createTestUserSystem(),
-        () => next,
-      );
+      final result = service.shouldShowInitialShelfScan(items, createTestUserSystem(), () => next);
       expect(result, equals(next));
     });
 

@@ -5,49 +5,78 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.util.Log
 import io.flutter.plugin.common.EventChannel
 
 class BarcodeBroadcastStreamHandler(
   private val context: Context,
 ) : EventChannel.StreamHandler {
 
+  companion object {
+    private const val TAG = "BarcodeBroadcast"
+    private const val DEFAULT_ACTION = "com.scanner.BARCODE"
+    private const val DEFAULT_EXTRA_KEY = "data"
+  }
+
   private var receiver: BroadcastReceiver? = null
   private var eventSink: EventChannel.EventSink? = null
-  // Defaults alinhados com lib/ui/widgets/config/scanner_config_form.dart.
-  // Na pratica o lado Dart sempre passa action/extraKey via arguments,
-  // mas estes defaults garantem coerencia se algum cliente nativo usar o channel.
-  private var action: String = "com.scanner.BARCODE"
-  private var extraKey: String = "data"
 
   override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+    unregisterReceiverIfNeeded()
+
     eventSink = events
     val args = arguments as? Map<*, *>
-    action = args?.get("action") as? String ?: action
-    extraKey = args?.get("extraKey") as? String ?: extraKey
+    val listenAction = ((args?.get("action") as? String) ?: DEFAULT_ACTION).trim()
+    val listenExtraKey = ((args?.get("extraKey") as? String) ?: DEFAULT_EXTRA_KEY).trim()
+
+    if (listenAction.isBlank() || listenExtraKey.isBlank()) {
+      eventSink?.error(
+        "INVALID_SCANNER_BROADCAST_CONFIG",
+        "Scanner broadcast action and extraKey must not be empty.",
+        null
+      )
+      eventSink = null
+      return
+    }
+
+    if (listenAction == DEFAULT_ACTION && listenExtraKey == DEFAULT_EXTRA_KEY) {
+      Log.w(
+        TAG,
+        "Using default scanner broadcast action/extraKey. Configure device-specific values when supported."
+      )
+    }
 
     receiver = object : BroadcastReceiver() {
       override fun onReceive(ctx: Context?, intent: Intent?) {
         if (intent == null) return
-        if (intent.action != action) return
-        val code = intent.getStringExtra(extraKey) ?: return
+        if (intent.action != listenAction) return
+        val code = intent.getStringExtra(listenExtraKey) ?: return
         eventSink?.success(code)
       }
     }
 
-    val filter = IntentFilter(action)
+    val filter = IntentFilter(listenAction)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      // Receiver é apenas para o app, não exportado.
-      context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+      // Exportado para aceitar broadcasts de apps/serviços externos do coletor.
+      context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
     } else {
       context.registerReceiver(receiver, filter)
     }
   }
 
   override fun onCancel(arguments: Any?) {
-    receiver?.let { context.unregisterReceiver(it) }
-    receiver = null
+    unregisterReceiverIfNeeded()
     eventSink = null
   }
+
+  private fun unregisterReceiverIfNeeded() {
+    val currentReceiver = receiver ?: return
+    try {
+      context.unregisterReceiver(currentReceiver)
+    } catch (_: IllegalArgumentException) {
+      // Receiver already unregistered; onCancel/onListen can be repeated.
+    } finally {
+      receiver = null
+    }
+  }
 }
-
-
