@@ -18,11 +18,39 @@ class BarcodeScannerService {
   /// Timer para debounce - aguarda usuário parar de digitar
   Timer? _debounceTimer;
 
-  /// Tempo de debounce para detectar quando usuário parou de digitar
-  /// Reduzido para melhor responsividade com scanners rápidos
-  static const Duration _debounceTimeout = Duration(milliseconds: 40);
+  /// Tempo de debounce padrão para detectar quando o usuário/leitor parou de
+  /// enviar caracteres.
+  ///
+  /// Valor baixo favorece responsividade com scanners rápidos, mas leitores
+  /// com atraso entre caracteres (alguns HID/Bluetooth) podem fatiar a leitura
+  /// se o valor for curto demais. Por isso o timeout é configurável por
+  /// instância (ver [debounceTimeout]).
+  static const Duration defaultDebounceTimeout = Duration(milliseconds: 40);
 
-  /// Padrão regex para validar formato de código de barras (7-16 dígitos)
+  /// Tempo de debounce efetivo desta instância. Ajustável conforme o perfil do
+  /// leitor (ex.: subir para evitar leituras parciais em scanners lentos).
+  Duration _debounceTimeout;
+
+  BarcodeScannerService({Duration debounceTimeout = defaultDebounceTimeout}) : _debounceTimeout = debounceTimeout;
+
+  /// Timeout de debounce atualmente em uso.
+  Duration get debounceTimeout => _debounceTimeout;
+
+  /// Permite ajustar o debounce em runtime (ex.: a partir de uma preferência do
+  /// usuário). Valores não positivos são ignorados para evitar processamento
+  /// imediato indevido.
+  set debounceTimeout(Duration value) {
+    if (value <= Duration.zero) return;
+    _debounceTimeout = value;
+  }
+
+  /// Padrão regex para validar o formato do código de barras (7-16 dígitos
+  /// numéricos). Cobre EAN-8/13, UPC-A/E e Code 128 puramente numérico.
+  ///
+  /// Importante: códigos alfanuméricos (ex.: unidades de medida tipo `CX12`)
+  /// NÃO passam por este gate; eles são casados adiante por comparação exata
+  /// em `PickingUtils`/`BarcodeValidationService`, e chegam ao processamento
+  /// pela detecção de Enter ou pelo fallback de debounce.
   static final RegExp _barcodePattern = RegExp(r'^\d{7,16}$');
 
   /// Padrão regex para códigos completos (13-16 dígitos)
@@ -205,18 +233,18 @@ class BarcodeScannerService {
     return _barcodePattern.hasMatch(input);
   }
 
-  /// Valida o formato de um código de barras e retorna informações sobre o formato
+  /// Valida o formato de um código de barras (somente dígitos).
   ///
-  /// **Formatos suportados:**
+  /// **Formatos numéricos cobertos:**
   /// - EAN-13: 13 dígitos
   /// - EAN-8: 8 dígitos
   /// - UPC-A: 12 dígitos
   /// - UPC-E: 8 dígitos
-  /// - Code 128: 7-16 caracteres alfanuméricos
+  /// - Code 128 numérico: 7-16 dígitos
   ///
   /// **Retorno:**
-  /// - `true` se o formato é válido (7-16 dígitos)
-  /// - `false` se o formato é inválido
+  /// - `true` se o formato é válido (7-16 dígitos numéricos)
+  /// - `false` caso contrário (inclui códigos com letras)
   bool isValidBarcodeFormat(String barcode) {
     final trimmed = barcode.trim();
     if (trimmed.isEmpty) return false;
@@ -236,7 +264,7 @@ class BarcodeScannerService {
     if (length == 8) return 'EAN-8 ou UPC-E';
     if (length == 12) return 'UPC-A';
     if (length == 13) return 'EAN-13';
-    if (length >= 7 && length <= 16) return 'Code 128 ou similar';
+    if (length >= 7 && length <= 16) return 'Código numérico (7-16 dígitos)';
 
     return 'Formato válido';
   }

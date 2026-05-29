@@ -34,6 +34,7 @@ void main() {
     bool requiresShelfScanning = false,
     String? lastScannedAddress,
     bool Function(SeparateItemConsultationModel)? shouldScanShelfFor,
+    bool allowOutOfSequence = false,
   }) {
     return resolver.resolve(
       barcode: barcode,
@@ -48,6 +49,7 @@ void main() {
       getPickedQuantity: (id) => pickedQuantities[id] ?? 0,
       shouldScanShelfFor: shouldScanShelfFor,
       onScanRecorded: (b, t, s, e) => recordedScans.add(_RecordedScan(b, s, e)),
+      allowOutOfSequence: allowOutOfSequence,
     );
   }
 
@@ -118,6 +120,49 @@ void main() {
       );
       expect(result.status, ScanProcessStatus.success);
     });
+
+    test(
+      'out-of-sequence: bipar produto de outro item pendente nao retorna wrongShelf',
+      () {
+        // Proximo item da ordem exige scan de prateleira (endereco 01-A-2).
+        // O operador (com permissao) bipa o PRODUTO de outro item pendente.
+        // Sem allowOutOfSequence isso daria wrongShelf; com a permissao, deve
+        // resolver como produto (success).
+        final items = [
+          _buildItem(item: '1', codigoBarras: '111', endereco: '01-A-2'),
+          _buildItem(item: '2', codigoBarras: '7891234567890', endereco: '09-Z-9'),
+        ];
+        final result = callResolve(
+          barcode: '7891234567890', // produto do item 2 (fora de sequencia)
+          requiresShelfScanning: true,
+          items: items,
+          lastScannedAddress: null,
+          allowOutOfSequence: true,
+        );
+        expect(result.status, ScanProcessStatus.success);
+        expect(result.expectedItem?.item, equals('2'));
+        expect(matchedShelves, isEmpty);
+      },
+    );
+
+    test(
+      'out-of-sequence: codigo que nao casa com produto mantem wrongShelf',
+      () {
+        final items = [
+          _buildItem(item: '1', codigoBarras: '111', endereco: '01-A-2'),
+          _buildItem(item: '2', codigoBarras: '222', endereco: '09-Z-9'),
+        ];
+        final result = callResolve(
+          barcode: '99-X-9', // nao bate com produto algum nem com a prateleira
+          requiresShelfScanning: true,
+          items: items,
+          lastScannedAddress: null,
+          allowOutOfSequence: true,
+        );
+        expect(result.status, ScanProcessStatus.wrongShelf);
+        expect(result.expectedShelf, equals('01-A-2'));
+      },
+    );
   });
 
   group('PickingScanResolver - validacao do barcode', () {

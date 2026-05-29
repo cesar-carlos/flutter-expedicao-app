@@ -68,12 +68,63 @@ class PickingScanResolver {
         onShelfAddressMatched: onShelfAddressMatched,
       );
       if (shelfResult != null) {
+        // Out-of-sequence: o operador com permissão de separar fora de ordem
+        // pode ter bipado o PRODUTO de outro item pendente (não a prateleira
+        // do próximo item da sequência). Nesse caso, não bloqueamos com
+        // "prateleira incorreta": tentamos resolver como produto e, se o
+        // código casar com um item real, seguimos esse fluxo. Um código que
+        // não casa com produto algum (provável endereço errado) mantém o
+        // wrongShelf original.
+        if (allowOutOfSequence && shelfResult.status == ScanProcessStatus.wrongShelf) {
+          final productResult = _resolveProductScan(
+            trimmedBarcode: trimmedBarcode,
+            inputQuantity: inputQuantity,
+            items: items,
+            expectedNextItem: expectedNextItem,
+            userSectorCode: userSectorCode,
+            isItemCompleted: isItemCompleted,
+            getPickedQuantity: getPickedQuantity,
+            allowOutOfSequence: allowOutOfSequence,
+          );
+          if (productResult.status != ScanProcessStatus.wrongProduct &&
+              productResult.status != ScanProcessStatus.ignored) {
+            _recordForResult(record, productResult);
+            return productResult;
+          }
+        }
+
         final success = shelfResult.status == ScanProcessStatus.shelfScanned;
         record(success, success ? null : 'Prateleira incorreta');
         return shelfResult;
       }
     }
 
+    final productResult = _resolveProductScan(
+      trimmedBarcode: trimmedBarcode,
+      inputQuantity: inputQuantity,
+      items: items,
+      expectedNextItem: expectedNextItem,
+      userSectorCode: userSectorCode,
+      isItemCompleted: isItemCompleted,
+      getPickedQuantity: getPickedQuantity,
+      allowOutOfSequence: allowOutOfSequence,
+    );
+    _recordForResult(record, productResult);
+    return productResult;
+  }
+
+  /// Resolve um scan de produto (sem registrar métrica) aplicando a validação
+  /// de código de barras e a checagem de quantidade restante.
+  ScanProcessResult _resolveProductScan({
+    required String trimmedBarcode,
+    required int inputQuantity,
+    required List<SeparateItemConsultationModel> items,
+    required SeparateItemConsultationModel? expectedNextItem,
+    required int? userSectorCode,
+    required bool Function(String itemId) isItemCompleted,
+    required int Function(String itemId) getPickedQuantity,
+    required bool allowOutOfSequence,
+  }) {
     final validation = BarcodeValidationService.validateScannedBarcode(
       trimmedBarcode,
       items,
@@ -84,22 +135,18 @@ class PickingScanResolver {
     );
 
     if (validation.isEmpty) {
-      record(false, 'Validação vazia');
       return const ScanProcessResult(status: ScanProcessStatus.ignored);
     }
 
     if (validation.noItemsForSector) {
-      record(false, 'Sem itens para o setor');
       return ScanProcessResult.noItemsForSector(validation.userSectorCode);
     }
 
     if (validation.allItemsCompleted) {
-      record(false, 'Todos os itens completados');
       return const ScanProcessResult(status: ScanProcessStatus.allItemsCompleted);
     }
 
     if (validation.isWrongSector && validation.scannedItem != null) {
-      record(false, 'Setor incorreto');
       return ScanProcessResult.wrongSector(validation.scannedItem!, validation.userSectorCode);
     }
 
@@ -112,21 +159,46 @@ class PickingScanResolver {
       final remainingQuantity = totalQuantity - pickedQuantity;
 
       if (effectiveQuantity > remainingQuantity) {
-        record(false, 'Quantidade excedida');
         return ScanProcessResult.quantityExceeded(item, effectiveQuantity, remainingQuantity);
       }
 
-      record(true, null);
       return ScanProcessResult.success(item, effectiveQuantity);
     }
 
     if (validation.expectedItem != null) {
-      record(false, 'Produto incorreto');
       return ScanProcessResult.wrongProduct(validation.expectedItem!);
     }
 
-    record(false, 'Ignorado');
     return const ScanProcessResult(status: ScanProcessStatus.ignored);
+  }
+
+  /// Registra a métrica de scan a partir do resultado resolvido, preservando as
+  /// mensagens de erro usadas anteriormente em cada caminho.
+  void _recordForResult(
+    void Function(bool success, String? errorMessage) record,
+    ScanProcessResult result,
+  ) {
+    switch (result.status) {
+      case ScanProcessStatus.success:
+      case ScanProcessStatus.shelfScanned:
+        record(true, null);
+      case ScanProcessStatus.noItemsForSector:
+        record(false, 'Sem itens para o setor');
+      case ScanProcessStatus.allItemsCompleted:
+        record(false, 'Todos os itens completados');
+      case ScanProcessStatus.wrongSector:
+        record(false, 'Setor incorreto');
+      case ScanProcessStatus.quantityExceeded:
+        record(false, 'Quantidade excedida');
+      case ScanProcessStatus.wrongProduct:
+        record(false, 'Produto incorreto');
+      case ScanProcessStatus.wrongShelf:
+        record(false, 'Prateleira incorreta');
+      case ScanProcessStatus.cartNotInSeparation:
+        record(false, 'Carrinho não em separação');
+      case ScanProcessStatus.ignored:
+        record(false, 'Ignorado');
+    }
   }
 
   ScanProcessResult? _validateShelfScanning({
