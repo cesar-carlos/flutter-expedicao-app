@@ -55,13 +55,22 @@ class PickingPendingOperationsTracker {
   /// Erros individuais são silenciados aqui — o objetivo é apenas saber
   /// quando todas terminaram. Quem aguarda cada operação separadamente
   /// continua responsável por tratar seu próprio erro.
-  Future<void> waitForAll() async {
+  ///
+  /// Se [timeout] for informado, retorna após esse limite mesmo que alguma
+  /// operação não tenha completado, evitando travar indefinidamente quando
+  /// uma sincronização fica pendurada (ex.: socket morto).
+  Future<void> waitForAll({Duration? timeout}) async {
     if (_operations.isEmpty) return;
     final all = _operations.values
         .expand((list) => list)
         .map<Future<dynamic>>((f) => f.catchError(_noopError))
         .toList();
-    await Future.wait(all, eagerError: false);
+    final combined = Future.wait(all, eagerError: false);
+    if (timeout == null) {
+      await combined;
+    } else {
+      await combined.timeout(timeout, onTimeout: () => const <dynamic>[]);
+    }
   }
 
   /// Remove tudo (sem cancelar futures em andamento).

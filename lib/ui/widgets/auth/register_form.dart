@@ -8,7 +8,7 @@ import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/profile_photo_selector.dart';
 import 'package:data7_expedicao/core/validation/forms/form_validators_localized.dart';
-import 'package:data7_expedicao/domain/viewmodels/register_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/register_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 

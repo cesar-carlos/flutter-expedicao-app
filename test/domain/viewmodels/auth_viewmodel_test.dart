@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:data7_expedicao/data/dtos/user_system_list_response_dto.dart';
+import 'package:data7_expedicao/domain/models/user_system/user_system_list_page.dart';
 import 'package:data7_expedicao/domain/models/pagination/pagination.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/user/user_models.dart';
@@ -11,7 +11,7 @@ import 'package:data7_expedicao/domain/repositories/user_repository.dart';
 import 'package:data7_expedicao/domain/repositories/user_system_repository.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/usecases/user/login_user_usecase.dart';
-import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/auth_viewmodel.dart';
 
 void main() {
   group('AuthViewModel.checkAuthStatus', () {
@@ -152,7 +152,7 @@ class _FakeUserSystemRepository implements UserSystemRepository {
   }
 
   @override
-  Future<UserSystemListResponseDto> getUsers({int? codEmpresa, Situation? apenasAtivos, Pagination? pagination}) {
+  Future<UserSystemListPage> getUsers({int? codEmpresa, Situation? apenasAtivos, Pagination? pagination}) {
     throw UnimplementedError();
   }
 
@@ -162,7 +162,7 @@ class _FakeUserSystemRepository implements UserSystemRepository {
   }
 
   @override
-  Future<UserSystemListResponseDto> searchUsersByName(
+  Future<UserSystemListPage> searchUsersByName(
     String nome, {
     int? codEmpresa,
     Situation apenasAtivos = Situation.ativo,

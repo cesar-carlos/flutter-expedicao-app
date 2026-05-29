@@ -19,7 +19,7 @@ import 'package:data7_expedicao/domain/repositories/basic_consultation_repositor
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
-import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/separation_items_viewmodel.dart';
 
 class FakeConsultationRepository<T> implements BasicConsultationRepository<T> {
   FakeConsultationRepository({required this.onSelect});

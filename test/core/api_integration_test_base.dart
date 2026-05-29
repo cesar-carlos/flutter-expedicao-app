@@ -6,7 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:data7_expedicao/data/datasources/config_service.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
 import 'package:data7_expedicao/domain/repositories/i_printer_preferences_repository.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/printer_config.dart';
 
 /// Classe base para testes de integração que usam API

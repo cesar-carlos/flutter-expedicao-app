@@ -29,11 +29,14 @@ class SocketConnectionManager extends ChangeNotifier {
   SocketConnectionManager({RetryPolicy? retryPolicy})
     : _retryPolicy =
           retryPolicy ??
-          const RetryPolicy(
+          // Bug R: jitter real evita "thundering herd" quando varios
+          // clientes reconectam simultaneamente. Alinhado a policy
+          // injetada pelo locator em producao.
+          RetryPolicy.withJitter(
             maxAttempts: 3,
-            initialDelay: Duration(seconds: 1),
+            initialDelay: const Duration(seconds: 1),
             backoffMultiplier: 2.0,
-            maxDelay: Duration(seconds: 10),
+            maxDelay: const Duration(seconds: 10),
           );
 
   Future<void> connectWithRetry(ApiConfig config) async {

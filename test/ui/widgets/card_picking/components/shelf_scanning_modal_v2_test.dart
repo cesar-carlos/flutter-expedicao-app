@@ -10,7 +10,7 @@ import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/l10n/app_localizations.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/shelf_scanning_modal_v2.dart';

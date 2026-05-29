@@ -35,6 +35,7 @@ class PickingScanResolver {
     required int Function(String itemId) getPickedQuantity,
     bool Function(SeparateItemConsultationModel item)? shouldScanShelfFor,
     void Function(String barcode, DateTime startTime, bool success, String? errorMessage)? onScanRecorded,
+    bool allowOutOfSequence = false,
   }) {
     final scanStartTime = DateTime.now();
     final trimmedBarcode = barcode.trim();
@@ -79,6 +80,7 @@ class PickingScanResolver {
       isItemCompleted,
       expectedItem: expectedNextItem,
       userSectorCode: userSectorCode,
+      allowOutOfSequence: allowOutOfSequence,
     );
 
     if (validation.isEmpty) {

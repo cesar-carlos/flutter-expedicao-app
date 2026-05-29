@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/user_selection_viewmodel.dart';
 
 class UserSearchField extends StatelessWidget {
   final TextEditingController searchController;

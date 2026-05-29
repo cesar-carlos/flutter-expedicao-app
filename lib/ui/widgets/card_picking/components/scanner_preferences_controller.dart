@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/services/scanner_mode_coordinator.dart';
 
 class ScannerPreferencesController {

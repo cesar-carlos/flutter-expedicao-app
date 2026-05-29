@@ -29,6 +29,7 @@ class BarcodeValidationService {
     bool Function(String itemId) isItemCompleted, {
     SeparateItemConsultationModel? expectedItem,
     int? userSectorCode,
+    bool allowOutOfSequence = false,
   }) {
     if (scannedBarcode.trim().isEmpty) {
       return BarcodeValidationResult.empty();
@@ -64,6 +65,14 @@ class BarcodeValidationService {
         if (productSector != null && productSector != userSectorCode) {
           return BarcodeValidationResult.wrongSector(scannedBarcode, scannedItem, userSectorCode);
         }
+      }
+
+      // Regra "separar fora de sequência": quando o usuário tem a permissão,
+      // aceitamos qualquer item pendente cujo código de barras casa (já
+      // descartado o caso de setor incorreto acima), e não apenas o próximo
+      // item da ordem sugerida.
+      if (allowOutOfSequence && scannedItem != null && !isItemCompleted(scannedItem.item)) {
+        return BarcodeValidationResult.valid(scannedItem);
       }
 
       return BarcodeValidationResult.invalid(scannedBarcode, nextItem);

@@ -14,10 +14,10 @@ import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 import 'package:data7_expedicao/core/utils/string_utils.dart';
-import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/theme_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/app_update_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/socket_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/app_drawer/drawer_menu_tile.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
 
@@ -27,9 +27,11 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final authViewModel = context.watch<AuthViewModel>();
-    final themeViewModel = context.watch<ThemeViewModel>();
 
+    // Item 8: removido o context.watch no topo do build. Antes, qualquer
+    // notifyListeners de AuthViewModel/ThemeViewModel reconstruía o Drawer
+    // inteiro (incluindo a lista de menus estável). Agora apenas o header
+    // (nome/foto) e o botão de tema observam seus ViewModels via Selector.
     return Drawer(
       child: Column(
         children: [
@@ -48,67 +50,77 @@ class AppDrawer extends StatelessWidget {
                   Positioned(
                     top: 0,
                     right: 0,
-                    child: IconButton(
-                      // Bug latente anterior: `toggleTheme()` retorna Future
-                      // e na rodada de auditoria do tema (commit d80709c)
-                      // foi alterado para `rethrow` em caso de falha de
-                      // persistencia. Sem catch aqui, isso virava
-                      // "Unhandled Exception" no IconButton onPressed.
-                      // Agora capturamos via `unawaited` + catchError com
-                      // log — o usuario nao precisa ser notificado de
-                      // erro de persistencia de preferencia (UI ja foi
-                      // revertida pelo ViewModel).
-                      onPressed: () {
-                        unawaited(
-                          themeViewModel.toggleTheme().catchError((Object e, StackTrace s) {
-                            AppLogger.warning(
-                              'Falha ao alternar tema (estado revertido)',
-                              tag: 'AppDrawer',
-                              error: e,
-                              stackTrace: s,
+                    child: Selector<ThemeViewModel, (IconData, String)>(
+                      selector: (_, vm) => (vm.themeIcon, vm.themeTooltip),
+                      builder: (context, themeData, child) {
+                        return IconButton(
+                          // Bug latente anterior: `toggleTheme()` retorna Future
+                          // e na rodada de auditoria do tema (commit d80709c)
+                          // foi alterado para `rethrow` em caso de falha de
+                          // persistencia. Sem catch aqui, isso virava
+                          // "Unhandled Exception" no IconButton onPressed.
+                          // Agora capturamos via `unawaited` + catchError com
+                          // log — o usuario nao precisa ser notificado de
+                          // erro de persistencia de preferencia (UI ja foi
+                          // revertida pelo ViewModel).
+                          onPressed: () {
+                            unawaited(
+                              context.read<ThemeViewModel>().toggleTheme().catchError((Object e, StackTrace s) {
+                                AppLogger.warning(
+                                  'Falha ao alternar tema (estado revertido)',
+                                  tag: 'AppDrawer',
+                                  error: e,
+                                  stackTrace: s,
+                                );
+                              }),
                             );
-                          }),
+                          },
+                          icon: Icon(themeData.$1, color: theme.colorScheme.onPrimary),
+                          tooltip: themeData.$2,
                         );
                       },
-                      icon: Icon(themeViewModel.themeIcon, color: theme.colorScheme.onPrimary),
-                      tooltip: themeViewModel.themeTooltip,
                     ),
                   ),
 
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
-                          border: Border.all(color: theme.colorScheme.onPrimary, width: 2),
-                        ),
-                        child: AvatarUtils.buildAvatar(
-                          name: authViewModel.username.isNotEmpty ? authViewModel.username : 'Usuário',
-                          photoBase64: authViewModel.currentUser?.fotoUsuario,
-                          backgroundColor: AppColors.transparent,
-                          textColor: theme.colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: UIConstants.hugeFontSize,
-                          radius: 30,
-                        ),
-                      ),
-                      const SizedBox(height: 9),
+                  Selector<AuthViewModel, (String, String?)>(
+                    selector: (_, vm) => (vm.username, vm.currentUser?.fotoUsuario),
+                    builder: (context, userData, child) {
+                      final username = userData.$1;
+                      final photoBase64 = userData.$2;
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
+                              border: Border.all(color: theme.colorScheme.onPrimary, width: 2),
+                            ),
+                            child: AvatarUtils.buildAvatar(
+                              name: username.isNotEmpty ? username : 'Usuário',
+                              photoBase64: photoBase64,
+                              backgroundColor: AppColors.transparent,
+                              textColor: theme.colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: UIConstants.hugeFontSize,
+                              radius: 30,
+                            ),
+                          ),
+                          const SizedBox(height: 9),
 
-                      Text(
-                        authViewModel.username.isNotEmpty
-                            ? StringUtils.capitalizeWords(authViewModel.username)
-                            : 'Usuário',
-                        style: AppFonts.inter(
-                          color: theme.colorScheme.onPrimary,
-                          fontSize: UIConstants.mediumFontSize,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                          Text(
+                            username.isNotEmpty ? StringUtils.capitalizeWords(username) : 'Usuário',
+                            style: AppFonts.inter(
+                              color: theme.colorScheme.onPrimary,
+                              fontSize: UIConstants.mediumFontSize,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),

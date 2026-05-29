@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
-import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/socket_viewmodel.dart';
 
 Future<void> _performSocketConnectionButtonTap({
   required BuildContext context,

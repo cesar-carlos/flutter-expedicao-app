@@ -11,7 +11,7 @@ import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/user/system_qrcode_data.dart';
 import 'package:data7_expedicao/domain/usecases/user/register_via_qrcode_usecase.dart';
-import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/ui/services/camera_barcode_scan_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 

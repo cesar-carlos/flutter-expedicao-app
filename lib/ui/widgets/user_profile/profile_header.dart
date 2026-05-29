@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:data7_expedicao/domain/models/user/app_user.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
-import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/profile_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/editable_avatar.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 

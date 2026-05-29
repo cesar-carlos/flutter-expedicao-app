@@ -470,6 +470,9 @@ void main() {
         ),
       );
 
+      // Aguarda a janela de debounce do resync (400ms) e o trabalho async
+      // subsequente do resync concluir.
+      await Future<void>.delayed(const Duration(milliseconds: 500));
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
 

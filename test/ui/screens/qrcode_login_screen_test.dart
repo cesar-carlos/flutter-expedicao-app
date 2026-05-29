@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:result_dart/result_dart.dart';
 
 import 'package:data7_expedicao/core/constants/scan_failure_codes.dart';
-import 'package:data7_expedicao/data/dtos/user_system_list_response_dto.dart';
+import 'package:data7_expedicao/domain/models/user_system/user_system_list_page.dart';
 import 'package:data7_expedicao/domain/models/pagination/pagination.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/user/user_models.dart';
@@ -18,7 +18,7 @@ import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/domain/usecases/user/login_user_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/user/register_via_qrcode_usecase.dart';
-import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/l10n/app_localizations.dart';
 import 'package:data7_expedicao/ui/screens/qrcode_login_screen.dart';
 import 'package:data7_expedicao/ui/services/camera_barcode_scan_service.dart';
@@ -223,7 +223,7 @@ class _FakeUserSystemRepository implements UserSystemRepository {
   Future<UserSystemModel?> getUserById(int codUsuario) async => user;
 
   @override
-  Future<UserSystemListResponseDto> getUsers({int? codEmpresa, Situation? apenasAtivos, Pagination? pagination}) {
+  Future<UserSystemListPage> getUsers({int? codEmpresa, Situation? apenasAtivos, Pagination? pagination}) {
     throw UnimplementedError();
   }
 
@@ -233,7 +233,7 @@ class _FakeUserSystemRepository implements UserSystemRepository {
   }
 
   @override
-  Future<UserSystemListResponseDto> searchUsersByName(
+  Future<UserSystemListPage> searchUsersByName(
     String nome, {
     int? codEmpresa,
     Situation apenasAtivos = Situation.ativo,

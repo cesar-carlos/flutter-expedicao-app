@@ -158,6 +158,9 @@ class UserSystemModel {
     return permiteSepararForaSequencia == Situation.ativo || visualizaTodasSeparacoes == Situation.ativo;
   }
 
+  /// Permite separar itens fora da ordem sugerida de picking.
+  bool get canSeparateOutOfSequence => permiteSepararForaSequencia == Situation.ativo;
+
   bool get canWorkWithConferences {
     return permiteConferirForaSequencia == Situation.ativo || visualizaTodasConferencias == Situation.ativo;
   }

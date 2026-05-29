@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import 'package:data7_expedicao/core/utils/app_helper.dart';
 import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
@@ -142,9 +140,6 @@ class SeparationItemModel {
 
   /// Retorna a descrição da situação
   String get situacaoDescription => situacao.description;
-
-  /// Retorna a cor da situação
-  Color get situacaoColor => situacao.color;
 
   @override
   bool operator ==(Object other) {

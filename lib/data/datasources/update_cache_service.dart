@@ -1,10 +1,12 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:data7_expedicao/domain/services/i_update_cache_service.dart';
+
 /// Serviço para gerenciar cache de verificações de atualização do app.
 ///
 /// Evita verificações frequentes à API do GitHub, economizando recursos
 /// e melhorando a experiência do usuário.
-class UpdateCacheService {
+class UpdateCacheService implements IUpdateCacheService {
   /// Chave usada para armazenar o timestamp da última verificação.
   static const String _lastCheckKey = 'last_update_check_timestamp';
 
@@ -25,6 +27,7 @@ class UpdateCacheService {
   ///
   /// Retorna `true` se o cache expirou ou se nunca houve uma verificação anterior.
   /// Retorna `false` se ainda houver cache válido.
+  @override
   bool shouldCheckForUpdates() {
     final lastCheckTimestamp = _prefs.getInt(_lastCheckKey);
 
@@ -42,6 +45,7 @@ class UpdateCacheService {
   ///
   /// Armazena o timestamp atual no cache.
   /// Deve ser chamado após uma verificação bem-sucedida.
+  @override
   Future<void> markAsChecked() async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _prefs.setInt(_lastCheckKey, now);

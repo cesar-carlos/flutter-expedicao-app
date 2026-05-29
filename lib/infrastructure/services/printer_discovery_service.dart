@@ -49,11 +49,18 @@ class PrinterDiscoveryService implements IPrinterDiscoveryService {
     final found = <PrinterDiscoveryEndpoint>[];
 
     final safeConcurrency = concurrency.clamp(1, 128);
-    final queue = List<String>.from(targets);
+
+    // Indice atomico compartilhado entre os workers. A leitura e o
+    // incremento ocorrem de forma sincrona (sem `await` entre eles),
+    // entao no modelo single-thread do Dart nao ha intercalacao: cada
+    // host e entregue a exatamente um worker, sem RangeError.
+    var nextIndex = 0;
 
     final workers = List.generate(safeConcurrency, (_) async {
-      while (queue.isNotEmpty) {
-        final host = queue.removeLast();
+      while (true) {
+        if (nextIndex >= targets.length) break;
+        final host = targets[nextIndex];
+        nextIndex++;
         final endpoint = await _probeHost(host: host, port: port, timeout: connectTimeout);
         if (endpoint != null) {
           found.add(endpoint);

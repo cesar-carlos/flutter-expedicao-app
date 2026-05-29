@@ -10,7 +10,20 @@ class EventServiceImpl implements EventService {
   final Map<String, List<EventListenerModel>> _eventListeners = {};
   final Map<String, String> _listenerToEvent = {};
 
-  EventServiceImpl();
+  EventServiceImpl() {
+    SocketConfig.addRebindListener(_rebindSocketListeners);
+  }
+
+  /// Re-registra no novo socket os handlers `on(...)` de todos os eventos
+  /// atualmente inscritos. Chamado por `SocketConfig` quando a instancia
+  /// do socket e recriada (ex.: troca de config). Sem isso, os eventos em
+  /// tempo real continuariam presos ao socket descartado. Idempotente: o
+  /// socket recriado nao possui listeners previos.
+  void _rebindSocketListeners() {
+    for (final eventName in _eventListeners.keys) {
+      SocketConfig.instance.on(eventName, (data) => _handleEvent(eventName, data));
+    }
+  }
 
   @override
   void subscribe(String eventName, EventListenerModel listener) {
@@ -82,6 +95,7 @@ class EventServiceImpl implements EventService {
 
   @override
   void dispose() {
+    SocketConfig.removeRebindListener(_rebindSocketListeners);
     unsubscribeAllListeners();
   }
 
@@ -146,8 +160,14 @@ class EventServiceImpl implements EventService {
         final eventType = _extractEventType(eventName);
         return BasicEventModel.empty(eventType: eventType);
       }
-    } catch (e) {
+    } catch (e, s) {
       final eventType = _extractEventType(eventName);
+      AppLogger.warning(
+        'Falha ao converter payload do evento $eventName — retornando evento vazio',
+        tag: 'EventServiceImpl',
+        error: e,
+        stackTrace: s,
+      );
       return BasicEventModel.empty(eventType: eventType);
     }
   }

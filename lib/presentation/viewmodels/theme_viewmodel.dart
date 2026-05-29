@@ -2,11 +2,11 @@ import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/services/i_user_preferences_repository.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/data/datasources/user_preferences_service.dart';
 
 class ThemeViewModel extends ChangeNotifier {
-  final UserPreferencesService _preferencesService;
+  final IUserPreferencesRepository _preferencesService;
   ThemeMode _themeMode = ThemeMode.light;
 
   /// Permite injetar o PlatformDispatcher (para testes). Em runtime

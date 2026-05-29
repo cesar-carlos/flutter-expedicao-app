@@ -8,10 +8,11 @@ import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/picking_products_list/picking_product_list_item.dart';
 import 'package:data7_expedicao/ui/widgets/separated_products/separated_product_item.dart';
 import 'package:data7_expedicao/ui/widgets/picking_products_list/pending_products_filter_modal.dart';
-import 'package:data7_expedicao/domain/viewmodels/separated_products_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/separated_products_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/separated_products_title_with_connection_status.dart';
 import 'package:data7_expedicao/ui/widgets/pending_products_title_with_connection_status.dart';
@@ -40,6 +41,32 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
   bool _needsRefresh = false;
   bool _hasLoadedSeparatedProductsSnapshot = false;
   String? _lastSeparatedProductsSnapshot;
+
+  /// Item 4: memoização da lista de pendentes.
+  ///
+  /// O filtro `items.where(!isItemCompleted)` era recomputado a cada
+  /// notificação do ViewModel. Cacheamos o resultado e o recomputamos
+  /// apenas quando a assinatura (total de itens + total de completos)
+  /// muda. A regra de filtro permanece inalterada.
+  List<SeparateItemConsultationModel>? _cachedPendingItems;
+  int? _cachedPendingTotal;
+  int? _cachedPendingCompleted;
+
+  List<SeparateItemConsultationModel> _computePendingItems(CardPickingViewModel viewModel) {
+    final total = viewModel.items.length;
+    final completed = viewModel.completedItems;
+
+    final cached = _cachedPendingItems;
+    if (cached != null && _cachedPendingTotal == total && _cachedPendingCompleted == completed) {
+      return cached;
+    }
+
+    final pending = viewModel.items.where((item) => !viewModel.isItemCompleted(item.item)).toList();
+    _cachedPendingItems = pending;
+    _cachedPendingTotal = total;
+    _cachedPendingCompleted = completed;
+    return pending;
+  }
 
   @override
   void initState() {
@@ -418,7 +445,7 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
       );
     }
 
-    final pendingItems = viewModel.items.where((item) => !viewModel.isItemCompleted(item.item)).toList();
+    final pendingItems = _computePendingItems(viewModel);
 
     if (pendingItems.isEmpty) {
       return Center(

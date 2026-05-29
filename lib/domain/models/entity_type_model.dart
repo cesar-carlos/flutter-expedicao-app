@@ -1,15 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:data7_expedicao/core/theme/app_colors.dart';
-
 enum EntityType {
-  cliente('C', 'Cliente', AppColors.info),
-  fornecedor('F', 'Fornecedor', AppColors.success);
+  cliente('C', 'Cliente'),
+  fornecedor('F', 'Fornecedor');
 
-  const EntityType(this.code, this.description, this.color);
+  const EntityType(this.code, this.description);
 
   final String code;
   final String description;
-  final Color color;
 
   static EntityType? fromCode(String code) {
     try {
@@ -34,16 +30,11 @@ enum EntityType {
   static String getDescription(String code) {
     return fromCode(code)?.description ?? code;
   }
-
-  static Color getColor(String code) {
-    return fromCode(code)?.color ?? AppColors.grey;
-  }
 }
 
 extension EntityTypeExtension on String {
   EntityType? get asEntityType => EntityType.fromCode(this);
   String get entityTypeDescription => EntityType.getDescription(this);
-  Color get entityTypeColor => EntityType.getColor(this);
 }
 
 class EntityTypeModel {
@@ -56,8 +47,6 @@ class EntityTypeModel {
   static List<String> getAllCodes() => EntityType.getAllCodes();
 
   static List<String> getAllDescriptions() => EntityType.getAllDescriptions();
-
-  static Color getColor(String code) => EntityType.getColor(code);
 
   static List<EntityType> getAllTypes() => EntityType.values;
 }

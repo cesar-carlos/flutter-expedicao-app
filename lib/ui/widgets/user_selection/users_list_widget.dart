@@ -5,7 +5,7 @@ import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
-import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/user_selection_viewmodel.dart';
 
 /// Extrai 1-2 caracteres iniciais para o avatar de forma segura.
 ///

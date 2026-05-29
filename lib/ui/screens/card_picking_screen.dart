@@ -27,17 +27,12 @@ class CardPickingScreen extends StatefulWidget {
   State<CardPickingScreen> createState() => _CardPickingScreenState();
 }
 
-class _CardPickingBodyState {
-  final bool isLoading;
-  final bool hasError;
-  final String? errorMessage;
-
-  const _CardPickingBodyState({required this.isLoading, required this.hasError, required this.errorMessage});
-
-  factory _CardPickingBodyState.fromViewModel(CardPickingViewModel vm) {
-    return _CardPickingBodyState(isLoading: vm.isLoading, hasError: vm.hasError, errorMessage: vm.errorMessage);
-  }
-}
+/// Estado mínimo do corpo do picking observado pelo [Selector].
+///
+/// Usamos um record Dart (igualdade estrutural por valor) para que o corpo
+/// só reconstrua quando isLoading/hasError/errorMessage mudarem, e não a
+/// cada notifyListeners do ViewModel.
+typedef _CardPickingBodyState = ({bool isLoading, bool hasError, String? errorMessage});
 
 class _CardPickingScreenState extends State<CardPickingScreen> with WidgetsBindingObserver {
   /// Bug WWWWWW: cache do viewModel para uso no dispose().
@@ -210,7 +205,7 @@ class _CardPickingScreenState extends State<CardPickingScreen> with WidgetsBindi
           const CartStatusWarning(),
           Expanded(
             child: Selector<CardPickingViewModel, _CardPickingBodyState>(
-              selector: (_, vm) => _CardPickingBodyState.fromViewModel(vm),
+              selector: (_, vm) => (isLoading: vm.isLoading, hasError: vm.hasError, errorMessage: vm.errorMessage),
               builder: (context, state, _) {
                 final viewModel = context.read<CardPickingViewModel>();
                 return _buildBody(context, viewModel, state);

@@ -16,7 +16,24 @@ class GitHubReleaseJsonAdapter {
 
   GitHubReleaseJsonAdapter({GitHubApiService? githubApiService, Dio? dio})
     : _githubApiService = githubApiService ?? GitHubApiService(),
-      _dio = dio ?? Dio();
+      // Timeouts explicitos no Dio que baixa o APK para calcular o hash:
+      // connect alinhado ao GitHubApiService (5s) e receive maior (60s)
+      // por ser download de binario. Antes, um download travado podia
+      // bloquear indefinidamente a geracao do JSON de versoes.
+      _dio =
+          dio ??
+          Dio(
+            BaseOptions(
+              connectTimeout: const Duration(seconds: 5),
+              receiveTimeout: const Duration(seconds: 60),
+            ),
+          );
+
+  /// Fecha o cliente Dio subjacente, liberando conexoes pendentes.
+  /// Deve ser chamado quando o adapter nao for mais utilizado.
+  void close() {
+    _dio.close();
+  }
 
   Future<String> createVersionJsonFile(String owner, String repo) async {
     final releases = await _githubApiService.getReleases(owner, repo);

@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/ui/widgets/app_drawer/index.dart';
-import 'package:data7_expedicao/domain/viewmodels/home_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/home_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/home/index.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';

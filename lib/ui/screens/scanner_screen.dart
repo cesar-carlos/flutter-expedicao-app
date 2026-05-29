@@ -8,11 +8,11 @@ import 'package:go_router/go_router.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
-import 'package:data7_expedicao/domain/viewmodels/scanner_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/scanner_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/scanner_title_with_connection_status.dart';
 import 'package:data7_expedicao/core/services/barcode_broadcast_service.dart';
 import 'package:data7_expedicao/core/services/scanner_mode_coordinator.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
@@ -39,10 +39,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
       onBarcode: _onBroadcastCode,
     );
 
-    // Listener para mudanças de foco
-    _focusNode.addListener(() {
-      if (mounted) setState(() {}); // atualiza o indicador visual
-    });
+    // Listener para mudanças de foco. Item 9: guardamos a referência do
+    // listener para poder removê-lo no dispose antes de descartar o node.
+    _focusNode.addListener(_onFocusChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(
@@ -56,6 +55,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
         }),
       );
     });
+  }
+
+  void _onFocusChanged() {
+    if (mounted) setState(() {}); // atualiza o indicador visual
   }
 
   Future<void> _startScannerCoordinator() async {
@@ -78,6 +81,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         );
       }),
     );
+    _focusNode.removeListener(_onFocusChanged);
     _focusNode.dispose();
     super.dispose();
   }

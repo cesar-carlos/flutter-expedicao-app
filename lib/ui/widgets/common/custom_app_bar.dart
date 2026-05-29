@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/ui/widgets/common/socket_widgets.dart';
-import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/string_utils.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 

@@ -1,26 +1,21 @@
-import 'package:flutter/material.dart';
-
-import 'package:data7_expedicao/core/theme/app_colors.dart';
-
 enum ExpeditionItemSituation {
-  separado('SP', 'Separado', AppColors.lightGreen),
-  cancelado('CA', 'Cancelado', AppColors.error),
-  pendente('PE', 'Pendente', AppColors.grey),
-  conferido('CO', 'Conferido', AppColors.lightGreen),
-  embalado('EM', 'Embalado', AppColors.teal),
-  entregue('EN', 'Entregue', AppColors.success),
-  expedido('EX', 'Expedido', AppColors.success),
-  pausado('PA', 'Pausado', AppColors.yellow),
-  reiniciado('RE', 'Reiniciado', AppColors.info),
-  finalizado('FN', 'Finalizado', AppColors.success),
-  armazenar('AR', 'Armazenar', AppColors.brown),
-  vazio('', 'Vazio', AppColors.grey);
+  separado('SP', 'Separado'),
+  cancelado('CA', 'Cancelado'),
+  pendente('PE', 'Pendente'),
+  conferido('CO', 'Conferido'),
+  embalado('EM', 'Embalado'),
+  entregue('EN', 'Entregue'),
+  expedido('EX', 'Expedido'),
+  pausado('PA', 'Pausado'),
+  reiniciado('RE', 'Reiniciado'),
+  finalizado('FN', 'Finalizado'),
+  armazenar('AR', 'Armazenar'),
+  vazio('', 'Vazio');
 
-  const ExpeditionItemSituation(this.code, this.description, this.color);
+  const ExpeditionItemSituation(this.code, this.description);
 
   final String code;
   final String description;
-  final Color color;
 
   static ExpeditionItemSituation? fromCode(String code) {
     try {
@@ -45,16 +40,11 @@ enum ExpeditionItemSituation {
   static String getDescription(String code) {
     return fromCode(code)?.description ?? code;
   }
-
-  static Color getColor(String code) {
-    return fromCode(code)?.color ?? AppColors.grey;
-  }
 }
 
 extension ExpeditionItemSituationExtension on String {
   ExpeditionItemSituation? get asSituation => ExpeditionItemSituation.fromCode(this);
   String get situationDescription => ExpeditionItemSituation.getDescription(this);
-  Color get situationColor => ExpeditionItemSituation.getColor(this);
 }
 
 class ExpeditionItemSituationModel {
@@ -67,8 +57,6 @@ class ExpeditionItemSituationModel {
   static List<String> getAllCodes() => ExpeditionItemSituation.getAllCodes();
 
   static List<String> getAllDescriptions() => ExpeditionItemSituation.getAllDescriptions();
-
-  static Color getColor(String code) => ExpeditionItemSituation.getColor(code);
 
   static List<ExpeditionItemSituation> getAllSituations() => ExpeditionItemSituation.values;
 }

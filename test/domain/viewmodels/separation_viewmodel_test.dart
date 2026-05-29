@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:data7_expedicao/domain/viewmodels/separation_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/separation_viewmodel.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/data/services/filters_storage_service.dart';

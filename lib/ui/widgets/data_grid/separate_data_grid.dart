@@ -5,6 +5,7 @@ import 'package:data7_expedicao/domain/models/separate_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/core/utils/fields_helper.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/status_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
@@ -120,8 +121,18 @@ class ShipmentSeparateDataSource extends DataGridSource {
 
   ShipmentSeparateDataSource(this._separations, {this.onRowTap, this.onRowDoubleTap});
 
+  /// Item 10: cache da lista de `DataGridRow`.
+  ///
+  /// O getter `rows` remapeava toda a lista `_separations` a cada acesso.
+  /// Como `_separations` é imutável por instância (a fonte é recriada a cada
+  /// build), cacheamos de forma lazy; o cache é invalidado naturalmente
+  /// quando a fonte/lista muda.
+  List<DataGridRow>? _rowsCache;
+
   @override
-  List<DataGridRow> get rows {
+  List<DataGridRow> get rows => _rowsCache ??= _buildRows();
+
+  List<DataGridRow> _buildRows() {
     return _separations.map<DataGridRow>((separation) {
       return DataGridRow(
         cells: [

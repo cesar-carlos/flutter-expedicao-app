@@ -53,9 +53,9 @@ export '../domain/usecases/user/register_user_usecase.dart';
 export '../domain/usecases/user/login_user_usecase.dart';
 
 // ViewModels
-export '../domain/viewmodels/register_viewmodel.dart';
-export '../domain/viewmodels/auth_viewmodel.dart';
-export '../domain/viewmodels/config_viewmodel.dart';
-export '../domain/viewmodels/user_selection_viewmodel.dart';
-export '../domain/viewmodels/profile_viewmodel.dart';
-export '../domain/viewmodels/socket_viewmodel.dart';
+export '../presentation/viewmodels/register_viewmodel.dart';
+export '../presentation/viewmodels/auth_viewmodel.dart';
+export '../presentation/viewmodels/config_viewmodel.dart';
+export '../presentation/viewmodels/user_selection_viewmodel.dart';
+export '../presentation/viewmodels/profile_viewmodel.dart';
+export '../presentation/viewmodels/socket_viewmodel.dart';

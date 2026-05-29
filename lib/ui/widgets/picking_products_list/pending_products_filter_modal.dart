@@ -7,6 +7,7 @@ import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.d
 import 'package:data7_expedicao/domain/models/filter/pending_products_filters_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_status.dart';
+import 'package:data7_expedicao/core/theme/status_colors.dart';
 
 class PendingProductsFilterModal extends StatefulWidget {
   final CardPickingViewModel viewModel;

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/infrastructure/services/printer_discovery_service.dart';
 import '../../mocks/config_service_mock.dart';
 import '../../mocks/fake_printer_preferences_repository.dart';

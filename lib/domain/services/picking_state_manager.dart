@@ -65,8 +65,9 @@ class PickingStateManager extends ChangeNotifier {
     String? errorMessage,
   ) {
     final current = _state.getPickedQuantity(itemId);
+    final reverted = current - quantityToRevert;
     _state = _state
-        .updateItemQuantity(itemId, current - quantityToRevert)
+        .updateItemQuantity(itemId, reverted < 0 ? 0 : reverted)
         .updateOperationStatus(itemId, timestamp, PendingOperationStatus.failed, errorMessage: errorMessage);
     notifyListeners();
   }

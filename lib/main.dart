@@ -10,15 +10,16 @@ import 'package:provider/provider.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/bootstrap.dart';
+import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/theme/app_theme.dart';
-import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/register_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/scanner_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/theme_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/app_update_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/register_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/scanner_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/socket_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:data7_expedicao/l10n/app_localizations.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_progress_dialog.dart';
@@ -56,10 +57,43 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   static bool _hasScheduledUpdateCheck = false;
   bool _updateDialogShown = false;
   bool _progressDialogShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Ao encerrar o app, cancela o timer periódico e dispara o save final
+    // das métricas (até então perdíamos as métricas acumuladas desde o
+    // último save automático). Resolvido via locator com try/catch porque
+    // MetricsCollector não é crítico e pode não estar registrado.
+    if (state == AppLifecycleState.detached) {
+      try {
+        locator<MetricsCollector>().disposeCollector();
+      } catch (e, s) {
+        AppLogger.warning(
+          'Falha ao finalizar MetricsCollector no encerramento do app',
+          tag: 'MyApp',
+          error: e,
+          stackTrace: s,
+        );
+      }
+    }
+  }
 
   /// Bug AAAAAAAAAAA: cache do GoRouter para nao recriar a cada
   /// rebuild do Consumer3 (que dispara em qualquer notify de

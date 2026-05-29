@@ -1,27 +1,22 @@
-import 'package:flutter/material.dart';
-
-import 'package:data7_expedicao/core/theme/app_colors.dart';
-
 enum ExpeditionSituation {
-  aguardando('AGUARDANDO', 'Aguardando', AppColors.grey),
-  emPausa('EM PAUSA', 'Em Pausa', AppColors.yellow),
-  cancelada('CANCELADA', 'Cancelada', AppColors.error),
-  separando('SEPARANDO', 'Separando', AppColors.warning),
-  separado('SEPARADO', 'Separado', AppColors.lightGreen),
-  conferindo('CONFERINDO', 'Conferindo', AppColors.purple),
-  conferido('CONFERIDO', 'Conferido', AppColors.lightGreen),
-  entregue('ENTREGUE', 'Entregue', AppColors.success),
-  embalando('EMBALANDO', 'Embalando', AppColors.teal),
-  embalado('EMBALADO', 'Embalado', AppColors.teal),
-  agrupado('AGRUPADO', 'Agrupado', AppColors.error),
-  finalizada('FINALIZADA', 'Finalizada', AppColors.success),
-  naoLocalizada('NÃO LOCALIZADO', 'Não Localizada', AppColors.error);
+  aguardando('AGUARDANDO', 'Aguardando'),
+  emPausa('EM PAUSA', 'Em Pausa'),
+  cancelada('CANCELADA', 'Cancelada'),
+  separando('SEPARANDO', 'Separando'),
+  separado('SEPARADO', 'Separado'),
+  conferindo('CONFERINDO', 'Conferindo'),
+  conferido('CONFERIDO', 'Conferido'),
+  entregue('ENTREGUE', 'Entregue'),
+  embalando('EMBALANDO', 'Embalando'),
+  embalado('EMBALADO', 'Embalado'),
+  agrupado('AGRUPADO', 'Agrupado'),
+  finalizada('FINALIZADA', 'Finalizada'),
+  naoLocalizada('NÃO LOCALIZADO', 'Não Localizada');
 
-  const ExpeditionSituation(this.code, this.description, this.color);
+  const ExpeditionSituation(this.code, this.description);
 
   final String code;
   final String description;
-  final Color color;
 
   static ExpeditionSituation? fromCode(String code) {
     try {
@@ -46,16 +41,11 @@ enum ExpeditionSituation {
   static String getDescription(String code) {
     return fromCode(code)?.description ?? code;
   }
-
-  static Color getColor(String code) {
-    return fromCode(code)?.color ?? AppColors.grey;
-  }
 }
 
 extension ExpeditionSituationExtension on String {
   ExpeditionSituation? get asSituation => ExpeditionSituation.fromCode(this);
   String get situationDescription => ExpeditionSituation.getDescription(this);
-  Color get situationColor => ExpeditionSituation.getColor(this);
 }
 
 class ExpeditionSituationModel {
@@ -68,8 +58,6 @@ class ExpeditionSituationModel {
   static List<String> getAllCodes() => ExpeditionSituation.getAllCodes();
 
   static List<String> getAllDescriptions() => ExpeditionSituation.getAllDescriptions();
-
-  static Color getColor(String code) => ExpeditionSituation.getColor(code);
 
   static List<ExpeditionSituation> getAllSituations() => ExpeditionSituation.values;
 }

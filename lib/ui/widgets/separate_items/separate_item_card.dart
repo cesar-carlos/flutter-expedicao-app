@@ -8,6 +8,7 @@ import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/status_colors.dart';
 import 'package:data7_expedicao/core/theme/app_text_styles.dart';
 
 class SeparateItemCard extends StatelessWidget {

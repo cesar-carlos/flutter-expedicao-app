@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:data7_expedicao/core/theme/status_colors.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 
 class CartStatusBar extends StatelessWidget {

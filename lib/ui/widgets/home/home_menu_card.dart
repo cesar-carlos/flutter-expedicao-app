@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import 'package:data7_expedicao/domain/viewmodels/home_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/home_viewmodel.dart';
 
 class HomeMenuCard extends StatelessWidget {
   final String title;

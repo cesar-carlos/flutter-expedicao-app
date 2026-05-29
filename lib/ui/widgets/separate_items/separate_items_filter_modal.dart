@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/separation_items_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/filter/separate_items_filters_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_status.dart';
+import 'package:data7_expedicao/core/theme/status_colors.dart';
 
 class SeparateItemsFilterModal extends StatefulWidget {
   final SeparationItemsViewModel viewModel;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/theme/status_colors.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_simple_button.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';

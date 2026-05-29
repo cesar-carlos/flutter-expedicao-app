@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import 'package:data7_expedicao/core/utils/app_helper.dart';
 import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
@@ -233,9 +231,6 @@ class ExpeditionCheckItemConsultationModel {
 
   /// Retorna a descrição da situação do carrinho percurso
   String get situacaoCarrinhoPercursoDescription => situacaoCarrinhoPercurso.description;
-
-  /// Retorna a cor da situação do carrinho percurso
-  Color get situacaoCarrinhoPercursoColor => situacaoCarrinhoPercurso.color;
 
   bool isSituacaoCarrinhoPercurso(String situacaoToCheck) =>
       situacaoCarrinhoPercurso.code.toLowerCase() == situacaoToCheck.toLowerCase();

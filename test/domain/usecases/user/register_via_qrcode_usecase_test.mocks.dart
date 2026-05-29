@@ -6,8 +6,6 @@
 import 'dart:async' as _i5;
 import 'dart:io' as _i6;
 
-import 'package:data7_expedicao/data/dtos/user_system_list_response_dto.dart'
-    as _i3;
 import 'package:data7_expedicao/data/services/user_session_service.dart'
     as _i11;
 import 'package:data7_expedicao/domain/models/pagination/pagination.dart'
@@ -15,6 +13,8 @@ import 'package:data7_expedicao/domain/models/pagination/pagination.dart'
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart'
     as _i8;
 import 'package:data7_expedicao/domain/models/user/user_models.dart' as _i2;
+import 'package:data7_expedicao/domain/models/user_system/user_system_list_page.dart'
+    as _i3;
 import 'package:data7_expedicao/domain/models/user_system_models.dart' as _i10;
 import 'package:data7_expedicao/domain/repositories/user_repository.dart'
     as _i4;
@@ -67,9 +67,9 @@ class _FakeAppUserConsultation_2 extends _i1.SmartFake
         );
 }
 
-class _FakeUserSystemListResponseDto_3 extends _i1.SmartFake
-    implements _i3.UserSystemListResponseDto {
-  _FakeUserSystemListResponseDto_3(
+class _FakeUserSystemListPage_3 extends _i1.SmartFake
+    implements _i3.UserSystemListPage {
+  _FakeUserSystemListPage_3(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -237,7 +237,7 @@ class MockUserSystemRepository extends _i1.Mock
       ) as _i5.Future<Map<String, dynamic>>);
 
   @override
-  _i5.Future<_i3.UserSystemListResponseDto> getUsers({
+  _i5.Future<_i3.UserSystemListPage> getUsers({
     int? codEmpresa,
     _i8.Situation? apenasAtivos,
     _i9.Pagination? pagination,
@@ -252,8 +252,8 @@ class MockUserSystemRepository extends _i1.Mock
             #pagination: pagination,
           },
         ),
-        returnValue: _i5.Future<_i3.UserSystemListResponseDto>.value(
-            _FakeUserSystemListResponseDto_3(
+        returnValue:
+            _i5.Future<_i3.UserSystemListPage>.value(_FakeUserSystemListPage_3(
           this,
           Invocation.method(
             #getUsers,
@@ -265,7 +265,7 @@ class MockUserSystemRepository extends _i1.Mock
             },
           ),
         )),
-      ) as _i5.Future<_i3.UserSystemListResponseDto>);
+      ) as _i5.Future<_i3.UserSystemListPage>);
 
   @override
   _i5.Future<_i10.UserSystemModel?> getUserById(int? codUsuario) =>
@@ -278,7 +278,7 @@ class MockUserSystemRepository extends _i1.Mock
       ) as _i5.Future<_i10.UserSystemModel?>);
 
   @override
-  _i5.Future<_i3.UserSystemListResponseDto> searchUsersByName(
+  _i5.Future<_i3.UserSystemListPage> searchUsersByName(
     String? nome, {
     int? codEmpresa,
     _i8.Situation? apenasAtivos = _i8.Situation.ativo,
@@ -294,8 +294,8 @@ class MockUserSystemRepository extends _i1.Mock
             #pagination: pagination,
           },
         ),
-        returnValue: _i5.Future<_i3.UserSystemListResponseDto>.value(
-            _FakeUserSystemListResponseDto_3(
+        returnValue:
+            _i5.Future<_i3.UserSystemListPage>.value(_FakeUserSystemListPage_3(
           this,
           Invocation.method(
             #searchUsersByName,
@@ -307,7 +307,7 @@ class MockUserSystemRepository extends _i1.Mock
             },
           ),
         )),
-      ) as _i5.Future<_i3.UserSystemListResponseDto>);
+      ) as _i5.Future<_i3.UserSystemListPage>);
 }
 
 /// A class which mocks [UserSessionService].

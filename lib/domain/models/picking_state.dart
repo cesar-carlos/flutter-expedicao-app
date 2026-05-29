@@ -52,8 +52,14 @@ class PickingItemState {
     this.pendingOperations = const [],
   });
 
-  /// Verifica se há operações pendentes de sincronização
-  bool get hasPendingSync => pendingOperations.isNotEmpty;
+  /// Verifica se há operações realmente em andamento de sincronização.
+  ///
+  /// Conta apenas `pending`/`syncing`: operações `failed` já tiveram a
+  /// quantidade revertida e `synced` já foram persistidas, então nenhuma
+  /// das duas deve bloquear o salvamento do carrinho.
+  bool get hasPendingSync => pendingOperations.any(
+    (op) => op.status == PendingOperationStatus.pending || op.status == PendingOperationStatus.syncing,
+  );
 
   PickingItemState copyWith({
     String? itemId,
@@ -223,9 +229,22 @@ class PickingState {
   /// Obtém todos os estados dos itens
   Map<String, PickingItemState> get itemStates => Map.unmodifiable(_itemStates);
 
-  /// Retorna o total de operações pendentes em todos os itens
+  /// Retorna o total de operações realmente em andamento (`pending`/`syncing`)
+  /// em todos os itens. Alinhado a [PickingItemState.hasPendingSync] para que a
+  /// contagem exibida ao usuário não inclua operações já `failed` (revertidas)
+  /// ou `synced` (persistidas).
   int getTotalPendingOperations() {
-    return _itemStates.values.fold(0, (sum, state) => sum + state.pendingOperations.length);
+    return _itemStates.values.fold(
+      0,
+      (sum, state) =>
+          sum +
+          state.pendingOperations
+              .where(
+                (op) =>
+                    op.status == PendingOperationStatus.pending || op.status == PendingOperationStatus.syncing,
+              )
+              .length,
+    );
   }
 
   /// Retorna as operações pendentes de um item específico

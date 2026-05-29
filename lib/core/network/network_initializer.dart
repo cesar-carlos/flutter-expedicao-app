@@ -3,7 +3,7 @@ import 'package:data7_expedicao/core/network/dio_config.dart';
 import 'package:data7_expedicao/core/network/socket_config.dart';
 import 'package:data7_expedicao/data/datasources/config_service.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class NetworkInitializer {

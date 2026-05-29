@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import 'package:data7_expedicao/core/utils/date_helper.dart';
 import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
@@ -137,9 +135,6 @@ class ExpeditionCheckModel {
 
   /// Retorna a descrição da situação
   String get situacaoDescription => situacao.description;
-
-  /// Retorna a cor da situação
-  Color get situacaoColor => situacao.color;
 
   bool isSituacao(String situacaoToCheck) => situacao.code.toLowerCase() == situacaoToCheck.toLowerCase();
 

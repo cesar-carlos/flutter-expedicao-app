@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/separation_items_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/separate_items/cart_item_card.dart';
 import 'package:data7_expedicao/ui/widgets/separate_items/carts_empty_state.dart';
 

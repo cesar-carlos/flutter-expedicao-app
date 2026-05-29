@@ -7,10 +7,11 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:data7_expedicao/core/network/socket_config.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
+import 'package:data7_expedicao/domain/services/i_socket_connection_port.dart';
 
-enum SocketConnectionState { disconnected, connecting, connected, reconnecting, error }
+export 'package:data7_expedicao/domain/services/i_socket_connection_port.dart' show SocketConnectionState;
 
-class SocketService extends ChangeNotifier {
+class SocketService extends ChangeNotifier implements ISocketConnectionPort {
   SocketConnectionState _connectionState = SocketConnectionState.disconnected;
   final Map<String, StreamController> _eventStreams = {};
   Timer? _heartbeatTimer;
@@ -37,6 +38,7 @@ class SocketService extends ChangeNotifier {
 
   bool get isConnected => _connectionState == SocketConnectionState.connected;
 
+  @override
   String? get userId => _userId;
 
   Future<void> initialize(ApiConfig apiConfig, {String? userId}) async {
@@ -45,6 +47,7 @@ class SocketService extends ChangeNotifier {
       AppLogger.init('Inicializando SocketService', tag: 'SocketService');
       AppLogger.data('URL: ${apiConfig.fullUrl}, userId: $userId', tag: 'SocketService');
       SocketConfig.initialize(apiConfig);
+      SocketConfig.addRebindListener(_rebindListeners);
       _setupSocketListeners();
       await connect();
     } catch (e) {
@@ -53,6 +56,7 @@ class SocketService extends ChangeNotifier {
     }
   }
 
+  @override
   Future<void> connect() async {
     if (_connectionState == SocketConnectionState.connected) {
       return;
@@ -68,6 +72,7 @@ class SocketService extends ChangeNotifier {
     }
   }
 
+  @override
   void disconnect() {
     try {
       _cancelReconnectTimer();
@@ -81,6 +86,7 @@ class SocketService extends ChangeNotifier {
     }
   }
 
+  @override
   Future<void> reconnect() async {
     if (_isReconnecting) return;
 
@@ -159,6 +165,7 @@ class SocketService extends ChangeNotifier {
 
   /// [propagateErrors]: quando `false`, erros são apenas logados (útil no
   /// heartbeat periódico para um tick com falha não interromper o [Timer]).
+  @override
   void emit(String eventName, dynamic data, {bool propagateErrors = true}) {
     try {
       if (!SocketConfig.isConnected) {
@@ -182,6 +189,7 @@ class SocketService extends ChangeNotifier {
     }
   }
 
+  @override
   Stream<dynamic> on(String eventName) {
     if (!_eventStreams.containsKey(eventName)) {
       _eventStreams[eventName] = StreamController<dynamic>.broadcast();
@@ -194,20 +202,24 @@ class SocketService extends ChangeNotifier {
     return _eventStreams[eventName]!.stream;
   }
 
+  @override
   void off(String eventName) {
     SocketConfig.instance.off(eventName);
     _eventStreams[eventName]?.close();
     _eventStreams.remove(eventName);
   }
 
+  @override
   void sendLocationUpdate(double latitude, double longitude) {
     emit('location_update', {'latitude': latitude, 'longitude': longitude});
   }
 
+  @override
   void sendScannerResult(String scanData, String scanType) {
     emit('scanner_result', {'scanData': scanData, 'scanType': scanType});
   }
 
+  @override
   void sendMessage(String message, String? recipientId) {
     emit('message', {'message': message, 'recipientId': recipientId});
   }
@@ -225,12 +237,12 @@ class SocketService extends ChangeNotifier {
 
       SocketConfig.updateConfig(newConfig);
 
-      // Bug MMMMM: NAO re-registrar listeners aqui. Eles ja foram
-      // registrados na primeira inicializacao. Re-registrar duplicava
-      // todos os callbacks (cada onConnect rodava 2x, _startHeartbeat
-      // criava 2 timers, etc). O socket.io interno sobrevive ao
-      // updateConfig — basta a nova config tomar efeito na proxima
-      // conexao.
+      // Quando a config muda host/porta, `SocketConfig.updateConfig`
+      // recria a instancia do socket e dispara `_rebindListeners` via
+      // hook. Isso re-registra os listeners no novo socket (o antigo
+      // foi descartado). O re-registro e idempotente: `_rebindListeners`
+      // reseta o guard antes de chamar `_setupSocketListeners`, e o
+      // socket novo nao tem listeners previos, entao nao ha duplicacao.
 
       if (wasConnected) {
         unawaited(
@@ -267,6 +279,18 @@ class SocketService extends ChangeNotifier {
       AppLogger.error('Falha ao atualizar config do socket', tag: 'SocketService', error: e);
       _updateConnectionState(SocketConnectionState.error);
       rethrow;
+    }
+  }
+
+  /// Re-vincula os listeners no novo socket apos `SocketConfig` recriar
+  /// a instancia. Idempotente: o socket novo nao tem listeners previos.
+  void _rebindListeners() {
+    _listenersRegistered = false;
+    _setupSocketListeners();
+
+    final socket = SocketConfig.instance;
+    for (final eventName in _eventStreams.keys) {
+      socket.on(eventName, (data) => _eventStreams[eventName]?.add(data));
     }
   }
 
@@ -343,6 +367,7 @@ class SocketService extends ChangeNotifier {
 
   @override
   void dispose() {
+    SocketConfig.removeRebindListener(_rebindListeners);
     _cancelReconnectTimer();
     _stopHeartbeat();
 

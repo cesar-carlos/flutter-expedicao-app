@@ -11,12 +11,13 @@ import 'package:data7_expedicao/domain/models/filter/separation_filters_model.da
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
 import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
 import 'package:data7_expedicao/domain/repositories/separate_event_repository.dart';
-import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/services/notification_service.dart';
+import 'package:data7_expedicao/presentation/viewmodels/controllers/separation_event_coordinator.dart';
+import 'package:data7_expedicao/presentation/viewmodels/controllers/separation_filters_controller.dart';
 
 enum SeparationState { initial, loading, loaded, error }
 
@@ -34,7 +35,9 @@ class SeparationViewModel extends ChangeNotifier {
       _sectorRepository = locator<BasicRepository<ExpeditionSectorStockModel>>(),
       _eventRepository = locator<SeparateEventRepository>(),
       _audioService = locator<AudioService>(),
-      _notificationService = NotificationService();
+      _notificationService = NotificationService() {
+    _initControllers();
+  }
 
   SeparationViewModel.withDependencies(
     this._repository,
@@ -43,7 +46,22 @@ class SeparationViewModel extends ChangeNotifier {
     this._eventRepository,
     this._audioService,
     this._notificationService,
-  );
+  ) {
+    _initControllers();
+  }
+
+  late final SeparationEventCoordinator _eventCoordinator;
+  late final SeparationFiltersController _filtersController;
+
+  void _initControllers() {
+    _filtersController = SeparationFiltersController(storage: _filtersStorage);
+    _eventCoordinator = SeparationEventCoordinator(
+      eventRepository: _eventRepository,
+      isDisposed: () => _disposed,
+      onSeparationEvent: _handleSeparationEvent,
+      onListResyncRequested: () => unawaited(resyncVisibleSeparationsSilently()),
+    );
+  }
 
   SeparationState _state = SeparationState.initial;
   List<SeparateConsultationModel> _separations = [];
@@ -59,22 +77,6 @@ class SeparationViewModel extends ChangeNotifier {
   final int _pageSize = 20;
   bool _hasMoreData = true;
   bool _isLoadingMore = false;
-
-  String? _codSepararEstoqueFilter;
-  String? _origemFilter;
-  String? _codOrigemFilter;
-  List<String>? _situacoesFilter;
-  DateTime? _dataEmissaoFilter;
-  ExpeditionSectorStockModel? _setorEstoqueFilter;
-
-  final String _insertListenerId = 'separation_viewmodel_insert';
-  final String _updateListenerId = 'separation_viewmodel_update';
-  final String _deleteListenerId = 'separation_viewmodel_delete';
-  final String _consultationListenerId = 'separation_viewmodel_consultation';
-  final String _updateListListenerId = 'separation_viewmodel_update_list';
-  bool _eventListenersRegistered = false;
-  bool _consultationListenerRegistered = false;
-  bool _updateListListenerRegistered = false;
 
   bool _isScreenVisible = false;
   Timer? _notificationDebounce;
@@ -108,12 +110,12 @@ class SeparationViewModel extends ChangeNotifier {
 
   int get pageSize => _pageSize;
 
-  String? get codSepararEstoqueFilter => _codSepararEstoqueFilter;
-  String? get origemFilter => _origemFilter;
-  String? get codOrigemFilter => _codOrigemFilter;
-  List<String>? get situacoesFilter => _situacoesFilter;
-  DateTime? get dataEmissaoFilter => _dataEmissaoFilter;
-  ExpeditionSectorStockModel? get setorEstoqueFilter => _setorEstoqueFilter;
+  String? get codSepararEstoqueFilter => _filtersController.codSepararEstoque;
+  String? get origemFilter => _filtersController.origem;
+  String? get codOrigemFilter => _filtersController.codOrigem;
+  List<String>? get situacoesFilter => _filtersController.situacoes;
+  DateTime? get dataEmissaoFilter => _filtersController.dataEmissao;
+  ExpeditionSectorStockModel? get setorEstoqueFilter => _filtersController.setorEstoque;
 
   List<ExpeditionSectorStockModel> get availableSectors {
     _availableSectorsUnmodifiable ??= List.unmodifiable(_availableSectors);
@@ -122,13 +124,7 @@ class SeparationViewModel extends ChangeNotifier {
 
   bool get sectorsLoaded => _sectorsLoaded;
 
-  bool get hasActiveFilters =>
-      _codSepararEstoqueFilter != null ||
-      _origemFilter != null ||
-      _codOrigemFilter != null ||
-      (_situacoesFilter != null && _situacoesFilter!.isNotEmpty) ||
-      _dataEmissaoFilter != null ||
-      _setorEstoqueFilter != null;
+  bool get hasActiveFilters => _filtersController.hasActive;
 
   Future<void> loadSeparations() async {
     if (_disposed || isLoading) return;
@@ -137,7 +133,12 @@ class SeparationViewModel extends ChangeNotifier {
       _setState(SeparationState.loading);
       _clearError();
 
-      await _loadSavedFilters();
+      if (await _filtersController.loadSaved()) {
+        // Bug SSS: usar _safeNotifyListeners para nao chamar
+        // notifyListeners apos dispose (esta funcao roda dentro de
+        // loadSeparations que e async, e a tela pode ter sido fechada).
+        _safeNotifyListeners();
+      }
 
       _currentPage = 0;
       _hasMoreData = true;
@@ -145,7 +146,7 @@ class SeparationViewModel extends ChangeNotifier {
       final queryBuilder = _buildQueryWithFilters(0);
 
       final separations = await _repository.selectConsultation(queryBuilder);
-      final filteredSeparations = _applyExactSetorFilter(separations);
+      final filteredSeparations = _filtersController.applyExactSetorFilter(separations);
 
       if (_disposed) return;
       _separations = filteredSeparations;
@@ -182,7 +183,7 @@ class SeparationViewModel extends ChangeNotifier {
       if (_disposed) return;
 
       final previousKeys = {for (final separation in _separations) _separationKey(separation)};
-      final filteredSeparations = _applyExactSetorFilter(separations);
+      final filteredSeparations = _filtersController.applyExactSetorFilter(separations);
       final notificationCandidate = !_isScreenVisible
           ? _selectNewSeparationNotificationCandidate(previousKeys, filteredSeparations)
           : null;
@@ -217,55 +218,42 @@ class SeparationViewModel extends ChangeNotifier {
   }
 
   Future<void> clearFilters() async {
-    _codSepararEstoqueFilter = null;
-    _origemFilter = null;
-    _codOrigemFilter = null;
-    _situacoesFilter = null;
-    _dataEmissaoFilter = null;
-    _setorEstoqueFilter = null;
-
-    await _clearSavedFilters();
+    await _filtersController.clear();
     await loadSeparations();
   }
 
   void setCodSepararEstoqueFilter(String? codigo) {
-    final cleanCodigo = codigo?.trim();
-    if (_codSepararEstoqueFilter != cleanCodigo) {
-      _codSepararEstoqueFilter = cleanCodigo?.isNotEmpty == true ? cleanCodigo : null;
+    if (_filtersController.setCodSepararEstoque(codigo)) {
       _safeNotifyListeners();
     }
   }
 
   void setOrigemFilter(String? origem) {
-    if (_origemFilter != origem) {
-      _origemFilter = origem?.isNotEmpty == true ? origem : null;
+    if (_filtersController.setOrigem(origem)) {
       _safeNotifyListeners();
     }
   }
 
   void setCodOrigemFilter(String? codOrigem) {
-    final cleanCodOrigem = codOrigem?.trim();
-    if (_codOrigemFilter != cleanCodOrigem) {
-      _codOrigemFilter = cleanCodOrigem?.isNotEmpty == true ? cleanCodOrigem : null;
+    if (_filtersController.setCodOrigem(codOrigem)) {
       _safeNotifyListeners();
     }
   }
 
   void setSituacoesFilter(List<String>? situacoes) {
-    _situacoesFilter = situacoes;
-    _safeNotifyListeners();
+    if (_filtersController.setSituacoes(situacoes)) {
+      _safeNotifyListeners();
+    }
   }
 
   void setDataEmissaoFilter(DateTime? dataEmissao) {
-    if (_dataEmissaoFilter != dataEmissao) {
-      _dataEmissaoFilter = dataEmissao;
+    if (_filtersController.setDataEmissao(dataEmissao)) {
       _safeNotifyListeners();
     }
   }
 
   void setSetorEstoqueFilter(ExpeditionSectorStockModel? setorEstoque) {
-    if (_setorEstoqueFilter != setorEstoque) {
-      _setorEstoqueFilter = setorEstoque;
+    if (_filtersController.setSetorEstoque(setorEstoque)) {
       _safeNotifyListeners();
     }
   }
@@ -300,7 +288,7 @@ class SeparationViewModel extends ChangeNotifier {
   }
 
   Future<void> applyFilters() async {
-    await _saveCurrentFilters();
+    await _filtersController.save();
     await loadSeparations();
   }
 
@@ -315,7 +303,7 @@ class SeparationViewModel extends ChangeNotifier {
       final queryBuilder = _buildQueryWithFilters(_currentPage);
 
       final moreSeparations = await _repository.selectConsultation(queryBuilder);
-      final filteredSeparations = _applyExactSetorFilter(moreSeparations);
+      final filteredSeparations = _filtersController.applyExactSetorFilter(moreSeparations);
 
       if (_disposed) return;
 
@@ -418,46 +406,9 @@ class SeparationViewModel extends ChangeNotifier {
       ..orderByAsc('CodEmpresa')
       ..orderByDesc('CodSepararEstoque');
 
-    if (_codSepararEstoqueFilter != null) {
-      queryBuilder.equals('CodSepararEstoque', _codSepararEstoqueFilter!);
-    }
-
-    if (_origemFilter != null) {
-      queryBuilder.equals('Origem', _origemFilter!);
-    }
-
-    if (_codOrigemFilter != null) {
-      queryBuilder.equals('CodOrigem', _codOrigemFilter!);
-    }
-
-    if (_situacoesFilter != null && _situacoesFilter!.isNotEmpty) {
-      queryBuilder.inList('Situacao', _situacoesFilter!);
-    }
-
-    if (_dataEmissaoFilter != null) {
-      final dateString =
-          '${_dataEmissaoFilter!.year}-'
-          '${_dataEmissaoFilter!.month.toString().padLeft(2, '0')}-'
-          '${_dataEmissaoFilter!.day.toString().padLeft(2, '0')}';
-      queryBuilder.like('DataEmissao', '$dateString%');
-    }
-
-    if (_setorEstoqueFilter != null) {
-      queryBuilder.like('CodSetoresEstoque', '%${_setorEstoqueFilter!.codSetorEstoque}%');
-    }
+    _filtersController.applyToQuery(queryBuilder);
 
     return queryBuilder;
-  }
-
-  List<SeparateConsultationModel> _applyExactSetorFilter(List<SeparateConsultationModel> separations) {
-    final setorEstoqueFilter = _setorEstoqueFilter;
-    if (setorEstoqueFilter == null) {
-      return separations;
-    }
-
-    return separations
-        .where((separation) => separation.codSetoresEstoque.contains(setorEstoqueFilter.codSetorEstoque))
-        .toList();
   }
 
   String _getErrorMessage(dynamic error) {
@@ -483,226 +434,16 @@ class SeparationViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadSavedFilters() async {
-    try {
-      final savedFilters = await _filtersStorage.loadSeparationFilters();
-
-      if (savedFilters.isNotEmpty) {
-        _codSepararEstoqueFilter = savedFilters.codSepararEstoque;
-        _origemFilter = savedFilters.origem;
-        _codOrigemFilter = savedFilters.codOrigem;
-        _situacoesFilter = savedFilters.situacoes;
-        _dataEmissaoFilter = savedFilters.dataEmissao;
-        _setorEstoqueFilter = savedFilters.setorEstoque;
-
-        // Bug SSS: usar _safeNotifyListeners para nao chamar
-        // notifyListeners apos dispose (esta funcao roda dentro de
-        // loadSeparations que e async, e a tela pode ter sido fechada).
-        _safeNotifyListeners();
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao carregar filtros salvos', tag: 'SeparationVM', error: e);
-      }
-    }
-  }
-
-  Future<void> _saveCurrentFilters() async {
-    try {
-      final currentFilters = SeparationFiltersModel(
-        codSepararEstoque: _codSepararEstoqueFilter,
-        origem: _origemFilter,
-        codOrigem: _codOrigemFilter,
-        situacoes: _situacoesFilter,
-        dataEmissao: _dataEmissaoFilter,
-        setorEstoque: _setorEstoqueFilter,
-      );
-
-      await _filtersStorage.saveSeparationFilters(currentFilters);
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao salvar filtros salvos', tag: 'SeparationVM', error: e);
-      }
-    }
-  }
-
-  Future<void> _clearSavedFilters() async {
-    try {
-      await _filtersStorage.clearSeparationFilters();
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao limpar filtros salvos', tag: 'SeparationVM', error: e);
-      }
-    }
-  }
-
-  SeparationFiltersModel get currentFilters => SeparationFiltersModel(
-    codSepararEstoque: _codSepararEstoqueFilter,
-    origem: _origemFilter,
-    codOrigem: _codOrigemFilter,
-    situacoes: _situacoesFilter,
-    dataEmissao: _dataEmissaoFilter,
-    setorEstoque: _setorEstoqueFilter,
-  );
+  SeparationFiltersModel get currentFilters => _filtersController.current;
 
   void startEventMonitoring() {
     if (_disposed) return;
-    _registerEventListener();
-    _registerConsultationEventListener();
-    _registerUpdateListEventListener();
+    _eventCoordinator.start();
   }
 
   void stopEventMonitoring() {
     if (_disposed) return;
-    _unregisterEventListener();
-    _unregisterConsultationEventListener();
-    _unregisterUpdateListEventListener();
-  }
-
-  void _registerEventListener() {
-    if (_disposed || _eventListenersRegistered) return;
-
-    try {
-      // allEvent: true — [EventServiceImpl] ignora eventos com Session == socket atual
-      // quando allEvent é false (evitar eco em outros fluxos). Na listagem, isso impedia
-      // de ver a própria separação criada neste app até dar refresh.
-      _eventRepository.addListener(
-        EventListenerModel(id: _insertListenerId, event: Event.insert, callback: _onSeparationEvent, allEvent: true),
-      );
-
-      _eventRepository.addListener(
-        EventListenerModel(id: _updateListenerId, event: Event.update, callback: _onSeparationEvent, allEvent: true),
-      );
-
-      _eventRepository.addListener(
-        EventListenerModel(id: _deleteListenerId, event: Event.delete, callback: _onSeparationEvent, allEvent: true),
-      );
-
-      _eventListenersRegistered = true;
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao registrar evento de separação', tag: 'SeparationVM', error: e);
-      }
-    }
-  }
-
-  void _registerConsultationEventListener() {
-    if (_disposed || _consultationListenerRegistered) return;
-
-    try {
-      _eventRepository.addConsultationListener(
-        EventListenerModel(
-          id: _consultationListenerId,
-          event: Event.insert,
-          callback: _onConsultationEvent,
-          allEvent: true,
-        ),
-      );
-      _consultationListenerRegistered = true;
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao registrar evento de consulta de separação', tag: 'SeparationVM', error: e);
-      }
-    }
-  }
-
-  void _unregisterEventListener() {
-    if (!_eventListenersRegistered) return;
-
-    try {
-      _eventRepository.removeListeners([_insertListenerId, _updateListenerId, _deleteListenerId]);
-      _eventListenersRegistered = false;
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao desregistrar evento de separação', tag: 'SeparationVM', error: e);
-      }
-    }
-  }
-
-  void _unregisterConsultationEventListener() {
-    if (!_consultationListenerRegistered) return;
-
-    try {
-      _eventRepository.removeConsultationListener(_consultationListenerId);
-      _consultationListenerRegistered = false;
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao desregistrar evento de consulta de separação', tag: 'SeparationVM', error: e);
-      }
-    }
-  }
-
-  void _registerUpdateListEventListener() {
-    if (_disposed || _updateListListenerRegistered) return;
-
-    try {
-      _eventRepository.addUpdateListener(
-        EventListenerModel(
-          id: _updateListListenerId,
-          event: Event.update,
-          callback: _onUpdateListEvent,
-          allEvent: true,
-        ),
-      );
-      _updateListListenerRegistered = true;
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao registrar evento de atualização de lista', tag: 'SeparationVM', error: e);
-      }
-    }
-  }
-
-  void _unregisterUpdateListEventListener() {
-    if (!_updateListListenerRegistered) return;
-
-    try {
-      _eventRepository.removeUpdateListener(_updateListListenerId);
-      _updateListListenerRegistered = false;
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao desregistrar evento de atualização de lista', tag: 'SeparationVM', error: e);
-      }
-    }
-  }
-
-  void _onSeparationEvent(BasicEventModel event) {
-    if (_disposed) return;
-
-    try {
-      _processEventData(event);
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao processar evento de separação', tag: 'SeparationVM', error: e);
-      }
-    }
-  }
-
-  void _processEventData(BasicEventModel event) {
-    if (event.data == null) return;
-
-    try {
-      if (event.data is Map<String, dynamic>) {
-        final dataMap = event.data as Map<String, dynamic>;
-
-        if (dataMap.containsKey('Mutation') && dataMap['Mutation'] is List) {
-          final mutations = dataMap['Mutation'] as List;
-
-          for (final mutation in mutations) {
-            if (mutation is Map<String, dynamic>) {
-              final separationData = SeparateConsultationModel.fromJson(mutation);
-              _handleSeparationEvent(event.eventType, separationData);
-            }
-          }
-        } else {
-          final separationData = SeparateConsultationModel.fromJson(dataMap);
-          _handleSeparationEvent(event.eventType, separationData);
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao processar evento de separação', tag: 'SeparationVM', error: e);
-      }
-    }
+    _eventCoordinator.stop();
   }
 
   void _handleSeparationEvent(Event eventType, SeparateConsultationModel separationData) {
@@ -734,96 +475,21 @@ class SeparationViewModel extends ChangeNotifier {
   bool _handleNewSeparation(SeparateConsultationModel separationData) {
     final index = _findSeparationIndex(separationData);
     if (index != -1) {
-      return _updateExistingSeparation(index, separationData, shouldBeVisible: _shouldAddToCurrentList(separationData));
+      return _updateExistingSeparation(
+        index,
+        separationData,
+        shouldBeVisible: _filtersController.shouldInclude(separationData),
+      );
     }
 
-    return _addNewSeparation(separationData, shouldBeVisible: _shouldAddToCurrentList(separationData));
-  }
-
-  bool _shouldAddToCurrentList(SeparateConsultationModel separationData) {
-    if (!hasActiveFilters) return true;
-
-    if (_codSepararEstoqueFilter != null && separationData.codSepararEstoque.toString() != _codSepararEstoqueFilter) {
-      return false;
-    }
-
-    if (_origemFilter != null && separationData.origem.name != _origemFilter) {
-      return false;
-    }
-
-    if (_codOrigemFilter != null && separationData.codOrigem.toString() != _codOrigemFilter) {
-      return false;
-    }
-
-    if (_situacoesFilter != null &&
-        _situacoesFilter!.isNotEmpty &&
-        !_situacoesFilter!.contains(separationData.situacao.code)) {
-      return false;
-    }
-
-    if (_dataEmissaoFilter != null) {
-      final separationDate = separationData.dataEmissao;
-      if (separationDate.year != _dataEmissaoFilter!.year ||
-          separationDate.month != _dataEmissaoFilter!.month ||
-          separationDate.day != _dataEmissaoFilter!.day) {
-        return false;
-      }
-    }
-
-    if (_setorEstoqueFilter != null) {
-      if (!separationData.codSetoresEstoque.contains(_setorEstoqueFilter!.codSetorEstoque)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  void _onConsultationEvent(BasicEventModel event) {
-    if (_disposed || event.data == null) return;
-
-    try {
-      _processConsultationEventData(event);
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao processar evento de consulta de separação', tag: 'SeparationVM', error: e);
-      }
-    }
-  }
-
-  void _onUpdateListEvent(BasicEventModel event) {
-    if (_disposed || event.data == null) return;
-
-    try {
-      _processUpdateListEventData(event);
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao processar evento de atualização de lista', tag: 'SeparationVM', error: e);
-      }
-    }
-  }
-
-  void _processConsultationEventData(BasicEventModel event) {
-    _processListEventData(event);
-  }
-
-  void _processUpdateListEventData(BasicEventModel event) {
-    _processListEventData(event);
-  }
-
-  void _processListEventData(BasicEventModel event) {
-    final dataMap = event.data as Map<String, dynamic>;
-
-    if (!dataMap.containsKey('Data') || dataMap['Data'] is! List) return;
-
-    unawaited(resyncVisibleSeparationsSilently());
+    return _addNewSeparation(separationData, shouldBeVisible: _filtersController.shouldInclude(separationData));
   }
 
   bool _handleSeparationUpdate(SeparateConsultationModel separationData) {
     if (_disposed) return false;
 
     final index = _findSeparationIndex(separationData);
-    final shouldBeVisible = _shouldAddToCurrentList(separationData);
+    final shouldBeVisible = _filtersController.shouldInclude(separationData);
 
     if (index != -1) {
       return _updateExistingSeparation(index, separationData, shouldBeVisible: shouldBeVisible);
@@ -865,7 +531,7 @@ class SeparationViewModel extends ChangeNotifier {
   }
 
   void _playNotificationIfNeeded(SeparateConsultationModel separationData) {
-    if (!_shouldAddToCurrentList(separationData)) return;
+    if (!_filtersController.shouldInclude(separationData)) return;
 
     _notificationDebounce?.cancel();
     if (kDebugMode) {

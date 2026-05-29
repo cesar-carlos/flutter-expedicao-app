@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import 'package:data7_expedicao/core/utils/date_helper.dart';
 import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
@@ -131,9 +129,6 @@ class ExpeditionCheckConsultationModel {
   /// Retorna a descrição da situação
   String get situacaoDescription => situacao.description;
 
-  /// Retorna a cor da situação
-  Color get situacaoColor => situacao.color;
-
   bool isSituacao(String situacaoToCheck) => situacao.code.toLowerCase() == situacaoToCheck.toLowerCase();
 
   /// Retorna o código do tipo de entidade
@@ -141,9 +136,6 @@ class ExpeditionCheckConsultationModel {
 
   /// Retorna a descrição do tipo de entidade
   String get tipoEntidadeDescription => tipoEntidade.description;
-
-  /// Retorna a cor do tipo de entidade
-  Color get tipoEntidadeColor => tipoEntidade.color;
 
   @override
   bool operator ==(Object other) {

@@ -2,6 +2,11 @@ import 'package:data7_expedicao/domain/models/separate_item_consultation_model.d
 
 /// Utilitários para operações de picking
 class PickingUtils {
+  // Compilada uma única vez (nível de classe) em vez de a cada comparação
+  // de sort. Antes era criada dentro do comparador, recompilando a regex
+  // O(n log n) vezes por ordenação.
+  static final RegExp _leadingDigitsRegExp = RegExp(r'^(\d+)');
+
   /// Ordena itens por setor de estoque e depois por endereço usando ordenação natural
   ///
   /// REGRA DE NEGÓCIO:
@@ -31,40 +36,50 @@ class PickingUtils {
       }
 
       // Dentro do mesmo grupo (sem setor / mesmo setor), ordenar por endereço
-      final endA = a.enderecoDescricao?.toLowerCase() ?? '';
-      final endB = b.enderecoDescricao?.toLowerCase() ?? '';
-
-      // Extrair números do início do endereço (01, 02, etc)
-      final regExp = RegExp(r'^(\d+)');
-      final matchA = regExp.firstMatch(endA);
-      final matchB = regExp.firstMatch(endB);
-
-      // Se ambos começam com números, comparar numericamente
-      if (matchA != null && matchB != null) {
-        // Bug QQQQQQ: int.parse podia overflow se o regex \d+ casasse
-        // string de 19+ digitos (limite int64). Usamos tryParse e
-        // fallback para comparacao por comprimento (numeros maiores
-        // tem mais digitos) seguido de string compare.
-        final numA = int.tryParse(matchA.group(1)!);
-        final numB = int.tryParse(matchB.group(1)!);
-        if (numA != null && numB != null) {
-          if (numA != numB) return numA.compareTo(numB);
-        } else {
-          final strA = matchA.group(1)!;
-          final strB = matchB.group(1)!;
-          if (strA.length != strB.length) return strA.length.compareTo(strB.length);
-          final cmp = strA.compareTo(strB);
-          if (cmp != 0) return cmp;
-        }
-      }
-
-      // Se um começa com número e outro não, priorizar o que começa com número
-      if (matchA != null && matchB == null) return -1;
-      if (matchA == null && matchB != null) return 1;
-
-      // Caso contrário, ordenar alfabeticamente
-      return endA.compareTo(endB);
+      return compareByAddress(a.enderecoDescricao, b.enderecoDescricao);
     });
+  }
+
+  /// Compara dois endereços usando ordenação natural (número inicial primeiro,
+  /// depois alfabético). Centraliza a lógica que antes estava duplicada em
+  /// múltiplos comparadores de sort recompilando a RegExp.
+  ///
+  /// Regra de ordenação preservada:
+  /// 1. Ambos começam com número: compara numericamente.
+  /// 2. Só um começa com número: o que começa com número vem primeiro.
+  /// 3. Caso contrário: ordenação alfabética.
+  static int compareByAddress(String? addressA, String? addressB) {
+    final endA = addressA?.toLowerCase() ?? '';
+    final endB = addressB?.toLowerCase() ?? '';
+
+    final matchA = _leadingDigitsRegExp.firstMatch(endA);
+    final matchB = _leadingDigitsRegExp.firstMatch(endB);
+
+    // Se ambos começam com números, comparar numericamente
+    if (matchA != null && matchB != null) {
+      // Bug QQQQQQ: int.parse podia overflow se o regex \d+ casasse
+      // string de 19+ digitos (limite int64). Usamos tryParse e
+      // fallback para comparacao por comprimento (numeros maiores
+      // tem mais digitos) seguido de string compare.
+      final numA = int.tryParse(matchA.group(1)!);
+      final numB = int.tryParse(matchB.group(1)!);
+      if (numA != null && numB != null) {
+        if (numA != numB) return numA.compareTo(numB);
+      } else {
+        final strA = matchA.group(1)!;
+        final strB = matchB.group(1)!;
+        if (strA.length != strB.length) return strA.length.compareTo(strB.length);
+        final cmp = strA.compareTo(strB);
+        if (cmp != 0) return cmp;
+      }
+    }
+
+    // Se um começa com número e outro não, priorizar o que começa com número
+    if (matchA != null && matchB == null) return -1;
+    if (matchA == null && matchB != null) return 1;
+
+    // Caso contrário, ordenar alfabeticamente
+    return endA.compareTo(endB);
   }
 
   /// Encontra o próximo item a ser separado

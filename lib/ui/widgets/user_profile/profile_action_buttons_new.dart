@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/profile_viewmodel.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';

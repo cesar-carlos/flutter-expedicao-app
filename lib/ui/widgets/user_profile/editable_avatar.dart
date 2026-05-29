@@ -4,7 +4,7 @@ import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 import 'package:data7_expedicao/domain/models/user/app_user.dart';
-import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/profile_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/user_profile/photo_options_modal.dart';
 
 class EditableAvatar extends StatelessWidget {

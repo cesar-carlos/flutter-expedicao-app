@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
-import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/user_selection_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/user_selection_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/user_selection/index.dart';
 import 'package:data7_expedicao/ui/widgets/common/index.dart';
 

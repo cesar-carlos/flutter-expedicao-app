@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
-import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/separation_items_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/filter/carts_filters_model.dart';
 import 'package:data7_expedicao/core/utils/date_helper.dart';

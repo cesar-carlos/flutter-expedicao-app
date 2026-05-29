@@ -1,5 +1,5 @@
 import 'package:data7_expedicao/data/datasources/config_service.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
 import 'fake_printer_preferences_repository.dart';
 
 /// Mock do ConfigViewModel para testes

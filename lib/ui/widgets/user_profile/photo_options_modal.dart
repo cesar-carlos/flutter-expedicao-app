@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/domain/viewmodels/profile_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/profile_viewmodel.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class PhotoOptionsModal extends StatelessWidget {

@@ -47,6 +47,12 @@ class GitHubApiService {
     }
   }
 
+  /// Fecha o cliente Dio subjacente, liberando conexoes pendentes.
+  /// Deve ser chamado quando o servico nao for mais utilizado.
+  void close() {
+    _dio.close();
+  }
+
   Future<GitHubReleaseDto> getLatestRelease(String owner, String repo) async {
     try {
       final response = await _dio.get('/repos/$owner/$repo/releases/latest');

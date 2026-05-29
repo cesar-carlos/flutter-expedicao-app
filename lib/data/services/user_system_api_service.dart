@@ -141,22 +141,33 @@ class UserSystemApiService extends BaseApiService {
 
   /// Processa resposta em formato Map
   UserSystemListResponseDto _processMapResponse(Map<String, dynamic> responseData) {
-    if (responseData.containsKey('data') && responseData['data'] is List) {
-      final users = _parseUsersList(responseData['data'] as List);
+    if (responseData.containsKey('data')) {
+      final data = responseData['data'];
+      if (data is List) {
+        final users = _parseUsersList(data);
 
-      return UserSystemListResponseDto(
-        users: users,
-        total: responseData['total'] as int? ?? users.length,
-        page: responseData['page'] as int?,
-        limit: responseData['limit'] as int?,
-        totalPages: responseData['totalPages'] as int?,
-        success: true,
-        message: responseData['message'] as String?,
+        return UserSystemListResponseDto(
+          users: users,
+          total: responseData['total'] as int? ?? users.length,
+          page: responseData['page'] as int?,
+          limit: responseData['limit'] as int?,
+          totalPages: responseData['totalPages'] as int?,
+          success: true,
+          message: responseData['message'] as String?,
+        );
+      }
+
+      // Envelope com 'data' presente mas que NAO e lista indica resposta
+      // de erro ou formato inesperado. Falhar explicitamente em vez de
+      // interpretar o envelope inteiro como um "usuario fantasma".
+      throw UserApiException(
+        'Formato de resposta inválido: campo "data" não é uma lista (${data.runtimeType})',
       );
-    } else {
-      final user = UserSystemModel.fromJson(responseData);
-      return UserSystemListResponseDto.success(users: [user], message: 'Usuário encontrado');
     }
+
+    // Sem envelope 'data': resposta de usuario unico (caso documentado).
+    final user = UserSystemModel.fromJson(responseData);
+    return UserSystemListResponseDto.success(users: [user], message: 'Usuário encontrado');
   }
 
   /// Processa resposta em formato List

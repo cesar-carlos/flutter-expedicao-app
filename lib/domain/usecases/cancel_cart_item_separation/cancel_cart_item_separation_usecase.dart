@@ -1,5 +1,6 @@
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/separate_item_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
@@ -50,8 +51,23 @@ class CancelCardItemSeparationUseCase {
         );
       }
 
-      final cancelledSeparationItems = await _updateSeparationItemsToCancel(separationItems);
-      if (cancelledSeparationItems.isEmpty) {
+      final List<SeparationItemModel> cancelledSeparationItems;
+      try {
+        cancelledSeparationItems = await _updateSeparationItemsToCancel(separationItems);
+      } catch (e) {
+        // Exceção no passo 2: reverte o passo 1 (quantidades) e os itens de
+        // separação já cancelados antes de propagar a falha.
+        await _revertSeparateItemQuantities(updateSeparateItemsResult.originalItems);
+        await _revertSeparationItems(originalSeparationItems);
+        rethrow;
+      }
+
+      // Falha total ou PARCIAL no passo 2: tratamos como operação não-atômica
+      // e revertemos tudo (quantidades reduzidas + itens já cancelados) para
+      // evitar estado inconsistente (parte cancelada, parte não).
+      if (cancelledSeparationItems.length != separationItems.length) {
+        await _revertSeparateItemQuantities(updateSeparateItemsResult.originalItems);
+        await _revertSeparationItems(originalSeparationItems);
         return failure(
           CancelCardItemSeparationFailure.updateSeparationItemFailed('Falha ao cancelar itens de separação'),
         );
@@ -174,6 +190,34 @@ class CancelCardItemSeparationUseCase {
       return updatedItems;
     } catch (e) {
       rethrow;
+    }
+  }
+
+  Future<void> _revertSeparateItemQuantities(List<SeparateItemModel> originalItems) async {
+    if (originalItems.isEmpty) return;
+    try {
+      await _runInBatches(originalItems.map(_separateItemRepository.update).toList());
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Falha no rollback das quantidades de separate_item — estado pode estar inconsistente',
+        tag: 'CancelCardItemSeparationUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> _revertSeparationItems(List<SeparationItemModel> originalItems) async {
+    if (originalItems.isEmpty) return;
+    try {
+      await _runInBatches(originalItems.map(_separationItemRepository.update).toList());
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Falha no rollback das situações de separation_item — estado pode estar inconsistente',
+        tag: 'CancelCardItemSeparationUseCase',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 

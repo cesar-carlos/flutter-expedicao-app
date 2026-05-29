@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/domain/models/api_config.dart';
 import 'package:data7_expedicao/domain/models/scanner_input_mode.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/l10n/app_localizations.dart';
 import 'package:data7_expedicao/ui/widgets/config/scanner_config_form.dart';
 

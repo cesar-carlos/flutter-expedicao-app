@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
@@ -24,6 +25,8 @@ import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
 import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
+import 'package:data7_expedicao/presentation/viewmodels/controllers/separation_items_filters_controller.dart';
+import 'package:data7_expedicao/presentation/viewmodels/controllers/separation_carts_filters_controller.dart';
 
 enum SeparateItemsState { initial, loading, loaded, error }
 
@@ -33,6 +36,8 @@ class SeparationItemsViewModel extends ChangeNotifier {
   late final BasicRepository<ExpeditionSectorStockModel> _sectorStockRepository;
   late final IFiltersStorageService _filtersStorage;
   late final SeparateCartInternshipEventRepository _cartEventRepository;
+  late final SeparationItemsFiltersController _itemsFiltersController;
+  late final SeparationCartsFiltersController _cartsFiltersController;
 
   SeparationItemsViewModel() {
     try {
@@ -47,6 +52,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
       }
       rethrow;
     }
+    _initControllers();
   }
 
   SeparationItemsViewModel.withDependencies(
@@ -61,6 +67,12 @@ class SeparationItemsViewModel extends ChangeNotifier {
     _sectorStockRepository = sectorStockRepository;
     _filtersStorage = filtersStorage;
     _cartEventRepository = cartEventRepository;
+    _initControllers();
+  }
+
+  void _initControllers() {
+    _itemsFiltersController = SeparationItemsFiltersController(storage: _filtersStorage);
+    _cartsFiltersController = SeparationCartsFiltersController(storage: _filtersStorage);
   }
 
   SeparateItemsState _state = SeparateItemsState.initial;
@@ -80,9 +92,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
   bool _isCancelling = false;
   int? _cancellingCartId;
   String? _lastCancelError;
-
-  SeparateItemsFiltersModel _itemsFilters = const SeparateItemsFiltersModel();
-  CartsFiltersModel _cartsFilters = const CartsFiltersModel();
 
   static const String _cartInsertListenerId = 'separation_items_viewmodel_cart_insert';
   static const String _cartUpdateListenerId = 'separation_items_viewmodel_cart_update';
@@ -114,10 +123,10 @@ class SeparationItemsViewModel extends ChangeNotifier {
   int get itemsPendentes => totalItems - itemsSeparados;
   double get percentualConcluido => totalItems > 0 ? (itemsSeparados / totalItems) * 100 : 0;
 
-  SeparateItemsFiltersModel get itemsFilters => _itemsFilters;
-  CartsFiltersModel get cartsFilters => _cartsFilters;
-  bool get hasActiveItemsFilters => _itemsFilters.isNotEmpty;
-  bool get hasActiveCartsFilters => _cartsFilters.isNotEmpty;
+  SeparateItemsFiltersModel get itemsFilters => _itemsFiltersController.current;
+  CartsFiltersModel get cartsFilters => _cartsFiltersController.current;
+  bool get hasActiveItemsFilters => _itemsFiltersController.hasActive;
+  bool get hasActiveCartsFilters => _cartsFiltersController.hasActive;
 
   List<SeparationItemStatus> get situacaoFilterOptions => SeparationItemStatus.availableForFilter;
 
@@ -154,42 +163,17 @@ class SeparationItemsViewModel extends ChangeNotifier {
         ..equals('CodEmpresa', separation.codEmpresa.toString())
         ..equals('CodSepararEstoque', separation.codSepararEstoque.toString());
 
-      await _applySavedFiltersToQuery(queryBuilder);
+      await _itemsFiltersController.loadSavedAndApplyToQuery(queryBuilder);
 
       final items = await _repository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
 
-      _items = items
-        ..sort((a, b) {
-          final hasEnderecoA = a.enderecoDescricao?.isNotEmpty == true;
-          final hasEnderecoB = b.enderecoDescricao?.isNotEmpty == true;
-
-          if (hasEnderecoA && !hasEnderecoB) return -1;
-          if (!hasEnderecoA && hasEnderecoB) return 1;
-
-          final endA = a.enderecoDescricao?.toLowerCase() ?? '';
-          final endB = b.enderecoDescricao?.toLowerCase() ?? '';
-
-          final regExp = RegExp(r'^(\d+)');
-          final matchA = regExp.firstMatch(endA);
-          final matchB = regExp.firstMatch(endB);
-
-          if (matchA != null && matchB != null) {
-            final numA = int.parse(matchA.group(1)!);
-            final numB = int.parse(matchB.group(1)!);
-            if (numA != numB) return numA.compareTo(numB);
-          }
-
-          if (matchA != null && matchB == null) return -1;
-          if (matchA == null && matchB != null) return 1;
-
-          return endA.compareTo(endB);
-        });
+      _items = items..sort(_compareItemsByAddress);
 
       if (_disposed) return;
 
-      _items = _applySituacaoFilter(items);
+      _items = _itemsFiltersController.applySituacaoLocal(items);
       _setState(SeparateItemsState.loaded);
     } catch (e) {
       if (_disposed) return;
@@ -206,13 +190,13 @@ class SeparationItemsViewModel extends ChangeNotifier {
         ..equals('Origem', ExpeditionOrigem.separacaoEstoque.code)
         ..orderByDesc('Item');
 
-      await _applySavedCartsFiltersToQuery(queryBuilder);
+      await _cartsFiltersController.loadSavedAndApplyToQuery(queryBuilder);
 
       final carts = await _cartRepository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
 
-      final filteredCarts = _applySituacaoFilterToCarts(carts);
+      final filteredCarts = _cartsFiltersController.applySituacaoLocal(carts);
 
       _carts = filteredCarts..sort((a, b) => b.item.compareTo(a.item));
       _cartsLoaded = true;
@@ -347,26 +331,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }, orElse: () => null);
   }
 
-  Future<void> separateItem(SeparateItemConsultationModel item, double quantidade) async {
-    if (_disposed) return;
-
-    try {
-      if (quantidade <= 0) throw 'Quantidade deve ser maior que zero';
-
-      if (quantidade > item.quantidade) {
-        throw 'Quantidade não pode exceder a quantidade disponível (${item.quantidade})';
-      }
-
-      if (!_items.any((i) => i.codProduto == item.codProduto)) {
-        throw 'Produto não encontrado na lista de separação';
-      }
-
-      _safeNotifyListeners();
-    } catch (e) {
-      _setError('Erro ao separar item: ${_getErrorMessage(e)}');
-    }
-  }
-
   bool validateProductInSeparation(String searchValue) {
     final trimmedValue = searchValue.trim();
 
@@ -376,29 +340,15 @@ class SeparationItemsViewModel extends ChangeNotifier {
   }
 
   bool get isSeparationComplete {
-    return _items.every((item) => item.quantidadeSeparacao > 0);
-  }
-
-  Future<void> separateAllItems() async {
-    if (_disposed) return;
-
-    try {
-      for (final _ in _items.where((i) => i.quantidadeSeparacao == 0)) {
-        await Future.delayed(const Duration(milliseconds: 100));
-      }
-
-      _safeNotifyListeners();
-    } catch (e) {
-      _setError('Erro ao separar todos os itens: ${_getErrorMessage(e)}');
-    }
+    if (_items.isEmpty) return false;
+    return _items.every((item) => item.isCompletamenteSeparado);
   }
 
   Future<void> applyItemsFilters(SeparateItemsFiltersModel filters) async {
     if (_disposed) return;
 
     try {
-      _itemsFilters = filters;
-      await _saveItemsFilters();
+      await _itemsFiltersController.apply(filters);
       await _loadFilteredItems();
       _safeNotifyListeners();
     } catch (e) {
@@ -410,8 +360,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
     if (_disposed) return;
 
     try {
-      _cartsFilters = filters;
-      await _saveCartsFilters();
+      await _cartsFiltersController.apply(filters);
       await _loadFilteredCarts();
       _safeNotifyListeners();
     } catch (e) {
@@ -423,8 +372,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
     if (_disposed) return;
 
     try {
-      _itemsFilters = const SeparateItemsFiltersModel();
-      await _clearItemsFilters();
+      await _itemsFiltersController.clear();
       await _loadFilteredItems();
       _safeNotifyListeners();
     } catch (e) {
@@ -436,8 +384,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
     if (_disposed) return;
 
     try {
-      _cartsFilters = const CartsFiltersModel();
-      await _clearCartsFilters();
+      await _cartsFiltersController.clear();
       await _loadFilteredCarts();
       _safeNotifyListeners();
     } catch (e) {
@@ -497,35 +444,6 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _applySavedFiltersToQuery(QueryBuilder queryBuilder) async {
-    try {
-      final savedItemsFilters = await _filtersStorage.loadSeparateItemsFilters();
-      if (savedItemsFilters.isNotEmpty) {
-        _itemsFilters = savedItemsFilters;
-        _applyItemsFiltersToQuery(queryBuilder);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao aplicar filtros salvos de itens', tag: 'SeparationItemsVM', error: e);
-      }
-    }
-  }
-
-  Future<void> _applySavedCartsFiltersToQuery(QueryBuilder queryBuilder) async {
-    try {
-      final savedCartsFilters = await _filtersStorage.loadCartsFilters();
-      if (savedCartsFilters.isNotEmpty) {
-        _cartsFilters = savedCartsFilters;
-
-        _applyCartsFiltersToQueryWithoutSituacao(queryBuilder);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao aplicar filtros salvos de carrinhos', tag: 'SeparationItemsVM', error: e);
-      }
-    }
-  }
-
   Future<void> _loadFilteredItems() async {
     if (_separation == null) return;
 
@@ -534,39 +452,15 @@ class SeparationItemsViewModel extends ChangeNotifier {
         ..equals('CodEmpresa', _separation!.codEmpresa.toString())
         ..equals('CodSepararEstoque', _separation!.codSepararEstoque.toString());
 
-      _applyItemsFiltersToQuery(queryBuilder);
+      _itemsFiltersController.applyToQuery(queryBuilder);
 
       final items = await _repository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
 
-      items.sort((a, b) {
-        final hasEnderecoA = a.enderecoDescricao?.isNotEmpty == true;
-        final hasEnderecoB = b.enderecoDescricao?.isNotEmpty == true;
+      items.sort(_compareItemsByAddress);
 
-        if (hasEnderecoA && !hasEnderecoB) return -1;
-        if (!hasEnderecoA && hasEnderecoB) return 1;
-
-        final endA = a.enderecoDescricao?.toLowerCase() ?? '';
-        final endB = b.enderecoDescricao?.toLowerCase() ?? '';
-
-        final regExp = RegExp(r'^(\d+)');
-        final matchA = regExp.firstMatch(endA);
-        final matchB = regExp.firstMatch(endB);
-
-        if (matchA != null && matchB != null) {
-          final numA = int.parse(matchA.group(1)!);
-          final numB = int.parse(matchB.group(1)!);
-          if (numA != numB) return numA.compareTo(numB);
-        }
-
-        if (matchA != null && matchB == null) return -1;
-        if (matchA == null && matchB != null) return 1;
-
-        return endA.compareTo(endB);
-      });
-
-      _items = _applySituacaoFilter(items);
+      _items = _itemsFiltersController.applySituacaoLocal(items);
     } catch (e) {
       if (_disposed) return;
 
@@ -585,13 +479,13 @@ class SeparationItemsViewModel extends ChangeNotifier {
         ..equals('Origem', ExpeditionOrigem.separacaoEstoque.code)
         ..orderByDesc('Item');
 
-      _applyCartsFiltersToQueryWithoutSituacao(queryBuilder);
+      _cartsFiltersController.applyToQueryWithoutSituacao(queryBuilder);
 
       final carts = await _cartRepository.selectConsultation(queryBuilder);
 
       if (_disposed) return;
 
-      final filteredCarts = _applySituacaoFilterToCarts(carts);
+      final filteredCarts = _cartsFiltersController.applySituacaoLocal(carts);
 
       _carts = filteredCarts..sort((a, b) => b.item.compareTo(a.item));
     } catch (e) {
@@ -603,108 +497,19 @@ class SeparationItemsViewModel extends ChangeNotifier {
     }
   }
 
-  void _applyItemsFiltersToQuery(QueryBuilder queryBuilder) {
-    if (_itemsFilters.codProduto != null) {
-      queryBuilder.like('CodProduto', _itemsFilters.codProduto!);
-    }
-    if (_itemsFilters.codigoBarras != null) {
-      queryBuilder.like('CodigoBarras', _itemsFilters.codigoBarras!);
-    }
-    if (_itemsFilters.nomeProduto != null) {
-      queryBuilder.like('NomeProduto', _itemsFilters.nomeProduto!);
-    }
-    if (_itemsFilters.enderecoDescricao != null) {
-      queryBuilder.like('EnderecoDescricao', _itemsFilters.enderecoDescricao!);
-    }
-    if (_itemsFilters.setorEstoque != null) {
-      queryBuilder.equals('CodSetorEstoque', _itemsFilters.setorEstoque!.codSetorEstoque.toString());
-    }
-  }
+  // Ordena por endereço preservando o critério original desta tela:
+  // itens COM endereço aparecem antes dos SEM endereço; dentro disso,
+  // ordenação natural delegada a PickingUtils (RegExp compilada uma vez
+  // e parsing seguro com int.tryParse). A ordem final é idêntica à
+  // anterior para endereços realistas.
+  static int _compareItemsByAddress(SeparateItemConsultationModel a, SeparateItemConsultationModel b) {
+    final hasEnderecoA = a.enderecoDescricao?.isNotEmpty == true;
+    final hasEnderecoB = b.enderecoDescricao?.isNotEmpty == true;
 
-  List<SeparateItemConsultationModel> _applySituacaoFilter(List<SeparateItemConsultationModel> items) {
-    if (_itemsFilters.situacao == null) {
-      return items;
-    }
+    if (hasEnderecoA && !hasEnderecoB) return -1;
+    if (!hasEnderecoA && hasEnderecoB) return 1;
 
-    return items.where((item) {
-      final itemSituacao = item.situacaoSeparacao;
-      return itemSituacao == _itemsFilters.situacao;
-    }).toList();
-  }
-
-  void _applyCartsFiltersToQueryWithoutSituacao(QueryBuilder queryBuilder) {
-    if (_cartsFilters.codCarrinho != null) {
-      queryBuilder.like('CodCarrinho', _cartsFilters.codCarrinho!);
-    }
-    if (_cartsFilters.nomeCarrinho != null) {
-      queryBuilder.like('NomeCarrinho', _cartsFilters.nomeCarrinho!);
-    }
-    if (_cartsFilters.codigoBarrasCarrinho != null) {
-      queryBuilder.like('CodigoBarrasCarrinho', _cartsFilters.codigoBarrasCarrinho!);
-    }
-    if (_cartsFilters.nomeUsuarioInicio != null) {
-      queryBuilder.like('NomeUsuarioInicio', _cartsFilters.nomeUsuarioInicio!);
-    }
-    if (_cartsFilters.dataInicioInicial != null) {
-      queryBuilder.greaterThan('DataInicio', _cartsFilters.dataInicioInicial!.toIso8601String());
-    }
-    if (_cartsFilters.dataInicioFinal != null) {
-      queryBuilder.lessThan('DataInicio', _cartsFilters.dataInicioFinal!.toIso8601String());
-    }
-    queryBuilder.equals('CarrinhoAgrupador', _cartsFilters.carrinhoAgrupador.code);
-  }
-
-  List<ExpeditionCartRouteInternshipConsultationModel> _applySituacaoFilterToCarts(
-    List<ExpeditionCartRouteInternshipConsultationModel> carts,
-  ) {
-    if (_cartsFilters.situacoes == null || _cartsFilters.situacoes!.isEmpty) {
-      return carts;
-    }
-
-    return carts.where((cart) {
-      final cartSituacao = cart.situacao.code;
-      return _cartsFilters.situacoes!.contains(cartSituacao);
-    }).toList();
-  }
-
-  Future<void> _saveItemsFilters() async {
-    try {
-      await _filtersStorage.saveSeparateItemsFilters(_itemsFilters);
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao salvar filtros de itens', tag: 'SeparationItemsVM', error: e);
-      }
-    }
-  }
-
-  Future<void> _saveCartsFilters() async {
-    try {
-      await _filtersStorage.saveCartsFilters(_cartsFilters);
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao salvar filtros de carrinhos', tag: 'SeparationItemsVM', error: e);
-      }
-    }
-  }
-
-  Future<void> _clearItemsFilters() async {
-    try {
-      await _filtersStorage.clearSeparateItemsFilters();
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao limpar filtros de itens', tag: 'SeparationItemsVM', error: e);
-      }
-    }
-  }
-
-  Future<void> _clearCartsFilters() async {
-    try {
-      await _filtersStorage.clearCartsFilters();
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao limpar filtros de carrinhos', tag: 'SeparationItemsVM', error: e);
-      }
-    }
+    return PickingUtils.compareByAddress(a.enderecoDescricao, b.enderecoDescricao);
   }
 
   Future<bool> cancelCart(int codCarrinho) async {

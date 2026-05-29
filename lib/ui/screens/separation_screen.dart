@@ -14,7 +14,7 @@ import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/res
 import 'package:data7_expedicao/core/utils/print_failure_message_helper.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
-import 'package:data7_expedicao/domain/viewmodels/separation_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/separation_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/separation/separation_filter_modal.dart';
 import 'package:data7_expedicao/ui/widgets/separation_title_with_connection_status.dart';
@@ -170,6 +170,8 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   }
 
   void _loadMoreIfNeeded() {
+    if (!mounted) return;
+
     final isNearBottom =
         _scrollController.position.pixels >= _scrollController.position.maxScrollExtent - _scrollThresholdToLoadMore;
     if (isNearBottom) {
@@ -644,27 +646,26 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   }
 
   Widget _buildAppBarActions() {
-    return Consumer<SeparationViewModel>(
-      builder: (context, viewModel, child) => Row(
+    // Item 8: Selector por campo (hasActiveFilters) em vez de Consumer amplo.
+    // O botão de refresh não precisa reagir ao ViewModel — obtém a instância
+    // via context.read apenas no callback.
+    return Selector<SeparationViewModel, bool>(
+      selector: (_, vm) => vm.hasActiveFilters,
+      builder: (context, hasActiveFilters, child) => Row(
         mainAxisSize: MainAxisSize.min,
-        children: [_buildFilterButton(viewModel), _buildRefreshButton(viewModel)],
+        children: [
+          IconButton(
+            onPressed: _showFilterModal,
+            icon: _FilterIconWithBadge(hasActiveFilters: hasActiveFilters),
+            tooltip: 'Filtros',
+          ),
+          IconButton(
+            onPressed: () => _refreshAndScrollToTop(context.read<SeparationViewModel>()),
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Atualizar lista',
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildFilterButton(SeparationViewModel viewModel) {
-    return IconButton(
-      onPressed: _showFilterModal,
-      icon: _FilterIconWithBadge(hasActiveFilters: viewModel.hasActiveFilters),
-      tooltip: 'Filtros',
-    );
-  }
-
-  Widget _buildRefreshButton(SeparationViewModel viewModel) {
-    return IconButton(
-      onPressed: () => _refreshAndScrollToTop(viewModel),
-      icon: const Icon(Icons.refresh),
-      tooltip: 'Atualizar lista',
     );
   }
 

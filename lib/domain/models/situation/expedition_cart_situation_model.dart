@@ -1,22 +1,17 @@
-import 'package:flutter/material.dart';
-
-import 'package:data7_expedicao/core/theme/app_colors.dart';
-
 enum ExpeditionCartSituation {
-  liberado('LIBERADO', 'Liberado', AppColors.info),
-  emSeparacao('EM SEPARACAO', 'Em Separação', AppColors.warning),
-  separado('SEPARADO', 'Separado', AppColors.success),
-  emConferencia('EM CONFERENCIA', 'Em Conferência', AppColors.purple),
-  conferindo('CONFERIDO', 'Conferido', AppColors.lightGreen),
-  emEntrega('EM ENTREGA', 'Em Entrega', AppColors.error),
-  emPausa('EM PAUSA', 'Em Pausa', AppColors.yellow),
-  vazio('', '', AppColors.grey);
+  liberado('LIBERADO', 'Liberado'),
+  emSeparacao('EM SEPARACAO', 'Em Separação'),
+  separado('SEPARADO', 'Separado'),
+  emConferencia('EM CONFERENCIA', 'Em Conferência'),
+  conferindo('CONFERIDO', 'Conferido'),
+  emEntrega('EM ENTREGA', 'Em Entrega'),
+  emPausa('EM PAUSA', 'Em Pausa'),
+  vazio('', '');
 
-  const ExpeditionCartSituation(this.code, this.description, this.color);
+  const ExpeditionCartSituation(this.code, this.description);
 
   final String code;
   final String description;
-  final Color color;
   static ExpeditionCartSituation? fromCode(String code) {
     try {
       final normalized = (code.trim()).toUpperCase();

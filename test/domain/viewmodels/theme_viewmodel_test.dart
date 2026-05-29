@@ -7,7 +7,7 @@ import 'package:hive/hive.dart';
 
 import 'package:data7_expedicao/data/datasources/user_preferences_service.dart';
 import 'package:data7_expedicao/domain/models/user_preferences.dart';
-import 'package:data7_expedicao/domain/viewmodels/theme_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/theme_viewmodel.dart';
 
 class _FailingUserPreferencesService extends UserPreferencesService {
   bool failNext = false;

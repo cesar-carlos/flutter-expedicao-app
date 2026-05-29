@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:data7_expedicao/domain/models/user/app_user.dart';
 import 'package:data7_expedicao/domain/models/user/user_api_exception.dart';
 import 'package:data7_expedicao/domain/repositories/user_repository.dart';
-import 'package:data7_expedicao/domain/viewmodels/auth_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/utils/avatar_utils.dart';
 

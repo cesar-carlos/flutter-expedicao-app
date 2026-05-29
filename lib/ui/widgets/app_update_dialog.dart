@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/localization/localization_extensions.dart';
-import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/app_update_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/github_release.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_progress_dialog.dart';
 

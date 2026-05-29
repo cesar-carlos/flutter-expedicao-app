@@ -16,7 +16,7 @@ import 'package:data7_expedicao/domain/repositories/basic_consultation_repositor
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/domain/usecases/delete_item_separation/delete_item_separation_usecase.dart';
-import 'package:data7_expedicao/domain/viewmodels/separated_products_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/separated_products_viewmodel.dart';
 
 import '../../support/fake_user_session_service.dart';
 

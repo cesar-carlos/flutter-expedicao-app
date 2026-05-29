@@ -5,6 +5,7 @@ import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/core/utils/fields_helper.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/status_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 
@@ -130,8 +131,19 @@ class ShipmentSeparateConsultationDataSource extends DataGridSource {
 
   ShipmentSeparateConsultationDataSource(this._consultations, {this.onRowTap, this.onRowDoubleTap});
 
+  /// Item 10: cache da lista de `DataGridRow`.
+  ///
+  /// O getter `rows` remapeava toda a lista `_consultations` a cada acesso
+  /// (e é chamado várias vezes pelo Syncfusion e pelo fallback de
+  /// `_findRowIndex`). Como `_consultations` é imutável por instância da
+  /// fonte (recriada a cada build), cacheamos as linhas de forma lazy: o
+  /// cache é naturalmente invalidado quando a fonte/lista muda.
+  List<DataGridRow>? _rowsCache;
+
   @override
-  List<DataGridRow> get rows {
+  List<DataGridRow> get rows => _rowsCache ??= _buildRows();
+
+  List<DataGridRow> _buildRows() {
     if (_consultations.isEmpty) {
       return [];
     }

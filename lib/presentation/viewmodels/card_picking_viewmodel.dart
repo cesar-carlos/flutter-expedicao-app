@@ -13,9 +13,6 @@ import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
 import 'package:data7_expedicao/domain/models/separation_item_status.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
-import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
-import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
-import 'package:data7_expedicao/domain/models/situation/tipo_fator_conversao_model.dart';
 import 'package:data7_expedicao/domain/models/filter/pending_products_filters_model.dart';
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
@@ -23,6 +20,9 @@ import 'package:data7_expedicao/presentation/viewmodels/controllers/cart_event_l
 import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_filters_controller.dart';
 import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_metrics_recorder.dart';
 import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_pending_operations_tracker.dart';
+import 'package:data7_expedicao/presentation/viewmodels/controllers/next_item_cache_manager.dart';
+import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_item_loader.dart';
+import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_add_item_coordinator.dart';
 import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/add_item_separation/add_item_separation_params.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
@@ -88,13 +88,14 @@ class CardPickingViewModel extends ChangeNotifier {
 
   bool get hasItems => _items.isNotEmpty;
 
-  SeparateItemConsultationModel? _nextItemCache;
+  final NextItemCacheManager _nextItemCacheManager = NextItemCacheManager();
 
   String? get lastScannedAddress => _shelfScanningService.lastScannedAddress;
 
-  SeparateItemConsultationModel? get nextItem => _nextItemCache;
+  SeparateItemConsultationModel? get nextItem => _nextItemCacheManager.current;
 
   final PickingPendingOperationsTracker _pendingOperations = PickingPendingOperationsTracker();
+  late final PickingAddItemCoordinator _addItemCoordinator;
 
   final StreamController<OperationError> _errorController = StreamController<OperationError>.broadcast();
 
@@ -148,8 +149,19 @@ class CardPickingViewModel extends ChangeNotifier {
   bool _isSavingCart = false;
   bool _isFinalizingPicking = false;
   bool _isCancelingPicking = false;
+
+  /// Verdadeiro enquanto um salvamento de carrinho está em andamento.
+  /// Usado para bloquear novas leituras de scan (em qualquer entry point)
+  /// enquanto o save finaliza as entidades, evitando divergência UI/servidor.
+  bool get isSavingCart => _isSavingCart;
   bool _silentResyncInFlight = false;
   bool _silentResyncQueued = false;
+
+  // Debounce para coalescer eventos de atualização do carrinho em rajada
+  // (cada evento de socket disparava um resync completo). Espelha o
+  // padrão de `_notificationDebounce` do SeparationViewModel.
+  Timer? _resyncDebounce;
+  static const Duration _resyncDebounceDuration = Duration(milliseconds: 400);
 
   bool _validateSocketState() {
     final validation = _validateSocketStateFn();
@@ -170,36 +182,47 @@ class CardPickingViewModel extends ChangeNotifier {
       return Failure(AuthFailure.unauthenticated());
     }
 
-    if (hasPendingOperations) {
-      final pendingCount = _countPendingOperations();
-      return Failure(
-        BusinessFailure(
-          message:
-              'Existem $pendingCount operação${pendingCount == 1 ? '' : 'es'} pendente${pendingCount == 1 ? '' : 's'} de sincronização. Aguarde a conclusão antes de salvar.',
-        ),
-      );
-    }
-
-    final validationResult = _cartValidationService.validateCartAccess(
-      currentUserCode: _userModel!.codUsuario,
-      cart: _cart!,
-      userModel: _userModel!,
-      accessType: CartAccessType.save,
-    );
-
-    if (!validationResult.canAccess) {
-      var errorMessage = 'Você não tem permissão para salvar este carrinho.';
-
-      if (validationResult.reason == CartAccessDeniedReason.differentUser) {
-        errorMessage =
-            'Este carrinho pertence a ${validationResult.cartOwnerName}. Você não tem permissão para salvá-lo.';
-      }
-
-      return Failure(BusinessFailure(message: errorMessage));
-    }
-
     _isSavingCart = true;
     try {
+      // Aguarda as operações de sincronização em andamento concluírem antes
+      // de validar, fechando a janela TOCTOU em que uma operação terminava
+      // entre a checagem de pendências e o início do save. O timeout evita
+      // travar o save indefinidamente se uma sincronização ficar pendurada;
+      // a checagem de `hasPendingOperations` abaixo ainda barra o save nesse
+      // caso.
+      await _pendingOperations.waitForAll(timeout: const Duration(seconds: 15));
+      if (_disposed) {
+        return Failure(BusinessFailure(message: 'Operação cancelada.'));
+      }
+
+      if (hasPendingOperations) {
+        final pendingCount = _countPendingOperations();
+        return Failure(
+          BusinessFailure(
+            message:
+                'Existem $pendingCount operação${pendingCount == 1 ? '' : 'es'} pendente${pendingCount == 1 ? '' : 's'} de sincronização. Aguarde a conclusão antes de salvar.',
+          ),
+        );
+      }
+
+      final validationResult = _cartValidationService.validateCartAccess(
+        currentUserCode: _userModel!.codUsuario,
+        cart: _cart!,
+        userModel: _userModel!,
+        accessType: CartAccessType.save,
+      );
+
+      if (!validationResult.canAccess) {
+        var errorMessage = 'Você não tem permissão para salvar este carrinho.';
+
+        if (validationResult.reason == CartAccessDeniedReason.differentUser) {
+          errorMessage =
+              'Este carrinho pertence a ${validationResult.cartOwnerName}. Você não tem permissão para salvá-lo.';
+        }
+
+        return Failure(BusinessFailure(message: errorMessage));
+      }
+
       final saveParams = SaveSeparationCartParams(
         codEmpresa: _cart!.codEmpresa,
         codCarrinhoPercurso: _cart!.codCarrinhoPercurso,
@@ -217,6 +240,7 @@ class CardPickingViewModel extends ChangeNotifier {
   bool _cartStatusChanged = false;
 
   late final PickingFiltersController _filtersController;
+  late final PickingItemLoader _itemLoader;
   PendingProductsFiltersModel get filters => _filtersController.current;
   bool get hasActiveFilters => _filtersController.hasActive;
 
@@ -269,6 +293,8 @@ class CardPickingViewModel extends ChangeNotifier {
       onProcessingError: _setError,
     );
     _filtersController = PickingFiltersController(storage: _filtersStorage, onChanged: _safeNotifyListeners);
+    _itemLoader = PickingItemLoader(repository: _repository, filtersController: _filtersController);
+    _addItemCoordinator = _buildAddItemCoordinator();
   }
 
   CardPickingViewModel.withDependencies({
@@ -302,6 +328,20 @@ class CardPickingViewModel extends ChangeNotifier {
       onProcessingError: _setError,
     );
     _filtersController = PickingFiltersController(storage: _filtersStorage, onChanged: _safeNotifyListeners);
+    _itemLoader = PickingItemLoader(repository: _repository, filtersController: _filtersController);
+    _addItemCoordinator = _buildAddItemCoordinator();
+  }
+
+  PickingAddItemCoordinator _buildAddItemCoordinator() {
+    return PickingAddItemCoordinator(
+      addItemSeparationUseCase: _addItemSeparationUseCase,
+      stateManager: _stateManager,
+      pendingOperations: _pendingOperations,
+      isDisposed: () => _disposed,
+      notifyListeners: _safeNotifyListeners,
+      scheduleQueuedResync: _scheduleQueuedResyncIfReady,
+      notifyOperationError: _notifyOperationError,
+    );
   }
 
   static MetricsCollector? _initMetricsCollector() {
@@ -315,6 +355,7 @@ class CardPickingViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _resyncDebounce?.cancel();
     _cartEventController.dispose();
     _errorController.close();
     BarcodeValidationService.clearCaches();
@@ -346,7 +387,7 @@ class CardPickingViewModel extends ChangeNotifier {
       _shelfScanningService.resetScannedAddress();
 
       BarcodeValidationService.clearCaches();
-      _clearNextItemCache();
+      _nextItemCacheManager.clear();
 
       _safeNotifyListeners();
 
@@ -367,7 +408,7 @@ class CardPickingViewModel extends ChangeNotifier {
     return _shelfScanningService.shouldShowInitialShelfScan(
       _items,
       _userModel,
-      () => _nextItemCache ?? _findNextItemFromCurrentOrder(),
+      () => _nextItemCacheManager.currentOrCompute(_items, isItemCompleted),
     );
   }
 
@@ -378,7 +419,7 @@ class CardPickingViewModel extends ChangeNotifier {
     required int inputQuantity,
     required bool isCartInSeparation,
   }) {
-    final nextItem = _nextItemCache ?? _findNextItemFromCurrentOrder();
+    final nextItem = _nextItemCacheManager.currentOrCompute(_items, isItemCompleted);
     return _scanResolver.resolve(
       barcode: barcode,
       inputQuantity: inputQuantity,
@@ -393,6 +434,7 @@ class CardPickingViewModel extends ChangeNotifier {
       isItemCompleted: isItemCompleted,
       getPickedQuantity: _stateManager.getPickedQuantity,
       onScanRecorded: (b, t, s, e) => _metrics.recordScan(barcode: b, startTime: t, success: s, errorMessage: e),
+      allowOutOfSequence: _userModel?.canSeparateOutOfSequence ?? false,
     );
   }
 
@@ -410,6 +452,7 @@ class CardPickingViewModel extends ChangeNotifier {
   Future<AddItemSeparationResult> addScannedItem({required String itemId, required int quantity}) async {
     if (_disposed) return AddItemSeparationResult.error('ViewModel foi descartado');
     if (_cart == null) return AddItemSeparationResult.error('Carrinho não inicializado');
+    if (_isSavingCart) return AddItemSeparationResult.error('Salvamento em andamento. Aguarde a conclusão.');
 
     try {
       final item = _findItemByItemId(itemId);
@@ -451,9 +494,9 @@ class CardPickingViewModel extends ChangeNotifier {
 
       final timestamp = DateTime.now();
       _updateLocalPickingStateOptimistic(item.item, quantity, timestamp);
-      _updateNextItemCache();
+      _nextItemCacheManager.update(_items, isItemCompleted);
 
-      _executeAsyncAddItem(params, userSystem, item.item, quantity, timestamp);
+      _addItemCoordinator.executeAsyncAddItem(params, userSystem, item.item, quantity, timestamp);
 
       return AddItemSeparationResult.success('Item adicionado: $quantity unidades', addedQuantity: quantity.toDouble());
     } catch (e) {
@@ -471,13 +514,14 @@ class CardPickingViewModel extends ChangeNotifier {
     if (_disposed) return;
     _stateManager.updateItemQuantity(itemId, quantity);
 
-    _updateNextItemCache();
+    _nextItemCacheManager.update(_items, isItemCompleted);
     _safeNotifyListeners();
   }
 
   Future<AddItemSeparationResult> updatePickedQuantityWithSync(String itemId, int newQuantity) async {
     if (_disposed) return AddItemSeparationResult.error('ViewModel foi descartado');
     if (_cart == null) return AddItemSeparationResult.error('Carrinho não inicializado');
+    if (_isSavingCart) return AddItemSeparationResult.error('Salvamento em andamento. Aguarde a conclusão.');
 
     final item = _findItemByItemId(itemId);
     if (item == null) return AddItemSeparationResult.error('Item não encontrado');
@@ -514,7 +558,7 @@ class CardPickingViewModel extends ChangeNotifier {
       final sessionId = socketValidation.sessionId!;
 
       _stateManager.updateItemQuantity(itemId, newQuantity);
-      _updateNextItemCache();
+      _nextItemCacheManager.update(_items, isItemCompleted);
       _safeNotifyListeners();
 
       final params = AddItemSeparationParams(
@@ -535,7 +579,7 @@ class CardPickingViewModel extends ChangeNotifier {
       _stateManager.addPendingOperation(itemId, delta, timestamp);
       _safeNotifyListeners();
 
-      _executeAsyncAddItem(params, userSystem, itemId, delta, timestamp);
+      _addItemCoordinator.executeAsyncAddItem(params, userSystem, itemId, delta, timestamp);
 
       return AddItemSeparationResult.success(
         'Quantidade atualizada: +$delta unidades',
@@ -543,7 +587,7 @@ class CardPickingViewModel extends ChangeNotifier {
       );
     } catch (e) {
       _stateManager.updateItemQuantity(itemId, currentQuantity);
-      _updateNextItemCache();
+      _nextItemCacheManager.update(_items, isItemCompleted);
       _safeNotifyListeners();
       return AddItemSeparationResult.error('Erro ao sincronizar: ${e.toString()}');
     }
@@ -553,7 +597,7 @@ class CardPickingViewModel extends ChangeNotifier {
     if (_disposed) return;
     _stateManager.completeItem(itemId);
 
-    _updateNextItemCache();
+    _nextItemCacheManager.update(_items, isItemCompleted);
     _safeNotifyListeners();
   }
 
@@ -561,14 +605,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
   bool isItemCompleted(String itemId) => _stateManager.isItemCompleted(itemId);
 
-  int get maxQuantityForNextItem {
-    final nextItem = _nextItemCache;
-    if (nextItem == null) return 999;
-    final totalQuantity = nextItem.quantidade.toInt();
-    final pickedQuantity = getPickedQuantity(nextItem.item);
-    final remainingQuantity = totalQuantity - pickedQuantity;
-    return remainingQuantity > 0 ? remainingQuantity : 1;
-  }
+  int get maxQuantityForNextItem => _nextItemCacheManager.maxQuantity(getPickedQuantity);
 
   Future<bool> finalizePicking() async {
     if (_disposed) return false;
@@ -653,7 +690,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
     _shelfScanningService.resetScannedAddress();
 
-    _clearNextItemCache();
+    _nextItemCacheManager.clear();
 
     await initializeCart(_cart!, userModel: _userModel);
   }
@@ -681,7 +718,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
     _silentResyncInFlight = true;
     try {
-      final items = await _fetchFilteredItems();
+      final items = await _itemLoader.fetchFilteredItems(cart: _cart, userSectorCode: _userModel?.codSetorEstoque);
       if (_disposed) return;
 
       _hasError = false;
@@ -754,46 +791,12 @@ class CardPickingViewModel extends ChangeNotifier {
     if (_cart == null) return;
 
     try {
-      final items = await _fetchFilteredItems();
+      final items = await _itemLoader.fetchFilteredItems(cart: _cart, userSectorCode: _userModel?.codSetorEstoque);
       if (_disposed) return;
       _applyLoadedItems(items);
     } catch (e) {
       developer.log('Failed to load filtered items', error: e);
     }
-  }
-
-  List<SeparateItemConsultationModel> _addSyntheticCodProdutoUnitsForScan(List<SeparateItemConsultationModel> items) {
-    return items.map((item) {
-      final str = item.codProduto.toString();
-      final alreadyHasUnit = item.unidadeMedidas.any((u) => u.codigoBarras?.trim() == str);
-      if (alreadyHasUnit) return item;
-
-      final SeparateItemUnidadeMedidaConsultationModel synthetic;
-      if (item.unidadeMedidas.isNotEmpty) {
-        final base = item.unidadeMedidas.first;
-        synthetic = base.copyWith(
-          codigoBarras: str,
-          itemUnidadeMedida: '${base.itemUnidadeMedida}_cod${item.codProduto}',
-          tipoFatorConversao: TipoFatorConversao.multiplicacao,
-          fatorConversao: 1.0,
-        );
-      } else {
-        synthetic = SeparateItemUnidadeMedidaConsultationModel(
-          codEmpresa: item.codEmpresa,
-          codSepararEstoque: item.codSepararEstoque,
-          item: item.item,
-          codProduto: item.codProduto,
-          itemUnidadeMedida: '${item.item}_${item.codUnidadeMedida}_cod${item.codProduto}',
-          codUnidadeMedida: item.codUnidadeMedida,
-          unidadeMedidaDescricao: item.nomeUnidadeMedida,
-          unidadeMedidaPadrao: Situation.inativo,
-          tipoFatorConversao: TipoFatorConversao.multiplicacao,
-          fatorConversao: 1.0,
-          codigoBarras: str,
-        );
-      }
-      return item.copyWith(unidadeMedidas: [...item.unidadeMedidas, synthetic]);
-    }).toList();
   }
 
   void startCartEventMonitoring() {
@@ -824,80 +827,15 @@ class CardPickingViewModel extends ChangeNotifier {
       _safeNotifyListeners();
     }
 
-    unawaited(resyncVisibleDataSilently());
-  }
-
-  Future<void> _executeAsyncAddItem(
-    AddItemSeparationParams params,
-    UserSystemModel userSystem,
-    String itemId,
-    int quantity,
-    DateTime timestamp,
-  ) async {
-    final operation = _performAddItemOperation(params, userSystem, itemId, quantity, timestamp);
-    _pendingOperations.track(itemId, operation);
-    await operation;
-  }
-
-  Future<void> _performAddItemOperation(
-    AddItemSeparationParams params,
-    UserSystemModel userSystem,
-    String itemId,
-    int quantity,
-    DateTime timestamp,
-  ) async {
-    try {
-      _updateOperationStatus(itemId, timestamp, PendingOperationStatus.syncing);
-
-      final result = await _addItemSeparationUseCase.call(params, userSystem: userSystem);
-
-      await result.fold(
-        (success) async {
-          _updateOperationStatus(itemId, timestamp, PendingOperationStatus.synced);
-
-          unawaited(
-            Future<void>.delayed(const Duration(seconds: 2), () {
-              if (!_disposed) {
-                _stateManager.clearSyncedOperations(itemId);
-                _safeNotifyListeners();
-                _scheduleQueuedResyncIfReady();
-              }
-            }).catchError((Object e, StackTrace s) {
-              AppLogger.warning(
-                'Falha no delayed de limpeza de operação sincronizada',
-                tag: 'CardPickingViewModel',
-                error: e,
-                stackTrace: s,
-              );
-            }),
-          );
-        },
-        (failure) async {
-          _handleAddItemFailure(itemId, quantity, timestamp, failure);
-        },
-      );
-    } catch (e) {
-      _handleAddItemFailure(itemId, quantity, timestamp, e);
-    }
-  }
-
-  void _handleAddItemFailure(String itemId, int quantity, DateTime timestamp, dynamic error) {
-    if (_disposed) return;
-    final errorMessage = error is AppFailure ? error.userMessage : error.toString();
-    _stateManager.revertQuantityAndMarkOperationFailed(itemId, quantity, timestamp, errorMessage);
-    _safeNotifyListeners();
-    _notifyOperationError(itemId, errorMessage);
-  }
-
-  void _updateOperationStatus(
-    String itemId,
-    DateTime timestamp,
-    PendingOperationStatus status, {
-    String? errorMessage,
-  }) {
-    if (_disposed) return;
-    _stateManager.updateOperationStatus(itemId, timestamp, status, errorMessage: errorMessage);
-    _safeNotifyListeners();
+    // Debounce: em rajadas de eventos, só dispara o resync após um curto
+    // período de silêncio. `resyncVisibleDataSilently` continua tratando
+    // o adiamento quando há operações pendentes/carregando e o
+    // re-enfileiramento.
+    _resyncDebounce?.cancel();
+    _resyncDebounce = Timer(_resyncDebounceDuration, () {
+      if (_disposed) return;
+      unawaited(resyncVisibleDataSilently());
+    });
   }
 
   void _notifyOperationError(String itemId, String errorMessage) {
@@ -913,24 +851,6 @@ class CardPickingViewModel extends ChangeNotifier {
     return null;
   }
 
-  void _clearNextItemCache() {
-    _nextItemCache = null;
-  }
-
-  void _updateNextItemCache() {
-    _nextItemCache = _findNextItemFromCurrentOrder();
-  }
-
-  SeparateItemConsultationModel? _findNextItemFromCurrentOrder() {
-    for (final item in _items) {
-      if (!isItemCompleted(item.item)) {
-        return item;
-      }
-    }
-
-    return null;
-  }
-
   void _scheduleQueuedResyncIfReady() {
     if (_disposed || !_silentResyncQueued || hasPendingOperations || _isLoading) {
       return;
@@ -939,43 +859,11 @@ class CardPickingViewModel extends ChangeNotifier {
     unawaited(resyncVisibleDataSilently());
   }
 
-  Future<List<SeparateItemConsultationModel>> _fetchFilteredItems() async {
-    if (_cart == null) {
-      return <SeparateItemConsultationModel>[];
-    }
-
-    final codEmpresa = _cart!.codEmpresa;
-    final codSepararEstoque = _cart!.codOrigem;
-    final codSetorEstoqueUsuario = _userModel?.codSetorEstoque;
-
-    List<SeparateItemConsultationModel> items;
-
-    if (codSetorEstoqueUsuario != null) {
-      final queryForUserSector = QueryBuilder()
-        ..equals('CodEmpresa', codEmpresa.toString())
-        ..equals('CodSepararEstoque', codSepararEstoque.toString())
-        ..rawWhere('(CodSetorEstoque = $codSetorEstoqueUsuario OR CodSetorEstoque IS NULL)')
-        ..orderBy('EnderecoDescricao');
-
-      items = await _repository.selectConsultation(queryForUserSector);
-    } else {
-      final queryBuilder = QueryBuilder()
-        ..equals('CodEmpresa', codEmpresa.toString())
-        ..equals('CodSepararEstoque', codSepararEstoque.toString())
-        ..orderBy('EnderecoDescricao');
-
-      items = await _repository.selectConsultation(queryBuilder);
-    }
-
-    items = _filtersController.applyLocal(items);
-    return _addSyntheticCodProdutoUnitsForScan(items);
-  }
-
   void _applyLoadedItems(List<SeparateItemConsultationModel> items) {
     _itemsUnmodifiable = null;
     _items = PickingUtils.sortItemsByAddress(items, userSectorCode: _userModel?.codSetorEstoque);
     _stateManager.initial(_items);
-    _updateNextItemCache();
+    _nextItemCacheManager.update(_items, isItemCompleted);
     _safeNotifyListeners();
   }
 }

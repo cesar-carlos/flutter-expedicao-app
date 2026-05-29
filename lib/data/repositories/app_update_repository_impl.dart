@@ -103,7 +103,14 @@ class AppUpdateRepositoryImpl implements IAppUpdateRepository {
     // Bug KK: garante fechamento do Dio mesmo em caso de excecao.
     // Antes, em downloads que falhavam por timeout/cancelamento, o Dio
     // ficava em memoria com conexoes pendentes ate o GC.
-    final dio = Dio();
+    // Timeouts explicitos: connect alinhado ao GitHubApiService (5s);
+    // receiveTimeout maior (60s) por ser download de binario.
+    final dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 60),
+      ),
+    );
     try {
       final directory = await getApplicationDocumentsDirectory();
       final savePath = path.join(directory.path, fileName);

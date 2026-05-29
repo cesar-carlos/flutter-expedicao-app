@@ -6,7 +6,7 @@ import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_m
 import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_internship_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
-import 'package:data7_expedicao/data/dtos/user_system_list_response_dto.dart';
+import 'package:data7_expedicao/domain/models/user_system/user_system_list_page.dart';
 import 'package:data7_expedicao/domain/models/pagination/pagination.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_param.dart';
@@ -417,25 +417,25 @@ class _FakeUserSystemRepository implements UserSystemRepository {
   Future<Map<String, dynamic>> getUserSystemInfo(int codUsuario) async => {};
 
   @override
-  Future<UserSystemListResponseDto> getUsers({
+  Future<UserSystemListPage> getUsers({
     int? codEmpresa,
     Situation? apenasAtivos,
     Pagination? pagination,
   }) async {
-    return const UserSystemListResponseDto(users: [], total: 0, success: true);
+    return const UserSystemListPage(users: [], total: 0, success: true);
   }
 
   @override
   Future<UserSystemModel?> getUserById(int codUsuario) async => null;
 
   @override
-  Future<UserSystemListResponseDto> searchUsersByName(
+  Future<UserSystemListPage> searchUsersByName(
     String nome, {
     int? codEmpresa,
     Situation apenasAtivos = Situation.ativo,
     Pagination? pagination,
   }) async {
-    return const UserSystemListResponseDto(users: [], total: 0, success: true);
+    return const UserSystemListPage(users: [], total: 0, success: true);
   }
 }
 

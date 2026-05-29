@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:data7_expedicao/core/utils/i_logger.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import '../../mocks/config_service_mock.dart';
 import '../../mocks/fake_printer_preferences_repository.dart';

@@ -1,6 +1,7 @@
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/domain/models/pagination/pagination.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/domain/models/user_system/user_system_list_page.dart';
 import 'package:data7_expedicao/domain/repositories/user_system_repository.dart';
 import 'package:data7_expedicao/data/dtos/user_system_list_response_dto.dart';
 import 'package:data7_expedicao/data/services/user_system_api_service.dart';
@@ -33,9 +34,14 @@ class UserSystemRepositoryImpl implements UserSystemRepository {
   }
 
   @override
-  Future<UserSystemListResponseDto> getUsers({int? codEmpresa, Situation? apenasAtivos, Pagination? pagination}) async {
+  Future<UserSystemListPage> getUsers({int? codEmpresa, Situation? apenasAtivos, Pagination? pagination}) async {
     try {
-      return await _apiService.getUsers(codEmpresa: codEmpresa, apenasAtivos: apenasAtivos, pagination: pagination);
+      final dto = await _apiService.getUsers(
+        codEmpresa: codEmpresa,
+        apenasAtivos: apenasAtivos,
+        pagination: pagination,
+      );
+      return _toListPage(dto);
     } on UserApiException {
       // Preservar exceção específica da API
       rethrow;
@@ -69,25 +75,40 @@ class UserSystemRepositoryImpl implements UserSystemRepository {
   }
 
   @override
-  Future<UserSystemListResponseDto> searchUsersByName(
+  Future<UserSystemListPage> searchUsersByName(
     String nome, {
     int? codEmpresa,
     Situation apenasAtivos = Situation.ativo,
     Pagination? pagination,
   }) async {
     try {
-      return await _apiService.searchUsersByName(
+      final dto = await _apiService.searchUsersByName(
         nome,
         codEmpresa: codEmpresa,
         apenasAtivos: apenasAtivos,
         pagination: pagination,
       );
+      return _toListPage(dto);
     } on UserApiException {
       // Preservar exceção específica da API
       rethrow;
     } catch (e) {
       throw UserApiException('Erro interno no repositório: $e');
     }
+  }
+
+  /// Converte o DTO interno de `data/` para o modelo de dominio na fronteira,
+  /// preservando todos os campos e a semantica de sucesso/erro.
+  UserSystemListPage _toListPage(UserSystemListResponseDto dto) {
+    return UserSystemListPage(
+      users: dto.users,
+      total: dto.total,
+      page: dto.page,
+      limit: dto.limit,
+      totalPages: dto.totalPages,
+      success: dto.success,
+      message: dto.message,
+    );
   }
 
   /// Verifica se o usuário está no cache e ainda é válido

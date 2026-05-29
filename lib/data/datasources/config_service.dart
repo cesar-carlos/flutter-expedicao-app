@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:data7_expedicao/domain/models/api_config.dart';
+import 'package:data7_expedicao/domain/services/i_app_config_service.dart';
 import 'package:data7_expedicao/data/models/api_config_entity.dart';
 
-class ConfigService {
+class ConfigService implements IAppConfigService {
   static const String _boxName = 'config';
   static const String _apiConfigKey = 'api_config';
 
@@ -60,12 +61,14 @@ class ConfigService {
     }
   }
 
+  @override
   Future<void> saveApiConfig(ApiConfig config) async {
     _ensureInitialized();
     final entity = ApiConfigEntity.fromDomain(config);
     await _configBox.put(_apiConfigKey, entity);
   }
 
+  @override
   ApiConfig getApiConfig() {
     _ensureInitialized();
     final entity = _configBox.get(_apiConfigKey);
@@ -77,11 +80,13 @@ class ConfigService {
     return ApiConfig.defaultConfig;
   }
 
+  @override
   Future<void> clearConfig() async {
     _ensureInitialized();
     await _configBox.clear();
   }
 
+  @override
   bool hasApiConfig() {
     _ensureInitialized();
     return _configBox.containsKey(_apiConfigKey);

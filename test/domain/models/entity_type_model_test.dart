@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/theme/status_colors.dart';
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 
 void main() {
@@ -52,9 +53,9 @@ void main() {
     });
 
     test('should get color by code', () {
-      expect(EntityType.getColor('C'), AppColors.info);
-      expect(EntityType.getColor('F'), AppColors.success);
-      expect(EntityType.getColor('X'), AppColors.grey); // Default color for invalid
+      expect(EntityTypeColors.colorFromCode('C'), AppColors.info);
+      expect(EntityTypeColors.colorFromCode('F'), AppColors.success);
+      expect(EntityTypeColors.colorFromCode('X'), AppColors.grey); // Default color for invalid
     });
   });
 
@@ -99,8 +100,8 @@ void main() {
     });
 
     test('should get color', () {
-      expect(EntityTypeModel.getColor('C'), AppColors.info);
-      expect(EntityTypeModel.getColor('F'), AppColors.success);
+      expect(EntityTypeColors.colorFromCode('C'), AppColors.info);
+      expect(EntityTypeColors.colorFromCode('F'), AppColors.success);
     });
 
     test('should get all types', () {

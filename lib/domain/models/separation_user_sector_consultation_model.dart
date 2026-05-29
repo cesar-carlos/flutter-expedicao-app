@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/utils/app_helper.dart';
 import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
@@ -130,8 +128,6 @@ class SeparationUserSectorConsultationModel {
   String get situacaoCode => separarEstoqueSituacao.code;
 
   String get situacaoDescription => separarEstoqueSituacao.description;
-
-  Color get situacaoColor => separarEstoqueSituacao.color;
 
   @override
   String toString() {

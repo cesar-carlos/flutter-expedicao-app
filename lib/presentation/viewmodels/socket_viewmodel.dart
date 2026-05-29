@@ -4,16 +4,16 @@ import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/core/network/socket_config.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/data/services/socket_service.dart';
+import 'package:data7_expedicao/domain/services/i_socket_connection_port.dart';
 import 'package:data7_expedicao/di/locator.dart';
 
 class SocketViewModel extends ChangeNotifier {
-  SocketService? _socketService;
+  ISocketConnectionPort? _socketService;
   VoidCallback? _connectionListener;
   bool _disposed = false;
 
-  SocketService get socketService {
-    _socketService ??= locator<SocketService>();
+  ISocketConnectionPort get socketService {
+    _socketService ??= locator<ISocketConnectionPort>();
     return _socketService!;
   }
 

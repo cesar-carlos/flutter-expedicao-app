@@ -8,7 +8,7 @@ import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
-import 'package:data7_expedicao/domain/viewmodels/separation_items_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/separation_items_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/separate_items/separate_item_card.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
@@ -69,7 +69,11 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
     _tabController = TabController(length: 3, vsync: this);
 
     _tabController.addListener(() {
-      setState(() {});
+      // Item 7: evita setState a cada tick da animação de troca de aba.
+      // Só reage quando o índice final é confirmado (não durante a animação).
+      if (!_tabController.indexIsChanging) {
+        setState(() {});
+      }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -197,8 +201,14 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
         leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back), tooltip: 'Voltar'),
         actions: [
           if (_tabController.index != 2)
-            Consumer<SeparationItemsViewModel>(
-              builder: (context, viewModel, child) {
+            // Item 8: Selector por campo em vez de Consumer amplo. As ações
+            // da AppBar só dependem dos flags de filtros ativos do ViewModel.
+            Selector<SeparationItemsViewModel, ({bool hasActiveItemsFilters, bool hasActiveCartsFilters})>(
+              selector: (_, vm) => (
+                hasActiveItemsFilters: vm.hasActiveItemsFilters,
+                hasActiveCartsFilters: vm.hasActiveCartsFilters,
+              ),
+              builder: (context, filters, child) {
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -215,8 +225,8 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
                       icon: Stack(
                         children: [
                           const Icon(Icons.filter_alt),
-                          if ((_tabController.index == 1 && viewModel.hasActiveItemsFilters) ||
-                              (_tabController.index == 0 && viewModel.hasActiveCartsFilters))
+                          if ((_tabController.index == 1 && filters.hasActiveItemsFilters) ||
+                              (_tabController.index == 0 && filters.hasActiveCartsFilters))
                             Positioned(
                               right: 0,
                               top: 0,
@@ -235,7 +245,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
                     ),
 
                     IconButton(
-                      onPressed: () => _refreshData(viewModel),
+                      onPressed: () => _refreshData(context.read<SeparationItemsViewModel>()),
                       icon: const Icon(Icons.refresh),
                       tooltip: 'Atualizar dados',
                     ),
@@ -258,11 +268,13 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
       ),
       bottomNavigationBar: SeparateItemsBottomNavigation(tabController: _tabController),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      floatingActionButton: Consumer<SeparationItemsViewModel>(
-        builder: (context, viewModel, child) {
+      floatingActionButton: Selector<SeparationItemsViewModel, ExpeditionSituation?>(
+        // Item 8: o FAB só depende da situação da separação atual.
+        selector: (_, vm) => vm.separation?.situacao,
+        builder: (context, situacao, child) {
           if (_tabController.index == 2) return const SizedBox.shrink();
           if (_tabController.index != 0) return const SizedBox.shrink();
-          if (!_canAddCart(viewModel.separation)) return const SizedBox.shrink();
+          if (!_canAddCartSituacao(situacao)) return const SizedBox.shrink();
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 24),
@@ -699,8 +711,11 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
   bool _canAddCart(SeparateConsultationModel? separation) {
     if (separation == null) return false;
 
-    return separation.situacao == ExpeditionSituation.aguardando ||
-        separation.situacao == ExpeditionSituation.separando;
+    return _canAddCartSituacao(separation.situacao);
+  }
+
+  bool _canAddCartSituacao(ExpeditionSituation? situacao) {
+    return situacao == ExpeditionSituation.aguardando || situacao == ExpeditionSituation.separando;
   }
 
   Future<void> _handleAddedCartAutoOpen(

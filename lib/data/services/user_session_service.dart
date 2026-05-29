@@ -34,8 +34,14 @@ class UserSessionService implements IUserSessionService {
       final userJson = prefs.getString(_appUserKey);
 
       if (userJson != null) {
-        final userMap = jsonDecode(userJson);
-        final appUser = AppUser.fromJson(userMap);
+        final decoded = jsonDecode(userJson);
+        if (decoded is! Map<String, dynamic>) {
+          // Shape inesperado (ex.: gravacao corrompida ou formato antigo).
+          // Sessao invalida = limpar e voltar para login.
+          await clearUserSession();
+          return null;
+        }
+        final appUser = AppUser.fromJson(decoded);
         return appUser;
       }
     } on TypeError catch (_) {

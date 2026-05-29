@@ -1,24 +1,19 @@
-import 'package:flutter/material.dart';
-
-import 'package:data7_expedicao/core/theme/app_colors.dart';
-
 enum ExpeditionCartRouterSituation {
-  cancelada('CANCELADA', 'Cancelada', AppColors.error),
-  conferido('CONFERIDO', 'Conferido', AppColors.lightGreen),
-  emConferencia('EM CONFERENCIA', 'Em Conferência', AppColors.purple),
-  emEntrega('EM ENTREGA', 'Em Entrega', AppColors.teal),
-  entregue('ENTREGUE', 'Entregue', AppColors.yellow),
-  emSeparacao('EM SEPARACAO', 'Em Separação', AppColors.warning),
-  finalizada('FINALIZADA', 'Finalizada', AppColors.success),
-  separado('SEPARADO', 'Separado', AppColors.lightGreen),
-  embalado('EMBALADO', 'Embalado', AppColors.teal),
-  vazio('', '', AppColors.grey);
+  cancelada('CANCELADA', 'Cancelada'),
+  conferido('CONFERIDO', 'Conferido'),
+  emConferencia('EM CONFERENCIA', 'Em Conferência'),
+  emEntrega('EM ENTREGA', 'Em Entrega'),
+  entregue('ENTREGUE', 'Entregue'),
+  emSeparacao('EM SEPARACAO', 'Em Separação'),
+  finalizada('FINALIZADA', 'Finalizada'),
+  separado('SEPARADO', 'Separado'),
+  embalado('EMBALADO', 'Embalado'),
+  vazio('', '');
 
-  const ExpeditionCartRouterSituation(this.code, this.description, this.color);
+  const ExpeditionCartRouterSituation(this.code, this.description);
 
   final String code;
   final String description;
-  final Color color;
 
   static ExpeditionCartRouterSituation? fromCode(String code) {
     try {
@@ -44,10 +39,6 @@ enum ExpeditionCartRouterSituation {
     return fromCode(code)?.description ?? code;
   }
 
-  static Color getColor(String code) {
-    return fromCode(code)?.color ?? AppColors.grey;
-  }
-
   static Map<String, String> getSituacaoMap() {
     return Map.fromEntries(
       ExpeditionCartRouterSituation.values.map((situation) => MapEntry(situation.code, situation.description)),
@@ -58,7 +49,6 @@ enum ExpeditionCartRouterSituation {
 extension ExpeditionCartRouterSituationExtension on String {
   ExpeditionCartRouterSituation? get asCartRouterSituation => ExpeditionCartRouterSituation.fromCode(this);
   String get cartRouterSituationDescription => ExpeditionCartRouterSituation.getDescription(this);
-  Color get cartRouterSituationColor => ExpeditionCartRouterSituation.getColor(this);
 }
 
 class ExpeditionCartRouterSituationModel {
@@ -71,8 +61,6 @@ class ExpeditionCartRouterSituationModel {
   static List<String> getAllCodes() => ExpeditionCartRouterSituation.getAllCodes();
 
   static List<String> getAllDescriptions() => ExpeditionCartRouterSituation.getAllDescriptions();
-
-  static Color getColor(String code) => ExpeditionCartRouterSituation.getColor(code);
 
   static Map<String, String> get situacao => ExpeditionCartRouterSituation.getSituacaoMap();
 

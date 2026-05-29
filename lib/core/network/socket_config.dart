@@ -10,6 +10,13 @@ class SocketConfig {
   static ApiConfig? _currentApiConfig;
   static DateTime? _connectionAttemptStarted;
 
+  /// Callbacks chamados sempre que a instancia do socket e recriada
+  /// (ex.: apos `updateConfig` com troca de host/porta). Servicos que
+  /// registram listeners de eventos (`on(...)`) na instancia precisam
+  /// re-vincula-los no novo socket, caso contrario as atualizacoes em
+  /// tempo real param de chegar no socket descartado.
+  static final List<void Function()> _rebindCallbacks = <void Function()>[];
+
   static void initialize(ApiConfig apiConfig) {
     _currentApiConfig = apiConfig;
     _socketInstance = _createSocketInstance(apiConfig);
@@ -47,6 +54,37 @@ class SocketConfig {
       _currentApiConfig = newConfig;
       _socketInstance?.disconnect();
       _socketInstance = _createSocketInstance(newConfig);
+      // Socket recriado: os listeners registrados na instancia anterior
+      // ficaram orfaos. Notifica os servicos para re-vincularem no novo
+      // socket de forma idempotente.
+      _notifyRebind();
+    }
+  }
+
+  /// Registra um callback de re-vinculo de listeners. Idempotente: o
+  /// mesmo callback nao e adicionado duas vezes.
+  static void addRebindListener(void Function() callback) {
+    if (!_rebindCallbacks.contains(callback)) {
+      _rebindCallbacks.add(callback);
+    }
+  }
+
+  static void removeRebindListener(void Function() callback) {
+    _rebindCallbacks.remove(callback);
+  }
+
+  static void _notifyRebind() {
+    for (final callback in List<void Function()>.from(_rebindCallbacks)) {
+      try {
+        callback();
+      } catch (e, s) {
+        AppLogger.warning(
+          'Falha ao re-vincular listeners apos recriacao do socket',
+          tag: 'SocketConfig',
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 

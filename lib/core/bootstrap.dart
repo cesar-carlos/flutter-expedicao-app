@@ -9,10 +9,10 @@ import 'package:data7_expedicao/core/network/dio_config.dart';
 import 'package:data7_expedicao/core/network/network_initializer.dart';
 import 'package:data7_expedicao/data/datasources/config_service.dart';
 import 'package:data7_expedicao/data/datasources/user_preferences_service.dart';
-import 'package:data7_expedicao/domain/viewmodels/app_update_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/config_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/socket_viewmodel.dart';
-import 'package:data7_expedicao/domain/viewmodels/theme_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/app_update_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/socket_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:data7_expedicao/infrastructure/services/logger_service.dart';
 
 class BootstrapResult {

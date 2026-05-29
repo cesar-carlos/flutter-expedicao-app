@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:hive/hive.dart';
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/services/i_user_preferences_repository.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/user_preferences.dart';
 
-class UserPreferencesService {
+class UserPreferencesService implements IUserPreferencesRepository {
   static const String _boxName = 'user_preferences';
   static const String _preferencesKey = 'current_preferences';
 
@@ -17,6 +18,7 @@ class UserPreferencesService {
   /// abrir o mesmo Box duas vezes → exception ou state corrompido.
   Completer<void>? _initCompleter;
 
+  @override
   Future<void> initialize() async {
     if (_box != null) return;
     if (_initCompleter != null) {
@@ -40,6 +42,7 @@ class UserPreferencesService {
     }
   }
 
+  @override
   UserPreferences getCurrentPreferences() {
     if (_box == null) {
       // Bug DDDDD: trocado de Exception generico para StateError
@@ -60,6 +63,7 @@ class UserPreferencesService {
     await _box!.put(_preferencesKey, preferences);
   }
 
+  @override
   Future<void> updateThemeMode(ThemeMode themeMode) async {
     final currentPrefs = getCurrentPreferences();
     currentPrefs.themeMode = themeMode;

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:data7_expedicao/core/network/ambiguous_send_exception.dart';
 import 'package:data7_expedicao/core/network/retry_policy.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
@@ -122,6 +123,17 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
         errorMessage: e.message,
       );
       return failure(BusinessFailure.invalidState(e.message));
+    } on AmbiguousSendException catch (e) {
+      _logPrintEvent(
+        operation: 'test',
+        status: 'failure',
+        ip: printer.ip,
+        port: printer.port,
+        itemCount: 0,
+        errorType: 'AmbiguousSendException',
+        errorMessage: e.toString(),
+      );
+      return failure(NetworkFailure(message: e.message, code: 'AMBIGUOUS_SEND'));
     } catch (e) {
       _logPrintEvent(
         operation: 'test',
@@ -238,6 +250,17 @@ class ThermalPrinterRepositoryImpl implements IThermalPrinterRepository {
         errorMessage: e.message,
       );
       return failure(BusinessFailure.invalidState(e.message));
+    } on AmbiguousSendException catch (e) {
+      _logPrintEvent(
+        operation: 'expedition',
+        status: 'failure',
+        ip: printer.ip,
+        port: printer.port,
+        itemCount: items.length,
+        errorType: 'AmbiguousSendException',
+        errorMessage: e.toString(),
+      );
+      return failure(NetworkFailure(message: e.message, code: 'AMBIGUOUS_SEND'));
     } catch (e) {
       _logPrintEvent(
         operation: 'expedition',

@@ -9,7 +9,7 @@ import 'package:data7_expedicao/ui/widgets/common/index.dart';
 import 'package:data7_expedicao/ui/widgets/app_drawer/app_drawer.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder_extension.dart';
 import 'package:data7_expedicao/ui/widgets/data_grid/separate_consultation_data_grid.dart';
-import 'package:data7_expedicao/domain/viewmodels/separate_consultation_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/separate_consultation_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
@@ -48,6 +48,8 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
 
   @override
   void dispose() {
+    // Item 9: remove o listener de busca antes de descartar o controller.
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:data7_expedicao/data/datasources/update_cache_service.dart';
+import 'package:data7_expedicao/domain/services/i_update_cache_service.dart';
 import 'package:data7_expedicao/domain/models/app_update_failure.dart';
 import 'package:data7_expedicao/domain/models/github_release.dart';
 import 'package:data7_expedicao/domain/usecases/check_app_update/check_app_update_params.dart';
@@ -14,7 +14,7 @@ class AppUpdateViewModel extends ChangeNotifier {
   final CheckAppUpdateUseCase checkAppUpdateUseCase;
   final DownloadAppUpdateUseCase downloadAppUpdateUseCase;
   final InstallAppUpdateUseCase installAppUpdateUseCase;
-  final UpdateCacheService updateCacheService;
+  final IUpdateCacheService updateCacheService;
 
   bool _cancelDownloadFlag = false;
   bool _disposed = false;
