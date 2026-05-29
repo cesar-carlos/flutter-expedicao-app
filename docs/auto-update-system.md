@@ -37,34 +37,29 @@ O sistema está organizado em camadas seguindo Clean Architecture:
 │  └──────────────────────────────────────────────────┘  │
 │  ┌──────────────────────────────────────────────────┐  │
 │  │  AppUpdateViewModel                              │  │
-│  │  (State Management - Provider)                   │  │
-│  └──────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────┘
-                        ↓
-┌─────────────────────────────────────────────────────────┐
-│              Application Layer                            │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │  CheckAppUpdateUseCase                           │  │
-│  │  DownloadAppUpdateUseCase                        │  │
-│  │  InstallAppUpdateUseCase                         │  │
+│  │  (lib/domain/viewmodels/ - Provider)             │  │
 │  └──────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────────┐
 │              Domain Layer                                │
 │  ┌──────────────────────────────────────────────────┐  │
+│  │  Use Cases (lib/domain/usecases/)                │  │
+│  │    CheckAppUpdateUseCase                         │  │
+│  │    DownloadAppUpdateUseCase                      │  │
+│  │    InstallAppUpdateUseCase                       │  │
 │  │  IAppUpdateRepository (Interface)                │  │
-│  │  AppVersion / GitHubRelease (Models)              │  │
+│  │  AppVersion / GitHubRelease / ReleaseAsset       │  │
 │  │  AppUpdateFailure (Errors)                       │  │
 │  └──────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────────┐
-│              Infrastructure Layer                        │
+│              Data Layer (lib/data/)                      │
 │  ┌──────────────────────────────────────────────────┐  │
-│  │  AppUpdateRepositoryImpl                         │  │
-│  │  GitHubApiService                                │  │
-│  │  GitHubReleaseJsonAdapter                         │  │
+│  │  AppUpdateRepositoryImpl (repositories/)         │  │
+│  │  GitHubApiService (services/)                    │  │
+│  │  UpdateCacheService (datasources/)               │  │
 │  └──────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────┘
                         ↓
@@ -106,10 +101,21 @@ Gerencia o estado da UI e coordena as operações de atualização.
 
 **Métodos principais**:
 
-- `checkForUpdate()`: Verifica se há atualização disponível
+- `checkForUpdate({String? owner, String? repo, bool forceCheck = false})`:
+  Verifica se há atualização disponível. `owner`/`repo` vêm do `.env`
+  (`GITHUB_OWNER`/`GITHUB_REPO`), repassados em `lib/main.dart`. Quando
+  `forceCheck` é `false`, a verificação só ocorre se o
+  `UpdateCacheService.shouldCheckForUpdates()` retornar `true` (cache de 1h).
+  Com `forceCheck: true` o cache é ignorado e a verificação é imediata.
 - `downloadAndInstall()`: Baixa e instala a atualização
 - `cancelDownload()`: Cancela o download em andamento
 - `clearError()`: Limpa erros
+
+**Verificação manual (drawer)**:
+
+Em `lib/ui/widgets/app_drawer/app_drawer.dart`, um toque na versão do app
+(`_handleVersionTap`) dispara `checkForUpdate(..., forceCheck: true)`,
+ignorando o cache e exibindo feedback (diálogo de atualização ou snackbar).
 
 #### AppUpdateDialog
 
@@ -135,7 +141,10 @@ Diálogo que exibe o progresso do download e instalação.
 - Indicador de carregamento durante instalação
 - Botão "Cancelar" (apenas durante download)
 
-### 2. Application Layer
+### 2. Use Cases (Domain Layer)
+
+> Os use cases ficam em `lib/domain/usecases/`. O projeto **não** possui uma
+> camada `lib/application/`.
 
 #### CheckAppUpdateUseCase
 
@@ -236,9 +245,12 @@ Modelo que representa um release do GitHub.
 
 **Localização**: `lib/domain/models/app_update_failure.dart`
 
-Modelo de erro específico para atualizações.
+Modelo de erro específico para atualizações. Estende `AppFailure`
+(`lib/core/results/app_failure.dart`), herdando `message`, `code` e
+`exception`. Cada factory define um `code` específico (ex.:
+`NO_UPDATE_AVAILABLE`, `DOWNLOAD_FAILED`) e o `type` correspondente.
 
-**Tipos de erro**:
+**Tipos de erro** (`AppUpdateFailureType`):
 
 - `noUpdateAvailable`: Nenhuma atualização disponível
 - `downloadFailed`: Falha ao baixar
@@ -248,7 +260,10 @@ Modelo de erro específico para atualizações.
 - `noApkFound`: APK não encontrado
 - `networkError`: Erro de rede
 
-### 4. Infrastructure Layer
+### 4. Data Layer
+
+> As implementações concretas ficam na camada `lib/data/`, **não** em
+> `lib/infrastructure/`.
 
 #### AppUpdateRepositoryImpl
 
@@ -268,7 +283,10 @@ Implementação do repositório de atualização.
 - `getCurrentVersion()`: Usa `PackageInfo.fromPlatform()`
 - `getReleases()`: Usa `GitHubApiService.getReleases()`
 - `getLatestRelease()`: Usa `GitHubApiService.getLatestRelease()`
-- `downloadApk()`: Usa `Dio.download()` com progresso
+- `downloadApk()`: Usa `Dio.download()` com progresso. O APK é salvo no
+  diretório de documentos da aplicação obtido via
+  `getApplicationDocumentsDirectory()`, combinando o caminho com o nome do
+  arquivo do asset (`path.join(directory.path, fileName)`).
 - `installApk()`: Usa `OpenFilex.open()` para abrir instalador
 
 #### GitHubApiService
@@ -285,8 +303,29 @@ Serviço para comunicação com GitHub API.
 **Configuração**:
 
 - Base URL: `https://api.github.com`
-- Headers: Aceita token de autenticação (opcional)
-- Timeout: 30 segundos
+- Headers: Aceita token de autenticação (opcional) +
+  `Accept: application/vnd.github.v3+json`
+- Timeouts: connect 5s, receive 7s, send 5s
+
+#### UpdateCacheService
+
+**Localização**: `lib/data/datasources/update_cache_service.dart`
+
+Controla a frequência das verificações de atualização para evitar chamadas
+excessivas à API do GitHub.
+
+**Funcionamento**:
+
+- Usa `SharedPreferences` para guardar o timestamp da última verificação
+- `cacheValidDuration` padrão de **1 hora**
+- `shouldCheckForUpdates()`: retorna `true` se nunca verificou antes ou se já
+  passou 1h desde a última verificação
+- `markAsChecked()`: grava o timestamp atual após uma verificação concluída
+- `clearCache()`: força nova verificação na próxima chamada
+
+A verificação automática só executa de fato quando
+`shouldCheckForUpdates()` retorna `true`. A verificação manual no drawer usa
+`forceCheck: true`, ignorando o cache.
 
 #### GitHubReleaseJsonAdapter
 
@@ -385,8 +424,9 @@ Adaptador para converter GitHub Releases para formato JSON.
            │
            ▼
 ┌──────────────────────────┐
-│ APK saved to             │
-│ /data/app/.../           │
+│ APK salvo em             │
+│ getApplicationDocuments  │
+│ Directory()/<fileName>   │
 └──────────┬───────────────┘
            │
            ▼
@@ -445,6 +485,8 @@ lib/
 │   │   └── app_update_repository_impl.dart
 │   ├── services/
 │   │   └── github_api_service.dart
+│   ├── datasources/
+│   │   └── update_cache_service.dart
 │   └── dtos/
 │       └── github_release_dto.dart
 │
@@ -537,17 +579,32 @@ Os erros são propagados através das camadas e exibidos na UI.
 
 ### Verificação Automática
 
-A verificação é acionada automaticamente no `main.dart`:
+A verificação é acionada automaticamente em `lib/main.dart`, dentro de um
+`addPostFrameCallback`, apenas em modo release e após um atraso de 2 segundos.
+O `owner`/`repo` são lidos do `.env` via `dotenv` e a chamada usa
+`forceCheck: false` (respeita o cache de 1h do `UpdateCacheService`):
 
 ```dart
 if (kReleaseMode) {
-  Future.delayed(const Duration(seconds: 2), () async {
-    await appUpdateViewModel.checkForUpdate();
+  Future<void>.delayed(const Duration(seconds: 2), () {
+    final owner = dotenv.env['GITHUB_OWNER']?.trim();
+    final repo = dotenv.env['GITHUB_REPO']?.trim();
+    appUpdateViewModel.checkForUpdate(
+      owner: owner,
+      repo: repo,
+      forceCheck: false,
+    );
   });
 }
 ```
 
-**Nota**: A verificação só ocorre em modo release (`kReleaseMode`).
+**Notas**:
+
+- A verificação só ocorre em modo release (`kReleaseMode`).
+- Como `forceCheck` é `false`, a verificação automática só consulta o GitHub se
+  o cache de 1h tiver expirado.
+- Falhas de rede no auto-check são suprimidas (não exibem erro ao usuário); no
+  modo manual (`forceCheck: true`) o erro é mostrado.
 
 ## Configuração
 
@@ -560,6 +617,11 @@ GITHUB_OWNER=seu-usuario-github
 GITHUB_REPO=nome-do-repositorio
 GITHUB_TOKEN=seu-token-opcional
 ```
+
+O `.env` é carregado em `lib/core/bootstrap.dart` via `dotenv.load(...)`. O
+carregamento é protegido por `try/catch`: se o arquivo estiver ausente ou
+corrompido, o app registra um aviso e continua com o ambiente vazio (em vez de
+crashar), cabendo às telas validar configurações obrigatórias.
 
 ### Permissões Android
 
@@ -578,7 +640,10 @@ O FileProvider está configurado em:
 
 ### Dependency Injection
 
-As dependências são registradas no `locator.dart`:
+As dependências são registradas em `lib/di/locator.dart`. Além do repositório
+e dos use cases, são registrados o `UpdateCacheService` e o
+`AppUpdateViewModel` como singletons **assíncronos**
+(`registerLazySingletonAsync`), pois dependem de `SharedPreferences`:
 
 ```dart
 locator.registerLazySingleton<IAppUpdateRepository>(
@@ -589,29 +654,58 @@ locator.registerLazySingleton<CheckAppUpdateUseCase>(
   () => CheckAppUpdateUseCase(locator<IAppUpdateRepository>()),
 );
 
-// ... outros use cases
+// ... DownloadAppUpdateUseCase / InstallAppUpdateUseCase
+
+locator.registerLazySingletonAsync<UpdateCacheService>(() async {
+  final prefs = await SharedPreferences.getInstance();
+  return UpdateCacheService(prefs: prefs);
+});
+
+locator.registerLazySingletonAsync<AppUpdateViewModel>(() async {
+  final cacheService = await locator.getAsync<UpdateCacheService>();
+  return AppUpdateViewModel(
+    checkAppUpdateUseCase: locator<CheckAppUpdateUseCase>(),
+    downloadAppUpdateUseCase: locator<DownloadAppUpdateUseCase>(),
+    installAppUpdateUseCase: locator<InstallAppUpdateUseCase>(),
+    updateCacheService: cacheService,
+  );
+});
 ```
 
 ### Criando Releases
 
-Para criar um novo release no GitHub:
+**Fluxo recomendado** (script): a partir da raiz do projeto, use o
+`create-release.ps1`. Ele valida a versão do `pubspec.yaml`, confere as notas
+de release, roda análise/testes/lint, gera o APK, cria uma cópia versionada em
+`dist/release/`, publica a tag/release no GitHub e anexa o APK:
+
+```powershell
+.\create-release.ps1 -Publish
+```
+
+> O script exige que a tag esteja no formato `vX.Y.Z+B` e seja idêntica à
+> versão do `pubspec.yaml`; um mismatch faz o script falhar.
+
+O fluxo manual abaixo permanece válido para diagnóstico ou publicação manual.
+
+Para criar um novo release no GitHub manualmente:
 
 1. **Atualize a versão no `pubspec.yaml`**:
 
    ```yaml
-   version: 1.0.7+2
+   version: 2.1.4+5
    ```
 
 2. **Crie as notas de release**:
    - Sempre salve as notas de release em `docs/release/RELEASE_NOTES_v{versão}.md`
-   - Exemplo: `docs/release/RELEASE_NOTES_v1.0.7+2.md`
+   - Exemplo: `docs/release/RELEASE_NOTES_v2.1.4+5.md`
    - Inclua novidades, melhorias, correções e instruções de uso
 
-3. **Crie a tag Git**:
+3. **Crie a tag Git** (formato `vX.Y.Z+B`, igual ao `pubspec.yaml`):
 
    ```bash
-   git tag -a v1.0.7+2 -m "Release v1.0.7+2 - Descrição do release"
-   git push origin v1.0.7+2
+   git tag -a v2.1.4+5 -m "Release v2.1.4+5 - Descrição do release"
+   git push origin v2.1.4+5
    ```
 
 4. **Gere o APK**:

@@ -29,8 +29,12 @@ assets/
 ```yaml
 flutter:
   uses-material-design: true
+  generate: true
 
   assets:
+    - .env
+    - integration_test/.env
+
     # Ícones
     - assets/icons/
     - assets/icons/app_icon.png
@@ -49,7 +53,33 @@ flutter:
     - assets/images/log_white.png
     - assets/images/log_white32px.png
     - assets/images/produto-sem-foto.jpg
+
+    # Sons (usados pelo AudioService)
+    - assets/som/
+    - assets/som/Alert.wav
+    - assets/som/AlertFalha.wav
+    - assets/som/BarcodeScan.wav
+    - assets/som/Disconected.wav
+    - assets/som/Error.wav
+    - assets/som/Fail.wav
+    - assets/som/Notification.wav
+    - assets/som/success.wav
+    - assets/som/new-notification.mp3
+    - assets/som/new-notification-campainha.mp3
+    - assets/som/finishi.mp3
 ```
+
+> **Arquivos `.env`:** `pubspec.yaml` também registra `.env` e
+> `integration_test/.env` como assets (carregados via `flutter_dotenv`).
+
+### **🔊 Áudio (`assets/som/`)**
+
+A pasta `assets/som/` contém 11 arquivos de áudio (`.wav`/`.mp3`)
+consumidos pelo `AudioService` (`lib/core/services/audio_service.dart`).
+O enum interno mapeia cada som por path relativo `som/*.wav|mp3`, por
+exemplo: `som/BarcodeScan.wav`, `som/Notification.wav`,
+`som/Error.wav`, `som/finishi.mp3`,
+`som/new-notification-campainha.mp3`.
 
 ## 🏗️ **Arquivos Criados**
 
@@ -59,10 +89,19 @@ flutter:
 
 **Funcionalidades:**
 
-- Constantes type-safe para todos os assets
+- Constantes type-safe para os assets de imagem/ícone
 - Organização por categorias (ícones/imagens)
-- Lista completa para debugging
 - Prevenção de erros de digitação
+
+> **Notas de manutenção (estado atual):**
+>
+> - A lista `allAssets` (que enumerava todos os paths) **foi removida** —
+>   não havia chamadores e a fonte canônica de assets é o `pubspec.yaml`.
+> - A constante `logBlackIconIco` (`log_black_icon.ico`) **foi removida**
+>   das constantes: o `.ico` nunca é usado em runtime do Flutter (é o
+>   formato Windows-only do ícone do executável, carregado pelo build em
+>   `windows/runner/Runner.rc`). O arquivo `.ico` permanece no
+>   `pubspec.yaml`/assets apenas para o build Windows.
 
 **Exemplo de Uso:**
 
@@ -76,7 +115,7 @@ Image.asset(AppAssets.data7Icon)
 
 ### **2. ProductImage Widget**
 
-`lib/ui/widgets/product_image.dart`
+`lib/ui/widgets/product/product_image.dart`
 
 **Funcionalidades:**
 
@@ -99,45 +138,37 @@ ProductImage(
 
 ## 📱 **Implementação nas Telas**
 
+> **Importante:** as telas de Splash e Login **não** usam
+> `AppAssets.data7Icon` diretamente. Elas usam os componentes
+> `AdaptiveLogo` / `AdaptiveLogoContainer`
+> (`lib/ui/widgets/common/adaptive_logo.dart`), que selecionam
+> `AppAssets.logSe7eBlack` ou `AppAssets.logSe7eWhite` conforme o tema
+> (light/dark) e fazem fallback para um ícone quando o asset falha.
+
 ### **🌟 SplashScreen:**
 
 ```dart
-// Logo Data7 animado
-Image.asset(
-  AppAssets.data7Icon,
-  width: 80,
-  height: 80,
-  fit: BoxFit.contain,
+// Logo adaptativo ao tema (light/dark)
+AdaptiveLogo(
+  width: 120,
+  height: 120,
 )
 ```
 
 ### **🔐 LoginScreen:**
 
 ```dart
-// Container com logo
-ClipRRect(
-  borderRadius: BorderRadius.circular(16),
-  child: Image.asset(
-    AppAssets.data7Icon,
-    width: 80,
-    height: 80,
-    fit: BoxFit.contain,
-  ),
+// Container com logo adaptativo
+AdaptiveLogoContainer(
+  width: 130,
+  height: 130,
 )
 ```
 
-### **🏠 HomeContent:**
+### **🏠 Home:**
 
-```dart
-// Logo no dashboard
-Image.asset(
-  AppAssets.data7Icon,
-  fit: BoxFit.contain,
-  errorBuilder: (context, error, stackTrace) {
-    return Icon(Icons.qr_code_scanner);
-  },
-)
-```
+> Não existe a classe `HomeContent`. A home é composta por `HomeScreen`
+> com `AppHeader` / `CustomAppBar`.
 
 ## 🎨 **Vantagens da Implementação**
 
@@ -210,6 +241,14 @@ Container(
 
 ## 📊 **Assets Disponíveis**
 
+> **Uso real no código (estado atual):** `AppAssets` é referenciado em
+> apenas **3 arquivos** — `lib/core/constants/app_assets.dart` (definição),
+> `lib/ui/widgets/product/product_image.dart` (usa `produtoSemFoto`) e
+> `lib/ui/widgets/common/adaptive_logo.dart` (usa `logSe7eBlack` /
+> `logSe7eWhite`). As constantes `background`, `globoGif`, `logWhite`,
+> `playStoreIcon` e `cartInFullJson` **não têm uso** no código hoje. Não
+> há pacote nem uso de Lottie no projeto atual.
+
 ### **🔷 Logos e Identidade:**
 
 - `AppAssets.data7Icon` - Logo principal
@@ -230,7 +269,8 @@ Container(
 
 ### **📦 Animações:**
 
-- `AppAssets.cartInFullJson` - Lottie do carrinho
+- `AppAssets.cartInFullJson` - path de animação do carrinho (constante
+  declarada, **sem uso** no código; não há Lottie integrado)
 
 ## 🚀 **Próximos Passos**
 
@@ -242,11 +282,16 @@ Container(
 
 ## ✨ **Resultado Final**
 
-✅ **Assets organizados e acessíveis**  
-✅ **Type-safe constants**  
-✅ **Widgets reutilizáveis**  
-✅ **Error handling robusto**  
-✅ **Performance otimizada**  
-✅ **Identidade visual consistente**
+✅ **Assets organizados e acessíveis** (imagens, ícones e sons)  
+✅ **Type-safe constants** para imagens/ícones  
+✅ **Widgets reutilizáveis** (`ProductImage`, `AdaptiveLogo`)  
+✅ **Error handling robusto** com fallbacks  
+✅ **Identidade visual consistente** (logo adaptativo ao tema)
 
-Todos os assets estão agora integrados e prontos para uso em toda a aplicação!
+> **Observação realista:** a infraestrutura de assets está pronta, mas
+> nem todas as constantes de `AppAssets` são consumidas. O uso efetivo
+> hoje se concentra no logo adaptativo (`logSe7eBlack`/`logSe7eWhite`) e
+> no placeholder de produto (`produtoSemFoto`); os sons em `assets/som/`
+> são usados pelo `AudioService`. Algumas constantes (`background`,
+> `globoGif`, `logWhite`, `playStoreIcon`, `cartInFullJson`) seguem sem
+> uso no código.

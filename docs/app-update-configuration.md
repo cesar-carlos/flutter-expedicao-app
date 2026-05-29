@@ -26,9 +26,9 @@ GITHUB_TOKEN=seu-token-opcional-para-repositorios-privados
 ### 2. Explicação das Variáveis
 
 - **`GITHUB_OWNER`**: Nome de usuário ou organização do GitHub que possui o repositório
-  - Exemplo: `data7-expedicao` ou `minha-organizacao`
+  - Exemplo: `cesar-carlos` (padrão usado pelo `create-release.ps1`)
 - **`GITHUB_REPO`**: Nome do repositório no GitHub
-  - Exemplo: `app-expedicao` ou `data7-expedicao-app`
+  - Exemplo: `flutter-expedicao-app` (padrão usado pelo `create-release.ps1`)
 - **`GITHUB_TOKEN`**: Token de autenticação do GitHub (opcional)
   - Necessário apenas para repositórios privados
   - Para repositórios públicos, pode ser omitido ou deixado vazio
@@ -39,12 +39,12 @@ GITHUB_TOKEN=seu-token-opcional-para-repositorios-privados
 
 ```env
 # Exemplo para repositório público
-GITHUB_OWNER=data7-expedicao
-GITHUB_REPO=app-expedicao
+GITHUB_OWNER=cesar-carlos
+GITHUB_REPO=flutter-expedicao-app
 
 # Exemplo para repositório privado
-GITHUB_OWNER=data7-expedicao
-GITHUB_REPO=app-expedicao-privado
+GITHUB_OWNER=cesar-carlos
+GITHUB_REPO=flutter-expedicao-app
 GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
@@ -55,29 +55,32 @@ GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 A versão atual do app é definida no `pubspec.yaml`:
 
 ```yaml
-version: 1.0.2+3
+version: 2.1.4+5
 ```
 
 Onde:
 
-- `1.0.2` = versão semântica (major.minor.patch)
-- `+3` = build number
+- `2.1.4` = versão semântica (major.minor.patch)
+- `+5` = build number
 
 ### Formato de Tags no GitHub
 
-As tags do GitHub devem seguir o formato semântico:
-
-**Formato recomendado:**
-
-```
-v1.0.2
-```
-
-**Formato alternativo (com build number):**
+**Formato exigido pelo `create-release.ps1`:** `vX.Y.Z+B` (com build number),
+idêntico à versão do `pubspec.yaml`:
 
 ```
-v1.0.2+3
+v2.1.4+5
 ```
+
+> **Importante**: o `create-release.ps1` extrai `version` + build do
+> `pubspec.yaml` e monta a tag esperada `v<version>+<build>`. Se a tag
+> informada não coincidir exatamente com essa, o script falha com
+> `Tag '...' does not match pubspec version '...'`. Portanto, **sempre** use o
+> formato `vX.Y.Z+B` alinhado ao `pubspec.yaml`.
+
+A engine de comparação de versões do app ainda aceita tags sem build number
+(ex.: `v2.1.4`), mas para o fluxo oficial de release via script o build number
+é obrigatório.
 
 ### Como o Sistema Compara Versões
 
@@ -87,17 +90,17 @@ O sistema extrai a versão da tag usando regex:
 - Opcionalmente procura por `\+(\d+)` para build number (ex: `+3`)
 - Se não encontrar build number na tag, usa `0` como padrão
 
-**Exemplos de tags válidas:**
+**Exemplos reconhecidos pela engine de comparação:**
 
-- `v1.0.2` → versão: `1.0.2`, build: `0`
-- `v1.0.2+3` → versão: `1.0.2`, build: `3`
-- `1.0.2` → versão: `1.0.2`, build: `0` (sem prefixo `v` também funciona)
-- `release-1.0.2` → versão: `1.0.2`, build: `0`
+- `v2.1.4+5` → versão: `2.1.4`, build: `5` (formato do fluxo oficial)
+- `v2.1.4` → versão: `2.1.4`, build: `0`
+- `2.1.4` → versão: `2.1.4`, build: `0` (sem prefixo `v` também funciona)
+- `release-2.1.4` → versão: `2.1.4`, build: `0`
 
-**Exemplos de tags inválidas:**
+**Exemplos não reconhecidos:**
 
-- `v1.0` → não tem formato semântico completo (falta patch)
-- `1.0.2-beta` → não será reconhecida corretamente
+- `v2.1` → não tem formato semântico completo (falta patch)
+- `2.1.4-beta` → não será reconhecida corretamente
 - `latest` → não contém versão numérica
 
 ### Lógica de Comparação
@@ -115,11 +118,11 @@ O sistema compara versões da seguinte forma:
 
 **Exemplos:**
 
-- App atual: `1.0.2+3`
-- Release GitHub: `v1.0.3` → **Há atualização** (versão maior)
-- Release GitHub: `v1.0.2+5` → **Há atualização** (versão igual, mas build maior)
-- Release GitHub: `v1.0.2+2` → **Não há atualização** (versão igual, mas build menor)
-- Release GitHub: `v1.0.1` → **Não há atualização** (versão menor)
+- App atual: `2.1.4+5`
+- Release GitHub: `v2.1.5+1` → **Há atualização** (versão maior)
+- Release GitHub: `v2.1.4+6` → **Há atualização** (versão igual, mas build maior)
+- Release GitHub: `v2.1.4+4` → **Não há atualização** (versão igual, mas build menor)
+- Release GitHub: `v2.1.3+9` → **Não há atualização** (versão menor)
 
 ## Criando um Release no GitHub
 
@@ -131,7 +134,13 @@ Fluxo recomendado no projeto:
 
 Esse comando valida a versao do `pubspec.yaml`, confere as notas de release,
 roda analise/testes/lint Android, gera o APK, cria copia versionada em
-`dist/release/`, publica a tag/release no GitHub e anexa o APK.
+`dist/release/` e publica a tag/release no GitHub, anexando o APK.
+
+A copia versionada do APK fica em
+`dist/release/<tag>/data7-expedicao-<tag>.apk` (ex.:
+`dist/release/v2.1.4+5/data7-expedicao-v2.1.4+5.apk`), acompanhada de um
+arquivo `.sha256` com o checksum. Os defaults de owner/repo do script sao
+`cesar-carlos` / `flutter-expedicao-app`.
 
 Para build de producao com assinatura obrigatoria:
 
@@ -159,8 +168,8 @@ O fluxo manual abaixo continua valido para diagnostico ou publicacao manual.
 1. Acesse seu repositório no GitHub
 2. Vá em **Releases** → **Create a new release**
 3. Preencha os campos:
-   - **Tag version**: Use o formato `v1.0.2` (ou `v1.0.2+3` se quiser incluir build number)
-   - **Release title**: Título descritivo (ex: "Versão 1.0.2 - Correções de bugs")
+   - **Tag version**: Use o formato `vX.Y.Z+B` alinhado ao `pubspec.yaml` (ex.: `v2.1.4+5`)
+   - **Release title**: Título descritivo (ex: "Versão 2.1.4 - Correções de bugs")
    - **Description**: Notas do release (opcional, mas recomendado)
 4. **Anexe o arquivo APK**:
    - Clique em "Attach binaries"
@@ -203,9 +212,15 @@ Após criar o release, verifique:
 ### Comportamento
 
 - **Modo Debug**: Não verifica atualizações (apenas em `kReleaseMode`)
-- **Modo Release**: Verifica automaticamente ao iniciar
-- **Sem Internet**: Não exibe erro, apenas não verifica
+- **Modo Release**: Verifica automaticamente ao iniciar (após 2s)
+- **Sem Internet**: Não exibe erro no auto-check, apenas não verifica
 - **Erro na Verificação**: Não bloqueia o uso do app
+- **Cache de 1h**: A verificação automática usa um cache de 1 hora
+  (`UpdateCacheService`). Após uma verificação, o app só consulta o GitHub
+  novamente quando esse período expirar.
+- **Verificação manual (drawer)**: Tocar na versão do app no drawer força uma
+  verificação imediata (`forceCheck: true`), ignorando o cache de 1h. No modo
+  manual, eventuais erros são exibidos ao usuário (snackbar).
 
 ## Troubleshooting
 
@@ -225,7 +240,9 @@ Após criar o release, verifique:
 
 **Solução**:
 
-- Use o formato `v1.0.2` ou `v1.0.2+3`
+- Use o formato `vX.Y.Z+B` (ex.: `v2.1.4+5`), idêntico ao `pubspec.yaml`
+- Ao usar o `create-release.ps1`, a tag deve coincidir exatamente com
+  `v<version>+<build>` do `pubspec.yaml`, senão o script falha
 - Certifique-se de que a tag contém 3 números separados por pontos
 - Evite caracteres especiais ou texto adicional na tag
 
@@ -251,35 +268,35 @@ Após criar o release, verifique:
 ### 1. Configuração do `.env`
 
 ```env
-GITHUB_OWNER=minha-organizacao
-GITHUB_REPO=app-expedicao
+GITHUB_OWNER=cesar-carlos
+GITHUB_REPO=flutter-expedicao-app
 GITHUB_TOKEN=ghp_abc123def456ghi789jkl012mno345pqr678
 ```
 
 ### 2. Versão Atual no `pubspec.yaml`
 
 ```yaml
-version: 1.0.2+3
+version: 2.1.4+5
 ```
 
 ### 3. Criar Release no GitHub
 
-- **Tag**: `v1.0.3`
-- **Título**: "Versão 1.0.3 - Novas funcionalidades"
+- **Tag**: `v2.1.5+1`
+- **Título**: "Versão 2.1.5 - Novas funcionalidades"
 - **Descrição**:
   ```
   - Adicionada funcionalidade X
   - Corrigido bug Y
   - Melhorias de performance
   ```
-- **APK**: `app-release.apk` (anexado)
+- **APK**: `data7-expedicao-v2.1.5+1.apk` (anexado)
 
 ### 4. Resultado
 
-Quando o app (versão `1.0.2+3`) iniciar:
+Quando o app (versão `2.1.4+5`) iniciar:
 
-- Verificará o release `v1.0.3` no GitHub
-- Comparará: `1.0.3 > 1.0.2` → **Há atualização disponível**
+- Verificará o release `v2.1.5+1` no GitHub
+- Comparará: `2.1.5 > 2.1.4` → **Há atualização disponível**
 - Exibirá o diálogo de atualização
 - Usuário pode baixar e instalar a nova versão
 

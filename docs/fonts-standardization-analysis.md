@@ -1,56 +1,81 @@
 # Análise de Padronização de Fontes
 
+> **Status: CONCLUÍDO (histórico).** A padronização de fontes descrita
+> neste documento já foi implementada (abordagem híbrida — ver
+> "Situação Atual"). O `AppTheme` define um `textTheme` completo via
+> `AppFonts.getTextTheme(...)`, existem `AppFonts` e `AppTextStyles`, e a
+> família primária passou a usar `google_fonts` (Inter). As seções de
+> "Recomendações" e "Plano de Migração" abaixo são mantidas como
+> registro histórico do raciocínio; recomendações já implementadas estão
+> marcadas como concluídas. Resíduos pontuais (alguns `fontSize` /
+> `FontWeight` literais) ainda existem e estão listados como observação.
+
 ## Situação Atual
 
-### O que existe:
+### O que existe (estado atual do código):
 
 1. **UIConstants** (`lib/core/constants/ui_constants.dart`):
-   - Define constantes de tamanho de fonte:
+   - Define a escala de tamanhos de fonte, hoje ampliada:
+     - `extraSmallFontSize = 10.0`
+     - `tinyFontSize = 11.0`
      - `smallFontSize = 12.0`
      - `defaultFontSize = 14.0`
      - `mediumFontSize = 16.0`
      - `largeFontSize = 18.0`
+     - `xLargeFontSize = 20.0`
      - `extraLargeFontSize = 24.0`
-   - **Problema**: Essas constantes não são amplamente utilizadas no código
+     - `hugeFontSize = 25.0`
+     - `xxLargeFontSize = 32.0`
+     - `extraHugeFontSize = 48.0`
+   - Essas constantes agora são consumidas pelo `textTheme` central
+     (ver `AppFonts.getTextTheme`).
 
 2. **AppTheme** (`lib/core/theme/app_theme.dart`):
-   - Não define um `textTheme` customizado completo
-   - Usa apenas os padrões do Material 3
-   - Define apenas `titleTextStyle` no `appBarTheme` com valores hardcoded
+   - Define um `textTheme` customizado **completo** em ambos os temas
+     (light e dark) via `AppFonts.getTextTheme(baseColor: ..., brightness: ...)`.
+   - O `appBarTheme.titleTextStyle` usa `AppFonts.inter(...)` com
+     `UIConstants.xLargeFontSize`.
 
-3. **Uso de textTheme**:
-   - Alguns widgets usam `theme.textTheme.*` mas frequentemente com `copyWith()` para sobrescrever propriedades
-   - Exemplo: `theme.textTheme.labelSmall?.copyWith(color: statusColor, fontWeight: FontWeight.w600, fontSize: 11)`
+3. **AppFonts** (`lib/core/theme/app_fonts.dart`):
+   - Centraliza a tipografia com `google_fonts` (família primária
+     **Inter**, exposta em `primaryFontFamily`).
+   - `getTextTheme(...)` monta o `TextTheme` completo usando
+     `GoogleFonts.interTextTheme` + `UIConstants` para os tamanhos.
+     Destaques: `headlineLarge` usa `xxLargeFontSize` (32) e
+     `labelSmall` usa `tinyFontSize` (11).
+   - `code(BuildContext)` provê a fonte monospace via
+     `GoogleFonts.robotoMono` (substitui o antigo `fontFamily: 'monospace'`).
+   - Helpers: `inter(...)`, `interSmall/Default/Medium/Large/XLarge`.
 
-### Problemas Identificados:
+4. **AppTextStyles** (`lib/core/theme/app_text_styles.dart`):
+   - Estilos customizados específicos: `code(context)`,
+     `button(context)` e `custom(...)`, todos apoiados em `AppFonts`.
 
-1. **TextStyle hardcoded em muitos lugares**:
-   - `TextStyle(fontSize: 10, ...)` - 10 ocorrências
-   - `TextStyle(fontSize: 11, ...)` - 5 ocorrências
-   - `TextStyle(fontSize: 12, ...)` - 30+ ocorrências
-   - `TextStyle(fontSize: 13, ...)` - 2 ocorrências
-   - `TextStyle(fontSize: 14, ...)` - 20+ ocorrências
-   - `TextStyle(fontSize: 16, ...)` - 15+ ocorrências
-   - `TextStyle(fontSize: 18, ...)` - 10+ ocorrências
-   - `TextStyle(fontSize: 20, ...)` - 5 ocorrências
-   - `TextStyle(fontSize: 24, ...)` - 8 ocorrências
-   - `TextStyle(fontSize: 32, ...)` - 2 ocorrências
-   - `TextStyle(fontSize: 48, ...)` - 1 ocorrência
+5. **Fontes no pubspec.yaml**:
+   - **Não há** seção `fonts:` (a família vem de `google_fonts`).
 
-2. **FontWeight hardcoded**:
-   - `FontWeight.bold` - 50+ ocorrências
-   - `FontWeight.w500` - 20+ ocorrências
-   - `FontWeight.w600` - 30+ ocorrências
-   - `FontWeight.w700` - 10+ ocorrências
-   - `FontWeight.w800` - 1 ocorrência
+### Problemas Identificados (originais — em sua maioria resolvidos):
+
+1. **TextStyle hardcoded em muitos lugares** — em grande parte migrado
+   para `theme.textTheme.*` / `AppFonts`. Restam resíduos pontuais (ver
+   observação abaixo).
+
+2. **FontWeight hardcoded** — reduzido; ainda há ocorrências pontuais.
 
 3. **FontFamily hardcoded**:
-   - `fontFamily: 'monospace'` - 9 ocorrências (usado para códigos de barras, IDs, etc.)
+   - `fontFamily: 'monospace'` — **0 ocorrências** hoje. A fonte
+     monospace passou a usar `GoogleFonts.robotoMono` em `AppFonts.code()`.
 
-4. **Falta de padronização**:
-   - Não há um sistema centralizado similar ao `AppColors`
-   - Cada widget define seus próprios estilos
-   - Dificulta manutenção e consistência visual
+4. **Falta de padronização** — **resolvido**: existe um sistema
+   centralizado (`AppFonts` + `AppTextStyles` + `textTheme` no
+   `AppTheme`), análogo ao `AppColors`.
+
+### Observação — resíduos ainda existentes
+
+- Ainda há alguns `fontSize` / `FontWeight` literais espalhados. Por
+  exemplo, `lib/ui/screens/splash_screen.dart` usa
+  `AppFonts.inter(fontSize: 16, ...)`. São casos pontuais e não
+  comprometem a padronização geral.
 
 ## Recomendações
 
@@ -208,7 +233,13 @@ class AppTheme {
 }
 ```
 
-### Abordagem 3: Híbrida (Recomendada para este projeto)
+### Abordagem 3: Híbrida (Recomendada para este projeto) — ✅ IMPLEMENTADA
+
+> Esta foi a abordagem efetivamente adotada. O `textTheme` completo vive
+> no `AppTheme` (via `AppFonts.getTextTheme`), os estilos especiais ficam
+> em `AppTextStyles`/`AppFonts.code()`, e os tamanhos vêm de
+> `UIConstants`. Diferença em relação ao esboço abaixo: a fonte monospace
+> usa `GoogleFonts.robotoMono` em vez de `fontFamily: 'monospace'`.
 
 **Combinação das duas abordagens:**
 
@@ -256,29 +287,32 @@ class AppTextStyles {
 
 ## Plano de Migração
 
-### Fase 1: Configurar textTheme no AppTheme
+### Fase 1: Configurar textTheme no AppTheme — ✅ CONCLUÍDA
 
-1. Adicionar `textTheme` completo no `AppTheme.lightTheme` e `AppTheme.darkTheme`
-2. Usar `UIConstants` para tamanhos de fonte
-3. Usar `AppColors` para cores de texto
+1. ✅ `textTheme` completo adicionado em `AppTheme.lightTheme` e
+   `AppTheme.darkTheme` (via `AppFonts.getTextTheme`)
+2. ✅ Tamanhos de fonte vindos de `UIConstants`
+3. ✅ Cores de texto vindas de `AppColors` (`fontDark`/`fontLight`)
 
-### Fase 2: Criar AppTextStyles para casos especiais
+### Fase 2: Criar AppTextStyles para casos especiais — ✅ CONCLUÍDA
 
-1. Criar `AppTextStyles` para estilos customizados (monospace, etc.)
-2. Adicionar métodos helper quando necessário
+1. ✅ `AppTextStyles` criado para estilos customizados (`code`,
+   `button`, `custom`); a fonte monospace usa `GoogleFonts.robotoMono`
+2. ✅ Métodos helper adicionados em `AppFonts` (`interSmall`, etc.)
 
-### Fase 3: Migrar widgets gradualmente
+### Fase 3: Migrar widgets gradualmente — 🔄 LARGAMENTE CONCLUÍDA
 
-1. Priorizar widgets mais usados
-2. Substituir `TextStyle` hardcoded por `theme.textTheme.*`
-3. Usar `AppTextStyles` para casos especiais
-4. Manter `copyWith()` apenas quando necessário para variações específicas
+1. ✅ Widgets mais usados migrados para `theme.textTheme.*` / `AppFonts`
+2. ✅ `TextStyle` hardcoded substituído na maioria dos casos
+3. ✅ `AppTextStyles` usado para casos especiais
+4. 🔄 Resíduos pontuais ainda usam literais (ex.: `splash_screen.dart`)
 
-### Fase 4: Validação
+### Fase 4: Validação — ✅ CONCLUÍDA
 
-1. Verificar consistência visual
-2. Testar em light e dark theme
-3. Garantir que todos os tamanhos de fonte usem o sistema padronizado
+1. ✅ Consistência visual verificada
+2. ✅ Testado em light e dark theme
+3. 🔄 Quase todos os tamanhos usam o sistema padronizado (resíduos
+   pontuais documentados na observação acima)
 
 ## Benefícios da Padronização
 

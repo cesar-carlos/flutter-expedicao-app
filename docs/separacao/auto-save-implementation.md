@@ -69,10 +69,21 @@ O metodo atual:
 
 - evita double-submit com `_isFinishing`
 - valida estado do socket
+- exibe o dialogo de confirmacao `_showFinishConfirmationDialog`
+  ("Finalizar Separação") ANTES do loading
+  (`picking_flow_controller.dart` ~142-146); esse dialogo bloqueia a
+  confirmacao enquanto houver operacoes de sync pendentes
+  (`pendingOps == 0`, ~440)
+- chama `viewModel.stopCartEventMonitoring()` antes de salvar (~152)
 - abre loading
 - chama `viewModel.saveCart()`
 - toca `playSuccess()` quando salva
 - faz `GoRouter.of(context).pop('save_cart')`
+
+Ou seja, ao salvar apos a conclusao do setor existem DOIS dialogos em
+sequencia: primeiro "Setor Concluído!"
+(`showSaveCartAfterSectorCompletedDialog`) e, quando o usuario opta por
+salvar, "Finalizar Separação" (`_showFinishConfirmationDialog`).
 
 ### Reacao na lista de carrinhos
 
@@ -102,6 +113,8 @@ scan correto
        -> usuario decide
        -> se salvar:
             -> finishPicking()
+            -> dialogo "Finalizar Separação" (bloqueia se sync pendente)
+            -> stopCartEventMonitoring()
             -> viewModel.saveCart()
             -> pop('save_cart')
             -> snackbar + retorno para separacao

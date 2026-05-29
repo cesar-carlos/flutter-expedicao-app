@@ -1,5 +1,13 @@
 # Análise e Padronização de Cores
 
+> **Status: QUASE CONCLUÍDO.** O plano descrito neste documento foi
+> largamente executado: `AppColors` já contém todas as cores adicionais
+> previstas (e várias extras), e os enums de situação
+> (`ExpeditionSituation`, `EntityType`, etc.) já usam `AppColors.*`. Resta
+> apenas um resíduo pequeno de `Colors.` do Material em ~7 arquivos (ver
+> "Situação Atual"). As seções de plano/mapeamento abaixo são mantidas
+> como registro histórico.
+
 ## Objetivo
 
 Padronizar todas as cores hardcoded (`Colors.`) para usar `AppColors` centralizado, seguindo as regras do projeto que indicam:
@@ -12,19 +20,50 @@ Padronizar todas as cores hardcoded (`Colors.`) para usar `AppColors` centraliza
 
 ### Arquivo AppColors Existente
 
-O arquivo `lib/core/theme/app_colors.dart` já existe e contém:
+O arquivo `lib/core/theme/app_colors.dart` já existe e hoje contém:
 
-- Cores principais do tema (primary, secondary, accent, light, dark)
-- Cores de estado (success, error, warning, info)
-- Cores neutras (grey, lightGrey, darkGrey)
-- Cores básicas (white, black, transparent)
-- Cores de superfície e fundo
-- Cores de fonte
-- Métodos utilitários para opacidade
+- Cores principais do tema teal (primary, secondary, accent, light, dark)
+  e aliases (`primaryTeal`, `secondaryTeal`, etc.)
+- Cores de estado (success, error, warning, info — `info` aponta para
+  `blue500`)
+- Cores adicionais de situação (yellow, lightGreen, purple, teal) **e
+  extras**: `brown`, `indigo`
+- Variações de estado (shades): `red800/700/600/300/50`,
+  `green800/700/600/300/100/50`, `orange800/700`,
+  `blue800/700/600/500/100`
+- Escala neutra: `grey100`..`grey700`, além de `grey`, `lightGrey`,
+  `darkGrey`, `black54`, `black87`
+- Cores básicas (white, black, transparent), de superfície/fundo e de
+  fonte (semantic aliases)
+- Métodos utilitários para opacidade e helpers de adaptação dark theme
 
-### Cores Encontradas no Código
+> **Conclusão:** todas as cores que o plano original dizia "precisam ser
+> adicionadas" (yellow, lightGreen, purple, teal, black54) **já existem**,
+> junto de muitas outras.
 
-Análise de 93 arquivos que usam `Colors.` diretamente:
+### Resíduo de `Colors.` no Código
+
+A métrica original ("93 arquivos usam `Colors.` diretamente") está
+**defasada**. A maior parte das ocorrências hoje é `AppColors.` (que
+contém a substring `Colors.`). O resíduo real de `Colors.` do Material em
+`lib/` é de **~7 arquivos**:
+
+- `lib/ui/screens/separation_screen.dart` — `Colors.blue`
+- `lib/ui/widgets/user_profile/user_profile_widgets.dart` —
+  `Colors.grey.shade*`
+- `lib/ui/screens/picking_products_list_screen.dart` —
+  `Colors.orange` / `Colors.green`
+- `lib/ui/widgets/picking_products_list/picking_product_list_item.dart` —
+  `Colors.green`
+- `lib/ui/widgets/data_grid/separate_consultation_data_grid.dart` —
+  `Colors.grey` / `Colors.white`
+- `lib/ui/screens/separation_items_screen.dart` — `Colors.transparent`
+- `lib/core/theme/app_colors.dart` — aliases legítimos
+  (`white`/`black`/`transparent` apontam para `Colors.*`)
+
+> Os arquivos antes citados como tendo muitas ocorrências
+> (`cart_item_card.dart`, `card_picking_screen.dart`) hoje já usam
+> `AppColors`.
 
 #### Cores Básicas (já existem)
 
@@ -32,34 +71,29 @@ Análise de 93 arquivos que usam `Colors.` diretamente:
 - `Colors.black` → `AppColors.black` ✅
 - `Colors.transparent` → `AppColors.transparent` ✅
 
-#### Cores de Estado (precisam mapeamento)
+#### Cores Adicionais (✅ já adicionadas)
 
-- `Colors.red` → `AppColors.error` (mas pode precisar variações)
-- `Colors.orange` → `AppColors.warning` (mas pode precisar variações)
-- `Colors.green` → `AppColors.success` (mas pode precisar variações)
-- `Colors.blue` → `AppColors.info` (mas pode precisar variações)
-- `Colors.grey` → `AppColors.grey` ✅
+- `Colors.yellow` → `AppColors.yellow` ✅
+- `Colors.lightGreen` → `AppColors.lightGreen` ✅
+- `Colors.purple` → `AppColors.purple` ✅
+- `Colors.teal` → `AppColors.teal` ✅
+- `Colors.black54` → `AppColors.black54` ✅
 
-#### Cores Adicionais Encontradas (precisam ser adicionadas)
+#### Variações de Cores (shades) — ✅ já existem
 
-- `Colors.yellow` - usado em `ExpeditionSituation.emPausa`
-- `Colors.lightGreen` - usado em `ExpeditionSituation.separado` e `conferido`
-- `Colors.purple` - usado em `ExpeditionSituation.conferindo`
-- `Colors.teal` - usado em `ExpeditionSituation.embalando` e `embalado`
-- `Colors.black54` - usado para opacidade
-
-#### Variações de Cores (shades)
-
-- `Colors.red.shade700`, `Colors.red.shade600` - precisam de constantes
-- `Colors.green.shade800`, `Colors.green.shade700` - precisam de constantes
-- `Colors.orange.shade800`, `Colors.orange.shade700` - precisam de constantes
-- `Colors.blue.shade700`, `Colors.blue.shade600` - precisam de constantes
+- `red700`, `red600`, `green800`, `green700`, `orange800`, `orange700`,
+  `blue700`, `blue600` (e várias outras) já estão em `AppColors`.
 
 ## Plano de Implementação
 
-### 1. Expandir AppColors
+> **Progresso:** etapas 1 e 2 ✅ concluídas; etapa 3 🔄 quase concluída
+> (resta o resíduo listado acima); etapa 4 (mapeamento) é referência
+> histórica.
 
-Adicionar cores faltantes e variações:
+### 1. Expandir AppColors — ✅ CONCLUÍDA
+
+Cores faltantes e variações já foram adicionadas (e ampliadas). Esboço
+original mantido como referência:
 
 ```dart
 // Cores adicionais para situações
@@ -82,9 +116,10 @@ static const Color blue600 = Color(0xFF1E88E5);
 static const Color black54 = Color(0x8A000000);
 ```
 
-### 2. Atualizar Modelos de Situação
+### 2. Atualizar Modelos de Situação — ✅ CONCLUÍDA
 
-Os enums de situação (`ExpeditionSituation`, `EntityType`, etc.) devem usar `AppColors`:
+Os enums de situação (`ExpeditionSituation`, `EntityType`, etc.) **já
+usam** `AppColors.*`:
 
 ```dart
 // Antes
@@ -100,14 +135,11 @@ enum ExpeditionSituation {
 }
 ```
 
-### 3. Substituir Colors. por AppColors.
+### 3. Substituir Colors. por AppColors. — 🔄 QUASE CONCLUÍDA
 
-Substituir em todos os 93 arquivos identificados, priorizando:
-
-1. Arquivos de UI/widgets
-2. Arquivos de screens
-3. Arquivos de models (situações)
-4. Outros arquivos
+A substituição em massa já ocorreu. Resta apenas o resíduo de ~7
+arquivos listado em "Situação Atual" (fora os aliases legítimos em
+`app_colors.dart`).
 
 ### 4. Mapeamento de Cores
 
@@ -135,26 +167,28 @@ Substituir em todos os 93 arquivos identificados, priorizando:
 | `Colors.black`           | `AppColors.black`       | Já existe                             |
 | `Colors.transparent`     | `AppColors.transparent` | Já existe                             |
 
-## Arquivos Prioritários para Migração
+## Arquivos Prioritários para Migração (histórico — em sua maioria concluído)
 
-### Alta Prioridade (UI/Widgets)
+> Os alvos abaixo já foram migrados para `AppColors`. Mantidos como
+> registro do escopo original.
 
-1. `lib/ui/screens/separation_items_screen.dart` - 5 ocorrências
-2. `lib/ui/widgets/separate_items/cart_item_card.dart` - 40 ocorrências
-3. `lib/ui/screens/card_picking_screen.dart` - 14 ocorrências
-4. `lib/ui/widgets/card_picking/picking_item_card.dart` - 11 ocorrências
+### Alta Prioridade (UI/Widgets) — ✅ migrados
 
-### Média Prioridade (Models)
+1. `lib/ui/screens/separation_items_screen.dart` — migrado (resta só
+   `Colors.transparent`)
+2. `lib/ui/widgets/separate_items/cart_item_card.dart` — ✅ usa `AppColors`
+3. `lib/ui/screens/card_picking_screen.dart` — ✅ usa `AppColors`
+4. `lib/ui/widgets/card_picking/picking_item_card.dart` — ✅ usa `AppColors`
 
-1. `lib/domain/models/situation/expedition_situation_model.dart` - 14 ocorrências
-2. `lib/domain/models/entity_type_model.dart` - 3 ocorrências
-3. Outros modelos de situação
+### Média Prioridade (Models) — ✅ migrados
 
-### Baixa Prioridade (Outros)
+1. `lib/domain/models/situation/expedition_situation_model.dart` — ✅
+2. `lib/domain/models/entity_type_model.dart` — ✅
+3. Outros modelos de situação — ✅
 
-- Arquivos de configuração
-- Arquivos de teste
-- Arquivos de erro/diálogos
+### Resíduo atual (a finalizar)
+
+Ver a lista de ~7 arquivos em "Situação Atual".
 
 ## Benefícios
 

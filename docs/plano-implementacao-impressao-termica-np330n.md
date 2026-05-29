@@ -293,10 +293,15 @@ Entrega:
 
 Resumo executivo:
 
-- O fluxo principal "finalizar carrinho + imprimir" esta implementado e funcional.
+- A impressao do ticket de separacao esta implementada e funcional, porem
+ de forma MANUAL (acionada pelo usuario nas telas de separacao), e nao
+ automaticamente apos o fechamento do carrinho.
 - A configuracao de impressoras (CRUD, padrao, descoberta e teste) esta implementada.
 - A base tecnica ESC/POS via TCP com retry e logs estruturados esta implementada.
-- Ainda existem lacunas para considerar o plano 100% concluido (tests de fluxo, logo e homologacao de campo).
+- A renderizacao de logo foi removida da pipeline (ver secao 17).
+- Ainda existem lacunas para considerar o plano 100% concluido (teste E2E real
+ do fluxo "salvar + imprimir", integracao Socket.IO com `skip: true` e
+ homologacao de campo da NP-330N).
 
 ### 13.1 Fase 1 - Base tecnica de impressao
 
@@ -305,12 +310,12 @@ Status: concluida
 Implementado:
 
 - Dependencia `esc_pos_utils_plus` adicionada em `pubspec.yaml`.
-- Builder ESC/POS em `lib/infrastructure/services/esc_pos_ticket_builder_service.dart`.
+- Builder ESC/POS em `lib/infrastructure/services/esc_pos_ticket_builder_service.dart` (implementacao concreta `EscPosTicketBuilderService`, contrato `IEscPosTicketBuilderService` em `lib/domain/repositories/i_esc_pos_ticket_builder_service.dart`).
 - Transporte TCP raw em `lib/infrastructure/services/thermal_printer_tcp_service.dart`.
 - Abstracao e implementacao de repositorio em:
-- `lib/domain/repositories/thermal_printer_repository.dart`
+- `lib/domain/repositories/i_thermal_printer_repository.dart` (contrato `IThermalPrinterRepository`)
 - `lib/data/repositories/thermal_printer_repository_impl.dart`
-- Registro no DI em `lib/di/locator.dart`.
+- Registro no DI em `lib/di/locator.dart` (o DI registra a implementacao concreta `EscPosTicketBuilderService`, nao a interface `IEscPosTicketBuilderService`).
 
 ### 13.2 Fase 2 - Caso de uso + dados reais
 
@@ -343,6 +348,11 @@ Implementado:
 - `lib/domain/models/printer_config.dart`
 - Persistencia (lista e impressora padrao):
 - `lib/data/datasources/printer_preferences_service.dart`
+- Abstracao e implementacao de acesso as preferencias de impressora:
+- `lib/domain/repositories/i_printer_preferences_repository.dart` (contrato `IPrinterPreferencesRepository`)
+- `lib/data/repositories/printer_preferences_repository_impl.dart`
+- Resolucao da impressora padrao via caso de uso:
+- `lib/domain/usecases/get_default_printer/get_default_printer_usecase.dart` (`GetDefaultPrinterUseCase`, depende de `IPrinterPreferencesRepository`)
 - Descoberta na rede (scan rapido e por faixa):
 - `lib/infrastructure/services/printer_discovery_service.dart`
 - ViewModel com CRUD, padrao, discovery e teste:
@@ -363,26 +373,44 @@ Implementado:
 
 ### 13.4 Fase 4 - Integracao de UX no fluxo operacional
 
-Status: concluida no escopo atual
+Status: impressao manual implementada (sem impressao automatica no fechamento)
 
-Implementado:
+Estado real do codigo:
 
-- Integracao apos sucesso do `SaveSeparationCartUseCase` em:
-- `lib/ui/widgets/separate_items/cart_item_card.dart`
-- Disparo assincrono da impressao (sem bloquear salvamento).
-- Falha de impressao nao reverte fechamento.
-- Feedback visual com `SnackBar` para sucesso/falha de impressao.
-- Botao de impressao direta no card da listagem de separacoes em:
-- `lib/ui/screens/separation_screen.dart`
-- `lib/ui/widgets/separation/separation_card.dart`
-- Fluxo do botao:
-- resolve impressora padrao via `PrinterPreferencesService`
-- dispara `PrintExpeditionTicketUseCase` com `codEmpresa` e `codSepararEstoque`
-- exibe estado de progresso por card e feedback de sucesso/falha
+- NAO existe impressao automatica ao finalizar carrinho. O fechamento em
+ `lib/ui/widgets/separate_items/cart_item_card.dart` (`_onFinalizeCart`)
+ chama apenas `SaveSeparationCartUseCase`; o arquivo nao importa nem
+ dispara qualquer fluxo de impressao.
+- A impressao eh sempre acionada manualmente pelo usuario, a partir de
+ tres pontos de UI:
+- `lib/ui/screens/separation_screen.dart` (`_onPrintTap`), acionado
+ pelo botao `onPrint` do card de separacao
+- `lib/ui/widgets/separation/separation_card.dart` (botao `onPrint`)
+- `lib/ui/screens/separation_items_screen.dart` (`_onPrintTicket`,
+ acao de impressao no AppBar da tela de itens)
+
+Fluxo de cada acao manual de impressao:
+
+- resolve a impressora padrao via `GetDefaultPrinterUseCase`
+ (que depende de `IPrinterPreferencesRepository`), e nao acessando o
+ `PrinterPreferencesService` diretamente
+- quando nao ha impressora padrao, exibe `SnackBar` com acao
+ "Configurar" apontando para a tela de impressoras
+- dispara `PrintExpeditionTicketUseCase` com `codEmpresa`,
+ `codSepararEstoque` e dados do usuario/separador
+- exibe estado de progresso (por card na listagem; flag `_isPrinting`
+ na tela de itens) e feedback de sucesso/falha via `SnackBar`
 
 Nota de escopo:
 
-- Nao existe botao separado "Salvar e Imprimir"; o comportamento atual eh imprimir automaticamente quando ha impressora padrao cadastrada.
+- Nao existe botao "Salvar e Imprimir" nem impressao automatica apos o
+ fechamento do carrinho.
+- O helper `PrintFailureContext.cartSaved`
+ (`lib/core/utils/print_failure_message_helper.dart`) existe e cobre
+ mensagens do tipo "carrinho salvo, mas a impressao falhou", porem
+ NAO eh usado em nenhuma tela hoje (resquicio da integracao
+ "salvar + imprimir" planejada, nunca ligada na UI). As telas usam
+ somente `PrintFailureContext.separation`.
 
 ### 13.5 Fase 5 - Hardening e observabilidade
 
@@ -406,8 +434,14 @@ Implementado:
 - Validacao anti-duplicidade no cadastro/edicao de impressoras (ip:porta):
 - `lib/domain/viewmodels/config_viewmodel.dart`
 - Compatibilidade ESC/POS aprimorada:
-- code table global `CP1252` e suporte opcional a logo bitmap (com fallback sem quebra) em
+- code table global `CP1252` em
 - `lib/infrastructure/services/esc_pos_ticket_builder_service.dart`
+- margem esquerda opcional (`GS L`, `leftMarginMm`), truncamento de
+ nome de produto e sanitizacao de caracteres de controle no builder
+- A renderizacao de logo bitmap foi REMOVIDA por completo da pipeline de
+ impressao (ver secao 17, 2026-04-18): nao existe mais
+ `company_logo_service.dart`, a interface `IEscPosTicketBuilderService`
+ nao expoe `logoBytes`/`logoMaxWidthPx` e o builder nao gera logo.
 
 Pendente para fechar fase:
 
@@ -434,10 +468,14 @@ Implementado:
 - `test/infrastructure/services/esc_pos_ticket_builder_service_test.dart`
 - Cenarios cobertos:
 - geracao de ticket de teste
-- geracao de ticket com logo valida
-- fallback quando logo invalida
-- geracao de ticket de expedicao com item real
-- erro quando lista de itens esta vazia
+- geracao de ticket de expedicao com itens reais
+- `StateError` quando a lista de itens esta vazia
+- presenca de comandos ESC e GS nos bytes de expedicao
+- presenca do texto "LISTA DE SEPARACAO"
+- ausencia de `GS L` quando `leftMarginMm` eh 0 e presenca quando maior que zero
+- truncamento de `nomeProduto` quando excede o limite de caracteres
+- sanitizacao de caracteres de controle em `nomeProduto`
+- regras de exibicao do separador (omissao quando dados de operacao ausentes)
 - Testes unitarios do repositorio de impressao:
 - `test/data/repositories/thermal_printer_repository_impl_test.dart`
 - Cenarios cobertos:
@@ -460,13 +498,25 @@ Implementado:
 
 Existente mas nao ativo:
 
-- Teste de repositorio de consulta de impressao:
-- `test/data/repositories/expedition_item_print_consultation_repository_integration_test.dart`
-- Atualmente com `skip: true`.
+- Teste de integracao do repositorio de consulta de impressao:
+- `integration_test/data/repositories/expedition_item_print_consultation_repository_integration_test.dart`
+- Atualmente com `skip: true` (depende de servidor Socket.IO real).
+
+Testes do fluxo "salvar + imprimir":
+
+- `test/domain/usecases/save_cart_with_print_test.dart` existe e cobre
+ cenarios de sucesso/falha de impressao (timeout, offline, `NOT_FOUND`,
+ multiplas falhas e chamada sem `await`), demonstrando que a falha de
+ impressao nao lanca excecao nao tratada.
+- Entretanto NAO eh um teste E2E real: ele exercita apenas
+ `PrintExpeditionTicketUseCase` com fakes e NAO integra de fato o
+ `SaveSeparationCartUseCase`. O "salvamento" eh apenas simulado por
+ variaveis locais no teste.
 
 Lacunas de teste:
 
-- Testes de integracao do fluxo de negocio (salvar + imprimir sem rollback).
+- Teste de integracao real do fluxo de negocio acoplando
+ `SaveSeparationCartUseCase` + impressao (sem rollback).
 - Testes de integracao para cenarios de erro de rede adicionais (host inexistente e desconexao durante escrita).
 
 ## 15. Criterios de Aceite - Revisao de Status
@@ -484,7 +534,7 @@ Lacunas de teste:
 
 - [x] **Expandir testes de transporte TCP**: Implementados testes para host inexistente, desconexão durante escrita, timeout, validações de IP/porta e medição de tempo. Arquivo: `test/infrastructure/services/thermal_printer_tcp_service_test.dart`
 
-- [x] **Criar testes de fluxo completo**: Implementados testes que demonstram que falhas na impressão não afetam o salvamento do carrinho, com uso de `unawaited()` e tratamento de múltiplos cenários de falha. Arquivo: `test/domain/usecases/save_cart_with_print_test.dart`
+- [x] **Criar testes do comportamento de impressão pós-salvamento**: Implementados testes que demonstram que falhas na impressão não lançam exceção não tratada e tratam múltiplos cenários de falha. Arquivo: `test/domain/usecases/save_cart_with_print_test.dart`. **Observação:** estes testes exercitam apenas `PrintExpeditionTicketUseCase` com fakes; NÃO integram de fato o `SaveSeparationCartUseCase` (o salvamento é apenas simulado por variáveis locais), portanto não constituem um teste E2E do fluxo completo "salvar + imprimir".
 
 - [x] **Definir fonte/configuracao de logo**: ~~Implementado `CompanyLogoService` que carrega automaticamente o logo da empresa (`assets/images/log_se7e_black.png`). Integrado com `EscPosTicketBuilderService` via DI.~~ **REVERTIDO em 2026-04-18** — o logo (1440x750 px → ~37,5 mm de altura no papel 80 mm) gerava ~5 cm de espaço no topo do ticket. A renderização do logo foi removida por completo da pipeline de impressão. Os assets de logo continuam disponíveis em `assets/images/` para uso em outras telas (`adaptive_logo.dart`).
   - `lib/infrastructure/services/company_logo_service.dart` (excluído)
@@ -495,7 +545,7 @@ Lacunas de teste:
 
 ### 🔄 PENDENTES
 
-- [ ] **Ativar e estabilizar testes de integracao de consulta**: Testes atualmente `skip: true` por dependerem de servidor Socket.IO real. Arquivo: `test/data/repositories/expedition_item_print_consultation_repository_integration_test.dart`
+- [ ] **Ativar e estabilizar testes de integracao de consulta**: Testes atualmente `skip: true` por dependerem de servidor Socket.IO real. Arquivo: `integration_test/data/repositories/expedition_item_print_consultation_repository_integration_test.dart`
 
 - [ ] **Homologar em campo com NP-330N**: Validar QRCode, corte, acentuação e desempenho em impressora física em rede real.
 

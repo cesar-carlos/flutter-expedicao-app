@@ -46,6 +46,8 @@ gravacao e os principais pontos de extensao da feature.
     `AudioService.playAlertComplete()`
 - A oferta de salvamento apos concluir o setor e coordenada por
   `lib/ui/widgets/card_picking/components/picking_flow_controller.dart`.
+- Ao salvar, `finishPicking()` ainda abre um segundo dialogo de
+  confirmacao ("Finalizar Separação") antes do loading e do `saveCart()`.
 - `lib/ui/widgets/separate_items/cart_item_card.dart` apenas reage ao
   retorno `'save_cart'`, mostra snackbar e navega para
   `AppRouter.separation`.

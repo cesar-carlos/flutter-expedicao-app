@@ -29,6 +29,7 @@ Após executar, verifique se os arquivos foram criados:
 - **iOS**: `ios/Runner/Assets.xcassets/AppIcon.appiconset/`
 - **Web**: `web/icons/Icon-*.png`
 - **Windows**: `windows/runner/resources/app_icon.ico`
+- **macOS**: `macos/Runner/Assets.xcassets/AppIcon.appiconset/`
 
 ## 📱 Teste
 

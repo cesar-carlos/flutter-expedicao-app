@@ -16,10 +16,13 @@ passa por:
 ### Tela e layout
 
 - `lib/ui/screens/card_picking_screen.dart`
+- `lib/ui/widgets/card_picking/picking_card_scan.dart`
 - `lib/ui/widgets/card_picking/components/picking_screen_layout.dart`
 
-Esses arquivos montam a tela e distribuem widgets como proximo item,
-scanner e seletor de quantidade.
+`card_picking_screen.dart` monta a tela e, no corpo, renderiza
+`PickingCardScan`. O `PickingScreenLayout` nao e usado diretamente pela
+tela: ele e montado DENTRO de `picking_card_scan.dart`, que distribui
+widgets como proximo item, scanner e seletor de quantidade.
 
 ### ViewModel
 
@@ -79,8 +82,14 @@ ViewModel.
 `CardPickingViewModel.processScan(...)` delega para
 `PickingScanResolver`, que usa:
 
-- `PickingUtils.findNextItemToPick(...)`
+- `PickingUtils.findNextItemToPick(...)` apenas como fallback, quando o
+  `nextItem` recebido e `null`
 - `BarcodeValidationService.validateScannedBarcode(...)`
+
+O proximo item esperado em si nao vem de `findNextItemToPick` direto no
+ViewModel: o cache do `CardPickingViewModel` e mantido por
+`_findNextItemFromCurrentOrder()`, que itera sobre `_items` (ja
+ordenados) e retorna o primeiro incompleto.
 
 ### 3. Reacao da UI
 
@@ -130,17 +139,28 @@ Se o usuario confirma no dialogo, `PickingFlowController.finishPicking()`
 faz o restante:
 
 - valida estado do socket
+- exibe o dialogo de confirmacao "Finalizar Separação"
+  (`_showFinishConfirmationDialog`) antes do loading; esse dialogo
+  bloqueia a confirmacao enquanto houver operacoes de sync pendentes
+  (`pendingOps == 0`)
+- chama `viewModel.stopCartEventMonitoring()` antes de salvar
 - abre loading
 - chama `viewModel.saveCart()`
 - toca `playSuccess()`
 - retorna `'save_cart'`
+
+Ou seja, apos concluir o setor o usuario passa por dois dialogos:
+"Setor Concluído!" e, em seguida, "Finalizar Separação".
 
 `CartItemCard` recebe esse retorno, mostra snackbar e navega para
 `AppRouter.separation`.
 
 ## Pontos fortes atuais
 
-- A ordenacao e o proximo item estao centralizados em `PickingUtils`.
+- A ordenacao esta centralizada em `PickingUtils.sortItemsByAddress`; o
+  proximo item do ViewModel deriva dessa lista ja ordenada via
+  `_findNextItemFromCurrentOrder()`, e `PickingUtils.findNextItemToPick`
+  serve como fallback no resolver.
 - O service de validacao de carrinho esta separado do widget.
 - O fluxo de feedback sonoro esta mais explicito por tipo de evento.
 - O `AudioService` atual corrige repeticao consecutiva do mesmo som em

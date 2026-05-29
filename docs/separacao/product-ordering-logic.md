@@ -49,8 +49,17 @@ _items = PickingUtils.sortItemsByAddress(
 
 ## Calculo do proximo item
 
-O proximo item esperado tambem e centralizado em
-`lib/core/utils/picking_utils.dart`, no metodo:
+Existem dois caminhos para descobrir o proximo item esperado.
+
+No `CardPickingViewModel`, o cache do proximo item NAO usa
+`PickingUtils.findNextItemToPick(...)` diretamente. O metodo
+`_updateNextItemCache()` chama `_findNextItemFromCurrentOrder()`, que
+itera sobre `_items` (ja ordenados por `sortItemsByAddress`) e retorna o
+primeiro item ainda incompleto. Veja
+`lib/presentation/viewmodels/card_picking_viewmodel.dart` (~924-931).
+
+O helper centralizado continua existindo em
+`lib/core/utils/picking_utils.dart`:
 
 ```dart
 PickingUtils.findNextItemToPick(...)
@@ -62,8 +71,10 @@ Ele recebe:
 - um callback `isItemCompleted`
 - o `userSectorCode` opcional
 
-O `CardPickingViewModel` usa esse helper para manter o cache do proximo
-item e para resolver o item atual esperado durante o scan.
+Hoje esse helper e usado apenas como fallback no
+`picking_scan_resolver.dart`, quando o `nextItem` recebido e `null`
+(`nextItem ?? PickingUtils.findNextItemToPick(...)`). O
+`BarcodeValidationService` segue o mesmo padrao de fallback.
 
 ## Validacao do barcode
 
@@ -112,6 +123,10 @@ PickingFlowController.checkAndShowSaveCartModal()
 
 Hoje a verificacao:
 
+- retorna imediatamente quando `userSectorCode == null`
+  (`picking_flow_controller.dart` ~83-87), ou seja, usuarios sem
+  `codSetorEstoque` nao recebem o dialogo de salvamento por conclusao de
+  setor
 - pega itens sem setor ou do setor do usuario
 - interrompe se esse subconjunto estiver vazio
 - testa se todos estao completos
