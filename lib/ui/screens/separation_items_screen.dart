@@ -22,20 +22,17 @@ import 'package:data7_expedicao/ui/widgets/separation_title_with_connection_stat
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
-import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_params.dart';
 import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_usecase.dart';
-import 'package:data7_expedicao/domain/usecases/check_separation_user_sector_completion/check_separation_user_sector_completion_params.dart';
 import 'package:data7_expedicao/domain/usecases/check_separation_user_sector_completion/check_separation_user_sector_completion_usecase.dart';
-import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_params.dart';
 import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_usecase.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/core/utils/print_failure_message_helper.dart';
 import 'package:data7_expedicao/domain/usecases/get_default_printer/get_default_printer_usecase.dart';
-import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_params.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
-import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_success.dart';
+import 'package:data7_expedicao/presentation/coordinators/separation_print_coordinator.dart';
+import 'package:data7_expedicao/presentation/coordinators/separation_user_link_coordinator.dart';
+import 'package:data7_expedicao/presentation/coordinators/add_cart_flow_coordinator.dart';
 
 class SeparationItemsScreen extends StatefulWidget {
   final SeparateConsultationModel separation;
@@ -104,20 +101,20 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
     }
 
     if (userSectorStock != null && userSectorStock > 0) {
-      final resolveUseCase = locator<ResolveSeparationUserLinkUseCase>();
-      final result = await resolveUseCase.call(
-        ResolveSeparationUserLinkParams(
-          separation: widget.separation,
-          codUsuario: currentUserId,
-          codSetorEstoque: userSectorStock,
-        ),
+      final linkCoordinator = SeparationUserLinkCoordinator(
+        resolveSeparationUserLinkUseCase: locator<ResolveSeparationUserLinkUseCase>(),
+      );
+      final linkResult = await linkCoordinator.resolveLink(
+        separation: widget.separation,
+        codUsuario: currentUserId,
+        codSetorEstoque: userSectorStock,
       );
       if (!mounted) return;
-      if (result.isError()) {
+      if (linkResult == SeparationLinkResult.checkFailed) {
         _showErrorAndGoBack(UIConstants.separationLinkCheckFailedMessage);
         return;
       }
-      if (result.getOrNull() != true && mounted) {
+      if (linkResult == SeparationLinkResult.notAssigned && mounted) {
         _showErrorAndGoBack(UIConstants.separationNotAssignedToUserMessage);
         return;
       }
@@ -421,73 +418,45 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      final printer = await locator<GetDefaultPrinterUseCase>().call();
-      if (!mounted) return;
+      final coordinator = SeparationPrintCoordinator(
+        getDefaultPrinterUseCase: locator<GetDefaultPrinterUseCase>(),
+        userSessionService: locator<IUserSessionService>(),
+        printExpeditionTicketUseCase: locator<PrintExpeditionTicketUseCase>(),
+      );
 
-      if (printer == null) {
-        if (!mounted) return;
-        messenger.showSnackBar(
-          SnackBar(
-            content: const Text('Nenhuma impressora padrão configurada para impressão.'),
-            backgroundColor: AppColors.warning,
-            action: SnackBarAction(label: 'Configurar', onPressed: () => context.push(AppRouter.printerConfig)),
-          ),
-        );
-        return;
-      }
-
-      final appUser = await locator<IUserSessionService>().loadUserSession();
-      if (!mounted) return;
-
-      final separatorName = appUser?.userSystemModel?.nomeUsuario ?? appUser?.nome;
-      final userSectorStock = appUser?.userSystemModel?.codSetorEstoque;
-      final userSectorName = appUser?.userSystemModel?.nomeSetorEstoque;
-
-      final printUseCase = locator<PrintExpeditionTicketUseCase>();
-      final result = await printUseCase.call(
-        PrintExpeditionTicketParams(
-          codEmpresa: widget.separation.codEmpresa,
-          codSepararEstoque: widget.separation.codSepararEstoque,
-          printer: printer,
-          separatorName: separatorName,
-          codSetorEstoque: (userSectorStock != null && userSectorStock > 0) ? userSectorStock : null,
-          codUsuario: appUser?.userSystemModel?.codUsuario,
-        ),
+      final result = await coordinator.printSeparationTicket(
+        codEmpresa: widget.separation.codEmpresa,
+        codSepararEstoque: widget.separation.codSepararEstoque,
       );
 
       if (!mounted) return;
 
-      final success = result.getOrNull();
-      if (success != null) {
-        if (!mounted) return;
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Impressão enviada para ${printer.name} (${printer.ip}:${printer.port}).'),
-            backgroundColor: AppColors.info,
-          ),
-        );
-        return;
+      switch (result) {
+        case PrintTicketNoPrinterConfigured():
+          messenger.showSnackBar(
+            SnackBar(
+              content: const Text('Nenhuma impressora padrão configurada para impressão.'),
+              backgroundColor: AppColors.warning,
+              action: SnackBarAction(label: 'Configurar', onPressed: () => context.push(AppRouter.printerConfig)),
+            ),
+          );
+        case PrintTicketSent(:final printer):
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('Impressão enviada para ${printer.name} (${printer.ip}:${printer.port}).'),
+              backgroundColor: AppColors.info,
+            ),
+          );
+        case PrintTicketFailed(:final message):
+          messenger.showSnackBar(SnackBar(content: Text(message), backgroundColor: AppColors.warning));
+        case PrintTicketError():
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Erro ao imprimir separação. Tente novamente.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
       }
-
-      final failure = result.exceptionOrNull();
-
-      String errorMessage;
-      if (failure is DataFailure && failure.code == 'NOT_FOUND') {
-        if (userSectorStock != null && userSectorStock > 0) {
-          errorMessage =
-              'Não existem itens do setor $userSectorStock ($userSectorName) para imprimir nesta separação.\n'
-              'Usuário: $separatorName';
-        } else {
-          errorMessage =
-              'Não existem itens para imprimir nesta separação.\n'
-              'Usuário: $separatorName';
-        }
-      } else {
-        errorMessage = const PrintFailureMessageHelper().build(failure, context: PrintFailureContext.separation);
-      }
-
-      if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: AppColors.warning));
     } catch (e, stackTrace) {
       AppLogger.error('Erro ao imprimir separação', tag: 'SeparationItemsScreen', error: e, stackTrace: stackTrace);
       if (!mounted) return;
@@ -544,67 +513,49 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
     setState(() => _isValidatingAddCart = true);
 
     try {
-      final getSeparationUseCase = locator<GetSeparationConsultationUseCase>();
-      final freshResult = await getSeparationUseCase.call(
-        GetSeparationConsultationParams(
-          codEmpresa: separation.codEmpresa,
-          codSepararEstoque: separation.codSepararEstoque,
-        ),
+      final coordinator = AddCartFlowCoordinator(
+        getSeparationConsultationUseCase: locator<GetSeparationConsultationUseCase>(),
+        userSessionService: locator<IUserSessionService>(),
+        resolveSeparationUserLinkUseCase: locator<ResolveSeparationUserLinkUseCase>(),
+        checkSeparationUserSectorCompletionUseCase: locator<CheckSeparationUserSectorCompletionUseCase>(),
       );
+
+      final result = await coordinator.validate(separation);
 
       if (!context.mounted) return;
 
-      if (freshResult.isError()) {
-        final failure = freshResult.exceptionOrNull();
-        final message = failure is AppFailure
-            ? failure.userMessage
-            : (failure?.toString() ?? 'Erro ao consultar separação');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: AppColors.error,
-            duration: UIConstants.snackBarLongDuration,
-          ),
-        );
-        return;
-      }
-
-      final freshSeparation = freshResult.getOrNull();
-      if (freshSeparation == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Separação não encontrada'),
-            backgroundColor: AppColors.error,
-            duration: UIConstants.snackBarLongDuration,
-          ),
-        );
-        return;
-      }
-
-      if (!_canAddCart(freshSeparation)) {
-        viewModel.updateSeparation(freshSeparation);
-        if (context.mounted) {
+      switch (result) {
+        case AddCartConsultFailed(:final message):
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                'Não é possível adicionar carrinho. Situação atual: ${freshSeparation.situacao.description}\n'
-                'Permitido apenas em: Aguardando ou Separando',
-              ),
-              backgroundColor: Theme.of(context).colorScheme.tertiary,
+              content: Text(message),
+              backgroundColor: AppColors.error,
               duration: UIConstants.snackBarLongDuration,
             ),
           );
-        }
-        return;
-      }
-
-      final userSessionService = locator<IUserSessionService>();
-      final appUser = await userSessionService.loadUserSession();
-      final codUsuario = appUser?.userSystemModel?.codUsuario;
-      final codSetorEstoque = appUser?.userSystemModel?.codSetorEstoque;
-
-      if (codUsuario == null || codUsuario <= 0) {
-        if (context.mounted) {
+        case AddCartSeparationNotFound():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Separação não encontrada'),
+              backgroundColor: AppColors.error,
+              duration: UIConstants.snackBarLongDuration,
+            ),
+          );
+        case AddCartSituationNotAllowed(:final freshSeparation):
+          viewModel.updateSeparation(freshSeparation);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Não é possível adicionar carrinho. Situação atual: ${freshSeparation.situacao.description}\n'
+                  'Permitido apenas em: Aguardando ou Separando',
+                ),
+                backgroundColor: Theme.of(context).colorScheme.tertiary,
+                duration: UIConstants.snackBarLongDuration,
+              ),
+            );
+          }
+        case AddCartUserNotIdentified():
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Usuário não identificado. Por favor, faça login novamente.'),
@@ -612,21 +563,7 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
               duration: UIConstants.snackBarLongDuration,
             ),
           );
-        }
-        return;
-      }
-
-      if (codSetorEstoque != null && codSetorEstoque > 0) {
-        final resolveUseCase = locator<ResolveSeparationUserLinkUseCase>();
-        final resolveResult = await resolveUseCase.call(
-          ResolveSeparationUserLinkParams(
-            separation: freshSeparation,
-            codUsuario: codUsuario,
-            codSetorEstoque: codSetorEstoque,
-          ),
-        );
-        if (!context.mounted) return;
-        if (resolveResult.isError()) {
+        case AddCartLinkCheckFailed():
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text(UIConstants.separationLinkCheckFailedMessage),
@@ -634,32 +571,15 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
               duration: UIConstants.snackBarLongDuration,
             ),
           );
-          return;
-        }
-        if (resolveResult.getOrNull() != true) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text(UIConstants.separationNotAssignedToUserMessage),
-                backgroundColor: AppColors.error,
-                duration: UIConstants.snackBarLongDuration,
-              ),
-            );
-          }
-          return;
-        }
-
-        final completionUseCase = locator<CheckSeparationUserSectorCompletionUseCase>();
-        final completionResult = await completionUseCase.call(
-          CheckSeparationUserSectorCompletionParams(
-            codEmpresa: freshSeparation.codEmpresa,
-            codSepararEstoque: freshSeparation.codSepararEstoque,
-            codSetorEstoque: codSetorEstoque,
-            codUsuario: codUsuario,
-          ),
-        );
-        if (!context.mounted) return;
-        if (completionResult.isError()) {
+        case AddCartNotAssigned():
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(UIConstants.separationNotAssignedToUserMessage),
+              backgroundColor: AppColors.error,
+              duration: UIConstants.snackBarLongDuration,
+            ),
+          );
+        case AddCartCompletionCheckFailed():
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Nao foi possivel validar se o setor ja foi concluido. Tente novamente.'),
@@ -667,51 +587,38 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
               duration: UIConstants.snackBarLongDuration,
             ),
           );
-          return;
-        }
-
-        if (completionResult.getOrNull() == true) {
+        case AddCartSectorAlreadyCompleted():
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text(
+            const SnackBar(
+              content: Text(
                 'Seu setor de estoque ja esta concluido nesta separacao. Nao e permitido incluir novos carrinhos.',
               ),
               backgroundColor: AppColors.warning,
               duration: UIConstants.snackBarLongDuration,
             ),
           );
-          return;
-        }
-      }
+        case AddCartAllowed(:final freshSeparation):
+          viewModel.updateSeparation(freshSeparation);
 
-      if (!context.mounted) return;
+          final pushResult = await context.push<AddCartSuccess?>(
+            AppRouter.addCart,
+            extra: {'codEmpresa': freshSeparation.codEmpresa, 'codSepararEstoque': freshSeparation.codSepararEstoque},
+          );
 
-      viewModel.updateSeparation(freshSeparation);
-
-      final result = await context.push<AddCartSuccess?>(
-        AppRouter.addCart,
-        extra: {'codEmpresa': freshSeparation.codEmpresa, 'codSepararEstoque': freshSeparation.codSepararEstoque},
-      );
-
-      if (result != null) {
-        AppLogger.debug(
-          'Carrinho adicionado com sucesso, iniciando abertura do carrinho exato...',
-          tag: 'SeparationItemsScreen',
-        );
-        if (!context.mounted) return;
-        await _handleAddedCartAutoOpen(context, viewModel, result);
+          if (pushResult != null) {
+            AppLogger.debug(
+              'Carrinho adicionado com sucesso, iniciando abertura do carrinho exato...',
+              tag: 'SeparationItemsScreen',
+            );
+            if (!context.mounted) return;
+            await _handleAddedCartAutoOpen(context, viewModel, pushResult);
+          }
       }
     } finally {
       if (mounted) {
         setState(() => _isValidatingAddCart = false);
       }
     }
-  }
-
-  bool _canAddCart(SeparateConsultationModel? separation) {
-    if (separation == null) return false;
-
-    return _canAddCartSituacao(separation.situacao);
   }
 
   bool _canAddCartSituacao(ExpeditionSituation? situacao) {

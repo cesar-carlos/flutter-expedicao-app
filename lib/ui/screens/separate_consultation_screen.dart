@@ -10,11 +10,10 @@ import 'package:data7_expedicao/ui/widgets/app_drawer/app_drawer.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder_extension.dart';
 import 'package:data7_expedicao/ui/widgets/data_grid/separate_consultation_data_grid.dart';
 import 'package:data7_expedicao/presentation/viewmodels/separate_consultation_viewmodel.dart';
-import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
-import 'package:data7_expedicao/core/theme/app_fonts.dart';
+import 'package:data7_expedicao/ui/widgets/separate_consultation/index.dart';
 
 class SeparateConsultationScreen extends StatefulWidget {
   const SeparateConsultationScreen({super.key});
@@ -253,7 +252,7 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
                   ),
                 ),
 
-                _buildPaginationControls(viewModel),
+                ConsultationPaginationControls(viewModel: viewModel),
               ],
             ),
           ),
@@ -286,14 +285,15 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildDetailItem('ID:', consultation.codSepararEstoque.toString()),
-                _buildDetailItem('Código:', consultation.codSepararEstoque.toString()),
-                _buildDetailItem('Descrição:', consultation.nomeEntidade),
-                _buildDetailItem('Status:', consultation.situacaoDescription),
-                _buildDetailItem('Usuário:', consultation.nomeEntidade),
-                _buildDetailItem('Data Emissão:', _formatDate(consultation.dataEmissao)),
-                _buildDetailItem('Hora Emissão:', consultation.horaEmissao),
-                if (consultation.observacao != null) _buildDetailItem('Observações:', consultation.observacao),
+                ConsultationDetailItem(label: 'ID:', value: consultation.codSepararEstoque.toString()),
+                ConsultationDetailItem(label: 'Código:', value: consultation.codSepararEstoque.toString()),
+                ConsultationDetailItem(label: 'Descrição:', value: consultation.nomeEntidade),
+                ConsultationDetailItem(label: 'Status:', value: consultation.situacaoDescription),
+                ConsultationDetailItem(label: 'Usuário:', value: consultation.nomeEntidade),
+                ConsultationDetailItem(label: 'Data Emissão:', value: _formatDate(consultation.dataEmissao)),
+                ConsultationDetailItem(label: 'Hora Emissão:', value: consultation.horaEmissao),
+                if (consultation.observacao != null)
+                  ConsultationDetailItem(label: 'Observações:', value: consultation.observacao),
               ],
             ),
           ),
@@ -318,71 +318,10 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
     );
   }
 
-  Widget _buildDetailItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(label, style: AppFonts.inter(fontWeight: FontWeight.bold)),
-          ),
-          Expanded(child: Text(value.isEmpty ? 'N/A' : value)),
-        ],
-      ),
-    );
-  }
-
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/'
         '${date.month.toString().padLeft(2, '0')}/'
         '${date.year}';
-  }
-
-  Widget _buildPaginationControls(ShipmentSeparateConsultationViewModel viewModel) {
-    return Container(
-      padding: const EdgeInsets.all(UIConstants.defaultPadding),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2))),
-      ),
-      child: Row(
-        children: [
-          Text(
-            'Página ${viewModel.currentPage + 1} - ${viewModel.consultations.length} registros',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const Spacer(),
-
-          IconButton(
-            onPressed: viewModel.currentPage > 0 && !viewModel.isLoading
-                ? () => viewModel.loadPage(viewModel.currentPage - 1)
-                : null,
-            icon: const Icon(Icons.chevron_left),
-            tooltip: 'Página anterior',
-          ),
-
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(UIConstants.largeBorderRadius),
-            ),
-            child: Text(
-              '${viewModel.currentPage + 1}',
-              style: AppFonts.inter(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold),
-            ),
-          ),
-
-          IconButton(
-            onPressed: viewModel.hasMoreData && !viewModel.isLoading ? () => viewModel.loadNextPage() : null,
-            icon: const Icon(Icons.chevron_right),
-            tooltip: 'Próxima página',
-          ),
-        ],
-      ),
-    );
   }
 
   void _refreshData(ShipmentSeparateConsultationViewModel viewModel) {
@@ -404,158 +343,15 @@ class _ShipmentSeparateConsultationScreenState extends State<SeparateConsultatio
       titleIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
       width: 800,
       height: 700,
-      content: _buildConsultationDialogContent(viewModel),
-    );
-  }
-
-  Widget _buildConsultationDialogContent(ShipmentSeparateConsultationViewModel viewModel) {
-    final TextEditingController paramsController = TextEditingController();
-    String selectedFilter = 'todos';
-    int pageSize = viewModel.pageSize;
-
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Escolha o tipo de consulta:', style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: UIConstants.defaultPadding),
-
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'todos', label: Text('Todas as separações'), icon: Icon(Icons.all_inbox)),
-                ButtonSegment(value: 'codigo', label: Text('Por código'), icon: Icon(Icons.tag)),
-                ButtonSegment(value: 'status', label: Text('Por situação'), icon: Icon(Icons.flag)),
-              ],
-              selected: {selectedFilter},
-              onSelectionChanged: (selection) {
-                setState(() => selectedFilter = selection.first);
-              },
-            ),
-
-            const SizedBox(height: UIConstants.defaultPadding),
-
-            if (selectedFilter == 'codigo') ...[
-              TextField(
-                controller: paramsController,
-                decoration: const InputDecoration(
-                  labelText: 'Código da separação',
-                  hintText: 'Ex: 123',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.tag),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-            ] else if (selectedFilter == 'status') ...[
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Situação',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.flag),
-                ),
-                items: ExpeditionSituation.values.map((situation) {
-                  return DropdownMenuItem(value: situation.code, child: Text(situation.description));
-                }).toList(),
-                onChanged: (value) {
-                  paramsController.text = value ?? '';
-                },
-              ),
-            ],
-
-            const SizedBox(height: UIConstants.defaultPadding),
-
-            Container(
-              padding: const EdgeInsets.all(UIConstants.smallPadding),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-                border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.view_list, color: Theme.of(context).colorScheme.primary, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Configurações de Paginação',
-                          style: AppFonts.inter(fontWeight: FontWeight.bold),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Text('Registros por página:'),
-                      const SizedBox(width: 16),
-                      DropdownButton<int>(
-                        value: pageSize,
-                        items: [10, 20, 50, 100].map((size) {
-                          return DropdownMenuItem(value: size, child: Text('$size'));
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            pageSize = value ?? 20;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: UIConstants.defaultPadding),
-            Container(
-              padding: const EdgeInsets.all(UIConstants.smallPadding),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(UIConstants.smallBorderRadius),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      selectedFilter == 'todos'
-                          ? 'Esta consulta retornará todas as separações disponíveis no sistema com paginação.'
-                          : 'Esta consulta filtrará as separações baseada nos critérios selecionados com paginação.',
-                      style: AppFonts.inter(fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: UIConstants.largePadding),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-                const SizedBox(width: 16),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.search),
-                  label: const Text('Consultar'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-
-                    if (pageSize != viewModel.pageSize) {
-                      viewModel.setPageSize(pageSize);
-                    }
-                    _executeConsultationWithFilter(viewModel, selectedFilter, paramsController.text.trim());
-                  },
-                ),
-              ],
-            ),
-          ],
-        );
-      },
+      content: ConsultationFilterDialogContent(
+        viewModel: viewModel,
+        onConsult: (filterType, pageSize, inputValue) {
+          if (pageSize != viewModel.pageSize) {
+            viewModel.setPageSize(pageSize);
+          }
+          _executeConsultationWithFilter(viewModel, filterType, inputValue);
+        },
+      ),
     );
   }
 

@@ -250,7 +250,7 @@ class AppRouter {
                 final userModel = extra['userModel'] is UserSystemModel ? extra['userModel'] as UserSystemModel : null;
 
                 return ChangeNotifierProvider(
-                  create: (_) => CardPickingViewModel(),
+                  create: (_) => locator<CardPickingViewModel>(),
                   child: CardPickingScreen(cart: cart, userModel: userModel),
                 );
               },

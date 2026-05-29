@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/results/app_failure.dart';
-import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/validation/common/socket_validation_helper.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/services/picking_state_manager.dart';
@@ -14,12 +13,11 @@ import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/theme/status_colors.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
-import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
-import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_params.dart';
 import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_success.dart';
+import 'package:data7_expedicao/presentation/coordinators/cart_separation_coordinator.dart';
 import 'package:data7_expedicao/presentation/viewmodels/separation_items_viewmodel.dart';
 import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
@@ -43,8 +41,15 @@ class CartItemCard extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cartRouteInternshipConsultation;
   final VoidCallback? onCancel;
   final SeparationItemsViewModel? viewModel;
+  final CartSeparationCoordinator? coordinator;
 
-  const CartItemCard({super.key, required this.cartRouteInternshipConsultation, this.onCancel, this.viewModel});
+  const CartItemCard({
+    super.key,
+    required this.cartRouteInternshipConsultation,
+    this.onCancel,
+    this.viewModel,
+    this.coordinator,
+  });
 
   @override
   State<CartItemCard> createState() => _CartItemCardState();
@@ -56,6 +61,15 @@ class _CartItemCardState extends State<CartItemCard> {
   static const _minSyncInterval = Duration(seconds: 2);
   bool _isSaving = false;
   BuildContext? _loadingDialogContext;
+
+  late final CartSeparationCoordinator _coordinator =
+      widget.coordinator ??
+      CartSeparationCoordinator(
+        userSessionService: locator<IUserSessionService>(),
+        cartValidationService: locator<CartValidationService>(),
+        getSeparationConsultationUseCase: locator<GetSeparationConsultationUseCase>(),
+        saveSeparationCartUseCase: locator<SaveSeparationCartUseCase>(),
+      );
 
   ExpeditionCartRouteInternshipConsultationModel _resolveCurrentCart() {
     final viewModel = widget.viewModel;
@@ -150,9 +164,8 @@ class _CartItemCardState extends State<CartItemCard> {
     final userModel = await _getUserModel();
     final currentUserCode = userModel?.codUsuario;
     final userSectorCode = userModel?.codSetorEstoque;
-    final cartValidation = locator<CartValidationService>();
 
-    final accessValidation = cartValidation.validateCartAccess(
+    final accessValidation = _coordinator.validateAccess(
       currentUserCode: currentUserCode,
       cart: currentCart,
       userModel: userModel,
@@ -167,7 +180,7 @@ class _CartItemCardState extends State<CartItemCard> {
     }
 
     if (userSectorCode != null) {
-      final hasItems = await cartValidation.hasItemsForUserSector(
+      final hasItems = await _coordinator.hasItemsForUserSector(
         codEmpresa: widget.cartRouteInternshipConsultation.codEmpresa,
         codOrigem: widget.cartRouteInternshipConsultation.codOrigem,
         userSectorCode: userSectorCode,
@@ -211,25 +224,16 @@ class _CartItemCardState extends State<CartItemCard> {
     _lastSyncKey = syncKey;
     _lastSyncTime = now;
 
-    final useCase = locator<GetSeparationConsultationUseCase>();
-    final syncResult = await useCase.call(
-      GetSeparationConsultationParams(
-        codEmpresa: widget.cartRouteInternshipConsultation.codEmpresa,
-        codSepararEstoque: widget.cartRouteInternshipConsultation.codOrigem,
-      ),
+    final fresh = await _coordinator.fetchSeparation(
+      codEmpresa: widget.cartRouteInternshipConsultation.codEmpresa,
+      codSepararEstoque: widget.cartRouteInternshipConsultation.codOrigem,
     );
     if (!context.mounted) return;
 
-    SeparateConsultationModel? fresh;
-    syncResult.fold((value) => fresh = value, (_) => {});
     if (context.mounted) unawaited(widget.viewModel!.refreshWithSeparation(fresh));
   }
 
-  Future<UserSystemModel?> _getUserModel() async {
-    final userSessionService = locator<IUserSessionService>();
-    final appUser = await userSessionService.loadUserSession();
-    return appUser?.userSystemModel;
-  }
+  Future<UserSystemModel?> _getUserModel() => _coordinator.getUserModel();
 
   void _showDifferentUserDialog(BuildContext context, String cartOwnerName, {required String actionLabel}) {
     if (!context.mounted) return;
@@ -309,8 +313,7 @@ class _CartItemCardState extends State<CartItemCard> {
       return false;
     }
 
-    final cartValidation = locator<CartValidationService>();
-    final accessValidation = cartValidation.validateCartAccess(
+    final accessValidation = _coordinator.validateAccess(
       currentUserCode: userModel?.codUsuario,
       cart: currentCart,
       userModel: userModel,
@@ -341,8 +344,6 @@ class _CartItemCardState extends State<CartItemCard> {
     _showLoadingDialog(context);
 
     try {
-      final saveSeparationCartUseCase = locator<SaveSeparationCartUseCase>();
-
       final params = SaveSeparationCartParams(
         codEmpresa: currentCart.codEmpresa,
         codCarrinhoPercurso: currentCart.codCarrinhoPercurso,
@@ -350,8 +351,8 @@ class _CartItemCardState extends State<CartItemCard> {
         codSepararEstoque: currentCart.codOrigem,
       );
 
-      final result = await saveSeparationCartUseCase
-          .call(params)
+      final outcome = await _coordinator
+          .finalizeCart(params)
           .timeout(
             UIConstants.networkTimeout,
             onTimeout: () {
@@ -365,10 +366,9 @@ class _CartItemCardState extends State<CartItemCard> {
         _ensureLoadingDialogClosed();
       }
 
-      final success = result.getOrNull();
-      if (success == null) {
-        final failure = result.exceptionOrNull();
-        if (context.mounted && failure is AppFailure) {
+      if (outcome is FinalizeCartFailure) {
+        final failure = outcome.failure;
+        if (context.mounted && failure != null) {
           _showErrorDialog(context, failure);
         } else if (context.mounted) {
           ScaffoldMessenger.of(
@@ -378,6 +378,7 @@ class _CartItemCardState extends State<CartItemCard> {
         return false;
       }
 
+      final success = (outcome as FinalizeCartSuccess).success;
       if (!context.mounted) return true;
       if (!skipConfirmation) _showSuccessDialog(context, success);
       if (widget.viewModel != null) unawaited(widget.viewModel!.refresh());
@@ -536,9 +537,8 @@ class _CartItemCardState extends State<CartItemCard> {
   Future<void> _showCancelDialog(BuildContext context) async {
     final currentCart = _resolveCurrentCart();
     final userModel = await _getUserModel();
-    final cartValidation = locator<CartValidationService>();
 
-    final accessValidation = cartValidation.validateCartAccess(
+    final accessValidation = _coordinator.validateAccess(
       currentUserCode: userModel?.codUsuario,
       cart: currentCart,
       userModel: userModel,

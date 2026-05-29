@@ -16,6 +16,8 @@ import 'package:data7_expedicao/presentation/viewmodels/separated_products_viewm
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/separated_products_title_with_connection_status.dart';
 import 'package:data7_expedicao/ui/widgets/pending_products_title_with_connection_status.dart';
+import 'package:data7_expedicao/ui/widgets/picking_products_list/picking_list_header.dart';
+import 'package:data7_expedicao/ui/widgets/picking_products_list/picking_status_views.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class PickingProductsListScreen extends StatefulWidget {
@@ -405,73 +407,42 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
     }
 
     if (viewModel.hasError) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(UIConstants.extraLargePadding),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-              const SizedBox(height: UIConstants.defaultPadding),
-              Text(
-                'Erro ao carregar produtos',
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: UIConstants.smallPadding),
-              Text(
-                viewModel.errorMessage ?? 'Erro desconhecido',
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: UIConstants.largePadding),
-              ElevatedButton(
-                onPressed: () {
-                  unawaited(
-                    viewModel.retry().catchError((Object e, StackTrace s) {
-                      AppLogger.warning(
-                        'Falha ao repetir carregamento (pendentes)',
-                        tag: 'PickingProductsListScreen',
-                        error: e,
-                        stackTrace: s,
-                      );
-                    }),
-                  );
-                },
-                child: const Text('Tentar Novamente'),
-              ),
-            ],
-          ),
-        ),
+      return PickingErrorView(
+        errorMessage: viewModel.errorMessage,
+        onRetry: () {
+          unawaited(
+            viewModel.retry().catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha ao repetir carregamento (pendentes)',
+                tag: 'PickingProductsListScreen',
+                error: e,
+                stackTrace: s,
+              );
+            }),
+          );
+        },
       );
     }
 
     final pendingItems = _computePendingItems(viewModel);
 
     if (pendingItems.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(UIConstants.extraLargePadding),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 64, color: iconColor.withValues(alpha: 0.5)),
-              const SizedBox(height: UIConstants.defaultPadding),
-              Text('Nenhum produto pendente', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: UIConstants.smallPadding),
-              Text(
-                'Todos os produtos já foram separados!',
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+      return PickingEmptyView(
+        icon: icon,
+        iconColor: iconColor,
+        title: 'Nenhum produto pendente',
+        message: 'Todos os produtos já foram separados!',
       );
     }
 
     return Column(
       children: [
-        _buildHeader(context, theme, colorScheme, icon, iconColor, pendingItems.length),
+        PickingListHeader(
+          icon: icon,
+          iconColor: iconColor,
+          title: 'Produtos Pendentes',
+          itemCount: pendingItems.length,
+        ),
 
         Expanded(
           child: ListView.builder(
@@ -509,71 +480,40 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
     }
 
     if (viewModel.hasError) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(UIConstants.extraLargePadding),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-              const SizedBox(height: UIConstants.defaultPadding),
-              Text(
-                'Erro ao carregar produtos',
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: UIConstants.smallPadding),
-              Text(
-                viewModel.errorMessage ?? 'Erro desconhecido',
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: UIConstants.largePadding),
-              ElevatedButton(
-                onPressed: () {
-                  unawaited(
-                    viewModel.retry().catchError((Object e, StackTrace s) {
-                      AppLogger.warning(
-                        'Falha ao repetir carregamento (separados)',
-                        tag: 'PickingProductsListScreen',
-                        error: e,
-                        stackTrace: s,
-                      );
-                    }),
-                  );
-                },
-                child: const Text('Tentar Novamente'),
-              ),
-            ],
-          ),
-        ),
+      return PickingErrorView(
+        errorMessage: viewModel.errorMessage,
+        onRetry: () {
+          unawaited(
+            viewModel.retry().catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha ao repetir carregamento (separados)',
+                tag: 'PickingProductsListScreen',
+                error: e,
+                stackTrace: s,
+              );
+            }),
+          );
+        },
       );
     }
 
     if (viewModel.items.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(UIConstants.extraLargePadding),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 64, color: iconColor.withValues(alpha: 0.5)),
-              const SizedBox(height: UIConstants.defaultPadding),
-              Text('Nenhum produto separado', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: UIConstants.smallPadding),
-              Text(
-                'Ainda não há produtos separados neste carrinho.',
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+      return PickingEmptyView(
+        icon: icon,
+        iconColor: iconColor,
+        title: 'Nenhum produto separado',
+        message: 'Ainda não há produtos separados neste carrinho.',
       );
     }
 
     return Column(
       children: [
-        _buildHeader(context, theme, colorScheme, icon, iconColor, viewModel.items.length),
+        PickingListHeader(
+          icon: icon,
+          iconColor: iconColor,
+          title: 'Produtos Separados',
+          itemCount: viewModel.items.length,
+        ),
 
         Expanded(
           child: RefreshIndicator(
@@ -601,61 +541,6 @@ class _PickingProductsListScreenState extends State<PickingProductsListScreen> w
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHeader(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-    IconData icon,
-    Color iconColor,
-    int itemCount,
-  ) {
-    final title = widget.filterType == 'pending' ? 'Produtos Pendentes' : 'Produtos Separados';
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(UIConstants.defaultPadding),
-      decoration: BoxDecoration(
-        color: iconColor.withValues(alpha: 0.1),
-        border: Border(bottom: BorderSide(color: iconColor.withValues(alpha: 0.3))),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: iconColor, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: iconColor.withValues(alpha: 0.8),
-                  ),
-                ),
-                Text(
-                  '$itemCount ${itemCount == 1 ? 'produto' : 'produtos'}',
-                  style: theme.textTheme.bodyMedium?.copyWith(color: iconColor.withValues(alpha: 0.7)),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: iconColor,
-              borderRadius: BorderRadius.circular(UIConstants.largeBorderRadius),
-            ),
-            child: Text(
-              '$itemCount',
-              style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

@@ -3,7 +3,6 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
 import 'package:data7_expedicao/domain/models/picking_state.dart';
@@ -274,29 +273,6 @@ class CardPickingViewModel extends ChangeNotifier {
     _shelfScanningService.resetScannedAddress();
   }
 
-  CardPickingViewModel()
-    : _repository = locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
-      _sectorStockRepository = locator<BasicRepository<ExpeditionSectorStockModel>>(),
-      _filtersStorage = locator<IFiltersStorageService>(),
-      _addItemSeparationUseCase = locator<AddItemSeparationUseCase>(),
-      _saveSeparationCartUseCase = locator<SaveSeparationCartUseCase>(),
-      _userSessionService = locator<IUserSessionService>(),
-      _validateSocketStateFn = SocketValidationHelper.validateSocketState,
-      _cartEventRepository = locator<SeparateCartInternshipEventRepository>(),
-      _shelfScanningService = locator<ShelfScanningService>(),
-      _stateManager = locator<PickingStateManager>(),
-      _cartValidationService = locator<CartValidationService>(),
-      _metrics = PickingMetricsRecorder(collector: _initMetricsCollector()) {
-    _cartEventController = CartEventListenerController(
-      eventRepository: _cartEventRepository,
-      onCartUpdated: _handleCartUpdate,
-      onProcessingError: _setError,
-    );
-    _filtersController = PickingFiltersController(storage: _filtersStorage, onChanged: _safeNotifyListeners);
-    _itemLoader = PickingItemLoader(repository: _repository, filtersController: _filtersController);
-    _addItemCoordinator = _buildAddItemCoordinator();
-  }
-
   CardPickingViewModel.withDependencies({
     required BasicConsultationRepository<SeparateItemConsultationModel> repository,
     required BasicRepository<ExpeditionSectorStockModel> sectorStockRepository,
@@ -342,14 +318,6 @@ class CardPickingViewModel extends ChangeNotifier {
       scheduleQueuedResync: _scheduleQueuedResyncIfReady,
       notifyOperationError: _notifyOperationError,
     );
-  }
-
-  static MetricsCollector? _initMetricsCollector() {
-    try {
-      return locator<MetricsCollector>();
-    } catch (_) {
-      return null;
-    }
   }
 
   @override

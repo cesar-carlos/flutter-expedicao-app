@@ -9,9 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
-import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_params.dart';
 import 'package:data7_expedicao/domain/usecases/resolve_separation_user_link/resolve_separation_user_link_usecase.dart';
-import 'package:data7_expedicao/core/utils/print_failure_message_helper.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/presentation/viewmodels/separation_viewmodel.dart';
@@ -19,19 +17,16 @@ import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/separation/separation_filter_modal.dart';
 import 'package:data7_expedicao/ui/widgets/separation_title_with_connection_status.dart';
 import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_usecase.dart';
-import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_params.dart';
-import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_failure.dart';
-import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_success.dart';
-import 'package:data7_expedicao/domain/models/separation_user_sector_consultation_model.dart';
 import 'package:data7_expedicao/ui/widgets/separation/separation_card.dart';
+import 'package:data7_expedicao/ui/widgets/separation/separation_list_states.dart';
 import 'package:data7_expedicao/ui/widgets/app_drawer/app_drawer.dart';
-import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/usecases/get_default_printer/get_default_printer_usecase.dart';
-import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_params.dart';
 import 'package:data7_expedicao/domain/usecases/print_expedition_ticket/print_expedition_ticket_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_usecase.dart';
-import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_params.dart';
+import 'package:data7_expedicao/presentation/coordinators/separation_print_coordinator.dart';
+import 'package:data7_expedicao/presentation/coordinators/separation_user_link_coordinator.dart';
+import 'package:data7_expedicao/presentation/coordinators/next_separation_coordinator.dart';
 
 /// Tela principal de listagem de separações
 class SeparationScreen extends StatefulWidget {
@@ -51,7 +46,6 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   static const double _fabIconSize = 20.0;
   static const double _modalIconSize = 48.0;
   static const double _loadingIndicatorSize = 20.0;
-  static const double _emptyStateIconSize = 64.0;
 
   // === CONTROLADORES ===
   final ScrollController _scrollController = ScrollController();
@@ -225,16 +219,16 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     }
 
     if (codSetorEstoque != null && codSetorEstoque > 0) {
-      final resolveUseCase = locator<ResolveSeparationUserLinkUseCase>();
-      final result = await resolveUseCase.call(
-        ResolveSeparationUserLinkParams(
-          separation: separation,
-          codUsuario: codUsuario,
-          codSetorEstoque: codSetorEstoque,
-        ),
+      final linkCoordinator = SeparationUserLinkCoordinator(
+        resolveSeparationUserLinkUseCase: locator<ResolveSeparationUserLinkUseCase>(),
+      );
+      final linkResult = await linkCoordinator.resolveLink(
+        separation: separation,
+        codUsuario: codUsuario,
+        codSetorEstoque: codSetorEstoque,
       );
       if (!mounted) return;
-      if (result.isError()) {
+      if (linkResult == SeparationLinkResult.checkFailed) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text(UIConstants.separationLinkCheckFailedMessage),
@@ -244,7 +238,7 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         );
         return;
       }
-      if (result.getOrNull() != true && mounted) {
+      if (linkResult == SeparationLinkResult.notAssigned && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text(UIConstants.separationNotAssignedToUserMessage),
@@ -289,71 +283,47 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     }
 
     try {
-      final printer = await locator<GetDefaultPrinterUseCase>().call();
-      if (!mounted) return;
+      final coordinator = SeparationPrintCoordinator(
+        getDefaultPrinterUseCase: locator<GetDefaultPrinterUseCase>(),
+        userSessionService: locator<IUserSessionService>(),
+        printExpeditionTicketUseCase: locator<PrintExpeditionTicketUseCase>(),
+      );
 
-      if (printer == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Nenhuma impressora padrão configurada para impressão.'),
-            backgroundColor: AppColors.warning,
-            action: SnackBarAction(label: 'Configurar', onPressed: () => context.push(AppRouter.printerConfig)),
-          ),
-        );
-        return;
-      }
-
-      final appUser = await locator<IUserSessionService>().loadUserSession();
-      final separatorName = appUser?.userSystemModel?.nomeUsuario ?? appUser?.nome;
-      final userSectorStock = appUser?.userSystemModel?.codSetorEstoque;
-      final userSectorName = appUser?.userSystemModel?.nomeSetorEstoque;
-
-      final printUseCase = locator<PrintExpeditionTicketUseCase>();
-      final result = await printUseCase.call(
-        PrintExpeditionTicketParams(
-          codEmpresa: separation.codEmpresa,
-          codSepararEstoque: separation.codSepararEstoque,
-          printer: printer,
-          separatorName: separatorName,
-          codSetorEstoque: (userSectorStock != null && userSectorStock > 0) ? userSectorStock : null,
-          codUsuario: appUser?.userSystemModel?.codUsuario,
-        ),
+      final result = await coordinator.printSeparationTicket(
+        codEmpresa: separation.codEmpresa,
+        codSepararEstoque: separation.codSepararEstoque,
       );
 
       if (!mounted) return;
 
-      final success = result.getOrNull();
-      if (success != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Impressão enviada para ${printer.name} (${printer.ip}:${printer.port}).'),
-            backgroundColor: AppColors.info,
-          ),
-        );
-        return;
+      switch (result) {
+        case PrintTicketNoPrinterConfigured():
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Nenhuma impressora padrão configurada para impressão.'),
+              backgroundColor: AppColors.warning,
+              action: SnackBarAction(label: 'Configurar', onPressed: () => context.push(AppRouter.printerConfig)),
+            ),
+          );
+        case PrintTicketSent(:final printer):
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Impressão enviada para ${printer.name} (${printer.ip}:${printer.port}).'),
+              backgroundColor: AppColors.info,
+            ),
+          );
+        case PrintTicketFailed(:final message):
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message), backgroundColor: AppColors.warning));
+        case PrintTicketError():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erro ao imprimir separação. Tente novamente.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
       }
-
-      final failure = result.exceptionOrNull();
-
-      // Mensagem personalizada para NOT_FOUND com informações do usuário
-      String errorMessage;
-      if (failure is DataFailure && failure.code == 'NOT_FOUND') {
-        if (userSectorStock != null && userSectorStock > 0) {
-          errorMessage =
-              'Não existem itens do setor $userSectorStock ($userSectorName) para imprimir nesta separação.\n'
-              'Usuário: $separatorName';
-        } else {
-          errorMessage =
-              'Não existem itens para imprimir nesta separação.\n'
-              'Usuário: $separatorName';
-        }
-      } else {
-        errorMessage = const PrintFailureMessageHelper().build(failure, context: PrintFailureContext.separation);
-      }
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: AppColors.warning));
     } catch (e, stackTrace) {
       AppLogger.error('Erro ao imprimir separação', tag: 'SeparationScreen', error: e, stackTrace: stackTrace);
       if (!mounted) return;
@@ -449,13 +419,37 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     setState(() => _isLoadingNextSeparation = true);
 
     try {
-      final params = await _getUserParams();
-      if (params == null || !mounted) return;
+      final coordinator = NextSeparationCoordinator(
+        userSessionService: locator<IUserSessionService>(),
+        nextSeparationUserUseCase: locator<NextSeparationUserUseCase>(),
+        getSeparationConsultationUseCase: locator<GetSeparationConsultationUseCase>(),
+      );
 
-      final result = await _executeNextSeparationUseCase(params);
+      final result = await coordinator.findNextSeparation();
       if (!mounted) return;
 
-      await _handleNextSeparationResult(result, params);
+      switch (result) {
+        case NextSeparationSessionError():
+          _showErrorModal('Erro de Sessão', 'Usuário não encontrado na sessão');
+        case NextSeparationInvalidSector():
+          _showErrorModal('Configuração Inválida', 'Usuário não possui setor estoque configurado');
+        case NextSeparationEmpty(:final message):
+          _showInfoModal('Nenhuma Separação', message);
+        case NextSeparationSearchError(:final message):
+          _showErrorModal('Erro na Busca', message);
+        case NextSeparationAssignmentError(:final codSepararEstoque):
+          _showErrorModal(
+            'Erro de Atribuição',
+            'A separação $codSepararEstoque não está atribuída ao usuário atual. '
+                'Por favor, tente novamente.',
+          );
+        case NextSeparationConsultError(:final message):
+          _showErrorModal('Erro na Consulta', message);
+        case NextSeparationNotFound(:final codSepararEstoque):
+          _showErrorModal('Separação Não Encontrada', 'A separação $codSepararEstoque não foi encontrada.');
+        case NextSeparationReady(:final separation):
+          context.push(AppRouter.separateItems, extra: separation.toJson());
+      }
     } catch (e, stackTrace) {
       AppLogger.error(
         'Erro inesperado em Próxima Separação',
@@ -470,109 +464,6 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
       if (mounted) {
         setState(() => _isLoadingNextSeparation = false);
       }
-    }
-  }
-
-  /// Obtém parâmetros do usuário logado
-  Future<NextSeparationUserParams?> _getUserParams() async {
-    final userSessionService = locator<IUserSessionService>();
-    final appUser = await userSessionService.loadUserSession();
-
-    if (appUser?.userSystemModel == null) {
-      if (mounted) {
-        _showErrorModal('Erro de Sessão', 'Usuário não encontrado na sessão');
-      }
-      return null;
-    }
-
-    final userSystemModel = appUser!.userSystemModel!;
-    final params = NextSeparationUserParams(
-      codEmpresa: userSystemModel.codEmpresa ?? 0,
-      codUsuario: userSystemModel.codUsuario,
-      codSetorEstoque: userSystemModel.codSetorEstoque,
-      userSystemModel: userSystemModel,
-    );
-
-    if (!params.hasValidSector) {
-      if (mounted) {
-        _showErrorModal('Configuração Inválida', 'Usuário não possui setor estoque configurado');
-      }
-      return null;
-    }
-
-    return params;
-  }
-
-  /// Executa o usecase de próxima separação
-  Future<Result<NextSeparationUserSuccess>> _executeNextSeparationUseCase(NextSeparationUserParams params) async {
-    final usecase = locator<NextSeparationUserUseCase>();
-    return await usecase(params);
-  }
-
-  /// Processa o resultado da busca de próxima separação
-  Future<void> _handleNextSeparationResult(
-    Result<NextSeparationUserSuccess> result,
-    NextSeparationUserParams params,
-  ) async {
-    final success = result.getOrNull();
-    if (success != null) {
-      if (success.hasSeparation) {
-        await _openNextSeparation(success.separation!, params);
-      } else {
-        _showInfoModal('Nenhuma Separação', success.message);
-      }
-      return;
-    }
-
-    final failure = result.exceptionOrNull();
-    final errorMessage = failure is NextSeparationUserFailure ? failure.userMessage : failure.toString();
-    _showErrorModal('Erro na Busca', errorMessage);
-  }
-
-  /// Consulta a separação completa e navega para a tela de separação
-  Future<void> _openNextSeparation(
-    SeparationUserSectorConsultationModel separation,
-    NextSeparationUserParams params,
-  ) async {
-    if (!mounted) return;
-
-    // Verificar se a separação está atribuída ao usuário atual
-    if (separation.codUsuario != params.codUsuario) {
-      _showErrorModal(
-        'Erro de Atribuição',
-        'A separação ${separation.codSepararEstoque} não está atribuída ao usuário atual. '
-            'Por favor, tente novamente.',
-      );
-      return;
-    }
-
-    // Consultar a separação completa
-    final getSeparationUseCase = locator<GetSeparationConsultationUseCase>();
-    final result = await getSeparationUseCase.call(
-      GetSeparationConsultationParams(
-        codEmpresa: separation.codEmpresa,
-        codSepararEstoque: separation.codSepararEstoque,
-      ),
-    );
-
-    if (!mounted) return;
-
-    if (result.isError()) {
-      final failure = result.exceptionOrNull();
-      final message = failure is AppFailure ? failure.userMessage : 'Erro ao consultar separação';
-      _showErrorModal('Erro na Consulta', message);
-      return;
-    }
-
-    final separateConsultation = result.getOrNull();
-    if (separateConsultation == null) {
-      _showErrorModal('Separação Não Encontrada', 'A separação ${separation.codSepararEstoque} não foi encontrada.');
-      return;
-    }
-
-    // Navegar para a tela de separação com dados reais
-    if (mounted) {
-      context.push(AppRouter.separateItems, extra: separateConsultation.toJson());
     }
   }
 
@@ -670,104 +561,42 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   }
 
   Widget _buildBody(BuildContext context, SeparationViewModel viewModel) {
-    if (viewModel.isLoading) return _buildLoadingState();
-    if (viewModel.hasError) return _buildErrorState(viewModel);
-    if (!viewModel.hasData) return _buildEmptyState();
+    if (viewModel.isLoading) return const SeparationLoadingState();
+    if (viewModel.hasError) {
+      return SeparationListErrorState(
+        errorMessage: viewModel.errorMessage,
+        onRetry: () {
+          unawaited(
+            viewModel.refresh().catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha ao repetir carregamento de separações',
+                tag: 'SeparationScreen',
+                error: e,
+                stackTrace: s,
+              );
+            }),
+          );
+        },
+      );
+    }
+    if (!viewModel.hasData) {
+      return SeparationListEmptyState(
+        onRefresh: () {
+          final vm = context.read<SeparationViewModel>();
+          unawaited(
+            vm.refresh().catchError((Object e, StackTrace s) {
+              AppLogger.warning(
+                'Falha ao atualizar separações (estado vazio)',
+                tag: 'SeparationScreen',
+                error: e,
+                stackTrace: s,
+              );
+            }),
+          );
+        },
+      );
+    }
     return _buildSeparationsList(viewModel);
-  }
-
-  Widget _buildLoadingState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando separações...')],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(SeparationViewModel viewModel) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: _emptyStateIconSize, color: Theme.of(context).colorScheme.error),
-            const SizedBox(height: 16),
-            Text(
-              'Erro ao carregar separações',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              viewModel.errorMessage ?? 'Erro desconhecido',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () {
-                unawaited(
-                  viewModel.refresh().catchError((Object e, StackTrace s) {
-                    AppLogger.warning(
-                      'Falha ao repetir carregamento de separações',
-                      tag: 'SeparationScreen',
-                      error: e,
-                      stackTrace: s,
-                    );
-                  }),
-                );
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Tentar Novamente'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inventory_2_outlined, size: _emptyStateIconSize, color: Theme.of(context).colorScheme.outline),
-            const SizedBox(height: 16),
-            Text(
-              'Nenhuma separação encontrada',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Não há separações disponíveis no momento.',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () {
-                final vm = context.read<SeparationViewModel>();
-                unawaited(
-                  vm.refresh().catchError((Object e, StackTrace s) {
-                    AppLogger.warning(
-                      'Falha ao atualizar separações (estado vazio)',
-                      tag: 'SeparationScreen',
-                      error: e,
-                      stackTrace: s,
-                    );
-                  }),
-                );
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Atualizar'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget _buildSeparationsList(SeparationViewModel viewModel) {
