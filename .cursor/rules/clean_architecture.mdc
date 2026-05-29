@@ -1,23 +1,18 @@
 ---
 description: Clean Architecture - Regras de dependência entre camadas e organização do código
 globs: ["lib/**/*.dart"]
-alwaysApply: true
+alwaysApply: false
 ---
-
-#
 
 # Clean Architecture - Regras de Dependência
 
-## Estrutura de Camadas
+## Escopo
 
-O projeto segue Clean Architecture com as seguintes camadas:
+Este arquivo e o dono das fronteiras acionaveis entre camadas: o que
+cada camada pode e nao pode importar.
 
-- **Domain**: Núcleo (lógica de negócio pura)
-- **Application**: Orquestração (casos de uso)
-- **Infrastructure**: Implementações (dados, APIs)
-- **Presentation**: UI (interface do usuário)
-- **Core**: Componentes centrais compartilhados
-- **Shared**: Componentes compartilhados entre features
+A visao geral de pastas, papeis de cada camada e fluxo vive em
+`architecture.mdc`.
 
 ## Regras de Dependência
 
@@ -129,9 +124,9 @@ class UserPage extends StatelessWidget {
 5. **Core** → Não importa de outras camadas de negócio
 6. **Shared** → Não importa de outras camadas de negócio
 
-## Princípios
+## Referências
 
-- **Independência**: Domain não depende de frameworks ou tecnologias
-- **Testabilidade**: Lógica de negócio pode ser testada sem dependências externas
-- **Inversão de Dependência**: Camadas externas dependem de camadas internas
-- **Separação de Responsabilidades**: Cada camada tem uma responsabilidade clara
+- visao geral, papeis de camada e fluxo: `architecture.mdc`
+- desenho de classes e Inversao de Dependencia (DIP):
+  `solid_principles.mdc`
+- regras especificas do dominio: `domain_layer.mdc`

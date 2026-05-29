@@ -1,7 +1,7 @@
 ---
 description: Padrões de Dependências - Bibliotecas e padrões de uso específicos do projeto
 globs: ["lib/**/*.dart", "pubspec.yaml"]
-alwaysApply: true
+alwaysApply: false
 ---
 
 #

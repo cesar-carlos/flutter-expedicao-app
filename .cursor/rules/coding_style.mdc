@@ -1,7 +1,7 @@
 ---
 description: Dart Style Guide - sintaxe, imports, tooling e recursos modernos
 globs: ["lib/**/*.dart", "test/**/*.dart"]
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Dart Style Guide
@@ -11,8 +11,12 @@ alwaysApply: true
 Este arquivo e a fonte de verdade para sintaxe, imports, tooling,
 logging e recursos modernos do Dart.
 
+Este arquivo e o dono do casing generico e da ordem de imports.
+
 Nao repita aqui:
 
+- nomes de tipos de dominio e sufixos (`Entity`, `IRepository`,
+  `Service`, `DTO`...): `coding_conventions.mdc`
 - politica de comentarios e documentacao: `general_rules.mdc`
 - widgets, build, layout e composicao: `flutter_widgets.mdc`
 - nullability: `null_safety.mdc`

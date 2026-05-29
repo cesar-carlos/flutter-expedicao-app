@@ -1,7 +1,7 @@
 ---
 description: Princípios SOLID - Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
 globs: ["lib/**/*.dart"]
-alwaysApply: true
+alwaysApply: false
 ---
 
 #

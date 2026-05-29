@@ -1,7 +1,7 @@
 ---
 description: Convencoes de codificacao - nomenclatura, arquivos e padroes
 globs: ["lib/**/*.dart"]
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Convencoes de Codificacao
@@ -24,16 +24,14 @@ alwaysApply: true
 
 ### Variaveis e metodos
 
-- use `camelCase`
-- metodos devem ser verbos
-- membros privados usam prefixo `_`
-- constantes nomeadas usam `camelCase`
+- casing, verbos em metodos e prefixo `_` em membros privados seguem
+  `coding_style.mdc`
 
 ### Arquivos
 
-- use `snake_case`
 - o nome do arquivo deve seguir a classe principal
-- interfaces devem seguir o padrao `i_nome_repository.dart`
+- interfaces de repositorio seguem o padrao `i_nome_repository.dart`
+- casing de arquivos e diretorios segue `coding_style.mdc`
 
 ## Estrutura esperada por tipo
 
@@ -57,27 +55,24 @@ alwaysApply: true
 
 ## Tratamento de erros
 
-- use `result_dart` para operacoes que podem falhar
-- prefira `Success(value)` e `Failure(error)`
-- nao use excecoes como fluxo normal de negocio
+- operacoes que podem falhar retornam `Result<T>`, nao excecoes como
+  fluxo normal de negocio
+- modelo de erros de dominio: veja `domain_layer.mdc`
+- mecanica de `result_dart` (`Success`/`Failure`): veja
+  `dependencies_patterns.mdc`
 
 ## Injecao de dependencias
 
 - injete dependencias via construtor
-- dependa de abstracoes, nao de implementacoes concretas
 - nao acople classes diretamente ao `GetIt`
 - a resolucao pelo container deve acontecer na borda de composicao
-
-## Imports
-
-- mantenha ordem consistente: Dart, Flutter, pacotes externos e imports
-  locais
-- evite imports desnecessarios
-- prefira imports especificos quando isso melhorar clareza
+- o principio (DIP, depender de abstracoes) vive em
+  `solid_principles.mdc`
 
 ## Fora do escopo desta regra
 
 - comentarios e documentacao: veja `general_rules.mdc`
-- estilo Dart detalhado: veja `coding_style.mdc`
+- casing, imports e estilo Dart detalhado: veja `coding_style.mdc`
 - null safety: veja `null_safety.mdc`
 - bibliotecas obrigatorias: veja `dependencies_patterns.mdc`
+- principios SOLID: veja `solid_principles.mdc`

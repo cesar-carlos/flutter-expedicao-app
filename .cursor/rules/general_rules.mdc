@@ -1,7 +1,7 @@
 ---
 description: Regras gerais do projeto - Documentação, comentários e práticas gerais
 globs: ["lib/**/*.dart", "test/**/*.dart"]
-alwaysApply: true
+alwaysApply: false
 ---
 
 #

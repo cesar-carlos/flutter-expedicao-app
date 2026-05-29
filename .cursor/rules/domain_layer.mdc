@@ -1,7 +1,7 @@
 ---
 description: Domain Layer - Regras para entidades, value objects, use cases e repositories
 globs: ["lib/domain/**/*.dart"]
-alwaysApply: true
+alwaysApply: false
 ---
 
 #

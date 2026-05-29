@@ -1,7 +1,7 @@
 ---
 description: Flutter Widgets - composicao, estado local, layout e performance
 globs: ["lib/presentation/**/*.dart", "lib/ui/**/*.dart", "lib/shared/**/*.dart"]
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Flutter Widgets
