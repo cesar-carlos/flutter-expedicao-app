@@ -4,9 +4,7 @@ globs: ["lib/domain/**/*.dart"]
 alwaysApply: false
 ---
 
-#
-
-# Domain Layer - Regras e Padrões
+# Domain Layer - Regras e Padroes
 
 ## Entidades (Entities)
 
@@ -19,12 +17,13 @@ alwaysApply: false
 
 ### Regras
 
-- ✅ Apenas classes Dart puro, sem dependências externas
-- ✅ Contêm apenas lógica de negócio relacionada à entidade
-- ✅ Campos devem ser `final` quando possível
-- ✅ Implementar `==` e `hashCode` baseado na identidade
-- ❌ NUNCA importar Flutter, HTTP, ou frameworks
-- ❌ NUNCA importar de outras camadas (application, infrastructure, presentation)
+- apenas Dart puro, mais `core` e `shared` quando o contrato ja existir
+  la; a fronteira completa vive em `clean_architecture.mdc`
+- contem apenas logica de negocio relacionada a entidade
+- campos `final` quando possivel
+- `==` e `hashCode` pela identidade
+- nao importa Flutter, HTTP, `application`, `infrastructure` nem
+  `presentation`
 
 ### Exemplo
 
@@ -129,28 +128,16 @@ class Email {
 ### Exemplo
 
 ```dart
-// domain/use_cases/get_user_by_id.dart
-import 'package:result_dart/result_dart.dart';
-import '../entities/user.dart';
-import '../repositories/repositories.dart';
-import '../errors/errors.dart';
-
 class GetUserById {
-  final IUserRepository repository;
+  const GetUserById(this._repository);
 
-  GetUserById(this.repository);
+  final IUserRepository _repository;
 
-  Future<Result<User>> call(String id) async {
+  Future<Result<User>> call(String id) {
     if (id.isEmpty) {
-      return Failure(ValidationFailure('ID cannot be empty'));
+      return Failure(ValidationFailure(message: 'ID cannot be empty'));
     }
-
-    try {
-      final result = await repository.getById(id);
-      return result;
-    } catch (e) {
-      return Failure(ServerFailure(e.toString()));
-    }
+    return _repository.getById(id);
   }
 }
 ```
@@ -178,7 +165,6 @@ class GetUserById {
 // domain/repositories/i_user_repository.dart
 import 'package:result_dart/result_dart.dart';
 import '../entities/user.dart';
-import '../errors/errors.dart';
 
 abstract class IUserRepository {
   Future<Result<User>> getById(String id);
@@ -189,42 +175,21 @@ abstract class IUserRepository {
 }
 ```
 
-## Errors (Erros do Domínio)
+## Errors (Erros do Dominio)
 
-### Características
-
-- Representam erros específicos do domínio
-- Herdam de `Failure` ou `Exception`
-- Contêm mensagens descritivas
-
-### Regras
-
-- ✅ Erros específicos do domínio
-- ✅ Mensagens claras e descritivas
-- ✅ Hierarquia de erros quando necessário
-
-### Exemplo
+- falha esperada volta em `Result` com `AppFailure`
+- falha especifica do caso de uso estende `AppFailure` e fica junto do
+  use case
+- conjunto fechado de variantes na mesma biblioteca usa `sealed class`
+  e `switch` exaustivo
+- nao crie outra hierarquia base paralela a `AppFailure`
 
 ```dart
-// domain/errors/errors.dart
-abstract class Failure {
-  final String message;
-  Failure(this.message);
+sealed class SaveSeparationFailure extends AppFailure {
+  const SaveSeparationFailure({required super.message});
 }
 
-class ServerFailure extends Failure {
-  ServerFailure(String message) : super(message);
-}
-
-class NetworkFailure extends Failure {
-  NetworkFailure(String message) : super(message);
-}
-
-class ValidationFailure extends Failure {
-  ValidationFailure(String message) : super(message);
-}
-
-class NotFoundFailure extends Failure {
-  NotFoundFailure(String message) : super(message);
+final class SaveSeparationEmpty extends SaveSeparationFailure {
+  const SaveSeparationEmpty() : super(message: 'Separacao sem itens');
 }
 ```

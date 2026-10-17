@@ -84,6 +84,9 @@ Result<T> handleDioException<T extends Object>(DioException e) {
     case DioExceptionType.receiveTimeout:
       errorMessage = 'Tempo limite de resposta excedido';
       break;
+    case DioExceptionType.transformTimeout:
+      errorMessage = 'Tempo limite ao transformar a resposta excedido';
+      break;
     case DioExceptionType.connectionError:
       errorMessage = 'Erro de conexão - Verifique URL e porta';
       break;

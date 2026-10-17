@@ -91,18 +91,57 @@ Nao repita aqui:
 - se a alteracao tocar adapters do Hive ou outras geracoes dirigidas por
   anotacao, valide que a geracao esta sincronizada antes de encerrar
 
-## Modern Dart
+## Dart moderno
 
-- use recursos modernos apenas quando melhorarem clareza e reduzirem
-  ruido
-- pattern matching pode substituir casts e condicionais repetitivas
-- use records para retornos pequenos e coesos quando uma classe dedicada
-  seria excesso
-- prefira `switch` exaustivo para enums e sealed types
-- use `sealed class` quando variantes fixas modelarem melhor estados,
-  falhas ou eventos
-- use tear-offs quando deixarem callbacks e construtores mais diretos
-- use extensions apenas quando o receiver fizer sentido semantico
+A versao de linguagem deste pacote e 3.9 (`sdk: ^3.9.0`). Use o recurso
+quando ele tirar cast, ramo ou boilerplate. Nao use como enfeite.
+
+Disponivel e preferido em codigo novo:
+
+- `sealed class` com `switch` exaustivo para estado, resultado ou falha
+  fechados na mesma biblioteca
+- `switch` expression quando o resultado e um valor; `switch` statement
+  quando ha efeito colateral
+- records para um retorno local pequeno e sem comportamento; classe
+  quando ha identidade, validacao ou API publica
+- patterns para desestruturar record, lista e objeto; um unico `is`
+  continua melhor do que `if-case` para promover uma variavel
+- elemento null-aware em colecao: `?valor` omite o item quando e null
+- `if` e `for` de colecao, spread e tear-off quando o fluxo ficar direto
+- separador de digitos em literal longo, como `30_000`
+- varios parametros `_` no mesmo escopo quando o valor nao e usado
+- `final`, `base`, `interface` e `sealed` quando o modificador registra
+  uma restricao real de extensao; nao decore toda classe
+- `extension type` so como envoltorio sem custo de um tipo existente;
+  value object que valida continua sendo classe
+
+Nao use enquanto o limite inferior do SDK nao subir:
+
+- dot shorthand (3.10), como `.error` no lugar de `Status.error`
+- parametro nomeado privado com nome publico no call site (3.12)
+- primary constructor (3.13), como `class Point(final int x, final int y)`
+
+```dart
+sealed class LoadState {
+  const LoadState();
+}
+
+final class LoadIdle extends LoadState {
+  const LoadIdle();
+}
+
+final class LoadReady extends LoadState {
+  const LoadReady(this.count);
+  final int count;
+}
+
+String label(LoadState state) => switch (state) {
+  LoadIdle() => 'Aguardando',
+  LoadReady(:final count) => '$count itens',
+};
+
+List<String> chips({String? badge}) => [?badge, 'separacao'];
+```
 
 ## Async, erros e logging
 

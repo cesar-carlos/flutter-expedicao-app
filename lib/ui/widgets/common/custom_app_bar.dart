@@ -71,7 +71,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           const SizedBox(width: 8),
         ],
 
-        if (actions != null) ...actions!,
+        ...?actions,
 
         if ((actions?.isEmpty ?? true) && showSocketStatus) const SizedBox(width: 8),
       ],

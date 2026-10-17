@@ -20,11 +20,8 @@ class FormValidators {
   static final _usernameSchema = z
       .string()
       .min(1, message: 'Por favor, digite seu usuário')
-      .transform((value) => value.trim())
-      .refine(
-        (value) => value.isNotEmpty,
-        message: 'Por favor, digite seu usuário',
-      );
+      .refine((value) => value.trim().isNotEmpty, message: 'Por favor, digite seu usuário')
+      .transform((value) => value.trim());
 
   /// Schema para validação de senha
   static final _passwordSchema = z
@@ -37,11 +34,11 @@ class FormValidators {
   static final _nameSchema = z
       .string()
       .min(1, message: 'Por favor, digite seu nome')
-      .transform((value) => value.trim())
-      .refine(
-        (value) => value.isNotEmpty && value.length <= 30,
-        message: 'Nome inválido (1 a 30 caracteres)',
-      );
+      .refine((value) {
+        final trimmed = value.trim();
+        return trimmed.isNotEmpty && trimmed.length <= 30;
+      }, message: 'Nome inválido (1 a 30 caracteres)')
+      .transform((value) => value.trim());
 
   /// Schema para validação de email
   static final _emailSchema = z
@@ -60,22 +57,22 @@ class FormValidators {
   static final _apiPortSchema = z
       .string()
       .min(1, message: 'Por favor, digite a porta')
-      .transform((value) => value.trim())
       .refine((value) {
-        final port = int.tryParse(value);
+        final port = int.tryParse(value.trim());
         return port != null && port >= 1 && port <= 65535;
-      }, message: 'Porta deve ser um número entre 1 e 65535');
+      }, message: 'Porta deve ser um número entre 1 e 65535')
+      .transform((value) => value.trim());
 
   /// Schema para campo numérico genérico
   static Schema<String> _numericSchema({String? fieldName}) {
     return z
         .string()
         .min(1, message: 'Por favor, digite ${fieldName ?? 'um número'}')
-        .transform((value) => value.trim())
-        .refine(
-          (value) => value.isNotEmpty && double.tryParse(value) != null,
-          message: '${fieldName ?? 'Este campo'} deve ser um número válido',
-        );
+        .refine((value) {
+          final trimmed = value.trim();
+          return trimmed.isNotEmpty && double.tryParse(trimmed) != null;
+        }, message: '${fieldName ?? 'Este campo'} deve ser um número válido')
+        .transform((value) => value.trim());
   }
 
   /// Schema para campo obrigatório genérico
@@ -88,30 +85,28 @@ class FormValidators {
 
   // === SCHEMAS DE NEGÓCIO ===
 
-  /// Schema para código de separação (Zard filtra null antes do transform)
   static final _codSepararEstoqueSchema = z
       .string()
-      .optional()
-      .transform((value) {
-        if (value.trim().isEmpty) return null;
-        return value.trim();
-      })
       .refine((value) {
-        if (value == null) return true;
-        return int.tryParse(value) != null;
-      }, message: 'Código deve ser numérico');
+        final trimmed = value.trim();
+        if (trimmed.isEmpty) return true;
+        return int.tryParse(trimmed) != null;
+      }, message: 'Código deve ser numérico')
+      .transform((value) {
+        final trimmed = value.trim();
+        return trimmed.isEmpty ? null : trimmed;
+      })
+      .optional();
 
-  /// Schema para origem (Zard filtra null antes do refine)
-  static final _origemSchema = z.string().optional().refine((value) {
+  static final _origemSchema = z.string().refine((value) {
     if (value.isEmpty) return true;
     return ExpeditionOrigem.isValidOrigem(value);
-  }, message: 'Origem inválida');
+  }, message: 'Origem inválida').optional();
 
-  /// Schema para situação (Zard filtra null antes do refine)
-  static final _situacaoSchema = z.string().optional().refine((value) {
+  static final _situacaoSchema = z.string().refine((value) {
     if (value.isEmpty) return true;
     return ExpeditionSituation.isValidSituation(value);
-  }, message: 'Situação inválida');
+  }, message: 'Situação inválida').optional();
 
   /// Schema para tipo de entidade
   static final _tipoEntidadeSchema = z.string().refine((value) {

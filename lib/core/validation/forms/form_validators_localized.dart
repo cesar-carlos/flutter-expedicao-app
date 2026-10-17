@@ -26,8 +26,8 @@ class FormValidatorsLocalized {
     return z
         .string()
         .min(1, message: l10n.nameRequired)
-        .transform((value) => value.trim())
-        .refine((value) => value.length <= 30, message: l10n.nameMaxLength(30));
+        .refine((value) => value.trim().length <= 30, message: l10n.nameMaxLength(30))
+        .transform((value) => value.trim());
   }
 
   Schema<String> _emailSchema() {
@@ -43,10 +43,14 @@ class FormValidatorsLocalized {
   }
 
   Schema<String> _apiPortSchema() {
-    return z.string().min(1, message: l10n.portRequired).transform((value) => value.trim()).refine((value) {
-      final port = int.tryParse(value);
-      return port != null && port >= 1 && port <= 65535;
-    }, message: l10n.portInvalid);
+    return z
+        .string()
+        .min(1, message: l10n.portRequired)
+        .refine((value) {
+          final port = int.tryParse(value.trim());
+          return port != null && port >= 1 && port <= 65535;
+        }, message: l10n.portInvalid)
+        .transform((value) => value.trim());
   }
 
   String? username(String? value) {
@@ -123,15 +127,16 @@ class FormValidatorsLocalized {
     try {
       z
           .string()
-          .optional()
-          .transform((value) {
-            if (value.trim().isEmpty) return null;
-            return value.trim();
-          })
           .refine((value) {
-            if (value == null) return true;
-            return int.tryParse(value) != null;
+            final trimmed = value.trim();
+            if (trimmed.isEmpty) return true;
+            return int.tryParse(trimmed) != null;
           }, message: l10n.codeMustBeNumeric)
+          .transform((value) {
+            final trimmed = value.trim();
+            return trimmed.isEmpty ? null : trimmed;
+          })
+          .optional()
           .parse(value);
       return null;
     } catch (e) {
@@ -143,11 +148,11 @@ class FormValidatorsLocalized {
     try {
       z
           .string()
-          .optional()
           .refine((value) {
             if (value.isEmpty) return true;
             return ExpeditionOrigem.isValidOrigem(value);
           }, message: l10n.invalidOrigin)
+          .optional()
           .parse(value);
       return null;
     } catch (e) {
@@ -159,11 +164,11 @@ class FormValidatorsLocalized {
     try {
       z
           .string()
-          .optional()
           .refine((value) {
             if (value.isEmpty) return true;
             return ExpeditionSituation.isValidSituation(value);
           }, message: l10n.invalidSituation)
+          .optional()
           .parse(value);
       return null;
     } catch (e) {

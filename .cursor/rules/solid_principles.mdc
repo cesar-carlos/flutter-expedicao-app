@@ -1,148 +1,73 @@
 ---
-description: Princípios SOLID - Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
+description: SOLID aplicado ao desenho de classes, sem god class
 globs: ["lib/**/*.dart"]
 alwaysApply: false
 ---
 
-#
+# Principios SOLID
 
-# Princípios SOLID
+## Escopo
 
-## Single Responsibility Principle (SRP)
+Este arquivo e o dono do desenho de classes: uma responsabilidade,
+extensao, substituicao, interfaces pequenas e dependencia de abstracao.
 
-- Cada classe deve ter uma única responsabilidade
-- Uma classe deve ter apenas uma razão para mudar
-- Separe funcionalidades distintas em classes diferentes
-- Evite classes "God Class" que fazem tudo
+A escolha entre use case, view model e coordinator vive em
+`design_patterns.mdc`. A sintaxe vive em `coding_style.mdc`.
 
-**Exemplo Correto:**
+## SRP e god class
+
+Uma classe tem um motivo para mudar.
+
+Sinais de god class:
+
+- orquestra, valida, formata, fala com IO e decide UI no mesmo tipo
+- a API publica tem grupos de metodos que os chamadores nao usam juntos
+- o view model acumula filtros, eventos, audio, notificacao e rede
+- a tela trata, no mesmo `State`, regioes visuais que mudam separadas
+
+Corte pelo motivo da mudanca, nao por contagem de linhas:
+
+- operacao de negocio vira use case
+- fluxo de varios passos vira coordinator com resultado `sealed`
+- recorte de estado vira controller
+- regiao visual vira widget
+- conversao de DTO vira mapper
+
+Nao parta um tipo coeso so para encurtar o arquivo.
+
+## OCP e composicao
+
+- especialize por composicao ou por uma nova implementacao
+- nao use heranca de widget ou de servico como mecanismo principal
+- um conjunto fechado de variantes usa `sealed`, nao uma cadeia de `if`
+
+## LSP
+
+- quem implementa um contrato preserva o resultado esperado, inclusive
+  falha via `Result`, sem efeito extra escondido
+- nao enfraqueca uma pre-condicao nem troque o significado do retorno
+
+## ISP
+
+- exponha so o que o chamador usa
+- prefira duas interfaces pequenas a uma que mistura leitura, escrita
+  e notificacao
+- nao force um controller a depender do view model inteiro
+
+## DIP
+
+- o tipo de alto nivel recebe a abstracao no construtor
+- a interface mora na camada interna; a implementacao mora na borda
+- o container de DI nao e dependencia de use case, view model ou widget
 
 ```dart
-class User {
-  final String id;
-  final String name;
-  // Apenas responsável por representar um usuário
-}
+class LoadSeparation {
+  const LoadSeparation(this._repository);
 
-class UserValidator {
-  bool validate(User user) {
-    // Apenas responsável por validar usuário
+  final SeparationRepository _repository;
+
+  Future<Result<Separation>> call(SeparationId id) {
+    return _repository.findById(id);
   }
-}
-
-class UserRepository {
-  Future<User> save(User user) {
-    // Apenas responsável por persistência
-  }
-}
-```
-
-## Open/Closed Principle (OCP)
-
-- Classes devem ser abertas para extensão, mas fechadas para modificação
-- Use interfaces e herança para estender comportamento
-- Evite modificar código existente, adicione novas implementações
-
-**Exemplo Correto:**
-
-```dart
-abstract class PaymentMethod {
-  Future<void> pay(double amount);
-}
-
-class CreditCard implements PaymentMethod {
-  @override
-  Future<void> pay(double amount) { /* implementação */ }
-}
-
-class PayPal implements PaymentMethod {
-  @override
-  Future<void> pay(double amount) { /* implementação */ }
-}
-```
-
-## Liskov Substitution Principle (LSP)
-
-- Objetos de uma classe base devem poder ser substituídos por objetos de suas classes derivadas
-- Subtipos devem ser substituíveis por seus tipos base sem quebrar o programa
-- Mantenha contratos de comportamento consistentes
-
-**Exemplo Correto:**
-
-```dart
-abstract class Animal {
-  void makeSound();
-}
-
-class Dog implements Animal {
-  @override
-  void makeSound() => print('Woof!');
-}
-
-class Cat implements Animal {
-  @override
-  void makeSound() => print('Meow!');
-}
-
-// Qualquer Animal pode ser usado
-void makeAnimalSound(Animal animal) {
-  animal.makeSound(); // Funciona com Dog, Cat ou qualquer subtipo
-}
-```
-
-## Interface Segregation Principle (ISP)
-
-- Muitas interfaces específicas são melhores que uma interface geral
-- Clientes não devem ser forçados a depender de interfaces que não usam
-- Crie interfaces pequenas e focadas
-
-**Exemplo Correto:**
-
-```dart
-abstract class Readable {
-  Future<String> read();
-}
-
-abstract class Writable {
-  Future<void> write(String data);
-}
-
-// Classe pode implementar apenas o que precisa
-class FileReader implements Readable {
-  @override
-  Future<String> read() { /* implementação */ }
-}
-```
-
-## Dependency Inversion Principle (DIP)
-
-- Dependa de abstrações, não de implementações concretas
-- Classes de alto nível não devem depender de classes de baixo nível
-- Use injeção de dependência via construtor
-- Defina interfaces no domínio, implemente na infraestrutura
-
-**Exemplo Correto:**
-
-```dart
-// Domain - Interface (abstração)
-abstract class IUserRepository {
-  Future<User> getById(String id);
-}
-
-// Application - Depende da abstração
-class UserService {
-  final IUserRepository repository; // Interface, não implementação
-
-  UserService(this.repository);
-
-  Future<User> getUser(String id) {
-    return repository.getById(id);
-  }
-}
-
-// Infrastructure - Implementa a abstração
-class UserRepository implements IUserRepository {
-  @override
-  Future<User> getById(String id) { /* implementação */ }
 }
 ```

@@ -42,7 +42,7 @@ class PrintExpeditionTicketUseCase {
         return failure(DataFailure.notFound('Itens para impressao da separacao ${params.codSepararEstoque}'));
       }
 
-      return _thermalPrinterRepository.printExpeditionTicket(
+      return await _thermalPrinterRepository.printExpeditionTicket(
         printer: params.printer,
         items: items,
         separatorName: params.separatorName,

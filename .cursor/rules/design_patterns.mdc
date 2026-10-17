@@ -1,0 +1,71 @@
+---
+description: Padroes de projeto adotados e quando aplicar cada um
+globs: ["lib/**/*.dart"]
+alwaysApply: false
+---
+
+# Padroes de Projeto
+
+## Escopo
+
+Este arquivo escolhe o padrao. O detalhe continua no arquivo dono:
+
+- camadas e fluxo: `architecture.mdc`
+- imports entre camadas: `clean_architecture.mdc`
+- tamanho de classe e god class: `solid_principles.mdc`
+- widgets e componentizacao: `flutter_widgets.mdc`
+- contratos, `call()` e `Result`: `coding_conventions.mdc`
+- entidades, value objects e use cases: `domain_layer.mdc`
+- sintaxe: `coding_style.mdc`
+
+Nao crie um padrao para cumprir um diagrama. Extraia quando o tipo
+passa a ter outro motivo para mudar, ou quando o mesmo fluxo aparece
+de novo.
+
+## Mapa
+
+O app segue Clean Architecture. Na UI, View e ViewModel entram em
+`presentation` e nao furam o dominio.
+
+- View, em `presentation` ou `ui`: desenha o estado e encaminha o
+  evento
+- ViewModel, em `presentation/viewmodels`: estado e comandos de uma
+  tela ou de um fluxo
+- Controller, ao lado do view model: um recorte coeso, como filtro,
+  formulario ou preferencia
+- Coordinator, em `presentation/coordinators`: fluxo de varios passos
+  que inchariam o view model; o resultado e uma `sealed class`
+- Use case, no `domain`: uma operacao de negocio, com `call()`
+- Repository: contrato no `domain`, implementacao na borda de dados;
+  uma fonte de verdade por tipo de dado
+- Service, na borda tecnica: API, plugin ou plataforma, sem regra de
+  negocio
+- Mapper, na borda de dados: converte DTO e entidade, sem regra de
+  dominio
+
+## Como escolher
+
+- a tela compoe widgets; ela nao executa regra de negocio
+- o view model recebe use cases ou interfaces de repositorio pelo
+  construtor
+- um controller nasce quando um pedaco do view model muda por um
+  motivo proprio
+- um coordinator nasce quando ha etapas e um resultado fechado
+- um use case nasce quando a operacao precisa ser testada fora da UI
+- nao empilhe use case, coordinator e controller em volta de uma unica
+  chamada se um deles ja resolve
+
+## Variacao de comportamento
+
+- conjunto fechado de resultados, estados ou falhas na mesma
+  biblioteca: `sealed class` e `switch` exaustivo
+- mesmo contrato com implementacoes substituiveis: interface pequena
+- falha esperada: `Result` com `AppFailure`, ou subclasse colocada
+  junto do use case
+- nao abra heranca para especializar widget ou servico; componha
+
+## Injecao
+
+- dependencias entram pelo construtor
+- `GetIt` fica na borda `di/`, nao dentro de view model, use case ou
+  widget

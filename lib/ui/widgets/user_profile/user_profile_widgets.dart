@@ -94,7 +94,7 @@ class UserAppBar extends StatelessWidget implements PreferredSizeWidget {
             },
           ),
         ],
-        if (actions != null) ...actions!,
+        ...?actions,
       ],
     );
   }

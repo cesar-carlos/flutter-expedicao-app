@@ -320,13 +320,3 @@ Esses tipos vivem em:
 - Abrir separacao e incluir carrinho dependem de vinculo com o usuario.
 - Incluir carrinho tambem e bloqueado quando o setor do usuario ja foi
   concluido.
-
-## Diferencas em relacao ao documento anterior
-
-- Texto sem encoding quebrado.
-- Prioridade 1 documentada como filtro em memoria apos a consulta, que e
-  o comportamento real do codigo.
-- Retry descrito sem afirmar que sempre busca uma separacao diferente.
-- Fluxo de abertura atualizado para incluir
-  `GetSeparationConsultationUseCase`.
-- Regra de setor concluido em "Incluir Carrinho" documentada.

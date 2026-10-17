@@ -144,13 +144,3 @@ Isso garante que:
 - erros continuam com seus sons proprios
 - a mudanca de produto nao depende mais de outro som intermediario para
   "destravar" o player
-
-## Diferencas em relacao a documentacao antiga
-
-- Nao documentar `_onFinalizeCart(skip=true)` como fluxo principal.
-- Nao documentar `picking_card_scan.dart` como dono do dialogo de
-  salvamento.
-- Nao chamar o comportamento de "auto-save" se ele depende de escolha do
-  usuario.
-- Nao assumir que todo scan correto usa o mesmo som; hoje o ultimo scan
-  do item usa um som proprio.

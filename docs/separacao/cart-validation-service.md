@@ -117,13 +117,3 @@ if (!validationResult.canAccess) {
   ));
 }
 ```
-
-## O que mudou em relacao a docs antigas
-
-- Nao usar `CartValidationService.metodo(...)` como API estatica.
-- Nao documentar "metodos estaticos faceis de testar" como se ainda
-  fosse o desenho atual.
-- O service agora depende explicitamente de
-  `BasicConsultationRepository<SeparateItemConsultationModel>`.
-- O fallback de erro em `hasItemsForUserSector(...)` continua permitindo
-  o fluxo e precisa ser considerado em debugging.

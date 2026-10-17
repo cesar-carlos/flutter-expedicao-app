@@ -19,8 +19,8 @@ The app auto-update expects:
 3. Commit the version bump and release notes.
 4. Run the release script:
 
-   ```powershell
-   .\create-release.ps1 -Publish
+   ```text
+   python create-release.py --publish
    ```
 
 5. Validate the GitHub Release and attached APK.
@@ -30,8 +30,8 @@ The app auto-update expects:
 
 Use this when `android/key.properties` is configured:
 
-```powershell
-.\create-release.ps1 -Publish -RequireReleaseSigning -Artifact both
+```text
+python create-release.py --publish --require-release-signing --artifact both
 ```
 
 This builds:
@@ -41,7 +41,7 @@ This builds:
 
 ## Script Behavior
 
-`create-release.ps1` performs these checks and actions:
+`create-release.py` performs these checks and actions:
 
 - Reads `version` from `pubspec.yaml`.
 - Derives the expected tag `vX.Y.Z+B`.
@@ -66,7 +66,7 @@ Use this checklist before publishing:
 - `flutter test` passes.
 - `.\gradlew.bat :app:testDebugUnitTest :app:lintDebug` passes in `android/`.
 - `flutter build apk --release` passes.
-- For production: `.\create-release.ps1 -RequireReleaseSigning` passes.
+- For production: `python create-release.py --require-release-signing` passes.
 - APK asset is attached to the GitHub Release.
 - GitHub asset SHA-256 matches the local SHA-256.
 - Auto-update is tested from an older build on a real Android device.

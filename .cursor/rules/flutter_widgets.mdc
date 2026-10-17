@@ -27,6 +27,22 @@ Nao repita aqui regras de design system e UX de tela. Para isso, use
   ou construtor direto resolver melhor
 - prefira composicao a heranca
 
+## God widget
+
+A tela compoe regioes. Ela nao implementa cada regiao no mesmo
+`build()`.
+
+- um widget tem um trabalho visual
+- extraia uma classe privada no mesmo arquivo enquanto so aquele fluxo
+  usa o trecho
+- promova para a pasta da feature, e so depois para compartilhado,
+  conforme `shared_components.mdc`
+- cabecalho, item de lista, dialogo e estado vazio que crescem juntos
+  viram widgets proprios
+- o `State` liga o evento ao view model; nao concentra carga, validacao
+  e navegacao
+- o corte de uma classe grande demais vive em `solid_principles.mdc`
+
 ## Estado local de UI
 
 - use `StatelessWidget` quando nao houver estado local

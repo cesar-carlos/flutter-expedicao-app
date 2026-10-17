@@ -1,4 +1,5 @@
 ---
+description: Visao arquitetural, camadas e fluxo do projeto
 alwaysApply: true
 ---
 
@@ -88,9 +89,18 @@ camada.
 - Nao use esta regra para detalhes de imports por camada; veja
   `clean_architecture.mdc`.
 
+## Padroes adotados
+
+A escolha entre View, ViewModel, Controller, Coordinator, Use Case,
+Repository, Service e Mapper vive em `design_patterns.mdc`.
+
+God class e composicao vivem em `solid_principles.mdc`. Componentizacao
+de widget vive em `flutter_widgets.mdc`.
+
 ## Leia tambem
 
 - `clean_architecture.mdc` para fronteiras entre camadas
+- `design_patterns.mdc` para qual padrao aplicar
 - `solid_principles.mdc` para desenho de classes
 - `domain_layer.mdc` para regras especificas do dominio
 - `dependencies_patterns.mdc` para bibliotecas obrigatorias

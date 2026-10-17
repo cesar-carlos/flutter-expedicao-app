@@ -151,14 +151,3 @@ Resultado esperado:
 3. O item C nao entra na lista desse usuario.
 4. Quando A e B estiverem completos, o sistema oferece salvar o
    carrinho.
-
-## Diferencas em relacao a versoes antigas da doc
-
-- O path correto do ViewModel e
-  `lib/presentation/viewmodels/card_picking_viewmodel.dart`.
-- A ordenacao nao fica mais em um metodo privado do ViewModel.
-- A conclusao do setor nao depende de retorno para `_onFinalizeCart`.
-- O feedback sonoro do scan agora diferencia:
-  - sucesso parcial
-  - conclusao do item
-  - conclusao do setor

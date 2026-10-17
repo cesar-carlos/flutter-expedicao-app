@@ -9,70 +9,64 @@ class AppFonts {
   static String get primaryFontFamily => 'Inter';
 
   static TextTheme getTextTheme({required Color baseColor, Brightness brightness = Brightness.light}) {
-    return GoogleFonts.interTextTheme(
-      TextTheme(
-        headlineLarge: GoogleFonts.inter(
-          fontSize: UIConstants.xxLargeFontSize,
-          fontWeight: FontWeight.bold,
-          letterSpacing: -0.5,
-          color: baseColor,
-        ),
-        headlineMedium: GoogleFonts.inter(
-          fontSize: UIConstants.extraLargeFontSize,
-          fontWeight: FontWeight.bold,
-          color: baseColor,
-        ),
-        headlineSmall: GoogleFonts.inter(
-          fontSize: UIConstants.xLargeFontSize,
-          fontWeight: FontWeight.w600,
-          color: baseColor,
-        ),
-        titleLarge: GoogleFonts.inter(
-          fontSize: UIConstants.xLargeFontSize,
-          fontWeight: FontWeight.w600,
-          color: baseColor,
-        ),
-        titleMedium: GoogleFonts.inter(
-          fontSize: UIConstants.mediumFontSize,
-          fontWeight: FontWeight.w600,
-          color: baseColor,
-        ),
-        titleSmall: GoogleFonts.inter(
-          fontSize: UIConstants.defaultFontSize,
-          fontWeight: FontWeight.w600,
-          color: baseColor,
-        ),
-        bodyLarge: GoogleFonts.inter(
-          fontSize: UIConstants.mediumFontSize,
-          fontWeight: FontWeight.normal,
-          color: baseColor,
-        ),
-        bodyMedium: GoogleFonts.inter(
-          fontSize: UIConstants.defaultFontSize,
-          fontWeight: FontWeight.normal,
-          color: baseColor,
-        ),
-        bodySmall: GoogleFonts.inter(
-          fontSize: UIConstants.smallFontSize,
-          fontWeight: FontWeight.normal,
-          color: baseColor,
-        ),
-        labelLarge: GoogleFonts.inter(
-          fontSize: UIConstants.defaultFontSize,
-          fontWeight: FontWeight.w500,
-          color: baseColor,
-        ),
-        labelMedium: GoogleFonts.inter(
-          fontSize: UIConstants.smallFontSize,
-          fontWeight: FontWeight.w500,
-          color: baseColor,
-        ),
-        labelSmall: GoogleFonts.inter(
-          fontSize: UIConstants.tinyFontSize,
-          fontWeight: FontWeight.w500,
-          color: baseColor,
-        ),
+    return TextTheme(
+      headlineLarge: GoogleFonts.inter(
+        fontSize: UIConstants.xxLargeFontSize,
+        fontWeight: FontWeight.bold,
+        letterSpacing: -0.5,
+        color: baseColor,
       ),
+      headlineMedium: GoogleFonts.inter(
+        fontSize: UIConstants.extraLargeFontSize,
+        fontWeight: FontWeight.bold,
+        color: baseColor,
+      ),
+      headlineSmall: GoogleFonts.inter(
+        fontSize: UIConstants.xLargeFontSize,
+        fontWeight: FontWeight.w600,
+        color: baseColor,
+      ),
+      titleLarge: GoogleFonts.inter(
+        fontSize: UIConstants.xLargeFontSize,
+        fontWeight: FontWeight.w600,
+        color: baseColor,
+      ),
+      titleMedium: GoogleFonts.inter(
+        fontSize: UIConstants.mediumFontSize,
+        fontWeight: FontWeight.w600,
+        color: baseColor,
+      ),
+      titleSmall: GoogleFonts.inter(
+        fontSize: UIConstants.defaultFontSize,
+        fontWeight: FontWeight.w600,
+        color: baseColor,
+      ),
+      bodyLarge: GoogleFonts.inter(
+        fontSize: UIConstants.mediumFontSize,
+        fontWeight: FontWeight.normal,
+        color: baseColor,
+      ),
+      bodyMedium: GoogleFonts.inter(
+        fontSize: UIConstants.defaultFontSize,
+        fontWeight: FontWeight.normal,
+        color: baseColor,
+      ),
+      bodySmall: GoogleFonts.inter(
+        fontSize: UIConstants.smallFontSize,
+        fontWeight: FontWeight.normal,
+        color: baseColor,
+      ),
+      labelLarge: GoogleFonts.inter(
+        fontSize: UIConstants.defaultFontSize,
+        fontWeight: FontWeight.w500,
+        color: baseColor,
+      ),
+      labelMedium: GoogleFonts.inter(
+        fontSize: UIConstants.smallFontSize,
+        fontWeight: FontWeight.w500,
+        color: baseColor,
+      ),
+      labelSmall: GoogleFonts.inter(fontSize: UIConstants.tinyFontSize, fontWeight: FontWeight.w500, color: baseColor),
     );
   }
 

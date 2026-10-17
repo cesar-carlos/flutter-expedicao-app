@@ -16,40 +16,34 @@ class CommonSchemas {
   static final codeSchema = z
       .string()
       .min(1, message: 'Código é obrigatório')
-      .transform((value) => value.trim())
-      .refine((value) => int.tryParse(value) != null, message: 'Código deve ser numérico');
+      .refine((value) => int.tryParse(value.trim()) != null, message: 'Código deve ser numérico')
+      .transform((value) => value.trim());
 
-  /// Schema para códigos opcionais
-  ///
-  /// Nota: Zard filtra null antes de chamar o transform.
   static final optionalCodeSchema = z
       .string()
-      .optional()
-      .transform((value) {
-        if (value.trim().isEmpty) return null;
-        return value.trim();
-      })
       .refine((value) {
-        if (value == null) return true;
-        return int.tryParse(value) != null;
-      }, message: 'Código deve ser numérico');
+        final trimmed = value.trim();
+        if (trimmed.isEmpty) return true;
+        return int.tryParse(trimmed) != null;
+      }, message: 'Código deve ser numérico')
+      .transform((value) {
+        final trimmed = value.trim();
+        return trimmed.isEmpty ? null : trimmed;
+      })
+      .optional();
 
   /// Schema para descrições/nomes
   static final descriptionSchema = z
       .string()
       .min(1, message: 'Descrição é obrigatória')
-      .transform((value) => value.trim())
-      .refine((value) => value.length <= 255, message: 'Descrição deve ter no máximo 255 caracteres');
+      .refine((value) => value.trim().length <= 255, message: 'Descrição deve ter no máximo 255 caracteres')
+      .transform((value) => value.trim());
 
-  /// Schema para descrições opcionais
-  ///
-  /// Nota: Zard ja filtra null antes de chamar transform/refine
-  /// (callbacks recebem String non-null mesmo em optional()).
   static final optionalDescriptionSchema = z
       .string()
-      .optional()
+      .refine((value) => value.trim().length <= 255, message: 'Descrição deve ter no máximo 255 caracteres')
       .transform((value) => value.trim())
-      .refine((value) => value.length <= 255, message: 'Descrição deve ter no máximo 255 caracteres');
+      .optional();
 
   /// Schema para quantidades
   static final quantitySchema = z.double().min(0, message: 'Quantidade deve ser maior ou igual a zero');
@@ -71,13 +65,10 @@ class CommonSchemas {
       .min(1, message: 'Data é obrigatória')
       .refine((value) => DateTime.tryParse(value) != null, message: 'Data deve estar em formato válido (ISO 8601)');
 
-  /// Schema para datas opcionais
-  ///
-  /// Nota: Zard filtra null antes de chamar o refine.
-  static final optionalDateTimeSchema = z.string().optional().refine((value) {
+  static final optionalDateTimeSchema = z.string().refine((value) {
     if (value.isEmpty) return true;
     return DateTime.tryParse(value) != null;
-  }, message: 'Data deve estar em formato válido (ISO 8601)');
+  }, message: 'Data deve estar em formato válido (ISO 8601)').optional();
 
   /// Schema para booleanos
   static final booleanSchema = z.bool();
@@ -91,19 +82,7 @@ class CommonSchemas {
       .min(1, message: 'Campo não pode estar vazio')
       .transform((value) => value.trim());
 
-  /// Schema para strings opcionais
-  ///
-  /// Nota: Zard filtra null antes de chamar o transform.
-  ///
-  /// LIMITACAO CONHECIDA: aparente bug do Zard quando `.optional()`
-  /// precede `.transform()` em campos dentro de `z.map({...})`: o
-  /// runtime ainda exige a chave estar presente (pode ser '' ou null,
-  /// mas nao pode ser ausente). Quando o caller controla o input,
-  /// adicionar a chave com valor '' contorna o problema. Para
-  /// schemas usados em runtime de DTOs, prefira parsing defensivo
-  /// no fromJson via `JsonParse.parseStringOrNull` em vez de
-  /// validacao Zard.
-  static final optionalStringSchema = z.string().optional().transform((value) => value.trim());
+  static final optionalStringSchema = z.string().transform((value) => value.trim()).optional();
 
   // === SCHEMAS DE VALIDAÇÃO DE FORMATO ===
 
@@ -111,25 +90,28 @@ class CommonSchemas {
   static final documentSchema = z
       .string()
       .min(1, message: 'Documento é obrigatório')
-      .transform((value) => value.replaceAll(RegExp(r'[^\d]'), ''))
-      .refine(
-        (value) => value.length == 11 || value.length == 14,
-        message: 'Documento deve ter 11 (CPF) ou 14 (CNPJ) dígitos',
-      );
+      .refine((value) {
+        final digits = value.replaceAll(RegExp(r'[^\d]'), '');
+        return digits.length == 11 || digits.length == 14;
+      }, message: 'Documento deve ter 11 (CPF) ou 14 (CNPJ) dígitos')
+      .transform((value) => value.replaceAll(RegExp(r'[^\d]'), ''));
 
   /// Schema para telefone
   static final phoneSchema = z
       .string()
       .min(1, message: 'Telefone é obrigatório')
-      .transform((value) => value.replaceAll(RegExp(r'[^\d]'), ''))
-      .refine((value) => value.length >= 10 && value.length <= 11, message: 'Telefone deve ter 10 ou 11 dígitos');
+      .refine((value) {
+        final digits = value.replaceAll(RegExp(r'[^\d]'), '');
+        return digits.length >= 10 && digits.length <= 11;
+      }, message: 'Telefone deve ter 10 ou 11 dígitos')
+      .transform((value) => value.replaceAll(RegExp(r'[^\d]'), ''));
 
   /// Schema para CEP
   static final cepSchema = z
       .string()
       .min(1, message: 'CEP é obrigatório')
-      .transform((value) => value.replaceAll(RegExp(r'[^\d]'), ''))
-      .refine((value) => value.length == 8, message: 'CEP deve ter 8 dígitos');
+      .refine((value) => value.replaceAll(RegExp(r'[^\d]'), '').length == 8, message: 'CEP deve ter 8 dígitos')
+      .transform((value) => value.replaceAll(RegExp(r'[^\d]'), ''));
 
   // === SCHEMAS DE LISTA/ARRAY ===
 
@@ -178,10 +160,13 @@ class CommonSchemas {
   /// "limpos" pelo usuario. Agora empty e aceito como "nao
   /// filtrado" (consistente com optionalDateTimeSchema).
   static Schema<String?> optionalEnumSchema(List<String> validValues, String fieldName) {
-    return z.string().optional().refine(
-      (value) => value.isEmpty || validValues.contains(value),
-      message: '$fieldName deve ser um dos valores: ${validValues.join(', ')}',
-    );
+    return z
+        .string()
+        .refine(
+          (value) => value.isEmpty || validValues.contains(value),
+          message: '$fieldName deve ser um dos valores: ${validValues.join(', ')}',
+        )
+        .optional();
   }
 
   /// Cria schema para string com tamanho específico
@@ -189,8 +174,8 @@ class CommonSchemas {
     return z
         .string()
         .min(1, message: '$fieldName é obrigatório')
-        .transform((value) => value.trim())
-        .refine((value) => value.length == length, message: '$fieldName deve ter exatamente $length caracteres');
+        .refine((value) => value.trim().length == length, message: '$fieldName deve ter exatamente $length caracteres')
+        .transform((value) => value.trim());
   }
 
   /// Cria schema para string com tamanho máximo
@@ -198,8 +183,11 @@ class CommonSchemas {
     return z
         .string()
         .min(1, message: '$fieldName é obrigatório')
-        .transform((value) => value.trim())
-        .refine((value) => value.length <= maxLength, message: '$fieldName deve ter no máximo $maxLength caracteres');
+        .refine(
+          (value) => value.trim().length <= maxLength,
+          message: '$fieldName deve ter no máximo $maxLength caracteres',
+        )
+        .transform((value) => value.trim());
   }
 
   /// Cria schema para range numérico

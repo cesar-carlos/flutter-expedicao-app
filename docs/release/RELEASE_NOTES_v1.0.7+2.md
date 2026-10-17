@@ -21,7 +21,7 @@
 
 ## Documentação
 
-- Documentação técnica completa em `docs/auto-update-system.md`
+- Documentação técnica em `docs/app-update.md`
 
 ## Como usar
 

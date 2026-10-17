@@ -172,7 +172,7 @@ class AddCartViewModel extends ChangeNotifier {
       );
 
       final result = await _addCartUseCase.call(params);
-      return result.fold(
+      return await result.fold(
         (success) {
           _lastAddSuccess = success;
           _audioService.playCartAddSuccess();
@@ -239,7 +239,7 @@ class AddCartViewModel extends ChangeNotifier {
       );
 
       final result = await _startSeparationUseCase.call(params);
-      return result.fold((success) => true, (failure) {
+      return await result.fold((success) => true, (failure) {
         final message =
             failure is StartSeparationFailure && failure.type == StartSeparationFailureType.separationAlreadyStarted
             ? 'Outro setor já iniciou esta separação. Toque em Adicionar novamente para incluir seu carrinho.'

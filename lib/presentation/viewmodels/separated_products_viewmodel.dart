@@ -222,7 +222,7 @@ class SeparatedProductsViewModel extends ChangeNotifier {
       final params = _createDeleteParams(item);
       final result = await _deleteItemSeparationUseCase.call(params);
 
-      return result.fold(
+      return await result.fold(
         (success) async {
           await refresh();
           return true;

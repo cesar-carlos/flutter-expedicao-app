@@ -30,6 +30,8 @@ class AppUpdateRepositoryImpl implements IAppUpdateRepository {
         return AppUpdateFailure.networkError('Tempo de envio esgotado');
       case DioExceptionType.receiveTimeout:
         return AppUpdateFailure.networkError('Tempo de resposta esgotado');
+      case DioExceptionType.transformTimeout:
+        return AppUpdateFailure.networkError('Tempo ao transformar a resposta esgotado');
       case DioExceptionType.badResponse:
         final statusCode = e.response?.statusCode;
         if (statusCode == 404) {
@@ -106,10 +108,7 @@ class AppUpdateRepositoryImpl implements IAppUpdateRepository {
     // Timeouts explicitos: connect alinhado ao GitHubApiService (5s);
     // receiveTimeout maior (60s) por ser download de binario.
     final dio = Dio(
-      BaseOptions(
-        connectTimeout: const Duration(seconds: 5),
-        receiveTimeout: const Duration(seconds: 60),
-      ),
+      BaseOptions(connectTimeout: const Duration(seconds: 5), receiveTimeout: const Duration(seconds: 60)),
     );
     try {
       final directory = await getApplicationDocumentsDirectory();

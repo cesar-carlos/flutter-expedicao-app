@@ -553,7 +553,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
         cancelItemParams: paramsItemSeparationUseCase,
       );
 
-      return resultCancelCart.fold(
+      return await resultCancelCart.fold(
         (success) async {
           _lastCancelError = null;
 

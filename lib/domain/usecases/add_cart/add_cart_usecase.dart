@@ -66,7 +66,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
 
       final cart = cartsResult.fold((success) => success, (failure) => null);
       if (cart == null) {
-        return cartsResult.fold(
+        return await cartsResult.fold(
           (success) => failure(AddCartFailure.generic('Erro inesperado')),
           (failure) => Failure(failure),
         );
@@ -75,7 +75,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
       final situationResult = _validateCartSituation(cart);
       final isValidSituation = situationResult.fold((success) => true, (failure) => false);
       if (!isValidSituation) {
-        return situationResult.fold(
+        return await situationResult.fold(
           (success) => failure(AddCartFailure.generic('Erro inesperado')),
           (failure) => Failure(failure),
         );
@@ -90,7 +90,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
         final routeResult = await _findRoute(params);
         routeCode = routeResult.fold((success) => success, (failure) => null);
         if (routeCode == null) {
-          return routeResult.fold(
+          return await routeResult.fold(
             (success) => failure(AddCartFailure.generic('Percurso não encontrado')),
             (failure) => Failure(failure),
           );
@@ -104,7 +104,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
       final internshipResult = await _findInternship(params.origem);
       final internshipCode = internshipResult.fold((success) => success, (failure) => null);
       if (internshipCode == null) {
-        return internshipResult.fold(
+        return await internshipResult.fold(
           (success) => failure(AddCartFailure.generic('Estágio não encontrado')),
           (failure) => Failure(failure),
         );

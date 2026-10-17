@@ -30,6 +30,8 @@ abstract class BaseApiService {
         return 'Tempo limite de envio excedido';
       case DioExceptionType.receiveTimeout:
         return 'Tempo limite de resposta excedido';
+      case DioExceptionType.transformTimeout:
+        return 'Tempo limite ao transformar a resposta excedido';
       case DioExceptionType.connectionError:
         return 'Erro de conexão - Verifique URL e porta';
       case DioExceptionType.cancel:

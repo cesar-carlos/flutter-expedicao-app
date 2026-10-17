@@ -94,7 +94,7 @@ class ExpeditionItemPrintConsultationRepositoryImpl
 
       _socket.emit(event, jsonEncode(send.toJson()));
 
-      return completer.future.timeout(
+      return await completer.future.timeout(
         _responseTimeout,
         onTimeout: () {
           _socket.off(responseId);

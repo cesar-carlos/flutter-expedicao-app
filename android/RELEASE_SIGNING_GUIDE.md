@@ -12,15 +12,15 @@ acceptable for local tests and direct internal validation.
 For production or store builds, force the build to fail unless release signing
 is configured:
 
-```powershell
-$env:REQUIRE_RELEASE_SIGNING = "true"
+```text
+set REQUIRE_RELEASE_SIGNING=true
 flutter build apk --release
 ```
 
 The release helper script exposes the same check:
 
-```powershell
-.\create-release.ps1 -RequireReleaseSigning
+```text
+python create-release.py --require-release-signing
 ```
 
 ## Generated Files
@@ -50,7 +50,7 @@ Each versioned artifact also gets a `.sha256` file.
 
 Create the upload keystore outside the repository or in a path ignored by Git:
 
-```powershell
+```text
 keytool -genkey -v -keystore upload-keystore.jks -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias upload
 ```
 
@@ -74,33 +74,33 @@ Rules:
 
 Internal APK with fallback signing:
 
-```powershell
+```text
 flutter build apk --release
 ```
 
 Production-signed APK:
 
-```powershell
-.\create-release.ps1 -RequireReleaseSigning
+```text
+python create-release.py --require-release-signing
 ```
 
 Production-signed APK and AAB:
 
-```powershell
-.\create-release.ps1 -RequireReleaseSigning -Artifact both
+```text
+python create-release.py --require-release-signing --artifact both
 ```
 
 ## Verify Signing
 
 APK:
 
-```powershell
+```text
 keytool -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk
 ```
 
 AAB:
 
-```powershell
+```text
 jarsigner -verify -verbose -certs build/app/outputs/bundle/release/app-release.aab
 ```
 

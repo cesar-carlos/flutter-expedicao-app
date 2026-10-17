@@ -1,4 +1,5 @@
 ---
+description: Indice e roteamento das rules do repositorio
 alwaysApply: true
 ---
 
@@ -24,8 +25,10 @@ repeti-la aqui.
 - `architecture.mdc`: visao arquitetural do projeto, camadas e fluxo
 - `clean_architecture.mdc`: fronteiras de camada e direcao de
   dependencias
-- `solid_principles.mdc`: orientacao de design baseada em
-  SRP, OCP, LSP, ISP e DIP
+- `design_patterns.mdc`: qual padrao aplicar (View, ViewModel,
+  Coordinator, Use Case, Repository e afins)
+- `solid_principles.mdc`: SRP, god class, composicao, OCP, LSP, ISP
+  e DIP
 - `domain_layer.mdc`: regras especificas de entidades, value objects,
   use cases, repositories e erros de dominio
 
@@ -34,7 +37,7 @@ repeti-la aqui.
 - `coding_conventions.mdc`: nomenclatura, contratos, DI por construtor e
   uso de `Result`
 - `coding_style.mdc`: sintaxe Dart, imports, tooling, logging e recursos
-  modernos
+  legais no SDK 3.9
 - `null_safety.mdc`: nullability, acesso seguro e parsing defensivo
 - `dependencies_patterns.mdc`: bibliotecas obrigatorias e alternativas
   proibidas
@@ -43,8 +46,8 @@ repeti-la aqui.
 
 ## Rules de Flutter e UI
 
-- `flutter_widgets.mdc`: estrutura de widgets, estado local, layout e
-  performance
+- `flutter_widgets.mdc`: estrutura de widgets, god widget,
+  componentizacao, estado local, layout e performance
 - `ui_ux_design.mdc`: design system mobile, estados de tela,
   acessibilidade e responsividade
 - `shared_components.mdc`: promocao, reuso e evolucao segura de
@@ -66,18 +69,20 @@ repeti-la aqui.
 
 - `lib/domain/**/*.dart`
   Leia `domain_layer.mdc`, `clean_architecture.mdc`,
-  `solid_principles.mdc`, `coding_conventions.mdc`,
-  `coding_style.mdc` e `null_safety.mdc`.
+  `design_patterns.mdc`, `solid_principles.mdc`,
+  `coding_conventions.mdc`, `coding_style.mdc` e `null_safety.mdc`.
 - `lib/data/**/*.dart` e `lib/infrastructure/**/*.dart`
-  Leia `clean_architecture.mdc`, `coding_conventions.mdc`,
-  `coding_style.mdc`, `dependencies_patterns.mdc` e
-  `null_safety.mdc`.
+  Leia `clean_architecture.mdc`, `design_patterns.mdc`,
+  `coding_conventions.mdc`, `coding_style.mdc`,
+  `dependencies_patterns.mdc` e `null_safety.mdc`.
 - `lib/di/**/*.dart`
-  Leia `clean_architecture.mdc`, `coding_conventions.mdc`,
-  `coding_style.mdc` e `dependencies_patterns.mdc`.
+  Leia `clean_architecture.mdc`, `design_patterns.mdc`,
+  `coding_conventions.mdc`, `coding_style.mdc` e
+  `dependencies_patterns.mdc`.
 - `lib/presentation/**/*.dart` e `lib/ui/**/*.dart`
   Leia `flutter_widgets.mdc`, `ui_ux_design.mdc`,
-  `shared_components.mdc`, `dependencies_patterns.mdc`,
+  `shared_components.mdc`, `design_patterns.mdc`,
+  `solid_principles.mdc`, `dependencies_patterns.mdc`,
   `coding_style.mdc` e `general_rules.mdc`.
 - `lib/core/**/*.dart`
   Leia `coding_style.mdc`, `dependencies_patterns.mdc`,

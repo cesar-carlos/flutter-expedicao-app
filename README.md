@@ -335,8 +335,8 @@ flutter build apk --release
 
 Para gerar o pacote versionado com validacoes:
 
-```powershell
-.\create-release.ps1
+```text
+python create-release.py
 ```
 
 ### Build Android (App Bundle)
@@ -353,27 +353,28 @@ flutter build ios --release
 
 ### Script de Release
 
-O projeto possui um script PowerShell para facilitar o processo de release:
+O projeto possui um script Python para facilitar o processo de release:
 
-```powershell
-.\create-release.ps1
+```text
+python create-release.py
 ```
 
 Para publicar no GitHub com APK anexado:
 
-```powershell
-.\create-release.ps1 -Publish
+```text
+python create-release.py --publish
 ```
 
 Para exigir assinatura de producao e gerar APK + AAB:
 
-```powershell
-.\create-release.ps1 -Publish -RequireReleaseSigning -Artifact both
+```text
+python create-release.py --publish --require-release-signing --artifact both
 ```
 
 ## 📚 Documentação Adicional
 
-- [Sistema de Auto-Update](./docs/auto-update-system.md)
+- [Indice da documentacao](./docs/README.md)
+- [Atualizacao automatica](./docs/app-update.md)
 - [Processo de Release](./docs/release/RELEASE_PROCESS.md)
 - [Assinatura Android](./android/RELEASE_SIGNING_GUIDE.md)
 - [Arquitetura do Projeto](./.cursor/rules/architecture.mdc)

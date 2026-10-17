@@ -41,7 +41,7 @@ class NotificationService {
         iOS: initializationSettingsDarwin,
       );
 
-      await _notificationsPlugin.initialize(initializationSettings);
+      await _notificationsPlugin.initialize(settings: initializationSettings);
 
       _initialized = true;
       _initializing!.complete();
@@ -84,10 +84,10 @@ class NotificationService {
 
       try {
         await _notificationsPlugin.show(
-          codSepararEstoque,
-          'Nova Separação Disponível',
-          '$nomeEntidade - Setor: ${codSetoresEstoque?.join(", ") ?? "Todos"}',
-          notificationDetails,
+          id: codSepararEstoque,
+          title: 'Nova Separação Disponível',
+          body: '$nomeEntidade - Setor: ${codSetoresEstoque?.join(", ") ?? "Todos"}',
+          notificationDetails: notificationDetails,
         );
       } catch (e, s) {
         AppLogger.warning('Falha ao mostrar notificacao', tag: 'NotificationService', error: e, stackTrace: s);

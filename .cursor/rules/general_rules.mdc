@@ -4,8 +4,6 @@ globs: ["lib/**/*.dart", "test/**/*.dart"]
 alwaysApply: false
 ---
 
-#
-
 # Regras Gerais do Projeto
 
 ## Documentação e Comentários
@@ -106,7 +104,15 @@ final user = await cache.getUser(id);
 _counter++;
 ```
 
-## Princípios de Código Limpo
+## Extracao
+
+- extraia quando a mesma regra muda pelo mesmo motivo em dois lugares
+- nao extraia uma linha usada uma vez
+- god class vive em `solid_principles.mdc`
+- god widget e componentizacao vivem em `flutter_widgets.mdc`
+- promocao para compartilhado vive em `shared_components.mdc`
+
+## Principios de Codigo Limpo
 
 ### Código Autoexplicativo
 

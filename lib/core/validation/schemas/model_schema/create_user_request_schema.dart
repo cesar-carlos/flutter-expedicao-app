@@ -10,31 +10,30 @@ class CreateUserRequestSchema {
     'Nome': z
         .string()
         .min(1, message: 'Nome é obrigatório')
-        .transform((value) => value.trim())
-        .refine((value) => value.length <= 100, message: 'Nome deve ter no máximo 100 caracteres'),
+        .refine((value) => value.trim().length <= 100, message: 'Nome deve ter no máximo 100 caracteres')
+        .transform((value) => value.trim()),
     'Username': z
         .string()
         .min(1, message: 'Usuário é obrigatório')
-        .transform((value) => value.trim())
-        .refine((value) => value.length <= 50, message: 'Usuário deve ter no máximo 50 caracteres'),
+        .refine((value) => value.trim().length <= 50, message: 'Usuário deve ter no máximo 50 caracteres')
+        .transform((value) => value.trim()),
     'Password': z
         .string()
         .min(4, message: 'Senha deve ter pelo menos 4 caracteres')
         .max(60, message: 'Senha deve ter no máximo 60 caracteres'),
     'Email': z
         .string()
-        .optional()
         .refine((value) {
-          if (value.trim().isEmpty) return true;
-          // Bug latente anterior: regex `[\w-]{2,4}` no final do TLD
-          // rejeitava dominios validos com TLD > 4 chars (.travel,
-          // .museum, .tech, .design) ou multi-segmento (.com.br).
-          // Mesmo bug ja foi corrigido em UserValidators.isValidEmail
-          // — aqui aplicamos a mesma regex consolidada.
+          final trimmed = value.trim();
+          if (trimmed.isEmpty) return true;
           final emailRegex = RegExp(r'^[\w.\-]+@[\w\-]+(\.[\w\-]+)*\.[a-zA-Z]{2,24}$');
-          return emailRegex.hasMatch(value.trim());
+          return emailRegex.hasMatch(trimmed);
         }, message: 'Email deve ter formato válido')
-        .transform((value) => value.trim()),
+        .transform((value) {
+          final trimmed = value.trim();
+          return trimmed.isEmpty ? null : trimmed;
+        })
+        .optional(),
     'Telefone': CommonSchemas.optionalStringSchema,
     'FotoUsuario': CommonSchemas.optionalStringSchema,
   });
