@@ -1,23 +1,11 @@
-import org.gradle.api.tasks.compile.JavaCompile
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import com.android.build.gradle.BaseExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 allprojects {
     repositories {
         google()
         mavenCentral()
-    }
-
-    configurations.configureEach {
-        resolutionStrategy.eachDependency {
-            if (requested.group == "net.bytebuddy" &&
-                (requested.name == "byte-buddy" || requested.name == "byte-buddy-agent")
-            ) {
-                useVersion("1.14.18")
-                because("Jetifier used by Android lint cannot process byte-buddy 1.17.x Java 24 multi-release classes.")
-            }
-        }
     }
 }
 
@@ -29,24 +17,23 @@ rootProject.layout.buildDirectory.value(newBuildDir)
 
 subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
-    project.layout.buildDirectory.value(newSubprojectBuildDir)
-    
+    val projectRoot = project.projectDir.absoluteFile.toPath().root
+    val buildRoot = newSubprojectBuildDir.asFile.absoluteFile.toPath().root
+    // Plugin no cache do Pub em outro disco fica no build local. O AGP
+    // relativiza o caminho do projeto e do build e falha entre raízes diferentes.
+    if (projectRoot == buildRoot) {
+        project.layout.buildDirectory.value(newSubprojectBuildDir)
+    }
+
     afterEvaluate {
-        // Configurar compileOptions do Android para todos os subprojetos Android
+        // Plugins ainda declaram Java 8. O afterEvaluate alinha o bytecode com o Java 17 do app.
         extensions.findByType<BaseExtension>()?.apply {
             compileOptions {
                 sourceCompatibility = JavaVersion.VERSION_17
                 targetCompatibility = JavaVersion.VERSION_17
             }
         }
-        
-        // Configurar tarefas Java
-        tasks.withType<JavaCompile>().configureEach {
-            sourceCompatibility = JavaVersion.VERSION_17.toString()
-            targetCompatibility = JavaVersion.VERSION_17.toString()
-        }
-        
-        // Configurar tarefas Kotlin
+
         tasks.withType<KotlinCompile>().configureEach {
             compilerOptions {
                 jvmTarget.set(JvmTarget.JVM_17)

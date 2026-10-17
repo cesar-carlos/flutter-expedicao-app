@@ -101,14 +101,28 @@ android {
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
+
+    lint {
+        disable += "PropertyEscape"
+    }
 }
 
 flutter {
     source = "../.."
 }
 
+// Host unit tests package merge*Assets, which copyFlutterAssets writes.
+// Gradle 9 rejects that use unless the dependency is declared.
+tasks.configureEach {
+    if (!name.startsWith("package") || !name.endsWith("UnitTestForUnitTest")) {
+        return@configureEach
+    }
+    val variant = name.removePrefix("package").removeSuffix("UnitTestForUnitTest")
+    dependsOn("copyFlutterAssets$variant")
+}
+
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     testImplementation("junit:junit:4.13.2")
     testImplementation("androidx.test:core:1.6.1")
     testImplementation("org.robolectric:robolectric:4.12.2")
