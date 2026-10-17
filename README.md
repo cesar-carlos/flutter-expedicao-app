@@ -153,6 +153,7 @@ flutter pub run flutter_launcher_icons
 
 ```bash
 cp .env.exemple .env
+cp integration_test/.env.exemple integration_test/.env
 ```
 
 2. **Configure as variáveis no arquivo `.env`**

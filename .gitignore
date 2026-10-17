@@ -2,6 +2,7 @@
 *.class
 *.log
 *.pyc
+__pycache__/
 *.swp
 .DS_Store
 .atom/
@@ -44,5 +45,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Claude AI configuration (user-specific)
-# .claude/
+# Local environment files. Templates (.env.exemple) stay tracked.
+.env
+integration_test/.env
+
+# Local agent state
+.claude/
+.config/

@@ -1,14 +1,13 @@
 @echo off
+cd /d "%~dp0"
+
 echo ==============================================
 echo    Flutter Launcher Icons Generator
 echo    Data7 - EXP Application
 echo ==============================================
 echo.
 
-echo [1/4] Navegando para o diretorio do projeto...
-cd /d "d:\Developer\Data7\Expedicao\Flutter\app\exp"
-
-echo [2/4] Instalando dependencias...
+echo [1/3] Instalando dependencias...
 flutter pub get
 if errorlevel 1 (
     echo ERRO: Falha ao instalar dependencias
@@ -16,7 +15,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [3/4] Gerando icones do launcher...
+echo [2/3] Gerando icones do launcher...
 dart run flutter_launcher_icons
 if errorlevel 1 (
     echo Tentando comando alternativo...
@@ -28,29 +27,15 @@ if errorlevel 1 (
     )
 )
 
-echo [4/4] Verificando arquivos gerados...
+echo [3/3] Verificando arquivos gerados...
 echo.
 echo Icones Android:
 if exist "android\app\src\main\res\mipmap-hdpi\launcher_icon.png" (
-    echo   ✓ Android icons gerados com sucesso
+    echo   Android icons gerados com sucesso
 ) else (
-    echo   ✗ Android icons nao encontrados
-)
-
-echo.
-echo Icones iOS:
-if exist "ios\Runner\Assets.xcassets\AppIcon.appiconset" (
-    echo   ✓ iOS icons gerados com sucesso
-) else (
-    echo   ✗ iOS icons nao encontrados
-)
-
-echo.
-echo Icones Web:
-if exist "web\icons\Icon-192.png" (
-    echo   ✓ Web icons gerados com sucesso
-) else (
-    echo   ✗ Web icons nao encontrados
+    echo   Android icons nao encontrados
+    pause
+    exit /b 1
 )
 
 echo.
