@@ -117,7 +117,6 @@ Antes de começar, certifique-se de ter instalado:
 - **Android Studio** ou **VS Code** com extensões Flutter
 - **Git**
 - **Android SDK** (para desenvolvimento Android)
-- **Xcode** (para desenvolvimento iOS - apenas macOS)
 
 ## 🚀 Instalação
 
@@ -175,13 +174,6 @@ Certifique-se de que o `AndroidManifest.xml` está configurado corretamente com 
 - Internet
 - Câmera (para scanner)
 - Armazenamento (para downloads)
-
-### Configuração do iOS
-
-Configure as permissões no `Info.plist`:
-
-- `NSCameraUsageDescription` - Para uso da câmera no scanner
-- `NSPhotoLibraryUsageDescription` - Para acesso à galeria
 
 ## ▶️ Executando o Projeto
 
@@ -343,12 +335,6 @@ python create-release.py
 
 ```bash
 flutter build appbundle --release
-```
-
-### Build iOS
-
-```bash
-flutter build ios --release
 ```
 
 ### Script de Release

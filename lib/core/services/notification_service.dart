@@ -30,15 +30,8 @@ class NotificationService {
         '@mipmap/ic_launcher',
       );
 
-      const DarwinInitializationSettings initializationSettingsDarwin = DarwinInitializationSettings(
-        requestSoundPermission: false,
-        requestBadgePermission: false,
-        requestAlertPermission: false,
-      );
-
       const InitializationSettings initializationSettings = InitializationSettings(
         android: initializationSettingsAndroid,
-        iOS: initializationSettingsDarwin,
       );
 
       await _notificationsPlugin.initialize(settings: initializationSettings);

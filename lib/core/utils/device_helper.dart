@@ -7,14 +7,12 @@ class DeviceHelper {
   ///
   /// Retorna uma string que identifica o tipo de dispositivo e plataforma:
   /// - Android: "Android-[hostname]"
-  /// - iOS: "iOS-[hostname]"
   /// - Web: "Web-[hostname]"
   /// - Desktop: "[OS]-[hostname]"
   static String getDeviceIdentifier() {
     try {
       if (kIsWeb) return 'Web-${_getHostname()}';
       if (Platform.isAndroid) return 'Android-${_getHostname()}';
-      if (Platform.isIOS) return 'iOS-${_getHostname()}';
       if (Platform.isWindows) return 'Windows-${_getHostname()}';
       if (Platform.isMacOS) return 'MacOS-${_getHostname()}';
       if (Platform.isLinux) return 'Linux-${_getHostname()}';
@@ -39,7 +37,6 @@ class DeviceHelper {
     try {
       if (kIsWeb) return 'Web';
       if (Platform.isAndroid) return 'Android';
-      if (Platform.isIOS) return 'iOS';
       if (Platform.isWindows) return 'Windows';
       if (Platform.isMacOS) return 'MacOS';
       if (Platform.isLinux) return 'Linux';
@@ -52,7 +49,7 @@ class DeviceHelper {
   /// Verifica se está rodando em um dispositivo móvel
   static bool isMobile() {
     try {
-      return !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+      return !kIsWeb && Platform.isAndroid;
     } catch (e) {
       return false;
     }
