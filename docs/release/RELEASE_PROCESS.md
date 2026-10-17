@@ -48,7 +48,8 @@ This builds:
 - Validates that matching release notes exist.
 - Runs `flutter analyze --fatal-infos --fatal-warnings`.
 - Runs `flutter test`.
-- Runs Android unit tests and lint.
+- Runs Android unit tests. Lint stays out of this script: AGP 9.1 cannot
+  load `org.jetbrains.kotlin.config.LanguageVersionSettings`.
 - Builds APK and optionally AAB.
 - Copies artifacts to `dist/release/vX.Y.Z+B/` with versioned filenames.
 - Writes SHA-256 sidecar files.
@@ -64,7 +65,7 @@ Use this checklist before publishing:
   validation scope.
 - `flutter analyze --fatal-infos --fatal-warnings` passes.
 - `flutter test` passes.
-- `.\gradlew.bat :app:testDebugUnitTest :app:lintDebug` passes in `android/`.
+- `.\gradlew.bat :app:testDebugUnitTest` passes in `android/`.
 - `flutter build apk --release` passes.
 - For production: `python create-release.py --require-release-signing` passes.
 - APK asset is attached to the GitHub Release.

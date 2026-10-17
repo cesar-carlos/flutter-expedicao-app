@@ -21,6 +21,8 @@ acumulado desde a **2.1.4+5**, mais o build Android alinhado ao Flutter atual.
 - Plugins do Pub em outro disco mantem o diretorio de build local, evitando a
   falha de raizes diferentes no Windows.
 - `desugar_jdk_libs` **2.1.5** para atender `flutter_local_notifications`.
+- O lint do AGP 9.1 nao entra na publicacao: o worker nao carrega
+  `LanguageVersionSettings`. A validacao Android fica nos testes unitarios.
 
 ## Release
 
