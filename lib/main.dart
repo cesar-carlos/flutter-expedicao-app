@@ -7,12 +7,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import 'package:data7_expedicao/di/locator.dart';
-import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/bootstrap.dart';
 import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/theme/app_theme.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/domain/models/github_release.dart';
+import 'package:data7_expedicao/l10n/app_localizations.dart';
 import 'package:data7_expedicao/presentation/viewmodels/app_update_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
@@ -20,7 +22,6 @@ import 'package:data7_expedicao/presentation/viewmodels/register_viewmodel.dart'
 import 'package:data7_expedicao/presentation/viewmodels/scanner_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/socket_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/theme_viewmodel.dart';
-import 'package:data7_expedicao/l10n/app_localizations.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_progress_dialog.dart';
 
@@ -58,9 +59,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  static bool _hasScheduledUpdateCheck = false;
-  bool _updateDialogShown = false;
-  bool _progressDialogShown = false;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  GoRouter? _router;
 
   @override
   void initState() {
@@ -77,43 +77,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    // Ao encerrar o app, cancela o timer periódico e dispara o save final
-    // das métricas (até então perdíamos as métricas acumuladas desde o
-    // último save automático). Resolvido via locator com try/catch porque
-    // MetricsCollector não é crítico e pode não estar registrado.
-    if (state == AppLifecycleState.detached) {
-      try {
-        locator<MetricsCollector>().disposeCollector();
-      } catch (e, s) {
-        AppLogger.warning(
-          'Falha ao finalizar MetricsCollector no encerramento do app',
-          tag: 'MyApp',
-          error: e,
-          stackTrace: s,
-        );
-      }
+    if (state != AppLifecycleState.detached) return;
+
+    try {
+      locator<MetricsCollector>().disposeCollector();
+    } catch (error, stackTrace) {
+      AppLogger.warning(
+        'Falha ao finalizar MetricsCollector no encerramento do app',
+        tag: 'MyApp',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
   }
 
-  /// Bug AAAAAAAAAAA: cache do GoRouter para nao recriar a cada
-  /// rebuild do Consumer3 (que dispara em qualquer notify de
-  /// auth/theme/appUpdate viewmodels). Antes, recriar custava:
-  /// * Perda de state interno de navegacao
-  /// * Criacao de nova instancia de GoRouter (caro)
-  /// * Re-avaliacao de redirects desnecessaria
-  ///
-  /// Combinado com `refreshListenable: authViewModel` no router,
-  /// o redirect ainda re-avalia automaticamente quando auth muda,
-  /// mas sem recriar o router.
-  late final GoRouter _router;
-  bool _routerInitialized = false;
-
-  GoRouter _getOrCreateRouter(AuthViewModel authViewModel) {
-    if (!_routerInitialized) {
-      _router = AppRouter.createRouter(authViewModel);
-      _routerInitialized = true;
-    }
-    return _router;
+  GoRouter _ensureRouter(AuthViewModel authViewModel) {
+    return _router ??= AppRouter.createRouter(authViewModel, navigatorKey: _navigatorKey);
   }
 
   @override
@@ -128,116 +107,167 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider.value(value: widget.socketViewModel),
         ChangeNotifierProvider.value(value: widget.appUpdateViewModel),
       ],
-      child: Consumer3<AuthViewModel, ThemeViewModel, AppUpdateViewModel>(
-        builder: (context, authViewModel, themeViewModel, appUpdateViewModel, child) {
-          final router = _getOrCreateRouter(authViewModel);
-
-          if (!_hasScheduledUpdateCheck) {
-            _hasScheduledUpdateCheck = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (kReleaseMode) {
-                unawaited(
-                  Future<void>.delayed(const Duration(seconds: 2), () {
-                    final owner = dotenv.env['GITHUB_OWNER']?.trim();
-                    final repo = dotenv.env['GITHUB_REPO']?.trim();
-                    unawaited(
-                      appUpdateViewModel.checkForUpdate(owner: owner, repo: repo, forceCheck: false).catchError((
-                        Object e,
-                        StackTrace s,
-                      ) {
-                        AppLogger.warning(
-                          'Falha na verificação automática de atualização',
-                          tag: 'MyApp',
-                          error: e,
-                          stackTrace: s,
-                        );
-                      }),
-                    );
-                  }).catchError((Object e, StackTrace s) {
-                    AppLogger.warning(
-                      'Falha no atraso da verificação automática de atualização',
-                      tag: 'MyApp',
-                      error: e,
-                      stackTrace: s,
-                    );
-                  }),
-                );
-              }
-            });
-          }
-
-          if (appUpdateViewModel.hasUpdate && appUpdateViewModel.updateAvailable != null && !_updateDialogShown) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && !_updateDialogShown) {
-                _updateDialogShown = true;
-                unawaited(
-                  showDialog<void>(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (_) => AppUpdateDialog(release: appUpdateViewModel.updateAvailable!),
-                  ).then((_) {
-                    _updateDialogShown = false;
-                  }).catchError((Object e, StackTrace s) {
-                    _updateDialogShown = false;
-                    AppLogger.warning(
-                      'Falha ao exibir dialog de atualização do app',
-                      tag: 'MyApp',
-                      error: e,
-                      stackTrace: s,
-                    );
-                  }),
-                );
-              }
-            });
-          } else if (!appUpdateViewModel.hasUpdate && _updateDialogShown) {
-            _updateDialogShown = false;
-          }
-
-          if ((appUpdateViewModel.isDownloading || appUpdateViewModel.isInstalling) && !_progressDialogShown) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && !_progressDialogShown) {
-                _progressDialogShown = true;
-                unawaited(
-                  showDialog<void>(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (_) => const AppUpdateProgressDialog(),
-                  ).then((_) {
-                    _progressDialogShown = false;
-                  }).catchError((Object e, StackTrace s) {
-                    _progressDialogShown = false;
-                    AppLogger.warning(
-                      'Falha ao exibir dialog de progresso de atualização',
-                      tag: 'MyApp',
-                      error: e,
-                      stackTrace: s,
-                    );
-                  }),
-                );
-              }
-            });
-          } else if (!appUpdateViewModel.isDownloading && !appUpdateViewModel.isInstalling && _progressDialogShown) {
-            _progressDialogShown = false;
-          }
-
-          return MaterialApp.router(
-            title: 'Data7 Expedição',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeViewModel.themeMode,
-            routerConfig: router,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [Locale('pt', 'BR'), Locale('en', 'US')],
-            locale: const Locale('pt', 'BR'),
+      child: Builder(
+        builder: (context) {
+          final router = _ensureRouter(context.read<AuthViewModel>());
+          return Consumer<ThemeViewModel>(
+            builder: (context, themeViewModel, _) {
+              return MaterialApp.router(
+                title: 'Data7 Expedição',
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                themeMode: themeViewModel.themeMode,
+                routerConfig: router,
+                builder: (context, child) {
+                  return _AppUpdateHost(navigatorKey: _navigatorKey, child: child ?? const SizedBox.shrink());
+                },
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: const [Locale('pt', 'BR'), Locale('en', 'US')],
+                locale: const Locale('pt', 'BR'),
+              );
+            },
           );
         },
       ),
     );
+  }
+}
+
+class _AppUpdateHost extends StatefulWidget {
+  final GlobalKey<NavigatorState> navigatorKey;
+  final Widget child;
+
+  const _AppUpdateHost({required this.navigatorKey, required this.child});
+
+  @override
+  State<_AppUpdateHost> createState() => _AppUpdateHostState();
+}
+
+class _AppUpdateHostState extends State<_AppUpdateHost> {
+  AppUpdateViewModel? _viewModel;
+  bool _checkScheduled = false;
+  bool _syncScheduled = false;
+  bool _updateDialogVisible = false;
+  bool _progressDialogVisible = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final viewModel = context.read<AppUpdateViewModel>();
+    if (identical(_viewModel, viewModel)) return;
+
+    _viewModel?.removeListener(_syncDialogs);
+    _viewModel = viewModel;
+    viewModel.addListener(_syncDialogs);
+    _scheduleInitialCheck(viewModel);
+    _syncDialogs();
+  }
+
+  @override
+  void dispose() {
+    _viewModel?.removeListener(_syncDialogs);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+
+  void _scheduleInitialCheck(AppUpdateViewModel viewModel) {
+    if (_checkScheduled || !kReleaseMode) return;
+    _checkScheduled = true;
+    unawaited(_runInitialCheck(viewModel));
+  }
+
+  Future<void> _runInitialCheck(AppUpdateViewModel viewModel) async {
+    try {
+      await Future<void>.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+      final owner = dotenv.env['GITHUB_OWNER']?.trim();
+      final repo = dotenv.env['GITHUB_REPO']?.trim();
+      await viewModel.checkForUpdate(owner: owner, repo: repo, forceCheck: false);
+    } catch (error, stackTrace) {
+      AppLogger.warning(
+        'Falha na verificação automática de atualização',
+        tag: 'AppUpdateHost',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  void _syncDialogs() {
+    if (_syncScheduled) return;
+    _syncScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncScheduled = false;
+      if (!mounted) return;
+      _presentPendingDialogs();
+    });
+  }
+
+  void _presentPendingDialogs() {
+    final viewModel = _viewModel;
+    final dialogContext = widget.navigatorKey.currentContext;
+    if (viewModel == null || dialogContext == null || !dialogContext.mounted) return;
+
+    final release = viewModel.updateAvailable;
+    if (viewModel.hasUpdate && release != null && !_updateDialogVisible) {
+      _updateDialogVisible = true;
+      unawaited(_showUpdateDialog(dialogContext, release));
+    } else if (!viewModel.hasUpdate && _updateDialogVisible) {
+      _updateDialogVisible = false;
+    }
+
+    final showProgress = viewModel.isDownloading || viewModel.isInstalling;
+    if (showProgress && !_progressDialogVisible) {
+      _progressDialogVisible = true;
+      unawaited(_showProgressDialog(dialogContext));
+    } else if (!showProgress && _progressDialogVisible) {
+      _progressDialogVisible = false;
+    }
+  }
+
+  Future<void> _showUpdateDialog(BuildContext dialogContext, GitHubRelease release) async {
+    try {
+      await showDialog<void>(
+        context: dialogContext,
+        barrierDismissible: false,
+        builder: (_) => AppUpdateDialog(release: release),
+      );
+    } catch (error, stackTrace) {
+      AppLogger.warning(
+        'Falha ao exibir dialog de atualização do app',
+        tag: 'AppUpdateHost',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      _updateDialogVisible = false;
+    }
+  }
+
+  Future<void> _showProgressDialog(BuildContext dialogContext) async {
+    try {
+      await showDialog<void>(
+        context: dialogContext,
+        barrierDismissible: false,
+        builder: (_) => const AppUpdateProgressDialog(),
+      );
+    } catch (error, stackTrace) {
+      AppLogger.warning(
+        'Falha ao exibir dialog de progresso de atualização',
+        tag: 'AppUpdateHost',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      _progressDialogVisible = false;
+    }
   }
 }
