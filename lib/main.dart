@@ -59,7 +59,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  final _navigatorKey = GlobalKey<NavigatorState>();
   GoRouter? _router;
 
   @override
