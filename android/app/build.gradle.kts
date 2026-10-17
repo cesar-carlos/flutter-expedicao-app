@@ -104,6 +104,7 @@ android {
 
     lint {
         disable += "PropertyEscape"
+        checkReleaseBuilds = false
     }
 }
 

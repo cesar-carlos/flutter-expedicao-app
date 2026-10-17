@@ -39,6 +39,14 @@ subprojects {
                 jvmTarget.set(JvmTarget.JVM_17)
             }
         }
+
+        // O lint do AGP 9.1 nao carrega classes do compilador Kotlin.
+        // assembleRelease depende de lintVitalAnalyzeRelease e para nesse ponto.
+        tasks.configureEach {
+            if (name.contains("lintVital") || name.contains("lintAnalyze")) {
+                enabled = false
+            }
+        }
     }
 }
 subprojects {
