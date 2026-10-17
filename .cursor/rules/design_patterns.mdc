@@ -66,6 +66,6 @@ O app segue Clean Architecture. Na UI, View e ViewModel entram em
 
 ## Injecao
 
-- dependencias entram pelo construtor
-- `GetIt` fica na borda `di/`, nao dentro de view model, use case ou
-  widget
+- tipo novo recebe dependencia no construtor
+- `GetIt` fica em `lib/di`; a regra incremental do `locator` vive em
+  `coding_conventions.mdc`

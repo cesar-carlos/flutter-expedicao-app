@@ -1,134 +1,47 @@
 ---
-description: Clean Architecture - Regras de dependência entre camadas e organização do código
+description: Fronteiras de import entre as pastas reais do pacote
 globs: ["lib/**/*.dart"]
 alwaysApply: false
 ---
 
-# Clean Architecture - Regras de Dependência
+# Fronteiras de Import
 
 ## Escopo
 
-Este arquivo e o dono das fronteiras acionaveis entre camadas: o que
-cada camada pode e nao pode importar.
+Este arquivo diz o que cada pasta pode importar. O mapa de pastas vive
+em `architecture.mdc`. O padrao vive em `design_patterns.mdc`.
 
-A visao geral de pastas, papeis de cada camada e fluxo vive em
-`architecture.mdc`. A escolha do padrao vive em `design_patterns.mdc`.
+O pacote e um so. Importe `package:data7_expedicao/...`. Nao existem
+`package:domain`, `package:core`, `package:application` nem
+`package:infrastructure`.
 
-Imports reais usam `package:data7_expedicao/...`.
+## Quem importa o que
 
-## Regras de Dependência
-
-### Domain Layer
-
-- ✅ PODE importar apenas de `core` e `shared`
-- ❌ NUNCA importar de `application`, `infrastructure` ou `presentation`
-- ❌ NUNCA importar Flutter, HTTP, ou qualquer framework externo
-- ✅ Apenas classes Dart puro
-- ✅ Define interfaces (repositories), não implementações
-- ✅ Contém apenas lógica de negócio pura
-
-**Exemplo Correto:**
-
-```dart
-// domain/entities/user.dart
-import 'package:core/core.dart'; // ✅ OK
-import '../value_objects/email.dart'; // ✅ OK
-
-class User {
-  final String id;
-  final String name;
-  final Email email;
-  // Lógica de negócio pura
-}
-```
-
-**Exemplo Incorreto:**
+- `domain` importa `core` e, se existir, `shared`
+- `domain` nao importa Flutter, HTTP, `data`, `infrastructure`,
+  `presentation`, `ui` nem `di`
+- `data` e `infrastructure` importam `domain` e `core`
+- `data` e `infrastructure` nao importam `presentation` nem `ui`
+- `presentation` e `ui` importam `domain`, `core` e uma a outra quando
+  o fluxo exigir
+- `presentation` e `ui` nao importam `data` nem `infrastructure`
+- `core` nao importa `domain`, `data`, `infrastructure`, `presentation`
+  nem `ui`
+- `di` importa as implementacoes para registra-las
 
 ```dart
-// domain/entities/user.dart
-import 'package:flutter/material.dart'; // ❌ ERRADO
-import 'package:infrastructure/infrastructure.dart'; // ❌ ERRADO
+import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_usecase.dart';
 ```
-
-### Application Layer
-
-- ✅ PODE importar de `domain` e `core`
-- ❌ NUNCA importar de `infrastructure` ou `presentation`
-- ✅ Usa interfaces do Domain, não implementações concretas
-- ✅ Orquestra use cases e coordena fluxos
-
-**Exemplo Correto:**
 
 ```dart
-// application/services/user_service.dart
-import 'package:domain/domain.dart'; // ✅ OK
-import 'package:core/core.dart'; // ✅ OK
-
-class UserService {
-  final IUserRepository repository; // Interface do Domain ✅
-
-  UserService(this.repository);
-}
+import 'package:flutter/material.dart';
+import 'package:data7_expedicao/data/repositories/app_update_repository_impl.dart';
 ```
 
-### Infrastructure Layer
+O segundo bloco nao entra em `domain`, `presentation` nem `ui`.
 
-- ✅ PODE importar de `domain` e `core`
-- ❌ NUNCA importar de `application` ou `presentation`
-- ✅ Implementa interfaces definidas no Domain
-- ✅ Lida com detalhes técnicos (API, DB, Cache)
+## Referencias
 
-**Exemplo Correto:**
-
-```dart
-// infrastructure/repositories/user_repository.dart
-import 'package:domain/domain.dart'; // ✅ OK
-import 'package:core/core.dart'; // ✅ OK
-
-class UserRepository implements IUserRepository {
-  // Implementa interface do Domain ✅
-  @override
-  Future<User> getById(String id) { /* implementação */ }
-}
-```
-
-### Presentation Layer
-
-- ✅ PODE importar de `domain`, `application` e `core`
-- ❌ NUNCA importar de `infrastructure`
-- ✅ Usa services da Application ou use cases do Domain
-- ✅ Apenas gerencia estado da UI, não lógica de negócio
-
-**Exemplo Correto:**
-
-```dart
-// presentation/pages/user_page.dart
-import 'package:domain/domain.dart'; // ✅ OK
-import 'package:application/application.dart'; // ✅ OK
-import 'package:core/core.dart'; // ✅ OK
-
-class UserPage extends StatelessWidget {
-  final UserService userService; // Service da Application ✅
-
-  @override
-  Widget build(BuildContext context) {
-    // UI apenas
-  }
-}
-```
-
-## Regras de Importação
-
-1. **Domain** → Apenas `core` e `shared`
-2. **Application** → `domain` e `core`
-3. **Infrastructure** → `domain` e `core`
-4. **Presentation** → `domain`, `application` e `core`
-5. **Core** → Não importa de outras camadas de negócio
-6. **Shared** → Não importa de outras camadas de negócio
-
-## Referências
-
-- visao geral, papeis de camada e fluxo: `architecture.mdc`
-- desenho de classes e Inversao de Dependencia (DIP):
-  `solid_principles.mdc`
-- regras especificas do dominio: `domain_layer.mdc`
+- pastas e fluxo: `architecture.mdc`
+- DIP e god class: `solid_principles.mdc`
+- use case, repositorio e `AppFailure`: `domain_layer.mdc`

@@ -28,6 +28,8 @@ Use `rules_index.mdc` para localizar a regra dona de cada assunto.
   ao escopo alterado quando isso for viavel
 - quando um assunto tiver uma rule dedicada, siga a rule dona do assunto
   em vez de duplicar politica local
+- script documentado e Python; o release e `python create-release.py`
+- nao crie script PowerShell
 
 ## Referencias
 

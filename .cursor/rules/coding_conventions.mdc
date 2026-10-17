@@ -1,78 +1,56 @@
 ---
-description: Convencoes de codificacao - nomenclatura, arquivos e padroes
+description: Nomes, arquivos, Result e injecao por construtor
 globs: ["lib/**/*.dart"]
 alwaysApply: false
 ---
 
 # Convencoes de Codificacao
 
-## Nomenclatura
+## Nomes
 
-### Classes e tipos
+- modelo: substantivo singular em PascalCase, arquivo com sufixo
+  `_model` quando o tipo ja segue esse padrao
+- use case: operacao em PascalCase terminando em `UseCase`
+- contrato novo de repositorio ou servico: prefixo `I`
+- implementacao: nome do contrato sem o `I`, mais `Repository` ou
+  `Service` se isso ainda nao estiver no nome
+- DTO: sufixo `DTO`
+- controller: sufixo `Controller`
+- view model: sufixo `ViewModel`
+- coordinator: sufixo `Coordinator`
+- falha: sufixo `Failure`
 
-- Entities: substantivo singular em PascalCase
-- Value Objects: substantivo descritivo em PascalCase
-- Use Cases: verbo no infinitivo em PascalCase
-- Repositories abstratos: prefixo `I` + nome singular
-- Repositories concretos: nome singular + `Repository`
-- Services: nome singular + `Service`
-- DTOs: nome singular + `DTO`
-- Models: nome singular + `Model`
-- Controllers: nome + `Controller`
-- Providers: nome + `Provider`
-- Failures e Exceptions: nome descritivo + `Failure` ou `Exception`
+Contrato antigo sem `I`, como `UserRepository` e
+`BasicConsultationRepository`, permanece. Nao renomeie num ajuste
+lateral. O rename so acontece quando a tarefa for essa.
 
-### Variaveis e metodos
+Casing, verbo e membro privado seguem `coding_style.mdc`.
 
-- casing, verbos em metodos e prefixo `_` em membros privados seguem
-  `coding_style.mdc`
+## Arquivos
 
-### Arquivos
+- o arquivo acompanha o tipo principal
+- contrato novo com `I` usa arquivo `i_nome.dart`
+- use case fica em `domain/usecases/<operacao>/`
 
-- o nome do arquivo deve seguir a classe principal
-- interfaces de repositorio seguem o padrao `i_nome_repository.dart`
-- casing de arquivos e diretorios segue `coding_style.mdc`
+## Contratos
 
-## Estrutura esperada por tipo
+- use case tem uma operacao, `call` e `Result`
+- contrato novo de repositorio devolve modelo do dominio ou `Result`
+- implementacao fica em `data` ou `infrastructure`
+- mapper converte DTO e modelo sem regra de separacao
 
-### Use cases
+O formato do `Result` vive em `dependencies_patterns.mdc`. A falha
+vive em `domain_layer.mdc`.
 
-- uma unica responsabilidade
-- dependencia via construtor
-- metodo publico `call()`
-- retorno com `Result<T>`
+## Injecao
 
-### Repositories
+- tipo novo recebe dependencia no construtor
+- nao resolva `locator` dentro de use case, view model, coordinator,
+  controller ou widget
+- ao editar um tipo que ja chama `locator`, nao acrescente outra
+  chamada; dependencia nova entra pelo construtor e o registro fica em
+  `lib/di/modules`
+- nao reescreva o tipo inteiro so para tirar o `locator` que ja existe
+- `GetIt` aparece em `lib/di` e no bootstrap
 
-- contratos ficam no `domain`
-- implementacoes ficam em `infrastructure`
-- APIs publicas devem expor entidades, value objects ou `Result<T>`
-
-### Services e mappers
-
-- servicos de `application` orquestram fluxos
-- mappers convertem entre camadas sem carregar logica de dominio
-
-## Tratamento de erros
-
-- operacoes que podem falhar retornam `Result<T>`, nao excecoes como
-  fluxo normal de negocio
-- modelo de erros de dominio: veja `domain_layer.mdc`
-- mecanica de `result_dart` (`Success`/`Failure`): veja
-  `dependencies_patterns.mdc`
-
-## Injecao de dependencias
-
-- injete dependencias via construtor
-- nao acople classes diretamente ao `GetIt`
-- a resolucao pelo container deve acontecer na borda de composicao
-- o principio (DIP, depender de abstracoes) vive em
-  `solid_principles.mdc`
-
-## Fora do escopo desta regra
-
-- comentarios e documentacao: veja `general_rules.mdc`
-- casing, imports e estilo Dart detalhado: veja `coding_style.mdc`
-- null safety: veja `null_safety.mdc`
-- bibliotecas obrigatorias: veja `dependencies_patterns.mdc`
-- principios SOLID: veja `solid_principles.mdc`
+O principio de depender de abstracao vive em `solid_principles.mdc`.

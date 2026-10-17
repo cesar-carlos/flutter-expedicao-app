@@ -5,7 +5,8 @@ alwaysApply: true
 
 # Arquitetura do Projeto
 
-Este projeto segue Clean Architecture e Domain Driven Design.
+Este projeto segue Clean Architecture e Domain Driven Design em um
+unico pacote, `package:data7_expedicao`.
 
 ## Principios base
 
@@ -15,92 +16,78 @@ Este projeto segue Clean Architecture e Domain Driven Design.
 - Interfaces vivem nas camadas internas; implementacoes ficam nas
   externas.
 
-## Estrutura esperada
+## Estrutura real
 
 ```text
 lib/
-|- domain/
-|- application/
-|- infrastructure/
-|- presentation/
-|- core/
-`- shared/
+|- domain/            modelos, contratos, servicos e use cases
+|- data/              repositorios, datasources, DTOs e servicos de API
+|- infrastructure/    servicos externos, como impressora e adapters
+|- presentation/      view models, controllers e coordinators
+|- ui/                telas e widgets
+|- core/              tema, rotas, rede, validacao, Result e utilitarios
+|- di/                locator e modules
+`- l10n/              textos gerados
 ```
 
-## Papel de cada camada
+Nao crie `lib/application`. Orquestracao de negocio fica no use case.
+Orquestracao de tela fica no view model ou no coordinator. Widget
+compartilhado fica em `lib/ui/widgets/common`.
+
+## Papel de cada pasta
 
 ### `domain`
 
-- entidades, value objects, repositorios abstratos, casos de uso e erros
+- modelos, value objects, repositorios e servicos abstratos, use cases
+  e falhas
 - regra de negocio pura
 
-### `application`
+### `data` e `infrastructure`
 
-- orquestracao entre casos de uso
-- servicos, DTOs e mapeamentos
+- implementacoes dos contratos do `domain`
+- `data` fala com API, socket e armazenamento
+- `infrastructure` fala com dispositivo e servico externo
 
-### `infrastructure`
+### `presentation` e `ui`
 
-- implementacoes concretas de acesso a dados e servicos externos
-- models, datasources, repositories e integracoes
-
-### `presentation`
-
-- paginas, widgets, controllers e providers
-- estado e interacao de UI
+- `presentation` guarda estado e fluxo
+- `ui` desenha e encaminha o evento
+- nenhum dos dois importa `data` nem `infrastructure`
 
 ### `core`
 
-- componentes tecnicos compartilhados pela aplicacao
-- tema, rotas, DI, constantes, extensoes e utilitarios centrais
+- tema, `lib/core/routing/app_router.dart`, rede, validacao e `Result`
+- nao importa `domain`, `data`, `presentation` nem `ui`
 
-### `shared`
+### `di`
 
-- componentes reutilizaveis compartilhados entre features
+- unica borda que monta implementacao concreta
+- modules em `lib/di/modules`, entrada em `lib/di/locator.dart`
 
 ## Direcao de dependencias
 
 ```text
-presentation -> application -> domain <- infrastructure
-                     ^                ^
-                     |                |
-                   core             core
+ui -> presentation -> domain <- data
+                         ^         ^
+                         |         |
+                       core   infrastructure
 ```
 
-`shared` deve permanecer reutilizavel e nao introduzir acoplamento de
-camada.
+`di` aponta para todas as pastas porque so ele compoe o grafo.
 
 ## Fluxo esperado
 
-1. A `presentation` recebe a interacao do usuario.
-2. A camada de `application` coordena o caso de uso.
-3. O `domain` define regras e contratos.
-4. A `infrastructure` implementa os contratos e fala com APIs, banco ou
-   armazenamento local.
-5. O resultado sobe de volta sem inverter as dependencias.
+1. A `ui` recebe a interacao.
+2. O view model ou o coordinator chama o use case.
+3. O `domain` aplica a regra e o contrato.
+4. `data` ou `infrastructure` executa o contrato.
+5. O `Result` volta sem inverter a dependencia.
 
-## Regras de organizacao
+## Fora desta regra
 
-- Prefira componentes pequenos e focados.
-- Extraia padroes reutilizaveis antes de duplicar.
-- Mantenha a regra de negocio fora da UI.
-- Nao use esta regra para detalhes de biblioteca; veja
-  `dependencies_patterns.mdc`.
-- Nao use esta regra para detalhes de imports por camada; veja
-  `clean_architecture.mdc`.
-
-## Padroes adotados
-
-A escolha entre View, ViewModel, Controller, Coordinator, Use Case,
-Repository, Service e Mapper vive em `design_patterns.mdc`.
-
-God class e composicao vivem em `solid_principles.mdc`. Componentizacao
-de widget vive em `flutter_widgets.mdc`.
-
-## Leia tambem
-
-- `clean_architecture.mdc` para fronteiras entre camadas
-- `design_patterns.mdc` para qual padrao aplicar
-- `solid_principles.mdc` para desenho de classes
-- `domain_layer.mdc` para regras especificas do dominio
-- `dependencies_patterns.mdc` para bibliotecas obrigatorias
+- biblioteca: `dependencies_patterns.mdc`
+- import por pasta: `clean_architecture.mdc`
+- qual padrao usar: `design_patterns.mdc`
+- god class: `solid_principles.mdc`
+- widget: `flutter_widgets.mdc`
+- dominio: `domain_layer.mdc`

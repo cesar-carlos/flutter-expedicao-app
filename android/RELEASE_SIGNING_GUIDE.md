@@ -68,7 +68,7 @@ Rules:
 - Do not commit `key.properties`.
 - Do not commit `.jks`, `.keystore`, or password files.
 - Keep a backup of the keystore. Losing it can block future updates.
-- Use `-RequireReleaseSigning` in production release builds.
+- Use `--require-release-signing` in production release builds.
 
 ## Build Commands
 

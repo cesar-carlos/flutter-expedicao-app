@@ -22,9 +22,9 @@ repeti-la aqui.
 
 ## Rules de Arquitetura
 
-- `architecture.mdc`: visao arquitetural do projeto, camadas e fluxo
-- `clean_architecture.mdc`: fronteiras de camada e direcao de
+- `architecture.mdc`: pastas reais do pacote, fluxo e direcao das
   dependencias
+- `clean_architecture.mdc`: o que cada pasta pode importar
 - `design_patterns.mdc`: qual padrao aplicar (View, ViewModel,
   Coordinator, Use Case, Repository e afins)
 - `solid_principles.mdc`: SRP, god class, composicao, OCP, LSP, ISP
@@ -34,13 +34,13 @@ repeti-la aqui.
 
 ## Rules de Codigo Dart
 
-- `coding_conventions.mdc`: nomenclatura, contratos, DI por construtor e
-  uso de `Result`
+- `coding_conventions.mdc`: nomes, prefixo `I` em contrato novo,
+  `Result` e `locator` incremental
 - `coding_style.mdc`: sintaxe Dart, imports, tooling, logging e recursos
   legais no SDK 3.9
-- `null_safety.mdc`: nullability, acesso seguro e parsing defensivo
-- `dependencies_patterns.mdc`: bibliotecas obrigatorias e alternativas
-  proibidas
+- `null_safety.mdc`: quando usar `?`, `!`, `late` e como falhar no parse
+- `dependencies_patterns.mdc`: biblioteca adotada e a pasta onde ela
+  mora
 - `general_rules.mdc`: documentacao, comentarios, duplicacao e codigo
   autoexplicativo
 

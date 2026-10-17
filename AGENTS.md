@@ -33,9 +33,9 @@ technical rule, then the general rule, then this index.
 - `.cursor/rules/rules_authoring.mdc`
   How to maintain rules and `AGENTS.md` without duplication.
 - `.cursor/rules/architecture.mdc`
-  High-level architecture overview and layer responsibilities.
+  Actual package folders, flow, and dependency direction.
 - `.cursor/rules/clean_architecture.mdc`
-  Dependency direction and layer boundaries.
+  What each folder may import.
 - `.cursor/rules/design_patterns.mdc`
   Which pattern to apply: View, ViewModel, Controller, Coordinator,
   Use Case, Repository, Service, or Mapper.
@@ -44,17 +44,16 @@ technical rule, then the general rule, then this index.
 - `.cursor/rules/domain_layer.mdc`
   Entities, value objects, use cases, repositories, and `AppFailure`.
 - `.cursor/rules/coding_conventions.mdc`
-  Naming, file conventions, constructor injection, and `Result`.
+  Naming, the `I` prefix for new contracts, `Result`, and incremental
+  `locator` removal.
 - `.cursor/rules/coding_style.mdc`
   Dart style, tooling, logging, and language features legal on SDK 3.9.
   Do not use dot shorthands, private named parameters, or primary
   constructors until the SDK lower bound allows them.
 - `.cursor/rules/null_safety.mdc`
-  Null-safety rules and defensive typing guidance.
+  When to use nullable types, `!`, `late`, and how parsing fails.
 - `.cursor/rules/dependencies_patterns.mdc`
-  Approved library choices such as `go_router`, `dio`, `get_it`,
-  `Provider`, `result_dart`, `flutter_dotenv`, `uuid`, `zard`, and
-  `brasil_fields`.
+  Approved libraries and the folder where each one lives.
 - `.cursor/rules/general_rules.mdc`
   Docs, comments, extraction, and self-explanatory code.
 - `.cursor/rules/flutter_widgets.mdc`
@@ -81,6 +80,11 @@ technical rule, then the general rule, then this index.
 - Prefer Dart 3.9 features that remove casts and branches: `sealed`
   types, exhaustive `switch`, records, patterns, and null-aware
   collection elements.
+- Give a new type its dependencies through the constructor. Do not add
+  a `locator` call. Leave an existing `locator` call in place unless
+  that constructor is already being changed.
+- A documented script is Python. The release script is
+  `python create-release.py`.
 - Do not duplicate detailed rules in `AGENTS.md`; update links and short
   descriptions instead.
 

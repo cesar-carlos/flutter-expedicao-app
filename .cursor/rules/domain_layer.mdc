@@ -1,188 +1,80 @@
 ---
-description: Domain Layer - Regras para entidades, value objects, use cases e repositories
+description: Modelos, use cases, contratos e falhas do dominio de separacao
 globs: ["lib/domain/**/*.dart"]
 alwaysApply: false
 ---
 
-# Domain Layer - Regras e Padroes
+# Domain
 
-## Entidades (Entities)
+## Escopo
 
-### Características
+Esta pasta guarda regra de separacao, consulta e impressao. A fronteira
+de import vive em `clean_architecture.mdc`. O prefixo de nome vive em
+`coding_conventions.mdc`.
 
-- Representam objetos principais do domínio com identidade única
-- Contêm lógica de negócio relacionada ao objeto
-- São imutáveis quando possível (final fields)
-- Comparadas por identidade (id), não por valor
+## Modelos
 
-### Regras
+- ficam em `domain/models`
+- campo e `final` quando o valor nao muda depois de criado
+- tipo com identidade compara por esse identificador
+- value object nao tem id, e imutavel, valida no construtor e compara
+  por valor
+- valor invalido falha com falha do dominio, nao com `Exception` generica
 
-- apenas Dart puro, mais `core` e `shared` quando o contrato ja existir
-  la; a fronteira completa vive em `clean_architecture.mdc`
-- contem apenas logica de negocio relacionada a entidade
-- campos `final` quando possivel
-- `==` e `hashCode` pela identidade
-- nao importa Flutter, HTTP, `application`, `infrastructure` nem
-  `presentation`
+## Use cases
 
-### Exemplo
-
-```dart
-// domain/entities/user.dart
-class User {
-  final String id;
-  final String name;
-  final Email email;
-  final DateTime createdAt;
-
-  User({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.createdAt,
-  });
-
-  // Lógica de negócio relacionada ao User
-  bool isActive() {
-    return createdAt.isAfter(DateTime.now().subtract(Duration(days: 30)));
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is User && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
-}
-```
-
-## Value Objects (Objetos de Valor)
-
-### Características
-
-- Representam conceitos do domínio definidos apenas por seus valores
-- São imutáveis
-- Comparados por valor, não por identidade
-- Validam seus próprios valores na construção
-
-### Regras
-
-- ✅ Sempre imutáveis (todos os campos `final`)
-- ✅ Validação no construtor
-- ✅ Implementar `==` e `hashCode` baseado em valor
-- ✅ Lançar exceções específicas do domínio em caso de valor inválido
-- ❌ NUNCA ter identidade (id)
-
-### Exemplo
+- ficam em `domain/usecases/<operacao>/`
+- uma operacao, metodo `call`, dependencia no construtor
+- retornam `Result`
+- nao importam Flutter nem decidem navegacao, dialogo ou snackbar
+- podem seguir `UseCase` / `SyncUseCase` de
+  `domain/usecases/base_usecase.dart` quando params e retorno couberem
+  nesse contrato
 
 ```dart
-// domain/value_objects/email.dart
-class Email {
-  final String value;
+class GetSeparationConsultationUseCase {
+  const GetSeparationConsultationUseCase(this._repository);
 
-  Email(this.value) {
-    if (!_isValid(value)) {
-      throw InvalidEmailException('Invalid email format: $value');
+  final BasicConsultationRepository<SeparateConsultationModel> _repository;
+
+  Future<Result<SeparateConsultationModel>> call(
+    GetSeparationConsultationParams params,
+  ) async {
+    if (!params.isValid) {
+      return Failure(ValidationFailure.fromErrors(params.validationErrors));
     }
-  }
 
-  bool _isValid(String email) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Email && other.value == value;
-  }
-
-  @override
-  int get hashCode => value.hashCode;
-
-  @override
-  String toString() => value;
-}
-```
-
-## Use Cases (Casos de Uso)
-
-### Características
-
-- Representam operações de negócio isoladas e testáveis
-- Têm uma única responsabilidade
-- Recebem dependências via construtor
-- Retornam `Result<T>` para tratamento de erros
-
-### Regras
-
-- ✅ Uma única responsabilidade (SRP)
-- ✅ Recebem dependências via construtor (DIP)
-- ✅ Dependem apenas de interfaces (repositories)
-- ✅ Implementam método `call()` para execução
-- ✅ Retornam `Result<T>` para tratamento de erros
-- ❌ NUNCA contêm lógica de apresentação
-- ❌ NUNCA dependem de frameworks
-
-### Exemplo
-
-```dart
-class GetUserById {
-  const GetUserById(this._repository);
-
-  final IUserRepository _repository;
-
-  Future<Result<User>> call(String id) {
-    if (id.isEmpty) {
-      return Failure(ValidationFailure(message: 'ID cannot be empty'));
+    final query = QueryBuilder()
+      ..equals('CodEmpresa', params.codEmpresa)
+      ..equals('CodSepararEstoque', params.codSepararEstoque);
+    final results = await _repository.selectConsultation(query);
+    if (results.isEmpty) {
+      return Failure(DataFailure.notFound('Separacao'));
     }
-    return _repository.getById(id);
+    return Success(results.first);
   }
 }
 ```
 
-## Repositories (Interfaces)
+## Contratos
 
-### Características
+- repositorio e servico abstratos ficam em `domain/repositories` ou
+  `domain/services`
+- a implementacao fica em `data` ou `infrastructure`
+- contrato novo devolve `Result` ou o modelo do dominio
+- `BasicConsultationRepository.selectConsultation` ainda devolve a lista
+  e o use case converte em `Result`; nao reescreva esse contrato num
+  ajuste lateral
+- nao acrescente `getAll`, `create`, `update` e `delete` se a operacao
+  real nao for CRUD
 
-- Definem contratos para acesso a dados
-- São abstrações puras (interfaces/abstract classes)
-- Não têm implementações concretas no Domain
-- Retornam entidades do domínio ou `Result<T>`
+## Falhas
 
-### Regras
-
-- ✅ Apenas interfaces/abstract classes
-- ✅ Métodos retornam entidades do domínio ou `Result<T>`
-- ✅ NUNCA têm implementações concretas no Domain
-- ✅ NUNCA dependem de frameworks ou tecnologias
-- ✅ Prefixo `I` para interfaces (ex: `IUserRepository`)
-
-### Exemplo
-
-```dart
-// domain/repositories/i_user_repository.dart
-import 'package:result_dart/result_dart.dart';
-import '../entities/user.dart';
-
-abstract class IUserRepository {
-  Future<Result<User>> getById(String id);
-  Future<Result<List<User>>> getAll();
-  Future<Result<User>> create(User user);
-  Future<Result<void>> update(User user);
-  Future<Result<void>> delete(String id);
-}
-```
-
-## Errors (Erros do Dominio)
-
-- falha esperada volta em `Result` com `AppFailure`
-- falha especifica do caso de uso estende `AppFailure` e fica junto do
-  use case
-- conjunto fechado de variantes na mesma biblioteca usa `sealed class`
-  e `switch` exaustivo
-- nao crie outra hierarquia base paralela a `AppFailure`
+- falha esperada usa `AppFailure` e `Result`
+- falha especifica fica ao lado do use case
+- conjunto fechado na mesma biblioteca e `sealed class` com `switch`
+  exaustivo
+- nao crie outra classe base paralela a `AppFailure`
 
 ```dart
 sealed class SaveSeparationFailure extends AppFailure {
