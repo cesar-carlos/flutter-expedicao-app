@@ -16,11 +16,7 @@ void main() {
     late _FakeSeparateItemConsultationRepository repo;
     late CartValidationService service;
 
-    SeparateItemConsultationModel item({
-      double qSep = 0,
-      double qTotal = 10,
-      int? codSetor,
-    }) {
+    SeparateItemConsultationModel item({double qSep = 0, double qTotal = 10, int? codSetor}) {
       return SeparateItemConsultationModel(
         codEmpresa: 1,
         codSepararEstoque: 100,
@@ -113,29 +109,25 @@ void main() {
     });
 
     test('hasItemsForUserSector retorna true quando ha pendencia no setor', () async {
-      repo.items = [
-        item(qSep: 0, qTotal: 5, codSetor: 7),
-      ];
+      repo.items = [item(qSep: 0, qTotal: 5, codSetor: 7)];
 
-      final ok = await service.hasItemsForUserSector(
-        codEmpresa: 1,
-        codOrigem: 100,
-        userSectorCode: 7,
-      );
+      final ok = await service.hasItemsForUserSector(codEmpresa: 1, codOrigem: 100, userSectorCode: 7);
+
+      expect(ok, isTrue);
+    });
+
+    test('hasItemsForUserSector retorna true quando ha pendencia sem setor', () async {
+      repo.items = [item(qSep: 0, qTotal: 5, codSetor: null)];
+
+      final ok = await service.hasItemsForUserSector(codEmpresa: 1, codOrigem: 100, userSectorCode: 7);
 
       expect(ok, isTrue);
     });
 
     test('hasItemsForUserSector retorna false quando setor nao tem pendencia', () async {
-      repo.items = [
-        item(qSep: 0, qTotal: 5, codSetor: 99),
-      ];
+      repo.items = [item(qSep: 0, qTotal: 5, codSetor: 99)];
 
-      final ok = await service.hasItemsForUserSector(
-        codEmpresa: 1,
-        codOrigem: 100,
-        userSectorCode: 7,
-      );
+      final ok = await service.hasItemsForUserSector(codEmpresa: 1, codOrigem: 100, userSectorCode: 7);
 
       expect(ok, isFalse);
     });
@@ -143,19 +135,14 @@ void main() {
     test('hasItemsForUserSector fallback true quando repositorio falha', () async {
       repo.throwOnSelect = true;
 
-      final ok = await service.hasItemsForUserSector(
-        codEmpresa: 1,
-        codOrigem: 100,
-        userSectorCode: 7,
-      );
+      final ok = await service.hasItemsForUserSector(codEmpresa: 1, codOrigem: 100, userSectorCode: 7);
 
       expect(ok, isTrue);
     });
   });
 }
 
-class _FakeSeparateItemConsultationRepository
-    implements BasicConsultationRepository<SeparateItemConsultationModel> {
+class _FakeSeparateItemConsultationRepository implements BasicConsultationRepository<SeparateItemConsultationModel> {
   List<SeparateItemConsultationModel> items = [];
   bool throwOnSelect = false;
 
@@ -164,6 +151,28 @@ class _FakeSeparateItemConsultationRepository
     if (throwOnSelect) {
       throw Exception('rede');
     }
-    return List<SeparateItemConsultationModel>.from(items);
+    var filtered = items.where((item) {
+      for (final param in queryBuilder.params) {
+        if (param.key == 'CodSetorEstoque' &&
+            param.operator == '=' &&
+            item.codSetorEstoque?.toString() != param.value) {
+          return false;
+        }
+        if (param.key == 'CodSetorEstoque' && param.operator == 'IS NULL' && item.codSetorEstoque != null) {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
+    final pagination = queryBuilder.pagination;
+    if (pagination != null) {
+      final start = pagination.offset;
+      if (start >= filtered.length) {
+        return <SeparateItemConsultationModel>[];
+      }
+      final end = (start + pagination.limit).clamp(0, filtered.length);
+      filtered = filtered.sublist(start, end);
+    }
+    return filtered;
   }
 }

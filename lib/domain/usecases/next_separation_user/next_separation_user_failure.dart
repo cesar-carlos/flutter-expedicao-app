@@ -104,18 +104,21 @@ class NextSeparationUserFailure extends AppFailure {
       case NextSeparationUserFailureType.invalidParams:
         return 'Dados inválidos para buscar separação';
       case NextSeparationUserFailureType.assignmentFailed:
-        return 'Não foi possível reservar uma separação disponível agora. Tente novamente.';
+        return UserFacingMessage.prefer(
+          details,
+          'Não foi possível reservar uma separação disponível agora. Tente novamente.',
+        );
       case NextSeparationUserFailureType.socketDisconnected:
-        return 'Conexão em tempo real indisponível no momento. Verifique o indicador de conexão e tente novamente.';
+        return 'Conexão em tempo real indisponível. Verifique o indicador de conexão e tente novamente.';
       case NextSeparationUserFailureType.networkError:
-        if (details != null && details!.trim().isNotEmpty) {
-          return details!.trim();
-        }
-        return 'Não foi possível conectar ao servidor. Verifique sua conexão com a rede.';
+        return UserFacingMessage.prefer(
+          details,
+          'Não foi possível conectar ao servidor. Verifique sua conexão com a rede.',
+        );
       case NextSeparationUserFailureType.serverError:
-        return 'Erro no servidor ao processar a consulta. Tente novamente.';
+        return UserFacingMessage.prefer(details, 'Erro no servidor ao processar a consulta. Tente novamente.');
       case NextSeparationUserFailureType.unknownError:
-        return 'Erro inesperado. Tente novamente';
+        return UserFacingMessage.prefer(details, 'Não foi possível buscar a próxima separação. Tente novamente.');
     }
   }
 

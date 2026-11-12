@@ -24,18 +24,19 @@ class PrintExpeditionTicketUseCase {
 
     try {
       final queryBuilder = QueryBuilder()
-        ..equals('CodEmpresa', params.codEmpresa.toString())
-        ..equals('CodSepararEstoque', params.codSepararEstoque.toString());
+        ..equals('CodEmpresa', params.codEmpresa)
+        ..equals('CodSepararEstoque', params.codSepararEstoque);
 
       // Adiciona filtro de setor se fornecido
       if (params.codSetorEstoque != null && params.codSetorEstoque! > 0) {
-        queryBuilder.equals('CodSetorEstoque', params.codSetorEstoque.toString());
+        queryBuilder.equals('CodSetorEstoque', params.codSetorEstoque);
       }
 
       queryBuilder
         ..orderByAsc('CodEmpresa')
         ..orderByAsc('CodSepararEstoque')
-        ..orderByAsc('DescricaoEnderecoProduto');
+        ..orderByAsc('DescricaoEnderecoProduto')
+        ..allRows(thenBy: ['Item']);
 
       final items = await _expeditionItemPrintRepository.selectConsultation(queryBuilder);
       if (items.isEmpty) {
@@ -51,7 +52,7 @@ class PrintExpeditionTicketUseCase {
         leftMarginMm: params.leftMarginMm ?? params.printer.leftMarginMm,
       );
     } on DataError catch (e) {
-      return failure(NetworkFailure(message: e.message));
+      return failure(AppFailure.fromCaught(e));
     } catch (e) {
       return failure(UnknownFailure.fromException(e));
     }

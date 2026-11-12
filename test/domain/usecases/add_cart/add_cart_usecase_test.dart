@@ -185,17 +185,27 @@ void main() {
       expect((result.exceptionOrNull() as AddCartFailure).code, equals('USER_NOT_AUTHENTICATED'));
     });
 
+    test('busca carrinho por CodCarrinho quando scannedCart nao veio no params', () async {
+      final cart = liberadoCart();
+      resetDeps(scanned: cart);
+
+      final result = await useCase.call(
+        const AddCartParams(codEmpresa: 1, origem: ExpeditionOrigem.separacaoEstoque, codOrigem: 100, codCarrinho: 10),
+      );
+
+      expect(result.isSuccess(), isTrue);
+      expect(
+        consultationRepo.lastQuery?.params.any((param) => param.key == 'CodCarrinho' && param.value == 10),
+        isTrue,
+      );
+    });
+
     test('retorna cartNotFound quando busca por codigo sem scannedCart', () async {
       resetDeps(scanned: null);
       consultationRepo.carts.clear();
 
       final result = await useCase.call(
-        const AddCartParams(
-          codEmpresa: 1,
-          origem: ExpeditionOrigem.separacaoEstoque,
-          codOrigem: 100,
-          codCarrinho: 99,
-        ),
+        const AddCartParams(codEmpresa: 1, origem: ExpeditionOrigem.separacaoEstoque, codOrigem: 100, codCarrinho: 99),
       );
 
       expect(result.isError(), isTrue);
@@ -207,12 +217,7 @@ void main() {
       consultationRepo.throwOnSelect = true;
 
       final result = await useCase.call(
-        const AddCartParams(
-          codEmpresa: 1,
-          origem: ExpeditionOrigem.separacaoEstoque,
-          codOrigem: 100,
-          codCarrinho: 10,
-        ),
+        const AddCartParams(codEmpresa: 1, origem: ExpeditionOrigem.separacaoEstoque, codOrigem: 100, codCarrinho: 10),
       );
 
       expect(result.isError(), isTrue);
@@ -314,12 +319,7 @@ void main() {
       );
 
       final result = await useCase.call(
-        const AddCartParams(
-          codEmpresa: 1,
-          origem: ExpeditionOrigem.compraMercadoria,
-          codOrigem: 200,
-          codCarrinho: 10,
-        ),
+        const AddCartParams(codEmpresa: 1, origem: ExpeditionOrigem.compraMercadoria, codOrigem: 200, codCarrinho: 10),
       );
 
       expect(result.isSuccess(), isTrue);
@@ -417,11 +417,7 @@ class _FakeUserSystemRepository implements UserSystemRepository {
   Future<Map<String, dynamic>> getUserSystemInfo(int codUsuario) async => {};
 
   @override
-  Future<UserSystemListPage> getUsers({
-    int? codEmpresa,
-    Situation? apenasAtivos,
-    Pagination? pagination,
-  }) async {
+  Future<UserSystemListPage> getUsers({int? codEmpresa, Situation? apenasAtivos, Pagination? pagination}) async {
     return const UserSystemListPage(users: [], total: 0, success: true);
   }
 
@@ -514,9 +510,7 @@ class _MemoryCartRouteInternshipRepository implements BasicRepository<Expedition
   bool failInsert = false;
 
   @override
-  Future<List<ExpeditionCartRouteInternshipModel>> delete(ExpeditionCartRouteInternshipModel entity) async => [
-    entity,
-  ];
+  Future<List<ExpeditionCartRouteInternshipModel>> delete(ExpeditionCartRouteInternshipModel entity) async => [entity];
 
   @override
   Future<List<ExpeditionCartRouteInternshipModel>> insert(ExpeditionCartRouteInternshipModel entity) async {
@@ -534,19 +528,19 @@ class _MemoryCartRouteInternshipRepository implements BasicRepository<Expedition
   }
 
   @override
-  Future<List<ExpeditionCartRouteInternshipModel>> update(ExpeditionCartRouteInternshipModel entity) async => [
-    entity,
-  ];
+  Future<List<ExpeditionCartRouteInternshipModel>> update(ExpeditionCartRouteInternshipModel entity) async => [entity];
 }
 
 class _MemoryCartConsultationRepository implements BasicConsultationRepository<ExpeditionCartConsultationModel> {
   _MemoryCartConsultationRepository({required this.carts});
 
   final List<ExpeditionCartConsultationModel> carts;
+  QueryBuilder? lastQuery;
   bool throwOnSelect = false;
 
   @override
   Future<List<ExpeditionCartConsultationModel>> selectConsultation(QueryBuilder queryBuilder) async {
+    lastQuery = queryBuilder;
     if (throwOnSelect) {
       throw Exception('erro rede');
     }
@@ -580,7 +574,7 @@ class _MemoryInternshipRepository implements BasicRepository<ExpeditionInternshi
 bool _matchesConsultationCart(ExpeditionCartConsultationModel c, QueryBuilder qb) {
   for (final QueryParam<dynamic> p in qb.params) {
     if (p.operator != '=') continue;
-    if (p.key == 'codCarrinho' && c.codCarrinho != p.value) {
+    if ((p.key == 'codCarrinho' || p.key == 'CodCarrinho') && c.codCarrinho != p.value) {
       return false;
     }
   }

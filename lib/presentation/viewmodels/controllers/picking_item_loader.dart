@@ -5,6 +5,7 @@ import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consu
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/tipo_fator_conversao_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
+import 'package:data7_expedicao/domain/services/separate_item_unit_conversions_service.dart';
 import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_filters_controller.dart';
 
 /// Responsável por carregar os itens filtrados do carrinho de picking.
@@ -21,6 +22,7 @@ import 'package:data7_expedicao/presentation/viewmodels/controllers/picking_filt
 /// lista pronta para ser aplicada.
 class PickingItemLoader {
   final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
+  final SeparateItemUnitConversionsService _unitConversions;
   final PickingFiltersController _filtersController;
 
   // Cache simples por identidade da lista de entrada: evita refazer o
@@ -32,8 +34,10 @@ class PickingItemLoader {
 
   PickingItemLoader({
     required BasicConsultationRepository<SeparateItemConsultationModel> repository,
+    required SeparateItemUnitConversionsService unitConversions,
     required PickingFiltersController filtersController,
   }) : _repository = repository,
+       _unitConversions = unitConversions,
        _filtersController = filtersController;
 
   /// Busca os itens do carrinho aplicando o filtro de setor do usuário no
@@ -50,27 +54,65 @@ class PickingItemLoader {
     final codEmpresa = cart.codEmpresa;
     final codSepararEstoque = cart.codOrigem;
 
-    List<SeparateItemConsultationModel> items;
+    final itemsFuture = userSectorCode != null
+        ? _fetchItemsForUserSector(
+            codEmpresa: codEmpresa,
+            codSepararEstoque: codSepararEstoque,
+            userSectorCode: userSectorCode,
+          )
+        : _repository.selectConsultation(
+            QueryBuilder()
+              ..equals('CodEmpresa', codEmpresa)
+              ..equals('CodSepararEstoque', codSepararEstoque)
+              ..allRows(orderField: 'EnderecoDescricao', thenBy: ['Item']),
+          );
 
-    if (userSectorCode != null) {
-      final queryForUserSector = QueryBuilder()
-        ..equals('CodEmpresa', codEmpresa.toString())
-        ..equals('CodSepararEstoque', codSepararEstoque.toString())
-        ..rawWhere('(CodSetorEstoque = $userSectorCode OR CodSetorEstoque IS NULL)')
-        ..orderBy('EnderecoDescricao');
-
-      items = await _repository.selectConsultation(queryForUserSector);
-    } else {
-      final queryBuilder = QueryBuilder()
-        ..equals('CodEmpresa', codEmpresa.toString())
-        ..equals('CodSepararEstoque', codSepararEstoque.toString())
-        ..orderBy('EnderecoDescricao');
-
-      items = await _repository.selectConsultation(queryBuilder);
-    }
-
+    var items = await _unitConversions.attachInParallel(
+      itemsFuture: itemsFuture,
+      codEmpresa: codEmpresa,
+      codSepararEstoque: codSepararEstoque,
+    );
     items = _filtersController.applyLocal(items);
     return _addSyntheticCodProdutoUnitsForScan(items);
+  }
+
+  /// O servidor AND-a as cláusulas de Where e rejeita SQL bruto, então o
+  /// antigo `OR CodSetorEstoque IS NULL` vira duas consultas mescladas.
+  Future<List<SeparateItemConsultationModel>> _fetchItemsForUserSector({
+    required int codEmpresa,
+    required int codSepararEstoque,
+    required int userSectorCode,
+  }) async {
+    final bySector = QueryBuilder()
+      ..equals('CodEmpresa', codEmpresa)
+      ..equals('CodSepararEstoque', codSepararEstoque)
+      ..equals('CodSetorEstoque', userSectorCode)
+      ..allRows(orderField: 'EnderecoDescricao', thenBy: ['Item']);
+    final withoutSector = QueryBuilder()
+      ..equals('CodEmpresa', codEmpresa)
+      ..equals('CodSepararEstoque', codSepararEstoque)
+      ..isNull('CodSetorEstoque')
+      ..allRows(orderField: 'EnderecoDescricao', thenBy: ['Item']);
+
+    final assignedFuture = _repository.selectConsultation(bySector);
+    final unassignedFuture = _repository.selectConsultation(withoutSector);
+    await Future.wait<List<SeparateItemConsultationModel>>([assignedFuture, unassignedFuture]);
+    return _mergeUniqueItems(await assignedFuture, await unassignedFuture);
+  }
+
+  List<SeparateItemConsultationModel> _mergeUniqueItems(
+    List<SeparateItemConsultationModel> assigned,
+    List<SeparateItemConsultationModel> unassigned,
+  ) {
+    final seen = <String>{};
+    final merged = <SeparateItemConsultationModel>[];
+    for (final item in [...assigned, ...unassigned]) {
+      final key = '${item.item}|${item.codProduto}';
+      if (seen.add(key)) {
+        merged.add(item);
+      }
+    }
+    return merged;
   }
 
   List<SeparateItemConsultationModel> _addSyntheticCodProdutoUnitsForScan(List<SeparateItemConsultationModel> items) {

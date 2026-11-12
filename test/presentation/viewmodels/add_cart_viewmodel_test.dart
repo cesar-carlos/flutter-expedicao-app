@@ -11,8 +11,13 @@ import 'package:data7_expedicao/domain/models/situation/expedition_cart_situatio
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/domain/models/entity_type_model.dart';
+import 'package:data7_expedicao/domain/models/separate_model.dart';
+import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
+import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_params.dart';
 import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_success.dart';
 import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_success.dart';
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_usecase.dart';
 import 'package:data7_expedicao/presentation/viewmodels/add_cart_viewmodel.dart';
 
@@ -20,12 +25,29 @@ class _FakeAddCartUseCase extends Fake implements AddCartUseCase {
   _FakeAddCartUseCase(this.result);
 
   final Result<AddCartSuccess> result;
+  AddCartParams? lastParams;
 
   @override
-  Future<Result<AddCartSuccess>> call(params) async => result;
+  Future<Result<AddCartSuccess>> call(AddCartParams params) async {
+    lastParams = params;
+    return result;
+  }
 }
 
-class _FakeStartSeparationUseCase extends Fake implements StartSeparationUseCase {}
+class _FakeStartSeparationUseCase extends Fake implements StartSeparationUseCase {
+  _FakeStartSeparationUseCase({this.success});
+
+  final StartSeparationSuccess? success;
+
+  @override
+  Future<Result<StartSeparationSuccess>> call(params) async {
+    final started = success;
+    if (started == null) {
+      throw StateError('startSeparation nao deveria ser chamado');
+    }
+    return Success(started);
+  }
+}
 
 class _SilentAudioService extends Fake implements AudioService {
   @override
@@ -119,6 +141,57 @@ void main() {
       expect(vm.hasError, isTrue);
       expect(vm.errorMessage, contains('encontrado'));
       expect(vm.hasCartData, isFalse);
+    });
+
+    test('should pass started route code to addCart after creating the percurso', () async {
+      final scannedCart = buildCart(codCarrinho: 10, codigoBarras: 'ABC123');
+      final addCartUseCase = _FakeAddCartUseCase(
+        Success(AddCartSuccess(addedCart: scannedCart, message: 'ok', codCarrinhoPercurso: 88)),
+      );
+      final startedRoute = ExpeditionCartRouteModel(
+        codEmpresa: 1,
+        codCarrinhoPercurso: 88,
+        origem: ExpeditionOrigem.separacaoEstoque,
+        codOrigem: 2,
+        situacao: ExpeditionCartSituation.emSeparacao,
+        dataInicio: DateTime(2026, 1, 1),
+        horaInicio: '10:00:00',
+      );
+      final startSeparationUseCase = _FakeStartSeparationUseCase(
+        success: StartSeparationSuccess(
+          createdCartRoute: startedRoute,
+          updatedSeparation: SeparateModel(
+            codEmpresa: 1,
+            codSepararEstoque: 2,
+            origem: ExpeditionOrigem.separacaoEstoque,
+            codOrigem: 2,
+            codTipoOperacaoExpedicao: 1,
+            tipoEntidade: EntityType.cliente,
+            codEntidade: 1,
+            nomeEntidade: 'Cliente',
+            situacao: ExpeditionSituation.separando,
+            data: DateTime(2026, 1, 1),
+            hora: '10:00:00',
+            codPrioridade: 1,
+          ),
+        ),
+      );
+
+      final vm = AddCartViewModel(
+        codEmpresa: 1,
+        codSepararEstoque: 2,
+        addCartUseCase: addCartUseCase,
+        cartConsultationRepository: _SingleCartConsultation(scannedCart),
+        cartRouteRepository: _FakeCartRouteRepo(),
+        startSeparationUseCase: startSeparationUseCase,
+        audioService: _SilentAudioService(),
+      );
+
+      await vm.scanBarcode('ABC123');
+      final added = await vm.addCartToSeparation();
+
+      expect(added, isTrue);
+      expect(addCartUseCase.lastParams?.codCarrinhoPercurso, equals(88));
     });
 
     test('should store lastAddSuccess when addCartToSeparation succeeds', () async {

@@ -1,7 +1,6 @@
 import 'dart:async';
-import 'dart:math';
+
 import 'package:flutter/foundation.dart';
-// ignore: unused_import
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import 'package:data7_expedicao/core/network/socket_config.dart';
@@ -12,30 +11,30 @@ import 'package:data7_expedicao/domain/services/i_socket_connection_port.dart';
 export 'package:data7_expedicao/domain/services/i_socket_connection_port.dart' show SocketConnectionState;
 
 class SocketService extends ChangeNotifier implements ISocketConnectionPort {
+  static const int _maxReconnectAttempts = 10;
+  static const List<Duration> _reconnectDelays = <Duration>[
+    Duration(seconds: 1),
+    Duration(seconds: 2),
+    Duration(seconds: 4),
+    Duration(seconds: 8),
+    Duration(seconds: 15),
+    Duration(seconds: 30),
+  ];
+
   SocketConnectionState _connectionState = SocketConnectionState.disconnected;
-  final Map<String, StreamController> _eventStreams = {};
-  Timer? _heartbeatTimer;
+  final Map<String, StreamController<dynamic>> _eventStreams = {};
+  final Map<String, void Function(dynamic)> _socketHandlers = {};
   Timer? _reconnectTimer;
+  Completer<void>? _connectInFlight;
   String? _userId;
   int _reconnectAttempts = 0;
-  bool _isReconnecting = false;
-  static const int _maxReconnectAttempts = 10;
-
-  /// Bug MMMMM: guard contra duplo-registro de listeners do socket.io.
-  /// `socket.onConnect/onDisconnect/...` ADICIONA callbacks (nao
-  /// substitui), entao chamar `_setupSocketListeners()` duas vezes
-  /// causava cada evento ser processado N+1 vezes — vazamento de
-  /// listeners + heartbeats duplicados + state changes em cadeia.
-  ///
-  /// SocketConfig nao expoe `clearListeners()` no momento, entao a
-  /// solucao mais segura sem refatorar SocketConfig e nao re-registrar
-  /// se ja registramos uma vez. Em `updateConfig`, NAO chamamos mais
-  /// _setupSocketListeners pois os listeners ja foram registrados na
-  /// instancia compartilhada do socket.io (que sobrevive a re-config).
+  bool _manualDisconnect = false;
   bool _listenersRegistered = false;
 
+  @override
   SocketConnectionState get connectionState => _connectionState;
 
+  @override
   bool get isConnected => _connectionState == SocketConnectionState.connected;
 
   @override
@@ -46,7 +45,11 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
       _userId = userId;
       AppLogger.init('Inicializando SocketService', tag: 'SocketService');
       AppLogger.data('URL: ${apiConfig.fullUrl}, userId: $userId', tag: 'SocketService');
-      SocketConfig.initialize(apiConfig);
+      if (SocketConfig.isInitialized) {
+        SocketConfig.updateConfig(apiConfig);
+      } else {
+        SocketConfig.initialize(apiConfig);
+      }
       SocketConfig.addRebindListener(_rebindListeners);
       _setupSocketListeners();
       await connect();
@@ -58,25 +61,50 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
 
   @override
   Future<void> connect() async {
-    if (_connectionState == SocketConnectionState.connected) {
+    if (isConnected) {
       return;
     }
+    if (_connectInFlight != null) {
+      return _connectInFlight!.future;
+    }
+
+    _manualDisconnect = false;
+    final completer = Completer<void>();
+    _connectInFlight = completer;
+    _updateConnectionState(SocketConnectionState.connecting);
 
     try {
       AppLogger.connection('Tentando conectar socket', tag: 'SocketService');
-      _updateConnectionState(SocketConnectionState.connecting);
       await SocketConfig.connect();
-    } catch (e) {
-      AppLogger.error('Falha ao conectar socket', tag: 'SocketService', error: e);
+      _reconnectAttempts = 0;
+      if (SocketConfig.isConnected) {
+        _updateConnectionState(SocketConnectionState.connected);
+        completer.complete();
+        return;
+      }
+      throw StateError('Conexão com o servidor não foi estabelecida.');
+    } catch (e, s) {
+      AppLogger.error('Falha ao conectar socket', tag: 'SocketService', error: e, stackTrace: s);
       _updateConnectionState(SocketConnectionState.error);
+      if (!completer.isCompleted) {
+        completer.completeError(e, s);
+      }
+      if (!_manualDisconnect) {
+        _scheduleReconnect();
+      }
+      rethrow;
+    } finally {
+      if (identical(_connectInFlight, completer)) {
+        _connectInFlight = null;
+      }
     }
   }
 
   @override
   void disconnect() {
     try {
+      _manualDisconnect = true;
       _cancelReconnectTimer();
-      _stopHeartbeat();
       _reconnectAttempts = 0;
       SocketConfig.disconnect();
       _updateConnectionState(SocketConnectionState.disconnected);
@@ -88,39 +116,50 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
 
   @override
   Future<void> reconnect() async {
-    if (_isReconnecting) return;
-
+    _cancelReconnectTimer();
+    _reconnectAttempts = 0;
+    _manualDisconnect = true;
     try {
-      _isReconnecting = true;
       _updateConnectionState(SocketConnectionState.reconnecting);
-      await SocketConfig.reconnect();
+      if (SocketConfig.isConnected) {
+        SocketConfig.disconnect();
+      }
+      _manualDisconnect = false;
+      await connect();
     } catch (e) {
       _updateConnectionState(SocketConnectionState.error);
       rethrow;
-    } finally {
-      _isReconnecting = false;
     }
   }
 
-  Future<void> _scheduleReconnect() async {
-    if (_isReconnecting || _reconnectAttempts >= _maxReconnectAttempts) {
-      if (_reconnectAttempts >= _maxReconnectAttempts) {
-        AppLogger.error('Número máximo de tentativas de reconexão atingido', tag: 'SocketService');
-      }
+  void _scheduleReconnect() {
+    if (_manualDisconnect) {
+      return;
+    }
+    if (_reconnectTimer != null) {
+      return;
+    }
+    if (isConnected) {
+      return;
+    }
+    if (_reconnectAttempts >= _maxReconnectAttempts) {
+      AppLogger.error('Número máximo de tentativas de reconexão atingido', tag: 'SocketService');
+      _updateConnectionState(SocketConnectionState.error);
       return;
     }
 
-    _isReconnecting = true;
     _reconnectAttempts++;
-
-    final delay = Duration(seconds: min(512, pow(2, _reconnectAttempts - 1).toInt()));
+    final delayIndex = (_reconnectAttempts - 1).clamp(0, _reconnectDelays.length - 1);
+    final delay = _reconnectDelays[delayIndex];
 
     AppLogger.connection(
       'Agendando reconexão em ${delay.inSeconds}s (tentativa $_reconnectAttempts/$_maxReconnectAttempts)',
       tag: 'SocketService',
     );
 
+    _updateConnectionState(SocketConnectionState.reconnecting);
     _reconnectTimer = Timer(delay, () {
+      _reconnectTimer = null;
       unawaited(
         _runReconnectTick().catchError((Object e, StackTrace s) {
           AppLogger.warning(
@@ -135,36 +174,28 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
   }
 
   Future<void> _runReconnectTick() async {
-    if (_connectionState == SocketConnectionState.connected) {
-      _reconnectAttempts = 0;
-      _isReconnecting = false;
+    if (_manualDisconnect || isConnected) {
       return;
     }
 
     try {
       await connect();
-      if (isConnected) {
-        _reconnectAttempts = 0;
-        AppLogger.connection('Reconexão bem-sucedida', tag: 'SocketService');
-      } else {
-        await _scheduleReconnect();
+      if (!isConnected && !_manualDisconnect) {
+        _scheduleReconnect();
       }
     } catch (e) {
       AppLogger.error('Falha na reconexão', tag: 'SocketService', error: e);
-      await _scheduleReconnect();
-    } finally {
-      _isReconnecting = false;
+      if (!_manualDisconnect) {
+        _scheduleReconnect();
+      }
     }
   }
 
   void _cancelReconnectTimer() {
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
-    _isReconnecting = false;
   }
 
-  /// [propagateErrors]: quando `false`, erros são apenas logados (útil no
-  /// heartbeat periódico para um tick com falha não interromper o [Timer]).
   @override
   void emit(String eventName, dynamic data, {bool propagateErrors = true}) {
     try {
@@ -172,9 +203,7 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
         throw StateError('Socket não está conectado');
       }
 
-      final payload = {'userId': _userId, 'timestamp': DateTime.now().toIso8601String(), 'data': data};
-
-      SocketConfig.instance.emit(eventName, payload);
+      SocketConfig.instance.emit(eventName, data);
       AppLogger.operation('Evento emitido: $eventName', tag: 'SocketService');
     } catch (e, stackTrace) {
       AppLogger.error(
@@ -193,10 +222,12 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
   Stream<dynamic> on(String eventName) {
     if (!_eventStreams.containsKey(eventName)) {
       _eventStreams[eventName] = StreamController<dynamic>.broadcast();
-
-      SocketConfig.instance.on(eventName, (data) {
+      void handler(dynamic data) {
         _eventStreams[eventName]?.add(data);
-      });
+      }
+
+      _socketHandlers[eventName] = handler;
+      SocketConfig.instance.on(eventName, handler);
     }
 
     return _eventStreams[eventName]!.stream;
@@ -204,24 +235,12 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
 
   @override
   void off(String eventName) {
-    SocketConfig.instance.off(eventName);
+    final handler = _socketHandlers.remove(eventName);
+    if (handler != null) {
+      SocketConfig.instance.off(eventName, handler);
+    }
     _eventStreams[eventName]?.close();
     _eventStreams.remove(eventName);
-  }
-
-  @override
-  void sendLocationUpdate(double latitude, double longitude) {
-    emit('location_update', {'latitude': latitude, 'longitude': longitude});
-  }
-
-  @override
-  void sendScannerResult(String scanData, String scanType) {
-    emit('scanner_result', {'scanData': scanData, 'scanType': scanType});
-  }
-
-  @override
-  void sendMessage(String message, String? recipientId) {
-    emit('message', {'message': message, 'recipientId': recipientId});
   }
 
   void updateConfig(ApiConfig newConfig) {
@@ -231,41 +250,19 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
       AppLogger.data('Nova URL: ${newConfig.fullUrl}', tag: 'SocketService');
 
       _cancelReconnectTimer();
-      _stopHeartbeat();
       _reconnectAttempts = 0;
+      _manualDisconnect = true;
       _updateConnectionState(SocketConnectionState.disconnected);
 
       SocketConfig.updateConfig(newConfig);
 
-      // Quando a config muda host/porta, `SocketConfig.updateConfig`
-      // recria a instancia do socket e dispara `_rebindListeners` via
-      // hook. Isso re-registra os listeners no novo socket (o antigo
-      // foi descartado). O re-registro e idempotente: `_rebindListeners`
-      // reseta o guard antes de chamar `_setupSocketListeners`, e o
-      // socket novo nao tem listeners previos, entao nao ha duplicacao.
-
       if (wasConnected) {
+        _manualDisconnect = false;
+        _updateConnectionState(SocketConnectionState.connecting);
         unawaited(
-          Future<void>.delayed(const Duration(milliseconds: 100), () {
-            if (SocketConfig.isConnected) {
-              _updateConnectionState(SocketConnectionState.connected);
-              _startHeartbeat();
-            } else {
-              _updateConnectionState(SocketConnectionState.connecting);
-              unawaited(
-                reconnect().catchError((Object e, StackTrace s) {
-                  AppLogger.warning(
-                    'Falha ao reconectar após atualizar config do socket',
-                    tag: 'SocketService',
-                    error: e,
-                    stackTrace: s,
-                  );
-                }),
-              );
-            }
-          }).catchError((Object e, StackTrace s) {
+          connect().catchError((Object e, StackTrace s) {
             AppLogger.warning(
-              'Falha no delayed pós atualização de config do socket',
+              'Falha ao reconectar após atualizar config do socket',
               tag: 'SocketService',
               error: e,
               stackTrace: s,
@@ -282,22 +279,20 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
     }
   }
 
-  /// Re-vincula os listeners no novo socket apos `SocketConfig` recriar
-  /// a instancia. Idempotente: o socket novo nao tem listeners previos.
   void _rebindListeners() {
     _listenersRegistered = false;
     _setupSocketListeners();
 
     final socket = SocketConfig.instance;
-    for (final eventName in _eventStreams.keys) {
-      socket.on(eventName, (data) => _eventStreams[eventName]?.add(data));
+    for (final entry in _socketHandlers.entries) {
+      socket.on(entry.key, entry.value);
     }
   }
 
   void _setupSocketListeners() {
-    // Idempotencia: ja registramos antes — nao registra de novo.
-    // Ver Bug MMMMM no campo _listenersRegistered.
-    if (_listenersRegistered) return;
+    if (_listenersRegistered) {
+      return;
+    }
     _listenersRegistered = true;
 
     final socket = SocketConfig.instance;
@@ -306,56 +301,28 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
       _cancelReconnectTimer();
       _reconnectAttempts = 0;
       _updateConnectionState(SocketConnectionState.connected);
-      _startHeartbeat();
-
-      if (_userId != null) {
-        emit('user_join', {'userId': _userId});
-      }
     });
 
-    socket.onDisconnect((_) {
+    socket.onDisconnect((reason) {
       _updateConnectionState(SocketConnectionState.disconnected);
-      _stopHeartbeat();
-      _scheduleReconnect();
+      final wasClientDisconnect = reason == 'io client disconnect';
+      if (!_manualDisconnect && !wasClientDisconnect) {
+        _scheduleReconnect();
+      }
     });
 
     socket.onConnectError((data) {
       _updateConnectionState(SocketConnectionState.error);
-      _scheduleReconnect();
+      if (!_manualDisconnect) {
+        _scheduleReconnect();
+      }
     });
 
     socket.onError((data) {
-      _updateConnectionState(SocketConnectionState.error);
-    });
-
-    socket.onReconnect((_) {
-      _cancelReconnectTimer();
-      _reconnectAttempts = 0;
-      _updateConnectionState(SocketConnectionState.connected);
-    });
-  }
-
-  void _startHeartbeat() {
-    // Bug RRRRR: idempotencia — se ja temos heartbeat ativo, nao cria
-    // outro. Antes, dois `onConnect` em sucessao (sem onDisconnect entre
-    // eles) criavam 2 Timer.periodic em paralelo e o cancel do dispose
-    // so cancelava o ULTIMO criado (referencia em _heartbeatTimer foi
-    // sobrescrita), vazando o timer anterior.
-    _stopHeartbeat();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-      if (isConnected) {
-        emit(
-          'heartbeat',
-          {'timestamp': DateTime.now().toIso8601String()},
-          propagateErrors: false,
-        );
+      if (!isConnected) {
+        _updateConnectionState(SocketConnectionState.error);
       }
     });
-  }
-
-  void _stopHeartbeat() {
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = null;
   }
 
   void _updateConnectionState(SocketConnectionState newState) {
@@ -369,12 +336,13 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
   void dispose() {
     SocketConfig.removeRebindListener(_rebindListeners);
     _cancelReconnectTimer();
-    _stopHeartbeat();
+    _manualDisconnect = true;
 
     for (final stream in _eventStreams.values) {
       stream.close();
     }
     _eventStreams.clear();
+    _socketHandlers.clear();
 
     disconnect();
     SocketConfig.dispose();

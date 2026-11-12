@@ -163,13 +163,13 @@ class CancelItemSeparationFailure extends AppFailure {
       case CancelItemSeparationFailureType.separateNotInSeparatingState:
         return 'Separação não está em processo de separação';
       case CancelItemSeparationFailureType.updateSeparateItemFailed:
-        return 'Falha ao atualizar quantidades';
+        return UserFacingMessage.prefer(details, 'Falha ao atualizar quantidades');
       case CancelItemSeparationFailureType.updateSeparationItemFailed:
-        return 'Falha ao cancelar item';
+        return UserFacingMessage.prefer(details, 'Falha ao cancelar item');
       case CancelItemSeparationFailureType.networkError:
-        return 'Erro de conexão. Verifique sua internet';
+        return UserFacingMessage.prefer(details, 'Não foi possível conectar ao servidor. Tente novamente.');
       case CancelItemSeparationFailureType.unknownError:
-        return 'Erro inesperado. Tente novamente';
+        return UserFacingMessage.prefer(details, 'Não foi possível cancelar o item. Tente novamente.');
     }
   }
 

@@ -64,7 +64,7 @@ class CartCancelConfirmationDialog extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Esta ação não pode ser desfeita. O carrinho será marcado como CANCELADO.',
+            'O estágio será cancelado e o carrinho físico voltará para Liberado. Os itens deste carrinho retornam para pendente.',
             style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
         ],

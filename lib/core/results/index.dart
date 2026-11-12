@@ -6,6 +6,7 @@
 /// Baseado no padrão Result e na biblioteca result_dart.
 library;
 
+export 'package:data7_expedicao/core/errors/user_facing_message.dart';
 export 'app_failure.dart';
 export 'app_result.dart';
 export 'package:result_dart/result_dart.dart' show Result, Success, Failure;

@@ -69,8 +69,8 @@ class AddItemSeparationUseCase {
       // 2. Verificar usuário autenticado (usar fornecido ou carregar)
       UserSystemModel user = userSystem ?? await _loadUserSystem();
 
-      // 3. Buscar item de separação disponível
-      final separateItem = await _findSeparateItem(params);
+      // 3. Buscar item de separação disponível (consulta pode retentar)
+      final separateItem = await _findSeparateItem(params, operationId: operationId);
       if (separateItem == null) {
         _recordOperationEnd(operationId, started, false);
         return failure(AddItemSeparationFailure.separateItemNotFound(params.codProduto));
@@ -89,19 +89,14 @@ class AddItemSeparationUseCase {
         );
       }
 
-      // 5. Executar operação transacional: INSERT + UPDATE (com retry)
-      final result = _socketOperationRetry != null
-          ? await _socketOperationRetry.execute(
-              () => _executeTransactionalOperation(params, separateItem, user),
-              operationId: operationId,
-            )
-          : await _executeTransactionalOperation(params, separateItem, user);
+      // 5. INSERT + UPDATE sem retry: timeout após insert gravado duplicaria item
+      final result = await _executeTransactionalOperation(params, separateItem, user);
       final success = result.isSuccess();
       _recordOperationEnd(operationId, started, success);
       return result;
     } on DataError catch (e) {
       _recordOperationEnd(operationId, started, false);
-      return failure(AddItemSeparationFailure.networkError(e.message, Exception(e.message)));
+      return failure(AppFailure.fromCaught(e));
     } on Exception catch (e) {
       _recordOperationEnd(operationId, started, false);
       return failure(AddItemSeparationFailure.unknown(e.toString(), e));
@@ -186,8 +181,8 @@ class AddItemSeparationUseCase {
   }
 
   /// Busca o item de separação correspondente aos parâmetros
-  Future<SeparateItemModel?> _findSeparateItem(AddItemSeparationParams params) async {
-    try {
+  Future<SeparateItemModel?> _findSeparateItem(AddItemSeparationParams params, {required String operationId}) async {
+    Future<SeparateItemModel?> lookup() async {
       final separateItems = await _separateItemRepository.select(
         QueryBuilder()
             .equals('CodEmpresa', params.codEmpresa)
@@ -206,9 +201,12 @@ class AddItemSeparationUseCase {
       }
 
       return null;
-    } catch (e) {
-      rethrow;
     }
+
+    if (_socketOperationRetry != null) {
+      return _socketOperationRetry.execute(lookup, operationId: operationId);
+    }
+    return lookup();
   }
 
   /// Cria um novo item de separação

@@ -8,6 +8,7 @@ import 'package:data7_expedicao/domain/usecases/save_separation/save_separation_
 import 'package:data7_expedicao/domain/usecases/save_separation/save_separation_failure.dart';
 import 'package:data7_expedicao/domain/models/separate_progress_consultation_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_query.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/models/separate_model.dart';
@@ -76,7 +77,7 @@ class SaveSeparationUseCase {
 
       return await _executeTransactionalOperation(separateModel, cartRoute);
     } on DataError catch (e) {
-      return failure(NetworkFailure(message: 'Erro de rede: ${e.message}'));
+      return failure(AppFailure.fromCaught(e));
     } on Exception catch (e) {
       return failure(UnknownFailure.fromException(e));
     } catch (e) {
@@ -132,10 +133,11 @@ class SaveSeparationUseCase {
 
   Future<ExpeditionCartRouteModel?> _findCartRoute(SaveSeparationParams params) async {
     try {
-      final query = QueryBuilder()
-        ..equals('CodEmpresa', params.codEmpresa)
-        ..equals('CodOrigem', params.codSepararEstoque)
-        ..equals('Origem', ExpeditionOrigem.separacaoEstoque.code);
+      final query = ExpeditionCartRouteQuery.activeByOrigin(
+        codEmpresa: params.codEmpresa,
+        origem: ExpeditionOrigem.separacaoEstoque,
+        codOrigem: params.codSepararEstoque,
+      );
 
       final cartRoutes = await _cartRouteRepository.select(query);
       return cartRoutes.isNotEmpty ? cartRoutes.first : null;

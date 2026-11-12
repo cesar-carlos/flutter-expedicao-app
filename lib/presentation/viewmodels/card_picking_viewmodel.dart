@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
@@ -39,6 +38,7 @@ import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
+import 'package:data7_expedicao/domain/services/separate_item_unit_conversions_service.dart';
 
 class CardPickingViewModel extends ChangeNotifier {
   static const String _cartInSeparationCode = 'EM SEPARACAO';
@@ -285,6 +285,7 @@ class CardPickingViewModel extends ChangeNotifier {
     required ShelfScanningService shelfScanningService,
     required PickingStateManager stateManager,
     required CartValidationService cartValidationService,
+    required SeparateItemUnitConversionsService unitConversions,
     MetricsCollector? metricsCollector,
   }) : _repository = repository,
        _sectorStockRepository = sectorStockRepository,
@@ -304,7 +305,11 @@ class CardPickingViewModel extends ChangeNotifier {
       onProcessingError: _setError,
     );
     _filtersController = PickingFiltersController(storage: _filtersStorage, onChanged: _safeNotifyListeners);
-    _itemLoader = PickingItemLoader(repository: _repository, filtersController: _filtersController);
+    _itemLoader = PickingItemLoader(
+      repository: _repository,
+      unitConversions: unitConversions,
+      filtersController: _filtersController,
+    );
     _addItemCoordinator = _buildAddItemCoordinator();
   }
 
@@ -364,8 +369,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
       startCartEventMonitoring();
     } catch (e) {
-      _hasError = true;
-      _errorMessage = 'Erro ao inicializar dados do picking: ${e.toString()}';
+      _setError(AppFailure.forUser(e, fallback: 'Erro ao inicializar dados do picking.'));
     } finally {
       _isLoading = false;
       _safeNotifyListeners();
@@ -409,12 +413,8 @@ class CardPickingViewModel extends ChangeNotifier {
   Future<void> _loadCartItems() async {
     if (_cart == null) return;
 
-    try {
-      await _filtersController.loadSaved();
-      await _loadFilteredItems();
-    } catch (e) {
-      developer.log('Failed to load cart items', error: e);
-    }
+    await _filtersController.loadSaved();
+    await _loadFilteredItems();
   }
 
   Future<AddItemSeparationResult> addScannedItem({required String itemId, required int quantity}) async {
@@ -468,7 +468,7 @@ class CardPickingViewModel extends ChangeNotifier {
 
       return AddItemSeparationResult.success('Item adicionado: $quantity unidades', addedQuantity: quantity.toDouble());
     } catch (e) {
-      return AddItemSeparationResult.error('Erro inesperado: ${e.toString()}');
+      return AddItemSeparationResult.error(AppFailure.forUser(e, fallback: 'Não foi possível adicionar o item.'));
     }
   }
 
@@ -557,7 +557,9 @@ class CardPickingViewModel extends ChangeNotifier {
       _stateManager.updateItemQuantity(itemId, currentQuantity);
       _nextItemCacheManager.update(_items, isItemCompleted);
       _safeNotifyListeners();
-      return AddItemSeparationResult.error('Erro ao sincronizar: ${e.toString()}');
+      return AddItemSeparationResult.error(
+        AppFailure.forUser(e, fallback: 'Não foi possível sincronizar a quantidade.'),
+      );
     }
   }
 
@@ -608,7 +610,7 @@ class CardPickingViewModel extends ChangeNotifier {
       return true;
     } catch (e) {
       _hasError = true;
-      _errorMessage = 'Erro ao finalizar picking: ${e.toString()}';
+      _errorMessage = AppFailure.forUser(e, fallback: 'Erro ao finalizar picking.');
       return false;
     } finally {
       _isFinalizingPicking = false;
@@ -644,7 +646,7 @@ class CardPickingViewModel extends ChangeNotifier {
       return true;
     } catch (e) {
       _hasError = true;
-      _errorMessage = 'Erro ao cancelar picking: ${e.toString()}';
+      _errorMessage = AppFailure.forUser(e, fallback: 'Erro ao cancelar picking.');
       return false;
     } finally {
       _isCancelingPicking = false;
@@ -715,7 +717,9 @@ class CardPickingViewModel extends ChangeNotifier {
     if (_disposed || _sectorsLoaded) return;
 
     try {
-      final sectors = await _sectorStockRepository.select(QueryBuilder());
+      final sectors = await _sectorStockRepository.select(
+        QueryBuilder().allRows(orderField: 'Descricao', thenBy: ['CodSetorEstoque']),
+      );
       if (_disposed) return;
 
       _availableSectorsUnmodifiable = null;
@@ -738,7 +742,7 @@ class CardPickingViewModel extends ChangeNotifier {
       if (_disposed) return;
       _safeNotifyListeners();
     } catch (e) {
-      _setError('Erro ao aplicar filtros: ${e.toString()}');
+      _setError(AppFailure.forUser(e, fallback: 'Erro ao aplicar filtros.'));
     }
   }
 
@@ -751,20 +755,16 @@ class CardPickingViewModel extends ChangeNotifier {
       if (_disposed) return;
       _safeNotifyListeners();
     } catch (e) {
-      _setError('Erro ao limpar filtros: ${e.toString()}');
+      _setError(AppFailure.forUser(e, fallback: 'Erro ao limpar filtros.'));
     }
   }
 
   Future<void> _loadFilteredItems() async {
     if (_cart == null) return;
 
-    try {
-      final items = await _itemLoader.fetchFilteredItems(cart: _cart, userSectorCode: _userModel?.codSetorEstoque);
-      if (_disposed) return;
-      _applyLoadedItems(items);
-    } catch (e) {
-      developer.log('Failed to load filtered items', error: e);
-    }
+    final items = await _itemLoader.fetchFilteredItems(cart: _cart, userSectorCode: _userModel?.codSetorEstoque);
+    if (_disposed) return;
+    _applyLoadedItems(items);
   }
 
   void startCartEventMonitoring() {

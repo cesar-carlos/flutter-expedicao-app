@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/core/utils/i_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
@@ -270,8 +271,7 @@ void main() {
         final result = await useCase.call(_createValidParams());
 
         expect(result.isError(), isTrue);
-        final failure = result.exceptionOrNull() as NextSeparationUserFailure;
-        expect(failure.type, equals(NextSeparationUserFailureType.networkError));
+        expect(result.exceptionOrNull(), isA<NetworkFailure>());
       });
 
       test('should return unknownError when repository throws generic exception', () async {

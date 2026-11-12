@@ -13,6 +13,8 @@ import 'package:data7_expedicao/domain/models/filter/separation_filters_model.da
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
+import 'package:data7_expedicao/domain/services/separate_item_unit_conversions_service.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
@@ -272,6 +274,11 @@ void main() {
         sectorStockRepository,
         filtersStorage,
         eventRepository,
+        SeparateItemUnitConversionsService(
+          repository: FakeConsultationRepository<SeparateItemUnidadeMedidaConsultationModel>(
+            onSelect: (_) async => const <SeparateItemUnidadeMedidaConsultationModel>[],
+          ),
+        ),
       );
     });
 
@@ -382,6 +389,29 @@ void main() {
       expect(cartRepository.selectCallCount, 1);
       expect(viewModel.carts, hasLength(1));
       expect(viewModel.carts.first.codCarrinho, existingCart.codCarrinho);
+    });
+
+    test('loadSeparationItems mostra erro claro quando conversoes falham', () async {
+      viewModel.dispose();
+      viewModel = SeparationItemsViewModel.withDependencies(
+        itemRepository,
+        cartRepository,
+        sectorStockRepository,
+        filtersStorage,
+        eventRepository,
+        SeparateItemUnitConversionsService(
+          repository: FakeConsultationRepository<SeparateItemUnidadeMedidaConsultationModel>(
+            onSelect: (_) async => throw Exception('socket caiu'),
+          ),
+        ),
+      );
+
+      itemRepository.onSelect = (_) async => <SeparateItemConsultationModel>[buildItem()];
+
+      await viewModel.loadSeparationItems(buildSeparation());
+
+      expect(viewModel.hasError, isTrue);
+      expect(viewModel.errorMessage, contains('unidades de medida'));
     });
   });
 }

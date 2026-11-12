@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder_extension.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
@@ -247,7 +247,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
       await loadConsultations();
     } catch (e) {
       if (_disposed) return;
-      _setError('Erro ao atualizar consulta: ${e.toString()}');
+      _setError(AppFailure.forUser(e, fallback: 'Erro ao atualizar consulta.'));
     }
   }
 
@@ -266,7 +266,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
       await loadConsultations();
     } catch (e) {
       if (_disposed) return;
-      _setError('Erro ao remover consulta: ${e.toString()}');
+      _setError(AppFailure.forUser(e, fallback: 'Erro ao remover consulta.'));
     }
   }
 
@@ -284,7 +284,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
       await loadConsultations();
     } catch (e) {
       if (_disposed) return;
-      _setError('Erro ao criar consulta: ${e.toString()}');
+      _setError(AppFailure.forUser(e, fallback: 'Erro ao criar consulta.'));
     }
   }
 
@@ -344,30 +344,7 @@ class ShipmentSeparateConsultationViewModel extends ChangeNotifier {
     }
   }
 
-  /// Extrai uma mensagem de erro legível de qualquer exceção
   String _getErrorMessage(dynamic error) {
-    if (error == null) return 'Erro desconhecido';
-
-    // Se for uma instância de AppError, usa a mensagem diretamente
-    if (error is AppError) {
-      return error.message;
-    }
-
-    // Se for uma String, retorna ela
-    if (error is String) {
-      return error;
-    }
-
-    // Para outros tipos, tenta toString() mas com fallback
-    try {
-      final message = error.toString();
-      // Se toString() retorna "Instance of...", usa uma mensagem genérica
-      if (message.startsWith('Instance of ')) {
-        return 'Erro interno do sistema';
-      }
-      return message;
-    } catch (e) {
-      return 'Erro interno do sistema';
-    }
+    return AppFailure.forUser(error, fallback: 'Erro desconhecido');
   }
 }

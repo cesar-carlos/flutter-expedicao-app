@@ -5,78 +5,78 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:uuid/uuid.dart';
 
 import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/errors/socket_error_parser.dart';
 import 'package:data7_expedicao/core/network/socket_config.dart';
-import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/data/dtos/send_mutation_socket_dto.dart';
 import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
+import 'package:data7_expedicao/domain/models/pagination/paged_query.dart';
+import 'package:data7_expedicao/domain/models/pagination/pagination.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 
 /// Helper para encapsular o padrao socket-completer-on usado em ~30
 /// repositorios.
-///
-/// Mitiga 4 bugs latentes presentes em todos os repos socket-based:
-///
-/// - **AAAAAA — TIMEOUT AUSENTE**: a versao manual nao tinha timeout.
-///   Se o servidor nunca respondesse, o future ficava pendente PARA
-///   SEMPRE (UI em loading eterno). Aqui usamos `Future.timeout` com
-///   default de 30s — caller pode ajustar via parametro.
-///
-/// - **BBBBBB — `socket.id!` antes do check `isConnected`**: a versao
-///   manual fazia null assertion ANTES de validar conexao, causando
-///   `NullCheckOperator` em vez do erro tratado. Aqui validamos `id`
-///   primeiro e lancamos `DataError` claro se faltar.
-///
-/// - **CCCCCC — stale reference**: a versao manual capturava
-///   `var socket = SocketConfig.instance` no campo da classe, que
-///   ficava obsoleto apos `updateConfig` recriar o socket. Aqui
-///   sempre usamos `SocketConfig.instance` (getter) — pega a
-///   instancia atual a cada chamada.
-///
-/// - **DDDDDD — cast inseguro em mutation/data**: a versao manual fazia
-///   `mutation.map<T>(...)` direto. Se o servidor retornasse Map em vez
-///   de List (formato inesperado), crashava com TypeError em vez de
-///   DataError tratado. Aqui validamos com `is List` antes do cast.
-///
-/// Uso tipico (em qualquer repositorio):
-/// ```dart
-/// @override
-/// Future<List<MyModel>> select(QueryBuilder qb) {
-///   return SocketRequestHelper.select<MyModel>(
-///     baseEvent: 'minha_entidade.select',
-///     queryBuilder: qb,
-///     fromJson: MyModel.fromJson,
-///   );
-/// }
-/// ```
 class SocketRequestHelper {
   static const Duration _defaultTimeout = Duration(seconds: 30);
   static const _uuid = Uuid();
+  static const String lostConnectionMessage = 'Conexão com o servidor foi perdida. Tente novamente.';
 
-  /// Timeout configuravel via locator/test override (futuro).
-  /// Mantido como const para o caso atual; se precisarmos injetar via
-  /// DI no futuro, basta tornar instance method.
   static Duration get defaultTimeout => _defaultTimeout;
 
   /// Executa um SELECT socket-based padrao.
   ///
-  /// - [baseEvent]: nome do evento sem o prefixo de session (ex.: 'separar.select').
-  ///   O helper prefixa com `${socket.id} ` automaticamente.
-  /// - [queryBuilder]: QueryBuilder ja configurado pelo caller.
-  /// - [fromJson]: factory que converte 1 entry do array `Data` em `T`.
-  /// - [timeout]: timeout customizado (default 30s).
+  /// Sem `allRows()`, uma ida só — lookup ou página explícita. Com
+  /// `allRows()`, busca a lista em páginas de [Pagination.fetchPageSize]
+  /// para o servidor não cortar em 1500 nem travar a fila num JSON só.
   static Future<List<T>> select<T>({
     required String baseEvent,
     required QueryBuilder queryBuilder,
     required T Function(Map<String, dynamic>) fromJson,
     Duration? timeout,
     bool includeOrderBy = false,
+    dynamic socket,
   }) async {
-    final whereQuery = queryBuilder.buildSqlWhere();
-    final paginationQuery = queryBuilder.buildPagination();
-    // Bug observado: alguns repos (SeparationUserSectorConsultation,
-    // SeparateProgressConsultation) tambem enviam `orderBy`. Tornamos
-    // opcional via flag para preservar comportamento existente sem
-    // adicionar overhead nos repos que nao precisam.
+    if (!queryBuilder.shouldFetchAllPages) {
+      return _selectPage(
+        baseEvent: baseEvent,
+        queryBuilder: queryBuilder,
+        fromJson: fromJson,
+        timeout: timeout,
+        includeOrderBy: includeOrderBy,
+        pagination: queryBuilder.buildPagination(),
+        socket: socket,
+      );
+    }
+
+    try {
+      return await PagedQuery.collect(
+        pageSize: queryBuilder.fetchAllPages ? queryBuilder.fetchPageSize : Pagination.fetchPageSize,
+        fetchPage: (page, pageSize) {
+          return _selectPage(
+            baseEvent: baseEvent,
+            queryBuilder: queryBuilder,
+            fromJson: fromJson,
+            timeout: timeout,
+            includeOrderBy: includeOrderBy || queryBuilder.fetchAllPages || queryBuilder.orderByClauses.isNotEmpty,
+            pagination: Pagination.page(page: page, pageSize: pageSize).toQueryString(),
+            socket: socket,
+          );
+        },
+      );
+    } on StateError catch (e) {
+      throw DataError(message: e.message);
+    }
+  }
+
+  static Future<List<T>> _selectPage<T>({
+    required String baseEvent,
+    required QueryBuilder queryBuilder,
+    required T Function(Map<String, dynamic>) fromJson,
+    required bool includeOrderBy,
+    required String pagination,
+    Duration? timeout,
+    dynamic socket,
+  }) {
+    final whereQuery = queryBuilder.buildWhereParams();
     final orderByQuery = includeOrderBy ? queryBuilder.buildOrderByQuery() : '';
 
     return _execute<T>(
@@ -85,8 +85,8 @@ class SocketRequestHelper {
         final dto = SendQuerySocketDto(
           session: sessionId,
           responseIn: responseId,
-          where: whereQuery.isEmpty ? null : whereQuery,
-          pagination: paginationQuery.isEmpty ? null : paginationQuery,
+          where: whereQuery,
+          pagination: pagination.isEmpty ? null : pagination,
           orderBy: orderByQuery.isEmpty ? null : orderByQuery,
         );
         return jsonEncode(dto.toJson());
@@ -94,67 +94,52 @@ class SocketRequestHelper {
       extractList: extractDataList,
       fromJson: fromJson,
       timeout: timeout,
+      socket: socket,
     );
   }
 
   /// Executa uma MUTATION socket-based padrao (insert / update / delete).
-  ///
-  /// - [baseEvent]: nome do evento (ex.: 'separar.insert').
-  /// - [entityJson]: JSON da entidade a enviar como mutation.
-  /// - [fromJson]: factory para converter cada item do array `Mutation` em `T`.
   static Future<List<T>> mutation<T>({
     required String baseEvent,
     required Map<String, dynamic> entityJson,
     required T Function(Map<String, dynamic>) fromJson,
     Duration? timeout,
+    dynamic socket,
   }) async {
     return _execute<T>(
       baseEvent: baseEvent,
       buildPayload: (sessionId, responseId) {
-        final dto = SendMutationSocketDto(
-          session: sessionId,
-          responseIn: responseId,
-          mutation: entityJson,
-        );
+        final dto = SendMutationSocketDto(session: sessionId, responseIn: responseId, mutation: entityJson);
         return jsonEncode(dto.toJson());
       },
       extractList: extractMutationList,
       fromJson: fromJson,
       timeout: timeout,
+      socket: socket,
     );
   }
 
-  /// Implementacao comum para select/mutation. Mantida privada porque
-  /// o nome do array de resposta varia (`Data` vs `Mutation`) e e
-  /// abstraida via [extractList].
   static Future<List<T>> _execute<T>({
     required String baseEvent,
     required String Function(String sessionId, String responseId) buildPayload,
-    required List Function(Map<String, dynamic> response) extractList,
+    required List<dynamic> Function(Map<String, dynamic> response) extractList,
     required T Function(Map<String, dynamic>) fromJson,
     Duration? timeout,
+    dynamic socket,
   }) async {
-    // Bug BBBBBB: validar conexao + sessao ANTES de qualquer null
-    // assertion. socket.id! seguido de socket.connected era ordem
-    // errada — desconectado dava NPE feio.
-    if (!SocketConfig.isConnected) {
-      throw DataError(message: 'Socket nao esta conectado');
-    }
-    final sessionId = SocketConfig.sessionId;
-    if (sessionId == null || sessionId.isEmpty) {
-      throw DataError(message: 'Socket sem session id (nao identificado pelo servidor)');
-    }
+    final resolved = _resolveSocket(socket);
+    final activeSocket = resolved.socket;
+    final sessionId = resolved.sessionId;
+    final watchDisconnect = resolved.watchDisconnect;
 
-    // Bug CCCCCC: usar SocketConfig.instance (getter) em vez de
-    // capturar referencia. Se updateConfig recriou o socket, pegamos
-    // o novo automaticamente.
-    final socket = SocketConfig.instance;
     final responseId = _uuid.v4();
     final event = '$sessionId $baseEvent';
     final completer = Completer<List<T>>();
 
-    void completeOnce(FutureOr<void> Function() action) {
-      if (completer.isCompleted) return;
+    void completeOnce(void Function() action) {
+      if (completer.isCompleted) {
+        return;
+      }
       try {
         action();
       } catch (e, s) {
@@ -164,56 +149,83 @@ class SocketRequestHelper {
       }
     }
 
-    // Registra o listener ANTES do emit para nao perder respostas
-    // muito rapidas (race entre emit ack e on).
-    socket.on(responseId, (dynamic receiver) {
+    void onDisconnected() {
+      completeOnce(() {
+        completer.completeError(DataError(message: lostConnectionMessage));
+      });
+    }
+
+    activeSocket.on(responseId, (dynamic receiver) {
       completeOnce(() {
         final response = decodeResponse(receiver);
-        final error = response['Error'];
-        if (error != null) {
-          if (!completer.isCompleted) {
-            completer.completeError(DataError(message: error.toString()));
-          }
+        final socketError = dataErrorFromResponse(response);
+        if (socketError != null) {
+          completer.completeError(socketError);
           return;
         }
-        // Bug DDDDDD: extractList + parseItems validam tipo e ignoram
-        // items invalidos com log (em vez de crashar lista inteira).
         final rawList = extractList(response);
         final result = parseItems<T>(rawList, fromJson);
-        if (!completer.isCompleted) completer.complete(result);
+        completer.complete(result);
       });
     });
 
+    if (watchDisconnect) {
+      SocketConfig.addDisconnectListener(onDisconnected);
+    }
+
     try {
-      socket.emit(event, buildPayload(sessionId, responseId));
+      activeSocket.emit(event, buildPayload(sessionId, responseId));
     } catch (e, s) {
-      // Garante limpeza do listener mesmo se o emit falhar.
-      socket.off(responseId);
+      activeSocket.off(responseId);
+      if (watchDisconnect) {
+        SocketConfig.removeDisconnectListener(onDisconnected);
+      }
       throw DataError(message: 'Falha ao emitir evento $event: $e', stackTrace: s);
     }
 
-    // Bug AAAAAA: timeout. Antes, future ficava pendente para sempre
-    // se o servidor nao respondesse.
     final effectiveTimeout = timeout ?? _defaultTimeout;
     try {
       return await completer.future.timeout(
         effectiveTimeout,
         onTimeout: () {
-          throw DataError(
-            message: 'Tempo limite excedido ($effectiveTimeout) ao aguardar resposta de $baseEvent',
-          );
+          throw DataError(message: 'Tempo limite excedido ($effectiveTimeout) ao aguardar resposta de $baseEvent');
         },
       );
     } finally {
-      // Sempre desregistra o listener — evita memory leak / callbacks
-      // duplicados em chamadas subsequentes.
-      socket.off(responseId);
+      activeSocket.off(responseId);
+      if (watchDisconnect) {
+        SocketConfig.removeDisconnectListener(onDisconnected);
+      }
     }
   }
 
-  /// Decodifica a resposta vinda do socket. Aceita tanto String JSON
-  /// quanto Map ja decodificado (alguns transports do socket.io entregam
-  /// um, outros outro). Lanca FormatException em formato invalido.
+  static ({dynamic socket, String sessionId, bool watchDisconnect}) _resolveSocket(dynamic socket) {
+    if (socket != null) {
+      final sessionId = socket.id?.toString();
+      if (sessionId == null || sessionId.isEmpty) {
+        throw DataError(message: 'Sessão com o servidor não identificada. Reconecte e tente novamente.');
+      }
+      return (socket: socket, sessionId: sessionId, watchDisconnect: false);
+    }
+
+    if (!SocketConfig.isConnected) {
+      throw DataError(message: 'Socket nao esta conectado');
+    }
+    final sessionId = SocketConfig.sessionId;
+    if (sessionId == null || sessionId.isEmpty) {
+      throw DataError(message: 'Socket sem session id (nao identificado pelo servidor)');
+    }
+    return (socket: SocketConfig.instance, sessionId: sessionId, watchDisconnect: true);
+  }
+
+  static DataError? dataErrorFromResponse(Map<String, dynamic> response) {
+    final info = SocketErrorInfo.fromResponse(response);
+    if (info == null) {
+      return null;
+    }
+    return DataError(message: info.message, code: info.identifier ?? info.contractCode);
+  }
+
   @visibleForTesting
   static Map<String, dynamic> decodeResponse(dynamic receiver) {
     if (receiver is String) {
@@ -229,59 +241,45 @@ class SocketRequestHelper {
     throw FormatException('Resposta socket inesperada: ${receiver.runtimeType}');
   }
 
-  /// Extrai a lista de uma resposta de SELECT (chave "Data").
   @visibleForTesting
-  static List extractDataList(Map<String, dynamic> response) {
+  static List<dynamic> extractDataList(Map<String, dynamic> response) {
     final data = response['Data'];
-    if (data == null) return const [];
+    if (data == null) {
+      return const [];
+    }
     if (data is! List) {
       throw FormatException('Campo "Data" da resposta nao e List: ${data.runtimeType}');
     }
     return data;
   }
 
-  /// Extrai a lista de uma resposta de MUTATION (chave "Mutation").
   @visibleForTesting
-  static List extractMutationList(Map<String, dynamic> response) {
+  static List<dynamic> extractMutationList(Map<String, dynamic> response) {
     final mutation = response['Mutation'];
-    if (mutation == null) return const [];
+    if (mutation == null) {
+      return const [];
+    }
     if (mutation is! List) {
       throw FormatException('Campo "Mutation" da resposta nao e List: ${mutation.runtimeType}');
     }
     return mutation;
   }
 
-  /// Parse defensivo de um item da lista — pula items invalidos com log.
-  ///
-  /// Util tambem para repositorios que tem comportamento customizado
-  /// (ex.: socket injetado para testes) mas querem o mesmo parsing
-  /// defensivo do helper.
-  static List<T> parseItems<T>(
-    List rawList,
-    T Function(Map<String, dynamic>) fromJson,
-  ) {
+  /// Parse de um item da lista. Item inválido falha a consulta inteira
+  /// para o operador não trabalhar com lista incompleta.
+  static List<T> parseItems<T>(List<dynamic> rawList, T Function(Map<String, dynamic>) fromJson) {
     final result = <T>[];
     for (var i = 0; i < rawList.length; i++) {
       final entry = rawList[i];
       if (entry is! Map) {
-        AppLogger.warning(
-          'SocketRequestHelper: item $i da resposta nao e Map (${entry.runtimeType}) — ignorado',
-          tag: 'SocketRequestHelper',
-        );
-        continue;
+        throw DataError(message: 'Resposta do servidor inválida: item ${i + 1} não pôde ser lido.');
       }
       try {
         result.add(fromJson(Map<String, dynamic>.from(entry)));
       } catch (e, s) {
-        AppLogger.warning(
-          'SocketRequestHelper: falha ao parsear item $i — ignorado',
-          tag: 'SocketRequestHelper',
-          error: e,
-          stackTrace: s,
-        );
+        throw DataError(message: 'Resposta do servidor inválida: item ${i + 1} não pôde ser lido.', stackTrace: s);
       }
     }
     return result;
   }
 }
-

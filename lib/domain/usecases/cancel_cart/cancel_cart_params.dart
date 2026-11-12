@@ -14,7 +14,7 @@ class CancelCartParams {
 
     if (codEmpresa <= 0) errors.add('Código da empresa deve ser maior que zero');
     if (codCarrinhoPercurso <= 0) errors.add('Código do carrinho percurso deve ser maior que zero');
-    if (item.isEmpty) errors.add('Código do carrinho deve ser maior que zero');
+    if (item.isEmpty) errors.add('Item do percurso não pode estar vazio');
     return errors;
   }
 

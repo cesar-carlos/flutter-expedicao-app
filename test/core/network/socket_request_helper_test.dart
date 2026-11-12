@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/core/network/socket_request_helper.dart';
 
 /// Testes para SocketRequestHelper.
@@ -8,8 +9,8 @@ import 'package:data7_expedicao/core/network/socket_request_helper.dart';
 /// emit/on/off, testar a integracao completa requer mockar SocketConfig
 /// — fora do escopo destes testes unitarios. Aqui cobrimos os helpers
 /// publicos `decodeResponse`, `extractDataList`, `extractMutationList`
-/// e `parseItems` que encapsulam toda a logica defensiva de parsing
-/// (origem dos bugs DDDDDD e similares).
+/// e `parseItems` que encapsulam o parse do envelope. Item inválido
+/// falha a consulta inteira.
 void main() {
   group('SocketRequestHelper.decodeResponse', () {
     test('decodifica JSON String em Map<String, dynamic>', () {
@@ -33,36 +34,18 @@ void main() {
     });
 
     test('lanca FormatException se JSON String nao for objeto', () {
-      expect(
-        () => SocketRequestHelper.decodeResponse('[1,2,3]'),
-        throwsA(isA<FormatException>()),
-      );
-      expect(
-        () => SocketRequestHelper.decodeResponse('"plain string"'),
-        throwsA(isA<FormatException>()),
-      );
+      expect(() => SocketRequestHelper.decodeResponse('[1,2,3]'), throwsA(isA<FormatException>()));
+      expect(() => SocketRequestHelper.decodeResponse('"plain string"'), throwsA(isA<FormatException>()));
     });
 
     test('lanca FormatException se receiver nao for String nem Map', () {
-      expect(
-        () => SocketRequestHelper.decodeResponse(123),
-        throwsA(isA<FormatException>()),
-      );
-      expect(
-        () => SocketRequestHelper.decodeResponse(null),
-        throwsA(isA<FormatException>()),
-      );
-      expect(
-        () => SocketRequestHelper.decodeResponse([1, 2, 3]),
-        throwsA(isA<FormatException>()),
-      );
+      expect(() => SocketRequestHelper.decodeResponse(123), throwsA(isA<FormatException>()));
+      expect(() => SocketRequestHelper.decodeResponse(null), throwsA(isA<FormatException>()));
+      expect(() => SocketRequestHelper.decodeResponse([1, 2, 3]), throwsA(isA<FormatException>()));
     });
 
     test('lanca FormatException em JSON malformado', () {
-      expect(
-        () => SocketRequestHelper.decodeResponse('{invalid json}'),
-        throwsA(isA<FormatException>()),
-      );
+      expect(() => SocketRequestHelper.decodeResponse('{invalid json}'), throwsA(isA<FormatException>()));
     });
   });
 
@@ -89,12 +72,11 @@ void main() {
     });
 
     test('lanca FormatException quando "Data" nao e List', () {
+      expect(() => SocketRequestHelper.extractDataList({'Data': 'not a list'}), throwsA(isA<FormatException>()));
       expect(
-        () => SocketRequestHelper.extractDataList({'Data': 'not a list'}),
-        throwsA(isA<FormatException>()),
-      );
-      expect(
-        () => SocketRequestHelper.extractDataList({'Data': {'k': 'v'}}),
+        () => SocketRequestHelper.extractDataList({
+          'Data': {'k': 'v'},
+        }),
         throwsA(isA<FormatException>()),
       );
     });
@@ -121,10 +103,7 @@ void main() {
     });
 
     test('lanca FormatException quando "Mutation" nao e List', () {
-      expect(
-        () => SocketRequestHelper.extractMutationList({'Mutation': 42}),
-        throwsA(isA<FormatException>()),
-      );
+      expect(() => SocketRequestHelper.extractMutationList({'Mutation': 42}), throwsA(isA<FormatException>()));
     });
   });
 
@@ -135,57 +114,62 @@ void main() {
         {'name': 'B'},
         {'name': 'C'},
       ];
-      final result = SocketRequestHelper.parseItems<String>(
-        input,
-        (m) => m['name'] as String,
-      );
+      final result = SocketRequestHelper.parseItems<String>(input, (m) => m['name'] as String);
       expect(result, equals(['A', 'B', 'C']));
     });
 
-    test('ignora items que nao sao Map (com log)', () {
+    test('lanca DataError quando item nao e Map', () {
       final input = [
         {'name': 'A'},
-        'not a map', // ignorado
-        42, // ignorado
-        null, // ignorado
-        {'name': 'B'},
+        'not a map',
       ];
-      final result = SocketRequestHelper.parseItems<String>(
-        input,
-        (m) => m['name'] as String,
+      expect(
+        () => SocketRequestHelper.parseItems<String>(input, (m) => m['name'] as String),
+        throwsA(isA<DataError>().having((error) => error.message, 'message', contains('item 2 não pôde ser lido'))),
       );
-      expect(result, equals(['A', 'B']));
     });
 
-    test('ignora items que falham no fromJson (com log)', () {
+    test('lanca DataError quando fromJson falha', () {
       final input = [
         {'name': 'A'},
-        {'wrong_key': 'X'}, // fromJson lanca TypeError aqui
-        {'name': 'B'},
+        {'wrong_key': 'X'},
       ];
-      final result = SocketRequestHelper.parseItems<String>(
-        input,
-        (m) => m['name'] as String, // lanca para 'wrong_key'
+      expect(
+        () => SocketRequestHelper.parseItems<String>(input, (m) => m['name'] as String),
+        throwsA(isA<DataError>().having((error) => error.message, 'message', contains('item 2 não pôde ser lido'))),
       );
-      expect(result, equals(['A', 'B']));
     });
 
     test('retorna lista vazia para input vazio', () {
-      final result = SocketRequestHelper.parseItems<String>(
-        const [],
-        (m) => m['name'] as String,
-      );
+      final result = SocketRequestHelper.parseItems<String>(const [], (m) => m['name'] as String);
       expect(result, isEmpty);
     });
 
     test('aceita Map<dynamic, dynamic> e converte', () {
       // Cenario real: alguns servidores retornam Map<dynamic, dynamic>.
-      final input = <dynamic>[<dynamic, dynamic>{'name': 'A'}];
-      final result = SocketRequestHelper.parseItems<String>(
-        input,
-        (m) => m['name'] as String,
-      );
+      final input = <dynamic>[
+        <dynamic, dynamic>{'name': 'A'},
+      ];
+      final result = SocketRequestHelper.parseItems<String>(input, (m) => m['name'] as String);
       expect(result, equals(['A']));
+    });
+  });
+
+  group('SocketRequestHelper.dataErrorFromResponse', () {
+    test('retorna null quando Error e vazio', () {
+      expect(SocketRequestHelper.dataErrorFromResponse({'Error': null}), isNull);
+      expect(SocketRequestHelper.dataErrorFromResponse({'Error': <String>[]}), isNull);
+    });
+
+    test('usa a primeira linha de Error e o identificador como code', () {
+      final error = SocketRequestHelper.dataErrorFromResponse({
+        'Error': ['[50014] Carrinho em uso'],
+        'Code': 'BUSINESS_RULE_VIOLATION',
+      });
+
+      expect(error, isA<DataError>());
+      expect(error!.message, '[50014] Carrinho em uso');
+      expect(error.code, '50014');
     });
   });
 

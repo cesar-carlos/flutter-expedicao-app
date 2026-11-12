@@ -23,8 +23,9 @@ class AddCartParams {
     return 'AddCartParams('
         'codEmpresa: $codEmpresa, '
         'origem: ${origem.description}, '
-        'codOrigem: $codOrigem'
+        'codOrigem: $codOrigem, '
         'codCarrinho: $codCarrinho, '
+        'codCarrinhoPercurso: $codCarrinhoPercurso'
         ')';
   }
 
@@ -35,12 +36,14 @@ class AddCartParams {
         other.codEmpresa == codEmpresa &&
         other.origem == origem &&
         other.codOrigem == codOrigem &&
-        other.codCarrinho == codCarrinho;
+        other.codCarrinho == codCarrinho &&
+        other.scannedCart == scannedCart &&
+        other.codCarrinhoPercurso == codCarrinhoPercurso;
   }
 
   @override
   int get hashCode {
-    return Object.hash(codEmpresa, origem, codOrigem, codCarrinho);
+    return Object.hash(codEmpresa, origem, codOrigem, codCarrinho, scannedCart, codCarrinhoPercurso);
   }
 
   bool get isValid {

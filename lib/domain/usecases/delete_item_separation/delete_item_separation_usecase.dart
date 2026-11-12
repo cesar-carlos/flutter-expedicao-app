@@ -56,7 +56,7 @@ class DeleteItemSeparationUseCase {
 
       return await _executeTransactionalOperation(params, separationItem, separateItem);
     } on DataError catch (e) {
-      return failure(NetworkFailure(message: e.message, exception: Exception(e.message)));
+      return failure(AppFailure.fromCaught(e));
     } on Exception catch (e) {
       return failure(UnknownFailure.fromException(e));
     } catch (e) {
@@ -152,18 +152,26 @@ class DeleteItemSeparationUseCase {
   }
 
   Future<SeparateItemModel?> _findSeparateItem(SeparationItemModel separationItem) async {
-    try {
-      final separateItems = await _separateItemRepository.select(
-        QueryBuilder()
-            .equals('CodEmpresa', separationItem.codEmpresa)
-            .equals('CodSepararEstoque', separationItem.codSepararEstoque)
-            .equals('CodProduto', separationItem.codProduto),
-      );
+    final separateItems = await _separateItemRepository.select(
+      QueryBuilder()
+          .equals('CodEmpresa', separationItem.codEmpresa)
+          .equals('CodSepararEstoque', separationItem.codSepararEstoque)
+          .equals('CodProduto', separationItem.codProduto),
+    );
 
-      return separateItems.isNotEmpty ? separateItems.first : null;
-    } catch (e) {
-      rethrow;
+    return _pickSeparateItem(separateItems, separationItem);
+  }
+
+  SeparateItemModel? _pickSeparateItem(List<SeparateItemModel> separateItems, SeparationItemModel separationItem) {
+    if (separateItems.isEmpty) {
+      return null;
     }
+    for (final item in separateItems) {
+      if (item.item == separationItem.item) {
+        return item;
+      }
+    }
+    return separateItems.first;
   }
 
   Future<SeparateModel?> _findSeparate(DeleteItemSeparationParams params) async {

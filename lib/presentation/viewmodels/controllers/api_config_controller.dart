@@ -16,6 +16,7 @@ class ApiConfigController {
   bool _isTesting = false;
   bool _isSaving = false;
   bool _connectionTested = false;
+  Future<bool>? _testInFlight;
 
   ApiConfigController(
     this._configService, {
@@ -147,8 +148,24 @@ class ApiConfigController {
     }
   }
 
-  Future<bool> testConnection({String? apiUrl, String? apiPort, bool? useHttps}) async {
+  Future<bool> testConnection({String? apiUrl, String? apiPort, bool? useHttps}) {
+    final inFlight = _testInFlight;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final future = _runConnectionTest(apiUrl: apiUrl, apiPort: apiPort, useHttps: useHttps);
+    _testInFlight = future;
+    return future.whenComplete(() {
+      if (identical(_testInFlight, future)) {
+        _testInFlight = null;
+      }
+    });
+  }
+
+  Future<bool> _runConnectionTest({String? apiUrl, String? apiPort, bool? useHttps}) async {
     setTesting(true);
+    final dio = Dio();
 
     try {
       _setError('');
@@ -170,8 +187,6 @@ class ApiConfigController {
       final protocol = testHttps ? 'https' : 'http';
       final fullUrl = '$protocol://$testUrl:$testPort/expedicao';
       AppLogger.debug('Testing connection to $fullUrl (https=$testHttps)', tag: 'Config');
-
-      final dio = Dio();
 
       dio.options.connectTimeout = const Duration(seconds: 10);
       dio.options.receiveTimeout = const Duration(seconds: 10);
@@ -221,6 +236,7 @@ class ApiConfigController {
       AppLogger.error('Unexpected error while testing connection: $e', tag: 'Config', error: e);
       return false;
     } finally {
+      dio.close(force: true);
       setTesting(false);
     }
   }

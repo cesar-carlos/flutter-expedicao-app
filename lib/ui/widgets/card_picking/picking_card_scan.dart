@@ -11,6 +11,7 @@ import 'package:data7_expedicao/domain/models/separate_item_consultation_model.d
 import 'package:data7_expedicao/ui/widgets/card_picking/components/index.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/scan_ui_controller.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class PickingCardScan extends StatefulWidget {
@@ -573,7 +574,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         _quantityController.text = originalQuantity.toString();
       }
       AppLogger.error('Erro inesperado ao processar scan', tag: 'PickingCardScan', error: e, stackTrace: stackTrace);
-      const message = 'Erro inesperado. Tente novamente.';
+      final message = AppFailure.forUser(e, fallback: 'Não foi possível processar o item. Tente novamente.');
       _scanProcessor.handleFailedItemAddition(item, message);
       _dialogManager.showErrorDialog(barcode, item.nomeProduto, message);
       _keyboardController.forceFocusAndCloseKeyboard();

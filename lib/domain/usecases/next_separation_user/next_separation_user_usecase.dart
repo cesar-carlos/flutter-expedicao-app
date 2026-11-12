@@ -64,14 +64,14 @@ class NextSeparationUserUseCase {
       }
       return success(NextSeparationUserSuccess.found(separationResult.separation!));
     } on DataError catch (e) {
-      final msg = e.message.trim().toLowerCase();
-      if (msg.contains('socket') && msg.contains('conectado')) {
-        return failure(NextSeparationUserFailure.socketDisconnected());
+      final mapped = AppFailure.fromCaught(e);
+      if (mapped is NetworkFailure) {
+        final msg = e.message.trim().toLowerCase();
+        if (msg.contains('socket') && msg.contains('conect')) {
+          return failure(NextSeparationUserFailure.socketDisconnected());
+        }
       }
-      if (msg.contains('fetch') || msg.contains('sql') || msg.contains('statement')) {
-        return failure(NextSeparationUserFailure.serverError(e.message));
-      }
-      return failure(NextSeparationUserFailure.networkError(e.message, Exception(e.message)));
+      return failure(mapped);
     } on Exception catch (e) {
       return failure(NextSeparationUserFailure.unknown(e.toString(), e));
     } catch (e) {
@@ -91,35 +91,12 @@ class NextSeparationUserUseCase {
   }
 
   Future<_NextSeparationLookupResult> _findNextSeparation(NextSeparationUserParams params) async {
-    // PRIORIDADE 1: Buscar separação do usuário (no setor) com itens pendentes ou carrinhos abertos
-    try {
-      final existingSeparation = await _findExistingSeparationWithPendingItems(params);
-      if (existingSeparation != null) {
-        return _NextSeparationLookupResult.found(existingSeparation);
-      }
-    } on DataError catch (e) {
-      final msg = e.message.trim().toLowerCase();
-      if (_isSqlError(msg)) {
-        AppLogger.warning('Erro SQL ao buscar separação existente, tentando sem paginação: $msg');
-        final existingSeparation = await _findExistingSeparationWithPendingItemsNoPagination(params);
-        if (existingSeparation != null) {
-          return _NextSeparationLookupResult.found(existingSeparation);
-        }
-      } else {
-        rethrow;
-      }
+    final existingSeparation = await _findExistingSeparationWithPendingItems(params);
+    if (existingSeparation != null) {
+      return _NextSeparationLookupResult.found(existingSeparation);
     }
 
-    // PRIORIDADE 2: Buscar nova separação disponível (CodUsuario IS NULL)
-    return _findAndAssignNewSeparation(params);
-  }
-
-  bool _isSqlError(String message) {
-    return message.contains('fetch') ||
-        message.contains('sql') ||
-        message.contains('statement') ||
-        message.contains('offset') ||
-        message.contains('next');
+    return _findAndAssignNewSeparationPaged(params);
   }
 
   static const int _queryLimitExisting = 20;
@@ -146,30 +123,6 @@ class NextSeparationUserUseCase {
       if (results.length < _queryLimitExisting) {
         return null;
       }
-    }
-  }
-
-  /// Fallback sem paginação para erro SQL no servidor
-  Future<SeparationUserSectorConsultationModel?> _findExistingSeparationWithPendingItemsNoPagination(
-    NextSeparationUserParams params,
-  ) async {
-    final results = await _separationUserSectorConsultationRepository.selectConsultation(
-      _buildExistingSeparationQuery(params),
-    );
-
-    return results.where(CheckSeparationUserSectorCompletionUseCase.hasPendingItems).firstOrNull;
-  }
-
-  Future<_NextSeparationLookupResult> _findAndAssignNewSeparation(NextSeparationUserParams params) async {
-    try {
-      return await _findAndAssignNewSeparationPaged(params);
-    } on DataError catch (e) {
-      final msg = e.message.trim().toLowerCase();
-      if (_isSqlError(msg)) {
-        AppLogger.warning('Erro SQL ao buscar nova separação, tentando sem paginação: $msg');
-        return _findAndAssignNewSeparationNoPagination(params);
-      }
-      rethrow;
     }
   }
 
@@ -227,41 +180,6 @@ class NextSeparationUserUseCase {
       }
 
       currentPageIndex++;
-    }
-
-    if (lastAssignmentFailure != null) {
-      return _NextSeparationLookupResult.failure(
-        _buildAssignmentFailure(lastAssignmentFailure, null, assignmentAttempts),
-      );
-    }
-
-    return const _NextSeparationLookupResult.notFound();
-  }
-
-  Future<_NextSeparationLookupResult> _findAndAssignNewSeparationNoPagination(NextSeparationUserParams params) async {
-    final candidates = await _separationUserSectorConsultationRepository.selectConsultation(
-      _buildNewSeparationQuery(params),
-    );
-    var assignmentAttempts = 0;
-    AppFailure? lastAssignmentFailure;
-
-    for (final candidate in candidates) {
-      final registrationResult = await _registerUserSectorAssignment(params, candidate);
-      if (registrationResult.isSuccess()) {
-        return _NextSeparationLookupResult.found(_withAssignedUser(candidate, params));
-      }
-
-      assignmentAttempts++;
-      final registrationFailure = registrationResult.exceptionOrNull();
-      if (registrationFailure is AppFailure) {
-        lastAssignmentFailure = registrationFailure;
-      }
-
-      if (assignmentAttempts >= _maxRetries) {
-        return _NextSeparationLookupResult.failure(
-          _buildAssignmentFailure(lastAssignmentFailure, candidate, assignmentAttempts),
-        );
-      }
     }
 
     if (lastAssignmentFailure != null) {

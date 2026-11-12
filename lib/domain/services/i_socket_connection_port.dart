@@ -10,17 +10,15 @@ enum SocketConnectionState { disconnected, connecting, connected, reconnecting, 
 abstract interface class ISocketConnectionPort {
   String? get userId;
 
+  SocketConnectionState get connectionState;
+
+  bool get isConnected;
+
   Future<void> connect();
 
   void disconnect();
 
   Future<void> reconnect();
-
-  void sendLocationUpdate(double latitude, double longitude);
-
-  void sendScannerResult(String scanData, String scanType);
-
-  void sendMessage(String message, String? recipientId);
 
   Stream<dynamic> on(String eventName);
 

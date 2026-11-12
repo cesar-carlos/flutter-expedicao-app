@@ -31,7 +31,7 @@ class GetSeparationConsultationUseCase {
       }
       return Success(results.first);
     } on DataError catch (e) {
-      return Failure(NetworkFailure(message: e.message, code: 'NETWORK_ERROR', exception: e));
+      return Failure(AppFailure.fromCaught(e));
     } on Exception catch (e) {
       return Failure(UnknownFailure.fromException(e));
     } catch (e) {

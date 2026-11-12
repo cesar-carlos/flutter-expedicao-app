@@ -27,6 +27,7 @@ import 'package:data7_expedicao/domain/repositories/basic_consultation_repositor
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
+import 'package:data7_expedicao/domain/services/separate_item_unit_conversions_service.dart';
 import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/services/picking_state_manager.dart';
@@ -284,6 +285,11 @@ void main() {
         shelfScanningService: ShelfScanningService(),
         stateManager: PickingStateManager(),
         cartValidationService: CartValidationService(repository: repository),
+        unitConversions: SeparateItemUnitConversionsService(
+          repository: _FakeConsultationRepository<SeparateItemUnidadeMedidaConsultationModel>(
+            onSelect: (_) async => const <SeparateItemUnidadeMedidaConsultationModel>[],
+          ),
+        ),
       );
 
       await viewModel.initializeCart(
@@ -336,6 +342,11 @@ void main() {
         shelfScanningService: ShelfScanningService(),
         stateManager: PickingStateManager(),
         cartValidationService: CartValidationService(repository: repository),
+        unitConversions: SeparateItemUnitConversionsService(
+          repository: _FakeConsultationRepository<SeparateItemUnidadeMedidaConsultationModel>(
+            onSelect: (_) async => const <SeparateItemUnidadeMedidaConsultationModel>[],
+          ),
+        ),
       );
 
       await viewModel.initializeCart(

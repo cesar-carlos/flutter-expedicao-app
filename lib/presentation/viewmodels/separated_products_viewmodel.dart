@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_consultation_model.dart';
@@ -115,7 +116,7 @@ class SeparatedProductsViewModel extends ChangeNotifier {
       // Erro era silencioso, dificultando diagnostico em release.
       AppLogger.error('Erro ao carregar produtos separados', tag: 'SeparatedProductsVM', error: e, stackTrace: s);
       _hasError = true;
-      _errorMessage = 'Erro ao carregar produtos separados: ${e.toString()}';
+      _errorMessage = AppFailure.forUser(e, fallback: 'Erro ao carregar produtos separados.');
     } finally {
       _isLoading = false;
       _safeNotifyListeners();
@@ -228,12 +229,12 @@ class SeparatedProductsViewModel extends ChangeNotifier {
           return true;
         },
         (failure) {
-          _setError(failure.toString());
+          _setError(AppFailure.forUser(failure, fallback: _errorDeleteItem));
           return false;
         },
       );
     } catch (e) {
-      _setError('$_errorDeleteItem: ${e.toString()}');
+      _setError(AppFailure.forUser(e, fallback: _errorDeleteItem));
       return false;
     } finally {
       _clearDeletingState();
@@ -409,6 +410,7 @@ class SeparatedProductsViewModel extends ChangeNotifier {
       ..equals('CodEmpresa', cart.codEmpresa.toString())
       ..equals('CodSepararEstoque', cart.codOrigem.toString())
       ..equals('CodCarrinhoPercurso', cart.codCarrinhoPercurso.toString())
-      ..equals('ItemCarrinhoPercurso', cart.item);
+      ..equals('ItemCarrinhoPercurso', cart.item)
+      ..allRows(thenBy: ['CodProduto']);
   }
 }

@@ -32,93 +32,137 @@ class CancelCartUseCase {
        _cartInternshipRouteRepository = cartInternshipRouteRepository,
        _userSessionService = userSessionService;
 
-  Future<Result<CancelCartSuccess>> call(CancelCartParams params) async {
+  /// Confirma que o estágio existe, está `SEPARANDO` e o carrinho físico
+  /// ainda pode ser localizado — sem gravar nada.
+  Future<Result<ExpeditionCartRouteInternshipModel>> ensureCanCancel(CancelCartParams params) async {
     try {
-      if (!params.isValid) {
-        final errors = params.validationErrors;
-        return failure(CancelCartFailure.invalidParams('Parâmetros inválidos: ${errors.join(', ')}'));
+      final prepared = await _prepare(params);
+      if (prepared.isError()) {
+        return Failure(prepared.exceptionOrNull()!);
       }
-
-      final cartInternshipRoute = await _findCartInternshipRoute(params: params);
-      if (cartInternshipRoute == null) {
-        return failure(CancelCartFailure.cartNotFound());
-      }
-
-      if (!_cancelCartInternshipRoute(cartInternshipRoute)) {
-        return failure(
-          CancelCartFailure.cartNotInSeparatingStatus(
-            'Carrinho não pode ser cancelado. Status atual: ${cartInternshipRoute.situacao.description}',
-          ),
-        );
-      }
-
-      final appUser = await _userSessionService.loadUserSession();
-      if (appUser?.userSystemModel == null) {
-        return failure(CancelCartFailure.userNotFound());
-      }
-
-      final cancellation = await _createCancellation(
-        cartInternshipRoute: cartInternshipRoute,
-        userSystem: appUser!.userSystemModel!,
-      );
-
-      if (cancellation == null) {
-        return failure(CancelCartFailure.cancellationFailed('Falha ao criar cancelamento'));
-      }
-
-      final updatedCartInternshipRoute = await _updateCartInternshipRouteStatus(
-        cartInternshipRoute: cartInternshipRoute,
-      );
-
-      if (updatedCartInternshipRoute == null) {
-        return failure(CancelCartFailure.updateFailed('Falha ao atualizar status do carrinho percurso'));
-      }
-
-      final cart = await _findCart(
-        codEmpresa: updatedCartInternshipRoute.codEmpresa,
-        codCarrinho: updatedCartInternshipRoute.codCarrinho,
-      );
-      // Bug C corrigido: null check explicito (era `cart!` que podia
-      // crashar se o cart sumisse entre as queries).
-      if (cart == null) {
-        // Bug E corrigido: rollback da rota antes de retornar erro.
-        await _rollbackCartInternshipRoute(originalRoute: cartInternshipRoute);
-        return failure(
-          CancelCartFailure.updateFailed('Carrinho base nao encontrado apos atualizar a rota'),
-        );
-      }
-
-      final updatedCart = await _updateCartStatus(cart: cart);
-      if (updatedCart == null) {
-        // Bug E corrigido: rollback da rota se a atualizacao do cart falhar.
-        await _rollbackCartInternshipRoute(originalRoute: cartInternshipRoute);
-        return failure(CancelCartFailure.updateFailed('Falha ao atualizar status do carrinho'));
-      }
-
-      return success(
-        CancelCartSuccess.create(cancellation: cancellation, updatedCartInternshipRoute: updatedCartInternshipRoute),
-      );
+      return success(prepared.getOrNull()!.route);
     } on DataError catch (e) {
-      return failure(CancelCartFailure.networkError(e.message, Exception(e.message)));
+      return failure(AppFailure.fromCaught(e));
     } on Exception catch (e) {
       return failure(CancelCartFailure.unknown(e.toString(), e));
     } catch (e) {
-      // Bug D corrigido: catch generico para `Error`s (ex.: NullCheckOperator,
-      // StateError) que `on Exception` nao captura, evitando crash do app.
       return failure(CancelCartFailure.unknown('Erro inesperado: $e', Exception(e.toString())));
     }
   }
 
-  /// Bug E: rollback best-effort da rota de volta para SEPARANDO se
-  /// algum passo posterior do happy-path falhar. Erros silenciados
-  /// (so logam) — restaurar 100% do estado nem sempre eh possivel,
-  /// mas tentamos minimizar inconsistencia.
-  Future<void> _rollbackCartInternshipRoute({required ExpeditionCartRouteInternshipModel originalRoute}) async {
+  Future<Result<CancelCartSuccess>> call(CancelCartParams params) async {
+    _CancelCartPrepared? prepared;
+    ExpeditionCancellationModel? cancellation;
     try {
+      final preparedResult = await _prepare(params);
+      if (preparedResult.isError()) {
+        return Failure(preparedResult.exceptionOrNull()!);
+      }
+      prepared = preparedResult.getOrNull()!;
+
+      cancellation = await _createCancellation(cartInternshipRoute: prepared.route, userSystem: prepared.user);
+      if (cancellation == null) {
+        return failure(CancelCartFailure.cancellationFailed('Falha ao criar cancelamento'));
+      }
+
+      final updatedRoute = await _updateCartInternshipRouteStatus(prepared.route);
+      if (updatedRoute == null) {
+        await _rollback(originalRoute: prepared.route, originalCart: prepared.cart, cancellation: cancellation);
+        return failure(CancelCartFailure.updateFailed('Falha ao atualizar status do carrinho percurso'));
+      }
+
+      final updatedCart = await _updateCartStatus(prepared.cart);
+      if (updatedCart == null) {
+        await _rollback(originalRoute: prepared.route, originalCart: prepared.cart, cancellation: cancellation);
+        return failure(CancelCartFailure.updateFailed('Falha ao atualizar status do carrinho'));
+      }
+
+      return success(CancelCartSuccess.create(cancellation: cancellation, updatedCartInternshipRoute: updatedRoute));
+    } on DataError catch (e) {
+      await _rollbackAfterFailure(prepared: prepared, cancellation: cancellation);
+      return failure(AppFailure.fromCaught(e));
+    } on Exception catch (e) {
+      await _rollbackAfterFailure(prepared: prepared, cancellation: cancellation);
+      return failure(CancelCartFailure.unknown(e.toString(), e));
+    } catch (e) {
+      await _rollbackAfterFailure(prepared: prepared, cancellation: cancellation);
+      return failure(CancelCartFailure.unknown('Erro inesperado: $e', Exception(e.toString())));
+    }
+  }
+
+  Future<Result<_CancelCartPrepared>> _prepare(CancelCartParams params) async {
+    if (!params.isValid) {
+      final errors = params.validationErrors;
+      return failure(CancelCartFailure.invalidParams('Parâmetros inválidos: ${errors.join(', ')}'));
+    }
+
+    final (route, user) = await (_findCartInternshipRoute(params), _userSessionService.loadUserSession()).wait;
+
+    if (route == null) {
+      return failure(CancelCartFailure.cartNotFound());
+    }
+
+    if (route.situacao != ExpeditionSituation.separando) {
+      return failure(
+        CancelCartFailure.cartNotInSeparatingStatus(
+          'Carrinho não pode ser cancelado. Status atual: ${route.situacao.description}',
+        ),
+      );
+    }
+
+    if (user?.userSystemModel == null) {
+      return failure(CancelCartFailure.userNotFound());
+    }
+
+    final cart = await _findCart(codEmpresa: route.codEmpresa, codCarrinho: route.codCarrinho);
+    if (cart == null) {
+      return failure(CancelCartFailure.cartNotFound());
+    }
+
+    return success(_CancelCartPrepared(route: route, cart: cart, user: user!.userSystemModel!));
+  }
+
+  Future<void> _rollbackAfterFailure({
+    required _CancelCartPrepared? prepared,
+    required ExpeditionCancellationModel? cancellation,
+  }) async {
+    if (prepared == null) {
+      if (cancellation != null) {
+        await _deleteCancellation(cancellation);
+      }
+      return;
+    }
+    await _rollback(originalRoute: prepared.route, originalCart: prepared.cart, cancellation: cancellation);
+  }
+
+  Future<void> _rollback({
+    required ExpeditionCartRouteInternshipModel originalRoute,
+    required ExpeditionCartModel originalCart,
+    required ExpeditionCancellationModel? cancellation,
+  }) async {
+    await _restore('carrinho físico', () async {
+      await _cartRepository.update(originalCart);
+    });
+    await _restore('rota do carrinho', () async {
       await _cartInternshipRouteRepository.update(originalRoute);
+    });
+    if (cancellation != null) {
+      await _deleteCancellation(cancellation);
+    }
+  }
+
+  Future<void> _deleteCancellation(ExpeditionCancellationModel cancellation) async {
+    await _restore('cancelamento', () async {
+      await _cancellationRepository.delete(cancellation);
+    });
+  }
+
+  Future<void> _restore(String label, Future<void> Function() action) async {
+    try {
+      await action();
     } catch (e, stackTrace) {
       AppLogger.warning(
-        'Falha no rollback da rota de carrinho durante cancelamento — estado pode estar inconsistente',
+        'Falha no rollback de $label durante cancelamento — estado pode estar inconsistente',
         tag: 'CancelCartUseCase',
         error: e,
         stackTrace: stackTrace,
@@ -126,83 +170,64 @@ class CancelCartUseCase {
     }
   }
 
-  Future<ExpeditionCartRouteInternshipModel?> _findCartInternshipRoute({required CancelCartParams params}) async {
-    try {
-      final cartRouteInternship = await _cartInternshipRouteRepository.select(
-        QueryBuilder()
-            .equals('CodEmpresa', params.codEmpresa)
-            .equals('CodCarrinhoPercurso', params.codCarrinhoPercurso)
-            .equals('Item', params.item),
-      );
-
-      return cartRouteInternship.isNotEmpty ? cartRouteInternship.first : null;
-    } catch (e) {
-      rethrow;
-    }
+  Future<ExpeditionCartRouteInternshipModel?> _findCartInternshipRoute(CancelCartParams params) async {
+    final cartRouteInternship = await _cartInternshipRouteRepository.select(
+      QueryBuilder()
+          .equals('CodEmpresa', params.codEmpresa)
+          .equals('CodCarrinhoPercurso', params.codCarrinhoPercurso)
+          .equals('Item', params.item),
+    );
+    return cartRouteInternship.isNotEmpty ? cartRouteInternship.first : null;
   }
 
   Future<ExpeditionCartModel?> _findCart({required int codEmpresa, required int codCarrinho}) async {
-    try {
-      final cart = await _cartRepository.select(
-        QueryBuilder().equals('CodEmpresa', codEmpresa).equals('CodCarrinho', codCarrinho),
-      );
-      return cart.isNotEmpty ? cart.first : null;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  bool _cancelCartInternshipRoute(ExpeditionCartRouteInternshipModel cartInternshipRoute) {
-    return cartInternshipRoute.situacao == ExpeditionSituation.separando;
+    final cart = await _cartRepository.select(
+      QueryBuilder().equals('CodEmpresa', codEmpresa).equals('CodCarrinho', codCarrinho),
+    );
+    return cart.isNotEmpty ? cart.first : null;
   }
 
   Future<ExpeditionCancellationModel?> _createCancellation({
     required ExpeditionCartRouteInternshipModel cartInternshipRoute,
     required UserSystemModel userSystem,
   }) async {
-    try {
-      final now = DateTime.now();
-      final horaCancelamento = AppHelper.formatTime(now);
+    final now = DateTime.now();
+    final cancellation = ExpeditionCancellationModel(
+      codEmpresa: cartInternshipRoute.codEmpresa,
+      codCancelamento: 0,
+      origem: ExpeditionOrigem.carrinhoPercursoEstagio,
+      codOrigem: cartInternshipRoute.codCarrinhoPercurso,
+      itemOrigem: cartInternshipRoute.item,
+      dataCancelamento: now,
+      horaCancelamento: AppHelper.formatTime(now),
+      codUsuarioCancelamento: userSystem.codUsuario,
+      nomeUsuarioCancelamento: userSystem.nomeUsuario,
+      observacaoCancelamento: 'Cancelamento via app',
+    );
 
-      final cancellation = ExpeditionCancellationModel(
-        codEmpresa: cartInternshipRoute.codEmpresa,
-        codCancelamento: 0,
-        origem: ExpeditionOrigem.carrinhoPercursoEstagio,
-        codOrigem: cartInternshipRoute.codCarrinhoPercurso,
-        itemOrigem: cartInternshipRoute.item,
-        dataCancelamento: now,
-        horaCancelamento: horaCancelamento,
-        codUsuarioCancelamento: userSystem.codUsuario,
-        nomeUsuarioCancelamento: userSystem.nomeUsuario,
-        observacaoCancelamento: 'Cancelamento via app',
-      );
-
-      final results = await _cancellationRepository.insert(cancellation);
-      return results.isNotEmpty ? results.first : null;
-    } catch (e) {
-      rethrow;
-    }
+    final results = await _cancellationRepository.insert(cancellation);
+    return results.isNotEmpty ? results.first : null;
   }
 
-  Future<ExpeditionCartRouteInternshipModel?> _updateCartInternshipRouteStatus({
-    required ExpeditionCartRouteInternshipModel cartInternshipRoute,
-  }) async {
-    try {
-      final updatedCartInternshipRoute = cartInternshipRoute.copyWith(situacao: ExpeditionSituation.cancelada);
-      await _cartInternshipRouteRepository.update(updatedCartInternshipRoute);
-      return updatedCartInternshipRoute;
-    } catch (e) {
-      rethrow;
-    }
+  Future<ExpeditionCartRouteInternshipModel?> _updateCartInternshipRouteStatus(
+    ExpeditionCartRouteInternshipModel cartInternshipRoute,
+  ) async {
+    final updatedCartInternshipRoute = cartInternshipRoute.copyWith(situacao: ExpeditionSituation.cancelada);
+    final results = await _cartInternshipRouteRepository.update(updatedCartInternshipRoute);
+    return results.isNotEmpty ? results.first : null;
   }
 
-  Future<ExpeditionCartModel?> _updateCartStatus({required ExpeditionCartModel cart}) async {
-    try {
-      final updatedCart = cart.copyWith(situacao: ExpeditionCartSituation.liberado);
-      await _cartRepository.update(updatedCart);
-      return updatedCart;
-    } catch (e) {
-      rethrow;
-    }
+  Future<ExpeditionCartModel?> _updateCartStatus(ExpeditionCartModel cart) async {
+    final updatedCart = cart.copyWith(situacao: ExpeditionCartSituation.liberado);
+    final results = await _cartRepository.update(updatedCart);
+    return results.isNotEmpty ? results.first : null;
   }
+}
+
+class _CancelCartPrepared {
+  final ExpeditionCartRouteInternshipModel route;
+  final ExpeditionCartModel cart;
+  final UserSystemModel user;
+
+  const _CancelCartPrepared({required this.route, required this.cart, required this.user});
 }

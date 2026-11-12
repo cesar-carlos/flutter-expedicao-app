@@ -35,6 +35,9 @@ Result<T> authFailure<T extends Object>(String message) => Failure(AuthFailure(m
 /// Função helper para criar uma falha desconhecida
 Result<T> unknownFailure<T extends Object>(dynamic exception) => Failure(UnknownFailure.fromException(exception));
 
+/// Converte DataError, envelope Socket.IO ou falha já tipada.
+Result<T> failureFromCaught<T extends Object>(Object error) => failure(AppFailure.fromCaught(error));
+
 /// Função helper para criar um sucesso void
 Result<void> successVoid() {
   return Success<Unit, AppFailure>(Unit.instance) as Result<void>;
@@ -47,7 +50,7 @@ Future<Result<T>> safeCall<T extends Object>(Future<T> Function() operation) asy
     final result = await operation();
     return success(result);
   } catch (e) {
-    return unknownFailure(e);
+    return failure(AppFailure.fromCaught(e));
   }
 }
 
@@ -57,7 +60,7 @@ Result<T> safeCallSync<T extends Object>(T Function() operation) {
     final result = operation();
     return success(result);
   } catch (e) {
-    return unknownFailure(e);
+    return failure(AppFailure.fromCaught(e));
   }
 }
 

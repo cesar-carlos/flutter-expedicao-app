@@ -1,7 +1,7 @@
 class SendQuerySocketDto {
   final String session;
   final String responseIn;
-  final String? where;
+  final Object? where;
   final String? pagination;
   final String? orderBy;
 
@@ -16,7 +16,7 @@ class SendQuerySocketDto {
   SendQuerySocketDto copyWith({
     String? session,
     String? responseIn,
-    String? where,
+    Object? where,
     String? pagination,
     String? orderBy,
   }) {
@@ -32,7 +32,7 @@ class SendQuerySocketDto {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{'Session': session, 'ResponseIn': responseIn};
 
-    if (where != null && where!.isNotEmpty) {
+    if (_hasWhere(where)) {
       json['Where'] = where;
     }
     if (pagination != null && pagination!.isNotEmpty) {
@@ -49,10 +49,23 @@ class SendQuerySocketDto {
     return SendQuerySocketDto(
       session: json['Session'] as String,
       responseIn: json['ResponseIn'] as String,
-      where: json['Where'] as String?,
+      where: json['Where'],
       pagination: json['Pagination'] as String?,
       orderBy: json['OrderBy'] as String?,
     );
+  }
+
+  static bool _hasWhere(Object? where) {
+    if (where == null) {
+      return false;
+    }
+    if (where is String) {
+      return where.isNotEmpty;
+    }
+    if (where is List) {
+      return where.isNotEmpty;
+    }
+    return true;
   }
 
   @override

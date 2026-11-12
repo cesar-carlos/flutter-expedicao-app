@@ -3,6 +3,7 @@ import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_failure.
 import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_params.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_success.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
+import 'package:data7_expedicao/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_failure.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_params.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_success.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_usecase.dart';
@@ -25,16 +26,20 @@ class CancelCartWithConsistencyUseCase {
       return failure(CancelCartFailure.invalidParams('Parâmetros inválidos para cancelamento consistente'));
     }
 
-    CancelCardItemSeparationSuccess? cancelledItemsSnapshot;
-    final canCancelItems = await _cancelCardItemSeparationUseCase.canCancelItems(cancelItemParams);
+    final ready = await _cancelCartUseCase.ensureCanCancel(cancelCartParams);
+    if (ready.isError()) {
+      return _asCancelCartFailure(ready.exceptionOrNull(), 'Falha ao validar cancelamento do carrinho');
+    }
 
-    if (canCancelItems) {
-      final cancelItemsResult = await _cancelCardItemSeparationUseCase.call(cancelItemParams);
-      if (cancelItemsResult.isError()) {
-        final failureException = cancelItemsResult.exceptionOrNull();
-        final details = failureException is AppFailure ? failureException.userMessage : 'Falha ao cancelar itens';
+    CancelCardItemSeparationSuccess? cancelledItemsSnapshot;
+    final cancelItemsResult = await _cancelCardItemSeparationUseCase.call(cancelItemParams);
+    if (cancelItemsResult.isError()) {
+      final itemsFailure = cancelItemsResult.exceptionOrNull();
+      if (!_isItemsNotFound(itemsFailure)) {
+        final details = itemsFailure is AppFailure ? itemsFailure.userMessage : 'Falha ao cancelar itens';
         return failure(CancelCartFailure.updateFailed(details));
       }
+    } else {
       cancelledItemsSnapshot = cancelItemsResult.getOrNull();
     }
 
@@ -54,15 +59,20 @@ class CancelCartWithConsistencyUseCase {
       }
     }
 
-    final cancelFailure = cancelCartResult.exceptionOrNull();
-    if (cancelFailure is CancelCartFailure) {
-      return failure(cancelFailure);
-    }
+    return _asCancelCartFailure(cancelCartResult.exceptionOrNull(), 'Falha ao cancelar carrinho');
+  }
 
-    if (cancelFailure is AppFailure) {
-      return failure(CancelCartFailure.updateFailed(cancelFailure.userMessage));
-    }
+  bool _isItemsNotFound(Object? error) {
+    return error is CancelCardItemSeparationFailure && error.type == CancelCardItemSeparationFailureType.itemsNotFound;
+  }
 
-    return failure(CancelCartFailure.unknown('Falha ao cancelar carrinho'));
+  Result<CancelCartSuccess> _asCancelCartFailure(Object? error, String fallback) {
+    if (error is CancelCartFailure) {
+      return failure(error);
+    }
+    if (error is AppFailure) {
+      return failure(CancelCartFailure.updateFailed(error.userMessage));
+    }
+    return failure(CancelCartFailure.unknown(fallback));
   }
 }

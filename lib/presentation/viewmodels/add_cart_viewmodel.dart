@@ -9,13 +9,13 @@ import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_params.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_consultation_model.dart';
-import 'package:data7_expedicao/domain/models/situation/expedition_cart_router_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_failure.dart';
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_params.dart';
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_success.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_query.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/di/locator.dart';
@@ -84,7 +84,7 @@ class AddCartViewModel extends ChangeNotifier {
     _safeNotifyListeners();
 
     try {
-      final query = QueryBuilder().equals('codigoBarras', barcode);
+      final query = QueryBuilder().equals('CodigoBarras', barcode);
 
       final carts = await _cartConsultationRepository.selectConsultation(query);
 
@@ -105,7 +105,7 @@ class AddCartViewModel extends ChangeNotifier {
       _scannedCart = null;
       _lastAddSuccess = null;
       _stopAutoAddCountdown();
-      _errorMessage = 'Erro ao buscar carrinho. Tente novamente.';
+      _errorMessage = AppFailure.forUser(e, fallback: 'Erro ao buscar carrinho. Tente novamente.');
       _audioService.playError();
     } finally {
       _isScanning = false;
@@ -135,40 +135,35 @@ class AddCartViewModel extends ChangeNotifier {
     _safeNotifyListeners();
 
     try {
+      int? routeCode;
       final existingCartRouteResult = await _checkExistingCartRoute();
 
-      if (!existingCartRouteResult.isSuccess()) {
+      if (existingCartRouteResult.isSuccess()) {
+        routeCode = existingCartRouteResult.getOrNull()?.codCarrinhoPercurso;
+      } else {
         final failure = existingCartRouteResult.exceptionOrNull();
         if (failure == null) {
           _setError('Erro ao verificar percurso. Tente novamente.');
           _audioService.playError();
           return false;
         }
-        if (failure is AppFailure) {
-          if (failure is DataFailure && failure.code == 'NOT_FOUND') {
-            final startResult = await _startSeparation();
-            if (!startResult) return false;
-          } else {
-            _setError(failure.userMessage);
-            _audioService.playError();
-            return false;
-          }
+        if (failure is DataFailure && failure.code == 'NOT_FOUND') {
+          routeCode = await _startSeparation();
+          if (routeCode == null) return false;
         } else {
-          AppLogger.error('Falha inesperada ao verificar percurso', tag: 'AddCartViewModel', error: failure);
-          _setError('Erro ao verificar percurso. Tente novamente.');
+          _setError(AppFailure.forUser(failure, fallback: 'Erro ao verificar percurso. Tente novamente.'));
           _audioService.playError();
           return false;
         }
       }
 
-      final existingRoute = existingCartRouteResult.getOrNull();
       final params = AddCartParams(
         codEmpresa: codEmpresa,
         origem: ExpeditionOrigem.separacaoEstoque,
         codOrigem: codSepararEstoque,
         codCarrinho: _scannedCart!.codCarrinho,
         scannedCart: _scannedCart,
-        codCarrinhoPercurso: existingRoute?.codCarrinhoPercurso,
+        codCarrinhoPercurso: routeCode,
       );
 
       final result = await _addCartUseCase.call(params);
@@ -181,8 +176,7 @@ class AddCartViewModel extends ChangeNotifier {
         },
         (failure) {
           _lastAddSuccess = null;
-          final message = failure is AppFailure ? failure.userMessage : 'Erro ao adicionar carrinho. Tente novamente.';
-          _errorMessage = message;
+          _errorMessage = AppFailure.forUser(failure, fallback: 'Erro ao adicionar carrinho. Tente novamente.');
           _audioService.playError();
           return false;
         },
@@ -195,7 +189,7 @@ class AddCartViewModel extends ChangeNotifier {
         stackTrace: stackTrace,
       );
       _lastAddSuccess = null;
-      _errorMessage = 'Erro inesperado. Tente novamente.';
+      _errorMessage = AppFailure.forUser(e, fallback: 'Erro ao adicionar carrinho. Tente novamente.');
       _audioService.playError();
       return false;
     } finally {
@@ -207,11 +201,11 @@ class AddCartViewModel extends ChangeNotifier {
   Future<Result<ExpeditionCartRouteModel>> _checkExistingCartRoute() async {
     try {
       final cartRoutes = await _cartRouteRepository.select(
-        QueryBuilder()
-            .equals('CodEmpresa', codEmpresa)
-            .equals('Origem', ExpeditionOrigem.separacaoEstoque.code)
-            .equals('CodOrigem', codSepararEstoque)
-            .notEquals('Situacao', ExpeditionCartRouterSituation.cancelada.code),
+        ExpeditionCartRouteQuery.activeByOrigin(
+          codEmpresa: codEmpresa,
+          origem: ExpeditionOrigem.separacaoEstoque,
+          codOrigem: codSepararEstoque,
+        ),
       );
 
       if (cartRoutes.isNotEmpty) {
@@ -230,7 +224,7 @@ class AddCartViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> _startSeparation() async {
+  Future<int?> _startSeparation() async {
     try {
       final params = StartSeparationParams(
         codEmpresa: codEmpresa,
@@ -239,13 +233,13 @@ class AddCartViewModel extends ChangeNotifier {
       );
 
       final result = await _startSeparationUseCase.call(params);
-      return await result.fold((success) => true, (failure) {
+      return await result.fold((success) => success.codCarrinhoPercurso, (failure) {
         final message =
             failure is StartSeparationFailure && failure.type == StartSeparationFailureType.separationAlreadyStarted
             ? 'Outro setor já iniciou esta separação. Toque em Adicionar novamente para incluir seu carrinho.'
-            : (failure is AppFailure ? failure.userMessage : 'Erro ao iniciar separação. Tente novamente.');
+            : AppFailure.forUser(failure, fallback: 'Erro ao iniciar separação. Tente novamente.');
         _setError(message);
-        return false;
+        return null;
       });
     } catch (e, stackTrace) {
       AppLogger.error(
@@ -254,8 +248,8 @@ class AddCartViewModel extends ChangeNotifier {
         error: e,
         stackTrace: stackTrace,
       );
-      _setError('Erro inesperado. Tente novamente.');
-      return false;
+      _setError(AppFailure.forUser(e, fallback: 'Erro ao iniciar separação. Tente novamente.'));
+      return null;
     }
   }
 

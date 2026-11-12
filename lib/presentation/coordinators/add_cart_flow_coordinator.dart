@@ -81,9 +81,7 @@ class AddCartFlowCoordinator {
 
     if (freshResult.isError()) {
       final failure = freshResult.exceptionOrNull();
-      final message = failure is AppFailure
-          ? failure.userMessage
-          : (failure?.toString() ?? 'Erro ao consultar separação');
+      final message = AppFailure.forUser(failure, fallback: 'Erro ao consultar separação');
       return AddCartConsultFailed(message);
     }
 

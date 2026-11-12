@@ -9,6 +9,7 @@ import 'package:data7_expedicao/core/utils/app_logger.dart';
 class EventServiceImpl implements EventService {
   final Map<String, List<EventListenerModel>> _eventListeners = {};
   final Map<String, String> _listenerToEvent = {};
+  final Map<String, void Function(dynamic)> _socketHandlers = {};
 
   EventServiceImpl() {
     SocketConfig.addRebindListener(_rebindSocketListeners);
@@ -20,8 +21,24 @@ class EventServiceImpl implements EventService {
   /// tempo real continuariam presos ao socket descartado. Idempotente: o
   /// socket recriado nao possui listeners previos.
   void _rebindSocketListeners() {
-    for (final eventName in _eventListeners.keys) {
-      SocketConfig.instance.on(eventName, (data) => _handleEvent(eventName, data));
+    for (final entry in _socketHandlers.entries) {
+      SocketConfig.instance.on(entry.key, entry.value);
+    }
+  }
+
+  void _ensureSocketSubscription(String eventName) {
+    if (_socketHandlers.containsKey(eventName)) {
+      return;
+    }
+    void handler(dynamic data) => _handleEvent(eventName, data);
+    _socketHandlers[eventName] = handler;
+    SocketConfig.instance.on(eventName, handler);
+  }
+
+  void _removeSocketSubscription(String eventName) {
+    final handler = _socketHandlers.remove(eventName);
+    if (handler != null) {
+      SocketConfig.instance.off(eventName, handler);
     }
   }
 
@@ -32,9 +49,7 @@ class EventServiceImpl implements EventService {
     _eventListeners.putIfAbsent(eventName, () => []).add(listener);
     _listenerToEvent[listener.id] = eventName;
 
-    if (_eventListeners[eventName]!.length == 1) {
-      SocketConfig.instance.on(eventName, (data) => _handleEvent(eventName, data));
-    }
+    _ensureSocketSubscription(eventName);
   }
 
   @override
@@ -44,7 +59,7 @@ class EventServiceImpl implements EventService {
       _eventListeners[eventName]?.removeWhere((listener) => listener.id == listenerId);
 
       if (_eventListeners[eventName]!.isEmpty) {
-        SocketConfig.instance.off(eventName);
+        _removeSocketSubscription(eventName);
         _eventListeners.remove(eventName);
       }
     }
@@ -57,7 +72,7 @@ class EventServiceImpl implements EventService {
       for (final listener in listeners) {
         _listenerToEvent.remove(listener.id);
       }
-      SocketConfig.instance.off(eventName);
+      _removeSocketSubscription(eventName);
     }
   }
 
@@ -71,14 +86,9 @@ class EventServiceImpl implements EventService {
     _listenerToEvent.clear();
     for (final eventName in eventNames) {
       try {
-        SocketConfig.instance.off(eventName);
+        _removeSocketSubscription(eventName);
       } catch (e, s) {
-        AppLogger.warning(
-          'Erro ao desinscrever evento $eventName',
-          tag: 'EventServiceImpl',
-          error: e,
-          stackTrace: s,
-        );
+        AppLogger.warning('Erro ao desinscrever evento $eventName', tag: 'EventServiceImpl', error: e, stackTrace: s);
       }
     }
   }
@@ -139,9 +149,12 @@ class EventServiceImpl implements EventService {
       Map<String, dynamic>? eventData;
 
       if (data is String) {
-        eventData = jsonDecode(data);
-      } else if (data is Map<String, dynamic>) {
-        eventData = data;
+        final decoded = jsonDecode(data);
+        if (decoded is Map) {
+          eventData = Map<String, dynamic>.from(decoded);
+        }
+      } else if (data is Map) {
+        eventData = Map<String, dynamic>.from(data);
       } else {
         final eventType = _extractEventType(eventName);
         return BasicEventModel.empty(eventType: eventType);

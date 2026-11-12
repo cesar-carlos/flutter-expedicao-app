@@ -1,3 +1,7 @@
+import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/errors/socket_error_parser.dart';
+import 'package:data7_expedicao/core/errors/user_facing_message.dart';
+
 abstract class AppFailure implements Exception {
   final String message;
 
@@ -7,10 +11,90 @@ abstract class AppFailure implements Exception {
 
   const AppFailure({required this.message, this.code, this.exception});
 
-  String get userMessage => message;
+  String get userMessage => UserFacingMessage.fromText(message);
+
+  /// Mensagem para a tela a partir de qualquer erro capturado.
+  static String forUser(Object? error, {String fallback = UserFacingMessage.fallback}) {
+    if (error is AppFailure) {
+      return error.userMessage;
+    }
+    if (error is AppError) {
+      return UserFacingMessage.fromText(error.message, fallback: fallback);
+    }
+    return UserFacingMessage.fromText(error?.toString(), fallback: fallback);
+  }
+
+  /// Converte erro de repositório, envelope Socket.IO ou falha já tipada.
+  factory AppFailure.fromCaught(Object error) {
+    if (error is AppFailure) {
+      return error;
+    }
+    if (error is DataError) {
+      return AppFailure.fromDataError(error);
+    }
+    if (error is NetworkError) {
+      return NetworkFailure(message: error.message, code: error.code, exception: error);
+    }
+    if (error is AppError) {
+      return UnknownFailure(message: error.message, code: error.code, exception: error);
+    }
+    return UnknownFailure.fromException(error);
+  }
+
+  factory AppFailure.fromDataError(DataError error) {
+    final fromMessage = SocketErrorInfo(
+      message: error.message,
+      identifier: SocketErrorInfo.identifierOf(error.message) ?? error.code?.toUpperCase(),
+      contractCode: error.code?.toUpperCase(),
+    );
+
+    if (fromMessage.isUnauthorized) {
+      return AuthFailure(message: error.message, code: fromMessage.identifier, exception: error);
+    }
+    if (fromMessage.isInvalidPayload) {
+      return ValidationFailure(
+        message: error.message,
+        code: fromMessage.identifier ?? 'INVALID_PAYLOAD',
+        validationErrors: <String>[error.message],
+        exception: error,
+      );
+    }
+    if (fromMessage.isNotFound) {
+      return DataFailure(message: error.message, code: fromMessage.identifier ?? 'NOT_FOUND', exception: error);
+    }
+    if (fromMessage.isBusinessRule) {
+      return BusinessFailure(
+        message: error.message,
+        code: fromMessage.identifier ?? 'BUSINESS_RULE_VIOLATION',
+        exception: error,
+      );
+    }
+    if (fromMessage.identifier == 'INTERNAL_ERROR') {
+      return DataFailure(message: error.message, code: 'INTERNAL_ERROR', exception: error);
+    }
+    if (fromMessage.identifier != null &&
+        fromMessage.identifier!.startsWith('SQL-') &&
+        fromMessage.identifier != 'SQL-CONN') {
+      return DataFailure(message: error.message, code: fromMessage.identifier, exception: error);
+    }
+    if (fromMessage.isConnection) {
+      return NetworkFailure(
+        message: error.message,
+        code: fromMessage.identifier ?? 'NETWORK_ERROR',
+        exception: error,
+      );
+    }
+
+    return DataFailure(message: error.message, code: error.code ?? 'REPOSITORY_ERROR', exception: error);
+  }
 
   @override
-  String toString() => 'AppFailure(message: $message, code: $code)';
+  String toString() {
+    if (code == null) {
+      return '$runtimeType($message)';
+    }
+    return '$runtimeType($message, code: $code)';
+  }
 
   @override
   bool operator ==(Object other) {
@@ -38,7 +122,12 @@ class ValidationFailure extends AppFailure {
   const ValidationFailure({required super.message, super.code, this.validationErrors = const [], super.exception});
 
   @override
-  String get userMessage => validationErrors.isNotEmpty ? validationErrors.join(', ') : message;
+  String get userMessage {
+    if (validationErrors.isNotEmpty) {
+      return UserFacingMessage.fromText(validationErrors.join(', '));
+    }
+    return UserFacingMessage.fromText(message);
+  }
 
   factory ValidationFailure.fromErrors(List<String> errors) {
     return ValidationFailure(
@@ -53,9 +142,6 @@ class NetworkFailure extends AppFailure {
   final int? statusCode;
 
   const NetworkFailure({required super.message, super.code, this.statusCode, super.exception});
-
-  @override
-  String get userMessage => 'Falha na conexão. Verifique sua internet e tente novamente.';
 
   factory NetworkFailure.connectionTimeout() {
     return const NetworkFailure(message: 'Timeout na conexão', code: 'CONNECTION_TIMEOUT');
@@ -73,9 +159,6 @@ class NetworkFailure extends AppFailure {
 class AuthFailure extends AppFailure {
   const AuthFailure({required super.message, super.code, super.exception});
 
-  @override
-  String get userMessage => message;
-
   factory AuthFailure.unauthenticated() {
     return const AuthFailure(message: 'Usuário não autenticado', code: 'UNAUTHENTICATED');
   }
@@ -92,9 +175,6 @@ class AuthFailure extends AppFailure {
 class DataFailure extends AppFailure {
   const DataFailure({required super.message, super.code, super.exception});
 
-  @override
-  String get userMessage => 'Erro ao processar dados. Tente novamente.';
-
   factory DataFailure.notFound(String entity) {
     return DataFailure(message: '$entity não encontrado', code: 'NOT_FOUND');
   }
@@ -105,7 +185,7 @@ class DataFailure extends AppFailure {
 
   factory DataFailure.repository(dynamic exception) {
     return DataFailure(
-      message: 'Erro no repositório: ${exception.toString()}',
+      message: UserFacingMessage.fromText(exception?.toString(), fallback: 'Erro no repositório'),
       code: 'REPOSITORY_ERROR',
       exception: exception,
     );
@@ -114,9 +194,6 @@ class DataFailure extends AppFailure {
 
 class BusinessFailure extends AppFailure {
   const BusinessFailure({required super.message, super.code, super.exception});
-
-  @override
-  String get userMessage => message;
 
   factory BusinessFailure.invalidState(String details) {
     return BusinessFailure(message: 'Estado inválido: $details', code: 'INVALID_STATE');
@@ -130,12 +207,9 @@ class BusinessFailure extends AppFailure {
 class UnknownFailure extends AppFailure {
   const UnknownFailure({required super.message, super.code, super.exception});
 
-  @override
-  String get userMessage => 'Erro inesperado. Tente novamente.';
-
   factory UnknownFailure.fromException(dynamic exception) {
     return UnknownFailure(
-      message: 'Erro inesperado: ${exception.toString()}',
+      message: exception?.toString() ?? UserFacingMessage.fallback,
       code: 'UNKNOWN_ERROR',
       exception: exception,
     );

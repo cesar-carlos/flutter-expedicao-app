@@ -116,13 +116,13 @@ class CancelCartFailure extends AppFailure {
       case CancelCartFailureType.userNotFound:
         return 'Usuário não autenticado';
       case CancelCartFailureType.cancellationFailed:
-        return 'Falha ao cancelar carrinho';
+        return UserFacingMessage.prefer(details, 'Falha ao cancelar carrinho');
       case CancelCartFailureType.updateFailed:
-        return 'Falha ao atualizar carrinho';
+        return UserFacingMessage.prefer(details, 'Falha ao atualizar carrinho');
       case CancelCartFailureType.networkError:
-        return 'Erro de conexão. Verifique sua internet';
+        return UserFacingMessage.prefer(details, 'Não foi possível conectar ao servidor. Tente novamente.');
       case CancelCartFailureType.unknownError:
-        return 'Erro inesperado. Tente novamente';
+        return UserFacingMessage.prefer(details, 'Não foi possível cancelar o carrinho. Tente novamente.');
     }
   }
 

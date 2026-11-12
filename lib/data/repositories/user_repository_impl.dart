@@ -142,21 +142,18 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<AppUserConsultation> getAppUser(int codLoginApp) async {
     try {
-      final url = '$_baseUrl/expedicao/consult-login-app';
+      final url = '$_baseUrl/expedicao/login-app';
       final response = await _dio.get(url, queryParameters: {'CodLoginApp': codLoginApp});
 
       if (response.statusCode == 200) {
         final responseData = response.data;
 
-        if (responseData is Map<String, dynamic> &&
-            responseData.containsKey('data') &&
-            responseData.containsKey('message')) {
-          final userData = responseData['data'];
-          if (userData != null) {
-            return AppUserConsultation.fromJson(userData);
-          } else {
-            throw UserApiException('Dados do usuário não encontrados na resposta', statusCode: 200);
+        if (responseData is Map<String, dynamic> && responseData.containsKey('data')) {
+          final parsed = _parseAppUserData(responseData['data']);
+          if (parsed != null) {
+            return parsed;
           }
+          throw UserApiException('Dados do usuário não encontrados na resposta', statusCode: 200);
         } else {
           throw UserApiException('Formato de resposta inválido', statusCode: 200);
         }
@@ -299,6 +296,19 @@ class UserRepositoryImpl implements UserRepository {
     } catch (e) {
       throw UserApiException('Erro ao alterar senha: $e', statusCode: 500, originalException: e);
     }
+  }
+
+  AppUserConsultation? _parseAppUserData(Object? userData) {
+    if (userData is Map<String, dynamic>) {
+      return AppUserConsultation.fromJson(userData);
+    }
+    if (userData is Map) {
+      return AppUserConsultation.fromJson(Map<String, dynamic>.from(userData));
+    }
+    if (userData is List && userData.isNotEmpty) {
+      return _parseAppUserData(userData.first);
+    }
+    return null;
   }
 
   String _getErrorMessage(DioException e) {

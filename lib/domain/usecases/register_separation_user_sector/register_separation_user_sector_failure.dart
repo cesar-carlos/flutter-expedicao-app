@@ -67,11 +67,11 @@ class RegisterSeparationUserSectorFailure extends AppFailure {
       case RegisterSeparationUserSectorFailureType.invalidParams:
         return 'Dados inválidos para registro de atribuição';
       case RegisterSeparationUserSectorFailureType.insertError:
-        return 'Não foi possível registrar a atribuição do usuário';
+        return UserFacingMessage.prefer(details, 'Não foi possível registrar a atribuição do usuário');
       case RegisterSeparationUserSectorFailureType.networkError:
-        return 'Erro de conexão ao registrar atribuição';
+        return UserFacingMessage.prefer(details, 'Não foi possível conectar ao servidor para registrar a atribuição.');
       case RegisterSeparationUserSectorFailureType.unknown:
-        return 'Erro inesperado ao registrar atribuição';
+        return UserFacingMessage.prefer(details, 'Não foi possível registrar a atribuição do usuário');
     }
   }
 

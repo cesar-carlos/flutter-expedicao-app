@@ -44,8 +44,9 @@ class CancelCardItemSeparationUseCase {
 
       final cancelledQuantitiesByProduct = _calculateCancelledQuantitiesByProduct(separationItems);
 
-      final updateSeparateItemsResult = await _updateSeparateItemQuantities(params, cancelledQuantitiesByProduct);
-      if (updateSeparateItemsResult.updatedItems.isEmpty) {
+      final updateSeparateItemsResult = await _updateSeparateItemQuantities(params, separationItems);
+      if (updateSeparateItemsResult.updatedItems.isEmpty ||
+          updateSeparateItemsResult.updatedItems.length != updateSeparateItemsResult.originalItems.length) {
         return failure(
           CancelCardItemSeparationFailure.updateSeparateItemFailed('Falha ao atualizar quantidades de separação'),
         );
@@ -83,7 +84,7 @@ class CancelCardItemSeparationUseCase {
         ),
       );
     } on DataError catch (e) {
-      return failure(CancelCardItemSeparationFailure.networkError(e.message, Exception(e.message)));
+      return failure(AppFailure.fromCaught(e));
     } on Exception catch (e) {
       return failure(CancelCardItemSeparationFailure.unknown(e.toString(), e));
     } catch (e) {
@@ -93,20 +94,15 @@ class CancelCardItemSeparationUseCase {
   }
 
   Future<List<SeparationItemModel>> _findSeparationItems(CancelCardItemSeparationParams params) async {
-    try {
-      final separationItems = await _separationItemRepository.select(
-        QueryBuilder()
-            .equals('CodEmpresa', params.codEmpresa)
-            .equals('CodSepararEstoque', params.codSepararEstoque)
-            .equals('CodCarrinhoPercurso', params.codCarrinhoPercurso)
-            .equals('ItemCarrinhoPercurso', params.itemCarrinhoPercurso)
-            .notEquals('Situacao', ExpeditionItemSituation.cancelado.code),
-      );
-
-      return separationItems;
-    } catch (e) {
-      rethrow;
-    }
+    return _separationItemRepository.select(
+      QueryBuilder()
+        ..equals('CodEmpresa', params.codEmpresa)
+        ..equals('CodSepararEstoque', params.codSepararEstoque)
+        ..equals('CodCarrinhoPercurso', params.codCarrinhoPercurso)
+        ..equals('ItemCarrinhoPercurso', params.itemCarrinhoPercurso)
+        ..notEquals('Situacao', ExpeditionItemSituation.cancelado.code)
+        ..allRows(thenBy: ['CodProduto']),
+    );
   }
 
   Map<int, double> _calculateCancelledQuantitiesByProduct(List<SeparationItemModel> separationItems) {
@@ -124,79 +120,86 @@ class CancelCardItemSeparationUseCase {
 
   Future<_SeparateItemsUpdateResult> _updateSeparateItemQuantities(
     CancelCardItemSeparationParams params,
-    Map<int, double> cancelledQuantitiesByProduct,
+    List<SeparationItemModel> separationItems,
   ) async {
+    final originalItems = <SeparateItemModel>[];
+    final updatedItems = <SeparateItemModel>[];
     try {
-      final List<SeparateItemModel> updatedItems = [];
-      final List<SeparateItemModel> originalItems = [];
-      final separateItems = await _separateItemRepository.select(
-        QueryBuilder().equals('CodEmpresa', params.codEmpresa).equals('CodSepararEstoque', params.codSepararEstoque),
-      );
-      final separateItemsByProduct = <int, SeparateItemModel>{
-        for (final separateItem in separateItems) separateItem.codProduto: separateItem,
-      };
-      final updates = <Future<List<SeparateItemModel>>>[];
-
-      for (final codProduto in cancelledQuantitiesByProduct.keys) {
-        final cancelledQuantity = cancelledQuantitiesByProduct[codProduto]!;
-        final separateItem = separateItemsByProduct[codProduto];
-        if (separateItem == null) continue;
-        originalItems.add(separateItem);
-        final newQuantidadeSeparacao = separateItem.quantidadeSeparacao - cancelledQuantity;
-        final finalQuantidadeSeparacao = newQuantidadeSeparacao < 0 ? 0.0 : newQuantidadeSeparacao;
-        final updatedItem = separateItem.copyWith(quantidadeSeparacao: finalQuantidadeSeparacao);
-        updates.add(_separateItemRepository.update(updatedItem));
+      final productCodes = {for (final item in separationItems) item.codProduto}.toList();
+      final separateItemsQuery = QueryBuilder()
+        ..equals('CodEmpresa', params.codEmpresa)
+        ..equals('CodSepararEstoque', params.codSepararEstoque)
+        ..allRows(thenBy: ['CodProduto']);
+      if (productCodes.isNotEmpty) {
+        separateItemsQuery.inList('CodProduto', productCodes);
       }
+      final separateItems = await _separateItemRepository.select(separateItemsQuery);
+      final deductions = _deductionsBySeparateItem(separationItems: separationItems, separateItems: separateItems);
 
-      if (updates.isNotEmpty) {
-        const batchSize = 10;
-        for (int i = 0; i < updates.length; i += batchSize) {
-          final batch = updates.skip(i).take(batchSize);
-          final results = await Future.wait(batch);
-          for (final updateResult in results) {
-            if (updateResult.isNotEmpty) {
-              updatedItems.addAll(updateResult);
+      for (var i = 0; i < deductions.length; i += _mutationBatchSize) {
+        final batch = deductions.skip(i).take(_mutationBatchSize).toList();
+        final planned = [
+          for (final deduction in batch)
+            (
+              original: deduction.item,
+              updated: deduction.item.copyWith(
+                quantidadeSeparacao: _reducedQuantity(deduction.item.quantidadeSeparacao, deduction.quantity),
+              ),
+            ),
+        ];
+        final results = await Future.wait(
+          planned.map((row) async {
+            try {
+              final updated = await _separateItemRepository.update(row.updated);
+              return (original: row.original, updated: updated, failed: updated.isEmpty);
+            } catch (_) {
+              return (original: row.original, updated: const <SeparateItemModel>[], failed: true);
             }
+          }),
+        );
+        var batchFailed = false;
+        for (final result in results) {
+          if (result.failed) {
+            batchFailed = true;
+            continue;
           }
+          originalItems.add(result.original);
+          updatedItems.addAll(result.updated);
+        }
+        if (batchFailed) {
+          await _revertSeparateItemQuantities(originalItems);
+          return const _SeparateItemsUpdateResult(updatedItems: [], originalItems: []);
         }
       }
 
       return _SeparateItemsUpdateResult(updatedItems: updatedItems, originalItems: originalItems);
     } catch (e) {
+      await _revertSeparateItemQuantities(originalItems);
       rethrow;
     }
   }
 
   Future<List<SeparationItemModel>> _updateSeparationItemsToCancel(List<SeparationItemModel> separationItems) async {
-    try {
-      final List<SeparationItemModel> updatedItems = [];
-      final updates = separationItems
-          .map((item) => _separationItemRepository.update(item.copyWith(situacao: ExpeditionItemSituation.cancelado)))
-          .toList();
-
-      if (updates.isNotEmpty) {
-        const batchSize = 10;
-        for (int i = 0; i < updates.length; i += batchSize) {
-          final batch = updates.skip(i).take(batchSize);
-          final results = await Future.wait(batch);
-          for (final updateResult in results) {
-            if (updateResult.isNotEmpty) {
-              updatedItems.addAll(updateResult);
-            }
-          }
+    final updatedItems = <SeparationItemModel>[];
+    for (var i = 0; i < separationItems.length; i += _mutationBatchSize) {
+      final batch = separationItems.skip(i).take(_mutationBatchSize).toList();
+      final results = await Future.wait(
+        batch.map(
+          (item) => _separationItemRepository.update(item.copyWith(situacao: ExpeditionItemSituation.cancelado)),
+        ),
+      );
+      for (final updateResult in results) {
+        if (updateResult.isNotEmpty) {
+          updatedItems.addAll(updateResult);
         }
       }
-
-      return updatedItems;
-    } catch (e) {
-      rethrow;
     }
+    return updatedItems;
   }
 
   Future<void> _revertSeparateItemQuantities(List<SeparateItemModel> originalItems) async {
-    if (originalItems.isEmpty) return;
     try {
-      await _runInBatches(originalItems.map(_separateItemRepository.update).toList());
+      await _updateInBatches(originalItems, _separateItemRepository.update);
     } catch (e, stackTrace) {
       AppLogger.warning(
         'Falha no rollback das quantidades de separate_item — estado pode estar inconsistente',
@@ -208,9 +211,8 @@ class CancelCardItemSeparationUseCase {
   }
 
   Future<void> _revertSeparationItems(List<SeparationItemModel> originalItems) async {
-    if (originalItems.isEmpty) return;
     try {
-      await _runInBatches(originalItems.map(_separationItemRepository.update).toList());
+      await _updateInBatches(originalItems, _separationItemRepository.update);
     } catch (e, stackTrace) {
       AppLogger.warning(
         'Falha no rollback das situações de separation_item — estado pode estar inconsistente',
@@ -243,25 +245,65 @@ class CancelCardItemSeparationUseCase {
 
   Future<bool> rollbackCancellation(CancelCardItemSeparationSuccess success) async {
     try {
-      final separateUpdates = success.originalSeparateItems.map(_separateItemRepository.update).toList();
-      final separationUpdates = success.originalSeparationItems.map(_separationItemRepository.update).toList();
-
-      await _runInBatches(separateUpdates);
-      await _runInBatches(separationUpdates);
+      await _updateInBatches(success.originalSeparateItems, _separateItemRepository.update);
+      await _updateInBatches(success.originalSeparationItems, _separationItemRepository.update);
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  Future<void> _runInBatches(List<Future<List<dynamic>>> operations) async {
-    if (operations.isEmpty) return;
-    const batchSize = 10;
-    for (int i = 0; i < operations.length; i += batchSize) {
-      final batch = operations.skip(i).take(batchSize);
-      await Future.wait(batch);
+  static const int _mutationBatchSize = 10;
+
+  Future<void> _updateInBatches<T>(List<T> items, Future<List<T>> Function(T item) update) async {
+    if (items.isEmpty) return;
+    for (var i = 0; i < items.length; i += _mutationBatchSize) {
+      final batch = items.skip(i).take(_mutationBatchSize);
+      await Future.wait(batch.map(update));
     }
   }
+
+  List<_SeparateItemDeduction> _deductionsBySeparateItem({
+    required List<SeparationItemModel> separationItems,
+    required List<SeparateItemModel> separateItems,
+  }) {
+    final byItemAndProduct = <String, SeparateItemModel>{
+      for (final item in separateItems) _separateItemKey(item.codProduto, item.item): item,
+    };
+    final byProduct = <int, SeparateItemModel>{for (final item in separateItems) item.codProduto: item};
+    final deductions = <String, _SeparateItemDeduction>{};
+
+    for (final separationItem in separationItems) {
+      final matched =
+          byItemAndProduct[_separateItemKey(separationItem.codProduto, separationItem.item)] ??
+          byProduct[separationItem.codProduto];
+      if (matched == null) {
+        continue;
+      }
+      final key = _separateItemKey(matched.codProduto, matched.item);
+      final current = deductions[key];
+      deductions[key] = _SeparateItemDeduction(
+        item: matched,
+        quantity: (current?.quantity ?? 0) + separationItem.quantidade,
+      );
+    }
+
+    return deductions.values.toList();
+  }
+
+  String _separateItemKey(int codProduto, String item) => '$codProduto|$item';
+
+  double _reducedQuantity(double current, double cancelled) {
+    final next = current - cancelled;
+    return next < 0 ? 0.0 : next;
+  }
+}
+
+class _SeparateItemDeduction {
+  final SeparateItemModel item;
+  final double quantity;
+
+  const _SeparateItemDeduction({required this.item, required this.quantity});
 }
 
 class _SeparateItemsUpdateResult {

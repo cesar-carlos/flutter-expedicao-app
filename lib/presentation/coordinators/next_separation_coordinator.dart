@@ -3,7 +3,6 @@ import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_params.dart';
 import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_usecase.dart';
-import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_failure.dart';
 import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_params.dart';
 import 'package:data7_expedicao/domain/usecases/next_separation_user/next_separation_user_usecase.dart';
 
@@ -109,7 +108,7 @@ class NextSeparationCoordinator {
 
       if (consultResult.isError()) {
         final failure = consultResult.exceptionOrNull();
-        final message = failure is AppFailure ? failure.userMessage : 'Erro ao consultar separação';
+        final message = AppFailure.forUser(failure, fallback: 'Erro ao consultar separação');
         return NextSeparationConsultError(message);
       }
 
@@ -122,7 +121,7 @@ class NextSeparationCoordinator {
     }
 
     final failure = result.exceptionOrNull();
-    final errorMessage = failure is NextSeparationUserFailure ? failure.userMessage : failure.toString();
+    final errorMessage = AppFailure.forUser(failure, fallback: 'Erro ao buscar a próxima separação');
     return NextSeparationSearchError(errorMessage);
   }
 }

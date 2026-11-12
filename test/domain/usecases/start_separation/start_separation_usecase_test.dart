@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
@@ -143,8 +144,7 @@ void main() {
       );
 
       expect(result.isError(), isTrue);
-      final f = result.exceptionOrNull() as StartSeparationFailure;
-      expect(f.isNetworkError, isTrue);
+      expect(result.exceptionOrNull(), isA<NetworkFailure>());
     });
 
     test('falha de sessao vira unknown com Exception', () async {

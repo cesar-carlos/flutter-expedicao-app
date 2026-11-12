@@ -29,6 +29,8 @@ O **Data7 Expedição** é um aplicativo mobile desenvolvido em Flutter para ger
 - **Temas Claro/Escuro**: Suporte a temas claro e escuro
 - **Internacionalização**: Suporte a português (pt-BR) e inglês (en-US)
 
+Documentação do coletor: [`docs/README.md`](./docs/README.md). Contrato com o servidor: `D:\Developer\Node\data7-api-pix Campo\docs` (`comunicacao.md`).
+
 ## 🛠 Tecnologias
 
 ### Principais Dependências

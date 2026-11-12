@@ -1,4 +1,5 @@
 import 'package:data7_expedicao/di/locator.dart';
+import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
 import 'package:data7_expedicao/core/network/dio_config.dart';
 import 'package:data7_expedicao/core/network/socket_config.dart';
 import 'package:data7_expedicao/data/datasources/config_service.dart';
@@ -20,6 +21,7 @@ class NetworkInitializer {
   }
 
   static void ensureSocketInitialized() {
+    _bindSocketMetrics();
     if (!SocketConfig.isInitialized) {
       final configService = locator<ConfigService>();
       if (!configService.isInitialized) {
@@ -32,10 +34,26 @@ class NetworkInitializer {
   }
 
   static Future<void> initializeSocketService() async {
+    _bindSocketMetrics();
     final configViewModel = locator<ConfigViewModel>();
     final socketService = locator<SocketService>();
 
     await socketService.initialize(configViewModel.currentConfig);
+  }
+
+  static void _bindSocketMetrics() {
+    SocketConfig.onConnectionAttempt = (success, duration) {
+      try {
+        locator<MetricsCollector>().recordConnectionAttempt(success, duration);
+      } catch (e, s) {
+        AppLogger.warning(
+          'Falha ao registrar metrica de conexao do socket',
+          tag: 'NetworkInitializer',
+          error: e,
+          stackTrace: s,
+        );
+      }
+    };
   }
 
   static void reinitializeDio() {

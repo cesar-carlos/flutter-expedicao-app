@@ -1,5 +1,6 @@
 import 'package:data7_expedicao/core/utils/app_helper.dart';
 import 'package:data7_expedicao/core/utils/json_parse_helpers.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
@@ -50,7 +51,8 @@ class ExpeditionCartConsultationModel {
       codCarrinho: JsonParse.parseIntOr(json['CodCarrinho'], 0),
       descricaoCarrinho: JsonParse.parseStringOr(json['Descricao'], ''),
       ativo: Situation.fromCodeWithFallback(JsonParse.parseStringOr(json['Ativo'], '')),
-      situacao: ExpeditionCartSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
+      situacao:
+          ExpeditionCartSituation.fromCode(JsonParse.parseStringOr(json['Situacao'], '')) ??
           ExpeditionCartSituation.vazio,
       codigoBarras: JsonParse.parseStringOr(json['CodigoBarras'], ''),
       codCarrinhoPercurso: JsonParse.parseInt(json['CodCarrinhoPercurso']),
@@ -69,9 +71,7 @@ class ExpeditionCartConsultationModel {
 
   /// Factory method para criação segura com validação de schema
   /// Retorna um Result que pode ser sucesso ou falha
-  static Result<ExpeditionCartConsultationModel> fromJsonSafe(
-    Map<String, dynamic> json,
-  ) {
+  static Result<ExpeditionCartConsultationModel> fromJsonSafe(Map<String, dynamic> json) {
     return safeCallSync(() => ExpeditionCartConsultationModel.fromJson(json));
   }
 
@@ -107,6 +107,17 @@ class ExpeditionCartConsultationModel {
 
   @override
   int get hashCode => codEmpresa.hashCode ^ codCarrinho.hashCode;
+
+  ExpeditionCartModel toCartModel({required ExpeditionCartSituation situacao}) {
+    return ExpeditionCartModel(
+      codEmpresa: codEmpresa,
+      codCarrinho: codCarrinho,
+      descricao: descricaoCarrinho,
+      ativo: ativo,
+      codigoBarras: codigoBarras,
+      situacao: situacao,
+    );
+  }
 
   /// Retorna o código da situação
   String get situacaoCode => situacao.code;

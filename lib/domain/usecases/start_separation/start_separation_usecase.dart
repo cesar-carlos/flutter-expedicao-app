@@ -4,9 +4,9 @@ import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_params.dart';
-import 'package:data7_expedicao/domain/models/situation/expedition_cart_router_situation_model.dart';
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_success.dart';
 import 'package:data7_expedicao/domain/usecases/start_separation/start_separation_failure.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_query.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
@@ -54,7 +54,7 @@ class StartSeparationUseCase {
 
       return await _executeTransactionalOperation(params, separation);
     } on DataError catch (e) {
-      return failure(StartSeparationFailure.networkError(e.message, Exception(e.message)));
+      return failure(AppFailure.fromCaught(e));
     } on Exception catch (e) {
       return failure(StartSeparationFailure.unknown(e.toString(), e));
     } catch (e) {
@@ -91,11 +91,11 @@ class StartSeparationUseCase {
   Future<ExpeditionCartRouteModel?> _findExistingCartRoute(StartSeparationParams params) async {
     try {
       final cartRoutes = await _cartRouteRepository.select(
-        QueryBuilder()
-            .equals('CodEmpresa', params.codEmpresa)
-            .equals('Origem', params.origem.code)
-            .equals('CodOrigem', params.codOrigem)
-            .notEquals('Situacao', ExpeditionCartRouterSituation.cancelada.code),
+        ExpeditionCartRouteQuery.activeByOrigin(
+          codEmpresa: params.codEmpresa,
+          origem: params.origem,
+          codOrigem: params.codOrigem,
+        ),
       );
 
       return cartRoutes.isNotEmpty ? cartRoutes.first : null;

@@ -133,13 +133,13 @@ class AddItemSeparationFailure extends AppFailure {
       case AddItemSeparationFailureType.insufficientQuantity:
         return 'Quantidade de separação excedida';
       case AddItemSeparationFailureType.insertSeparationItemFailed:
-        return 'Falha ao registrar item na separação';
+        return UserFacingMessage.prefer(details, 'Falha ao registrar item na separação');
       case AddItemSeparationFailureType.updateSeparateItemFailed:
-        return 'Falha ao atualizar quantidades';
+        return UserFacingMessage.prefer(details, 'Falha ao atualizar quantidades');
       case AddItemSeparationFailureType.networkError:
-        return 'Erro de conexão. Verifique sua internet';
+        return UserFacingMessage.prefer(details, 'Não foi possível conectar ao servidor. Tente novamente.');
       case AddItemSeparationFailureType.unknownError:
-        return 'Erro inesperado. Tente novamente';
+        return UserFacingMessage.prefer(details, 'Não foi possível adicionar o item. Tente novamente.');
     }
   }
 

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
-import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/domain/models/separation_item_status.dart';
@@ -11,6 +11,7 @@ import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
+import 'package:data7_expedicao/domain/services/separate_item_unit_conversions_service.dart';
 import 'package:data7_expedicao/domain/models/filter/separate_items_filters_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart_item_separation/cancel_cart_item_separation_params.dart';
@@ -36,6 +37,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
   late final BasicRepository<ExpeditionSectorStockModel> _sectorStockRepository;
   late final IFiltersStorageService _filtersStorage;
   late final SeparateCartInternshipEventRepository _cartEventRepository;
+  late final SeparateItemUnitConversionsService _unitConversions;
   late final SeparationItemsFiltersController _itemsFiltersController;
   late final SeparationCartsFiltersController _cartsFiltersController;
 
@@ -46,6 +48,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
       _sectorStockRepository = locator<BasicRepository<ExpeditionSectorStockModel>>();
       _filtersStorage = locator<IFiltersStorageService>();
       _cartEventRepository = locator<SeparateCartInternshipEventRepository>();
+      _unitConversions = locator<SeparateItemUnitConversionsService>();
     } catch (e) {
       if (kDebugMode) {
         AppLogger.error('Erro ao inicializar SeparationItemsViewModel', tag: 'SeparationItemsVM', error: e);
@@ -61,12 +64,14 @@ class SeparationItemsViewModel extends ChangeNotifier {
     BasicRepository<ExpeditionSectorStockModel> sectorStockRepository,
     IFiltersStorageService filtersStorage,
     SeparateCartInternshipEventRepository cartEventRepository,
+    SeparateItemUnitConversionsService unitConversions,
   ) {
     _repository = repository;
     _cartRepository = cartRepository;
     _sectorStockRepository = sectorStockRepository;
     _filtersStorage = filtersStorage;
     _cartEventRepository = cartEventRepository;
+    _unitConversions = unitConversions;
     _initControllers();
   }
 
@@ -161,11 +166,16 @@ class SeparationItemsViewModel extends ChangeNotifier {
 
       final queryBuilder = QueryBuilder()
         ..equals('CodEmpresa', separation.codEmpresa.toString())
-        ..equals('CodSepararEstoque', separation.codSepararEstoque.toString());
+        ..equals('CodSepararEstoque', separation.codSepararEstoque.toString())
+        ..allRows(thenBy: ['CodProduto']);
 
       await _itemsFiltersController.loadSavedAndApplyToQuery(queryBuilder);
 
-      final items = await _repository.selectConsultation(queryBuilder);
+      final items = await _attachUnitConversions(
+        _repository.selectConsultation(queryBuilder),
+        codEmpresa: separation.codEmpresa,
+        codSepararEstoque: separation.codSepararEstoque,
+      );
 
       if (_disposed) return;
 
@@ -188,7 +198,8 @@ class SeparationItemsViewModel extends ChangeNotifier {
       final queryBuilder = QueryBuilder()
         ..equals('CodOrigem', separation.codSepararEstoque.toString())
         ..equals('Origem', ExpeditionOrigem.separacaoEstoque.code)
-        ..orderByDesc('Item');
+        ..orderByDesc('Item')
+        ..allRows(thenBy: ['CodCarrinhoPercurso']);
 
       await _cartsFiltersController.loadSavedAndApplyToQuery(queryBuilder);
 
@@ -300,7 +311,7 @@ class SeparationItemsViewModel extends ChangeNotifier {
     try {
       final queryBuilder = QueryBuilder()
         ..equals('Ativo', Situation.ativo.code)
-        ..orderBy('Descricao');
+        ..allRows(orderField: 'Descricao', thenBy: ['CodSetorEstoque']);
 
       final sectors = await _sectorStockRepository.select(queryBuilder);
 
@@ -422,52 +433,42 @@ class SeparationItemsViewModel extends ChangeNotifier {
   }
 
   String _getErrorMessage(dynamic error) {
-    if (error == null) return 'Erro desconhecido';
+    return AppFailure.forUser(error, fallback: 'Erro desconhecido');
+  }
 
-    if (error is AppError) {
-      return error.message;
-    }
-
-    if (error is String) {
-      return error;
-    }
-
-    try {
-      final message = error.toString();
-
-      if (message.startsWith('Instance of ')) {
-        return 'Erro interno do sistema';
-      }
-      return message;
-    } catch (e) {
-      return 'Erro interno do sistema';
-    }
+  Future<List<SeparateItemConsultationModel>> _attachUnitConversions(
+    Future<List<SeparateItemConsultationModel>> itemsFuture, {
+    required int codEmpresa,
+    required int codSepararEstoque,
+  }) {
+    return _unitConversions.attachInParallel(
+      itemsFuture: itemsFuture,
+      codEmpresa: codEmpresa,
+      codSepararEstoque: codSepararEstoque,
+    );
   }
 
   Future<void> _loadFilteredItems() async {
     if (_separation == null) return;
 
-    try {
-      final queryBuilder = QueryBuilder()
-        ..equals('CodEmpresa', _separation!.codEmpresa.toString())
-        ..equals('CodSepararEstoque', _separation!.codSepararEstoque.toString());
+    final queryBuilder = QueryBuilder()
+      ..equals('CodEmpresa', _separation!.codEmpresa.toString())
+      ..equals('CodSepararEstoque', _separation!.codSepararEstoque.toString())
+      ..allRows(thenBy: ['CodProduto']);
 
-      _itemsFiltersController.applyToQuery(queryBuilder);
+    _itemsFiltersController.applyToQuery(queryBuilder);
 
-      final items = await _repository.selectConsultation(queryBuilder);
+    final items = await _attachUnitConversions(
+      _repository.selectConsultation(queryBuilder),
+      codEmpresa: _separation!.codEmpresa,
+      codSepararEstoque: _separation!.codSepararEstoque,
+    );
 
-      if (_disposed) return;
+    if (_disposed) return;
 
-      items.sort(_compareItemsByAddress);
+    items.sort(_compareItemsByAddress);
 
-      _items = _itemsFiltersController.applySituacaoLocal(items);
-    } catch (e) {
-      if (_disposed) return;
-
-      if (kDebugMode) {
-        AppLogger.error('Erro ao carregar itens filtrados', tag: 'SeparationItemsVM', error: e);
-      }
-    }
+    _items = _itemsFiltersController.applySituacaoLocal(items);
   }
 
   Future<void> _loadFilteredCarts() async {
@@ -477,7 +478,8 @@ class SeparationItemsViewModel extends ChangeNotifier {
       final queryBuilder = QueryBuilder()
         ..equals('CodOrigem', _separation!.codSepararEstoque.toString())
         ..equals('Origem', ExpeditionOrigem.separacaoEstoque.code)
-        ..orderByDesc('Item');
+        ..orderByDesc('Item')
+        ..allRows(thenBy: ['CodCarrinhoPercurso']);
 
       _cartsFiltersController.applyToQueryWithoutSituacao(queryBuilder);
 
@@ -512,26 +514,24 @@ class SeparationItemsViewModel extends ChangeNotifier {
     return PickingUtils.compareByAddress(a.enderecoDescricao, b.enderecoDescricao);
   }
 
-  Future<bool> cancelCart(int codCarrinho) async {
+  Future<bool> cancelCart({required int codEmpresa, required int codCarrinhoPercurso, required String item}) async {
     if (_disposed || _isCancelling) return false;
 
     try {
-      _isCancelling = true;
-      _cancellingCartId = codCarrinho;
-      _lastCancelError = null;
-      _safeNotifyListeners();
-
-      ExpeditionCartRouteInternshipConsultationModel? cartConsultation;
-      for (final cart in _carts) {
-        if (cart.codCarrinho == codCarrinho) {
-          cartConsultation = cart;
-          break;
-        }
-      }
+      final cartConsultation = getCartSnapshot(
+        codEmpresa: codEmpresa,
+        codCarrinhoPercurso: codCarrinhoPercurso,
+        item: item,
+      );
       if (cartConsultation == null) {
         _lastCancelError = 'Carrinho não encontrado para cancelamento.';
         return false;
       }
+
+      _isCancelling = true;
+      _cancellingCartId = cartConsultation.codCarrinho;
+      _lastCancelError = null;
+      _safeNotifyListeners();
 
       final cancelWithConsistencyUseCase = locator<CancelCartWithConsistencyUseCase>();
 
@@ -557,18 +557,19 @@ class SeparationItemsViewModel extends ChangeNotifier {
         (success) async {
           _lastCancelError = null;
 
-          if (_separation != null) {
-            await loadSeparationCarts(_separation!);
+          final sep = _separation;
+          if (sep != null) {
+            await Future.wait([loadSeparationItems(sep), loadSeparationCarts(sep)]);
           }
           return true;
         },
         (failure) {
-          _lastCancelError = failure.toString();
+          _lastCancelError = AppFailure.forUser(failure, fallback: 'Não foi possível cancelar o carrinho.');
           return false;
         },
       );
     } catch (e) {
-      _lastCancelError = 'Erro inesperado ao cancelar carrinho.';
+      _lastCancelError = AppFailure.forUser(e, fallback: 'Não foi possível cancelar o carrinho.');
       return false;
     } finally {
       _isCancelling = false;

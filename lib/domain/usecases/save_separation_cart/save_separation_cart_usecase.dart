@@ -256,7 +256,8 @@ class SaveSeparationCartUseCase {
     final query = QueryBuilder()
       ..equals(SaveCartQueryFields.codEmpresa, codEmpresa.toString())
       ..equals(SaveCartQueryFields.codCarrinhoPercurso, codCarrinhoPercurso.toString())
-      ..equals(SaveCartQueryFields.itemCarrinhoPercurso, itemCarrinhoPercurso);
+      ..equals(SaveCartQueryFields.itemCarrinhoPercurso, itemCarrinhoPercurso)
+      ..allRows(thenBy: ['CodProduto']);
 
     final items = await _separationItemRepository.selectConsultation(query);
     return items;
@@ -281,7 +282,8 @@ class SaveSeparationCartUseCase {
       ..equals(SaveCartQueryFields.codEmpresa, codEmpresa.toString())
       ..equals(SaveCartQueryFields.codCarrinhoPercurso, codCarrinhoPercurso.toString())
       ..equals(SaveCartQueryFields.itemCarrinhoPercurso, itemCarrinhoPercurso)
-      ..notEquals(SaveCartQueryFields.situacao, ExpeditionItemSituation.cancelado.code);
+      ..notEquals(SaveCartQueryFields.situacao, ExpeditionItemSituation.cancelado.code)
+      ..allRows(thenBy: ['CodProduto']);
 
     final separationItems = await _separationItemModelRepository.select(query);
     final originalItems = List<SeparationItemModel>.from(separationItems);
@@ -358,7 +360,8 @@ class SaveSeparationCartUseCase {
 
       final separateItemsQuery = QueryBuilder()
         ..equals(SaveCartQueryFields.codEmpresa, params.codEmpresa.toString())
-        ..equals(SaveCartQueryFields.codSepararEstoque, params.codSepararEstoque.toString());
+        ..equals(SaveCartQueryFields.codSepararEstoque, params.codSepararEstoque.toString())
+        ..allRows(thenBy: ['CodProduto']);
 
       final separateItems = await _separateItemRepository
           .selectConsultation(separateItemsQuery)

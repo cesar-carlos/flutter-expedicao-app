@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:data7_expedicao/core/errors/user_facing_message.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 abstract class AppError {
@@ -8,15 +9,11 @@ abstract class AppError {
   final StackTrace? stackTrace;
 
   AppError({required this.message, this.code, this.stackTrace});
-  String get userMessage => message;
+  String get userMessage => UserFacingMessage.fromText(message);
 }
 
 class NetworkError extends AppError {
   NetworkError({required super.message, super.code, super.stackTrace});
-
-  @override
-  String get userMessage =>
-      'Falha na conexão. Verifique sua internet e tente novamente.';
 }
 
 class DataError extends AppError {

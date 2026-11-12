@@ -17,11 +17,7 @@ void registerSocketModule(GetIt locator) {
   locator.registerLazySingleton(() => SocketService());
   locator.registerLazySingleton<ISocketConnectionPort>(() => locator<SocketService>());
 
-  locator.registerLazySingleton(() {
-    final viewModel = SocketViewModel();
-    viewModel.initialize();
-    return viewModel;
-  });
+  locator.registerLazySingleton(SocketViewModel.new);
 
   locator.registerLazySingleton<EventService>(() => EventServiceImpl());
 

@@ -12,14 +12,6 @@ class SocketConnectionManager extends ChangeNotifier {
   final RetryPolicy _retryPolicy;
 
   SocketConnectionManagerState _state = SocketConnectionManagerState.disconnected;
-  static const Duration _connectionTimeout = Duration(seconds: 15);
-  static const Duration _connectionPollInterval = Duration(milliseconds: 200);
-
-  /// Bug WWWWW: guard anti-race contra cliques rapidos no botao
-  /// "Reconectar" / "Conectar". Sem isso, duas chamadas paralelas
-  /// de connectWithRetry/reconnectWithRetry disparavam 2 ciclos de
-  /// retry concorrentes (cada um com proprio backoff exponencial),
-  /// dobrando trafego no servidor e causando setState em cascata.
   Completer<void>? _inFlight;
 
   SocketConnectionManagerState get state => _state;
@@ -29,9 +21,6 @@ class SocketConnectionManager extends ChangeNotifier {
   SocketConnectionManager({RetryPolicy? retryPolicy})
     : _retryPolicy =
           retryPolicy ??
-          // Bug R: jitter real evita "thundering herd" quando varios
-          // clientes reconectam simultaneamente. Alinhado a policy
-          // injetada pelo locator em producao.
           RetryPolicy.withJitter(
             maxAttempts: 3,
             initialDelay: const Duration(seconds: 1),
@@ -40,8 +29,6 @@ class SocketConnectionManager extends ChangeNotifier {
           );
 
   Future<void> connectWithRetry(ApiConfig config) async {
-    // Bug WWWWW: se ja existe operacao de conexao em curso, aguarda
-    // ela terminar em vez de iniciar outra paralela.
     if (_inFlight != null) {
       return _inFlight!.future;
     }
@@ -58,18 +45,13 @@ class SocketConnectionManager extends ChangeNotifier {
 
       _setState(SocketConnectionManagerState.connecting);
 
-      await _retryPolicy.execute(() => _connectAndWait(), tag: 'SocketConnectionManager');
+      await _retryPolicy.execute(SocketConfig.connect, tag: 'SocketConnectionManager');
       _setState(SocketConnectionManagerState.connected);
       AppLogger.connection('Conexão estabelecida com retry', tag: 'SocketConnectionManager');
       completer.complete();
     } catch (e, s) {
       _setState(SocketConnectionManagerState.failed);
-      AppLogger.error(
-        'Falha ao conectar após retries',
-        tag: 'SocketConnectionManager',
-        error: e,
-        stackTrace: s,
-      );
+      AppLogger.error('Falha ao conectar após retries', tag: 'SocketConnectionManager', error: e, stackTrace: s);
       completer.completeError(e, s);
       rethrow;
     } finally {
@@ -77,21 +59,7 @@ class SocketConnectionManager extends ChangeNotifier {
     }
   }
 
-  Future<void> _connectAndWait() async {
-    await SocketConfig.connect();
-
-    final deadline = DateTime.now().add(_connectionTimeout);
-    while (DateTime.now().isBefore(deadline)) {
-      await Future<void>.delayed(_connectionPollInterval);
-      if (SocketConfig.isConnected) return;
-    }
-
-    throw TimeoutException('Conexão não estabelecida em ${_connectionTimeout.inSeconds}s');
-  }
-
   Future<void> reconnectWithRetry() async {
-    // Bug WWWWW: mesmo guard que connectWithRetry. Se ja temos fluxo
-    // em curso, aguarda em vez de duplicar.
     if (_inFlight != null) {
       return _inFlight!.future;
     }
@@ -102,20 +70,12 @@ class SocketConnectionManager extends ChangeNotifier {
     try {
       _setState(SocketConnectionManagerState.reconnecting);
 
-      await _retryPolicy.execute(() async {
-        await SocketConfig.reconnect();
-        return _connectAndWait();
-      }, tag: 'SocketConnectionManager');
+      await _retryPolicy.execute(SocketConfig.reconnect, tag: 'SocketConnectionManager');
       _setState(SocketConnectionManagerState.connected);
       completer.complete();
     } catch (e, s) {
       _setState(SocketConnectionManagerState.failed);
-      AppLogger.error(
-        'Falha ao reconectar após retries',
-        tag: 'SocketConnectionManager',
-        error: e,
-        stackTrace: s,
-      );
+      AppLogger.error('Falha ao reconectar após retries', tag: 'SocketConnectionManager', error: e, stackTrace: s);
       completer.completeError(e, s);
       rethrow;
     } finally {

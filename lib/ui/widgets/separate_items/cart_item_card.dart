@@ -39,17 +39,10 @@ import 'package:data7_expedicao/ui/widgets/separate_items/cart_item_card/cart_it
 
 class CartItemCard extends StatefulWidget {
   final ExpeditionCartRouteInternshipConsultationModel cartRouteInternshipConsultation;
-  final VoidCallback? onCancel;
   final SeparationItemsViewModel? viewModel;
   final CartSeparationCoordinator? coordinator;
 
-  const CartItemCard({
-    super.key,
-    required this.cartRouteInternshipConsultation,
-    this.onCancel,
-    this.viewModel,
-    this.coordinator,
-  });
+  const CartItemCard({super.key, required this.cartRouteInternshipConsultation, this.viewModel, this.coordinator});
 
   @override
   State<CartItemCard> createState() => _CartItemCardState();
@@ -568,8 +561,10 @@ class _CartItemCardState extends State<CartItemCard> {
             Navigator.of(dialogContext).pop();
             unawaited(
               CartCancelFlowCoordinator(
-                codCarrinho: widget.cartRouteInternshipConsultation.codCarrinho,
-                onCancel: widget.onCancel,
+                codEmpresa: currentCart.codEmpresa,
+                codCarrinhoPercurso: currentCart.codCarrinhoPercurso,
+                item: currentCart.item,
+                codCarrinho: currentCart.codCarrinho,
               ).cancelCart(messenger, vm).catchError((Object e, StackTrace s) {
                 AppLogger.warning(
                   'Falha não tratada ao cancelar carrinho',

@@ -110,6 +110,23 @@ void main() {
       expect(result.exceptionOrNull(), isA<DataFailure>());
     });
 
+    test('consulta de percurso ativo exclui situacao CANCELADA', () async {
+      final cartRepo = _MemCartRoute([_cart()]);
+      final uc = SaveSeparationUseCase(
+        separateProgressRepository: _MemProgress([_progress()]),
+        cartRouteRepository: cartRepo,
+        separateRepository: _MemSeparate([_separate()]),
+      );
+
+      await uc.call(const SaveSeparationParams(codEmpresa: 1, codSepararEstoque: 100));
+
+      final situacaoFilter = cartRepo.lastQuery?.params.where(
+        (param) => param.key == 'Situacao' && param.operator == '!=',
+      );
+      expect(situacaoFilter, isNotNull);
+      expect(situacaoFilter!.single.value, equals('CANCELADA'));
+    });
+
     test('persiste SEPARADO na separacao e no percurso quando dados ok', () async {
       final cart = _cart();
       final sep = _separate();
@@ -252,6 +269,7 @@ class _MemCartRoute implements BasicRepository<ExpeditionCartRouteModel> {
   _MemCartRoute(List<ExpeditionCartRouteModel> rows) : _rows = List<ExpeditionCartRouteModel>.from(rows);
 
   final List<ExpeditionCartRouteModel> _rows;
+  QueryBuilder? lastQuery;
 
   ExpeditionCartRouteModel get singleRow => _rows.first;
 
@@ -262,8 +280,10 @@ class _MemCartRoute implements BasicRepository<ExpeditionCartRouteModel> {
   Future<List<ExpeditionCartRouteModel>> insert(ExpeditionCartRouteModel entity) async => <ExpeditionCartRouteModel>[];
 
   @override
-  Future<List<ExpeditionCartRouteModel>> select(QueryBuilder queryBuilder) async =>
-      List<ExpeditionCartRouteModel>.from(_rows);
+  Future<List<ExpeditionCartRouteModel>> select(QueryBuilder queryBuilder) async {
+    lastQuery = queryBuilder;
+    return List<ExpeditionCartRouteModel>.from(_rows);
+  }
 
   @override
   Future<List<ExpeditionCartRouteModel>> update(ExpeditionCartRouteModel entity) async {

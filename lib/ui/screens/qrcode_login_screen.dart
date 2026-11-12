@@ -127,7 +127,7 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
           error: error,
           stackTrace: stackTrace,
         );
-        _setErrorState('Erro inesperado ao escanear. Tente novamente.');
+        _setErrorState(AppFailure.forUser(error, fallback: 'Erro ao escanear. Tente novamente.'));
       }),
     );
   }
@@ -151,7 +151,7 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
       );
     } catch (e, s) {
       AppLogger.error('Erro inesperado durante scan de QR Code', tag: 'QRCodeLoginScreen', error: e, stackTrace: s);
-      _setErrorState('Erro inesperado: ${e.toString()}');
+      _setErrorState(AppFailure.forUser(e, fallback: 'Erro ao escanear. Tente novamente.'));
     }
   }
 
@@ -195,7 +195,7 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
         error: e,
         stackTrace: s,
       );
-      _setErrorState('Erro ao registrar usuario: ${e.toString()}');
+      _setErrorState(AppFailure.forUser(e, fallback: 'Erro ao registrar usuário. Tente novamente.'));
     }
   }
 
@@ -206,7 +206,7 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
 
   String _scanFailureMessage(Object failure) {
     if (failure is! AppFailure) {
-      return 'Erro ao escanear. Tente novamente.';
+      return AppFailure.forUser(failure, fallback: 'Erro ao escanear. Tente novamente.');
     }
 
     return switch (failure.code) {
@@ -255,7 +255,7 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
   }
 
   void _handleCriticalError(Object error, StackTrace stackTrace) {
-    _setErrorState('Erro critico ao processar QR Code: ${error.toString()}');
+    _setErrorState(AppFailure.forUser(error, fallback: 'Erro ao processar QR Code. Tente novamente.'));
     AppLogger.error(
       'Erro critico ao processar QR Code',
       tag: 'QRCodeLoginScreen',
@@ -316,7 +316,7 @@ class _QRCodeLoginScreenState extends State<QRCodeLoginScreen> {
       final authViewModel = context.read<AuthViewModel>();
       await authViewModel.checkAuthStatus();
     } catch (e) {
-      _setErrorState('Erro ao atualizar autenticacao: ${e.toString()}');
+      _setErrorState(AppFailure.forUser(e, fallback: 'Erro ao atualizar autenticação.'));
       rethrow;
     }
   }

@@ -128,6 +128,24 @@ void main() {
       expect(failure?.type, CancelItemSeparationFailureType.separateNotInSeparatingState);
     });
 
+    test('atualiza a linha com o mesmo Item quando o produto se repete', () async {
+      final matching = _separateItemBase();
+      final otherLine = _separateItemBase().copyWith(item: '00002', quantidadeSeparacao: 8);
+      final separateRepo = InMemorySeparateItemRepository([otherLine, matching]);
+      final uc = CancelItemSeparationUseCase(
+        separateItemRepository: separateRepo,
+        separationItemRepository: InMemorySeparationItemRepository([_sepItem()]),
+        separateRepository: InMemorySeparateModelRepository([_separateSeparando()]),
+        userSessionService: FakeUserSessionService(),
+      );
+
+      final result = await uc.call(params);
+
+      expect(result.isSuccess(), isTrue);
+      expect(separateRepo.rows.firstWhere((row) => row.item == '00001').quantidadeSeparacao, 4.0);
+      expect(separateRepo.rows.firstWhere((row) => row.item == '00002').quantidadeSeparacao, 8.0);
+    });
+
     test('cancela separation_item e reduz quantidadeSeparacao no separate_item', () async {
       final sepItemRow = _sepItem();
       final sepRow = _separateItemBase();

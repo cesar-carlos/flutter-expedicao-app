@@ -105,7 +105,7 @@ class PickingAddItemCoordinator {
 
   void _handleAddItemFailure(String itemId, int quantity, DateTime timestamp, dynamic error) {
     if (_isDisposed()) return;
-    final errorMessage = error is AppFailure ? error.userMessage : error.toString();
+    final errorMessage = AppFailure.forUser(error, fallback: 'Não foi possível adicionar o item. Tente novamente.');
     _stateManager.revertQuantityAndMarkOperationFailed(itemId, quantity, timestamp, errorMessage);
     _notifyListeners();
     _notifyOperationError(itemId, errorMessage);

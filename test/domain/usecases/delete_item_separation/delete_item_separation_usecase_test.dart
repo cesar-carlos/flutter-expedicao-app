@@ -22,7 +22,7 @@ void main() {
   const validParams = DeleteItemSeparationParams(codEmpresa: 1, codSepararEstoque: 100, item: '00001');
 
   group('DeleteItemSeparationUseCase', () {
-    test('DataError na busca do item vira NetworkFailure', () async {
+    test('DataError na busca do item vira DataFailure', () async {
       final useCase = DeleteItemSeparationUseCase(
         separateItemRepository: _EmptySeparateItemRepository(),
         separationItemRepository: _ThrowingSeparationItemRepository(),
@@ -35,7 +35,7 @@ void main() {
       );
 
       expect(result.isError(), isTrue);
-      expect(result.exceptionOrNull(), isA<NetworkFailure>());
+      expect(result.exceptionOrNull(), isA<DataFailure>());
     });
 
     test('retorna ValidationFailure quando parametros invalidos', () async {
@@ -127,6 +127,24 @@ void main() {
 
       expect(result.isError(), isTrue);
       expect(result.exceptionOrNull(), isA<BusinessFailure>());
+    });
+
+    test('atualiza a linha com o mesmo Item quando o produto se repete', () async {
+      final matching = _separateItemRow();
+      final otherLine = _separateItemRow().copyWith(item: '00002', quantidadeSeparacao: 8);
+      final separateItemRepo = InMemorySeparateItemRepository([otherLine, matching]);
+      final useCase = DeleteItemSeparationUseCase(
+        separateItemRepository: separateItemRepo,
+        separationItemRepository: InMemorySeparationItemRepository([_separationRow()]),
+        separateRepository: InMemorySeparateModelRepository([_headerSeparando()]),
+        userSessionService: FakeUserSessionService(),
+      );
+
+      final result = await useCase.call(validParams);
+
+      expect(result.isSuccess(), isTrue);
+      expect(separateItemRepo.rows.firstWhere((row) => row.item == '00001').quantidadeSeparacao, 4.0);
+      expect(separateItemRepo.rows.firstWhere((row) => row.item == '00002').quantidadeSeparacao, 8.0);
     });
 
     test('exclui separation_item e reduz quantidadeSeparacao no separate_item', () async {

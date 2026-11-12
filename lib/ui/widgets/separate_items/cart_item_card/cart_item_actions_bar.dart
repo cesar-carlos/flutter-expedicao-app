@@ -37,6 +37,7 @@ class CartItemActionsBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isCancelling = viewModel?.isCancelling ?? false;
 
     return Container(
       padding: const EdgeInsets.all(UIConstants.smallPadding),
@@ -56,7 +57,7 @@ class CartItemActionsBar extends StatelessWidget {
                     icon: Icons.play_arrow,
                     textColor: theme.adaptivePrimary(colorScheme),
                     borderColor: colorScheme.primary.withValues(alpha: 0.3),
-                    onPressed: onSeparate,
+                    onPressed: isCancelling ? null : onSeparate,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -96,7 +97,7 @@ class CartItemActionsBar extends StatelessWidget {
                 icon: Icons.check_circle,
                 textColor: AppColors.success,
                 borderColor: AppColors.success.withValues(alpha: 0.3),
-                onPressed: isSaving ? null : onFinalize,
+                onPressed: (isSaving || isCancelling) ? null : onFinalize,
               ),
             ),
           ],

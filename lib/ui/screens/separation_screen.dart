@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/theme/app_fonts.dart';
 import 'package:provider/provider.dart';
@@ -458,7 +459,10 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
         stackTrace: stackTrace,
       );
       if (mounted) {
-        _showErrorModal('Erro Inesperado', 'Erro inesperado. Tente novamente.');
+        _showErrorModal(
+          'Não foi possível continuar',
+          AppFailure.forUser(e, fallback: 'Não foi possível buscar a próxima separação. Tente novamente.'),
+        );
       }
     } finally {
       if (mounted) {

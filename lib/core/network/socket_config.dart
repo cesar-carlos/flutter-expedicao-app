@@ -1,23 +1,27 @@
+import 'dart:async';
+
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
-import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
 
 class SocketConfig {
+  static const Duration connectionTimeout = Duration(seconds: 15);
+
   static io.Socket? _socketInstance;
   static ApiConfig? _currentApiConfig;
   static DateTime? _connectionAttemptStarted;
+  static Completer<void>? _connectWait;
 
-  /// Callbacks chamados sempre que a instancia do socket e recriada
-  /// (ex.: apos `updateConfig` com troca de host/porta). Servicos que
-  /// registram listeners de eventos (`on(...)`) na instancia precisam
-  /// re-vincula-los no novo socket, caso contrario as atualizacoes em
-  /// tempo real param de chegar no socket descartado.
   static final List<void Function()> _rebindCallbacks = <void Function()>[];
+  static final List<void Function()> _disconnectCallbacks = <void Function()>[];
+
+  /// Métrica de tentativa de conexão. Preenchido na borda de DI
+  /// (`NetworkInitializer`), sem `locator` nesta classe.
+  static void Function(bool success, Duration duration)? onConnectionAttempt;
 
   static void initialize(ApiConfig apiConfig) {
+    _disposeCurrentSocket();
     _currentApiConfig = apiConfig;
     _socketInstance = _createSocketInstance(apiConfig);
   }
@@ -36,13 +40,9 @@ class SocketConfig {
     return _currentApiConfig!.fullUrl;
   }
 
-  static bool get isConnected {
-    return _socketInstance?.connected ?? false;
-  }
+  static bool get isConnected => _socketInstance?.connected ?? false;
 
-  static String? get sessionId {
-    return _socketInstance?.id;
-  }
+  static String? get sessionId => _socketInstance?.id;
 
   static void updateConfig(ApiConfig newConfig) {
     final configChanged =
@@ -50,19 +50,16 @@ class SocketConfig {
         _currentApiConfig?.apiPort != newConfig.apiPort ||
         _currentApiConfig?.useHttps != newConfig.useHttps);
 
-    if (configChanged) {
-      _currentApiConfig = newConfig;
-      _socketInstance?.disconnect();
-      _socketInstance = _createSocketInstance(newConfig);
-      // Socket recriado: os listeners registrados na instancia anterior
-      // ficaram orfaos. Notifica os servicos para re-vincularem no novo
-      // socket de forma idempotente.
-      _notifyRebind();
+    if (!configChanged) {
+      return;
     }
+
+    _currentApiConfig = newConfig;
+    _disposeCurrentSocket();
+    _socketInstance = _createSocketInstance(newConfig);
+    _notifyRebind();
   }
 
-  /// Registra um callback de re-vinculo de listeners. Idempotente: o
-  /// mesmo callback nao e adicionado duas vezes.
   static void addRebindListener(void Function() callback) {
     if (!_rebindCallbacks.contains(callback)) {
       _rebindCallbacks.add(callback);
@@ -71,6 +68,16 @@ class SocketConfig {
 
   static void removeRebindListener(void Function() callback) {
     _rebindCallbacks.remove(callback);
+  }
+
+  static void addDisconnectListener(void Function() callback) {
+    if (!_disconnectCallbacks.contains(callback)) {
+      _disconnectCallbacks.add(callback);
+    }
+  }
+
+  static void removeDisconnectListener(void Function() callback) {
+    _disconnectCallbacks.remove(callback);
   }
 
   static void _notifyRebind() {
@@ -88,31 +95,82 @@ class SocketConfig {
     }
   }
 
-  static Future<void> connect() async {
+  static void _notifyDisconnect() {
+    for (final callback in List<void Function()>.from(_disconnectCallbacks)) {
+      try {
+        callback();
+      } catch (e, s) {
+        AppLogger.warning('Falha ao notificar disconnect do socket', tag: 'SocketConfig', error: e, stackTrace: s);
+      }
+    }
+  }
+
+  static Future<void> connect({Duration timeout = connectionTimeout}) async {
     if (_socketInstance == null) {
       throw StateError('SocketConfig não foi inicializado.');
     }
-    // Bug U: connect() idempotente — se ja conectado, no-op.
-    // Antes, chamadas redundantes geravam novas tentativas (poluindo
-    // logs de metricas e disparando callbacks duplicados).
     if (_socketInstance!.connected) {
       AppLogger.debug('Socket ja conectado, connect() ignorado', tag: 'SocketConfig');
       return;
     }
+    if (_connectWait != null) {
+      return _connectWait!.future;
+    }
+
+    final socket = _socketInstance!;
+    final completer = Completer<void>();
+    _connectWait = completer;
     _connectionAttemptStarted = DateTime.now();
-    _socketInstance!.connect();
+
+    late final void Function() offConnect;
+    late final void Function() offError;
+
+    offConnect = socket.onConnect((_) {
+      _completeConnectWait();
+    });
+    offError = socket.onConnectError((error) {
+      _failConnectWait(TimeoutException('Falha ao conectar com o servidor: $error'));
+    });
+
+    if (socket.connected) {
+      offConnect();
+      offError();
+      _completeConnectWait();
+      return;
+    }
+
+    socket.connect();
+
+    try {
+      await completer.future.timeout(
+        timeout,
+        onTimeout: () {
+          throw TimeoutException('Conexão não estabelecida em ${timeout.inSeconds}s');
+        },
+      );
+    } on TimeoutException {
+      _socketInstance?.disconnect();
+      rethrow;
+    } finally {
+      offConnect();
+      offError();
+      if (identical(_connectWait, completer)) {
+        _connectWait = null;
+      }
+    }
   }
 
   static void disconnect() {
+    _failConnectWait(StateError('Conexão encerrada.'));
     _socketInstance?.disconnect();
   }
 
-  static Future<void> reconnect() async {
+  static Future<void> reconnect({Duration timeout = connectionTimeout}) async {
     if (_socketInstance == null) {
       throw StateError('SocketConfig não foi inicializado.');
     }
     _socketInstance!.disconnect();
-    _socketInstance!.connect();
+    await connect(timeout: timeout);
   }
 
   static io.Socket _createSocketInstance(ApiConfig apiConfig) {
@@ -120,11 +178,9 @@ class SocketConfig {
 
     final socket = io.io(apiConfig.fullUrl, <String, dynamic>{
       'transports': ['websocket'],
-      'autoConnect': true,
-      'reconnection': true,
-      'reconnectionDelay': 1000,
-      'reconnectionDelayMax': 5000,
-      'reconnectionAttempts': 5,
+      'autoConnect': false,
+      'reconnection': false,
+      'forceNew': true,
     });
 
     socket.onConnect((_) {
@@ -139,6 +195,8 @@ class SocketConfig {
       try {
         AppLogger.warning('Socket desconectado', tag: 'SocketConfig');
         AppLogger.data('Motivo: $reason', tag: 'SocketConfig');
+        _failConnectWait(StateError('Conexão com o servidor foi perdida.'));
+        _notifyDisconnect();
       } catch (_) {}
     });
 
@@ -155,49 +213,63 @@ class SocketConfig {
       } catch (_) {}
     });
 
-    socket.onReconnect((_) {
-      try {
-        AppLogger.connection('Socket reconectado', tag: 'SocketConfig');
-        AppLogger.data('SessionId: ${socket.id}', tag: 'SocketConfig');
-        // Bug V: registra metrica de reconnect tambem (antes so registrava
-        // o connect inicial, perdendo dados de qualidade de rede em
-        // sessoes longas com varias reconexoes).
-        _recordConnectionAttempt(true);
-      } catch (_) {}
-    });
-
-    socket.onReconnectError((error) {
-      try {
-        AppLogger.warning('Erro ao reconectar socket', tag: 'SocketConfig', error: error);
-      } catch (_) {}
-    });
-
-    socket.onReconnectFailed((_) {
-      try {
-        AppLogger.error('Falha total ao reconectar socket', tag: 'SocketConfig');
-      } catch (_) {}
-    });
-
     return socket;
+  }
+
+  static void _completeConnectWait() {
+    final wait = _connectWait;
+    _connectWait = null;
+    if (wait != null && !wait.isCompleted) {
+      wait.complete();
+    }
+  }
+
+  static void _failConnectWait(Object error) {
+    final wait = _connectWait;
+    _connectWait = null;
+    if (wait != null && !wait.isCompleted) {
+      wait.completeError(error);
+    }
   }
 
   static void _recordConnectionAttempt(bool success) {
     final started = _connectionAttemptStarted;
     _connectionAttemptStarted = null;
-    if (started == null) return;
+    if (started == null) {
+      return;
+    }
     final duration = DateTime.now().difference(started);
-    try {
-      locator<MetricsCollector>().recordConnectionAttempt(success, duration);
-    } catch (_) {}
+    onConnectionAttempt?.call(success, duration);
   }
 
   static bool get isInitialized => _socketInstance != null;
 
-  static void reset() {
-    _socketInstance?.disconnect();
+  static void _disposeCurrentSocket() {
+    _failConnectWait(StateError('Conexão encerrada.'));
+    final socket = _socketInstance;
     _socketInstance = null;
+    if (socket == null) {
+      return;
+    }
+    try {
+      socket.dispose();
+    } catch (e, s) {
+      AppLogger.warning(
+        'Falha ao descartar instancia anterior do socket',
+        tag: 'SocketConfig',
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  static void reset() {
+    _disposeCurrentSocket();
     _currentApiConfig = null;
     _connectionAttemptStarted = null;
+    _rebindCallbacks.clear();
+    _disconnectCallbacks.clear();
+    onConnectionAttempt = null;
   }
 
   static void dispose() {

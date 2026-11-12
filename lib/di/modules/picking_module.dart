@@ -5,6 +5,7 @@ import 'package:data7_expedicao/core/network/socket_operation_retry.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_unidade_medida_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_model.dart';
 import 'package:data7_expedicao/domain/models/separation_item_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
@@ -12,6 +13,7 @@ import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
+import 'package:data7_expedicao/domain/services/separate_item_unit_conversions_service.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/services/picking_state_manager.dart';
 import 'package:data7_expedicao/core/services/shelf_scanning_service.dart';
@@ -26,6 +28,12 @@ void registerPickingModule(GetIt locator) {
 
   locator.registerLazySingleton<CartValidationService>(
     () => CartValidationService(repository: locator<BasicConsultationRepository<SeparateItemConsultationModel>>()),
+  );
+
+  locator.registerLazySingleton<SeparateItemUnitConversionsService>(
+    () => SeparateItemUnitConversionsService(
+      repository: locator<BasicConsultationRepository<SeparateItemUnidadeMedidaConsultationModel>>(),
+    ),
   );
 
   locator.registerLazySingleton<AddItemSeparationUseCase>(
@@ -68,6 +76,7 @@ void registerPickingModule(GetIt locator) {
       shelfScanningService: locator<ShelfScanningService>(),
       stateManager: locator<PickingStateManager>(),
       cartValidationService: locator<CartValidationService>(),
+      unitConversions: locator<SeparateItemUnitConversionsService>(),
       metricsCollector: _resolveMetricsCollector(locator),
     ),
   );

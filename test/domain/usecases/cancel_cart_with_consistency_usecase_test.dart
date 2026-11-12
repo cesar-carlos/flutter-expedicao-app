@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/domain/models/expedition_cancellation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_model.dart';
@@ -12,6 +13,7 @@ import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_item_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
+import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_failure.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_params.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/cancel_cart/cancel_cart_with_consistency_usecase.dart';
@@ -64,7 +66,114 @@ void main() {
       expect(separateItemRepository.items.first.quantidadeSeparacao, equals(5));
       expect(separationItemRepository.items.first.situacao, equals(ExpeditionItemSituation.separado));
     });
+
+    test('should not touch items when internship is not SEPARANDO', () async {
+      final separateItemRepository = _InMemorySeparateItemRepository(
+        items: [_buildSeparateItem(quantidadeSeparacao: 5)],
+      );
+      final separationItemRepository = _InMemorySeparationItemRepository(
+        items: [_buildSeparationItem(situacao: ExpeditionItemSituation.separado, quantidade: 2)],
+      );
+      final cartRouteRepository = _InMemoryCartRouteRepository(
+        item: _buildCartRoute().copyWith(situacao: ExpeditionSituation.separado),
+      );
+
+      final orchestrator = _orchestrator(
+        separateItemRepository: separateItemRepository,
+        separationItemRepository: separationItemRepository,
+        cartRouteRepository: cartRouteRepository,
+        cartRepository: _InMemoryCartRepository(item: _buildCart()),
+      );
+
+      final result = await orchestrator.call(
+        cancelCartParams: const CancelCartParams(codEmpresa: 1, codCarrinhoPercurso: 200, item: '0001'),
+        cancelItemParams: const CancelCardItemSeparationParams(
+          codEmpresa: 1,
+          codSepararEstoque: 100,
+          codCarrinhoPercurso: 200,
+          itemCarrinhoPercurso: '0001',
+        ),
+      );
+
+      expect(result.isError(), isTrue);
+      expect((result.exceptionOrNull() as CancelCartFailure).type, CancelCartFailureType.cartNotInSeparatingStatus);
+      expect(separateItemRepository.items.first.quantidadeSeparacao, equals(5));
+      expect(separationItemRepository.items.first.situacao, equals(ExpeditionItemSituation.separado));
+      expect(cartRouteRepository.item.situacao, ExpeditionSituation.separado);
+    });
+
+    test('should cancel cart when there are no items to revert', () async {
+      final cartRouteRepository = _InMemoryCartRouteRepository(item: _buildCartRoute());
+      final cartRepository = _InMemoryCartRepository(item: _buildCart());
+      final orchestrator = _orchestrator(
+        separateItemRepository: _InMemorySeparateItemRepository(items: [_buildSeparateItem(quantidadeSeparacao: 5)]),
+        separationItemRepository: _InMemorySeparationItemRepository(items: []),
+        cartRouteRepository: cartRouteRepository,
+        cartRepository: cartRepository,
+      );
+
+      final result = await orchestrator.call(
+        cancelCartParams: const CancelCartParams(codEmpresa: 1, codCarrinhoPercurso: 200, item: '0001'),
+        cancelItemParams: const CancelCardItemSeparationParams(
+          codEmpresa: 1,
+          codSepararEstoque: 100,
+          codCarrinhoPercurso: 200,
+          itemCarrinhoPercurso: '0001',
+        ),
+      );
+
+      expect(result.isSuccess(), isTrue);
+      expect(cartRouteRepository.item.situacao, ExpeditionSituation.cancelada);
+      expect(cartRepository.item.situacao, ExpeditionCartSituation.liberado);
+    });
+
+    test('should abort when listing items fails', () async {
+      final cartRouteRepository = _InMemoryCartRouteRepository(item: _buildCartRoute());
+      final cartRepository = _InMemoryCartRepository(item: _buildCart());
+      final orchestrator = _orchestrator(
+        separateItemRepository: _InMemorySeparateItemRepository(items: [_buildSeparateItem(quantidadeSeparacao: 5)]),
+        separationItemRepository: _ThrowingSelectSeparationItemRepository(),
+        cartRouteRepository: cartRouteRepository,
+        cartRepository: cartRepository,
+      );
+
+      final result = await orchestrator.call(
+        cancelCartParams: const CancelCartParams(codEmpresa: 1, codCarrinhoPercurso: 200, item: '0001'),
+        cancelItemParams: const CancelCardItemSeparationParams(
+          codEmpresa: 1,
+          codSepararEstoque: 100,
+          codCarrinhoPercurso: 200,
+          itemCarrinhoPercurso: '0001',
+        ),
+      );
+
+      expect(result.isError(), isTrue);
+      expect(cartRouteRepository.item.situacao, ExpeditionSituation.separando);
+      expect(cartRepository.item.situacao, ExpeditionCartSituation.emSeparacao);
+    });
   });
+}
+
+CancelCartWithConsistencyUseCase _orchestrator({
+  required _InMemorySeparateItemRepository separateItemRepository,
+  required BasicRepository<SeparationItemModel> separationItemRepository,
+  required _InMemoryCartRouteRepository cartRouteRepository,
+  required _InMemoryCartRepository cartRepository,
+}) {
+  final userSessionService = FakeUserSessionService();
+  return CancelCartWithConsistencyUseCase(
+    cancelCartUseCase: CancelCartUseCase(
+      cartRepository: cartRepository,
+      cancellationRepository: _InMemoryCancellationRepository(),
+      cartInternshipRouteRepository: cartRouteRepository,
+      userSessionService: userSessionService,
+    ),
+    cancelCardItemSeparationUseCase: CancelCardItemSeparationUseCase(
+      separateItemRepository: separateItemRepository,
+      separationItemRepository: separationItemRepository,
+      userSessionService: userSessionService,
+    ),
+  );
 }
 
 class _InMemorySeparateItemRepository implements BasicRepository<SeparateItemModel> {
@@ -185,7 +294,10 @@ class _InMemoryCancellationRepository implements BasicRepository<ExpeditionCance
   final List<ExpeditionCancellationModel> _items = [];
 
   @override
-  Future<List<ExpeditionCancellationModel>> delete(ExpeditionCancellationModel entity) async => [entity];
+  Future<List<ExpeditionCancellationModel>> delete(ExpeditionCancellationModel entity) async {
+    _items.removeWhere((e) => e.codEmpresa == entity.codEmpresa && e.codCancelamento == entity.codCancelamento);
+    return [entity];
+  }
 
   @override
   Future<List<ExpeditionCancellationModel>> insert(ExpeditionCancellationModel entity) async {
@@ -253,6 +365,22 @@ ExpeditionCartRouteInternshipModel _buildCartRoute() {
     codUsuarioInicio: 1,
     nomeUsuarioInicio: 'User',
   );
+}
+
+class _ThrowingSelectSeparationItemRepository implements BasicRepository<SeparationItemModel> {
+  @override
+  Future<List<SeparationItemModel>> delete(SeparationItemModel entity) async => [entity];
+
+  @override
+  Future<List<SeparationItemModel>> insert(SeparationItemModel entity) async => [entity];
+
+  @override
+  Future<List<SeparationItemModel>> select(QueryBuilder queryBuilder) {
+    throw DataError(message: 'timeout');
+  }
+
+  @override
+  Future<List<SeparationItemModel>> update(SeparationItemModel entity) async => [entity];
 }
 
 ExpeditionCartModel _buildCart() {

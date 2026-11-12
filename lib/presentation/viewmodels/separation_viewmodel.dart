@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
-import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/results/app_failure.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
@@ -263,7 +263,7 @@ class SeparationViewModel extends ChangeNotifier {
 
     try {
       _isLoadingSectors = true;
-      final queryBuilder = QueryBuilder()..orderByAsc('Descricao');
+      final queryBuilder = QueryBuilder()..allRows(orderField: 'Descricao', thenBy: ['CodSetorEstoque']);
 
       final sectors = await _sectorRepository.select(queryBuilder);
 
@@ -412,26 +412,7 @@ class SeparationViewModel extends ChangeNotifier {
   }
 
   String _getErrorMessage(dynamic error) {
-    if (error == null) return 'Erro desconhecido';
-
-    if (error is AppError) {
-      return error.message;
-    }
-
-    if (error is String) {
-      return error;
-    }
-
-    try {
-      final message = error.toString();
-
-      if (message.startsWith('Instance of ')) {
-        return 'Erro interno do sistema';
-      }
-      return message;
-    } catch (e) {
-      return 'Erro interno do sistema';
-    }
+    return AppFailure.forUser(error, fallback: 'Erro desconhecido');
   }
 
   SeparationFiltersModel get currentFilters => _filtersController.current;

@@ -198,7 +198,7 @@ class PickingFlowController {
           AppLogger.info('Retornando para tela anterior', tag: 'PickingFlowController');
         },
         (failure) {
-          final message = failure is AppFailure ? failure.userMessage : 'Erro ao salvar carrinho. Tente novamente.';
+          final message = AppFailure.forUser(failure, fallback: 'Erro ao salvar carrinho. Tente novamente.');
           final details = failure is SaveSeparationCartFailure ? failure.details : null;
           if (navigator.mounted) {
             void doPopsAndDialog() {
@@ -225,7 +225,12 @@ class PickingFlowController {
         void doPopsAndDialog() {
           if (!navigator.mounted) return;
           _ensureLoadingDialogClosed();
-          if (navigator.mounted) _showErrorDialog(navigator, 'Erro inesperado ao salvar carrinho. Tente novamente.');
+          if (navigator.mounted) {
+            _showErrorDialog(
+              navigator,
+              AppFailure.forUser(e, fallback: 'Erro ao salvar carrinho. Tente novamente.'),
+            );
+          }
         }
 
         WidgetsBinding.instance.addPostFrameCallback((_) => doPopsAndDialog());

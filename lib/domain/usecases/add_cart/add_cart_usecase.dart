@@ -7,11 +7,11 @@ import 'package:data7_expedicao/domain/usecases/add_cart/add_cart_failure.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_model.dart';
+import 'package:data7_expedicao/domain/models/expedition_cart_route_query.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_cart_situation_model.dart';
 import 'package:data7_expedicao/domain/repositories/user_system_repository.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_internship_model.dart';
-import 'package:data7_expedicao/domain/models/situation/expedition_cart_router_situation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
@@ -55,67 +55,53 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
         return failure(AddCartFailure.invalidParameters(errors));
       }
 
-      final user = await _loadAndEnsureUserSystemModel();
+      final hasResolvedRoute =
+          params.origem == ExpeditionOrigem.separacaoEstoque &&
+          params.codCarrinhoPercurso != null &&
+          params.codCarrinhoPercurso! > 0;
+
+      final cartLookup = params.scannedCart != null
+          ? Future.value(success(params.scannedCart!))
+          : _findCartByCode(params.codCarrinho);
+      final routeLookup = hasResolvedRoute ? Future.value(success(params.codCarrinhoPercurso!)) : _findRoute(params);
+
+      final (user, cartsResult, internshipResult, routeResult) = await (
+        _loadAndEnsureUserSystemModel(),
+        cartLookup,
+        _findInternship(params.origem),
+        routeLookup,
+      ).wait;
+
       if (user?.userSystemModel == null) {
         return failure(AddCartFailure.userNotAuthenticated());
       }
 
-      final cartsResult = params.scannedCart != null
-          ? success(params.scannedCart!)
-          : await _findCartByCode(params.codCarrinho);
-
-      final cart = cartsResult.fold((success) => success, (failure) => null);
-      if (cart == null) {
-        return await cartsResult.fold(
-          (success) => failure(AddCartFailure.generic('Erro inesperado')),
-          (failure) => Failure(failure),
-        );
+      final cartFailure = _failureFrom(cartsResult);
+      if (cartFailure != null) {
+        return cartFailure;
       }
+      final cart = cartsResult.getOrNull()!;
 
       final situationResult = _validateCartSituation(cart);
-      final isValidSituation = situationResult.fold((success) => true, (failure) => false);
-      if (!isValidSituation) {
-        return await situationResult.fold(
-          (success) => failure(AddCartFailure.generic('Erro inesperado')),
-          (failure) => Failure(failure),
-        );
+      final situationFailure = _failureFrom(situationResult);
+      if (situationFailure != null) {
+        return situationFailure;
       }
 
-      int? routeCode;
-      if (params.origem == ExpeditionOrigem.separacaoEstoque &&
-          params.codCarrinhoPercurso != null &&
-          params.codCarrinhoPercurso! > 0) {
-        routeCode = params.codCarrinhoPercurso;
-      } else {
-        final routeResult = await _findRoute(params);
-        routeCode = routeResult.fold((success) => success, (failure) => null);
-        if (routeCode == null) {
-          return await routeResult.fold(
-            (success) => failure(AddCartFailure.generic('Percurso não encontrado')),
-            (failure) => Failure(failure),
-          );
-        }
+      final routeFailure = _failureFrom(routeResult);
+      if (routeFailure != null) {
+        return routeFailure;
       }
+      final resolvedCodCarrinhoPercurso = routeResult.getOrNull()!;
 
-      // Bug A corrigido: variavel local em vez de campo de instancia
-      // (que causaria race entre chamadas concorrentes ao singleton).
-      final int resolvedCodCarrinhoPercurso = routeCode!;
-
-      final internshipResult = await _findInternship(params.origem);
-      final internshipCode = internshipResult.fold((success) => success, (failure) => null);
-      if (internshipCode == null) {
-        return await internshipResult.fold(
-          (success) => failure(AddCartFailure.generic('Estágio não encontrado')),
-          (failure) => Failure(failure),
-        );
+      final internshipFailure = _failureFrom(internshipResult);
+      if (internshipFailure != null) {
+        return internshipFailure;
       }
+      final internshipCode = internshipResult.getOrNull()!;
 
-      // Bug B corrigido: rollback se insert do cartRouteInternship falhar
-      // apos atualizar o cart para EM_SEPARACAO. Sem isso, o cart ficava
-      // marcado EM_SEPARACAO no servidor mas sem rota correspondente,
-      // bloqueando futuras tentativas (que viam o cart como nao-LIBERADO).
       await _updateCartSituation(cart);
-      final cartRouteInternshipModel = await _createCartRoute(
+      final cartRouteInternshipModel = _createCartRouteInternship(
         params,
         cart,
         user!.userSystemModel!,
@@ -142,21 +128,20 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     }
   }
 
-  /// Bug B: rollback do cart situation para LIBERADO se a criacao da
-  /// rota falhar apos o update. Best-effort: se este rollback tambem
-  /// falhar, o erro original eh propagado e o operador vera mensagem
-  /// generica (estado pode ficar inconsistente — caso raro).
+  Result<AddCartSuccess>? _failureFrom<T extends Object>(Result<T> result) {
+    if (result.isSuccess()) {
+      return null;
+    }
+    final error = result.exceptionOrNull();
+    if (error is AppFailure) {
+      return Failure(error);
+    }
+    return failure(AddCartFailure.repositoryError(error));
+  }
+
   Future<void> _rollbackCartSituation(ExpeditionCartConsultationModel cart) async {
     try {
-      final restoredCart = ExpeditionCartModel(
-        codEmpresa: cart.codEmpresa,
-        codCarrinho: cart.codCarrinho,
-        descricao: cart.descricaoCarrinho,
-        ativo: cart.ativo,
-        codigoBarras: cart.codigoBarras,
-        situacao: ExpeditionCartSituation.liberado,
-      );
-      await _cartRepository.update(restoredCart);
+      await _cartRepository.update(cart.toCartModel(situacao: ExpeditionCartSituation.liberado));
     } catch (e, stackTrace) {
       AppLogger.warning(
         'Falha no rollback do cart apos erro na criacao da rota — estado pode estar inconsistente',
@@ -201,7 +186,8 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
       }
 
       return user;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.warning('Erro ao carregar sessão do usuário', tag: 'AddCartUseCase', error: e, stackTrace: stackTrace);
       return null;
     }
   }
@@ -209,7 +195,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
   Future<Result<ExpeditionCartConsultationModel>> _findCartByCode(int codCarrinho) async {
     try {
       final carts = await _cartConsultationRepository.selectConsultation(
-        QueryBuilder().equals('codCarrinho', codCarrinho),
+        QueryBuilder().equals('CodCarrinho', codCarrinho),
       );
 
       if (carts.isEmpty) {
@@ -231,13 +217,13 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
 
   Future<Result<int>> _findRoute(AddCartParams params) async {
     try {
-      if (params.origem.code == ExpeditionOrigem.separacaoEstoque.code) {
+      if (params.origem == ExpeditionOrigem.separacaoEstoque) {
         final cartRouteModels = await _cartRouteRepository.select(
-          QueryBuilder()
-              .equals('CodEmpresa', params.codEmpresa)
-              .equals('CodOrigem', params.codOrigem)
-              .equals('Origem', params.origem.code)
-              .notEquals('Situacao', ExpeditionCartRouterSituation.cancelada.code),
+          ExpeditionCartRouteQuery.activeByOrigin(
+            codEmpresa: params.codEmpresa,
+            origem: params.origem,
+            codOrigem: params.codOrigem,
+          ),
         );
 
         if (cartRouteModels.isEmpty) {
@@ -247,7 +233,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
         return success(cartRouteModels.first.codCarrinhoPercurso);
       }
 
-      if (params.origem.code == ExpeditionOrigem.compraMercadoria.code) {
+      if (params.origem == ExpeditionOrigem.compraMercadoria) {
         final cartRouteInternshipModels = await _cartRouteInternshipRepository.select(
           QueryBuilder()
               .equals('CodEmpresa', params.codEmpresa)
@@ -269,16 +255,7 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
   }
 
   Future<void> _updateCartSituation(ExpeditionCartConsultationModel cart) async {
-    final cartModel = ExpeditionCartModel(
-      codEmpresa: cart.codEmpresa,
-      codCarrinho: cart.codCarrinho,
-      descricao: cart.descricaoCarrinho,
-      ativo: cart.ativo,
-      codigoBarras: cart.codigoBarras,
-      situacao: ExpeditionCartSituation.emSeparacao,
-    );
-
-    await _cartRepository.update(cartModel);
+    await _cartRepository.update(cart.toCartModel(situacao: ExpeditionCartSituation.emSeparacao));
   }
 
   Future<Result<int>> _findInternship(ExpeditionOrigem origem) async {
@@ -297,13 +274,13 @@ class AddCartUseCase extends UseCase<AddCartSuccess, AddCartParams> {
     }
   }
 
-  Future<ExpeditionCartRouteInternshipModel> _createCartRoute(
+  ExpeditionCartRouteInternshipModel _createCartRouteInternship(
     AddCartParams params,
     ExpeditionCartConsultationModel cart,
     UserSystemModel userSystem,
     int internshipCode,
     int codCarrinhoPercurso,
-  ) async {
+  ) {
     final now = DateTime.now();
 
     return ExpeditionCartRouteInternshipModel(

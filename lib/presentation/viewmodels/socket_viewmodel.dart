@@ -1,9 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 
-import 'package:data7_expedicao/core/network/socket_config.dart';
-import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/services/i_socket_connection_port.dart';
 import 'package:data7_expedicao/di/locator.dart';
 
@@ -14,111 +10,30 @@ class SocketViewModel extends ChangeNotifier {
 
   ISocketConnectionPort get socketService {
     _socketService ??= locator<ISocketConnectionPort>();
+    if (_connectionListener == null && !_disposed) {
+      _setupConnectionListener();
+    }
     return _socketService!;
   }
 
-  /// Retorna o estado físico de conexão baseado no socket_io_client
-  /// Isso garante que a UI mostre o mesmo estado que o repository verifica
-  SocketConnectionState get connectionState {
-    if (SocketConfig.isConnected) {
-      return SocketConnectionState.connected;
-    }
-    return SocketConnectionState.disconnected;
-  }
+  SocketConnectionState get connectionState => socketService.connectionState;
 
-  bool get isConnected => SocketConfig.isConnected;
+  bool get isConnected => socketService.isConnected;
 
   String? get userId => socketService.userId;
 
   void initialize() {
+    if (_connectionListener != null) {
+      return;
+    }
     _setupConnectionListener();
-
-    _autoConnect();
   }
 
-  void _autoConnect() {
-    unawaited(
-      Future<void>.delayed(const Duration(seconds: 2), () {
-        // Bug AAAA: se o ViewModel foi disposto durante a janela de 2s,
-        // nao tentamos conectar (o socketService e singleton, mas evitamos
-        // trabalho desnecessario e potenciais notifications em VM disposta).
-        if (_disposed) return;
-        if (connectionState == SocketConnectionState.disconnected) {
-          unawaited(
-            connect().catchError((Object e, StackTrace s) {
-              AppLogger.warning(
-                'Falha na auto-conexão do socket',
-                tag: 'SocketViewModel',
-                error: e,
-                stackTrace: s,
-              );
-            }),
-          );
-        }
-      }).catchError((Object e, StackTrace s) {
-        AppLogger.warning(
-          'Falha no delayed de auto-conexão do socket',
-          tag: 'SocketViewModel',
-          error: e,
-          stackTrace: s,
-        );
-      }),
-    );
-  }
+  Future<void> connect() => socketService.connect();
 
-  Future<void> connect() async {
-    try {
-      await socketService.connect();
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao conectar ao socket', tag: 'SocketViewModel', error: e);
-      }
-    }
-  }
+  void disconnect() => socketService.disconnect();
 
-  void disconnect() {
-    try {
-      socketService.disconnect();
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao desconectar do socket', tag: 'SocketViewModel', error: e);
-      }
-    }
-  }
-
-  Future<void> reconnect() async {
-    try {
-      await socketService.reconnect();
-    } catch (e) {
-      if (kDebugMode) {
-        AppLogger.error('Erro ao reconectar ao socket', tag: 'SocketViewModel', error: e);
-      }
-    }
-  }
-
-  void sendLocationUpdate(double latitude, double longitude) {
-    if (!isConnected) {
-      return;
-    }
-
-    socketService.sendLocationUpdate(latitude, longitude);
-  }
-
-  void sendScannerResult(String scanData, String scanType) {
-    if (!isConnected) {
-      return;
-    }
-
-    socketService.sendScannerResult(scanData, scanType);
-  }
-
-  void sendMessage(String message, {String? recipientId}) {
-    if (!isConnected) {
-      return;
-    }
-
-    socketService.sendMessage(message, recipientId);
-  }
+  Future<void> reconnect() => socketService.reconnect();
 
   Stream<dynamic> listenToEvent(String eventName) {
     return socketService.on(eventName);
@@ -137,13 +52,10 @@ class SocketViewModel extends ChangeNotifier {
   }
 
   void _setupConnectionListener() {
-    // Bug BBBB: antes era `_connectionListener = notifyListeners` que,
-    // mesmo com remove no dispose, podia ser invocado em race com
-    // super.dispose() (callback rodando entre threads/event loop) →
-    // FlutterError "A SocketViewModel was used after being disposed".
-    // Wrap em closure com guard de _disposed elimina a janela de risco.
     _connectionListener = () {
-      if (_disposed) return;
+      if (_disposed) {
+        return;
+      }
       notifyListeners();
     };
     socketService.addListener(_connectionListener!);

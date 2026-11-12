@@ -93,11 +93,11 @@ void main() {
 
       final capturedQuery = consultationRepository.lastQueryBuilder;
       expect(capturedQuery, isNotNull);
-      expect(capturedQuery!.buildSqlWhere(), contains("CodEmpresa = '1'"));
-      expect(capturedQuery.buildSqlWhere(), contains("CodSepararEstoque = '2'"));
+      expect(capturedQuery!.buildSqlWhere(), contains('CodEmpresa = 1'));
+      expect(capturedQuery.buildSqlWhere(), contains('CodSepararEstoque = 2'));
       expect(
         capturedQuery.buildOrderByQuery(),
-        equals('order_by=CodEmpresa,CodSepararEstoque,DescricaoEnderecoProduto&order_direction=ASC,ASC,ASC'),
+        equals('order_by=CodEmpresa,CodSepararEstoque,DescricaoEnderecoProduto,Item&order_direction=ASC,ASC,ASC,ASC'),
       );
     });
   });

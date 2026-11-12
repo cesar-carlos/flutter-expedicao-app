@@ -1,10 +1,28 @@
 # Documentacao
 
-Esta pasta guarda o que o codigo nao deixa obvio: operacao de release,
-atualizacao do app e regras de negocio da separacao.
+Esta pasta guarda o que o codigo do coletor nao deixa obvio: operacao
+de release, atualizacao do app e regras de negocio da separacao.
 
 Arquitetura, estilo e padroes ficam em `.cursor/rules/`. O `README.md`
 da raiz cobre instalacao e execucao.
+
+Contrato com o servidor (HTTP + Socket.IO) nao mora aqui. Fonte:
+
+`D:\Developer\Node\data7-api-pix Campo\docs`
+
+Comece por `docs/comunicacao.md` e `docs/contratos/README.md`.
+
+## Pastas
+
+```text
+docs/
+|- README.md                 este indice
+|- app-update.md             atualizacao automatica via GitHub
+|- scanner-broadcast-android.md
+|- separacao/                regras de picking no coletor
+|- proxima_separacao/        oferta da proxima separacao
+`- release/                  processo e notas de versao
+```
 
 ## Operacao
 

@@ -32,6 +32,7 @@ import 'package:data7_expedicao/domain/repositories/basic_consultation_repositor
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
+import 'package:data7_expedicao/domain/services/separate_item_unit_conversions_service.dart';
 import 'package:data7_expedicao/domain/services/i_filters_storage_service.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/domain/services/picking_state_manager.dart';
@@ -281,6 +282,14 @@ AddItemSeparationUseCase buildAddItemUseCase(FakeUserSessionService userSessionS
   );
 }
 
+SeparateItemUnitConversionsService buildUnitConversions() {
+  return SeparateItemUnitConversionsService(
+    repository: FakeConsultationRepository<SeparateItemUnidadeMedidaConsultationModel>(
+      onSelect: (_) async => const <SeparateItemUnidadeMedidaConsultationModel>[],
+    ),
+  );
+}
+
 SaveSeparationCartUseCase buildSaveCartUseCase(FakeUserSessionService userSessionService) {
   return SaveSeparationCartUseCase(
     cartRouteInternshipRepository: FakeBasicRepository<ExpeditionCartRouteInternshipModel>(),
@@ -412,6 +421,7 @@ void main() {
         shelfScanningService: ShelfScanningService(),
         stateManager: PickingStateManager(),
         cartValidationService: CartValidationService(repository: repository),
+        unitConversions: buildUnitConversions(),
       );
     });
 
@@ -428,7 +438,7 @@ void main() {
       var callCount = 0;
       repository.onSelect = (_) async {
         callCount += 1;
-        if (callCount == 1) {
+        if (callCount <= 2) {
           return <SeparateItemConsultationModel>[firstItem];
         }
         return <SeparateItemConsultationModel>[firstItem, secondItem];
@@ -452,7 +462,7 @@ void main() {
       var callCount = 0;
       repository.onSelect = (_) async {
         callCount += 1;
-        if (callCount == 1) {
+        if (callCount <= 2) {
           return <SeparateItemConsultationModel>[firstItem];
         }
         return <SeparateItemConsultationModel>[firstItem, secondItem];
@@ -478,7 +488,7 @@ void main() {
 
       expect(viewModel.items, hasLength(2));
       expect(viewModel.hasCartStatusChanged, isFalse);
-      expect(repository.selectCallCount, 2);
+      expect(repository.selectCallCount, 4);
     });
 
     test('retry preserves the current user context when reloading items', () async {
@@ -487,9 +497,14 @@ void main() {
       final hiddenItem = buildPendingItem(item: '2', codProduto: 2, codSetorEstoque: 99);
 
       repository.onSelect = (queryBuilder) async {
-        final where = queryBuilder.buildSqlWhere();
-        if (where.contains('CodSetorEstoque = 1 OR CodSetorEstoque IS NULL')) {
-          return <SeparateItemConsultationModel>[allowedItem];
+        final hasUserSector = queryBuilder.params.any(
+          (param) => param.key == 'CodSetorEstoque' && param.operator == '=' && param.value == 1,
+        );
+        final hasNullSector = queryBuilder.params.any(
+          (param) => param.key == 'CodSetorEstoque' && param.operator == 'IS NULL',
+        );
+        if (hasUserSector || hasNullSector) {
+          return hasUserSector ? <SeparateItemConsultationModel>[allowedItem] : <SeparateItemConsultationModel>[];
         }
         return <SeparateItemConsultationModel>[allowedItem, hiddenItem];
       };
@@ -523,16 +538,17 @@ void main() {
     test('user-sector reload pushes sector filtering to the server query', () async {
       final cart = buildCart();
       final item = buildPendingItem(item: '1', codProduto: 1, codSetorEstoque: 1);
-      var capturedWhere = '';
+      final capturedWheres = <String>[];
 
       repository.onSelect = (queryBuilder) async {
-        capturedWhere = queryBuilder.buildSqlWhere();
+        capturedWheres.add(queryBuilder.buildSqlWhere());
         return <SeparateItemConsultationModel>[item];
       };
 
       await viewModel.initializeCart(cart, userModel: buildUserModel(codSetorEstoque: 1));
 
-      expect(capturedWhere, contains('CodSetorEstoque = 1 OR CodSetorEstoque IS NULL'));
+      expect(capturedWheres, contains('CodEmpresa = 1 AND CodSepararEstoque = 123 AND CodSetorEstoque = 1'));
+      expect(capturedWheres, contains('CodEmpresa = 1 AND CodSepararEstoque = 123 AND CodSetorEstoque IS NULL'));
       expect(viewModel.items, hasLength(1));
     });
 
@@ -558,6 +574,7 @@ void main() {
         shelfScanningService: ShelfScanningService(),
         stateManager: PickingStateManager(),
         cartValidationService: CartValidationService(repository: repository),
+        unitConversions: buildUnitConversions(),
       );
 
       userSessionService.session = AppUser(
@@ -574,7 +591,7 @@ void main() {
       repository.onSelect = (_) async => <SeparateItemConsultationModel>[firstItem, secondItem];
 
       await viewModel.initializeCart(cart, userModel: buildUserModel());
-      expect(repository.selectCallCount, equals(1));
+      expect(repository.selectCallCount, equals(2));
 
       final firstResult = await viewModel.addScannedItem(itemId: firstItem.item, quantity: 1);
       expect(firstResult.isSuccess, isTrue);
@@ -584,7 +601,7 @@ void main() {
           .timeout(const Duration(milliseconds: 100));
 
       expect(secondResult.isSuccess, isTrue);
-      expect(repository.selectCallCount, equals(1));
+      expect(repository.selectCallCount, equals(2));
       expect(queuedAddUseCase.callCount, equals(2));
       expect(viewModel.getPickedQuantity(firstItem.item), equals(1));
       expect(viewModel.getPickedQuantity(secondItem.item), equals(1));
@@ -592,6 +609,34 @@ void main() {
       firstPendingResponse.complete(queuedAddUseCase.buildSuccess(_buildAddParamsForItem(firstItem)));
       secondPendingResponse.complete(queuedAddUseCase.buildSuccess(_buildAddParamsForItem(secondItem)));
       await Future<void>.delayed(Duration.zero);
+    });
+
+    test('initializeCart mostra erro claro quando conversoes falham', () async {
+      viewModel.dispose();
+      viewModel = CardPickingViewModel.withDependencies(
+        repository: repository,
+        sectorStockRepository: sectorStockRepository,
+        filtersStorage: filtersStorage,
+        addItemSeparationUseCase: buildAddItemUseCase(userSessionService),
+        saveSeparationCartUseCase: buildSaveCartUseCase(userSessionService),
+        userSessionService: userSessionService,
+        cartEventRepository: eventRepository,
+        shelfScanningService: ShelfScanningService(),
+        stateManager: PickingStateManager(),
+        cartValidationService: CartValidationService(repository: repository),
+        unitConversions: SeparateItemUnitConversionsService(
+          repository: FakeConsultationRepository<SeparateItemUnidadeMedidaConsultationModel>(
+            onSelect: (_) async => throw Exception('socket caiu'),
+          ),
+        ),
+      );
+
+      repository.onSelect = (_) async => <SeparateItemConsultationModel>[buildPendingItem()];
+
+      await viewModel.initializeCart(buildCart(), userModel: buildUserModel());
+
+      expect(viewModel.hasError, isTrue);
+      expect(viewModel.errorMessage, contains('unidades de medida'));
     });
   });
 }

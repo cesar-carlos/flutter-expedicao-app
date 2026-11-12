@@ -25,12 +25,23 @@ class AudioService {
   factory AudioService() => _instance;
   AudioService._internal();
 
-  final AudioPlayer _fxPlayer = AudioPlayer(playerId: 'fx_player')
-    ..setPlayerMode(PlayerMode.lowLatency)
-    ..setReleaseMode(ReleaseMode.stop);
+  AudioPlayer? _fxPlayer;
 
   bool _isEnabled = true;
   SoundType? _lastPlayedSoundType;
+
+  AudioPlayer _ensurePlayer() {
+    final existing = _fxPlayer;
+    if (existing != null) {
+      return existing;
+    }
+
+    final player = AudioPlayer(playerId: 'fx_player');
+    player.setPlayerMode(PlayerMode.lowLatency);
+    player.setReleaseMode(ReleaseMode.stop);
+    _fxPlayer = player;
+    return player;
+  }
 
   void setEnabled(bool enabled) {
     _isEnabled = enabled;
@@ -38,10 +49,15 @@ class AudioService {
 
   bool get isEnabled => _isEnabled;
 
+  Future<void> warmUp() async {
+    _ensurePlayer();
+  }
+
   Future<void> playSound(SoundType soundType) async {
     if (!_isEnabled) return;
 
     try {
+      final player = _ensurePlayer();
       // Em alguns dispositivos Android, repetir o mesmo asset no mesmo
       // player lowLatency nao rearma o som corretamente. Isso aparecia
       // no picking como: primeiro scan toca, scans seguintes do mesmo
@@ -49,10 +65,10 @@ class AudioService {
       // Forcamos stop apenas quando o mesmo som sera repetido em
       // sequencia, preservando a menor latencia para sons diferentes.
       if (_lastPlayedSoundType == soundType) {
-        await _fxPlayer.stop();
+        await player.stop();
       }
 
-      await _fxPlayer.play(AssetSource(soundType.path));
+      await player.play(AssetSource(soundType.path));
       _lastPlayedSoundType = soundType;
     } catch (e, stackTrace) {
       AppLogger.warning(
@@ -116,7 +132,7 @@ class AudioService {
 
   Future<void> stop() async {
     try {
-      await _fxPlayer.stop();
+      await _fxPlayer?.stop();
       _lastPlayedSoundType = null;
     } catch (e, s) {
       AppLogger.debug('AudioService.stop falhou', tag: 'AudioService', error: e, stackTrace: s);
@@ -125,7 +141,8 @@ class AudioService {
 
   Future<void> dispose() async {
     try {
-      await _fxPlayer.dispose();
+      await _fxPlayer?.dispose();
+      _fxPlayer = null;
       _lastPlayedSoundType = null;
     } catch (e, s) {
       AppLogger.debug('AudioService.dispose falhou', tag: 'AudioService', error: e, stackTrace: s);
@@ -134,7 +151,7 @@ class AudioService {
 
   Future<void> setVolume(double volume) async {
     try {
-      await _fxPlayer.setVolume(volume.clamp(0.0, 1.0));
+      await _ensurePlayer().setVolume(volume.clamp(0.0, 1.0));
     } catch (e, s) {
       AppLogger.debug('AudioService.setVolume falhou', tag: 'AudioService', error: e, stackTrace: s);
     }

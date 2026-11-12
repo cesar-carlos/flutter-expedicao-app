@@ -8,8 +8,10 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/core/bootstrap.dart';
+import 'package:data7_expedicao/core/errors/global_error_handlers.dart';
 import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
+import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/theme/app_theme.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/di/locator.dart';
@@ -25,18 +27,26 @@ import 'package:data7_expedicao/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_progress_dialog.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      installGlobalErrorHandlers();
 
-  final boot = await bootstrap();
+      final boot = await bootstrap();
 
-  runApp(
-    MyApp(
-      configViewModel: boot.configViewModel,
-      themeViewModel: boot.themeViewModel,
-      socketViewModel: boot.socketViewModel,
-      appUpdateViewModel: boot.appUpdateViewModel,
-    ),
+      runApp(
+        MyApp(
+          configViewModel: boot.configViewModel,
+          themeViewModel: boot.themeViewModel,
+          socketViewModel: boot.socketViewModel,
+          appUpdateViewModel: boot.appUpdateViewModel,
+        ),
+      );
+    },
+    (error, stack) {
+      AppLogger.error('Erro não tratado na zona', tag: 'Zone', error: error, stackTrace: stack);
+    },
   );
 }
 
@@ -66,6 +76,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_warmUpAudio());
+    });
+  }
+
+  Future<void> _warmUpAudio() async {
+    try {
+      await locator<AudioService>().warmUp();
+    } catch (error, stackTrace) {
+      AppLogger.warning('Falha ao preparar AudioService', tag: 'MyApp', error: error, stackTrace: stackTrace);
+    }
   }
 
   @override

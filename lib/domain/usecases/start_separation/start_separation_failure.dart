@@ -135,13 +135,13 @@ class StartSeparationFailure extends AppFailure {
       case StartSeparationFailureType.userNotFound:
         return 'Usuário não autenticado';
       case StartSeparationFailureType.insertCartRouteFailed:
-        return 'Falha ao criar percurso do carrinho';
+        return UserFacingMessage.prefer(details, 'Falha ao criar percurso do carrinho');
       case StartSeparationFailureType.updateSeparateFailed:
-        return 'Falha ao atualizar separação';
+        return UserFacingMessage.prefer(details, 'Falha ao atualizar separação');
       case StartSeparationFailureType.networkError:
-        return 'Erro de conexão. Verifique sua internet';
+        return UserFacingMessage.prefer(details, 'Não foi possível conectar ao servidor. Tente novamente.');
       case StartSeparationFailureType.unknownError:
-        return 'Erro inesperado. Tente novamente';
+        return UserFacingMessage.prefer(details, 'Não foi possível iniciar a separação. Tente novamente.');
     }
   }
 

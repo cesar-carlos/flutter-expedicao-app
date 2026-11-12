@@ -8,8 +8,14 @@ class LoggerService implements ILogger {
 
   LoggerService({String? name}) : _logger = Logger(name ?? 'Data7Expedicao');
 
+  static bool _listenerAttached = false;
+
   static void initialize({Level level = Level.ALL}) {
     Logger.root.level = level;
+    if (_listenerAttached) {
+      return;
+    }
+    _listenerAttached = true;
     Logger.root.onRecord.listen((record) {
       if (kDebugMode) {
         final levelEmoji = _getLevelEmoji(record.level);

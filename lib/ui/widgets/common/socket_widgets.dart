@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
-import 'package:data7_expedicao/data/services/socket_service.dart';
+import 'package:data7_expedicao/domain/services/i_socket_connection_port.dart';
 import 'package:data7_expedicao/presentation/viewmodels/socket_viewmodel.dart';
 
 Future<void> _performSocketConnectionButtonTap({
@@ -28,10 +28,7 @@ Future<void> _performSocketConnectionButtonTap({
     );
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Erro na conexão: $e'),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ),
+      SnackBar(content: Text('Erro na conexão: $e'), backgroundColor: Theme.of(context).colorScheme.error),
     );
   }
 }
@@ -68,14 +65,12 @@ class SocketStatusIndicator extends StatefulWidget {
 
 class _SocketStatusIndicatorState extends State<SocketStatusIndicator> with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
+  bool? _lastConnecting;
 
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
+    _pulseController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
   }
 
   @override
@@ -105,11 +100,12 @@ class _SocketStatusIndicatorState extends State<SocketStatusIndicator> with Sing
             socketViewModel.connectionState == SocketConnectionState.connecting ||
             socketViewModel.connectionState == SocketConnectionState.reconnecting;
 
-        // Sincroniza o controller com o estado APOS o build (nao podemos
-        // chamar repeat()/stop() durante build).
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _syncAnimationWithState(isConnecting);
-        });
+        if (_lastConnecting != isConnecting) {
+          _lastConnecting = isConnecting;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _syncAnimationWithState(isConnecting);
+          });
+        }
 
         final stateColor = Color(socketViewModel.connectionStateColor);
 
@@ -129,10 +125,7 @@ class _SocketStatusIndicatorState extends State<SocketStatusIndicator> with Sing
                   Container(
                     width: widget.size,
                     height: widget.size,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: stateColor,
-                    ),
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: stateColor),
                   ),
 
                   if (isConnecting)
@@ -159,10 +152,9 @@ class _SocketStatusIndicatorState extends State<SocketStatusIndicator> with Sing
                   child: Text(
                     socketViewModel.connectionStateDescription,
                     key: ValueKey(socketViewModel.connectionStateDescription),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: stateColor,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500, color: stateColor),
                   ),
                 ),
               ],

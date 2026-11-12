@@ -1,16 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/separation_user_sector_model.dart';
 import 'package:data7_expedicao/domain/repositories/basic_repository.dart';
-import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_failure.dart';
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_params.dart';
 import 'package:data7_expedicao/domain/usecases/register_separation_user_sector/register_separation_user_sector_usecase.dart';
 
 void main() {
   group('RegisterSeparationUserSectorUseCase', () {
-    test('DataError no insert vira RegisterSeparationUserSectorFailure.networkError', () async {
+    test('DataError no insert vira NetworkFailure', () async {
       final repository = _ThrowingSeparationUserSectorRepository();
       final useCase = RegisterSeparationUserSectorUseCase(repository: repository);
 
@@ -25,12 +25,7 @@ void main() {
       );
 
       expect(result.isError(), isTrue);
-      final failure = result.exceptionOrNull();
-      expect(failure, isA<RegisterSeparationUserSectorFailure>());
-      expect(
-        (failure as RegisterSeparationUserSectorFailure).type,
-        RegisterSeparationUserSectorFailureType.networkError,
-      );
+      expect(result.exceptionOrNull(), isA<NetworkFailure>());
     });
   });
 }

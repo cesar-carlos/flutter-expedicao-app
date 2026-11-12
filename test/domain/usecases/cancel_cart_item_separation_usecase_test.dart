@@ -97,6 +97,23 @@ void main() {
       expect(failure?.type, CancelCardItemSeparationFailureType.updateSeparationItemFailed);
     });
 
+    test('reduz a linha com o mesmo Item quando o produto se repete', () async {
+      final matching = _separateRow();
+      final otherLine = _separateRow().copyWith(item: '00002', quantidadeSeparacao: 8);
+      final separateRepo = InMemorySeparateItemRepository([otherLine, matching]);
+      final uc = CancelCardItemSeparationUseCase(
+        separateItemRepository: separateRepo,
+        separationItemRepository: InMemorySeparationItemRepository([_separationRow()]),
+        userSessionService: FakeUserSessionService(),
+      );
+
+      final result = await uc.call(params);
+
+      expect(result.isSuccess(), isTrue);
+      expect(separateRepo.rows.firstWhere((row) => row.item == '00001').quantidadeSeparacao, 4.0);
+      expect(separateRepo.rows.firstWhere((row) => row.item == '00002').quantidadeSeparacao, 8.0);
+    });
+
     test('cancela itens e reduz quantidadeSeparacao nos separate_item', () async {
       final sepRow = _separateRow();
       final uc = CancelCardItemSeparationUseCase(
@@ -134,6 +151,26 @@ void main() {
 
       expect(separateRepo.rows.single.quantidadeSeparacao, 6.0);
       expect(separationRepo.rows.single.situacao, ExpeditionItemSituation.separado);
+    });
+
+    test('reverte quantidade ja gravada quando o update seguinte falha', () async {
+      final matching = _separateRow();
+      final otherLine = _separateRow().copyWith(item: '00002', codProduto: 43, quantidadeSeparacao: 8);
+      final separateRepo = _ThrowAfterFirstSeparateItemRepository([matching, otherLine]);
+      final uc = CancelCardItemSeparationUseCase(
+        separateItemRepository: separateRepo,
+        separationItemRepository: InMemorySeparationItemRepository([
+          _separationRow(),
+          _separationRow().copyWith(item: '00002', codProduto: 43, quantidade: 2),
+        ]),
+        userSessionService: FakeUserSessionService(),
+      );
+
+      final result = await uc.call(params);
+
+      expect(result.isError(), isTrue);
+      expect(separateRepo.rows.firstWhere((row) => row.item == '00001').quantidadeSeparacao, 6.0);
+      expect(separateRepo.rows.firstWhere((row) => row.item == '00002').quantidadeSeparacao, 8.0);
     });
 
     test('canCancelItems retorna true quando ha itens', () async {
@@ -197,6 +234,21 @@ SeparationItemModel _separationRow() {
     codUnidadeMedida: 'UN',
     quantidade: 2.0,
   );
+}
+
+class _ThrowAfterFirstSeparateItemRepository extends InMemorySeparateItemRepository {
+  _ThrowAfterFirstSeparateItemRepository(super.rows);
+
+  int _updates = 0;
+
+  @override
+  Future<List<SeparateItemModel>> update(SeparateItemModel entity) async {
+    _updates++;
+    if (_updates == 2) {
+      throw Exception('falha no segundo update');
+    }
+    return super.update(entity);
+  }
 }
 
 SeparateItemModel _separateRow() {

@@ -19,6 +19,12 @@ class QueryParam<P> {
   }
 
   String toQueryString() {
+    if (operator == 'IS NULL' || operator == 'IS NOT NULL') {
+      return '$key$operator';
+    }
+    if (operator == 'IN' && value is List) {
+      return '$key$operator${_formatInList(value as List<dynamic>)}';
+    }
     return '$key$operator${_formatValue(value)}';
   }
 
@@ -26,7 +32,36 @@ class QueryParam<P> {
     if (operator == 'RAW' && key == 'where') {
       return value.toString();
     }
+    if (operator == 'IS NULL' || operator == 'IS NOT NULL') {
+      return '$key $operator';
+    }
+    if (operator == 'IN' && value is List) {
+      return '$key IN ${_formatInList(value as List<dynamic>)}';
+    }
     return '$key $operator ${_formatSqlValue(value)}';
+  }
+
+  /// Clause no formato exigido pelo servidor: `{ key, operator?, value? }`.
+  Map<String, dynamic> toSocketWhere() {
+    if (operator == 'RAW' && key == 'where') {
+      throw StateError(
+        'Where SQL bruto não é suportado pelo servidor. Use QueryBuilder.equals, inList ou isNull.',
+      );
+    }
+
+    final map = <String, dynamic>{'key': key};
+    if (operator != '=') {
+      map['operator'] = operator;
+    }
+    if (operator == 'IS NULL' || operator == 'IS NOT NULL') {
+      return map;
+    }
+    if (operator == 'IN' && value is List) {
+      map['value'] = value;
+      return map;
+    }
+    map['value'] = _socketValue(value);
+    return map;
   }
 
   String _formatValue(P value) {
@@ -63,6 +98,36 @@ class QueryParam<P> {
     } else {
       return value.toString();
     }
+  }
+
+  String _formatInList(List<dynamic> values) {
+    return '(${values.map(_formatScalarSql).join(',')})';
+  }
+
+  String _formatScalarSql(Object? current) {
+    if (current is String && current.startsWith('(') && current.endsWith(')')) {
+      return current;
+    }
+    if (current is String) {
+      return "'$current'";
+    }
+    if (current is DateTime) {
+      return "'${current.toIso8601String()}'";
+    }
+    if (current is bool) {
+      return current ? '1' : '0';
+    }
+    return current.toString();
+  }
+
+  Object? _socketValue(P current) {
+    if (current is DateTime) {
+      return current.toIso8601String();
+    }
+    if (current is bool) {
+      return current ? 1 : 0;
+    }
+    return current;
   }
 
   @override

@@ -69,7 +69,7 @@ class SaveSeparationCartFailure extends AppFailure {
 
   factory SaveSeparationCartFailure.unexpected(Object error) {
     return SaveSeparationCartFailure(
-      message: error.toString(),
+      message: AppFailure.forUser(error, fallback: 'Não foi possível salvar o carrinho. Tente novamente.'),
       details: null,
     );
   }

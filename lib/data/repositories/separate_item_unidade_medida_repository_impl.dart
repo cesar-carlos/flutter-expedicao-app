@@ -13,9 +13,11 @@ class SeparateItemUnidadeMedidaRepositoryImpl
 
   @override
   Future<List<SeparateItemUnidadeMedidaConsultationModel>> selectConsultation(QueryBuilder queryBuilder) {
+    // Pagination explícita desliga KEEP_EVERY_UNIT_ROW no servidor.
+    // allRows percorre todas as conversões em páginas com ORDER BY estável.
     return SocketRequestHelper.select<SeparateItemUnidadeMedidaConsultationModel>(
       baseEvent: _selectEvent,
-      queryBuilder: queryBuilder,
+      queryBuilder: queryBuilder.withAllRows(thenBy: ['ItemUnidadeMedida']),
       fromJson: SeparateItemUnidadeMedidaConsultationModel.fromJson,
     );
   }

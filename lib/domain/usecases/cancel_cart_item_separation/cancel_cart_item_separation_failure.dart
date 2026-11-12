@@ -122,13 +122,13 @@ class CancelCardItemSeparationFailure extends AppFailure {
       case CancelCardItemSeparationFailureType.userNotFound:
         return 'Usuário não autenticado';
       case CancelCardItemSeparationFailureType.updateSeparateItemFailed:
-        return 'Falha ao atualizar quantidades';
+        return UserFacingMessage.prefer(details, 'Falha ao atualizar quantidades');
       case CancelCardItemSeparationFailureType.updateSeparationItemFailed:
-        return 'Falha ao cancelar itens';
+        return UserFacingMessage.prefer(details, 'Falha ao cancelar itens');
       case CancelCardItemSeparationFailureType.networkError:
-        return 'Erro de conexão. Verifique sua internet';
+        return UserFacingMessage.prefer(details, 'Não foi possível conectar ao servidor. Tente novamente.');
       case CancelCardItemSeparationFailureType.unknownError:
-        return 'Erro inesperado. Tente novamente';
+        return UserFacingMessage.prefer(details, 'Não foi possível cancelar os itens. Tente novamente.');
     }
   }
 

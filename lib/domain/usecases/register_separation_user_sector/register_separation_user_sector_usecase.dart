@@ -41,7 +41,7 @@ class RegisterSeparationUserSectorUseCase {
       );
     } on DataError catch (e) {
       _logError(e.message);
-      return failure(RegisterSeparationUserSectorFailure.networkError(e.message, Exception(e.message)));
+      return failure(AppFailure.fromCaught(e));
     } on Exception catch (e) {
       _logError(e.toString());
       return failure(RegisterSeparationUserSectorFailure.insertError(e.toString(), e));

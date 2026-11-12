@@ -52,5 +52,19 @@ void main() {
       expect(params.isValid, isFalse);
       expect(params.validationErrors.join(' '), contains('Código do carrinho'));
     });
+
+    test('toString separa codOrigem e codCarrinho', () {
+      const params = AddCartParams(
+        codEmpresa: 1,
+        origem: ExpeditionOrigem.separacaoEstoque,
+        codOrigem: 100,
+        codCarrinho: 50,
+        codCarrinhoPercurso: 9,
+      );
+
+      expect(params.toString(), contains('codOrigem: 100, '));
+      expect(params.toString(), contains('codCarrinho: 50'));
+      expect(params.toString(), contains('codCarrinhoPercurso: 9'));
+    });
   });
 }

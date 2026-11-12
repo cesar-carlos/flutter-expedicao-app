@@ -4,6 +4,8 @@ import 'package:data7_expedicao/domain/models/pagination/query_order_by.dart';
 
 class QueryBuilder {
   Pagination? _pagination;
+  bool _fetchAllPages = false;
+  int _fetchPageSize = Pagination.fetchPageSize;
   final List<QueryParam> _params = [];
   final List<OrderBy> _orderBy = [];
 
@@ -34,8 +36,17 @@ class QueryBuilder {
 
   QueryBuilder inList<P>(String key, List<P> values) {
     if (values.isEmpty) return this;
-    final valueString = '(${values.map((v) => _formatValue(v)).join(',')})';
-    _params.add(QueryParam.createWithOperator(key, valueString, 'IN'));
+    _params.add(QueryParam.createWithOperator(key, List<P>.from(values), 'IN'));
+    return this;
+  }
+
+  QueryBuilder isNull(String key) {
+    _params.add(QueryParam<String?>(key: key, value: null, operator: 'IS NULL'));
+    return this;
+  }
+
+  QueryBuilder isNotNull(String key) {
+    _params.add(QueryParam<String?>(key: key, value: null, operator: 'IS NOT NULL'));
     return this;
   }
 
@@ -62,6 +73,56 @@ class QueryBuilder {
   QueryBuilder paginate({int limit = 10, int offset = 0, int page = 1}) {
     _pagination = Pagination(limit: limit, offset: offset, page: page);
     return this;
+  }
+
+  /// Pede a lista inteira em páginas. Sem isto o servidor corta em 1500,
+  /// ou, na unidade de medida, devolve tudo num único payload.
+  ///
+  /// [thenBy] entra depois de [orderField] para o OFFSET não pular linha
+  /// quando o primeiro campo se repete.
+  QueryBuilder allRows({
+    String orderField = 'Item',
+    List<String> thenBy = const [],
+    int pageSize = Pagination.fetchPageSize,
+  }) {
+    _fetchAllPages = true;
+    _fetchPageSize = pageSize < 1 ? 1 : pageSize;
+    if (_orderBy.isEmpty) {
+      orderByAsc(orderField);
+    }
+    for (final field in thenBy) {
+      if (field.isNotEmpty && !_hasOrderField(field)) {
+        orderByAsc(field);
+      }
+    }
+    return this;
+  }
+
+  QueryBuilder copy() {
+    final clone = QueryBuilder();
+    clone._params.addAll(_params);
+    clone._orderBy.addAll(_orderBy);
+    clone._pagination = _pagination;
+    clone._fetchAllPages = _fetchAllPages;
+    clone._fetchPageSize = _fetchPageSize;
+    return clone;
+  }
+
+  /// Clona e aplica [allRows] se ainda não houver página.
+  QueryBuilder withAllRows({
+    String orderField = 'Item',
+    List<String> thenBy = const [],
+    int pageSize = Pagination.fetchPageSize,
+  }) {
+    final query = copy();
+    if (query._fetchAllPages || query._pagination != null) {
+      return query;
+    }
+    return query.allRows(orderField: orderField, thenBy: thenBy, pageSize: pageSize);
+  }
+
+  bool _hasOrderField(String field) {
+    return _orderBy.any((order) => order.field == field);
   }
 
   QueryBuilder orderBy(String field, {OrderDirection direction = OrderDirection.asc}) {
@@ -93,12 +154,24 @@ class QueryBuilder {
     return _params.map((param) => param.toSqlString()).join(' AND ');
   }
 
+  /// Where no contrato Socket.IO: lista `{ key, operator?, value? }`.
+  List<Map<String, dynamic>>? buildWhereParams() {
+    if (_params.isEmpty) {
+      return null;
+    }
+    return _params.map((param) => param.toSocketWhere()).toList(growable: false);
+  }
+
   String buildPagination() {
     if (_pagination == null) {
       return '';
     }
     return _pagination!.toQueryString();
   }
+
+  /// Só pagina em loop quando o chamador pediu `allRows()`. Lookup sem
+  /// `paginate` vai numa ida só — o servidor aplica o teto padrão.
+  bool get shouldFetchAllPages => _fetchAllPages;
 
   /// Gera cláusula SQL ORDER BY no formato `ORDER BY field1 ASC, field2 DESC`.
   /// Diferente de [buildOrderByQuery] (que produz query string para REST/URL).
@@ -141,22 +214,18 @@ class QueryBuilder {
 
   Pagination? get pagination => _pagination;
 
+  bool get fetchAllPages => _fetchAllPages;
+
+  int get fetchPageSize => _fetchPageSize;
+
   List<OrderBy> get orderByClauses => List.unmodifiable(_orderBy);
 
   void clear() {
     _params.clear();
     _pagination = null;
+    _fetchAllPages = false;
+    _fetchPageSize = Pagination.fetchPageSize;
     _orderBy.clear();
-  }
-
-  String _formatValue(dynamic value) {
-    if (value is String) {
-      return "'$value'";
-    } else if (value is DateTime) {
-      return "'${value.toIso8601String()}'";
-    } else {
-      return value.toString();
-    }
   }
 
   @override

@@ -7,11 +7,12 @@ import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/domain/repositories/basic_consultation_repository.dart';
 
 class CartValidationService {
+  static const int _probePageSize = 20;
+
   final BasicConsultationRepository<SeparateItemConsultationModel> _repository;
 
-  CartValidationService({
-    required BasicConsultationRepository<SeparateItemConsultationModel> repository,
-  }) : _repository = repository;
+  CartValidationService({required BasicConsultationRepository<SeparateItemConsultationModel> repository})
+    : _repository = repository;
 
   bool canEditOtherUserCart(UserSystemModel? userModel) {
     return userModel?.editaCarrinhoOutroUsuario == Situation.ativo;
@@ -37,16 +38,21 @@ class CartValidationService {
     required int userSectorCode,
   }) async {
     try {
-      final queryBuilder = QueryBuilder()
-        ..equals('CodEmpresa', codEmpresa.toString())
-        ..equals('CodSepararEstoque', codOrigem.toString());
+      final bySector = await _hasPendingOnQuery(
+        QueryBuilder()
+          ..equals('CodEmpresa', codEmpresa.toString())
+          ..equals('CodSepararEstoque', codOrigem.toString())
+          ..equals('CodSetorEstoque', userSectorCode.toString()),
+      );
+      if (bySector) {
+        return true;
+      }
 
-      final items = await _repository.selectConsultation(queryBuilder);
-
-      return items.any(
-        (item) =>
-            item.quantidadeSeparacao < item.quantidade &&
-            (item.codSetorEstoque == null || item.codSetorEstoque == userSectorCode),
+      return await _hasPendingOnQuery(
+        QueryBuilder()
+          ..equals('CodEmpresa', codEmpresa.toString())
+          ..equals('CodSepararEstoque', codOrigem.toString())
+          ..isNull('CodSetorEstoque'),
       );
     } catch (e, stackTrace) {
       AppLogger.warning(
@@ -57,6 +63,26 @@ class CartValidationService {
       );
       return true;
     }
+  }
+
+  Future<bool> _hasPendingOnQuery(QueryBuilder base) async {
+    for (var pageIndex = 0; ; pageIndex++) {
+      final query = base.copy()
+        ..paginate(limit: _probePageSize, offset: pageIndex * _probePageSize, page: pageIndex + 1)
+        ..orderByAsc('Item')
+        ..orderByAsc('CodProduto');
+      final items = await _repository.selectConsultation(query);
+      if (items.any(_isPendingForSector)) {
+        return true;
+      }
+      if (items.length < _probePageSize) {
+        return false;
+      }
+    }
+  }
+
+  bool _isPendingForSector(SeparateItemConsultationModel item) {
+    return item.quantidadeSeparacao < item.quantidade;
   }
 
   CartAccessValidationResult validateCartAccess({
@@ -100,17 +126,9 @@ class CartValidationService {
   }
 }
 
-enum CartAccessType {
-  edit,
-  save,
-  delete,
-}
+enum CartAccessType { edit, save, delete }
 
-enum CartAccessDeniedReason {
-  userNotFound,
-  differentUser,
-  noItemsForSector,
-}
+enum CartAccessDeniedReason { userNotFound, differentUser, noItemsForSector }
 
 class CartAccessValidationResult {
   final bool canAccess;
