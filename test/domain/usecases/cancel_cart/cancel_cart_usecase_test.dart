@@ -217,7 +217,7 @@ class _MemoryCancellationRepository implements BasicRepository<ExpeditionCancell
 }
 
 class _MemoryCartRepository implements BasicRepository<ExpeditionCartModel> {
-  _MemoryCartRepository(ExpeditionCartModel? item, {this.failFirstUpdate = false}) : item = item;
+  _MemoryCartRepository(this.item, {this.failFirstUpdate = false});
 
   ExpeditionCartModel? item;
   final bool failFirstUpdate;
