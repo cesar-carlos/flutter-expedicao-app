@@ -126,7 +126,7 @@ void main() {
         async.flushMicrotasks();
 
         expect(failure, isNotNull);
-        expect(failure!.message, contains('TimeoutException'));
+        expect(failure!.message, 'O servidor não respondeu a tempo. Tente novamente.');
       });
     });
 
@@ -185,7 +185,7 @@ void main() {
         async.flushMicrotasks();
 
         expect(failure, isNotNull);
-        expect(failure!.message, contains('TimeoutException'));
+        expect(failure!.message, 'O servidor não respondeu a tempo. Tente novamente.');
       });
     });
   });
