@@ -73,6 +73,20 @@ void main() {
       expect(records.single.message, equals('hello'));
     });
 
+    test('initialize nao lanca ao ajustar o logger do app', () {
+      expect(() => LoggerService.initialize(level: Level.INFO), returnsNormally);
+      expect(hierarchicalLoggingEnabled, isTrue);
+      expect(Logger.root.level, equals(Level.INFO));
+      Logger.root.level = Level.ALL;
+    });
+
+    test('clampRootLevel impede Level.ALL no root', () {
+      expect(LoggerService.clampRootLevel(Level.ALL), equals(Level.INFO));
+      expect(LoggerService.clampRootLevel(Level.FINE), equals(Level.INFO));
+      expect(LoggerService.clampRootLevel(Level.INFO), equals(Level.INFO));
+      expect(LoggerService.clampRootLevel(Level.WARNING), equals(Level.WARNING));
+    });
+
     test('error/stackTrace sao propagados ao Logger', () {
       final err = Exception('boom');
       final stack = StackTrace.current;

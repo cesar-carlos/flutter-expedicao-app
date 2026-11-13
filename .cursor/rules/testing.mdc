@@ -9,7 +9,7 @@ alwaysApply: false
 ## Escopo
 
 Este arquivo cobre estrategia de testes e convencoes praticas para
-`test/**`.
+`test/**` e `integration_test/**`.
 
 ## Escolha do menor teste necessario
 
@@ -67,7 +67,8 @@ Este arquivo cobre estrategia de testes e convencoes praticas para
 
 ## Suites unit vs integracao
 
-- testes que conversam com API/socket ficam em `integration_test/` (mesmo suffix `*_integration_test.dart`)
+- testes com API/socket reais ficam em `integration_test/`, com sufixo
+  `*_integration_test.dart`; testes com fakes ou mocks ficam em `test/`
 - gate rapido sem backend: `flutter test` (somente `test/`)
 - apenas integracao: `flutter test integration_test`
 

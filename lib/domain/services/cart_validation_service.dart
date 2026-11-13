@@ -32,6 +32,22 @@ class CartValidationService {
     return hasPermission;
   }
 
+  bool hasPendingItemsForUserSector({
+    required Iterable<SeparateItemConsultationModel> items,
+    required int userSectorCode,
+  }) {
+    for (final item in items) {
+      final sector = item.codSetorEstoque;
+      if (sector != null && sector != userSectorCode) {
+        continue;
+      }
+      if (_isPendingForSector(item)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Future<bool> hasItemsForUserSector({
     required int codEmpresa,
     required int codOrigem,

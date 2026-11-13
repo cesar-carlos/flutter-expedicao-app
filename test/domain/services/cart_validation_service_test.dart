@@ -108,6 +108,19 @@ void main() {
       expect(r.cartOwnerName, equals('Dono'));
     });
 
+    test('hasPendingItemsForUserSector usa a lista ja carregada', () {
+      final pendingInSector = item(qSep: 0, qTotal: 5, codSetor: 7);
+      final otherSector = item(qSep: 0, qTotal: 5, codSetor: 99);
+      final completed = item(qSep: 5, qTotal: 5, codSetor: 7);
+
+      expect(service.hasPendingItemsForUserSector(items: [pendingInSector], userSectorCode: 7), isTrue);
+      expect(
+        service.hasPendingItemsForUserSector(items: [item(qSep: 0, qTotal: 5, codSetor: null)], userSectorCode: 7),
+        isTrue,
+      );
+      expect(service.hasPendingItemsForUserSector(items: [otherSector, completed], userSectorCode: 7), isFalse);
+    });
+
     test('hasItemsForUserSector retorna true quando ha pendencia no setor', () async {
       repo.items = [item(qSep: 0, qTotal: 5, codSetor: 7)];
 

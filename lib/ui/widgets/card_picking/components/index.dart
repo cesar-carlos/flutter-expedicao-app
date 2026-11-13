@@ -10,3 +10,4 @@ export 'scanner_broadcast_controller.dart';
 export 'scanner_activation_controller.dart';
 export 'shelf_scanning_modal_v2.dart';
 export 'picking_flow_controller.dart';
+export 'picking_scanner_policy.dart';

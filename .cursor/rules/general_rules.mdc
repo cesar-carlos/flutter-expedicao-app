@@ -1,6 +1,6 @@
 ---
 description: Comentarios, documentacao e quando extrair codigo
-globs: ["lib/**/*.dart", "test/**/*.dart"]
+globs: ["lib/**/*.dart", "test/**/*.dart", "integration_test/**/*.dart"]
 alwaysApply: false
 ---
 
@@ -8,14 +8,10 @@ alwaysApply: false
 
 ## Documentacao
 
-- nao crie `///`, `README` nem outro `.md` sem pedido explicito
-- nao crie changelog, guia ou arquivo de exemplo por conta propria
+- a autorizacao para criar documentacao, inclusive `///`, README,
+  changelog, guias e exemplos, segue `global_guardrails.mdc`
 - comentario explica por que, nao o que o codigo ja diz
 - nome claro dispensa o comentario
-
-```dart
-final cachedSeparation = await localCache.read(id);
-```
 
 ## Extracao
 

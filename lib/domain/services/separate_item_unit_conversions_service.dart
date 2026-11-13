@@ -10,7 +10,8 @@ import 'package:data7_expedicao/domain/repositories/basic_consultation_repositor
 /// Carrega conversões de unidade em páginas e anexa em cada item.
 ///
 /// `separar.item.consulta` não manda mais `UnidadeMedidas` preenchidas.
-/// O coletor busca `separar.item.unidade.medida.consulta` com `allRows`.
+/// O coletor busca `separar.item.unidade.medida.consulta` só dos itens
+/// já carregados — o `allRows` da separação inteira travava a UI.
 class SeparateItemUnitConversionsService {
   SeparateItemUnitConversionsService({
     required BasicConsultationRepository<SeparateItemUnidadeMedidaConsultationModel> repository,
@@ -18,20 +19,40 @@ class SeparateItemUnitConversionsService {
 
   static const String loadFailedCode = 'UNIT_CONVERSIONS_LOAD_FAILED';
   static const String loadFailedMessage = 'Não foi possível carregar as unidades de medida dos itens. Tente novamente.';
+  static const int itemInBatchSize = 100;
 
   final BasicConsultationRepository<SeparateItemUnidadeMedidaConsultationModel> _repository;
 
   Future<List<SeparateItemUnidadeMedidaConsultationModel>> fetchForSeparation({
     required int codEmpresa,
     required int codSepararEstoque,
+    Iterable<String> itemCodes = const [],
   }) async {
     try {
-      return await _repository.selectConsultation(
-        QueryBuilder()
-          ..equals('CodEmpresa', codEmpresa)
-          ..equals('CodSepararEstoque', codSepararEstoque)
-          ..allRows(thenBy: ['ItemUnidadeMedida']),
-      );
+      final codes = itemCodes.toSet().where((item) => item.isNotEmpty).toList();
+      if (codes.isEmpty) {
+        return await _selectConversions(codEmpresa: codEmpresa, codSepararEstoque: codSepararEstoque);
+      }
+
+      if (codes.length <= itemInBatchSize) {
+        return await _selectConversions(codEmpresa: codEmpresa, codSepararEstoque: codSepararEstoque, itemCodes: codes);
+      }
+
+      final units = <SeparateItemUnidadeMedidaConsultationModel>[];
+      for (var offset = 0; offset < codes.length; offset += itemInBatchSize) {
+        final end = offset + itemInBatchSize > codes.length ? codes.length : offset + itemInBatchSize;
+        units.addAll(
+          await _selectConversions(
+            codEmpresa: codEmpresa,
+            codSepararEstoque: codSepararEstoque,
+            itemCodes: codes.sublist(offset, end),
+          ),
+        );
+        if (end < codes.length) {
+          await Future<void>.delayed(Duration.zero);
+        }
+      }
+      return units;
     } catch (e, stackTrace) {
       AppLogger.error(
         'Falha ao carregar conversoes de unidade paginadas.',
@@ -46,24 +67,42 @@ class SeparateItemUnitConversionsService {
     }
   }
 
-  /// Dispara a lista de itens e as conversões ao mesmo tempo.
+  Future<List<SeparateItemUnidadeMedidaConsultationModel>> _selectConversions({
+    required int codEmpresa,
+    required int codSepararEstoque,
+    List<String> itemCodes = const [],
+  }) {
+    final query = QueryBuilder()
+      ..equals('CodEmpresa', codEmpresa)
+      ..equals('CodSepararEstoque', codSepararEstoque);
+    if (itemCodes.isNotEmpty) {
+      query.inList('Item', itemCodes);
+    }
+    query.allRows(thenBy: ['ItemUnidadeMedida']);
+    return _repository.selectConsultation(query);
+  }
+
+  /// Aguarda os itens e só então busca conversões.
+  ///
+  /// Lista vazia não dispara `separar.item.unidade.medida.consulta`. Esse
+  /// `allRows` no isolate de UI travava o coletor (ANR) ao abrir um
+  /// carrinho sem itens — típico de carrinho já fora de separação.
   Future<List<SeparateItemConsultationModel>> attachInParallel({
     required Future<List<SeparateItemConsultationModel>> itemsFuture,
     required int codEmpresa,
     required int codSepararEstoque,
   }) async {
-    try {
-      final (items, units) = await (
-        itemsFuture,
-        fetchForSeparation(codEmpresa: codEmpresa, codSepararEstoque: codSepararEstoque),
-      ).wait;
-      if (items.isEmpty) {
-        return items;
-      }
-      return merge(items, units);
-    } on ParallelWaitError catch (error) {
-      return _rethrowFirstParallelError(error);
+    final items = await itemsFuture;
+    if (items.isEmpty) {
+      return items;
     }
+
+    final units = await fetchForSeparation(
+      codEmpresa: codEmpresa,
+      codSepararEstoque: codSepararEstoque,
+      itemCodes: [for (final item in items) item.item],
+    );
+    return merge(items, units);
   }
 
   Future<List<SeparateItemConsultationModel>> attachToItems({
@@ -105,15 +144,4 @@ class SeparateItemUnitConversionsService {
   }
 
   static String _itemKey(String item, int codProduto) => '$item|$codProduto';
-
-  static Never _rethrowFirstParallelError(ParallelWaitError<dynamic, dynamic> error) {
-    final errors = error.errors;
-    if (errors is (AsyncError?, AsyncError?)) {
-      final first = errors.$1 ?? errors.$2;
-      if (first != null) {
-        Error.throwWithStackTrace(first.error, first.stackTrace);
-      }
-    }
-    throw error;
-  }
 }

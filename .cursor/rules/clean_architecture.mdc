@@ -17,7 +17,8 @@ O pacote e um so. Importe `package:data7_expedicao/...`. Nao existem
 
 ## Quem importa o que
 
-- `domain` importa `core` e, se existir, `shared`
+- `domain` importa apenas as partes de `core` independentes de Flutter
+  e de detalhes externos
 - `domain` nao importa Flutter, HTTP, `data`, `infrastructure`,
   `presentation`, `ui` nem `di`
 - `data` e `infrastructure` importam `domain` e `core`
@@ -29,16 +30,13 @@ O pacote e um so. Importe `package:data7_expedicao/...`. Nao existem
   nem `ui`
 - `di` importa as implementacoes para registra-las
 
-```dart
-import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_usecase.dart';
-```
+## Codigo existente
 
-```dart
-import 'package:flutter/material.dart';
-import 'package:data7_expedicao/data/repositories/app_update_repository_impl.dart';
-```
-
-O segundo bloco nao entra em `domain`, `presentation` nem `ui`.
+Essas fronteiras orientam codigo novo. Ha acoplamentos legados, como
+`lib/core/routing/app_router.dart`, que monta telas e importa `ui`,
+`presentation`, `domain` e `di`. Essa localizacao nao autoriza repetir
+o acoplamento em utilitarios de `core`; trate a migracao no escopo de
+uma refatoracao propria.
 
 ## Referencias
 

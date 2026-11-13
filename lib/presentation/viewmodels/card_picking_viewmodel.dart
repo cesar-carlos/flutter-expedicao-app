@@ -363,13 +363,23 @@ class CardPickingViewModel extends ChangeNotifier {
       _nextItemCacheManager.clear();
 
       _safeNotifyListeners();
+      await Future<void>.delayed(Duration.zero);
+      if (_disposed) return;
 
       await _loadCartItems();
       if (_disposed) return;
 
       startCartEventMonitoring();
-    } catch (e) {
-      _setError(AppFailure.forUser(e, fallback: 'Erro ao inicializar dados do picking.'));
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Falha ao inicializar dados do picking',
+        tag: 'CardPickingViewModel',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      _setError(
+        AppFailure.forUser(e, fallback: 'Não foi possível carregar o picking. Tente novamente ou volte à separação.'),
+      );
     } finally {
       _isLoading = false;
       _safeNotifyListeners();
@@ -688,7 +698,11 @@ class CardPickingViewModel extends ChangeNotifier {
 
     _silentResyncInFlight = true;
     try {
-      final items = await _itemLoader.fetchFilteredItems(cart: _cart, userSectorCode: _userModel?.codSetorEstoque);
+      final items = await _itemLoader.fetchFilteredItems(
+        cart: _cart,
+        userSectorCode: _userModel?.codSetorEstoque,
+        includeUnitConversions: isCartInSeparationStatus,
+      );
       if (_disposed) return;
 
       _hasError = false;
@@ -762,7 +776,11 @@ class CardPickingViewModel extends ChangeNotifier {
   Future<void> _loadFilteredItems() async {
     if (_cart == null) return;
 
-    final items = await _itemLoader.fetchFilteredItems(cart: _cart, userSectorCode: _userModel?.codSetorEstoque);
+    final items = await _itemLoader.fetchFilteredItems(
+      cart: _cart,
+      userSectorCode: _userModel?.codSetorEstoque,
+      includeUnitConversions: isCartInSeparationStatus,
+    );
     if (_disposed) return;
     _applyLoadedItems(items);
   }

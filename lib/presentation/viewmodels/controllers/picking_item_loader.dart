@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
@@ -46,6 +48,7 @@ class PickingItemLoader {
   Future<List<SeparateItemConsultationModel>> fetchFilteredItems({
     required ExpeditionCartRouteInternshipConsultationModel? cart,
     required int? userSectorCode,
+    bool includeUnitConversions = true,
   }) async {
     if (cart == null) {
       return <SeparateItemConsultationModel>[];
@@ -67,11 +70,13 @@ class PickingItemLoader {
               ..allRows(orderField: 'EnderecoDescricao', thenBy: ['Item']),
           );
 
-    var items = await _unitConversions.attachInParallel(
-      itemsFuture: itemsFuture,
-      codEmpresa: codEmpresa,
-      codSepararEstoque: codSepararEstoque,
-    );
+    var items = includeUnitConversions
+        ? await _unitConversions.attachInParallel(
+            itemsFuture: itemsFuture,
+            codEmpresa: codEmpresa,
+            codSepararEstoque: codSepararEstoque,
+          )
+        : await itemsFuture;
     items = _filtersController.applyLocal(items);
     return _addSyntheticCodProdutoUnitsForScan(items);
   }
@@ -94,10 +99,10 @@ class PickingItemLoader {
       ..isNull('CodSetorEstoque')
       ..allRows(orderField: 'EnderecoDescricao', thenBy: ['Item']);
 
-    final assignedFuture = _repository.selectConsultation(bySector);
-    final unassignedFuture = _repository.selectConsultation(withoutSector);
-    await Future.wait<List<SeparateItemConsultationModel>>([assignedFuture, unassignedFuture]);
-    return _mergeUniqueItems(await assignedFuture, await unassignedFuture);
+    final assigned = await _repository.selectConsultation(bySector);
+    await Future<void>.delayed(Duration.zero);
+    final unassigned = await _repository.selectConsultation(withoutSector);
+    return _mergeUniqueItems(assigned, unassigned);
   }
 
   List<SeparateItemConsultationModel> _mergeUniqueItems(

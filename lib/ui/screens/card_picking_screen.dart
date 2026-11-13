@@ -30,9 +30,9 @@ class CardPickingScreen extends StatefulWidget {
 /// Estado mínimo do corpo do picking observado pelo [Selector].
 ///
 /// Usamos um record Dart (igualdade estrutural por valor) para que o corpo
-/// só reconstrua quando isLoading/hasError/errorMessage mudarem, e não a
-/// cada notifyListeners do ViewModel.
-typedef _CardPickingBodyState = ({bool isLoading, bool hasError, String? errorMessage});
+/// só reconstrua quando isLoading/hasError/errorMessage/hasCart mudarem, e
+/// não a cada notifyListeners do ViewModel.
+typedef _CardPickingBodyState = ({bool isLoading, bool hasError, String? errorMessage, bool hasCart});
 
 class _CardPickingScreenState extends State<CardPickingScreen> with WidgetsBindingObserver {
   /// Bug WWWWWW: cache do viewModel para uso no dispose().
@@ -56,17 +56,9 @@ class _CardPickingScreenState extends State<CardPickingScreen> with WidgetsBindi
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final viewModel = context.read<CardPickingViewModel>();
-      unawaited(
-        viewModel.initializeCart(widget.cart, userModel: widget.userModel).catchError((Object e, StackTrace s) {
-          AppLogger.warning(
-            'Falha ao inicializar carrinho no picking',
-            tag: 'CardPickingScreen',
-            error: e,
-            stackTrace: s,
-          );
-        }),
-      );
+      unawaited(viewModel.initializeCart(widget.cart, userModel: widget.userModel));
     });
   }
 
@@ -205,7 +197,12 @@ class _CardPickingScreenState extends State<CardPickingScreen> with WidgetsBindi
           const CartStatusWarning(),
           Expanded(
             child: Selector<CardPickingViewModel, _CardPickingBodyState>(
-              selector: (_, vm) => (isLoading: vm.isLoading, hasError: vm.hasError, errorMessage: vm.errorMessage),
+              selector: (_, vm) => (
+                isLoading: vm.isLoading,
+                hasError: vm.hasError,
+                errorMessage: vm.errorMessage,
+                hasCart: vm.cart != null,
+              ),
               builder: (context, state, _) {
                 final viewModel = context.read<CardPickingViewModel>();
                 return _buildBody(context, viewModel, state);
@@ -231,15 +228,6 @@ class _CardPickingScreenState extends State<CardPickingScreen> with WidgetsBindi
   }
 
   Widget _buildBody(BuildContext context, CardPickingViewModel viewModel, _CardPickingBodyState state) {
-    if (state.isLoading) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando dados do picking...')],
-        ),
-      );
-    }
-
     if (state.hasError) {
       return Center(
         child: Padding(
@@ -277,6 +265,15 @@ class _CardPickingScreenState extends State<CardPickingScreen> with WidgetsBindi
               ),
             ],
           ),
+        ),
+      );
+    }
+
+    if (state.isLoading || !state.hasCart) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [CircularProgressIndicator(), SizedBox(height: 16), Text('Carregando dados do picking...')],
         ),
       );
     }

@@ -67,6 +67,8 @@ repeti-la aqui.
 
 ## Mapeamento rapido por area
 
+Para mudancas em `lib/`, comece por `architecture.mdc`.
+
 - `lib/domain/**/*.dart`
   Leia `domain_layer.mdc`, `clean_architecture.mdc`,
   `design_patterns.mdc`, `solid_principles.mdc`,
@@ -88,13 +90,30 @@ repeti-la aqui.
   Leia `coding_style.mdc`, `dependencies_patterns.mdc`,
   `general_rules.mdc` e, quando tocar tema ou UI base,
   `ui_ux_design.mdc`.
-- `test/**/*.dart`
+- `test/**/*.dart` e `integration_test/**/*.dart`
   Leia `testing.mdc`, `coding_style.mdc` e `general_rules.mdc`.
-- `.cursor/rules/**/*.mdc` e `AGENTS.md`
+- `.cursor/**` e `AGENTS.md`
   Leia `global_guardrails.mdc`, `rules_index.mdc` e
   `rules_authoring.mdc`.
 - `pubspec.yaml`
-  Leia `dependencies_patterns.mdc`.
+  Leia `dependencies_patterns.mdc` e `coding_style.mdc` quando alterar
+  o limite inferior do SDK.
+- consultas e eventos Socket.IO, em qualquer camada
+  Leia o contrato externo e as restricoes em `dependencies_patterns.mdc`.
+
+## Skills auxiliares
+
+`.cursor/skills/` contem receitas genericas, nao politicas do projeto.
+Antes de aplica-las, confira a compatibilidade com as regras acima:
+
+- HTTP: `dependencies_patterns.mdc` define Dio; a receita
+  `flutter-use-http-package` nao se aplica a este app
+- sintaxe: `coding_style.mdc` limita os recursos ao SDK do pacote;
+  `dart-use-primary-constructors` nao se aplica ao limite atual
+- arquitetura: use as pastas e contratos locais, nao a arvore generica
+  de `flutter-apply-architecture-best-practices`
+- localizacao: preserve `l10n.yaml` e os arquivos de `lib/l10n/`;
+  nao replique configuracoes de um projeto novo
 
 ## Manutencao
 

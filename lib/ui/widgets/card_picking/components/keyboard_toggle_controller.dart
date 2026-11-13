@@ -114,8 +114,18 @@ class KeyboardToggleController {
     });
   }
 
-  void forceFocusAndCloseKeyboard() {
-    _hideKeyboard();
-    scanFocusNode.requestFocus();
+  void forceFocusAndCloseKeyboard() => restoreInputFocus(keyboardEnabled: false);
+
+  void restoreInputFocus({required bool keyboardEnabled}) {
+    // O TextField precisa reconstruir depois de sair do processamento.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted || ModalRoute.of(context)?.isCurrent != true || !scanFocusNode.canRequestFocus) {
+        return;
+      }
+      scanFocusNode.requestFocus();
+      FocusManager.instance.applyFocusChangesIfNeeded();
+      if (!keyboardEnabled) _hideKeyboard();
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
 }

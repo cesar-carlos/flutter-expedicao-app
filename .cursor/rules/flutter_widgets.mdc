@@ -1,6 +1,6 @@
 ---
 description: Flutter Widgets - composicao, estado local, layout e performance
-globs: ["lib/presentation/**/*.dart", "lib/ui/**/*.dart", "lib/shared/**/*.dart"]
+globs: ["lib/presentation/**/*.dart", "lib/ui/**/*.dart"]
 alwaysApply: false
 ---
 
@@ -56,12 +56,8 @@ A tela compoe regioes. Ela nao implementa cada regiao no mesmo
 
 ## Reutilizacao e especializacao
 
-- consulte componentes compartilhados antes de criar outro parecido
-- detalhes de promocao e evolucao vivem em `shared_components.mdc`
-- quando um componente base quase atende, prefira evolui-lo ou criar um
-  wrapper por composicao em vez de duplicar layout
-- wrappers sao preferiveis quando a variacao adiciona estado local,
-  validacao fixa ou configuracoes de UX sempre iguais
+Consulta, promocao, wrappers e evolucao de componentes seguem
+`shared_components.mdc`.
 
 ## Padroes de composicao
 
@@ -99,16 +95,12 @@ A tela compoe regioes. Ela nao implementa cada regiao no mesmo
 - evite custos caros de renderizacao, como clipping e opacity
   desnecessarios
 
-## Inputs, imagens e semantica
+## Imagens e interacao
 
-- configure `keyboardType`, `textInputAction`, autofill e fluxo de foco
-  de forma coerente
-- mantenha validacao perto do campo
 - forneca `loadingBuilder` e `errorBuilder` quando imagens de rede
   precisarem de estados explicitos
-- adicione labels semanticos para acoes apenas com icone
-- preserve alvos de toque adequados e comportamento correto com teclado
-  virtual
+- formularios, semantica, alvos de toque e teclado seguem
+  `ui_ux_design.mdc`
 
 ## Estado global e navegacao
 

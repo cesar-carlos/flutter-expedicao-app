@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:data7_expedicao/di/locator.dart';
 import 'package:data7_expedicao/core/routing/app_router.dart';
-import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/presentation/viewmodels/separation_items_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/separate_items/separate_item_card.dart';
@@ -19,6 +18,7 @@ import 'package:data7_expedicao/ui/widgets/separate_items/separation_info_view.d
 import 'package:data7_expedicao/ui/widgets/separate_items/carts_filter_modal.dart';
 import 'package:data7_expedicao/ui/widgets/separate_items/carts_list_view.dart';
 import 'package:data7_expedicao/ui/widgets/separation_title_with_connection_status.dart';
+import 'package:data7_expedicao/domain/services/added_cart_auto_open.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
 import 'package:data7_expedicao/ui/widgets/common/custom_app_bar.dart';
 import 'package:data7_expedicao/core/constants/ui_constants.dart';
@@ -201,10 +201,8 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
             // Item 8: Selector por campo em vez de Consumer amplo. As ações
             // da AppBar só dependem dos flags de filtros ativos do ViewModel.
             Selector<SeparationItemsViewModel, ({bool hasActiveItemsFilters, bool hasActiveCartsFilters})>(
-              selector: (_, vm) => (
-                hasActiveItemsFilters: vm.hasActiveItemsFilters,
-                hasActiveCartsFilters: vm.hasActiveCartsFilters,
-              ),
+              selector: (_, vm) =>
+                  (hasActiveItemsFilters: vm.hasActiveItemsFilters, hasActiveCartsFilters: vm.hasActiveCartsFilters),
               builder: (context, filters, child) {
                 return Row(
                   mainAxisSize: MainAxisSize.min,
@@ -686,7 +684,11 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
         return false;
       }
 
-      final addedCart = _findAddedCartForAutoOpen(viewModel, addCartResult);
+      final addedCart = findAddedCartForAutoOpen(
+        carts: viewModel.carts,
+        codCarrinho: addCartResult.addedCart.codCarrinho,
+        codCarrinhoPercurso: addCartResult.codCarrinhoPercurso,
+      );
       if (addedCart == null) {
         AppLogger.debug(
           'Carrinho adicionado ${addCartResult.addedCart.codCarrinho} ainda nao disponivel para abertura. '
@@ -732,31 +734,5 @@ class _SeparationItemsScreenState extends State<SeparationItemsScreen>
       }
       return false;
     }
-  }
-
-  ExpeditionCartRouteInternshipConsultationModel? _findAddedCartForAutoOpen(
-    SeparationItemsViewModel viewModel,
-    AddCartSuccess addCartResult,
-  ) {
-    final matchingCarts = viewModel.carts.where((cart) {
-      final matchesCart = cart.codCarrinho == addCartResult.addedCart.codCarrinho;
-      final matchesRoute =
-          addCartResult.codCarrinhoPercurso == null || cart.codCarrinhoPercurso == addCartResult.codCarrinhoPercurso;
-      return matchesCart && matchesRoute && _isCartAvailableForAutoOpen(cart);
-    }).toList();
-
-    if (matchingCarts.isEmpty) {
-      return null;
-    }
-
-    matchingCarts.sort((a, b) => b.dataInicio.compareTo(a.dataInicio));
-    return matchingCarts.first;
-  }
-
-  bool _isCartAvailableForAutoOpen(ExpeditionCartRouteInternshipConsultationModel cart) {
-    return cart.situacao == ExpeditionSituation.aguardando ||
-        cart.situacao == ExpeditionSituation.separado ||
-        cart.situacao == ExpeditionSituation.conferido ||
-        cart.situacao == ExpeditionSituation.separando;
   }
 }

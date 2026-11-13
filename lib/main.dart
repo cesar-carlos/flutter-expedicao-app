@@ -28,17 +28,24 @@ import 'package:data7_expedicao/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_progress_dialog.dart';
 import 'package:data7_expedicao/ui/widgets/common/servidor_emergencia_host.dart';
+import 'package:data7_expedicao/ui/widgets/common/navigation_error_screen.dart';
 
 void main() {
+  final unhandledError = ValueNotifier<bool>(false);
+  void showUnhandledError() {
+    scheduleMicrotask(() => unhandledError.value = true);
+  }
+
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
-      installGlobalErrorHandlers();
+      installGlobalErrorHandlers(onUnhandledError: showUnhandledError);
 
       final boot = await bootstrap();
 
       runApp(
         MyApp(
+          unhandledError: unhandledError,
           configViewModel: boot.configViewModel,
           themeViewModel: boot.themeViewModel,
           socketViewModel: boot.socketViewModel,
@@ -49,11 +56,13 @@ void main() {
     },
     (error, stack) {
       AppLogger.error('Erro não tratado na zona', tag: 'Zone', error: error, stackTrace: stack);
+      showUnhandledError();
     },
   );
 }
 
 class MyApp extends StatefulWidget {
+  final ValueNotifier<bool> unhandledError;
   final ConfigViewModel configViewModel;
   final ThemeViewModel themeViewModel;
   final SocketViewModel socketViewModel;
@@ -62,6 +71,7 @@ class MyApp extends StatefulWidget {
 
   const MyApp({
     super.key,
+    required this.unhandledError,
     required this.configViewModel,
     required this.themeViewModel,
     required this.socketViewModel,
@@ -97,6 +107,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _router?.dispose();
     super.dispose();
   }
 
@@ -147,9 +158,30 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 themeMode: themeViewModel.themeMode,
                 routerConfig: router,
                 builder: (context, child) {
-                  return ServidorEmergenciaHost(
+                  final content = ServidorEmergenciaHost(
                     navigatorKey: _navigatorKey,
                     child: _AppUpdateHost(navigatorKey: _navigatorKey, child: child ?? const SizedBox.shrink()),
+                  );
+                  return ValueListenableBuilder<bool>(
+                    valueListenable: widget.unhandledError,
+                    child: content,
+                    builder: (context, hasError, child) => Stack(
+                      children: [
+                        child!,
+                        if (hasError)
+                          Positioned.fill(
+                            child: NavigationErrorScreen(
+                              message:
+                                  'Ocorreu um erro inesperado. Volte ao início e reabra a operação. '
+                                  'Confira os dados antes de repetir uma ação.',
+                              onReturnHome: () {
+                                router.go(AppRouter.home);
+                                widget.unhandledError.value = false;
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
                   );
                 },
                 localizationsDelegates: const [

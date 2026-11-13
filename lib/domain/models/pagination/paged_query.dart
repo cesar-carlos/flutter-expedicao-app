@@ -13,10 +13,9 @@ class PagedQuery {
       final rows = await fetchPage(page, size);
       all.addAll(rows);
       if (rows.length < size) return all;
+      await Future<void>.delayed(Duration.zero);
     }
 
-    throw StateError(
-      'A consulta ultrapassou $maxPages páginas de $size itens.',
-    );
+    throw StateError('A consulta ultrapassou $maxPages páginas de $size itens.');
   }
 }

@@ -1,6 +1,6 @@
 ---
 description: Manutencao de rules e arquivos de entrada do agente
-globs: [".cursor/rules/**/*.mdc", "AGENTS.md"]
+globs: [".cursor/**/*.md", ".cursor/rules/**/*.mdc", "AGENTS.md"]
 ---
 
 # Manutencao de Rules
@@ -24,10 +24,12 @@ do agente.
   responsabilidade em vez de expandir um monolito
 - exemplos dentro das rules precisam estar corretos, seguros e
   alinhados com o stack atual do repositorio
-- ao criar, remover ou mover uma rule, atualize `rules_index.mdc` e
-  `AGENTS.md` no mesmo passo
-- evite drift entre `AGENTS.md`, `rules_index.mdc` e a rule dona do
-  assunto
+- ao criar, remover ou mover uma rule, atualize `rules_index.mdc`
+- atualize `AGENTS.md` apenas se os pontos de entrada mudarem; nao
+  replique nele o catalogo nem o mapeamento do indice
+- preserve restricoes unicas ao consolidar arquivos; mova-as para a
+  rule responsavel antes de remover a origem
+- confira caminhos, exemplos e referencias contra o repositorio atual
 
 ## Checklist
 

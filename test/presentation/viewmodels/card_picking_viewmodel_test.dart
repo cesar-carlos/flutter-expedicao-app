@@ -611,6 +611,19 @@ void main() {
       await Future<void>.delayed(Duration.zero);
     });
 
+    test('should leave loading and allow retry when the item query fails', () async {
+      repository.onSelect = (_) async => throw DataFailure(message: 'Servidor indisponível. Tente novamente.');
+      await viewModel.initializeCart(buildCart(), userModel: buildUserModel());
+      expect(viewModel.isLoading, isFalse);
+      expect(viewModel.hasError, isTrue);
+      expect(viewModel.errorMessage, contains('Servidor indisponível'));
+
+      repository.onSelect = (_) async => <SeparateItemConsultationModel>[];
+      await viewModel.retry();
+      expect(viewModel.isLoading, isFalse);
+      expect(viewModel.hasError, isFalse);
+    });
+
     test('initializeCart mostra erro claro quando conversoes falham', () async {
       viewModel.dispose();
       viewModel = CardPickingViewModel.withDependencies(
@@ -637,6 +650,40 @@ void main() {
 
       expect(viewModel.hasError, isTrue);
       expect(viewModel.errorMessage, contains('unidades de medida'));
+    });
+
+    test('initializeCart nao busca conversoes quando o carrinho nao esta em separacao', () async {
+      viewModel.dispose();
+      var unitSelectCount = 0;
+      viewModel = CardPickingViewModel.withDependencies(
+        repository: repository,
+        sectorStockRepository: sectorStockRepository,
+        filtersStorage: filtersStorage,
+        addItemSeparationUseCase: buildAddItemUseCase(userSessionService),
+        saveSeparationCartUseCase: buildSaveCartUseCase(userSessionService),
+        userSessionService: userSessionService,
+        cartEventRepository: eventRepository,
+        shelfScanningService: ShelfScanningService(),
+        stateManager: PickingStateManager(),
+        cartValidationService: CartValidationService(repository: repository),
+        unitConversions: SeparateItemUnitConversionsService(
+          repository: FakeConsultationRepository<SeparateItemUnidadeMedidaConsultationModel>(
+            onSelect: (_) async {
+              unitSelectCount += 1;
+              throw StateError('conversoes nao deveriam ser consultadas');
+            },
+          ),
+        ),
+      );
+
+      repository.onSelect = (_) async => <SeparateItemConsultationModel>[buildPendingItem()];
+
+      await viewModel.initializeCart(buildCart(situacao: ExpeditionSituation.separado), userModel: buildUserModel());
+
+      expect(viewModel.hasError, isFalse);
+      expect(viewModel.isLoading, isFalse);
+      expect(viewModel.isCartInSeparationStatus, isFalse);
+      expect(unitSelectCount, 0);
     });
   });
 }

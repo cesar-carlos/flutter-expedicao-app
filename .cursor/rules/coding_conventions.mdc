@@ -30,17 +30,12 @@ Casing, verbo e membro privado seguem `coding_style.mdc`.
 
 - o arquivo acompanha o tipo principal
 - contrato novo com `I` usa arquivo `i_nome.dart`
-- use case fica em `domain/usecases/<operacao>/`
 
 ## Contratos
 
-- use case tem uma operacao, `call` e `Result`
-- contrato novo de repositorio devolve modelo do dominio ou `Result`
-- implementacao fica em `data` ou `infrastructure`
-- mapper converte DTO e modelo sem regra de separacao
-
-O formato do `Result` vive em `dependencies_patterns.mdc`. A falha
-vive em `domain_layer.mdc`.
+Operacoes, retornos e falhas seguem `domain_layer.mdc`. A biblioteca
+`Result` e seus helpers estao em `dependencies_patterns.mdc`; o papel
+de mappers esta em `design_patterns.mdc`.
 
 ## Injecao
 

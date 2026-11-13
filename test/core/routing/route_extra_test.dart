@@ -21,14 +21,4 @@ void main() {
       expect(routeExtraMap(null), isNull);
     });
   });
-
-  group('AppRouteExtraCodec', () {
-    test('should keep in-memory extras unchanged', () {
-      const codec = AppRouteExtraCodec();
-      final extra = <String, Object?>{'cart': Object()};
-
-      expect(codec.encode(extra), same(extra));
-      expect(codec.decode(extra), same(extra));
-    });
-  });
 }

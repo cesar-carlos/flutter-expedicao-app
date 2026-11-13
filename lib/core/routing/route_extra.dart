@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 Map<String, dynamic>? routeExtraMap(Object? extra) {
   return switch (extra) {
     Map<String, dynamic> map => map,
@@ -11,19 +9,8 @@ Map<String, dynamic>? routeExtraMap(Object? extra) {
   };
 }
 
-final class AppRouteExtraCodec extends Codec<Object?, Object?> {
-  const AppRouteExtraCodec();
+final class RouteExtraFailure {
+  const RouteExtraFailure(this.message);
 
-  @override
-  Converter<Object?, Object?> get decoder => const _IdentityConverter();
-
-  @override
-  Converter<Object?, Object?> get encoder => const _IdentityConverter();
-}
-
-final class _IdentityConverter extends Converter<Object?, Object?> {
-  const _IdentityConverter();
-
-  @override
-  Object? convert(Object? input) => input;
+  final String message;
 }

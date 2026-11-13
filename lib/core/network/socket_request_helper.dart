@@ -22,6 +22,10 @@ class SocketRequestHelper {
   static const String lostConnectionMessage = 'Conexão com o servidor foi perdida. Tente novamente.';
   static const String disconnectedMessage = 'Socket nao esta conectado';
 
+  /// `fromJson` cede um frame a cada N itens para o spinner continuar.
+  @visibleForTesting
+  static const int parseYieldEvery = 20;
+
   @visibleForTesting
   static SocketReadyGate readyGate = SocketReadyGate.forConfig();
 
@@ -162,17 +166,12 @@ class SocketRequestHelper {
     }
 
     activeSocket.on(responseId, (dynamic receiver) {
-      completeOnce(() {
-        final response = decodeResponse(receiver);
-        final socketError = dataErrorFromResponse(response);
-        if (socketError != null) {
-          completer.completeError(socketError);
-          return;
-        }
-        final rawList = extractList(response);
-        final result = parseItems<T>(rawList, fromJson);
-        completer.complete(result);
-      });
+      if (completer.isCompleted) {
+        return;
+      }
+      unawaited(
+        _completeParsedResponse(completer: completer, receiver: receiver, extractList: extractList, fromJson: fromJson),
+      );
     });
 
     if (watchDisconnect) {
@@ -246,6 +245,42 @@ class SocketRequestHelper {
     return DataError(message: info.message, code: info.identifier ?? info.contractCode);
   }
 
+  static Future<void> _completeParsedResponse<T>({
+    required Completer<List<T>> completer,
+    required dynamic receiver,
+    required List<dynamic> Function(Map<String, dynamic> response) extractList,
+    required T Function(Map<String, dynamic>) fromJson,
+  }) async {
+    try {
+      final response = await decodeResponseAsync(receiver);
+      if (completer.isCompleted) {
+        return;
+      }
+      final socketError = dataErrorFromResponse(response);
+      if (socketError != null) {
+        completer.completeError(socketError);
+        return;
+      }
+      final rawList = extractList(response);
+      final result = await parseItemsAsync<T>(rawList, fromJson);
+      if (!completer.isCompleted) {
+        completer.complete(result);
+      }
+    } catch (e, s) {
+      if (!completer.isCompleted) {
+        completer.completeError(DataError(message: e.toString(), stackTrace: s));
+      }
+    }
+  }
+
+  /// Cede um frame e decodifica no isolate de UI.
+  ///
+  @visibleForTesting
+  static Future<Map<String, dynamic>> decodeResponseAsync(dynamic receiver) async {
+    await Future<void>.delayed(Duration.zero);
+    return decodeResponse(receiver);
+  }
+
   @visibleForTesting
   static Map<String, dynamic> decodeResponse(dynamic receiver) {
     if (receiver is String) {
@@ -290,16 +325,38 @@ class SocketRequestHelper {
   static List<T> parseItems<T>(List<dynamic> rawList, T Function(Map<String, dynamic>) fromJson) {
     final result = <T>[];
     for (var i = 0; i < rawList.length; i++) {
-      final entry = rawList[i];
-      if (entry is! Map) {
-        throw DataError(message: 'Resposta do servidor inválida: item ${i + 1} não pôde ser lido.');
-      }
-      try {
-        result.add(fromJson(Map<String, dynamic>.from(entry)));
-      } catch (e, s) {
-        throw DataError(message: 'Resposta do servidor inválida: item ${i + 1} não pôde ser lido.', stackTrace: s);
+      result.add(_parseItem(rawList, i, fromJson));
+    }
+    return result;
+  }
+
+  /// Igual a [parseItems], cedendo a UI entre blocos.
+  @visibleForTesting
+  static Future<List<T>> parseItemsAsync<T>(List<dynamic> rawList, T Function(Map<String, dynamic>) fromJson) async {
+    await Future<void>.delayed(Duration.zero);
+    if (rawList.length <= parseYieldEvery) {
+      return parseItems(rawList, fromJson);
+    }
+
+    final result = <T>[];
+    for (var i = 0; i < rawList.length; i++) {
+      result.add(_parseItem(rawList, i, fromJson));
+      if ((i + 1) % parseYieldEvery == 0 && i + 1 < rawList.length) {
+        await Future<void>.delayed(Duration.zero);
       }
     }
     return result;
+  }
+
+  static T _parseItem<T>(List<dynamic> rawList, int index, T Function(Map<String, dynamic>) fromJson) {
+    final entry = rawList[index];
+    if (entry is! Map) {
+      throw DataError(message: 'Resposta do servidor inválida: item ${index + 1} não pôde ser lido.');
+    }
+    try {
+      return fromJson(Map<String, dynamic>.from(entry));
+    } catch (e, s) {
+      throw DataError(message: 'Resposta do servidor inválida: item ${index + 1} não pôde ser lido.', stackTrace: s);
+    }
   }
 }

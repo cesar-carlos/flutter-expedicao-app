@@ -1,6 +1,6 @@
 ---
 description: Dart Style Guide - sintaxe, imports, tooling e recursos modernos
-globs: ["lib/**/*.dart", "test/**/*.dart"]
+globs: ["lib/**/*.dart", "test/**/*.dart", "integration_test/**/*.dart"]
 alwaysApply: false
 ---
 
@@ -25,7 +25,6 @@ Nao repita aqui:
 
 - declare tipos explicitamente em APIs publicas, retornos e contratos
 - prefira tipos concretos a `dynamic`
-- use `final` para referencias que nao mudam
 - use `var` apenas quando o tipo for obvio e nao reduzir clareza
 - prefira early return para reduzir aninhamento
 - separe validacao, trabalho e retorno com poucas linhas em branco
@@ -54,7 +53,8 @@ Nao repita aqui:
 
 ## Imports e bibliotecas
 
-- siga a ordem: `dart:`, Flutter, pacotes externos e imports relativos
+- siga a ordem: `dart:`, Flutter, pacotes externos,
+  `package:data7_expedicao/...` e imports relativos
 - ordene alfabeticamente dentro de cada bloco
 - coloque `export` depois de `import`
 - remova imports nao usados

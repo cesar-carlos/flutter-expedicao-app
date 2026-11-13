@@ -7,13 +7,11 @@ import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/presentation/viewmodels/card_picking_viewmodel.dart';
-import 'package:data7_expedicao/ui/widgets/card_picking/components/keyboard_toggle_controller.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_dialog_manager.dart';
 
 class ScanUiController {
   final PickingDialogManager dialogManager;
   final AudioService audioService;
-  final KeyboardToggleController keyboardController;
   final TextEditingController quantityController;
   final Future<void> Function() onFinishPicking;
   final Future<bool> Function(SeparateItemConsultationModel item, String barcode, int quantity, int originalQuantity)
@@ -23,7 +21,6 @@ class ScanUiController {
   const ScanUiController({
     required this.dialogManager,
     required this.audioService,
-    required this.keyboardController,
     required this.quantityController,
     required this.onFinishPicking,
     required this.onAddItem,
@@ -132,7 +129,6 @@ class ScanUiController {
           if (!added && convertedQuantity != inputQuantity) {
             quantityController.text = originalQuantityText;
           }
-          keyboardController.forceFocusAndCloseKeyboard();
         }
         return;
     }

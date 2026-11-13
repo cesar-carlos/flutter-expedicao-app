@@ -1,6 +1,6 @@
 ---
 description: Criacao, promocao e evolucao segura de componentes compartilhados
-globs: ["lib/presentation/**/*.dart", "lib/ui/**/*.dart", "lib/shared/**/*.dart"]
+globs: ["lib/presentation/**/*.dart", "lib/ui/**/*.dart"]
 ---
 
 # Componentes Compartilhados
@@ -14,8 +14,6 @@ componentes compartilhados de UI sem duplicar codigo.
 
 - antes de criar um novo componente de UI, verifique
   `lib/ui/widgets/common/`
-- se o projeto passar a manter `lib/shared/widgets/`, use esse
-  diretorio para novos primitivos realmente genericos
 - se um componente existente quase atende, evolua-o antes de criar uma
   variante paralela
 

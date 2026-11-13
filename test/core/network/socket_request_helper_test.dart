@@ -48,6 +48,15 @@ void main() {
     test('lanca FormatException em JSON malformado', () {
       expect(() => SocketRequestHelper.decodeResponse('{invalid json}'), throwsA(isA<FormatException>()));
     });
+
+    test('decodeResponseAsync decodifica JSON grande sem bloquear o teste', () async {
+      final payload = '{"Data":[${List.filled(1500, '{"A":1}').join(',')}],"Error":null}';
+
+      final result = await SocketRequestHelper.decodeResponseAsync(payload);
+
+      expect(result['Data'], isA<List<dynamic>>());
+      expect((result['Data'] as List<dynamic>).length, 1500);
+    });
   });
 
   group('SocketRequestHelper.extractDataList', () {
@@ -144,6 +153,14 @@ void main() {
     test('retorna lista vazia para input vazio', () {
       final result = SocketRequestHelper.parseItems<String>(const [], (m) => m['name'] as String);
       expect(result, isEmpty);
+    });
+
+    test('parseItemsAsync devolve o mesmo resultado cedendo frames', () async {
+      final input = List<Map<String, String>>.generate(SocketRequestHelper.parseYieldEvery + 5, (i) => {'name': '$i'});
+
+      final result = await SocketRequestHelper.parseItemsAsync<String>(input, (m) => m['name'] as String);
+
+      expect(result, List<String>.generate(input.length, (i) => '$i'));
     });
 
     test('aceita Map<dynamic, dynamic> e converte', () {

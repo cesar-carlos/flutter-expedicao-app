@@ -1,20 +1,13 @@
 ---
 description: Visao arquitetural, camadas e fluxo do projeto
-alwaysApply: true
+globs: ["lib/**/*.dart"]
+alwaysApply: false
 ---
 
 # Arquitetura do Projeto
 
 Este projeto segue Clean Architecture e Domain Driven Design em um
 unico pacote, `package:data7_expedicao`.
-
-## Principios base
-
-- Dependencias apontam para dentro.
-- `domain` nao depende de framework nem de detalhes de implementacao.
-- Casos de uso e regras de negocio devem ser testaveis isoladamente.
-- Interfaces vivem nas camadas internas; implementacoes ficam nas
-  externas.
 
 ## Estrutura real
 
@@ -27,53 +20,28 @@ lib/
 |- ui/                telas e widgets
 |- core/              tema, rotas, rede, validacao, Result e utilitarios
 |- di/                locator e modules
-`- l10n/              textos gerados
+`- l10n/              arquivos ARB e localizacoes geradas
 ```
 
 Nao crie `lib/application`. Orquestracao de negocio fica no use case.
 Orquestracao de tela fica no view model ou no coordinator. Widget
 compartilhado fica em `lib/ui/widgets/common`.
 
-## Papel de cada pasta
-
-### `domain`
-
-- modelos, value objects, repositorios e servicos abstratos, use cases
-  e falhas
-- regra de negocio pura
-
-### `data` e `infrastructure`
-
-- implementacoes dos contratos do `domain`
-- `data` fala com API, socket e armazenamento
-- `infrastructure` fala com dispositivo e servico externo
-
-### `presentation` e `ui`
-
-- `presentation` guarda estado e fluxo
-- `ui` desenha e encaminha o evento
-- nenhum dos dois importa `data` nem `infrastructure`
-
-### `core`
-
-- tema, `lib/core/routing/app_router.dart`, rede, validacao e `Result`
-- nao importa `domain`, `data`, `presentation` nem `ui`
-
-### `di`
-
-- unica borda que monta implementacao concreta
-- modules em `lib/di/modules`, entrada em `lib/di/locator.dart`
-
 ## Direcao de dependencias
 
+As setas abaixo significam "depende de":
+
 ```text
-ui -> presentation -> domain <- data
-                         ^         ^
-                         |         |
-                       core   infrastructure
+ui -> presentation -> domain -> core
+                           ^
+data ----------------------|
+infrastructure ------------|
 ```
 
-`di` aponta para todas as pastas porque so ele compoe o grafo.
+`data`, `infrastructure`, `presentation` e `ui` tambem usam `core`.
+`di` compoe as implementacoes em `lib/di/modules`, com entrada em
+`lib/di/locator.dart`. As fronteiras de import e os acoplamentos legados
+ficam em `clean_architecture.mdc`.
 
 ## Fluxo esperado
 

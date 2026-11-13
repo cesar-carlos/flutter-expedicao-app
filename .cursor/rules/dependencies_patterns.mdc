@@ -40,9 +40,17 @@ Nao crie `Dio`, cliente HTTP ou container de DI novo numa tela.
   `DateTime.now()` como id.
 - `hive` para persistencia local ja adotada. Nao edite arquivo gerado.
 
-## Proibido no lugar delas
+## Contrato Socket.IO
 
-- `print` para observar resultado de `fold` ou de schema. Log segue
-  `coding_style.mdc`.
-- um segundo `GetIt` ou um `Dio` solto para o mesmo papel do
-  `DioConfig`.
+Ao alterar consultas ou eventos de socket, consulte o contrato do
+servidor em
+`D:\Developer\Node\data7-api-pix Campo\docs\socket\protecoes-cliente.md`.
+No repositorio Node, o indice e `docs/comunicacao.md`; veja tambem a
+regra 27 de `docs/expedicao/regras.md`.
+
+- nao reintroduza `LIKE` em `CodSetoresEstoque` ou `DataEmissao`
+- os dois clientes Flutter escutam `servidor.emergencia.listen`; neste
+  app, a implementacao e
+  `lib/data/services/servidor_emergencia_service.dart`
+- se o contrato externo nao estiver disponivel, explicite a limitacao
+  antes de propor alteracoes no protocolo

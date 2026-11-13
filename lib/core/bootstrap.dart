@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logging/logging.dart';
 
@@ -48,7 +47,7 @@ Future<BootstrapResult> bootstrap() async {
   // setupLocator e LoggerService SAO criticos — se falharem, nada
   // funciona. Mantemos sem catch para fail-fast com stack util.
   setupLocator();
-  LoggerService.initialize(level: kDebugMode ? Level.ALL : Level.INFO);
+  LoggerService.initialize(level: Level.INFO);
 
   // Bug BBBBBBBBBB: MetricsCollector nao e critico para o app
   // funcionar — falha aqui (storage cheio, permissao) bloqueava

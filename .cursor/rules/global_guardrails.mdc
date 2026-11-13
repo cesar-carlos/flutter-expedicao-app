@@ -1,6 +1,5 @@
 ---
 description: Guardrails globais do repositorio para fluxo, documentacao e validacao
-globs: ["**/*"]
 alwaysApply: true
 ---
 
@@ -26,8 +25,9 @@ Use `rules_index.mdc` para localizar a regra dona de cada assunto.
 - nunca esconda erros silenciosamente
 - antes de encerrar mudancas de codigo, rode a validacao mais relevante
   ao escopo alterado quando isso for viavel
-- quando um assunto tiver uma rule dedicada, siga a rule dona do assunto
-  em vez de duplicar politica local
+- skills sao guias auxiliares: aplique apenas passos compativeis com
+  as regras locais, dependencias e limite inferior do SDK no
+  `pubspec.yaml`; exemplos genericos nao autorizam trocar o stack
 - script documentado e Python; o release e `python create-release.py`
 - nao crie script PowerShell
 

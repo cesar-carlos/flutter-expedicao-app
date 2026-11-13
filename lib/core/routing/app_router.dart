@@ -42,7 +42,9 @@ import 'package:data7_expedicao/presentation/viewmodels/add_cart_viewmodel.dart'
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/core/routing/route_extra.dart';
-import 'package:data7_expedicao/core/theme/app_colors.dart';
+import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/ui/routing/app_route_extra_codec.dart';
+import 'package:data7_expedicao/ui/widgets/common/navigation_error_screen.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -193,14 +195,22 @@ class AppRouter {
               builder: (context, state) {
                 final extra = routeExtraMap(state.extra);
                 if (extra == null) {
-                  return const Scaffold(body: Center(child: Text('Dados da separação não encontrados')));
+                  return _invalidArguments(
+                    state,
+                    'Dados da separação não encontrados. Volte ao início e reabra a operação.',
+                  );
                 }
 
                 final SeparateConsultationModel separation;
                 try {
                   separation = SeparateConsultationModel.fromJson(extra);
-                } catch (_) {
-                  return const Scaffold(body: Center(child: Text('Dados da separação inválidos')));
+                } catch (error, stackTrace) {
+                  return _invalidArguments(
+                    state,
+                    'Dados da separação inválidos. Volte ao início e reabra a operação.',
+                    error: error,
+                    stackTrace: stackTrace,
+                  );
                 }
 
                 return ChangeNotifierProvider(
@@ -230,18 +240,24 @@ class AppRouter {
               builder: (context, state) {
                 final extra = routeExtraMap(state.extra);
                 if (extra == null) {
-                  return const Scaffold(body: Center(child: Text('Dados do carrinho não encontrados')));
+                  return _invalidArguments(
+                    state,
+                    'Dados do carrinho não encontrados. Volte ao início e reabra a operação.',
+                  );
                 }
 
                 final cart = extra['cart'];
                 if (cart is! ExpeditionCartRouteInternshipConsultationModel) {
-                  return const Scaffold(body: Center(child: Text('Dados do carrinho inválidos')));
+                  return _invalidArguments(state, 'Dados do carrinho inválidos. Volte ao início e reabra a operação.');
                 }
-                final userModel = extra['userModel'] is UserSystemModel ? extra['userModel'] as UserSystemModel : null;
+                final userModel = extra['userModel'];
+                if (userModel != null && userModel is! UserSystemModel) {
+                  return _invalidArguments(state, 'Dados do usuário inválidos. Volte ao início e reabra a operação.');
+                }
 
                 return ChangeNotifierProvider(
                   create: (_) => locator<CardPickingViewModel>(),
-                  child: CardPickingScreen(cart: cart, userModel: userModel),
+                  child: CardPickingScreen(cart: cart, userModel: userModel as UserSystemModel?),
                 );
               },
             ),
@@ -252,19 +268,25 @@ class AppRouter {
               builder: (context, state) {
                 final extra = routeExtraMap(state.extra);
                 if (extra == null) {
-                  return const Scaffold(body: Center(child: Text('Dados não encontrados')));
+                  return _invalidArguments(state, 'Dados não encontrados. Volte ao início e reabra a operação.');
                 }
 
                 final filterType = extra['filterType'];
                 final viewModel = extra['viewModel'];
                 final cart = extra['cart'];
                 if (filterType is! String || cart is! ExpeditionCartRouteInternshipConsultationModel) {
-                  return const Scaffold(body: Center(child: Text('Dados invalidos para picking-products-list')));
+                  return _invalidArguments(
+                    state,
+                    'Dados invalidos para picking-products-list. Volte ao início e reabra a operação.',
+                  );
                 }
 
                 final parsedViewModel = viewModel is CardPickingViewModel ? viewModel : null;
                 if (filterType == 'pending' && parsedViewModel == null) {
-                  return const Scaffold(body: Center(child: Text('Dados invalidos para picking-products-list')));
+                  return _invalidArguments(
+                    state,
+                    'Dados invalidos para picking-products-list. Volte ao início e reabra a operação.',
+                  );
                 }
                 final isReadOnly = extra['isReadOnly'] is bool ? extra['isReadOnly'] as bool : false;
                 final screen = PickingProductsListScreen(
@@ -288,13 +310,16 @@ class AppRouter {
               builder: (context, state) {
                 final extra = routeExtraMap(state.extra);
                 if (extra == null) {
-                  return const Scaffold(body: Center(child: Text('Dados não encontrados')));
+                  return _invalidArguments(state, 'Dados não encontrados. Volte ao início e reabra a operação.');
                 }
 
                 final codEmpresa = extra['codEmpresa'];
                 final codSepararEstoque = extra['codSepararEstoque'];
                 if (codEmpresa is! int || codSepararEstoque is! int) {
-                  return const Scaffold(body: Center(child: Text('Codigos invalidos para add-cart')));
+                  return _invalidArguments(
+                    state,
+                    'Codigos invalidos para add-cart. Volte ao início e reabra a operação.',
+                  );
                 }
 
                 return ChangeNotifierProvider(
@@ -312,7 +337,7 @@ class AppRouter {
           builder: (context, state) {
             final extra = routeExtraMap(state.extra);
             if (extra == null) {
-              return const Scaffold(body: Center(child: Text('Dados não encontrados')));
+              return _invalidArguments(state, 'Dados não encontrados. Volte ao início e reabra a operação.');
             }
             final expectedAddress = extra['expectedAddress'];
             final expectedAddressDescription = extra['expectedAddressDescription'];
@@ -320,7 +345,10 @@ class AppRouter {
             if (expectedAddress is! String ||
                 expectedAddressDescription is! String ||
                 viewModel is! CardPickingViewModel) {
-              return const Scaffold(body: Center(child: Text('Dados invalidos para shelf-scanning')));
+              return _invalidArguments(
+                state,
+                'Dados invalidos para shelf-scanning. Volte ao início e reabra a operação.',
+              );
             }
             final returnRoute = extra['returnRoute'] is String ? extra['returnRoute'] as String : null;
             return ShelfScanningScreen(
@@ -352,22 +380,22 @@ class AppRouter {
         ),
       ],
 
-      errorBuilder: (context, state) => Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: AppColors.error),
-              const SizedBox(height: 16),
-              Text('Erro na navegação', style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 8),
-              Text('Rota não encontrada: ${state.uri.path}'),
-              const SizedBox(height: 16),
-              ElevatedButton(onPressed: () => context.go(home), child: const Text('Voltar ao Início')),
-            ],
-          ),
-        ),
+      errorBuilder: (context, state) => _invalidArguments(
+        state,
+        'Não foi possível abrir esta tela. Volte ao início e tente novamente.',
+        error: state.error,
       ),
     );
+  }
+
+  static Widget _invalidArguments(GoRouterState state, String message, {Object? error, StackTrace? stackTrace}) {
+    AppLogger.error(
+      'Falha na navegacao para ${state.uri.path}',
+      tag: 'AppRouter',
+      error: error ?? StateError(message),
+      stackTrace: stackTrace ?? StackTrace.current,
+    );
+    final extra = state.extra;
+    return NavigationErrorScreen(message: extra is RouteExtraFailure ? extra.message : message);
   }
 }

@@ -96,8 +96,10 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
 
   bool _hasShownInitialShelfScan = false;
 
-  /// Item 3: garante que a ativação inicial via didChangeDependencies
-  /// aconteça uma única vez, evitando reativações redundantes.
+  /// Garante que a ativação inicial via didChangeDependencies aconteça
+  /// uma única vez. MediaQuery muda quando o campo do scanner ganha foco;
+  /// se esta flag ficar falsa, cada didChangeDependencies agenda outro
+  /// requestFocus e trava a UI (ANR).
   bool _scannerInitialized = false;
 
   /// Item 2/6: último valor conhecido de isCartInSeparationStatus, para
@@ -116,24 +118,30 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     super.initState();
     _initializeComponents();
     _setupListeners();
-    _requestInitialFocus();
+    _syncScannerEnabled();
+    if (_shouldActivateScanner()) {
+      _requestInitialFocus();
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _scannerPreferencesController.loadPreferences();
+      if (!mounted) return;
 
+      _scannerPreferencesController.loadPreferences();
+      _statusCache.forceCheckCartStatus();
+      _syncScannerEnabled();
+
+      if (_shouldActivateScanner()) {
         unawaited(
           Future<void>.delayed(UIConstants.scannerInitDelay, () {
-            if (mounted) {
-              _scannerActivationController.activate(
-                scanState: _scanState,
-                keyboardController: _keyboardController,
-                scanFocusNode: _scanFocusNode,
-                scanController: _scanController,
-                onBarcodeScanned: _onBarcodeScanned,
-                mounted: () => mounted,
-              );
-            }
+            if (!mounted || !_shouldActivateScanner()) return;
+            _scannerActivationController.activate(
+              scanState: _scanState,
+              keyboardController: _keyboardController,
+              scanFocusNode: _scanFocusNode,
+              scanController: _scanController,
+              onBarcodeScanned: _onBarcodeScanned,
+              mounted: () => mounted,
+            );
           }).catchError((Object e, StackTrace s) {
             AppLogger.warning(
               'Falha na ativação inicial do scanner (card picking)',
@@ -143,10 +151,10 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
             );
           }),
         );
-        _statusCache.forceCheckCartStatus();
-        if (mounted) {
-          _scanState.forceUpdate();
-        }
+      }
+
+      if (mounted) {
+        _scanState.forceUpdate();
       }
     });
 
@@ -187,7 +195,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     _scanUiController = ScanUiController(
       dialogManager: _dialogManager,
       audioService: _audioService,
-      keyboardController: _keyboardController,
       quantityController: _quantityController,
       onFinishPicking: _finishPicking,
       onAddItem: _addItemToSeparation,
@@ -215,6 +222,17 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     return _statusCache.isCartInSeparationStatus();
   }
 
+  bool _shouldActivateScanner() {
+    return shouldActivatePickingScanner(
+      isCartInSeparation: _isCartInSeparationStatus(),
+      hasNextItem: widget.viewModel.nextItem != null,
+    );
+  }
+
+  void _syncScannerEnabled() {
+    _scanState.setEnabled(_shouldActivateScanner());
+  }
+
   void _invalidateCartStatusCache() {
     _statusCache.invalidateCache();
   }
@@ -228,6 +246,11 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   }
 
   void _reactivateScanner() {
+    if (!_shouldActivateScanner()) {
+      _syncScannerEnabled();
+      return;
+    }
+
     _scannerActivationController.reactivate(
       scanState: _scanState,
       keyboardController: _keyboardController,
@@ -242,48 +265,43 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Item 3: a ativação inicial deve ocorrer uma única vez. Chamadas
-    // subsequentes de didChangeDependencies (mudança de tema/MediaQuery/
-    // provider) não devem reagendar ativação/foco do scanner.
     if (_scannerInitialized) return;
+    _scannerInitialized = true;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
       _statusCache.forceCheckCartStatus();
+      _syncScannerEnabled();
 
-      if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
-        _scannerInitialized = true;
-        unawaited(
-          Future<void>.delayed(UIConstants.scannerActivationDelay, () {
-            if (mounted) {
-              if (!_scannerActivationController.isInitialized) {
-                _scannerActivationController.activate(
-                  scanState: _scanState,
-                  keyboardController: _keyboardController,
-                  scanFocusNode: _scanFocusNode,
-                  scanController: _scanController,
-                  onBarcodeScanned: _onBarcodeScanned,
-                  mounted: () => mounted,
-                );
-              }
-              _scanState.setEnabled(_isCartInSeparationStatus());
-              _scanFocusNode.requestFocus();
-            }
-          }).catchError((Object e, StackTrace s) {
-            AppLogger.warning(
-              'Falha na reativação do scanner (didChangeDependencies)',
-              tag: 'PickingCardScan',
-              error: e,
-              stackTrace: s,
-            );
-          }),
-        );
-      } else {
-        // Itens ainda não carregados: apenas garante foco. A flag permanece
-        // false para que a ativação efetiva ocorra quando os itens chegarem.
-        _scanFocusNode.requestFocus();
+      if (!_shouldActivateScanner()) {
+        return;
       }
+
+      unawaited(
+        Future<void>.delayed(UIConstants.scannerActivationDelay, () {
+          if (!mounted || !_shouldActivateScanner()) return;
+          if (!_scannerActivationController.isInitialized) {
+            _scannerActivationController.activate(
+              scanState: _scanState,
+              keyboardController: _keyboardController,
+              scanFocusNode: _scanFocusNode,
+              scanController: _scanController,
+              onBarcodeScanned: _onBarcodeScanned,
+              mounted: () => mounted,
+            );
+          }
+          _scanState.setEnabled(true);
+          _scanFocusNode.requestFocus();
+        }).catchError((Object e, StackTrace s) {
+          AppLogger.warning(
+            'Falha na reativação do scanner (didChangeDependencies)',
+            tag: 'PickingCardScan',
+            error: e,
+            stackTrace: s,
+          );
+        }),
+      );
     });
   }
 
@@ -388,60 +406,54 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
   void _onViewModelChanged() {
     if (!mounted) return;
 
-    // Item 2 + Item 6: reage à mudança de situação do carrinho apenas quando
-    // o valor realmente muda. Ao mudar, invalida o cache local de status
-    // (TTL curto, que poderia estar defasado após evento de socket) e reflete
-    // o novo estado no scanner — sem agendar callback a cada build.
     final isCartInSeparation = widget.viewModel.isCartInSeparationStatus;
     if (_lastCartInSeparationStatus != isCartInSeparation) {
       _lastCartInSeparationStatus = isCartInSeparation;
       _invalidateCartStatusCache();
-      if (!_isSavingCart) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && !_isSavingCart) {
-            _scanState.setEnabled(isCartInSeparation);
-          }
-        });
-      }
+    }
+
+    final shouldActivate = _shouldActivateScanner();
+    if (!_isSavingCart && _scanState.enabled != shouldActivate) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_isSavingCart) {
+          _syncScannerEnabled();
+        }
+      });
     }
 
     _shelfScanTimer?.cancel();
     _reactivationTimer?.cancel();
 
-    if (widget.viewModel.items.isNotEmpty && !widget.viewModel.isLoading) {
-      _shelfScanTimer = Timer(UIConstants.shortLoadingDelay, () {
-        if (mounted) _checkInitialShelfScan();
-      });
-
-      _reactivationTimer = Timer(UIConstants.scannerReactivationDelay, () {
-        if (!mounted) return;
-
-        final isCartInSeparation = _isCartInSeparationStatus();
-
-        if (!_scanState.enabled && isCartInSeparation) {
-          if (!_scannerActivationController.isInitialized) {
-            _scannerActivationController.activate(
-              scanState: _scanState,
-              keyboardController: _keyboardController,
-              scanFocusNode: _scanFocusNode,
-              scanController: _scanController,
-              onBarcodeScanned: _onBarcodeScanned,
-              mounted: () => mounted,
-            );
-          }
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              _scanState.setEnabled(true);
-              _scanFocusNode.requestFocus();
-            }
-          });
-        } else if (isCartInSeparation) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _scanFocusNode.requestFocus();
-          });
-        }
-      });
+    if (!_shouldActivateScanner() || widget.viewModel.isLoading) {
+      return;
     }
+
+    _shelfScanTimer = Timer(UIConstants.shortLoadingDelay, () {
+      if (mounted) _checkInitialShelfScan();
+    });
+
+    _reactivationTimer = Timer(UIConstants.scannerReactivationDelay, () {
+      if (!mounted || !_shouldActivateScanner()) return;
+
+      if (!_scanState.enabled) {
+        if (!_scannerActivationController.isInitialized) {
+          _scannerActivationController.activate(
+            scanState: _scanState,
+            keyboardController: _keyboardController,
+            scanFocusNode: _scanFocusNode,
+            scanController: _scanController,
+            onBarcodeScanned: _onBarcodeScanned,
+            mounted: () => mounted,
+          );
+        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _shouldActivateScanner()) {
+            _scanState.setEnabled(true);
+            _scanFocusNode.requestFocus();
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -473,6 +485,11 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       tag: 'PickingCardScan',
     );
     if (barcode.trim().isEmpty) return;
+
+    if (!_shouldActivateScanner()) {
+      AppLogger.debug('Scan ignorado: scanner inativo neste estado do carrinho', tag: 'PickingCardScan');
+      return;
+    }
 
     // Item 5: ignora scans enquanto o carrinho está sendo salvo/finalizado,
     // impedindo leituras concorrentes durante a operação de save.
@@ -516,6 +533,9 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       await _scanUiController.handleScanResult(barcode, scanResult, inputQuantity);
     } finally {
       _scanState.stopProcessing();
+      if (mounted && _shouldActivateScanner() && !_isSavingCart && !_scannerActivationController.isPaused) {
+        _keyboardController.restoreInputFocus(keyboardEnabled: _scanState.keyboardEnabled);
+      }
     }
   }
 
@@ -558,7 +578,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
               }),
         );
 
-        _keyboardController.forceFocusAndCloseKeyboard();
         return true;
       } else {
         if (originalQuantity != quantity) {
@@ -566,7 +585,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
         }
         _scanProcessor.handleFailedItemAddition(item, result.message);
         _dialogManager.showErrorDialog(barcode, item.nomeProduto, result.message);
-        _keyboardController.forceFocusAndCloseKeyboard();
         return false;
       }
     } catch (e, stackTrace) {
@@ -577,7 +595,6 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
       final message = AppFailure.forUser(e, fallback: 'Não foi possível processar o item. Tente novamente.');
       _scanProcessor.handleFailedItemAddition(item, message);
       _dialogManager.showErrorDialog(barcode, item.nomeProduto, message);
-      _keyboardController.forceFocusAndCloseKeyboard();
       return false;
     }
   }
@@ -654,7 +671,7 @@ class _PickingCardScanState extends State<PickingCardScan> with AutomaticKeepAli
     } finally {
       _isSavingCart = false;
       if (mounted) {
-        _scanState.setEnabled(_isCartInSeparationStatus());
+        _syncScannerEnabled();
       }
     }
   }

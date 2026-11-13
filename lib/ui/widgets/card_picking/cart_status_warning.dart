@@ -22,7 +22,7 @@ class CartStatusWarning extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<CardPickingViewModel>(
       builder: (context, viewModel, child) {
-        if (viewModel.isCartInSeparationStatus) {
+        if (viewModel.isLoading || viewModel.cart == null || viewModel.isCartInSeparationStatus) {
           return const SizedBox.shrink();
         }
 

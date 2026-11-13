@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:data7_expedicao/core/results/app_failure.dart';
@@ -30,6 +28,7 @@ void main() {
       expect(result.single.unidadeMedidas, hasLength(1));
       expect(result.single.unidadeMedidas.single.codUnidadeMedida, 'CX');
       expect(captured.single.fetchAllPages, isTrue);
+      expect(captured.single.buildSqlWhere(), contains("Item IN ('1')"));
       expect(captured.single.buildOrderByQuery(), 'order_by=Item,ItemUnidadeMedida&order_direction=ASC,ASC');
     });
 
@@ -69,30 +68,57 @@ void main() {
       );
     });
 
-    test('busca conversoes em paralelo com os itens', () async {
-      final item = _buildItem(item: '1', codProduto: 10);
-      final cx = _buildUnit(item: '1', codProduto: 10, itemUnidadeMedida: '2', codUnidadeMedida: 'CX');
-      final itemsStarted = Completer<void>();
-      final unitsStarted = Completer<void>();
+    test('nao busca conversoes quando a lista de itens e vazia', () async {
+      var unitSelectCount = 0;
       final service = SeparateItemUnitConversionsService(
         repository: _FakeUnitRepository((_) async {
-          unitsStarted.complete();
-          await itemsStarted.future;
-          return [cx];
+          unitSelectCount += 1;
+          throw StateError('conversoes nao deveriam ser consultadas');
         }),
       );
 
-      final itemsFuture = () async {
-        itemsStarted.complete();
-        await unitsStarted.future;
-        return [item];
-      }();
+      final result = await service.attachInParallel(
+        itemsFuture: Future.value(const <SeparateItemConsultationModel>[]),
+        codEmpresa: 1,
+        codSepararEstoque: 123,
+      );
 
-      final result = await service
-          .attachInParallel(itemsFuture: itemsFuture, codEmpresa: 1, codSepararEstoque: 123)
-          .timeout(const Duration(seconds: 2));
+      expect(result, isEmpty);
+      expect(unitSelectCount, 0);
+    });
+
+    test('anexa conversoes depois que os itens chegam', () async {
+      final item = _buildItem(item: '1', codProduto: 10);
+      final cx = _buildUnit(item: '1', codProduto: 10, itemUnidadeMedida: '2', codUnidadeMedida: 'CX');
+      final service = SeparateItemUnitConversionsService(repository: _FakeUnitRepository((_) async => [cx]));
+
+      final result = await service.attachInParallel(
+        itemsFuture: Future.value([item]),
+        codEmpresa: 1,
+        codSepararEstoque: 123,
+      );
 
       expect(result.single.unidadeMedidas.single.codUnidadeMedida, 'CX');
+    });
+
+    test('consulta conversoes em lotes quando ha muitos itens', () async {
+      final items = List<SeparateItemConsultationModel>.generate(
+        SeparateItemUnitConversionsService.itemInBatchSize + 1,
+        (i) => _buildItem(item: '${i + 1}', codProduto: i + 1),
+      );
+      final captured = <QueryBuilder>[];
+      final service = SeparateItemUnitConversionsService(
+        repository: _FakeUnitRepository((query) async {
+          captured.add(query);
+          return const [];
+        }),
+      );
+
+      await service.attachToItems(items: items, codEmpresa: 1, codSepararEstoque: 123);
+
+      expect(captured, hasLength(2));
+      expect(captured.first.buildSqlWhere(), contains('Item IN'));
+      expect(captured.last.buildSqlWhere(), contains('Item IN'));
     });
   });
 }

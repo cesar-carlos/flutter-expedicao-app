@@ -26,7 +26,7 @@ composicao, layout, performance e estrutura de widgets, use
 - prefira valores do tema a cores e tamanhos hardcoded quando ja
   houver token equivalente
 - mantenha suporte coerente aos modos visualmente suportados pelo app
-- extraia componentes reutilizaveis antes de repetir padroes visuais
+- reutilizacao e promocao de componentes seguem `shared_components.mdc`
 
 ## Hierarquia Visual
 

@@ -6,7 +6,6 @@ import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
 import 'package:data7_expedicao/presentation/viewmodels/picking_scan_result.dart';
-import 'package:data7_expedicao/ui/widgets/card_picking/components/keyboard_toggle_controller.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/picking_dialog_manager.dart';
 import 'package:data7_expedicao/ui/widgets/card_picking/components/scan_ui_controller.dart';
 
@@ -34,7 +33,6 @@ void main() {
     final controller = ScanUiController(
       dialogManager: PickingDialogManager(context: capturedContext, scanFocusNode: scanFocusNode),
       audioService: _SilentAudioService(),
-      keyboardController: KeyboardToggleController(scanFocusNode: scanFocusNode, context: capturedContext),
       quantityController: quantityController,
       onFinishPicking: () async {},
       onAddItem: (item, barcode, quantity, originalQuantity) async => false,

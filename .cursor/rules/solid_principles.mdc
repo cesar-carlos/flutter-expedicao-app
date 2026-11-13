@@ -25,14 +25,7 @@ Sinais de god class:
 - o view model acumula filtros, eventos, audio, notificacao e rede
 - a tela trata, no mesmo `State`, regioes visuais que mudam separadas
 
-Corte pelo motivo da mudanca, nao por contagem de linhas:
-
-- operacao de negocio vira use case
-- fluxo de varios passos vira coordinator com resultado `sealed`
-- recorte de estado vira controller
-- regiao visual vira widget
-- conversao de DTO vira mapper
-
+Corte pelo motivo da mudanca, usando o mapa de `design_patterns.mdc`.
 Nao parta um tipo coeso so para encurtar o arquivo.
 
 ## OCP e composicao
@@ -45,7 +38,8 @@ Nao parta um tipo coeso so para encurtar o arquivo.
 
 - quem implementa um contrato preserva o resultado esperado, inclusive
   falha via `Result`, sem efeito extra escondido
-- nao enfraqueca uma pre-condicao nem troque o significado do retorno
+- nao reforce pre-condicoes nem enfraqueca pos-condicoes do contrato;
+  preserve invariantes e o significado do retorno
 
 ## ISP
 
@@ -60,14 +54,4 @@ Nao parta um tipo coeso so para encurtar o arquivo.
 - a interface mora na camada interna; a implementacao mora na borda
 - o container de DI nao e dependencia de use case, view model ou widget
 
-```dart
-class LoadSeparation {
-  const LoadSeparation(this._repository);
-
-  final SeparationRepository _repository;
-
-  Future<Result<Separation>> call(SeparationId id) {
-    return _repository.findById(id);
-  }
-}
-```
+As regras de injecao e do `locator` ficam em `coding_conventions.mdc`.

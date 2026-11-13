@@ -1,5 +1,7 @@
-import 'package:logging/logging.dart';
+import 'dart:developer' as developer;
+
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 
 import 'package:data7_expedicao/core/utils/i_logger.dart';
 
@@ -9,17 +11,39 @@ class LoggerService implements ILogger {
   LoggerService({String? name}) : _logger = Logger(name ?? 'Data7Expedicao');
 
   static bool _listenerAttached = false;
+  static const String _appLoggerName = 'Data7Expedicao';
 
-  static void initialize({Level level = Level.ALL}) {
-    Logger.root.level = level;
+  /// `Level.ALL` no root faz o `socket_io_client` interpolar cada
+  /// pacote (JSON inteiro) no isolate de UI, aumentando o custo do log.
+  @visibleForTesting
+  static Level clampRootLevel(Level requested) {
+    return requested.value < Level.INFO.value ? Level.INFO : requested;
+  }
+
+  static void initialize({Level level = Level.INFO}) {
+    hierarchicalLoggingEnabled = true;
+    Logger.root.level = clampRootLevel(level);
+    Logger(_appLoggerName).level = kDebugMode ? Level.ALL : Level.INFO;
     if (_listenerAttached) {
       return;
     }
     _listenerAttached = true;
     Logger.root.onRecord.listen((record) {
+      if (!kDebugMode && record.level >= Level.WARNING) {
+        developer.log(
+          record.message,
+          name: record.loggerName,
+          level: record.level.value,
+          error: record.error,
+          stackTrace: record.stackTrace,
+        );
+      }
+      if (record.loggerName.startsWith('socket_io') && record.level < Level.WARNING) {
+        return;
+      }
       if (kDebugMode) {
         final levelEmoji = _getLevelEmoji(record.level);
-        final tag = record.loggerName != 'Data7Expedicao' ? '[${record.loggerName}]' : '';
+        final tag = record.loggerName != _appLoggerName ? '[${record.loggerName}]' : '';
 
         debugPrint('$levelEmoji$tag ${record.message}');
 

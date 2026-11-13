@@ -14,7 +14,7 @@ Este arquivo escolhe o padrao. O detalhe continua no arquivo dono:
 - imports entre camadas: `clean_architecture.mdc`
 - tamanho de classe e god class: `solid_principles.mdc`
 - widgets e componentizacao: `flutter_widgets.mdc`
-- contratos, `call()` e `Result`: `coding_conventions.mdc`
+- nomes e injecao: `coding_conventions.mdc`
 - entidades, value objects e use cases: `domain_layer.mdc`
 - sintaxe: `coding_style.mdc`
 
@@ -24,10 +24,10 @@ de novo.
 
 ## Mapa
 
-O app segue Clean Architecture. Na UI, View e ViewModel entram em
-`presentation` e nao furam o dominio.
+O app segue as camadas de `architecture.mdc`. Views ficam em `ui`;
+ViewModels, controllers e coordinators ficam em `presentation`.
 
-- View, em `presentation` ou `ui`: desenha o estado e encaminha o
+- View, em `ui`: desenha o estado e encaminha o
   evento
 - ViewModel, em `presentation/viewmodels`: estado e comandos de uma
   tela ou de um fluxo
@@ -38,8 +38,10 @@ O app segue Clean Architecture. Na UI, View e ViewModel entram em
 - Use case, no `domain`: uma operacao de negocio, com `call()`
 - Repository: contrato no `domain`, implementacao na borda de dados;
   uma fonte de verdade por tipo de dado
-- Service, na borda tecnica: API, plugin ou plataforma, sem regra de
-  negocio
+- Service de dominio, em `domain/services`: regra de negocio pura
+  que nao pertence a um unico modelo
+- Service tecnico, em `data` ou `infrastructure`: API, plugin ou
+  plataforma; contratos consumidos pelo dominio ficam no `domain`
 - Mapper, na borda de dados: converte DTO e entidade, sem regra de
   dominio
 
@@ -64,8 +66,5 @@ O app segue Clean Architecture. Na UI, View e ViewModel entram em
   junto do use case
 - nao abra heranca para especializar widget ou servico; componha
 
-## Injecao
-
-- tipo novo recebe dependencia no construtor
-- `GetIt` fica em `lib/di`; a regra incremental do `locator` vive em
-  `coding_conventions.mdc`
+Injecao e migracao incremental do `locator` seguem
+`coding_conventions.mdc`.

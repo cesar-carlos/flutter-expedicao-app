@@ -13,6 +13,7 @@ import 'package:data7_expedicao/core/routing/app_router.dart';
 import 'package:data7_expedicao/core/theme/status_colors.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/usecases/get_separation_consultation/get_separation_consultation_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_usecase.dart';
 import 'package:data7_expedicao/domain/usecases/save_separation_cart/save_separation_cart_params.dart';
@@ -173,15 +174,13 @@ class _CartItemCardState extends State<CartItemCard> {
     }
 
     if (userSectorCode != null) {
-      final hasItems = await _coordinator.hasItemsForUserSector(
-        codEmpresa: widget.cartRouteInternshipConsultation.codEmpresa,
-        codOrigem: widget.cartRouteInternshipConsultation.codOrigem,
-        userSectorCode: userSectorCode,
-      );
-
-      if (!hasItems && context.mounted) {
-        _showNoItemsForSectorDialog(context, userSectorCode);
-        return;
+      final localItems = widget.viewModel?.items ?? const <SeparateItemConsultationModel>[];
+      if (localItems.isNotEmpty) {
+        final hasItems = _coordinator.hasPendingItemsForUserSector(items: localItems, userSectorCode: userSectorCode);
+        if (!hasItems && context.mounted) {
+          _showNoItemsForSectorDialog(context, userSectorCode);
+          return;
+        }
       }
     }
 

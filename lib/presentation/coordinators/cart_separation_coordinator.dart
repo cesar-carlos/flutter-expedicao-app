@@ -1,6 +1,7 @@
 import 'package:data7_expedicao/core/results/index.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
+import 'package:data7_expedicao/domain/models/separate_item_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
 import 'package:data7_expedicao/domain/services/cart_validation_service.dart';
 import 'package:data7_expedicao/domain/services/i_user_session_service.dart';
@@ -61,11 +62,14 @@ class CartSeparationCoordinator {
     );
   }
 
-  Future<bool> hasItemsForUserSector({
-    required int codEmpresa,
-    required int codOrigem,
+  bool hasPendingItemsForUserSector({
+    required Iterable<SeparateItemConsultationModel> items,
     required int userSectorCode,
   }) {
+    return _cartValidationService.hasPendingItemsForUserSector(items: items, userSectorCode: userSectorCode);
+  }
+
+  Future<bool> hasItemsForUserSector({required int codEmpresa, required int codOrigem, required int userSectorCode}) {
     return _cartValidationService.hasItemsForUserSector(
       codEmpresa: codEmpresa,
       codOrigem: codOrigem,
@@ -73,10 +77,7 @@ class CartSeparationCoordinator {
     );
   }
 
-  Future<SeparateConsultationModel?> fetchSeparation({
-    required int codEmpresa,
-    required int codSepararEstoque,
-  }) async {
+  Future<SeparateConsultationModel?> fetchSeparation({required int codEmpresa, required int codSepararEstoque}) async {
     final result = await _getSeparationConsultationUseCase.call(
       GetSeparationConsultationParams(codEmpresa: codEmpresa, codSepararEstoque: codSepararEstoque),
     );
