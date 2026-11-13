@@ -219,6 +219,7 @@ class ProfileViewModel extends ChangeNotifier {
 
       final updatedUser = currentUser!.copyWith(
         fotoUsuario: photoBase64,
+        clearFotoUsuario: _hasPhotoBeenRemoved(),
         senha: hasPasswordChange ? _newPassword : null,
       );
 
@@ -230,6 +231,7 @@ class ProfileViewModel extends ChangeNotifier {
         ativo: result.ativo,
         codUsuario: result.codUsuario,
         fotoUsuario: photoBase64,
+        clearFotoUsuario: _hasPhotoBeenRemoved(),
         senha: null,
       );
 

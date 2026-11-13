@@ -431,10 +431,19 @@ class SeparationViewModel extends ChangeNotifier {
         ? _selectNewSeparationNotificationCandidate(previousKeys, filteredSeparations)
         : null;
 
-    _separations = filteredSeparations;
+    final merged = {for (final separation in _separations) _separationKey(separation): separation};
+    for (final row in rows) {
+      final key = _separationKey(row);
+      if (_filtersController.shouldInclude(row)) {
+        merged[key] = row;
+      } else {
+        merged.remove(key);
+      }
+    }
+    // O broadcast e uma pagina global: ausencias nao significam exclusao.
+    // A paginacao pertence exclusivamente as consultas solicitadas pela tela.
+    _separations = merged.values.toList();
     _sortSeparationsNewestFirst();
-    _currentPage = filteredSeparations.isEmpty ? 0 : ((filteredSeparations.length - 1) ~/ _pageSize);
-    _hasMoreData = rows.length == _pageSize;
     _clearError();
     _setState(SeparationState.loaded);
 

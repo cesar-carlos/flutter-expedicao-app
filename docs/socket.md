@@ -117,6 +117,13 @@ A entrada de um cliente nao garante novo broadcast: manter a consulta
 inicial e aplicar as linhas recebidas sem apagar registros ausentes
 daquela pagina nem consultar novamente a cada tick.
 
+O exp mescla essas linhas por `(CodEmpresa, CodSepararEstoque)`, atualiza
+os dados recebidos e remove da lista filtrada somente as linhas recebidas
+que deixaram de atender aos filtros. Registros ausentes sao preservados.
+O broadcast nao altera `currentPage` nem `hasMoreData`; esses valores
+continuam definidos pelas consultas paginadas da tela. A mesma mesclagem
+se aplica ao envelope `Data` de `separar.update.listen`.
+
 `separar.update.listen` pode chegar com `Mutation` (com ou sem `Session`)
 ou `Data`, conforme a origem. Preserve os caminhos CRUD e snapshot do
 `SeparationEventCoordinator`; nao unifique envelopes sem migracao.
@@ -193,6 +200,8 @@ servidor real:
 | Ponto | Estado local |
 | --- | --- |
 | Busca de usuarios | Envia `NomeUsuario`, mantendo empresa, situacao e pagina. A prioridade de filtros do servidor permanece inalterada. |
+| Usuario por codigo | Somente HTTP 404 retorna `null`. Resposta sem objeto `data`, sem identidade valida ou com codigo diferente do solicitado gera `UserApiException` com `INVALID_RESPONSE`; falhas de parse preservam a causa e o stack. |
+| Remocao de foto | Perfil usa `copyWith(clearFotoUsuario: true)` para enviar `FotoUsuario: null` e atualizar a sessao apos sucesso. Omissao continua preservando a foto; falha no servidor nao remove a foto da sessao. Senhas e permissoes mantem as regras existentes. |
 | Erros HTTP | `BaseApiService` preserva mensagem, codigo, status e mensagens de validacao; corpo ausente/invalido usa fallback. |
 | Diagnostico Socket.IO | `SocketErrorInfo` e `DataError` preservam `RequestId` e linhas adicionais separadas da mensagem apresentada. |
 | Emergencia no picking | `CardPickingViewModel` recebe a porta de socket, cancela debounce e fila de resync na pausa, impede novo resync e remove o listener no dispose. Nao cancela nem reenvia mutacoes em andamento. |

@@ -39,12 +39,13 @@ void main() {
     required int codSepararEstoque,
     required List<int> codSetoresEstoque,
     String observacao = '',
+    int codEmpresa = 1,
     ExpeditionOrigem origem = ExpeditionOrigem.orcamentoBalcao,
     int codOrigem = 1,
     DateTime? dataEmissao,
   }) {
     return SeparateConsultationModel(
-      codEmpresa: 1,
+      codEmpresa: codEmpresa,
       codSepararEstoque: codSepararEstoque,
       origem: origem,
       codOrigem: codOrigem,
@@ -404,9 +405,7 @@ void main() {
 
         expect(captured, isNotNull);
         expect(
-          captured!.params.any(
-            (param) => param.key == 'CodSetorEstoque' && param.operator == '=' && param.value == 1,
-          ),
+          captured!.params.any((param) => param.key == 'CodSetorEstoque' && param.operator == '=' && param.value == 1),
           isTrue,
         );
         expect(captured!.params.any((param) => param.key == 'CodSetoresEstoque'), isFalse);
@@ -580,9 +579,67 @@ void main() {
           ),
         );
 
-        expect(viewModel.separations, hasLength(1));
+        expect(viewModel.separations, hasLength(2));
         expect(viewModel.separations.first.codSepararEstoque, second.codSepararEstoque);
         expect(selectCalls, 1);
+      });
+
+      test('should merge global broadcasts by company and code without resetting pagination', () async {
+        final pages = List.generate(40, (i) => buildSeparation(codSepararEstoque: 100 - i, codSetoresEstoque: [1]));
+        var calls = 0;
+        when(mockRepository.selectConsultation(any)).thenAnswer((_) async {
+          return calls++ == 0 ? pages.take(20).toList() : pages.skip(20).toList();
+        });
+        await viewModel.loadSeparations();
+        await viewModel.loadMoreSeparations();
+        expect(viewModel.currentPage, 1);
+        viewModel.startEventMonitoring();
+        final listener =
+            verify(mockEventRepository.addConsultationListener(captureAny)).captured.single as EventListenerModel;
+        final updated = buildSeparation(codSepararEstoque: 100, codSetoresEstoque: [1], observacao: 'atualizada');
+        final otherCompany = buildSeparation(codSepararEstoque: 100, codEmpresa: 2, codSetoresEstoque: [1]);
+        final event = BasicEventModel.create(
+          data: {
+            'Data': [updated.toJson(), otherCompany.toJson()],
+          },
+          eventType: Event.insert,
+        );
+        listener.callback(event);
+        listener.callback(event);
+        expect(viewModel.separations, hasLength(41));
+        expect(viewModel.separations.first.observacao, 'atualizada');
+        expect(viewModel.currentPage, 1);
+        expect(viewModel.hasMoreData, isTrue);
+        expect(calls, 2);
+      });
+
+      test('should remove only received rows leaving the filter and preserve absent rows', () async {
+        final first = buildSeparation(codSepararEstoque: 1, codSetoresEstoque: [1]);
+        final second = buildSeparation(codSepararEstoque: 2, codSetoresEstoque: [1]);
+        viewModel.setSetorEstoqueFilter(
+          ExpeditionSectorStockModel(codSetorEstoque: 1, descricao: 'Setor', ativo: Situation.ativo),
+        );
+        when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [first, second]);
+        await viewModel.loadSeparations();
+        viewModel.startEventMonitoring();
+        final listener =
+            verify(mockEventRepository.addUpdateListener(captureAny)).captured.single as EventListenerModel;
+        listener.callback(
+          BasicEventModel.create(
+            data: {
+              'Data': [
+                buildSeparation(codSepararEstoque: 1, codSetoresEstoque: [2]).toJson(),
+                buildSeparation(codSepararEstoque: 3, codSetoresEstoque: [2]).toJson(),
+              ],
+            },
+            eventType: Event.update,
+          ),
+        );
+        expect(viewModel.separations.single.codSepararEstoque, 2);
+        expect(viewModel.hasMoreData, isFalse);
+        listener.callback(BasicEventModel.create(data: {'Data': []}, eventType: Event.update));
+        expect(viewModel.separations.single.codSepararEstoque, 2);
+        verify(mockRepository.selectConsultation(any)).called(1);
       });
 
       test('should keep listen snapshot when the pending consultation times out', () async {

@@ -46,17 +46,33 @@ class UserSystemApiService extends BaseApiService {
       if (response.data != null && response.data is Map<String, dynamic>) {
         final data = response.data as Map<String, dynamic>;
         if (data.containsKey('data') && data['data'] is Map<String, dynamic>) {
-          return UserSystemModel.fromJson(data['data'] as Map<String, dynamic>);
+          final userData = data['data'] as Map<String, dynamic>;
+          final user = UserSystemModel.fromJson(userData);
+          if (user.codUsuario != codUsuario || userData['NomeUsuario'] is! String || user.nomeUsuario.trim().isEmpty) {
+            throw const FormatException('Identidade do usuário ausente ou incompatível com a consulta.');
+          }
+          return user;
         }
       }
-      return null;
+      throw UserApiException(
+        'Resposta inválida ao consultar usuário. Tente novamente; se persistir, contate o suporte.',
+        statusCode: response.statusCode,
+        code: 'INVALID_RESPONSE',
+      );
     } on UserApiException catch (e) {
       if (e.statusCode == 404) {
         return null;
       }
       rethrow;
-    } catch (e) {
-      throw UserApiException('Erro ao processar dados do usuário: $e');
+    } catch (e, stackTrace) {
+      Error.throwWithStackTrace(
+        UserApiException(
+          'Resposta inválida ao consultar usuário. Tente novamente; se persistir, contate o suporte.',
+          code: 'INVALID_RESPONSE',
+          originalException: e,
+        ),
+        stackTrace,
+      );
     }
   }
 

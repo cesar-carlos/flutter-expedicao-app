@@ -42,9 +42,7 @@ class AppUser {
       codUsuario: _parseInt(json['CodUsuario']),
       fotoUsuario: json['FotoUsuario']?.toString(),
       senha: json['Senha']?.toString(),
-      userSystemModel: userSystemRaw is Map
-          ? UserSystemModel.fromJson(Map<String, dynamic>.from(userSystemRaw))
-          : null,
+      userSystemModel: userSystemRaw is Map ? UserSystemModel.fromJson(Map<String, dynamic>.from(userSystemRaw)) : null,
     );
   }
 
@@ -67,6 +65,7 @@ class AppUser {
     String? nome,
     int? codUsuario,
     String? fotoUsuario,
+    bool clearFotoUsuario = false,
     String? senha,
     UserSystemModel? userSystemModel,
   }) {
@@ -75,7 +74,7 @@ class AppUser {
       ativo: ativo ?? this.ativo,
       nome: nome ?? this.nome,
       codUsuario: codUsuario ?? this.codUsuario,
-      fotoUsuario: fotoUsuario ?? this.fotoUsuario,
+      fotoUsuario: clearFotoUsuario ? null : fotoUsuario ?? this.fotoUsuario,
       senha: senha ?? this.senha,
       userSystemModel: userSystemModel ?? this.userSystemModel,
     );
