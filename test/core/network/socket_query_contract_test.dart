@@ -9,6 +9,7 @@ import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 
 class _Socket {
   final String id = 'test-session';
+  Map<String, dynamic> response = {'Data': <Object>[]};
   final Map<String, void Function(dynamic)> listeners = {};
   final List<Map<String, dynamic>> requests = [];
 
@@ -18,7 +19,7 @@ class _Socket {
     final request = jsonDecode(data as String) as Map<String, dynamic>;
     requests.add(request);
     expect(event, startsWith('$id '));
-    listeners[request['ResponseIn']]!(jsonEncode({'Data': <Object>[]}));
+    listeners[request['ResponseIn']]!(jsonEncode(response));
   }
 }
 
@@ -27,6 +28,42 @@ Future<List<Map<String, dynamic>>> _select(_Socket socket, QueryBuilder query, {
 }
 
 void main() {
+  for (final mutation in [false, true]) {
+    final field = mutation ? 'Mutation' : 'Data';
+    test('should fail incomplete $field responses and remove the response listener', () async {
+      for (final response in [
+        <String, dynamic>{},
+        {field: null},
+      ]) {
+        final socket = _Socket()..response = response;
+        final request = mutation
+            ? SocketRequestHelper.mutation<Map<String, dynamic>>(
+                baseEvent: 'separacao.item.update',
+                entityJson: {'Item': '1'},
+                fromJson: (row) => row,
+                socket: socket,
+              )
+            : _select(socket, QueryBuilder());
+        await expectLater(request, throwsA(isA<DataError>().having((e) => e.message, 'message', contains(field))));
+        expect(socket.listeners, isEmpty);
+        expect(socket.requests, hasLength(1));
+      }
+    });
+    test('should accept an explicit empty $field response', () async {
+      final socket = _Socket()..response = {field: <Object>[]};
+      final result = mutation
+          ? await SocketRequestHelper.mutation<Map<String, dynamic>>(
+              baseEvent: 'separacao.item.update',
+              entityJson: {'Item': '1'},
+              fromJson: (row) => row,
+              socket: socket,
+            )
+          : await _select(socket, QueryBuilder());
+      expect(result, isEmpty);
+      expect(socket.listeners, isEmpty);
+    });
+  }
+
   test('should send empty IN and keep other filters unchanged', () async {
     final socket = _Socket();
     await _select(socket, QueryBuilder().equals('CodEmpresa', 1).inList('Item', <String>[]));

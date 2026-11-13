@@ -20,7 +20,7 @@ class CreateUserRequestSchema {
     'Password': z
         .string()
         .min(4, message: 'Senha deve ter pelo menos 4 caracteres')
-        .max(60, message: 'Senha deve ter no máximo 60 caracteres'),
+        .max(20, message: 'Senha deve ter no máximo 20 caracteres'),
     'Email': z
         .string()
         .refine((value) {

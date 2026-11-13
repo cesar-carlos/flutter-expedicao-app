@@ -48,7 +48,7 @@ class CreateUserDto {
         senha.isNotEmpty &&
         nome.trim().length <= 30 &&
         senha.length >= 4 &&
-        senha.length <= 60;
+        senha.length <= 20;
   }
 
   @override

@@ -25,6 +25,10 @@ class LoginUserUseCase implements LegacyUseCase<LoginResponse, LoginUserParams> 
       throw UserApiException('Senha deve ter pelo menos 4 caracteres', statusCode: 400, isValidationError: true);
     }
 
+    if (params.senha.length > 20) {
+      throw UserApiException('Senha deve ter no máximo 20 caracteres', statusCode: 400, isValidationError: true);
+    }
+
     final loginResponse = await _userRepository.login(nome, params.senha);
 
     if (!loginResponse.user.isActive) {

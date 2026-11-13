@@ -9,7 +9,6 @@ import 'package:data7_expedicao/data/dtos/login_dto.dart';
 import 'package:data7_expedicao/data/dtos/login_response_dto.dart';
 import 'package:data7_expedicao/data/dtos/api_error_dto.dart';
 import 'package:data7_expedicao/domain/repositories/user_repository.dart';
-import 'package:data7_expedicao/core/utils/app_logger.dart';
 
 class UserRepositoryImpl implements UserRepository {
   UserRepositoryImpl({Dio? dio}) : _dioOverride = dio;
@@ -44,6 +43,7 @@ class UserRepositoryImpl implements UserRepository {
       codUsuario: codUsuario,
     );
 
+    _validatePasswordLength(senha);
     if (!createUserDto.isValid) {
       throw UserApiException('Dados de usuário inválidos', statusCode: 400, isValidationError: true);
     }
@@ -54,6 +54,7 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<LoginResponse> login(String nome, String senha) async {
     try {
+      _validatePasswordLength(senha);
       final loginDto = LoginDto(nome: nome, senha: senha);
 
       final url = '$_baseUrl/expedicao/login-app';
@@ -112,19 +113,29 @@ class UserRepositoryImpl implements UserRepository {
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 400) {
-        try {
-          final errorDto = ApiErrorDto.fromApiResponse(e.response!.data, e.response!.statusCode);
-          throw errorDto.toException();
-        } catch (parseError, stackTrace) {
-          AppLogger.warning(
-            'Erro ao parsear resposta de erro da API, usando erro genérico',
-            tag: 'UserRepositoryImpl',
-            error: parseError,
-            stackTrace: stackTrace,
-          );
-          final errorDto = ApiErrorDto.validationError('Erro de validação', e.response?.data);
-          throw errorDto.toException();
+        final body = e.response?.data;
+        final rawMessage = body is Map ? body['message'] : null;
+        final rawCode = body is Map ? body['code'] : null;
+        final rawErrors = body is Map ? body['errors'] : null;
+        final validationMessages = <String>[];
+        if (rawErrors is List) {
+          for (final error in rawErrors) {
+            final message = error is Map ? error['message'] : error;
+            if (message is String && message.trim().isNotEmpty) {
+              validationMessages.add(message.trim());
+            }
+          }
         }
+        throw UserApiException(
+          rawMessage is String && rawMessage.trim().isNotEmpty
+              ? rawMessage.trim()
+              : 'Erro de validação no cadastro. Verifique os dados informados.',
+          statusCode: 400,
+          code: rawCode is String ? rawCode : null,
+          isValidationError: true,
+          validationMessages: List.unmodifiable(validationMessages),
+          originalException: e,
+        );
       }
 
       final errorDto = ApiErrorDto.connectionError(_getErrorMessage(e));
@@ -183,11 +194,12 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<AppUserConsultation> putAppUser(AppUser appUser) async {
     try {
+      if (appUser.senha != null) _validatePasswordLength(appUser.senha!);
       final url = '$_baseUrl/expedicao/login-app';
       final response = await _dio.put(
         url,
         queryParameters: {'CodLoginApp': appUser.codLoginApp},
-        data: appUser.toJson(),
+        data: {...appUser.toJson(), if (appUser.senha != null) 'Senha': appUser.senha!.toLowerCase()},
       );
       if (response.statusCode == 200) {
         final responseData = response.data;
@@ -258,6 +270,7 @@ class UserRepositoryImpl implements UserRepository {
     required String newPassword,
   }) async {
     try {
+      _validatePasswordLength(newPassword);
       // Bug CC corrigido: antes fazia login DUAS VEZES — uma em
       // `validateCurrentPassword` e outra para obter o CodLoginApp
       // (2x carga no servidor + lentidao percebida pelo usuario).
@@ -309,6 +322,12 @@ class UserRepositoryImpl implements UserRepository {
       return _parseAppUserData(userData.first);
     }
     return null;
+  }
+
+  void _validatePasswordLength(String password) {
+    if (password.length > 20) {
+      throw UserApiException('Senha deve ter no máximo 20 caracteres', statusCode: 400, isValidationError: true);
+    }
   }
 
   String _getErrorMessage(DioException e) {

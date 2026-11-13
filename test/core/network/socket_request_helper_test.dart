@@ -60,6 +60,18 @@ void main() {
   });
 
   group('SocketRequestHelper.extractDataList', () {
+    test('should reject missing or null Data instead of reporting success', () {
+      for (final payload in [
+        <String, dynamic>{},
+        {'Data': null},
+      ]) {
+        expect(() => SocketRequestHelper.extractDataList(payload), throwsFormatException);
+      }
+    });
+    test('should accept an explicit empty Data list', () {
+      expect(SocketRequestHelper.extractDataList({'Data': []}), isEmpty);
+    });
+
     test('retorna lista do campo "Data"', () {
       final list = SocketRequestHelper.extractDataList({
         'Data': [
@@ -69,16 +81,6 @@ void main() {
       });
       expect(list.length, equals(2));
       expect(list.first['a'], equals(1));
-    });
-
-    test('retorna lista vazia quando campo "Data" e null', () {
-      final list = SocketRequestHelper.extractDataList({'Data': null});
-      expect(list, isEmpty);
-    });
-
-    test('retorna lista vazia quando campo "Data" e ausente', () {
-      final list = SocketRequestHelper.extractDataList({'Other': 'value'});
-      expect(list, isEmpty);
     });
 
     test('lanca FormatException quando "Data" nao e List', () {
@@ -93,6 +95,18 @@ void main() {
   });
 
   group('SocketRequestHelper.extractMutationList', () {
+    test('should reject missing or null Mutation instead of reporting success', () {
+      for (final payload in [
+        <String, dynamic>{},
+        {'Mutation': null},
+      ]) {
+        expect(() => SocketRequestHelper.extractMutationList(payload), throwsFormatException);
+      }
+    });
+    test('should accept an explicit empty Mutation list', () {
+      expect(SocketRequestHelper.extractMutationList({'Mutation': []}), isEmpty);
+    });
+
     test('retorna lista do campo "Mutation"', () {
       final list = SocketRequestHelper.extractMutationList({
         'Mutation': [
@@ -100,16 +114,6 @@ void main() {
         ],
       });
       expect(list.length, equals(1));
-    });
-
-    test('retorna lista vazia quando "Mutation" e null', () {
-      final list = SocketRequestHelper.extractMutationList({'Mutation': null});
-      expect(list, isEmpty);
-    });
-
-    test('retorna lista vazia quando "Mutation" e ausente', () {
-      final list = SocketRequestHelper.extractMutationList({});
-      expect(list, isEmpty);
     });
 
     test('lanca FormatException quando "Mutation" nao e List', () {

@@ -19,7 +19,7 @@ class FormValidatorsLocalized {
         .string()
         .min(1, message: l10n.passwordRequired)
         .min(4, message: l10n.passwordMinLength(4))
-        .max(60, message: l10n.passwordMaxLength(60));
+        .max(20, message: l10n.passwordMaxLength(20));
   }
 
   Schema<String> _nameSchema() {

@@ -163,6 +163,9 @@ class _PasswordSectionState extends State<PasswordSection> {
         if (value != null && value.isNotEmpty && value.length < 4) {
           return context.l10n.passwordMinLengthProfile;
         }
+        if (value != null && value.length > 20) {
+          return context.l10n.passwordMaxLength(20);
+        }
         return null;
       },
       colorScheme: colorScheme,

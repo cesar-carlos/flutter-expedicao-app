@@ -52,6 +52,14 @@ Login e consulta de login usam `/expedicao/login-app`; cadastro usa
 Lista retorna `data: []`; consulta por chave retorna `data: {}` e pode
 omitir metadados de pagina. Ausencia por chave retorna 404.
 
+Senha nao diferencia maiusculas de minusculas: esta e uma regra de
+negocio confirmada para o exp. Preserve o envio em minusculas no login,
+cadastro e atualizacao de senha, sem migrar hashes ou tentar uma segunda
+autenticacao com outra capitalizacao. O maximo e 20 caracteres, conforme
+o servidor; o minimo de 4 ja adotado no app permanece. Nao truncar a
+senha para atender ao limite. O cadastro preserva a mensagem e os
+detalhes de validacao HTTP sem mostrar o payload bruto.
+
 Em `/usuarios`, a busca por nome usa `NomeUsuario`. O servidor aplica
 somente o primeiro filtro nesta prioridade: `CodUsuario`, `NomeUsuario`,
 `CodEmpresa`, `Ativo=S`. Nao assumir que nome, empresa e situacao sao
@@ -171,6 +179,11 @@ Erro de carga deve encerrar o estado de loading e oferecer uma acao
 clara. Registrar erro e stack trace; nao transformar falha de parse ou
 de transporte em lista vazia de sucesso. Resposta `Data: []` valida,
 por outro lado, e sucesso sem registros.
+
+Nos pedidos Socket.IO, `Data` (consulta) e `Mutation` (gravacao) devem
+estar presentes e ser listas, inclusive quando vazias. Campo ausente ou
+`null` falha explicitamente no helper; essa validacao nao altera as
+familias de broadcast `*.listen`.
 
 ## Correcoes de integracao no coletor
 

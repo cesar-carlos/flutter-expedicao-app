@@ -107,8 +107,8 @@ class RegisterViewModel extends ChangeNotifier {
       return false;
     }
 
-    if (password.length > 60) {
-      setError('Senha deve ter no máximo 60 caracteres');
+    if (password.length > 20) {
+      setError('Senha deve ter no máximo 20 caracteres');
       return false;
     }
 

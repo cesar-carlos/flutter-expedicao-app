@@ -28,7 +28,7 @@ class FormValidators {
       .string()
       .min(1, message: 'Por favor, digite sua senha')
       .min(4, message: 'A senha deve ter pelo menos 4 caracteres')
-      .max(60, message: 'Senha deve ter no máximo 60 caracteres');
+      .max(20, message: 'Senha deve ter no máximo 20 caracteres');
 
   /// Schema para validação de nome
   static final _nameSchema = z
@@ -141,8 +141,8 @@ class FormValidators {
     if (value.length < 4) {
       return 'A senha deve ter pelo menos 4 caracteres';
     }
-    if (value.length > 60) {
-      return 'Senha deve ter no máximo 60 caracteres';
+    if (value.length > 20) {
+      return 'Senha deve ter no máximo 20 caracteres';
     }
     try {
       _passwordSchema.parse(value);

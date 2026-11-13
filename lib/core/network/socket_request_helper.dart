@@ -321,9 +321,6 @@ class SocketRequestHelper {
   @visibleForTesting
   static List<dynamic> extractDataList(Map<String, dynamic> response) {
     final data = response['Data'];
-    if (data == null) {
-      return const [];
-    }
     if (data is! List) {
       throw FormatException('Campo "Data" da resposta nao e List: ${data.runtimeType}');
     }
@@ -333,9 +330,6 @@ class SocketRequestHelper {
   @visibleForTesting
   static List<dynamic> extractMutationList(Map<String, dynamic> response) {
     final mutation = response['Mutation'];
-    if (mutation == null) {
-      return const [];
-    }
     if (mutation is! List) {
       throw FormatException('Campo "Mutation" da resposta nao e List: ${mutation.runtimeType}');
     }

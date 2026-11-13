@@ -11,7 +11,7 @@ class LoginRequestSchema {
         .string()
         .min(1, message: 'Senha é obrigatória')
         .min(4, message: 'Senha deve ter pelo menos 4 caracteres')
-        .max(60, message: 'Senha deve ter no máximo 60 caracteres'),
+        .max(20, message: 'Senha deve ter no máximo 20 caracteres'),
   });
 
   static Map<String, dynamic> validate(Map<String, dynamic> data) {

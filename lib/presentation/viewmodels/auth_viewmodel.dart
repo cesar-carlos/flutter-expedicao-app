@@ -104,6 +104,12 @@ class AuthViewModel extends ChangeNotifier {
       return;
     }
 
+    if (password.length > 20) {
+      _setError('Senha deve ter no máximo 20 caracteres');
+      notifyListeners();
+      return;
+    }
+
     _isLoginLoading = true;
     _errorMessage = '';
     notifyListeners();

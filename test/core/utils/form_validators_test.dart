@@ -183,7 +183,7 @@ void main() {
         expect(FormValidators.password(null), contains('senha'));
         expect(FormValidators.password(''), contains('senha'));
         expect(FormValidators.password('123'), contains('4 caracteres'));
-        expect(FormValidators.password('a' * 61), contains('60 caracteres'));
+        expect(FormValidators.password('a' * 21), contains('20 caracteres'));
       });
     });
 

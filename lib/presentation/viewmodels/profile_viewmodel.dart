@@ -123,6 +123,11 @@ class ProfileViewModel extends ChangeNotifier {
       return false;
     }
 
+    if (_newPassword!.length > 20) {
+      _setError('Senha deve ter no máximo 20 caracteres');
+      return false;
+    }
+
     if (_confirmPassword != _newPassword) {
       _setError('A confirmação da senha não confere');
       return false;

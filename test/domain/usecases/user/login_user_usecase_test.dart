@@ -41,6 +41,14 @@ void main() {
       expect(result.message, 'ok');
     });
 
+    test('should reject passwords longer than the server limit', () async {
+      final uc = LoginUserUseCase(_StubRepo(loginResult: activeResponse()));
+      await expectLater(
+        uc.call(LoginUserParams(nome: 'user', senha: 'a' * 21)),
+        throwsA(isA<UserApiException>().having((e) => e.message, 'message', contains('20 caracteres'))),
+      );
+    });
+
     test('lanca quando usuario inativo', () async {
       final inactive = LoginResponse(
         message: 'ok',
