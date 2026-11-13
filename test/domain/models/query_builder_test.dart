@@ -138,9 +138,11 @@ void main() {
         ]);
       });
 
-      test('should ignorar lista vazia (sem adicionar param IN com valor vazio)', () {
+      test('should preserve empty IN instead of removing the filter', () {
         queryBuilder.inList('status', <String>[]);
-        expect(queryBuilder.params, isEmpty);
+        expect(queryBuilder.buildWhereParams(), [
+          {'key': 'status', 'operator': 'IN', 'value': <String>[]},
+        ]);
       });
     });
 

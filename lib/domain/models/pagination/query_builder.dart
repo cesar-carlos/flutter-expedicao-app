@@ -39,7 +39,6 @@ class QueryBuilder {
   }
 
   QueryBuilder inList<P>(String key, List<P> values) {
-    if (values.isEmpty) return this;
     _params.add(QueryParam.createWithOperator(key, List<P>.from(values), 'IN'));
     return this;
   }

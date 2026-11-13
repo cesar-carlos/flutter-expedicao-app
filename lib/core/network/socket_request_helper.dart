@@ -44,13 +44,30 @@ class SocketRequestHelper {
     bool includeOrderBy = false,
     dynamic socket,
   }) async {
+    if (baseEvent == 'conferir.item.consulta' || baseEvent == 'conferencia.item.consulta') {
+      final hasCart = queryBuilder.params.any((param) {
+        final value = param.value;
+        return param.key == 'CodCarrinho' &&
+            param.operator == '=' &&
+            !param.isFieldComparison &&
+            value is num &&
+            value.isFinite &&
+            value > 0;
+      });
+      if (!hasCart) {
+        throw DataError(
+          message: '[INVALID_PAYLOAD] $baseEvent exige CodCarrinho positivo no Where.',
+          code: 'INVALID_PAYLOAD',
+        );
+      }
+    }
     if (!queryBuilder.shouldFetchAllPages) {
       return _selectPage(
         baseEvent: baseEvent,
         queryBuilder: queryBuilder,
         fromJson: fromJson,
         timeout: timeout,
-        includeOrderBy: includeOrderBy,
+        includeOrderBy: includeOrderBy || queryBuilder.orderByClauses.isNotEmpty,
         pagination: queryBuilder.buildPagination(),
         socket: socket,
       );

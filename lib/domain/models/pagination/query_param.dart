@@ -43,10 +43,11 @@ class QueryParam<P> {
 
   /// Clause no formato exigido pelo servidor: `{ key, operator?, value? }`.
   Map<String, dynamic> toSocketWhere() {
+    if (isFieldComparison) {
+      throw StateError('Comparação entre campos não é suportada no contrato Socket.IO. Use um valor no filtro.');
+    }
     if (operator == 'RAW' && key == 'where') {
-      throw StateError(
-        'Where SQL bruto não é suportado pelo servidor. Use QueryBuilder.equals, inList ou isNull.',
-      );
+      throw StateError('Where SQL bruto não é suportado pelo servidor. Use QueryBuilder.equals, inList ou isNull.');
     }
 
     final map = <String, dynamic>{'key': key};
