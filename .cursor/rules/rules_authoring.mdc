@@ -1,14 +1,14 @@
 ---
 description: Manutencao de rules e arquivos de entrada do agente
-globs: [".cursor/**/*.md", ".cursor/rules/**/*.mdc", "AGENTS.md"]
+globs: [".cursor/**/*.md", ".cursor/rules/**/*.mdc", ".agents/skills/**/*.md", "AGENTS.md"]
 ---
 
 # Manutencao de Rules
 
 ## Escopo
 
-Use este arquivo ao editar rules do repositorio ou arquivos de entrada
-do agente.
+Use este arquivo ao editar rules, skills do repositorio ou arquivos de
+entrada do agente.
 
 ## Principios de autoria
 
@@ -30,6 +30,10 @@ do agente.
 - preserve restricoes unicas ao consolidar arquivos; mova-as para a
   rule responsavel antes de remover a origem
 - confira caminhos, exemplos e referencias contra o repositorio atual
+- nas skills, explicite limites de aplicacao que conflitem com o projeto
+  e referencie a rule responsavel, sem duplicar sua politica completa
+- exemplos de skills nao justificam alterar contratos, validacoes ou
+  transicoes de negocio fora do escopo da tarefa
 
 ## Checklist
 

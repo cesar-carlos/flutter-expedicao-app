@@ -1,4 +1,4 @@
-# Contrato Socket.IO neste coletor
+# Integracao HTTP e Socket.IO neste coletor
 
 A fonte do contrato e o servidor:
 
@@ -13,8 +13,55 @@ Leia nesta ordem:
 5. `docs/feature/protecao-base-e-emergencia.md` — o que o Node ja fez
    (Fase 0) e o que ainda e trabalho nos coletores (Fase 1)
 
-Esta pagina so registra o que o `exp` ja cumpre e o que ainda falta.
-Nao copie o guia do servidor para ca.
+Esta pagina registra a aplicacao do contrato no `exp` e as melhorias
+pendentes. Revisao documental e de codigo em 2026-11-13; nao comprova o
+estado do APK instalado nem do servidor em execucao.
+
+Para HTTP, consulte tambem `docs/contratos/consulta-http.md` e
+`docs/http/usuario-consulta.md` no servidor. Para consultas Socket.IO,
+consulte `docs/contratos/consulta-socket.md`, `where.md` e `paginacao.md`.
+Nao duplique aqui o catalogo completo de eventos ou as regras do banco.
+
+## Canais e envelopes
+
+HTTP e Socket.IO usam o mesmo host/porta do Node. HTTP atende login e
+usuarios; carrinho, separacao e conferencia usam Socket.IO. As rotas
+HTTP `/expedicao/separacao` e `/expedicao/conferir`, sem `/notify`,
+respondem 501: nao sao fallback para falha do socket.
+
+`DioConfig` compartilha o cliente HTTP (10 s para conectar, 30 s para
+enviar/receber). `SocketRequestHelper` aguarda 30 s por pedido, alem da
+espera de prontidao da conexao. Sao limites diferentes; nao aumentar
+timeouts para esconder consulta lenta ou carregamento sem fim.
+
+- pedido Socket.IO: JSON string em `${socket.id} <evento>`, com
+  `Session` e `ResponseIn` UUID; resposta no UUID
+- consulta responde `Data`; mutacao responde `Mutation`; erro usa
+  `Error`, com `Code` e `RequestId` opcionais
+- `SocketRequestHelper` aceita string ou Map e remove o listener do
+  UUID no encerramento da espera, inclusive por erro/timeout
+- broadcasts usam o nome literal `*.listen`, sem prefixo de sessao;
+  o cliente apenas escuta, nao emite esses canais
+- `GET /health` comprova resposta HTTP, nao saude do SQL Server;
+  socket conectado tambem nao comprova sucesso de uma consulta
+
+## HTTP: limites relevantes para o app
+
+Login e consulta de login usam `/expedicao/login-app`; cadastro usa
+`/expedicao/create-login-app`. Nao existe `/expedicao/consult-login-app`.
+Lista retorna `data: []`; consulta por chave retorna `data: {}` e pode
+omitir metadados de pagina. Ausencia por chave retorna 404.
+
+Em `/usuarios`, a busca por nome usa `NomeUsuario`. O servidor aplica
+somente o primeiro filtro nesta prioridade: `CodUsuario`, `NomeUsuario`,
+`CodEmpresa`, `Ativo=S`. Nao assumir que nome, empresa e situacao sao
+combinados. `Ativo=N` sozinho retorna a lista geral no contrato atual.
+
+`Offset` HTTP e ajustado ao inicio da pagina que o contem; envie
+multiplos de `Limit`. `total` pode ficar limitado a 1500, mesmo com mais
+registros: nao representa necessariamente a contagem integral da base.
+Essas limitacoes sao do servidor documentado, nao regras novas de
+selecao de usuario no app. Pendencias locais estao no fim desta pagina.
 
 ## Ja alinhado
 
@@ -44,6 +91,33 @@ servidor, sem `LIMIT` do cliente, pagina 1500. Nao usar
 
 Dedup de `*.consulta` iguais no mesmo socket e trabalho do servidor.
 O coletor nao precisa (nem deve) cancelar o segundo pedido.
+Isso nao cobre mutacoes nem garante idempotencia de gravacao.
+
+## Paginas e atualizacoes parciais
+
+`allRows()` faz varias consultas; nao cria um snapshot transacional.
+Use ordem deterministica com desempate por chave ao paginar. Sem
+`OrderBy` valido, o servidor usa `ORDER BY (SELECT NULL)`, que nao
+garante continuidade entre paginas. Mudancas concorrentes ainda podem
+deslocar registros entre paginas.
+
+`separar.consulta.listen` entrega uma pagina global, nao a lista inteira
+filtrada do usuario: padrao 20 registros e intervalo de 8 s apos cada
+ciclo. O servidor suprime payload repetido e aplica backoff em falhas.
+Ausencia de evento nao comprova desconexao, nem exclusao de registros.
+A entrada de um cliente nao garante novo broadcast: manter a consulta
+inicial e aplicar as linhas recebidas sem apagar registros ausentes
+daquela pagina nem consultar novamente a cada tick.
+
+`separar.update.listen` pode chegar com `Mutation` (com ou sem `Session`)
+ou `Data`, conforme a origem. Preserve os caminhos CRUD e snapshot do
+`SeparationEventCoordinator`; nao unifique envelopes sem migracao.
+
+A trigger que gera conferencia ao finalizar a separacao nao emite
+`conferir.insert.listen` nem `conferir.item.insert.listen`. Tambem nao
+existe `conferir.consulta.listen` periodico. Nao inventar esses eventos
+nem repetir `conferir.insert` para compensar a ausencia de notificacao;
+uma atualizacao dessa lista exige consulta explicita no fluxo apropriado.
 
 ## Canal de emergencia
 
@@ -65,6 +139,12 @@ Se `Acao == desconectar`:
 
 O coletor nao chama `POST /internal/sockets/emergencia`.
 
+Os documentos `comunicacao.md`, `socket/listen.md` e
+`socket/protecoes-cliente.md` do servidor ainda descrevem o listener do
+`exp` como ausente. Isso esta desatualizado em relacao ao codigo local.
+O bloqueio de trafego e a pausa de reconexao ja existem; o cancelamento
+do debounce e da fila de resync do picking tambem foi implementado.
+
 Kick automatico de quem trava a base **ainda nao** esta ligado no
 servidor. Quando existir, o aviso sai neste canal antes do
 `disconnect`. Plano: `docs/feature/protecao-base-e-emergencia.md`.
@@ -80,6 +160,35 @@ Nao embrulhar com `Exception('Erro ao X: $e')`.
 | `[SQL-1222]` | Parseia `SQL-*`; tratar como "registro em uso, tente de novo" (nao e payload invalido) |
 | `[INVALID_PAYLOAD]` | `ValidationFailure` |
 | `[50014]` … | `BusinessFailure` |
+
+Timeout ou perda de conexao depois de enviar uma mutacao nao comprova
+rollback. O servidor documenta autocommit; dedup de consulta e UUID de
+resposta nao tornam um INSERT idempotente. Antes de reenviar, reconciliar
+o estado persistido pela chave de negocio e preservar as validacoes do
+fluxo. Nao aplicar retry generico de rede a gravacoes indiscriminadamente.
+
+Erro de carga deve encerrar o estado de loading e oferecer uma acao
+clara. Registrar erro e stack trace; nao transformar falha de parse ou
+de transporte em lista vazia de sucesso. Resposta `Data: []` valida,
+por outro lado, e sucesso sem registros.
+
+## Correcoes de integracao no coletor
+
+Correcoes aplicadas apos a revisao do contrato, com testes locais sem
+servidor real:
+
+| Ponto | Estado local |
+| --- | --- |
+| Busca de usuarios | Envia `NomeUsuario`, mantendo empresa, situacao e pagina. A prioridade de filtros do servidor permanece inalterada. |
+| Erros HTTP | `BaseApiService` preserva mensagem, codigo, status e mensagens de validacao; corpo ausente/invalido usa fallback. |
+| Diagnostico Socket.IO | `SocketErrorInfo` e `DataError` preservam `RequestId` e linhas adicionais separadas da mensagem apresentada. |
+| Emergencia no picking | `CardPickingViewModel` recebe a porta de socket, cancela debounce e fila de resync na pausa, impede novo resync e remove o listener no dispose. Nao cancela nem reenvia mutacoes em andamento. |
+| Lista parcial de usuarios | Servico e repositorio propagam a contagem de itens invalidos; a selecao avisa sobre resultado parcial e considera as linhas recebidas na pagina. Se nenhum item recebido for valido, retorna erro claro; lista realmente vazia continua sucesso. |
+
+Validar futuras correcoes com testes de contrato (string/Map,
+Data/Mutation/Error, timeout, disconnect, paginas e filtros), usando
+fakes ou ambiente controlado. Nao confirmar, cancelar ou reenviar
+mutacoes de documentos reais para validar a documentacao.
 
 ## Ainda nao no servidor
 

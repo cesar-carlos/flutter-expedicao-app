@@ -7,6 +7,16 @@ metadata:
 ---
 # Analyzing and Fixing Dart Code
 
+## Applicability in this repository
+
+Preserve the existing analysis_options.yaml configuration. Use `flutter analyze`
+for package-wide validation; analyzer configuration examples below are not
+instructions to replace this project's settings. Follow
+[coding_style.mdc](../../../.cursor/rules/coding_style.mdc).
+Preview automatic fixes, restrict them to the task's files and review the diff.
+Do not suppress diagnostics or refactor business logic merely to obtain a clean
+analysis result. Format only touched files instead of running `dart format .`.
+
 ## Contents
 - [Analysis Configuration](#analysis-configuration)
 - [Diagnostic Suppression](#diagnostic-suppression)

@@ -1,8 +1,24 @@
+import 'package:data7_expedicao/core/network/socket_request_helper.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:data7_expedicao/core/errors/socket_error_parser.dart';
 
 void main() {
+  test('should retain correlation and details without appending them to the user message', () {
+    final error = SocketRequestHelper.dataErrorFromResponse({
+      'Error': ['[50014] Carrinho indisponivel', 'diagnostico adicional'],
+      'Code': 'BUSINESS_RULE_VIOLATION',
+      'RequestId': 'request-123',
+    });
+    expect(error!.requestId, 'request-123');
+    expect(error.details, ['diagnostico adicional']);
+    expect(error.message, '[50014] Carrinho indisponivel');
+    expect(error.toString(), isNot(contains('diagnostico adicional')));
+    final legacy = SocketRequestHelper.dataErrorFromResponse({'Error': 'erro legado'});
+    expect(legacy!.requestId, isNull);
+    expect(legacy.details, isEmpty);
+  });
+
   group('SocketErrorInfo.fromResponse', () {
     test('should return null when Error is null or empty', () {
       expect(SocketErrorInfo.fromResponse({'Error': null}), isNull);

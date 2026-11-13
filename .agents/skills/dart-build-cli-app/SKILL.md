@@ -178,7 +178,7 @@ If your CLI alters terminal modes, displays spinners, or opens listening sockets
 
 * **Windows Signal Guard**: On Windows, `ProcessSignal.sigterm.watch()` throws `UnsupportedError`. Guard `sigterm` with `if (!Platform.isWindows)`.
 * **Echo & Line Mode Teardown**: If setting `stdin.echoMode = false` or `stdin.lineMode = false`, check `if (!stdin.hasTerminal) return;` first, and install a `SIGINT` listener and `finally` block to restore them so user keystrokes remain visible after exit.
-* **Codex Visibility**: If emitting ANSI hide-cursor (`\x1B[?25l`), always restore cursor visibility (`\x1B[?25h`) on exit or cancellation.
+* **Cursor Visibility**: If emitting ANSI hide-cursor (`\x1B[?25l`), always restore cursor visibility (`\x1B[?25h`) on exit or cancellation.
 * **Socket Cleanup**: Explicitly close listening `HttpServer` or `ServerSocket` instances (`server.close(force: true)`) on termination signals to immediately release OS ports.
 * See detailed patterns in [references/signals_and_terminal.md](references/signals_and_terminal.md).
 

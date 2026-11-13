@@ -7,6 +7,15 @@ metadata:
 ---
 # Serializing JSON Manually in Flutter
 
+## Applicability in this repository
+
+Preserve existing payload keys, domain validation, enum mappings and nullability
+when changing serialization. Follow
+[null_safety.mdc](../../../.cursor/rules/null_safety.mdc) and the transport contracts
+in [dependencies_patterns.mdc](../../../.cursor/rules/dependencies_patterns.mdc).
+The package:http examples below are illustrative; use the existing transport
+instead of installing a client or changing endpoints for this recipe.
+
 ## Contents
 - [Core Guidelines](#core-guidelines)
 - [Workflow: Implementing a Serializable Model](#workflow-implementing-a-serializable-model)

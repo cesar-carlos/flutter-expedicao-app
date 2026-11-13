@@ -17,7 +17,10 @@ class NetworkError extends AppError {
 }
 
 class DataError extends AppError {
-  DataError({required super.message, super.code, super.stackTrace});
+  final String? requestId;
+  final List<String> details;
+
+  DataError({required super.message, super.code, super.stackTrace, this.requestId, this.details = const []});
 
   @override
   String toString() => message;
@@ -25,11 +28,8 @@ class DataError extends AppError {
 
 extension AppErrorUI on BuildContext {
   void showErrorSnackBar(AppError error) {
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(
-        content: Text(error.userMessage),
-        backgroundColor: AppColors.error,
-      ),
-    );
+    ScaffoldMessenger.of(
+      this,
+    ).showSnackBar(SnackBar(content: Text(error.userMessage), backgroundColor: AppColors.error));
   }
 }

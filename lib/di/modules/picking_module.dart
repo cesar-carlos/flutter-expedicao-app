@@ -1,3 +1,4 @@
+import 'package:data7_expedicao/domain/services/i_socket_connection_port.dart';
 import 'package:get_it/get_it.dart';
 
 import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
@@ -66,6 +67,7 @@ void registerPickingModule(GetIt locator) {
 
   locator.registerFactory<CardPickingViewModel>(
     () => CardPickingViewModel.withDependencies(
+      socket: locator<ISocketConnectionPort>(),
       repository: locator<BasicConsultationRepository<SeparateItemConsultationModel>>(),
       sectorStockRepository: locator<BasicRepository<ExpeditionSectorStockModel>>(),
       filtersStorage: locator<IFiltersStorageService>(),

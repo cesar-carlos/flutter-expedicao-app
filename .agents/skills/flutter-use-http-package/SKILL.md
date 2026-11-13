@@ -1,11 +1,18 @@
 ---
 name: flutter-use-http-package
-description: Use the `http` package to execute GET, POST, PUT, or DELETE requests. Use when you need to fetch from or send data to a REST API.
+description: Reference for package:http in projects that adopt it. Not applicable to networking changes in this repository, which uses Dio.
 metadata:
   model: models/gemini-3.1-pro-preview
   last_modified: Tue, 21 Apr 2026 21:36:42 GMT
 ---
 # Implementing Flutter Networking
+
+## Applicability in this repository
+
+Do not apply the package installation or HTTP client examples below here.
+Use the existing Dio configuration and repository contracts defined in
+[dependencies_patterns.mdc](../../../.cursor/rules/dependencies_patterns.mdc).
+This reference does not authorize replacing the transport or changing API contracts.
 
 ## Contents
 - [Configuration & Permissions](#configuration--permissions)

@@ -110,6 +110,10 @@ class UserSelectionViewModel extends ChangeNotifier {
       );
       if (_disposed) return;
 
+      if (response.isPartial) {
+        _errorMessage = 'Lista incompleta: alguns usuários não puderam ser carregados. Atualize a busca.';
+        _safeContext?.showServerError(_errorMessage!);
+      }
       if (response.success && response.users.isNotEmpty) {
         _users = response.users;
         _hasMoreData = false;
@@ -126,8 +130,9 @@ class UserSelectionViewModel extends ChangeNotifier {
       if (_disposed) return;
       AppLogger.warning('Erro ao buscar usuarios', tag: 'UserSelectionVM', error: e, stackTrace: s);
       _users = [];
+      _errorMessage = e is UserApiException ? e.message : 'Não foi possível carregar os usuários. Tente novamente.';
       _setState(UserSelectionState.loaded);
-      _safeContext?.showServerError('Erro ao buscar usuários', details: e.toString(), onRetry: () => searchUsers(nome));
+      _safeContext?.showServerError(_errorMessage!, onRetry: () => searchUsers(nome));
     }
   }
 
@@ -143,10 +148,14 @@ class UserSelectionViewModel extends ChangeNotifier {
       final response = await _userSystemRepository.getUsers(apenasAtivos: Situation.ativo, pagination: pagination);
       if (_disposed) return;
 
+      if (response.isPartial) {
+        _errorMessage = 'Lista incompleta: alguns usuários não puderam ser carregados. Atualize a busca.';
+        _safeContext?.showServerError(_errorMessage!);
+      }
       if (response.success) {
         _users = response.users;
         _currentPage = 1;
-        _hasMoreData = response.users.length == _pageLimit;
+        _hasMoreData = response.users.length + response.invalidItemCount == _pageLimit;
         _setState(UserSelectionState.loaded);
       } else {
         _users = [];
@@ -157,8 +166,9 @@ class UserSelectionViewModel extends ChangeNotifier {
       if (_disposed) return;
       AppLogger.warning('Erro ao carregar usuarios', tag: 'UserSelectionVM', error: e, stackTrace: s);
       _users = [];
+      _errorMessage = e is UserApiException ? e.message : 'Não foi possível carregar os usuários. Tente novamente.';
       _setState(UserSelectionState.loaded);
-      _safeContext?.showServerError('Erro ao carregar usuários', details: e.toString(), onRetry: loadAllUsers);
+      _safeContext?.showServerError(_errorMessage!, onRetry: loadAllUsers);
     }
   }
 
@@ -179,6 +189,10 @@ class UserSelectionViewModel extends ChangeNotifier {
       final response = await _userSystemRepository.getUsers(apenasAtivos: Situation.ativo, pagination: pagination);
       if (_disposed) return;
 
+      if (response.isPartial) {
+        _errorMessage = 'Lista incompleta: alguns usuários não puderam ser carregados. Atualize a busca.';
+        _safeContext?.showServerError(_errorMessage!);
+      }
       if (response.success) {
         final Set<int> existingUserCodes = _users.map((u) => u.codUsuario).toSet();
         final List<UserSystemModel> newUsers = response.users
@@ -187,7 +201,7 @@ class UserSelectionViewModel extends ChangeNotifier {
 
         _users.addAll(newUsers);
         _currentPage++;
-        _hasMoreData = response.users.length == _pageLimit;
+        _hasMoreData = response.users.length + response.invalidItemCount == _pageLimit;
       } else {
         _hasMoreData = false;
       }
@@ -196,8 +210,15 @@ class UserSelectionViewModel extends ChangeNotifier {
       // Bug GGGG: antes era catch silencioso. Falha em paginacao
       // virava `hasMoreData = false` sem nenhum log — usuario perdia
       // acesso ao resto da lista sem entender o motivo.
-      AppLogger.warning('Erro em loadMoreUsers (pagina ${_currentPage + 1})', tag: 'UserSelectionVM', error: e, stackTrace: s);
+      AppLogger.warning(
+        'Erro em loadMoreUsers (pagina ${_currentPage + 1})',
+        tag: 'UserSelectionVM',
+        error: e,
+        stackTrace: s,
+      );
       _hasMoreData = false;
+      _errorMessage = e is UserApiException ? e.message : 'Não foi possível carregar mais usuários. Tente novamente.';
+      _safeContext?.showServerError(_errorMessage!, onRetry: loadAllUsers);
     }
 
     if (_disposed) return;

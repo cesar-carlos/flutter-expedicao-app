@@ -48,6 +48,11 @@ servidor em
 No repositorio Node, o indice e `docs/comunicacao.md`; veja tambem a
 regra 27 de `docs/expedicao/regras.md`.
 
+O estado da integracao local, as divergencias conhecidas e os cuidados
+com HTTP, pagina, listen e reenvio de mutacoes ficam em `docs/socket.md`
+neste repositorio. Consulte-o antes de aplicar exemplos do contrato;
+ele nao substitui as regras de negocio nem o contrato do servidor.
+
 - nao reintroduza `LIKE` em `CodSetoresEstoque` ou `DataEmissao`
 - os dois clientes Flutter escutam `servidor.emergencia.listen`; neste
   app, a implementacao e

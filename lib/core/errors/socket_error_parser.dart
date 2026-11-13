@@ -1,11 +1,19 @@
 /// Extrai o envelope de erro Socket.IO (`Error` + `Code`) no formato
 /// `[identificador] mensagem`.
 class SocketErrorInfo {
-  const SocketErrorInfo({required this.message, this.identifier, this.contractCode});
+  const SocketErrorInfo({
+    required this.message,
+    this.identifier,
+    this.contractCode,
+    this.requestId,
+    this.details = const [],
+  });
 
   /// Primeira linha de `Error`, já no formato `[id] texto` quando o servidor
   /// classifica a falha.
   final String message;
+  final String? requestId;
+  final List<String> details;
 
   /// Prefixo entre colchetes: `50014`, `SQL-CONN`, `INVALID_PAYLOAD`, …
   final String? identifier;
@@ -26,7 +34,13 @@ class SocketErrorInfo {
 
     final first = lines.first;
     final contractCode = _readContractCode(response['Code']);
-    return SocketErrorInfo(message: first, identifier: identifierOf(first), contractCode: contractCode);
+    return SocketErrorInfo(
+      message: first,
+      identifier: identifierOf(first),
+      contractCode: contractCode,
+      requestId: response['RequestId'] is String ? response['RequestId'] as String : null,
+      details: List.unmodifiable(lines.skip(1)),
+    );
   }
 
   static List<String> linesOf(Object? error) {

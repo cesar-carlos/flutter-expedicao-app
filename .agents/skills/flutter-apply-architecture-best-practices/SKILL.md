@@ -7,6 +7,14 @@ metadata:
 ---
 # Architecting Flutter Applications
 
+## Applicability in this repository
+
+Use [architecture.mdc](../../../.cursor/rules/architecture.mdc) and
+[clean_architecture.mdc](../../../.cursor/rules/clean_architecture.mdc) for actual
+folders and dependency direction. The generic tree below is not a migration
+target. Preserve existing use cases and business validations; do not move them
+into widgets or ViewModels because the generic example calls the domain optional.
+
 ## Contents
 - [Architectural Layers](#architectural-layers)
 - [Project Structure](#project-structure)

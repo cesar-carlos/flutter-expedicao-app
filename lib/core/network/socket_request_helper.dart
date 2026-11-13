@@ -242,7 +242,12 @@ class SocketRequestHelper {
     if (info == null) {
       return null;
     }
-    return DataError(message: info.message, code: info.identifier ?? info.contractCode);
+    return DataError(
+      message: info.message,
+      code: info.identifier ?? info.contractCode,
+      requestId: info.requestId,
+      details: info.details,
+    );
   }
 
   static Future<void> _completeParsedResponse<T>({

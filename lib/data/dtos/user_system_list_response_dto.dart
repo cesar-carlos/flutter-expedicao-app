@@ -10,6 +10,8 @@ class UserSystemListResponseDto {
   final int? totalPages;
   final bool success;
   final String? message;
+  final int invalidItemCount;
+  bool get isPartial => invalidItemCount > 0;
 
   const UserSystemListResponseDto({
     required this.users,
@@ -19,6 +21,7 @@ class UserSystemListResponseDto {
     this.totalPages,
     required this.success,
     this.message,
+    this.invalidItemCount = 0,
   });
 
   factory UserSystemListResponseDto.fromApiResponse(Map<String, dynamic> map) {
@@ -29,6 +32,7 @@ class UserSystemListResponseDto {
 
     return UserSystemListResponseDto(
       users: users,
+      invalidItemCount: map['data'] is List ? (map['data'] as List).length - users.length : 0,
       total: map['total'] is int ? map['total'] as int : users.length,
       page: map['page'] is int ? map['page'] as int : null,
       limit: map['limit'] is int ? map['limit'] as int : null,

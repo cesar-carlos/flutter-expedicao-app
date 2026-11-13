@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'package:data7_expedicao/core/utils/app_logger.dart';
+import 'package:data7_expedicao/domain/services/i_socket_connection_port.dart';
 import 'package:data7_expedicao/core/utils/picking_utils.dart';
 import 'package:data7_expedicao/core/metrics/metrics_collector.dart';
 import 'package:data7_expedicao/domain/models/picking_state.dart';
@@ -52,6 +53,7 @@ class CardPickingViewModel extends ChangeNotifier {
   final SaveSeparationCartUseCase _saveSeparationCartUseCase;
 
   final IUserSessionService _userSessionService;
+  final ISocketConnectionPort? _socket;
   final SocketValidationResult Function() _validateSocketStateFn;
 
   final SeparateCartInternshipEventRepository _cartEventRepository;
@@ -281,13 +283,15 @@ class CardPickingViewModel extends ChangeNotifier {
     required SaveSeparationCartUseCase saveSeparationCartUseCase,
     required IUserSessionService userSessionService,
     SocketValidationResult Function()? validateSocketState,
+    ISocketConnectionPort? socket,
     required SeparateCartInternshipEventRepository cartEventRepository,
     required ShelfScanningService shelfScanningService,
     required PickingStateManager stateManager,
     required CartValidationService cartValidationService,
     required SeparateItemUnitConversionsService unitConversions,
     MetricsCollector? metricsCollector,
-  }) : _repository = repository,
+  }) : _socket = socket,
+       _repository = repository,
        _sectorStockRepository = sectorStockRepository,
        _filtersStorage = filtersStorage,
        _addItemSeparationUseCase = addItemSeparationUseCase,
@@ -311,6 +315,14 @@ class CardPickingViewModel extends ChangeNotifier {
       filtersController: _filtersController,
     );
     _addItemCoordinator = _buildAddItemCoordinator();
+    _socket?.addListener(_onSocketStateChanged);
+  }
+
+  void _onSocketStateChanged() {
+    if (_socket?.isTrafficPaused != true) return;
+    _resyncDebounce?.cancel();
+    _resyncDebounce = null;
+    _silentResyncQueued = false;
   }
 
   PickingAddItemCoordinator _buildAddItemCoordinator() {
@@ -328,6 +340,7 @@ class CardPickingViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _socket?.removeListener(_onSocketStateChanged);
     _resyncDebounce?.cancel();
     _cartEventController.dispose();
     _errorController.close();
@@ -684,7 +697,7 @@ class CardPickingViewModel extends ChangeNotifier {
   }
 
   Future<void> resyncVisibleDataSilently() async {
-    if (_disposed || _cart == null) return;
+    if (_disposed || _cart == null || _socket?.isTrafficPaused == true) return;
 
     if (_silentResyncInFlight) {
       _silentResyncQueued = true;
@@ -818,6 +831,7 @@ class CardPickingViewModel extends ChangeNotifier {
     // o adiamento quando há operações pendentes/carregando e o
     // re-enfileiramento.
     _resyncDebounce?.cancel();
+    if (_socket?.isTrafficPaused == true) return;
     _resyncDebounce = Timer(_resyncDebounceDuration, () {
       if (_disposed) return;
       unawaited(resyncVisibleDataSilently());

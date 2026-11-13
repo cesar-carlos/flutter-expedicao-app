@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import 'package:data7_expedicao/core/network/dio_config.dart';
 import 'package:data7_expedicao/core/network/network_initializer.dart';
 import 'package:data7_expedicao/domain/models/user/user_models.dart';
-import 'package:data7_expedicao/data/dtos/api_error_dto.dart';
 
 abstract class BaseApiService {
   Dio get dio {
@@ -14,8 +13,27 @@ abstract class BaseApiService {
   String get baseUrl => DioConfig.baseUrl;
 
   UserApiException handleDioError(DioException e) {
-    final errorDto = ApiErrorDto.connectionError(_getErrorMessage(e));
-    return UserApiException(errorDto.message, statusCode: e.response?.statusCode, originalException: e);
+    final body = e.response?.data;
+    final message = body is Map ? body['message'] : null;
+    final code = body is Map ? body['code'] : null;
+    final errors = body is Map ? body['errors'] : null;
+    final validationMessages = <String>[];
+    if (errors is List) {
+      for (final error in errors) {
+        final detail = error is Map ? error['message'] : error;
+        if (detail is String && detail.trim().isNotEmpty) {
+          validationMessages.add(detail.trim());
+        }
+      }
+    }
+    return UserApiException(
+      message is String && message.trim().isNotEmpty ? message.trim() : _getErrorMessage(e),
+      statusCode: e.response?.statusCode,
+      code: code is String ? code : null,
+      validationMessages: List.unmodifiable(validationMessages),
+      isValidationError: code == 'INVALID_PAYLOAD' || validationMessages.isNotEmpty,
+      originalException: e,
+    );
   }
 
   UserApiException handleGenericError(Object e) {

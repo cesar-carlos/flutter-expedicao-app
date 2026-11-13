@@ -12,15 +12,15 @@ Contrato com o servidor (HTTP + Socket.IO) nao mora aqui. Fonte:
 
 Comece por `docs/comunicacao.md` e `docs/socket/protecoes-cliente.md`.
 Plano futuro (kick, RCSI, breaking): `docs/feature/protecao-base-e-emergencia.md`.
-O que este coletor ja cumpre e o que ainda falta: [socket.md](socket.md).
-O listener global de `servidor.emergencia.listen` ja esta neste coletor.
+Estado local, divergencias e melhorias pendentes de HTTP e Socket.IO:
+[integracao com o servidor](socket.md).
 
 ## Pastas
 
 ```text
 docs/
 |- README.md                 este indice
-|- socket.md                 estado do contrato Socket.IO neste coletor
+|- socket.md                 integracao HTTP/Socket.IO e pendencias locais
 |- app-update.md             atualizacao automatica via GitHub
 |- scanner-broadcast-android.md
 |- separacao/                regras de picking no coletor
@@ -45,6 +45,6 @@ usa `python create-release.py`.
 
 ## Separacao
 
-- [Contrato Socket.IO neste coletor](socket.md)
+- [Integracao HTTP e Socket.IO neste coletor](socket.md)
 - [Separacao por setor](separacao/README.md)
 - [Proxima separacao](proxima_separacao/regras_negocio_e_implementacao.md)

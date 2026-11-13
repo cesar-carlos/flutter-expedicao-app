@@ -1,11 +1,21 @@
 ---
 name: flutter-add-integration-test
-description: Configures Flutter Driver for app interaction and converts MCP actions into permanent integration tests. Use when adding integration testing to a project, exploring UI components via MCP, or automating user flows with the integration_test package.
+description: Add integration_test coverage using the existing project harness. Flutter Driver instructions are only for a separately requested legacy or diagnostic setup.
 metadata:
   model: models/gemini-3.1-pro-preview
   last_modified: Tue, 21 Apr 2026 18:29:20 GMT
 ---
 # Implementing Flutter Integration Tests
+
+## Applicability in this repository
+
+Start from the existing `integration_test/app_test.dart` harness with
+`IntegrationTestWidgetsFlutterBinding` and the dependencies already declared
+in pubspec.yaml. Follow [testing.mdc](../../../.cursor/rules/testing.mdc).
+The Driver setup below is conditional: do not add flutter_driver or enable a
+Driver extension in the production entrypoint for ordinary integration tests.
+Tests using a real backend can change separation data; use controlled fixtures
+in a test environment rather than confirming or cancelling real work as test setup.
 
 ## Contents
 - [Project Setup and Dependencies](#project-setup-and-dependencies)

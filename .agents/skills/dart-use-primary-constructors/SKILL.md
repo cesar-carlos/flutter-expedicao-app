@@ -1,13 +1,20 @@
 ---
 name: dart-use-primary-constructors
 description: >
-  Help users write syntactically and semantically correct primary constructors in Dart, and migrate/use the new constructor syntax, empty-body semicolon syntax, in-body initializer list syntax, and abbreviated concise constructor syntax.
+  Reference for primary constructors in compatible Dart packages. Not applicable to this repository while its SDK lower bound excludes this syntax.
 metadata:
   model: models/gemini-3.1-pro-preview
   last_modified: Thu, 09 Jul 2026 23:13:25 GMT
 ---
 
 # Dart Primary Constructors & New Constructor Syntax Skill
+
+## Applicability in this repository
+
+Check the package SDK lower bound and
+[coding_style.mdc](../../../.cursor/rules/coding_style.mdc) before using these examples.
+The current project does not permit class primary constructors. Do not raise
+the SDK lower bound or enable experiments merely to apply this recipe.
 
 Use this skill when helping users write, refactor, or debug code using Dart's **Primary Constructors** feature.
 

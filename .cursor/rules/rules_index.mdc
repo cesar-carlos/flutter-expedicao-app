@@ -92,7 +92,7 @@ Para mudancas em `lib/`, comece por `architecture.mdc`.
   `ui_ux_design.mdc`.
 - `test/**/*.dart` e `integration_test/**/*.dart`
   Leia `testing.mdc`, `coding_style.mdc` e `general_rules.mdc`.
-- `.cursor/**` e `AGENTS.md`
+- `.cursor/**`, `.agents/skills/**` e `AGENTS.md`
   Leia `global_guardrails.mdc`, `rules_index.mdc` e
   `rules_authoring.mdc`.
 - `pubspec.yaml`
@@ -103,7 +103,8 @@ Para mudancas em `lib/`, comece por `architecture.mdc`.
 
 ## Skills auxiliares
 
-`.cursor/skills/` contem receitas genericas, nao politicas do projeto.
+`.agents/skills/` e o diretorio unico de skills do projeto, compartilhado
+entre Codex e Cursor. Contem receitas genericas, nao politicas do projeto.
 Antes de aplica-las, confira a compatibilidade com as regras acima:
 
 - HTTP: `dependencies_patterns.mdc` define Dio; a receita

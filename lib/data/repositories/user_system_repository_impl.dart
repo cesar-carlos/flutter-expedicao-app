@@ -102,6 +102,7 @@ class UserSystemRepositoryImpl implements UserSystemRepository {
   UserSystemListPage _toListPage(UserSystemListResponseDto dto) {
     return UserSystemListPage(
       users: dto.users,
+      invalidItemCount: dto.invalidItemCount,
       total: dto.total,
       page: dto.page,
       limit: dto.limit,

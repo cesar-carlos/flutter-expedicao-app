@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:data7_expedicao/domain/services/i_socket_connection_port.dart';
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -308,6 +310,26 @@ SaveSeparationCartUseCase buildSaveCartUseCase(FakeUserSessionService userSessio
   );
 }
 
+class _Socket extends ChangeNotifier implements ISocketConnectionPort {
+  bool paused = false;
+  @override
+  bool get isTrafficPaused => paused;
+  @override
+  void pauseForServerDisconnect() {
+    paused = true;
+    notifyListeners();
+  }
+
+  @override
+  Future<void> reconnectAfterServerEnd() async {
+    paused = false;
+    notifyListeners();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 void main() {
   ExpeditionCartRouteInternshipConsultationModel buildCart({
     int codOrigem = 123,
@@ -400,6 +422,7 @@ void main() {
     late FakeUserSessionService userSessionService;
     late FakeSeparateCartInternshipEventRepository eventRepository;
     late CardPickingViewModel viewModel;
+    late _Socket socket;
 
     setUp(() {
       repository = FakeConsultationRepository<SeparateItemConsultationModel>(
@@ -410,7 +433,9 @@ void main() {
       userSessionService = FakeUserSessionService();
       eventRepository = FakeSeparateCartInternshipEventRepository();
 
+      socket = _Socket();
       viewModel = CardPickingViewModel.withDependencies(
+        socket: socket,
         repository: repository,
         sectorStockRepository: sectorStockRepository,
         filtersStorage: filtersStorage,
@@ -427,7 +452,29 @@ void main() {
 
     tearDown(() {
       viewModel.dispose();
+      socket.dispose();
       eventRepository.dispose();
+    });
+
+    test('should cancel pending resync and block new reads until manual reconnect', () async {
+      await viewModel.initializeCart(buildCart(), userModel: buildUserModel());
+      final before = repository.selectCallCount;
+      eventRepository.emit(
+        BasicEventModel(
+          timestamp: DateTime.now(),
+          eventType: Event.update,
+          data: {
+            'Mutation': [buildCart().toJson()],
+          },
+        ),
+      );
+      socket.pauseForServerDisconnect();
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      await viewModel.resyncVisibleDataSilently();
+      expect(repository.selectCallCount, before);
+      await socket.reconnectAfterServerEnd();
+      await viewModel.resyncVisibleDataSilently();
+      expect(repository.selectCallCount, greaterThan(before));
     });
 
     test('resyncVisibleDataSilently updates items without entering loading state', () async {

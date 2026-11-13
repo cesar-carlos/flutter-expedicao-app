@@ -13,6 +13,8 @@ class UserSystemListPage {
   final int? totalPages;
   final bool success;
   final String? message;
+  final int invalidItemCount;
+  bool get isPartial => invalidItemCount > 0;
 
   const UserSystemListPage({
     required this.users,
@@ -22,5 +24,6 @@ class UserSystemListPage {
     this.totalPages,
     required this.success,
     this.message,
+    this.invalidItemCount = 0,
   });
 }

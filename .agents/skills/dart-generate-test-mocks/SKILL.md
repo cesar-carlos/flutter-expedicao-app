@@ -7,6 +7,14 @@ metadata:
 ---
 # Testing and Mocking Dart Applications
 
+## Applicability in this repository
+
+Use the existing Mockito/build_runner setup and mock the dependency actually
+used by the code under test. HTTP examples below are illustrative; do not add
+package:http to reproduce them. Follow
+[dependencies_patterns.mdc](../../../.cursor/rules/dependencies_patterns.mdc)
+and [testing.mdc](../../../.cursor/rules/testing.mdc).
+
 ## Contents
 - [Structuring Code for Testability](#structuring-code-for-testability)
 - [Managing Dependencies](#managing-dependencies)

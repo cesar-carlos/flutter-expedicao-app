@@ -107,8 +107,7 @@ class UserSystemApiService extends BaseApiService {
     }
 
     if (searchName != null) {
-      queryParams['Nome'] = searchName;
-      queryParams['ApenasAtivos'] = apenasAtivos?.code ?? Situation.ativo.code;
+      queryParams['NomeUsuario'] = searchName;
     }
 
     if (pagination != null) {
@@ -148,6 +147,7 @@ class UserSystemApiService extends BaseApiService {
 
         return UserSystemListResponseDto(
           users: users,
+          invalidItemCount: data.length - users.length,
           total: responseData['total'] as int? ?? users.length,
           page: responseData['page'] as int?,
           limit: responseData['limit'] as int?,
@@ -160,9 +160,7 @@ class UserSystemApiService extends BaseApiService {
       // Envelope com 'data' presente mas que NAO e lista indica resposta
       // de erro ou formato inesperado. Falhar explicitamente em vez de
       // interpretar o envelope inteiro como um "usuario fantasma".
-      throw UserApiException(
-        'Formato de resposta inválido: campo "data" não é uma lista (${data.runtimeType})',
-      );
+      throw UserApiException('Formato de resposta inválido: campo "data" não é uma lista (${data.runtimeType})');
     }
 
     // Sem envelope 'data': resposta de usuario unico (caso documentado).
@@ -173,7 +171,13 @@ class UserSystemApiService extends BaseApiService {
   /// Processa resposta em formato List
   UserSystemListResponseDto _processListResponse(List responseData) {
     final users = _parseUsersList(responseData);
-    return UserSystemListResponseDto.success(users: users, message: 'Lista de usuários obtida com sucesso');
+    return UserSystemListResponseDto(
+      users: users,
+      total: responseData.length,
+      success: true,
+      invalidItemCount: responseData.length - users.length,
+      message: 'Lista de usuários obtida com sucesso',
+    );
   }
 
   /// Bug KKKKK/LLLLL: parse defensivo da lista de usuarios.
@@ -203,6 +207,11 @@ class UserSystemApiService extends BaseApiService {
           stackTrace: s,
         );
       }
+    }
+    if (rawList.isNotEmpty && result.isEmpty) {
+      throw UserApiException(
+        'Não foi possível carregar os usuários: a resposta contém registros inválidos. Tente novamente.',
+      );
     }
     return result;
   }
