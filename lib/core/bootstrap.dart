@@ -11,6 +11,7 @@ import 'package:data7_expedicao/data/datasources/config_service.dart';
 import 'package:data7_expedicao/data/datasources/user_preferences_service.dart';
 import 'package:data7_expedicao/presentation/viewmodels/app_update_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/servidor_emergencia_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/socket_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:data7_expedicao/infrastructure/services/logger_service.dart';
@@ -21,12 +22,14 @@ class BootstrapResult {
     required this.themeViewModel,
     required this.socketViewModel,
     required this.appUpdateViewModel,
+    required this.servidorEmergenciaViewModel,
   });
 
   final ConfigViewModel configViewModel;
   final ThemeViewModel themeViewModel;
   final SocketViewModel socketViewModel;
   final AppUpdateViewModel appUpdateViewModel;
+  final ServidorEmergenciaViewModel servidorEmergenciaViewModel;
 }
 
 Future<BootstrapResult> bootstrap() async {
@@ -39,12 +42,7 @@ Future<BootstrapResult> bootstrap() async {
   try {
     await dotenv.load(fileName: isIntegrationTest ? 'integration_test/.env' : '.env');
   } catch (e, s) {
-    AppLogger.warning(
-      'Falha ao carregar .env (continuando com env vazio)',
-      tag: 'Bootstrap',
-      error: e,
-      stackTrace: s,
-    );
+    AppLogger.warning('Falha ao carregar .env (continuando com env vazio)', tag: 'Bootstrap', error: e, stackTrace: s);
   }
 
   // setupLocator e LoggerService SAO criticos — se falharem, nada
@@ -101,11 +99,17 @@ Future<BootstrapResult> bootstrap() async {
   }
 
   final socketViewModel = locator<SocketViewModel>();
+  final servidorEmergenciaViewModel = locator<ServidorEmergenciaViewModel>();
   if (!isIntegrationTest) {
     try {
       socketViewModel.initialize();
     } catch (e, s) {
       AppLogger.warning('SocketViewModel.initialize falhou', tag: 'Bootstrap', error: e, stackTrace: s);
+    }
+    try {
+      servidorEmergenciaViewModel.initialize();
+    } catch (e, s) {
+      AppLogger.warning('ServidorEmergenciaViewModel.initialize falhou', tag: 'Bootstrap', error: e, stackTrace: s);
     }
   }
 
@@ -140,5 +144,6 @@ Future<BootstrapResult> bootstrap() async {
     themeViewModel: themeViewModel,
     socketViewModel: socketViewModel,
     appUpdateViewModel: appUpdateViewModel,
+    servidorEmergenciaViewModel: servidorEmergenciaViewModel,
   );
 }

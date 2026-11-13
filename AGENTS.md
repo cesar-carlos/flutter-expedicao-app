@@ -87,6 +87,12 @@ technical rule, then the general rule, then this index.
   `python create-release.py`.
 - Do not duplicate detailed rules in `AGENTS.md`; update links and short
   descriptions instead.
+- Socket.IO contract with the Node server lives in
+  `D:\Developer\Node\data7-api-pix Campo\docs\socket\protecoes-cliente.md`
+  (index: `docs/comunicacao.md`, regra 27 in
+  `docs/expedicao/regras.md`). Do not bring back `LIKE` on
+  `CodSetoresEstoque` or `DataEmissao`. Both Flutter clients listen to
+  `servidor.emergencia.listen` (`ServidorEmergenciaService`).
 
 ## Scope Hints
 

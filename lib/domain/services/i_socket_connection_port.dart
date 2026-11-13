@@ -14,11 +14,19 @@ abstract interface class ISocketConnectionPort {
 
   bool get isConnected;
 
+  bool get isTrafficPaused;
+
+  bool get isSessionEndedByServer;
+
   Future<void> connect();
 
   void disconnect();
 
   Future<void> reconnect();
+
+  void pauseForServerDisconnect();
+
+  Future<void> reconnectAfterServerEnd();
 
   Stream<dynamic> on(String eventName);
 

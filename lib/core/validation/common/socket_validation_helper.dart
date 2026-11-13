@@ -28,6 +28,10 @@ class SocketValidationHelper {
   /// 2. Se está conectado
   /// 3. Se tem um sessionId válido
   static SocketValidationResult validateSocketState() {
+    if (SocketConfig.isTrafficBlocked) {
+      return SocketValidationResult.error(SocketConfig.sessionEndedMessage);
+    }
+
     // Verifica se o socket foi inicializado
     if (!SocketConfig.isInitialized) {
       return SocketValidationResult.error('Socket não foi inicializado. Chame SocketConfig.initialize() primeiro.');

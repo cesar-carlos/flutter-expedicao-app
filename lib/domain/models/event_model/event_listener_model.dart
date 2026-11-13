@@ -1,6 +1,6 @@
 import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
 
-enum Event { insert, update, delete }
+enum Event { insert, update, delete, emergencia }
 
 typedef EventCallback = void Function(BasicEventModel event);
 

@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/core/errors/socket_error_parser.dart';
 import 'package:data7_expedicao/core/network/socket_config.dart';
+import 'package:data7_expedicao/core/network/socket_ready_gate.dart';
 import 'package:data7_expedicao/data/dtos/send_mutation_socket_dto.dart';
 import 'package:data7_expedicao/data/dtos/send_query_socket_dto.dart';
 import 'package:data7_expedicao/domain/models/pagination/paged_query.dart';
@@ -19,6 +20,10 @@ class SocketRequestHelper {
   static const Duration _defaultTimeout = Duration(seconds: 30);
   static const _uuid = Uuid();
   static const String lostConnectionMessage = 'Conexão com o servidor foi perdida. Tente novamente.';
+  static const String disconnectedMessage = 'Socket nao esta conectado';
+
+  @visibleForTesting
+  static SocketReadyGate readyGate = SocketReadyGate.forConfig();
 
   static Duration get defaultTimeout => _defaultTimeout;
 
@@ -127,7 +132,8 @@ class SocketRequestHelper {
     Duration? timeout,
     dynamic socket,
   }) async {
-    final resolved = _resolveSocket(socket);
+    ensureTrafficAllowed();
+    final resolved = await _resolveSocket(socket);
     final activeSocket = resolved.socket;
     final sessionId = resolved.sessionId;
     final watchDisconnect = resolved.watchDisconnect;
@@ -199,7 +205,15 @@ class SocketRequestHelper {
     }
   }
 
-  static ({dynamic socket, String sessionId, bool watchDisconnect}) _resolveSocket(dynamic socket) {
+  @visibleForTesting
+  static void ensureTrafficAllowed() {
+    if (SocketConfig.isTrafficBlocked) {
+      throw DataError(message: SocketConfig.sessionEndedMessage);
+    }
+  }
+
+  static Future<({dynamic socket, String sessionId, bool watchDisconnect})> _resolveSocket(dynamic socket) async {
+    ensureTrafficAllowed();
     if (socket != null) {
       final sessionId = socket.id?.toString();
       if (sessionId == null || sessionId.isEmpty) {
@@ -208,12 +222,18 @@ class SocketRequestHelper {
       return (socket: socket, sessionId: sessionId, watchDisconnect: false);
     }
 
-    if (!SocketConfig.isConnected) {
-      throw DataError(message: 'Socket nao esta conectado');
+    try {
+      await readyGate.ensureReady();
+    } catch (e, s) {
+      if (SocketConfig.isTrafficBlocked) {
+        throw DataError(message: SocketConfig.sessionEndedMessage, stackTrace: s);
+      }
+      throw DataError(message: disconnectedMessage, stackTrace: s);
     }
+
     final sessionId = SocketConfig.sessionId;
-    if (sessionId == null || sessionId.isEmpty) {
-      throw DataError(message: 'Socket sem session id (nao identificado pelo servidor)');
+    if (!SocketConfig.isConnected || sessionId == null || sessionId.isEmpty) {
+      throw DataError(message: disconnectedMessage);
     }
     return (socket: SocketConfig.instance, sessionId: sessionId, watchDisconnect: true);
   }

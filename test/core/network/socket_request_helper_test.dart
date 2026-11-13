@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:data7_expedicao/core/errors/app_error.dart';
+import 'package:data7_expedicao/core/network/socket_config.dart';
 import 'package:data7_expedicao/core/network/socket_request_helper.dart';
 
 /// Testes para SocketRequestHelper.
@@ -176,6 +177,23 @@ void main() {
   group('SocketRequestHelper.defaultTimeout', () {
     test('e 30 segundos', () {
       expect(SocketRequestHelper.defaultTimeout, equals(const Duration(seconds: 30)));
+    });
+  });
+
+  group('SocketRequestHelper.ensureTrafficAllowed', () {
+    tearDown(SocketConfig.reset);
+
+    test('should reject queries after the server paused traffic', () {
+      SocketConfig.pauseForServerDisconnect();
+
+      expect(
+        SocketRequestHelper.ensureTrafficAllowed,
+        throwsA(isA<DataError>().having((error) => error.message, 'message', SocketConfig.sessionEndedMessage)),
+      );
+    });
+
+    test('should allow queries when traffic is not paused', () {
+      expect(SocketRequestHelper.ensureTrafficAllowed, returnsNormally);
     });
   });
 }

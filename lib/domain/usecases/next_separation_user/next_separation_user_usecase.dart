@@ -36,8 +36,6 @@ class NextSeparationUserUseCase {
   static const String _fieldCodUsuario = 'CodUsuario';
   static const String _fieldCodSetorEstoque = 'CodSetorEstoque';
   static const String _fieldSituacao = 'SepararEstoqueSituacao';
-  static const String _fieldQuantidadeItensSetor = 'QuantidadeItensSetor';
-  static const String _fieldQuantidadeItensSeparacaoSetor = 'QuantidadeItensSeparacaoSetor';
   static const String _fieldCodPrioridade = 'CodPrioridade';
   static const String _fieldCodSepararEstoque = 'CodSepararEstoque';
 
@@ -138,11 +136,12 @@ class NextSeparationUserUseCase {
     while (assignmentAttempts < _maxRetries) {
       final query = _buildNewSeparationQuery(params)
         ..paginate(limit: _queryLimitNew, offset: currentPageIndex * _queryLimitNew, page: currentPageIndex + 1);
-      final candidates = await _separationUserSectorConsultationRepository.selectConsultation(query);
-      if (candidates.isEmpty) {
+      final results = await _separationUserSectorConsultationRepository.selectConsultation(query);
+      if (results.isEmpty) {
         break;
       }
 
+      final candidates = results.where(_hasPendingSectorQuantity).toList();
       var processedCandidateOnPage = false;
 
       for (final candidate in candidates) {
@@ -175,7 +174,11 @@ class NextSeparationUserUseCase {
         }
       }
 
-      if (!processedCandidateOnPage || candidates.length < _queryLimitNew) {
+      if (results.length < _queryLimitNew) {
+        break;
+      }
+
+      if (!processedCandidateOnPage && candidates.isNotEmpty) {
         break;
       }
 
@@ -212,12 +215,17 @@ class NextSeparationUserUseCase {
     final query = QueryBuilder()
       ..equals(_fieldCodEmpresa, params.codEmpresa)
       ..equals(_fieldCodSetorEstoque, params.codSetorEstoque!)
-      ..fieldGreaterThan(_fieldQuantidadeItensSetor, _fieldQuantidadeItensSeparacaoSetor)
-      ..addParam(_fieldCodUsuario, null, operator: 'IS');
+      ..isNull(_fieldCodUsuario);
 
     _addExcludedSituations(query);
     _addStandardOrderBy(query);
     return query;
+  }
+
+  /// O servidor não compara coluna com coluna em `>`. A pendência do setor
+  /// é aplicada depois da consulta, no mesmo critério de `hasPendingItems`.
+  static bool _hasPendingSectorQuantity(SeparationUserSectorConsultationModel item) {
+    return item.quantidadeItensSetor > item.quantidadeItensSeparacaoSetor;
   }
 
   void _addExcludedSituations(QueryBuilder query) {

@@ -30,6 +30,10 @@ class QueryBuilder {
     return addParam(key, value, operator: '>');
   }
 
+  QueryBuilder greaterThanOrEqual<P>(String key, P value) {
+    return addParam(key, value, operator: '>=');
+  }
+
   QueryBuilder lessThan<P>(String key, P value) {
     return addParam(key, value, operator: '<');
   }

@@ -10,13 +10,17 @@ Contrato com o servidor (HTTP + Socket.IO) nao mora aqui. Fonte:
 
 `D:\Developer\Node\data7-api-pix Campo\docs`
 
-Comece por `docs/comunicacao.md` e `docs/contratos/README.md`.
+Comece por `docs/comunicacao.md` e `docs/socket/protecoes-cliente.md`.
+Plano futuro (kick, RCSI, breaking): `docs/feature/protecao-base-e-emergencia.md`.
+O que este coletor ja cumpre e o que ainda falta: [socket.md](socket.md).
+O listener global de `servidor.emergencia.listen` ja esta neste coletor.
 
 ## Pastas
 
 ```text
 docs/
 |- README.md                 este indice
+|- socket.md                 estado do contrato Socket.IO neste coletor
 |- app-update.md             atualizacao automatica via GitHub
 |- scanner-broadcast-android.md
 |- separacao/                regras de picking no coletor
@@ -41,5 +45,6 @@ usa `python create-release.py`.
 
 ## Separacao
 
+- [Contrato Socket.IO neste coletor](socket.md)
 - [Separacao por setor](separacao/README.md)
 - [Proxima separacao](proxima_separacao/regras_negocio_e_implementacao.md)

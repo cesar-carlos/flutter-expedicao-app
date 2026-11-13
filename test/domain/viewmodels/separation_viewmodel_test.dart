@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -10,6 +12,7 @@ import 'package:data7_expedicao/data/services/filters_storage_service.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/expedition_sector_stock_model.dart';
 import 'package:data7_expedicao/domain/models/filter/separation_filters_model.dart';
+import 'package:data7_expedicao/domain/models/pagination/query_builder.dart';
 import 'package:data7_expedicao/domain/repositories/separate_event_repository.dart';
 import 'package:data7_expedicao/domain/models/event_model/basic_event_model.dart';
 import 'package:data7_expedicao/domain/models/event_model/event_listener_model.dart';
@@ -17,6 +20,7 @@ import 'package:data7_expedicao/domain/models/expedition_origem_model.dart';
 import 'package:data7_expedicao/domain/models/situation/expedition_situation_model.dart';
 import 'package:data7_expedicao/domain/models/entity_type_model.dart';
 import 'package:data7_expedicao/domain/models/situation/situation_model.dart';
+import 'package:data7_expedicao/core/errors/app_error.dart';
 import 'package:data7_expedicao/core/services/audio_service.dart';
 import 'package:data7_expedicao/core/services/notification_service.dart';
 
@@ -382,6 +386,45 @@ void main() {
         expect(viewModel.separations.first.codSepararEstoque, 1002);
       });
 
+      test('should send CodSetorEstoque equals and DataEmissao interval instead of LIKE', () async {
+        final setorFilter = ExpeditionSectorStockModel(
+          codSetorEstoque: 1,
+          descricao: 'Setor 1',
+          ativo: Situation.ativo,
+        );
+        QueryBuilder? captured;
+        when(mockRepository.selectConsultation(any)).thenAnswer((invocation) async {
+          captured = invocation.positionalArguments.first as QueryBuilder;
+          return [];
+        });
+
+        viewModel.setSetorEstoqueFilter(setorFilter);
+        viewModel.setDataEmissaoFilter(DateTime(2026, 11, 13));
+        await viewModel.loadSeparations();
+
+        expect(captured, isNotNull);
+        expect(
+          captured!.params.any(
+            (param) => param.key == 'CodSetorEstoque' && param.operator == '=' && param.value == 1,
+          ),
+          isTrue,
+        );
+        expect(captured!.params.any((param) => param.key == 'CodSetoresEstoque'), isFalse);
+        expect(
+          captured!.params.any(
+            (param) => param.key == 'DataEmissao' && param.operator == '>=' && param.value == '2026-11-13',
+          ),
+          isTrue,
+        );
+        expect(
+          captured!.params.any(
+            (param) => param.key == 'DataEmissao' && param.operator == '<' && param.value == '2026-11-14',
+          ),
+          isTrue,
+        );
+        expect(captured!.params.any((param) => param.operator == 'LIKE'), isFalse);
+      });
+
       test('should set and get codSepararEstoque filter', () {
         // Act
         viewModel.setCodSepararEstoqueFilter('12345');
@@ -511,19 +554,22 @@ void main() {
         expect(viewModel.separations.first.observacao, 'evento repetido');
       });
 
-      test('consultation listener performs authoritative resync and removes stale rows', () async {
+      test('consultation listener applies listen Data without another separar.consulta', () async {
         final first = buildSeparation(codSepararEstoque: 2001, codSetoresEstoque: const [1]);
         final second = buildSeparation(codSepararEstoque: 2002, codSetoresEstoque: const [1]);
-        when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [first, second]);
+        var selectCalls = 0;
+        when(mockRepository.selectConsultation(any)).thenAnswer((_) async {
+          selectCalls++;
+          return [first, second];
+        });
 
         await viewModel.loadSeparations();
         expect(viewModel.separations, hasLength(2));
+        expect(selectCalls, 1);
 
         viewModel.startEventMonitoring();
         final consultationListener =
             verify(mockEventRepository.addConsultationListener(captureAny)).captured.single as EventListenerModel;
-
-        when(mockRepository.selectConsultation(any)).thenAnswer((_) async => [second]);
 
         consultationListener.callback(
           BasicEventModel.create(
@@ -533,10 +579,41 @@ void main() {
             eventType: Event.insert,
           ),
         );
-        await Future<void>.delayed(Duration.zero);
 
         expect(viewModel.separations, hasLength(1));
         expect(viewModel.separations.first.codSepararEstoque, second.codSepararEstoque);
+        expect(selectCalls, 1);
+      });
+
+      test('should keep listen snapshot when the pending consultation times out', () async {
+        final pending = Completer<List<SeparateConsultationModel>>();
+        when(mockRepository.selectConsultation(any)).thenAnswer((_) => pending.future);
+
+        final loadFuture = viewModel.loadSeparations();
+        expect(viewModel.state, SeparationState.loading);
+
+        viewModel.startEventMonitoring();
+        final consultationListener =
+            verify(mockEventRepository.addConsultationListener(captureAny)).captured.single as EventListenerModel;
+        final fromListen = buildSeparation(codSepararEstoque: 291257, codSetoresEstoque: const [1]);
+        consultationListener.callback(
+          BasicEventModel.create(
+            data: {
+              'Data': [fromListen.toJson()],
+            },
+            eventType: Event.insert,
+          ),
+        );
+
+        expect(viewModel.state, SeparationState.loaded);
+        expect(viewModel.separations.single.codSepararEstoque, 291257);
+
+        pending.completeError(DataError(message: 'Tempo limite excedido ao aguardar resposta de separar.consulta'));
+        await loadFuture;
+
+        expect(viewModel.state, SeparationState.loaded);
+        expect(viewModel.hasError, isFalse);
+        expect(viewModel.separations.single.codSepararEstoque, 291257);
       });
 
       test('update event removes row when it stops matching current filters', () async {

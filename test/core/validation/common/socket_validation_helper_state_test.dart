@@ -15,5 +15,14 @@ void main() {
       expect(result.isValid, isFalse);
       expect(result.errorMessage, contains('inicializado'));
     });
+
+    test('retorna sessao encerrada quando o servidor pausou o trafego', () {
+      SocketConfig.pauseForServerDisconnect();
+
+      final result = SocketValidationHelper.validateSocketState();
+
+      expect(result.isValid, isFalse);
+      expect(result.errorMessage, SocketConfig.sessionEndedMessage);
+    });
   });
 }

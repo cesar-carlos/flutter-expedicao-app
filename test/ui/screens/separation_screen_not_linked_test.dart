@@ -137,31 +137,48 @@ void main() {
     GetIt.I.popScope();
   });
 
-  testWidgets('when user has sector and separation is not linked tapping Abrir Separação shows SnackBar and does not navigate', (WidgetTester tester) async {
-    await tester.pumpWidget(
+  Future<void> pumpScreen(WidgetTester tester) {
+    return tester.pumpWidget(
       MaterialApp(
         home: MultiProvider(
           providers: [
             ChangeNotifierProvider<SeparationViewModel>.value(value: viewModel),
-            ChangeNotifierProvider<SocketViewModel>.value(
-              value: locator<SocketViewModel>(),
-            ),
+            ChangeNotifierProvider<SocketViewModel>.value(value: locator<SocketViewModel>()),
           ],
           child: const SeparationScreen(),
         ),
       ),
     );
+  }
 
-    viewModel.loadSeparations();
+  testWidgets(
+    'when user has sector and separation is not linked tapping Abrir Separação shows SnackBar and does not navigate',
+    (WidgetTester tester) async {
+      await pumpScreen(tester);
+
+      viewModel.loadSeparations();
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Abrir Separação'), findsOneWidget);
+      await tester.tap(find.text('Abrir Separação'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(UIConstants.separationNotAssignedToUserMessage), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 3));
+    },
+  );
+
+  testWidgets('should stop event monitoring when the screen is disposed', (WidgetTester tester) async {
+    await pumpScreen(tester);
     await tester.pump();
-    await tester.pumpAndSettle();
 
-    expect(find.text('Abrir Separação'), findsOneWidget);
-    await tester.tap(find.text('Abrir Separação'));
-    await tester.pumpAndSettle();
+    verify(mockEventRepository.addConsultationListener(any)).called(1);
 
-    expect(find.text(UIConstants.separationNotAssignedToUserMessage), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
 
-    await tester.pump(const Duration(seconds: 3));
+    verify(mockEventRepository.removeConsultationListener(any)).called(1);
+    expect(viewModel.isScreenVisible, isFalse);
   });
 }

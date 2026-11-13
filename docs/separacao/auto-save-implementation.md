@@ -47,12 +47,14 @@ Future<void> checkAndShowSaveCartModal() async
 
 Esse metodo:
 
-1. le o `userSectorCode`
+1. le o `userSectorCode` (sem setor, retorna sem dialogo)
 2. monta o subconjunto de itens sem setor ou do setor do usuario
 3. confirma se o subconjunto nao esta vazio
 4. verifica se todos esses itens foram concluidos
-5. toca `playAlertComplete()`
-6. abre o dialogo de salvamento
+5. so abre uma vez por ciclo de conclusao
+   (`_hasShownSaveCartAfterSectorCompletion`)
+6. toca `playAlertComplete()`
+7. abre o dialogo de salvamento
 
 Hoje essa responsabilidade nao fica mais documentada como sendo do
 `picking_card_scan.dart`.
@@ -70,11 +72,10 @@ O metodo atual:
 - evita double-submit com `_isFinishing`
 - valida estado do socket
 - exibe o dialogo de confirmacao `_showFinishConfirmationDialog`
-  ("Finalizar Separação") ANTES do loading
-  (`picking_flow_controller.dart` ~142-146); esse dialogo bloqueia a
+  ("Finalizar Separação") ANTES do loading; esse dialogo bloqueia a
   confirmacao enquanto houver operacoes de sync pendentes
-  (`pendingOps == 0`, ~440)
-- chama `viewModel.stopCartEventMonitoring()` antes de salvar (~152)
+  (`pendingOps == 0`)
+- chama `viewModel.stopCartEventMonitoring()` antes de salvar
 - abre loading
 - chama `viewModel.saveCart()`
 - toca `playSuccess()` quando salva
@@ -108,7 +109,7 @@ scan correto
   -> verifica se o setor foi concluido
   -> se nao concluiu, continua
   -> se concluiu:
-       -> toca AlertFalha.wav
+       -> toca playAlertComplete()
        -> mostra dialogo
        -> usuario decide
        -> se salvar:

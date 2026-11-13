@@ -59,7 +59,7 @@ class SeparationViewModel extends ChangeNotifier {
       eventRepository: _eventRepository,
       isDisposed: () => _disposed,
       onSeparationEvent: _handleSeparationEvent,
-      onListResyncRequested: () => unawaited(resyncVisibleSeparationsSilently()),
+      onListSnapshot: _applyListenSnapshot,
     );
   }
 
@@ -155,6 +155,9 @@ class SeparationViewModel extends ChangeNotifier {
       _setState(SeparationState.loaded);
     } catch (e) {
       if (_disposed) return;
+      if (_state == SeparationState.loaded && _separations.isNotEmpty) {
+        return;
+      }
       _setError('Erro ao carregar separações: ${_getErrorMessage(e)}');
     }
   }
@@ -417,6 +420,29 @@ class SeparationViewModel extends ChangeNotifier {
 
   SeparationFiltersModel get currentFilters => _filtersController.current;
 
+  void _applyListenSnapshot(List<SeparateConsultationModel> rows) {
+    if (_disposed) return;
+
+    final previousKeys = {for (final separation in _separations) _separationKey(separation)};
+    final filteredSeparations = _filtersController.applyExactSetorFilter(
+      rows.where(_filtersController.shouldInclude).toList(),
+    );
+    final notificationCandidate = !_isScreenVisible
+        ? _selectNewSeparationNotificationCandidate(previousKeys, filteredSeparations)
+        : null;
+
+    _separations = filteredSeparations;
+    _sortSeparationsNewestFirst();
+    _currentPage = filteredSeparations.isEmpty ? 0 : ((filteredSeparations.length - 1) ~/ _pageSize);
+    _hasMoreData = rows.length == _pageSize;
+    _clearError();
+    _setState(SeparationState.loaded);
+
+    if (!_disposed && notificationCandidate != null) {
+      _playNotificationIfNeeded(notificationCandidate);
+    }
+  }
+
   void startEventMonitoring() {
     if (_disposed) return;
     _eventCoordinator.start();
@@ -444,6 +470,8 @@ class SeparationViewModel extends ChangeNotifier {
           (s) => s.codEmpresa == separationData.codEmpresa && s.codSepararEstoque == separationData.codSepararEstoque,
         );
         hasChanges = previousLength != _separations.length;
+        break;
+      case Event.emergencia:
         break;
     }
 

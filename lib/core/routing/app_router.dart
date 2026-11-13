@@ -41,6 +41,7 @@ import 'package:data7_expedicao/ui/screens/add_cart_screen.dart';
 import 'package:data7_expedicao/presentation/viewmodels/add_cart_viewmodel.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/user_system_models.dart';
+import 'package:data7_expedicao/core/routing/route_extra.dart';
 import 'package:data7_expedicao/core/theme/app_colors.dart';
 
 class AppRouter {
@@ -126,6 +127,7 @@ class AppRouter {
       navigatorKey: navigatorKey,
       initialLocation: splash,
       debugLogDiagnostics: true,
+      extraCodec: const AppRouteExtraCodec(),
       refreshListenable: authViewModel,
 
       redirect: (BuildContext context, GoRouterState state) {
@@ -189,13 +191,8 @@ class AppRouter {
               path: 'separate-items',
               name: 'separate-items',
               builder: (context, state) {
-                // Bug AAAAAAAA: antes era `state.extra as Map<String, dynamic>?`
-                // direto. Se a navegacao fosse feita com extra de tipo diferente
-                // (ex.: passar SeparateConsultationModel direto por engano), o
-                // cast lancava TypeError em vez do friendly fallback abaixo.
-                // Agora validamos com `is` antes do cast.
-                final extra = state.extra;
-                if (extra is! Map<String, dynamic>) {
+                final extra = routeExtraMap(state.extra);
+                if (extra == null) {
                   return const Scaffold(body: Center(child: Text('Dados da separação não encontrados')));
                 }
 
@@ -231,10 +228,8 @@ class AppRouter {
               path: 'card-picking',
               name: 'card-picking',
               builder: (context, state) {
-                // Bug AAAAAAAA: validacao defensiva de tipo (mesma motivacao
-                // da rota separate-items acima).
-                final extra = state.extra;
-                if (extra is! Map<String, dynamic>) {
+                final extra = routeExtraMap(state.extra);
+                if (extra == null) {
                   return const Scaffold(body: Center(child: Text('Dados do carrinho não encontrados')));
                 }
 
@@ -255,8 +250,8 @@ class AppRouter {
               path: 'picking-products-list',
               name: 'picking-products-list',
               builder: (context, state) {
-                final extra = state.extra;
-                if (extra is! Map<String, dynamic>) {
+                final extra = routeExtraMap(state.extra);
+                if (extra == null) {
                   return const Scaffold(body: Center(child: Text('Dados não encontrados')));
                 }
 
@@ -291,8 +286,8 @@ class AppRouter {
               path: 'add-cart',
               name: 'add-cart',
               builder: (context, state) {
-                final extra = state.extra;
-                if (extra is! Map<String, dynamic>) {
+                final extra = routeExtraMap(state.extra);
+                if (extra == null) {
                   return const Scaffold(body: Center(child: Text('Dados não encontrados')));
                 }
 
@@ -315,8 +310,8 @@ class AppRouter {
           path: shelfScanning,
           name: 'shelf-scanning',
           builder: (context, state) {
-            final extra = state.extra;
-            if (extra is! Map<String, dynamic>) {
+            final extra = routeExtraMap(state.extra);
+            if (extra == null) {
               return const Scaffold(body: Center(child: Text('Dados não encontrados')));
             }
             final expectedAddress = extra['expectedAddress'];

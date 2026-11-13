@@ -52,6 +52,8 @@ class BasicEventModel {
       case 'removed':
       case 'deleted':
         return Event.delete;
+      case 'emergencia':
+        return Event.emergencia;
       default:
         return Event.insert;
     }

@@ -177,6 +177,57 @@ void main() {
         expect(registrationRepository.lastInsert?.codUsuario, equals(1));
         expect(registrationRepository.lastInsert?.codSepararEstoque, equals(newSeparation.codSepararEstoque));
       });
+
+      test('should ask for unassigned rows without a sector quantity comparison in Where', () async {
+        consultationRepository.setNewSeparations([createMockNewSeparation()]);
+
+        await useCase.call(_createValidParams());
+
+        final query = consultationRepository.lastNewQuery;
+        expect(query, isNotNull);
+        expect(
+          query!.params.any((param) => param.key == 'CodUsuario' && param.operator == 'IS NULL'),
+          isTrue,
+        );
+        expect(query.params.any((param) => param.key == 'QuantidadeItensSetor'), isFalse);
+        expect(query.params.any((param) => param.key == 'QuantidadeItensSeparacaoSetor'), isFalse);
+      });
+
+      test('should skip completed unassigned rows and assign the next pending one', () async {
+        final completedSeparations = List<SeparationUserSectorConsultationModel>.generate(
+          20,
+          (index) => createMockNewSeparation(
+            codSepararEstoque: 300 + index,
+            quantidadeItensSetor: 10.0,
+            quantidadeItensSeparacaoSetor: 10.0,
+          ),
+        );
+        final pendingSeparation = createMockNewSeparation(codSepararEstoque: 999);
+
+        consultationRepository.setNewSeparations([...completedSeparations, pendingSeparation]);
+
+        final result = await useCase.call(_createValidParams());
+
+        expect(result.isSuccess(), isTrue);
+        final success = result.getOrNull()!;
+        expect(success.hasSeparation, isTrue);
+        expect(success.separation!.codSepararEstoque, equals(999));
+        expect(registrationRepository.insertCount, equals(1));
+        expect(registrationRepository.lastInsert?.codSepararEstoque, equals(999));
+      });
+
+      test('should return notFound when unassigned rows have no pending sector quantity', () async {
+        consultationRepository.setNewSeparations([
+          createMockNewSeparation(quantidadeItensSetor: 10.0, quantidadeItensSeparacaoSetor: 10.0),
+        ]);
+
+        final result = await useCase.call(_createValidParams());
+
+        expect(result.isSuccess(), isTrue);
+        final success = result.getOrNull()!;
+        expect(success.hasSeparation, isFalse);
+        expect(registrationRepository.insertCount, equals(0));
+      });
     });
 
     group('assignment retry', () {
@@ -389,7 +440,11 @@ SeparationUserSectorConsultationModel createMockSeparationWithPendingItems({
   );
 }
 
-SeparationUserSectorConsultationModel createMockNewSeparation({int codSepararEstoque = 300}) {
+SeparationUserSectorConsultationModel createMockNewSeparation({
+  int codSepararEstoque = 300,
+  double quantidadeItensSetor = 10.0,
+  double quantidadeItensSeparacaoSetor = 0.0,
+}) {
   return SeparationUserSectorConsultationModel(
     codEmpresa: 1,
     codSepararEstoque: codSepararEstoque,
@@ -400,9 +455,9 @@ SeparationUserSectorConsultationModel createMockNewSeparation({int codSepararEst
     descricaoPrioridade: 'Normal',
     prioridade: 1,
     quantidadeItens: 10.0,
-    quantidadeItensSeparacao: 0.0,
-    quantidadeItensSetor: 10.0,
-    quantidadeItensSeparacaoSetor: 0.0,
+    quantidadeItensSeparacao: quantidadeItensSeparacaoSetor,
+    quantidadeItensSetor: quantidadeItensSetor,
+    quantidadeItensSeparacaoSetor: quantidadeItensSeparacaoSetor,
     carrinhosAbertosUsuario: 'N',
     codUsuario: null,
     nomeUsuario: null,
@@ -414,6 +469,7 @@ class _FakeSeparationUserSectorConsultationRepository
     implements BasicConsultationRepository<SeparationUserSectorConsultationModel> {
   final List<SeparationUserSectorConsultationModel> _existingSeparations = [];
   final List<SeparationUserSectorConsultationModel> _newSeparations = [];
+  QueryBuilder? lastNewQuery;
   Object? _error;
 
   void setCompletedSeparation(SeparationUserSectorConsultationModel separation) {
@@ -453,6 +509,7 @@ class _FakeSeparationUserSectorConsultationRepository
   void reset() {
     _existingSeparations.clear();
     _newSeparations.clear();
+    lastNewQuery = null;
     _error = null;
   }
 
@@ -464,12 +521,13 @@ class _FakeSeparationUserSectorConsultationRepository
 
     final builder = queryBuilder as QueryBuilder;
     final isNewSeparationQuery = builder.params.any(
-      (param) => param.key == 'CodUsuario' && param.operator == 'IS' && param.value == null,
+      (param) => param.key == 'CodUsuario' && param.operator == 'IS NULL',
     );
     final limit = builder.pagination?.limit ?? 1000;
     final offset = builder.pagination?.offset ?? 0;
 
     if (isNewSeparationQuery) {
+      lastNewQuery = builder;
       return _slicePage(_newSeparations, offset: offset, limit: limit);
     }
 

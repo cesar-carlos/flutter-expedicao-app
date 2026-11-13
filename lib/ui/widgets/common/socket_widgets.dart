@@ -16,6 +16,8 @@ Future<void> _performSocketConnectionButtonTap({
   try {
     if (isConnected) {
       socketViewModel.disconnect();
+    } else if (socketViewModel.isSessionEndedByServer) {
+      await socketViewModel.reconnectAfterServerEnd();
     } else {
       await socketViewModel.connect();
     }

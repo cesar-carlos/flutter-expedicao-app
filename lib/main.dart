@@ -22,10 +22,12 @@ import 'package:data7_expedicao/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/config_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/register_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/scanner_viewmodel.dart';
+import 'package:data7_expedicao/presentation/viewmodels/servidor_emergencia_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/socket_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/theme_viewmodel.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_dialog.dart';
 import 'package:data7_expedicao/ui/widgets/app_update_progress_dialog.dart';
+import 'package:data7_expedicao/ui/widgets/common/servidor_emergencia_host.dart';
 
 void main() {
   runZonedGuarded(
@@ -41,6 +43,7 @@ void main() {
           themeViewModel: boot.themeViewModel,
           socketViewModel: boot.socketViewModel,
           appUpdateViewModel: boot.appUpdateViewModel,
+          servidorEmergenciaViewModel: boot.servidorEmergenciaViewModel,
         ),
       );
     },
@@ -55,6 +58,7 @@ class MyApp extends StatefulWidget {
   final ThemeViewModel themeViewModel;
   final SocketViewModel socketViewModel;
   final AppUpdateViewModel appUpdateViewModel;
+  final ServidorEmergenciaViewModel servidorEmergenciaViewModel;
 
   const MyApp({
     super.key,
@@ -62,6 +66,7 @@ class MyApp extends StatefulWidget {
     required this.themeViewModel,
     required this.socketViewModel,
     required this.appUpdateViewModel,
+    required this.servidorEmergenciaViewModel,
   });
 
   @override
@@ -127,6 +132,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider.value(value: widget.themeViewModel),
         ChangeNotifierProvider.value(value: widget.socketViewModel),
         ChangeNotifierProvider.value(value: widget.appUpdateViewModel),
+        ChangeNotifierProvider.value(value: widget.servidorEmergenciaViewModel),
       ],
       child: Builder(
         builder: (context) {
@@ -141,7 +147,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 themeMode: themeViewModel.themeMode,
                 routerConfig: router,
                 builder: (context, child) {
-                  return _AppUpdateHost(navigatorKey: _navigatorKey, child: child ?? const SizedBox.shrink());
+                  return ServidorEmergenciaHost(
+                    navigatorKey: _navigatorKey,
+                    child: _AppUpdateHost(navigatorKey: _navigatorKey, child: child ?? const SizedBox.shrink()),
+                  );
                 },
                 localizationsDelegates: const [
                   AppLocalizations.delegate,

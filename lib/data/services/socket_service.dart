@@ -38,6 +38,12 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
   bool get isConnected => _connectionState == SocketConnectionState.connected;
 
   @override
+  bool get isTrafficPaused => SocketConfig.isTrafficPaused;
+
+  @override
+  bool get isSessionEndedByServer => SocketConfig.isSessionEndedByServer;
+
+  @override
   String? get userId => _userId;
 
   Future<void> initialize(ApiConfig apiConfig, {String? userId}) async {
@@ -60,39 +66,48 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
   }
 
   @override
-  Future<void> connect() async {
-    if (isConnected) {
-      return;
+  Future<void> connect() {
+    if (SocketConfig.isTrafficBlocked) {
+      return Future<void>.error(StateError(SocketConfig.sessionEndedMessage));
     }
-    if (_connectInFlight != null) {
-      return _connectInFlight!.future;
+    if (isConnected) {
+      return Future<void>.value();
+    }
+    final inFlight = _connectInFlight;
+    if (inFlight != null) {
+      return inFlight.future;
     }
 
     _manualDisconnect = false;
     final completer = Completer<void>();
     _connectInFlight = completer;
     _updateConnectionState(SocketConnectionState.connecting);
+    unawaited(_connectInternal(completer));
+    return completer.future;
+  }
 
+  Future<void> _connectInternal(Completer<void> completer) async {
     try {
       AppLogger.connection('Tentando conectar socket', tag: 'SocketService');
       await SocketConfig.connect();
       _reconnectAttempts = 0;
       if (SocketConfig.isConnected) {
         _updateConnectionState(SocketConnectionState.connected);
-        completer.complete();
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
         return;
       }
       throw StateError('Conexão com o servidor não foi estabelecida.');
     } catch (e, s) {
       AppLogger.error('Falha ao conectar socket', tag: 'SocketService', error: e, stackTrace: s);
       _updateConnectionState(SocketConnectionState.error);
-      if (!completer.isCompleted) {
-        completer.completeError(e, s);
-      }
       if (!_manualDisconnect) {
         _scheduleReconnect();
       }
-      rethrow;
+      if (!completer.isCompleted) {
+        completer.completeError(e, s);
+      }
     } finally {
       if (identical(_connectInFlight, completer)) {
         _connectInFlight = null;
@@ -116,6 +131,7 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
 
   @override
   Future<void> reconnect() async {
+    SocketConfig.clearServerDisconnectPause();
     _cancelReconnectTimer();
     _reconnectAttempts = 0;
     _manualDisconnect = true;
@@ -130,6 +146,25 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
       _updateConnectionState(SocketConnectionState.error);
       rethrow;
     }
+  }
+
+  @override
+  void pauseForServerDisconnect() {
+    _manualDisconnect = true;
+    _cancelReconnectTimer();
+    SocketConfig.pauseForServerDisconnect();
+    notifyListeners();
+    AppLogger.warning('Trafego socket pausado pelo servidor', tag: 'SocketService');
+  }
+
+  @override
+  Future<void> reconnectAfterServerEnd() async {
+    _cancelReconnectTimer();
+    _reconnectAttempts = 0;
+    SocketConfig.clearServerDisconnectPause();
+    _manualDisconnect = false;
+    _updateConnectionState(SocketConnectionState.reconnecting);
+    await connect();
   }
 
   void _scheduleReconnect() {
@@ -305,6 +340,13 @@ class SocketService extends ChangeNotifier implements ISocketConnectionPort {
 
     socket.onDisconnect((reason) {
       _updateConnectionState(SocketConnectionState.disconnected);
+      if (SocketConfig.isTrafficPaused) {
+        SocketConfig.markSessionEndedByServer();
+        _manualDisconnect = true;
+        _cancelReconnectTimer();
+        notifyListeners();
+        return;
+      }
       final wasClientDisconnect = reason == 'io client disconnect';
       if (!_manualDisconnect && !wasClientDisconnect) {
         _scheduleReconnect();

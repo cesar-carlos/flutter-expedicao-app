@@ -160,16 +160,21 @@ class SeparationFiltersController {
     }
 
     if (_dataEmissao != null) {
-      final dateString =
-          '${_dataEmissao!.year}-'
-          '${_dataEmissao!.month.toString().padLeft(2, '0')}-'
-          '${_dataEmissao!.day.toString().padLeft(2, '0')}';
-      queryBuilder.like('DataEmissao', '$dateString%');
+      final day = DateTime(_dataEmissao!.year, _dataEmissao!.month, _dataEmissao!.day);
+      queryBuilder
+        ..greaterThanOrEqual('DataEmissao', _sqlDate(day))
+        ..lessThan('DataEmissao', _sqlDate(day.add(const Duration(days: 1))));
     }
 
     if (_setorEstoque != null) {
-      queryBuilder.like('CodSetoresEstoque', '%${_setorEstoque!.codSetorEstoque}%');
+      queryBuilder.equals('CodSetorEstoque', _setorEstoque!.codSetorEstoque);
     }
+  }
+
+  static String _sqlDate(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$month-$day';
   }
 
   List<SeparateConsultationModel> applyExactSetorFilter(List<SeparateConsultationModel> separations) {

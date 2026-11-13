@@ -28,12 +28,18 @@ widgets como proximo item, scanner e seletor de quantidade.
 
 `lib/presentation/viewmodels/card_picking_viewmodel.dart`
 
+A carga dos itens fica em
+`lib/presentation/viewmodels/controllers/picking_item_loader.dart`
+(duas consultas quando ha setor: igualdade e `IS NULL`). Detalhe:
+[product-ordering-logic.md](product-ordering-logic.md).
+
 Responsabilidades principais:
 
-- carregar itens do carrinho
+- carregar itens do carrinho (via loader)
 - aplicar ordenacao e filtros
 - manter progresso, caches e pendencias
 - processar scans via resolver
+- manter o proximo item via `NextItemCacheManager`
 - adicionar itens com atualizacao otimista
 - salvar, cancelar e sincronizar carrinho
 
@@ -52,6 +58,7 @@ Essas pecas dividem a experiencia de scan em:
 ### Resolucao de negocio do scan
 
 - `lib/presentation/viewmodels/controllers/picking_scan_resolver.dart`
+- `lib/presentation/viewmodels/controllers/next_item_cache_manager.dart`
 - `lib/core/services/barcode_validation_service.dart`
 - `lib/core/utils/picking_utils.dart`
 
@@ -87,9 +94,8 @@ ViewModel.
 - `BarcodeValidationService.validateScannedBarcode(...)`
 
 O proximo item esperado em si nao vem de `findNextItemToPick` direto no
-ViewModel: o cache do `CardPickingViewModel` e mantido por
-`_findNextItemFromCurrentOrder()`, que itera sobre `_items` (ja
-ordenados) e retorna o primeiro incompleto.
+ViewModel: o cache fica em `NextItemCacheManager`, que itera sobre a
+lista ja ordenada e guarda o primeiro incompleto.
 
 ### 3. Reacao da UI
 
@@ -158,9 +164,9 @@ Ou seja, apos concluir o setor o usuario passa por dois dialogos:
 ## Pontos fortes atuais
 
 - A ordenacao esta centralizada em `PickingUtils.sortItemsByAddress`; o
-  proximo item do ViewModel deriva dessa lista ja ordenada via
-  `_findNextItemFromCurrentOrder()`, e `PickingUtils.findNextItemToPick`
-  serve como fallback no resolver.
+  proximo item deriva dessa lista ja ordenada via
+  `NextItemCacheManager`, e `PickingUtils.findNextItemToPick` serve como
+  fallback no resolver.
 - O service de validacao de carrinho esta separado do widget.
 - O fluxo de feedback sonoro esta mais explicito por tipo de evento.
 - O `AudioService` atual corrige repeticao consecutiva do mesmo som em

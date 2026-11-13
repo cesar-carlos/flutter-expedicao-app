@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
+import 'package:data7_expedicao/core/network/socket_connect_wait.dart';
 import 'package:data7_expedicao/core/utils/app_logger.dart';
 import 'package:data7_expedicao/domain/models/api_config.dart';
 
 class SocketConfig {
   static const Duration connectionTimeout = Duration(seconds: 15);
+  static const String sessionEndedMessage = 'O servidor encerrou a sessão.';
 
   static io.Socket? _socketInstance;
   static ApiConfig? _currentApiConfig;
@@ -15,6 +17,8 @@ class SocketConfig {
 
   static final List<void Function()> _rebindCallbacks = <void Function()>[];
   static final List<void Function()> _disconnectCallbacks = <void Function()>[];
+  static bool _trafficPaused = false;
+  static bool _sessionEndedByServer = false;
 
   /// Métrica de tentativa de conexão. Preenchido na borda de DI
   /// (`NetworkInitializer`), sem `locator` nesta classe.
@@ -43,6 +47,26 @@ class SocketConfig {
   static bool get isConnected => _socketInstance?.connected ?? false;
 
   static String? get sessionId => _socketInstance?.id;
+
+  static bool get isTrafficPaused => _trafficPaused;
+
+  static bool get isSessionEndedByServer => _sessionEndedByServer;
+
+  static bool get isTrafficBlocked => _trafficPaused || _sessionEndedByServer;
+
+  static void pauseForServerDisconnect() {
+    _trafficPaused = true;
+  }
+
+  static void markSessionEndedByServer() {
+    _trafficPaused = true;
+    _sessionEndedByServer = true;
+  }
+
+  static void clearServerDisconnectPause() {
+    _trafficPaused = false;
+    _sessionEndedByServer = false;
+  }
 
   static void updateConfig(ApiConfig newConfig) {
     final configChanged =
@@ -106,6 +130,9 @@ class SocketConfig {
   }
 
   static Future<void> connect({Duration timeout = connectionTimeout}) async {
+    if (isTrafficBlocked) {
+      throw StateError(sessionEndedMessage);
+    }
     if (_socketInstance == null) {
       throw StateError('SocketConfig não foi inicializado.');
     }
@@ -142,15 +169,13 @@ class SocketConfig {
     socket.connect();
 
     try {
-      await completer.future.timeout(
-        timeout,
+      await waitForSocketConnect(
+        wait: completer,
+        timeout: timeout,
         onTimeout: () {
-          throw TimeoutException('Conexão não estabelecida em ${timeout.inSeconds}s');
+          _socketInstance?.disconnect();
         },
       );
-    } on TimeoutException {
-      _socketInstance?.disconnect();
-      rethrow;
     } finally {
       offConnect();
       offError();
@@ -270,6 +295,7 @@ class SocketConfig {
     _rebindCallbacks.clear();
     _disconnectCallbacks.clear();
     onConnectionAttempt = null;
+    clearServerDisconnectPause();
   }
 
   static void dispose() {

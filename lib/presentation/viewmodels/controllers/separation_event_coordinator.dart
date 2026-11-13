@@ -16,7 +16,7 @@ import 'package:data7_expedicao/domain/repositories/separate_event_repository.da
 /// O merge da lista, a ordenação e o `notifyListeners` permanecem no
 /// ViewModel (dono da lista). O coordinator apenas dispara callbacks:
 /// - [onSeparationEvent]: para cada mutação CRUD parseada
-/// - [onListResyncRequested]: quando um evento de lista pede resync
+/// - [onListSnapshot]: linhas já enviadas em `separar.consulta.listen`
 class SeparationEventCoordinator {
   static const String _insertListenerId = 'separation_viewmodel_insert';
   static const String _updateListenerId = 'separation_viewmodel_update';
@@ -27,7 +27,7 @@ class SeparationEventCoordinator {
   final SeparateEventRepository _eventRepository;
   final bool Function() _isDisposed;
   final void Function(Event eventType, SeparateConsultationModel data) _onSeparationEvent;
-  final void Function() _onListResyncRequested;
+  final void Function(List<SeparateConsultationModel> rows) _onListSnapshot;
 
   bool _eventListenersRegistered = false;
   bool _consultationListenerRegistered = false;
@@ -37,11 +37,11 @@ class SeparationEventCoordinator {
     required SeparateEventRepository eventRepository,
     required bool Function() isDisposed,
     required void Function(Event eventType, SeparateConsultationModel data) onSeparationEvent,
-    required void Function() onListResyncRequested,
+    required void Function(List<SeparateConsultationModel> rows) onListSnapshot,
   }) : _eventRepository = eventRepository,
        _isDisposed = isDisposed,
        _onSeparationEvent = onSeparationEvent,
-       _onListResyncRequested = onListResyncRequested;
+       _onListSnapshot = onListSnapshot;
 
   void start() {
     if (_isDisposed()) return;
@@ -198,10 +198,23 @@ class SeparationEventCoordinator {
   }
 
   void _processListEventData(BasicEventModel event) {
-    final dataMap = event.data as Map<String, dynamic>;
+    final dataMap = event.data;
+    if (dataMap == null) return;
 
-    if (!dataMap.containsKey('Data') || dataMap['Data'] is! List) return;
+    final raw = dataMap['Data'];
+    if (raw is! List) return;
 
-    _onListResyncRequested();
+    final rows = <SeparateConsultationModel>[];
+    for (final item in raw) {
+      if (item is! Map) continue;
+      try {
+        rows.add(SeparateConsultationModel.fromJson(Map<String, dynamic>.from(item)));
+      } catch (e, s) {
+        developer.log('Item inválido no listen de separação', error: e, stackTrace: s);
+      }
+    }
+
+    if (rows.isEmpty) return;
+    _onListSnapshot(rows);
   }
 }

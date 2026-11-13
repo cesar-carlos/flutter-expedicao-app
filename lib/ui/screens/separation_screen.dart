@@ -60,6 +60,9 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   late AnimationController _fabAnimationController;
   late Animation<double> _fabAnimation;
 
+  // context.read no dispose falha: a árvore inherited já está instável.
+  SeparationViewModel? _viewModel;
+
   // === LIFECYCLE ===
 
   @override
@@ -79,33 +82,32 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
     _fabAnimationController.forward();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadInitialData();
+      if (!mounted) return;
+      final viewModel = _viewModel;
+      if (viewModel == null) return;
 
-      // Inicia o monitoramento de eventos quando a tela é aberta
-      final viewModel = context.read<SeparationViewModel>();
+      viewModel.loadSeparations();
       viewModel.startEventMonitoring();
-      viewModel.setScreenVisible(true); // Marca tela como visível
+      viewModel.setScreenVisible(true);
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _viewModel = context.read<SeparationViewModel>();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
 
-    if (mounted) {
-      try {
-        final viewModel = context.read<SeparationViewModel>();
-        viewModel.stopEventMonitoring();
-        viewModel.setScreenVisible(false);
-      } catch (e, stackTrace) {
-        AppLogger.debug(
-          'Erro ao parar monitoramento (contexto pode não estar mais disponível)',
-          tag: 'SeparationScreen',
-          error: e,
-          stackTrace: stackTrace,
-        );
-      }
+    final viewModel = _viewModel;
+    if (viewModel != null) {
+      viewModel.stopEventMonitoring();
+      viewModel.setScreenVisible(false);
     }
+    _viewModel = null;
 
     _scrollController.dispose();
     _fabAnimationController.dispose();
@@ -116,31 +118,17 @@ class _SeparationScreenState extends State<SeparationScreen> with TickerProvider
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    if (!mounted) return;
+    final viewModel = _viewModel;
+    if (viewModel == null) return;
 
-    try {
-      final viewModel = context.read<SeparationViewModel>();
-
-      if (state == AppLifecycleState.paused ||
-          state == AppLifecycleState.inactive ||
-          state == AppLifecycleState.detached) {
-        viewModel.setScreenVisible(false);
-      } else if (state == AppLifecycleState.resumed) {
-        viewModel.setScreenVisible(true);
-        unawaited(viewModel.resyncVisibleSeparationsSilently());
-      }
-    } catch (e, stackTrace) {
-      AppLogger.debug(
-        'Erro ao atualizar visibilidade (contexto pode não estar mais disponível)',
-        tag: 'SeparationScreen',
-        error: e,
-        stackTrace: stackTrace,
-      );
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      viewModel.setScreenVisible(false);
+    } else if (state == AppLifecycleState.resumed) {
+      viewModel.setScreenVisible(true);
+      unawaited(viewModel.resyncVisibleSeparationsSilently());
     }
-  }
-
-  void _loadInitialData() {
-    context.read<SeparationViewModel>().loadSeparations();
   }
 
   void _onScroll() {

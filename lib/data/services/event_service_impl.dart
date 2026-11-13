@@ -186,6 +186,7 @@ class EventServiceImpl implements EventService {
   }
 
   Event _extractEventType(String eventName) {
+    if (eventName.contains('emergencia')) return Event.emergencia;
     if (eventName.contains('.insert.')) return Event.insert;
     if (eventName.contains('.update.')) return Event.update;
     if (eventName.contains('.delete.')) return Event.delete;

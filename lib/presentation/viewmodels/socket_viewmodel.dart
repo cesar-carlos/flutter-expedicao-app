@@ -20,6 +20,8 @@ class SocketViewModel extends ChangeNotifier {
 
   bool get isConnected => socketService.isConnected;
 
+  bool get isSessionEndedByServer => socketService.isSessionEndedByServer;
+
   String? get userId => socketService.userId;
 
   void initialize() {
@@ -34,6 +36,8 @@ class SocketViewModel extends ChangeNotifier {
   void disconnect() => socketService.disconnect();
 
   Future<void> reconnect() => socketService.reconnect();
+
+  Future<void> reconnectAfterServerEnd() => socketService.reconnectAfterServerEnd();
 
   Stream<dynamic> listenToEvent(String eventName) {
     return socketService.on(eventName);
@@ -62,6 +66,9 @@ class SocketViewModel extends ChangeNotifier {
   }
 
   String get connectionStateDescription {
+    if (isSessionEndedByServer) {
+      return 'Sessão encerrada';
+    }
     switch (connectionState) {
       case SocketConnectionState.disconnected:
         return 'Desconectado';
@@ -77,6 +84,9 @@ class SocketViewModel extends ChangeNotifier {
   }
 
   int get connectionStateColor {
+    if (isSessionEndedByServer) {
+      return 0xFFFF5722;
+    }
     switch (connectionState) {
       case SocketConnectionState.disconnected:
         return 0xFF9E9E9E;

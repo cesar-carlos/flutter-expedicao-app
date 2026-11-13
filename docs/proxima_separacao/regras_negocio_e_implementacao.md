@@ -15,20 +15,23 @@ O disparo fica em:
 
 - `lib/ui/screens/separation_screen.dart`
 
-O FAB chama:
+O FAB chama `_findNextSeparation()`, que instancia
+`NextSeparationCoordinator` e mapeia o resultado selado para a UI.
 
-```dart
-_findNextSeparation()
-```
+A orquestracao (sessao, params, use case, consulta completa) mora em:
 
-Esse metodo:
+- `lib/presentation/coordinators/next_separation_coordinator.dart`
+
+O coordinator:
 
 1. carrega a sessao do usuario
 2. monta `NextSeparationUserParams`
 3. executa `NextSeparationUserUseCase`
-4. trata sucesso, ausencia de separacao ou falha
-5. se houver separacao valida, consulta os dados completos antes de
-   navegar para a tela de itens
+4. se houver separacao valida e atribuida ao usuario, consulta os dados
+   completos com `GetSeparationConsultationUseCase`
+5. devolve `NextSeparationReady` (ou um erro tipado)
+
+A tela so navega quando o resultado e `NextSeparationReady`.
 
 ## Pre-requisitos atuais
 
@@ -43,8 +46,9 @@ Hoje o fluxo exige:
 - `userSystemModel != null`
 - `codSetorEstoque != null && codSetorEstoque > 0`
 
-Se o usuario nao tiver setor valido, a tela nem prossegue com a busca e
-mostra erro localmente. O use case tambem valida isso e retorna
+Se o usuario nao tiver setor valido, o coordinator devolve
+`NextSeparationInvalidSector` sem chamar o use case. A tela mostra o
+erro. O use case tambem valida isso e retorna
 `NextSeparationUserFailure.userWithoutSector()` como protecao adicional.
 
 ## Regras de negocio atuais
@@ -153,18 +157,18 @@ Esse fallback existe tanto para a Prioridade 1 quanto para a Prioridade
 
 ## Fluxo de abertura na UI
 
-Quando o use case encontra uma separacao, a `SeparationScreen` ainda nao
-navega direto para a tela de itens.
-
-Passos atuais:
+Quando o use case encontra uma separacao, a tela ainda nao navega
+direto. O `NextSeparationCoordinator` faz a ponte:
 
 1. valida se `separation.codUsuario == params.codUsuario`
 2. consulta os dados completos com `GetSeparationConsultationUseCase`
-3. so depois chama `context.push(AppRouter.separateItems, ...)`
+3. devolve `NextSeparationReady` com `SeparateConsultationModel`
 
-Esse detalhe e importante porque o retorno do use case usa
-`SeparationUserSectorConsultationModel`, mas a tela de itens abre com
-os dados completos da separacao.
+So entao a `SeparationScreen` chama
+`context.push(AppRouter.separateItems, extra: separation.toJson())`.
+
+O retorno do use case usa `SeparationUserSectorConsultationModel`; a
+tela de itens abre com os dados completos da separacao.
 
 ## Verificacao de vinculo do usuario com a separacao
 
@@ -269,6 +273,7 @@ Essas validacoes sao usadas em:
 - Presentation:
   - `lib/ui/screens/separation_screen.dart`
   - `lib/ui/screens/separation_items_screen.dart`
+  - `lib/presentation/coordinators/next_separation_coordinator.dart`
 - Domain:
   - `lib/domain/usecases/next_separation_user/next_separation_user_usecase.dart`
   - `lib/domain/usecases/next_separation_user/next_separation_user_params.dart`
@@ -285,14 +290,14 @@ Essas validacoes sao usadas em:
 
 ### Repositorio de consulta
 
-`SeparationUserSectorConsultationRepositoryImpl` tem um comportamento
-proprio:
+`SeparationUserSectorConsultationRepositoryImpl` delega a
+`SocketRequestHelper`, que espera o socket ficar pronto
+(`SocketReadyGate`, ate 8 s: conectado + `sessionId`) antes de emitir
+`separar.usuario.setor.consulta`.
 
-- espera ate 1.5s se o socket estiver desconectado no inicio
-- se continuar desconectado, lanca erro de dados
-
-Isso ajuda a explicar por que algumas buscas nao falham imediatamente em
-cenarios de reconexao.
+Se o gate estourar, a falha vira `socketDisconnected` / conexao em
+tempo real indisponivel — sem delay fixo de 1.5 s e sem retry em loop
+de `[SQL-CONN]`.
 
 ### Tipos de falha do fluxo
 
@@ -316,7 +321,7 @@ Esses tipos vivem em:
   nome dele.
 - So pega nova separacao quando nao ha mais pendencia na atual.
 - Nova separacao precisa ser atribuida antes de abrir.
-- A UI reconsulta a separacao completa antes de navegar.
+- O coordinator reconsulta a separacao completa antes da tela navegar.
 - Abrir separacao e incluir carrinho dependem de vinculo com o usuario.
 - Incluir carrinho tambem e bloqueado quando o setor do usuario ja foi
   concluido.

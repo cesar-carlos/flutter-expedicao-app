@@ -36,7 +36,10 @@ class TitleWithConnectionStatus extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          children: [_buildTitle(context, theme, connectionState), _buildConnectionStatus(theme, connectionState)],
+          children: [
+            _buildTitle(context, theme, connectionState),
+            _buildConnectionStatus(theme, connectionState, socketViewModel.isSessionEndedByServer),
+          ],
         );
       },
     );
@@ -61,33 +64,39 @@ class TitleWithConnectionStatus extends StatelessWidget {
     );
   }
 
-  Widget _buildConnectionStatus(ThemeData theme, SocketConnectionState connectionState) {
+  Widget _buildConnectionStatus(ThemeData theme, SocketConnectionState connectionState, bool sessionEndedByServer) {
     Color statusColor;
     String statusText;
     IconData statusIcon;
 
-    switch (connectionState) {
-      case SocketConnectionState.connected:
-        statusColor = AppColors.success;
-        statusText = 'Conectado';
-        statusIcon = Icons.wifi;
-        break;
-      case SocketConnectionState.connecting:
-      case SocketConnectionState.reconnecting:
-        statusColor = AppColors.warning;
-        statusText = 'Conectando...';
-        statusIcon = Icons.wifi_find;
-        break;
-      case SocketConnectionState.disconnected:
-        statusColor = AppColors.grey;
-        statusText = 'Desconectado';
-        statusIcon = Icons.wifi_off;
-        break;
-      case SocketConnectionState.error:
-        statusColor = AppColors.error;
-        statusText = 'Erro de Conexão';
-        statusIcon = Icons.error_outline;
-        break;
+    if (sessionEndedByServer) {
+      statusColor = AppColors.error;
+      statusText = 'Sessão encerrada';
+      statusIcon = Icons.link_off;
+    } else {
+      switch (connectionState) {
+        case SocketConnectionState.connected:
+          statusColor = AppColors.success;
+          statusText = 'Conectado';
+          statusIcon = Icons.wifi;
+          break;
+        case SocketConnectionState.connecting:
+        case SocketConnectionState.reconnecting:
+          statusColor = AppColors.warning;
+          statusText = 'Conectando...';
+          statusIcon = Icons.wifi_find;
+          break;
+        case SocketConnectionState.disconnected:
+          statusColor = AppColors.grey;
+          statusText = 'Desconectado';
+          statusIcon = Icons.wifi_off;
+          break;
+        case SocketConnectionState.error:
+          statusColor = AppColors.error;
+          statusText = 'Erro de Conexão';
+          statusIcon = Icons.error_outline;
+          break;
+      }
     }
 
     return AnimatedContainer(

@@ -4,13 +4,16 @@ import 'package:data7_expedicao/data/repositories/event_repository/event_generic
 import 'package:data7_expedicao/data/repositories/event_repository/separate_cart_internship_event_repository_impl.dart';
 import 'package:data7_expedicao/data/repositories/event_repository/separate_event_repository_impl.dart';
 import 'package:data7_expedicao/data/services/event_service_impl.dart';
+import 'package:data7_expedicao/data/services/servidor_emergencia_service.dart';
 import 'package:data7_expedicao/data/services/socket_service.dart';
+import 'package:data7_expedicao/domain/services/i_servidor_emergencia_service.dart';
 import 'package:data7_expedicao/domain/models/expedition_cart_route_internship_consultation_model.dart';
 import 'package:data7_expedicao/domain/models/separate_consultation_model.dart';
 import 'package:data7_expedicao/domain/repositories/separate_cart_internship_event_repository.dart';
 import 'package:data7_expedicao/domain/repositories/separate_event_repository.dart';
 import 'package:data7_expedicao/domain/services/event_service.dart';
 import 'package:data7_expedicao/domain/services/i_socket_connection_port.dart';
+import 'package:data7_expedicao/presentation/viewmodels/servidor_emergencia_viewmodel.dart';
 import 'package:data7_expedicao/presentation/viewmodels/socket_viewmodel.dart';
 
 void registerSocketModule(GetIt locator) {
@@ -20,6 +23,17 @@ void registerSocketModule(GetIt locator) {
   locator.registerLazySingleton(SocketViewModel.new);
 
   locator.registerLazySingleton<EventService>(() => EventServiceImpl());
+
+  locator.registerLazySingleton<IServidorEmergenciaService>(
+    () => ServidorEmergenciaService(eventService: locator<EventService>(), socket: locator<ISocketConnectionPort>()),
+  );
+
+  locator.registerLazySingleton(
+    () => ServidorEmergenciaViewModel(
+      service: locator<IServidorEmergenciaService>(),
+      socket: locator<ISocketConnectionPort>(),
+    ),
+  );
 
   locator.registerLazySingleton<EventGenericRepositoryImpl<SeparateConsultationModel>>(
     () => EventGenericRepositoryImpl(locator<EventService>(), 'separar'),

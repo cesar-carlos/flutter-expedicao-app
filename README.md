@@ -29,25 +29,23 @@ O **Data7 Expedição** é um aplicativo mobile desenvolvido em Flutter para ger
 - **Temas Claro/Escuro**: Suporte a temas claro e escuro
 - **Internacionalização**: Suporte a português (pt-BR) e inglês (en-US)
 
-Documentação do coletor: [`docs/README.md`](./docs/README.md). Contrato com o servidor: `D:\Developer\Node\data7-api-pix Campo\docs` (`comunicacao.md`).
+Documentação do coletor: [`docs/README.md`](./docs/README.md). Contrato Socket neste app: [`docs/socket.md`](./docs/socket.md). Fonte no servidor: `D:\Developer\Node\data7-api-pix Campo\docs` (`comunicacao.md`, `socket/protecoes-cliente.md`).
 
 ## 🛠 Tecnologias
 
 ### Principais Dependências
 
+Versões atuais ficam no `pubspec.yaml`. Principais:
+
 - **Flutter SDK**: ^3.9.0
-- **get_it**: ^9.2.0 - Injeção de dependências
-- **provider**: ^6.1.5+1 - Gerenciamento de estado
-- **go_router**: ^17.0.0 - Navegação e rotas
-- **dio**: ^5.7.0 - Cliente HTTP
-- **socket_io_client**: ^3.1.3 - Comunicação em tempo real
-- **hive**: ^2.2.3 - Banco de dados local
-- **mobile_scanner**: ^7.1.3 - Scanner de código de barras
-- **brasil_fields**: ^1.18.0 - Formatação de campos brasileiros
-- **result_dart**: ^2.1.1 - Tratamento de erros
-- **zard**: ^0.0.23 - Validação de tipos
-- **flutter_dotenv**: ^6.0.0 - Variáveis de ambiente
-- **uuid**: ^4.5.1 - Geração de UUIDs
+- **get_it**: injeção de dependências
+- **provider**: gerenciamento de estado
+- **go_router**: navegação e rotas
+- **dio**: cliente HTTP
+- **socket_io_client**: comunicação em tempo real
+- **hive**: banco de dados local
+- **mobile_scanner**: scanner de código de barras
+- **result_dart**: tratamento de erros
 
 ### Dependências de Desenvolvimento
 
@@ -63,45 +61,19 @@ O projeto segue os princípios de **Clean Architecture** e **Domain Driven Desig
 
 ```
 lib/
-├── domain/              # Domain Layer (Lógica de Negócio Pura)
-│   ├── models/          # Modelos de domínio
-│   ├── repositories/    # Interfaces de repositórios
-│   ├── services/        # Serviços de domínio
-│   ├── usecases/        # Casos de uso
-│   └── viewmodels/      # ViewModels
-│
-├── data/                # Data Layer (Implementações)
-│   ├── datasources/     # Fontes de dados
-│   ├── dtos/            # Data Transfer Objects
-│   ├── models/          # Modelos de dados
-│   ├── repositories/    # Implementações de repositórios
-│   └── services/        # Serviços de dados
-│
-├── infrastructure/      # Infrastructure Layer
-│   └── services/        # Serviços de infraestrutura
-│
-├── core/                # Core Components (Compartilhados)
-│   ├── constants/       # Constantes
-│   ├── extensions/      # Extensões
-│   ├── metrics/         # Coleta de métricas
-│   ├── network/         # Configuração de rede
-│   ├── routing/         # Rotas (go_router)
-│   ├── theme/           # Tema da aplicação
-│   └── utils/           # Utilitários
-│
-├── ui/                  # Presentation Layer (UI)
-│   ├── screens/         # Telas da aplicação
-│   ├── widgets/         # Componentes reutilizáveis
-│   └── wrappers/        # Wrappers de navegação
-│
-├── di/                  # Dependency Injection (GetIt)
-│   └── locator.dart     # Configuração do GetIt
-│
-├── l10n/                # Internacionalização
-│   └── app_*.arb        # Arquivos de tradução
-│
-└── main.dart            # Ponto de entrada
+├── domain/              # Modelos, contratos, serviços e use cases
+├── data/                # Repositórios, DTOs e serviços de API/socket
+├── infrastructure/      # Impressora e adapters de dispositivo
+├── presentation/        # View models, controllers e coordinators
+├── ui/                  # Telas e widgets
+├── core/                # Tema, rotas, rede, validação e Result
+├── di/                  # Locator e modules
+├── l10n/                # Textos gerados
+└── main.dart
 ```
+
+Detalhe das pastas e da direção das dependências:
+[`.cursor/rules/architecture.mdc`](./.cursor/rules/architecture.mdc).
 
 ### Princípios Aplicados
 
@@ -217,7 +189,7 @@ Contém a lógica de negócio pura, sem dependências de frameworks:
 - **Models**: Entidades do domínio
 - **Repositories**: Interfaces para acesso a dados
 - **Use Cases**: Operações de negócio isoladas
-- **ViewModels**: Gerenciamento de estado da UI
+- **Services**: Serviços de domínio
 
 ### Data Layer
 
@@ -227,6 +199,14 @@ Implementações concretas de acesso a dados:
 - **Repositories**: Implementações dos repositórios
 - **DTOs**: Objetos de transferência de dados
 - **Services**: Serviços de dados (API, Socket, etc.)
+
+### Presentation
+
+Estado e fluxo de tela:
+
+- **ViewModels**: estado da UI
+- **Controllers**: fatias extraídas do ViewModel
+- **Coordinators**: orquestração entre use cases antes da navegação
 
 ### Core
 
@@ -359,6 +339,7 @@ python create-release.py --publish --require-release-signing --artifact both
 ## 📚 Documentação Adicional
 
 - [Indice da documentacao](./docs/README.md)
+- [Contrato Socket.IO neste coletor](./docs/socket.md)
 - [Atualizacao automatica](./docs/app-update.md)
 - [Processo de Release](./docs/release/RELEASE_PROCESS.md)
 - [Assinatura Android](./android/RELEASE_SIGNING_GUIDE.md)
@@ -394,6 +375,6 @@ Desenvolvido pela equipe Data7.
 
 ---
 
-**Versão**: 2.1.4+5
+**Versão**: 2.1.7+8
 
 Para mais informações, consulte a documentação técnica nos arquivos `.md` na pasta `docs/`.

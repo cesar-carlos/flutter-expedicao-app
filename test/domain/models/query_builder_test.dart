@@ -86,6 +86,15 @@ void main() {
         expect(queryBuilder.params.first.operator, '>');
       });
 
+      test('should add greater than or equal parameter', () {
+        queryBuilder.greaterThanOrEqual('DataEmissao', '2026-11-13');
+
+        expect(queryBuilder.params.length, 1);
+        expect(queryBuilder.params.first.key, 'DataEmissao');
+        expect(queryBuilder.params.first.value, '2026-11-13');
+        expect(queryBuilder.params.first.operator, '>=');
+      });
+
       test('should add less than parameter', () {
         queryBuilder.lessThan('age', 65);
 

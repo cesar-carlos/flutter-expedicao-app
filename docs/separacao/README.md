@@ -7,3 +7,5 @@ neles e a referencia quando os dois divergirem.
 - [Validacao de acesso ao carrinho](cart-validation-service.md)
 - [Oferta de salvamento ao concluir o setor](auto-save-implementation.md)
 - [Fluxo do scan ate a gravacao](picking-implementation-analysis.md)
+
+Contrato Socket.IO (lista, listen, emergencia): [../socket.md](../socket.md).

@@ -21,28 +21,34 @@ class ConnectionStatusBar extends StatelessWidget {
         String statusText;
         IconData statusIcon;
 
-        switch (connectionState) {
-          case SocketConnectionState.connected:
-            statusColor = AppColors.success;
-            statusText = 'Conectado';
-            statusIcon = Icons.wifi;
-            break;
-          case SocketConnectionState.connecting:
-          case SocketConnectionState.reconnecting:
-            statusColor = AppColors.warning;
-            statusText = 'Conectando...';
-            statusIcon = Icons.wifi_find;
-            break;
-          case SocketConnectionState.disconnected:
-            statusColor = AppColors.grey;
-            statusText = 'Desconectado';
-            statusIcon = Icons.wifi_off;
-            break;
-          case SocketConnectionState.error:
-            statusColor = AppColors.error;
-            statusText = 'Erro de Conexão';
-            statusIcon = Icons.error_outline;
-            break;
+        if (socketViewModel.isSessionEndedByServer) {
+          statusColor = AppColors.error;
+          statusText = 'Sessão encerrada';
+          statusIcon = Icons.link_off;
+        } else {
+          switch (connectionState) {
+            case SocketConnectionState.connected:
+              statusColor = AppColors.success;
+              statusText = 'Conectado';
+              statusIcon = Icons.wifi;
+              break;
+            case SocketConnectionState.connecting:
+            case SocketConnectionState.reconnecting:
+              statusColor = AppColors.warning;
+              statusText = 'Conectando...';
+              statusIcon = Icons.wifi_find;
+              break;
+            case SocketConnectionState.disconnected:
+              statusColor = AppColors.grey;
+              statusText = 'Desconectado';
+              statusIcon = Icons.wifi_off;
+              break;
+            case SocketConnectionState.error:
+              statusColor = AppColors.error;
+              statusText = 'Erro de Conexão';
+              statusIcon = Icons.error_outline;
+              break;
+          }
         }
 
         return AnimatedContainer(
